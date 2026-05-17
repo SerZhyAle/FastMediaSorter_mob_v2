@@ -6,6 +6,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
@@ -15,13 +17,16 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 
 /** Strategy for FTP file operations. Handles ftp:// using FtpClient (stateful connection). */
 class FtpOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
     
     override suspend fun copyFile(
@@ -191,6 +196,30 @@ class FtpOperationStrategy @Inject constructor(
              Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "FtpOperationStrategy: Create directory failed - $path")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // S0189: defer file creation — see SmbOperationStrategy.createTextFile.
+            val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
+            val localFile = File(dir, "${resourceId}_${fileName}")
+            stagingRegistry.register(
+                file = localFile,
+                targetResourceId = resourceId,
+                targetParentPath = parentPath,
+                intendedName = fileName,
+                kind = com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE,
+            )
+            Result.success(localFile.absolutePath)
+        } catch (e: Exception) {
+            Timber.e(e, "FtpOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
             Result.failure(e)
         }
     }
@@ -391,26 +420,35 @@ class FtpOperationStrategy @Inject constructor(
         try {
             val sourceInfo = parseFtpPath(source)
                 ?: return Result.failure(IllegalArgumentException("Invalid source path"))
-            
-            val destFile = File(destination)
-            destFile.parentFile?.mkdirs()
-            
+
             ensureConnected(sourceInfo)
-            
-            FileOutputStream(destFile).use { outputStream ->
+
+            // S0231: route writes through LocalDestinationWriter for scoped-storage awareness.
+            val category = destinationClassifier.classify(destination)
+            val sink = destinationWriter.open(category, overwrite = true).getOrElse { error ->
+                Timber.e(error, "FTP to Local: writer.open failed for $destination")
+                return Result.failure(error)
+            }
+
+            return try {
                 val downloadResult = ftpClient.downloadFile(
                     sourceInfo.remotePath,
-                    outputStream,
+                    sink.outputStream,
                     fileSize = 0L,
                     progressCallback = progressCallback
                 )
-                
                 if (downloadResult.isFailure) {
+                    sink.abort()
                     return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
                 }
+                sink.commit().map { destination }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                sink.abort()
+                throw e
+            } catch (e: Throwable) {
+                sink.abort()
+                Result.failure(e)
             }
-            
-            return Result.success(destination)
         } catch (e: Exception) {
             Timber.e(e, "FTP to Local download failed: $source -> $destination")
             return Result.failure(e)

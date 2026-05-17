@@ -486,7 +486,8 @@ class ResourceRepositoryImpl @Inject constructor(
             recommendedThreads = recommendedThreads,
             lastSpeedTestDate = lastSpeedTestDate,
             iconId = iconId,
-            hostKeyFingerprint = hostKeyFingerprint
+            hostKeyFingerprint = hostKeyFingerprint,
+            needsSignIn = needsSignIn // S0200: propagate the "needs sign-in" flag from entity to domain.
         )
     }
 
@@ -542,7 +543,8 @@ class ResourceRepositoryImpl @Inject constructor(
             recommendedThreads = recommendedThreads,
             lastSpeedTestDate = lastSpeedTestDate,
             iconId = iconId,
-            hostKeyFingerprint = hostKeyFingerprint
+            hostKeyFingerprint = hostKeyFingerprint,
+            needsSignIn = needsSignIn // S0200: propagate the "needs sign-in" flag from domain to entity.
         )
     }
 }

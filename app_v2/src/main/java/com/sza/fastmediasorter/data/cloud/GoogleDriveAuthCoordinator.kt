@@ -1,208 +1,114 @@
-@file:Suppress("DEPRECATION")
-
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.UserRecoverableAuthException
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.Scope
-import com.google.android.gms.tasks.Tasks
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
-import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.net.URL
-import java.util.UUID
 
 /**
- * Owns Google Sign-In state and Drive HTTP plumbing for GoogleDriveRestClient.
+ * Owns Drive HTTP token plumbing for GoogleDriveRestClient.
  *
- * State held here (was previously in GoogleDriveRestClient):
- *   - accessToken, accountEmail, tokenTimestamp
+ * S0200 Phase 04b — token source switched to [GoogleIdentityRepository] (Credential Manager).
+ * Old `GoogleSignIn` / `GoogleAuthUtil` calls are replaced by `identityRepository.getAccessToken`
+ * and `invalidateToken`. Cached `accessToken` is kept as a synchronous read accessor for the
+ * RestClient hot path; it is refreshed via [fetchTokenFromIdentity] on every suspend entry point.
  *
- * Responsibilities:
- *   - silent + interactive Google Sign-In, OAuth token acquisition via GoogleAuthUtil
- *   - persistence of credentials via GoogleDriveCredentialsManager
- *   - registering the signed-in account in NetworkCredentialsEntity
- *   - proactive token refresh + 401-driven silent re-auth
- *   - authenticated Drive requests with bounded retry
- *
- * The client delegates every auth/HTTP concern here and stays focused on Drive endpoint
- * shaping, JSON parsing, and the CloudStorageClient surface.
- *
- * Extracted to keep GoogleDriveRestClient below the 1000-line cap.
+ * S0200 Phase 04c: legacy `GoogleSignIn` / `GoogleAuthUtil` stubs deleted. The only remaining
+ * `GoogleSignIn*` references in the Drive cloud surface are doc-comments referring to the
+ * historical context.
  */
 class GoogleDriveAuthCoordinator(
     private val context: Context,
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val httpClient: GoogleDriveHttpClient,
-    private val networkCredentialsRepository: NetworkCredentialsRepository
+    private val networkCredentialsRepository: NetworkCredentialsRepository,
+    private val identityRepository: GoogleIdentityRepository
 ) {
 
-    var accessToken: String? = null
-        private set
-    var accountEmail: String? = null
-        private set
-    private var tokenTimestamp: Long = 0L
+    private val driveScopes: Set<GoogleScope> = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
+    private val tokenMutex = Mutex()
 
-    fun isAuthenticated(): Boolean = accessToken != null
+    @Volatile private var cachedAccessToken: String? = null
+    @Volatile private var tokenTimestamp: Long = 0L
 
-    fun captureToken(): String? = accessToken
+    /** Synchronous read of the cached token. Always refresh via [fetchTokenFromIdentity] first. */
+    val accessToken: String? get() = cachedAccessToken
+
+    /** Email of the currently bound primary Google account, or null when unbound. */
+    val accountEmail: String?
+        get() = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
+
+    fun isAuthenticated(): Boolean =
+        identityRepository.state.value is PrimaryGoogleAccountState.Bound
+
+    fun captureToken(): String? = cachedAccessToken
 
     fun clearAuth() {
-        accessToken = null
-        accountEmail = null
+        cachedAccessToken = null
         tokenTimestamp = 0L
     }
 
-    /** Build the GoogleSignInOptions used for both silent + interactive sign-in. */
-    fun buildSignInOptions(webClientIdResId: Int): GoogleSignInOptions =
-        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestIdToken(context.getString(webClientIdResId))
-            .requestScopes(Scope(SCOPE_DRIVE))
-            .requestScopes(Scope(SCOPE_DRIVE_READONLY))
-            .build()
+    /**
+     * Fetch a fresh Drive access token from the identity domain.
+     * Caches the value for synchronous reads in [accessToken]. Returns null when the primary
+     * account is unbound or the identity-domain silent refresh failed.
+     */
+    suspend fun fetchTokenFromIdentity(): String? = tokenMutex.withLock {
+        val token = identityRepository.getAccessToken(driveScopes)?.token
+        if (token != null) {
+            cachedAccessToken = token
+            tokenTimestamp = System.currentTimeMillis()
+        } else {
+            cachedAccessToken = null
+        }
+        token
+    }
 
     /**
-     * Silent-first authenticate. Falls back to GoogleSignIn.getLastSignedInAccount and a fresh
-     * token request. Returns AuthResult.Error("Re-authentication required..") when neither path
-     * yields a token — caller surfaces this so the user re-adds the resource interactively.
+     * Silent sign-in via identity domain — invalidate cached token, request a fresh one.
+     * [webClientIdResId] is accepted for legacy API compatibility; Credential Manager owns the
+     * client-id configuration so the parameter is ignored.
      */
-    suspend fun authenticate(webClientIdResId: Int): AuthResult = withContext(Dispatchers.Main) {
-        try {
-            val silentResult = silentSignIn(webClientIdResId)
-            if (silentResult is AuthResult.Success) return@withContext silentResult
+    suspend fun silentSignIn(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int): AuthResult {
+        identityRepository.invalidateToken()
+        val token = fetchTokenFromIdentity()
+        return if (token != null) {
+            Timber.i("Silent sign-in successful via identity domain")
+            AuthResult.Success(
+                accountName = accountEmail ?: "Unknown",
+                credentialsJson = accountEmail.orEmpty()
+            )
+        } else {
+            Timber.w("Silent sign-in failed: identity-domain returned no token")
+            AuthResult.Error("Silent sign-in failed: identity-domain returned no token")
+        }
+    }
 
-            val account = GoogleSignIn.getLastSignedInAccount(context)
-            if (account != null) {
-                // GoogleAuthUtil.getToken automatically requests additional permissions if needed
-                val token = getAccessToken(account)
-                if (token != null) {
-                    accessToken = token
-                    tokenTimestamp = System.currentTimeMillis()
-                    accountEmail = account.email
-                    return@withContext AuthResult.Success(
-                        accountName = accountEmail ?: "Unknown",
-                        credentialsJson = credentialsManager.serializeAccount(account)
-                    )
-                }
-            }
-
+    /**
+     * Issue a Drive token from the currently bound primary account. Falls back to silent refresh
+     * via [identityRepository.getAccessToken]. Returns AuthResult.Error when the primary account
+     * is unbound — caller surfaces this so the user signs in through the Settings card.
+     */
+    suspend fun authenticate(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int): AuthResult {
+        val token = fetchTokenFromIdentity()
+        return if (token != null) {
+            AuthResult.Success(
+                accountName = accountEmail ?: "Unknown",
+                credentialsJson = accountEmail.orEmpty()
+            )
+        } else {
             AuthResult.Error("Re-authentication required. Please re-add this Google Drive resource.")
-        } catch (e: UserRecoverableAuthException) {
-            // Re-throw so caller can launch the recovery intent
-            Timber.e(e, "Google Drive authentication failed (recoverable)")
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Google Drive authentication failed")
-            AuthResult.Error("Authentication failed: ${e.message}")
         }
     }
-
-    /** Silent sign-in: refresh credentials without UI. Returns Success only if a token was fetched. */
-    suspend fun silentSignIn(webClientIdResId: Int): AuthResult = withContext(Dispatchers.IO) {
-        try {
-            val signInOptions = buildSignInOptions(webClientIdResId)
-            val client = GoogleSignIn.getClient(context, signInOptions)
-
-            val task = client.silentSignIn()
-            val account = Tasks.await(task)
-
-            if (account != null) {
-                val token = getAccessToken(account, forceRefresh = true)
-                if (token != null) {
-                    accessToken = token
-                    tokenTimestamp = System.currentTimeMillis()
-                    accountEmail = account.email
-                    Timber.i("Silent sign-in successful")
-                    return@withContext AuthResult.Success(
-                        accountName = accountEmail ?: "Unknown",
-                        credentialsJson = credentialsManager.serializeAccount(account)
-                    )
-                }
-            }
-            AuthResult.Error("Silent sign-in failed: No account or token")
-        } catch (e: Exception) {
-            Timber.w("Silent sign-in failed: ${e.message}")
-            AuthResult.Error("Silent sign-in failed: ${e.message}")
-        }
-    }
-
-    /** Process an interactive sign-in result from GoogleSignIn.getSignInIntent(). */
-    suspend fun handleSignInResult(account: GoogleSignInAccount?): AuthResult {
-        if (account == null) return AuthResult.Error("Sign-in failed or cancelled")
-
-        val token = getAccessToken(account) ?: return AuthResult.Error("Failed to get access token")
-        accessToken = token
-        tokenTimestamp = System.currentTimeMillis()
-        accountEmail = account.email
-        val credentials = credentialsManager.serializeAccount(account)
-        // Save to encrypted storage for automatic restoration (legacy + per-account key)
-        credentialsManager.saveCredentials(credentials, account.email)
-
-        // Mirror sign-in into NetworkCredentialsEntity for the multi-account picker
-        account.email?.let { email ->
-            val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.GOOGLE_DRIVE.name, email)
-            if (existing == null) {
-                val entity = NetworkCredentialsEntity.create(
-                    credentialId = UUID.randomUUID().toString(),
-                    type = CloudProvider.GOOGLE_DRIVE.name,
-                    server = "",
-                    port = 0,
-                    username = email,
-                    plaintextPassword = "", // token lives in credentialsManager
-                    accountId = email
-                )
-                networkCredentialsRepository.insert(entity)
-                Timber.d("Registered Google Drive account in database: $email")
-            }
-        }
-
-        return AuthResult.Success(accountName = accountEmail ?: "Unknown", credentialsJson = credentials)
-    }
-
-    /**
-     * Get OAuth access token via GoogleAuthUtil. The ID token from GoogleSignIn cannot be used
-     * directly with the Drive REST API. [forceRefresh] clears the cached token before requesting.
-     */
-    suspend fun getAccessToken(account: GoogleSignInAccount, forceRefresh: Boolean = false): String? =
-        withContext(Dispatchers.IO) {
-            try {
-                val scope = "oauth2:$SCOPE_DRIVE $SCOPE_DRIVE_READONLY"
-                Timber.d("Requesting access token with scope: $scope (forceRefresh=$forceRefresh)")
-
-                // Clear cached token if forceRefresh or if scope changed (e.g., drive.file → drive)
-                if (forceRefresh || accessToken != null) {
-                    try {
-                        accessToken?.let {
-                            Timber.d("Clearing cached token")
-                            GoogleAuthUtil.clearToken(context, it)
-                        }
-                    } catch (e: Exception) {
-                        Timber.d("No cached token to clear or clearToken failed: ${e.message}")
-                    }
-                }
-
-                val token = GoogleAuthUtil.getToken(context, account.account!!, scope)
-                Timber.i("Successfully obtained access token")
-                token
-            } catch (e: UserRecoverableAuthException) {
-                Timber.e(e, "Failed to get access token: ${e.javaClass.simpleName} - ${e.message}")
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to get access token: ${e.javaClass.simpleName} - ${e.message}")
-                null
-            }
-        }
 
     private fun shouldRefreshToken(): Boolean {
         if (tokenTimestamp == 0L) return false
@@ -210,58 +116,28 @@ class GoogleDriveAuthCoordinator(
     }
 
     /** Pre-emptive refresh past the 50-minute threshold to avoid 401 mid-operation. */
-    suspend fun ensureTokenFresh(webClientIdResId: Int) {
+    suspend fun ensureTokenFresh(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int) {
         if (shouldRefreshToken()) {
-            Timber.d("Token is old (>50 min), proactively refreshing..")
-            silentSignIn(webClientIdResId)
+            Timber.d("Token is old (>50 min), proactively refreshing via identity-domain..")
+            fetchTokenFromIdentity()
         }
     }
 
     /**
-     * Initialize from a stored credentials JSON. Returns true if a fresh token was acquired
-     * (either via silent sign-in or via getAccessToken on the cached GoogleSignInAccount).
+     * S0200 Phase 04b: existing call from RestClient.initialize() — identity-domain owns the
+     * persistence of the primary account; this just verifies that a Drive token is reachable now.
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun initializeFromStored(credentialsJson: String, webClientIdResId: Int): Boolean {
-        return try {
-            val silentResult = silentSignIn(webClientIdResId)
-            if (silentResult is AuthResult.Success) {
-                Timber.d("Initialized Google Drive via silent sign-in")
-                return true
-            }
-
-            val account = withContext(Dispatchers.Main) {
-                GoogleSignIn.getLastSignedInAccount(context)
-            } ?: run {
-                Timber.w("No account signed in, cannot initialize")
-                return false
-            }
-
-            val email = credentialsManager.deserializeAccount(credentialsJson)
-            if (account.email != email) {
-                Timber.w("Stored account ($email) doesn't match current account (${account.email})")
-                return false
-            }
-
-            val token = getAccessToken(account)
-            if (token == null) {
-                Timber.w("Failed to get access token for account: $email")
-                return false
-            }
-            accessToken = token
-            tokenTimestamp = System.currentTimeMillis()
-            accountEmail = account.email
-            credentialsManager.saveCredentials(credentialsJson, account.email)
-            Timber.d("Initialized Google Drive for account: $email")
-            true
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to initialize Google Drive client")
-            false
-        }
+        val ok = fetchTokenFromIdentity() != null
+        if (ok) Timber.d("Initialized Google Drive via identity-domain") else Timber.w("No token from identity-domain")
+        return ok
     }
 
     /**
-     * Authenticated Drive request with bounded retry on 401. Delegates the actual HTTP call to
-     * [httpClient.makeAuthenticatedRequest]; this layer adds the silent-refresh recursion.
+     * Authenticated Drive request with bounded retry on 401. Delegates the HTTP call to
+     * [httpClient.makeAuthenticatedRequest]; this layer adds the silent-refresh recursion via
+     * the identity domain.
      */
     suspend fun makeAuthenticatedRequest(
         url: URL,
@@ -274,21 +150,19 @@ class GoogleDriveAuthCoordinator(
         val response = httpClient.makeAuthenticatedRequest(url, method, token, body)
 
         if (response.httpCode == 401 && retryCount < TOKEN_MAX_RETRY_ATTEMPTS) {
-            Timber.w("Received 401 Unauthorized (attempt ${retryCount + 1}/$TOKEN_MAX_RETRY_ATTEMPTS). Attempting silent sign-in and retry..")
+            Timber.w("Received 401 Unauthorized (attempt ${retryCount + 1}/$TOKEN_MAX_RETRY_ATTEMPTS). Attempting silent refresh via identity-domain..")
 
             if (retryCount > 0) delay(TOKEN_RETRY_DELAY_MS)
 
-            val authResult = silentSignIn(webClientIdResId)
-            if (authResult is AuthResult.Success) {
-                val newToken = accessToken
-                if (newToken != null) {
-                    Timber.i("Silent sign-in successful. Retrying request (attempt ${retryCount + 2})..")
-                    return makeAuthenticatedRequest(url, method, newToken, webClientIdResId, body, retryCount + 1)
-                }
+            identityRepository.invalidateToken()
+            val newToken = fetchTokenFromIdentity()
+            if (newToken != null) {
+                Timber.i("Silent refresh successful. Retrying request (attempt ${retryCount + 2})..")
+                return makeAuthenticatedRequest(url, method, newToken, webClientIdResId, body, retryCount + 1)
             }
 
             if (retryCount < TOKEN_MAX_RETRY_ATTEMPTS - 1) {
-                Timber.w("Silent sign-in failed, but will retry again..")
+                Timber.w("Silent refresh failed, but will retry again..")
                 delay(TOKEN_RETRY_DELAY_MS)
                 return makeAuthenticatedRequest(url, method, token, webClientIdResId, body, retryCount + 1)
             }

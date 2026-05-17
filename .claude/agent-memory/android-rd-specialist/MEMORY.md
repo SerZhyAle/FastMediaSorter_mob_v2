@@ -9,3 +9,6 @@
 - [Functionality log](project_functionality_log.md) — dev/FUNCTIONALITY.log: developer-facing ADD/CHANGE/DELETE/FIX history of user-visible capability lifecycle; written via scripts/add_to_functionality_log.ps1
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) — bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
 - [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) — testStandardDebugUnitTest carries ~26 broken pre-existing tests; verify own work via per-class XML reports, use assembleStandardDebug for compile checks
+- [Catalog scan source sets](project_catalog_scan_source_sets.md) — scan.ps1 hard-codes source roots; new buckets (cloudEnabled/cloudDisabled) must be added to $srcRoots
+- [set.ps1 stops on error](project_catalog_set_ps1_stops_on_error.md) — set.ps1 throws & aborts batch on missing path; wrap in try/catch for multi-entry fills
+- [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) — each signingConfig produces a distinct BrowserTabActivity hash; manifest + Azure app registration must declare every variant

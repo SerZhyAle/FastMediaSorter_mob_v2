@@ -9,8 +9,13 @@ import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.signature.ObjectKey
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.GoogleScope
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
@@ -201,23 +206,34 @@ class GoogleDriveThumbnailDataFetcher(
         }
     }
 
+    /**
+     * S0200 Phase 04b: fetch a Drive read-only access token from the identity domain via the
+     * `ThumbnailIdentityEntryPoint` Hilt accessor. The fetcher is created by Glide's
+     * `ModelLoaderFactory` and is NOT Hilt-managed, so it cannot inject `GoogleIdentityRepository`
+     * via the constructor — `EntryPointAccessors.fromApplication(..)` reaches into the singleton
+     * graph instead.
+     *
+     * Cold-start race: if Glide triggers `loadData` before `Application.onCreate` has finalised
+     * the Hilt singleton component, `EntryPointAccessors.fromApplication(..)` may throw
+     * `IllegalStateException`. The catch block treats that as "no token now" — Glide reports
+     * onLoadFailed and the next thumbnail attempt (after Hilt is ready) succeeds.
+     */
     private fun getAccessToken(): String? {
         return try {
-            val account = GoogleSignIn.getLastSignedInAccount(context)
-            if (account?.account == null) {
-                Timber.w("No Google account signed in")
-                return null
-            }
-
-            GoogleAuthUtil.getToken(
-                context,
-                account.account!!,
-                "oauth2:https://www.googleapis.com/auth/drive.readonly"
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                ThumbnailIdentityEntryPoint::class.java
             )
+            val identityRepo: GoogleIdentityRepository = entryPoint.identityRepository()
+            runBlocking { identityRepo.getAccessToken(THUMBNAIL_SCOPES)?.token }
         } catch (e: Exception) {
-            Timber.e(e, "Error getting Google access token")
+            Timber.e(e, "Error getting Drive access token via identity-domain (cold-start race? primary unbound?)")
             null
         }
+    }
+
+    companion object {
+        private val THUMBNAIL_SCOPES: Set<GoogleScope> = setOf(GoogleScope.DRIVE_READONLY)
     }
 
     override fun cleanup() {
@@ -245,4 +261,15 @@ class GoogleDriveThumbnailDataFetcher(
     override fun getDataClass(): Class<InputStream> = InputStream::class.java
 
     override fun getDataSource(): DataSource = DataSource.REMOTE
+
+    /**
+     * S0200 Phase 04a — EntryPoint scaffold for Hilt access from the non-managed Glide
+     * `DataFetcher` instance. Phase 04b activates this accessor inside
+     * [getAccessToken] to source tokens from the identity domain instead of GoogleSignIn.
+     */
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface ThumbnailIdentityEntryPoint {
+        fun identityRepository(): GoogleIdentityRepository
+    }
 }

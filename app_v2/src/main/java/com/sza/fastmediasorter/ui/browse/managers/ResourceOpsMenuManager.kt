@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -60,6 +61,15 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible = canCreateFolder
+
+        // Create text note (S0189): writable + non-virtual + documents-flavored library
+        // (allFiles OR supportedMediaTypes includes TEXT/PDF/EPUB). Hidden for audio/video/photo-only
+        // libraries where a created .txt would not appear in the file list.
+        val canCreateTextNote = resource != null
+                && !resource.isReadOnly
+                && !VirtualPathUtils.isVirtualPath(resource.path)
+                && resource.supportsDocuments()
+        popup.menu.findItem(R.id.action_create_text_file)?.isVisible = canCreateTextNote
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
@@ -118,6 +128,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_create_folder -> {
                     showCreateFolderDialog(viewModel)
+                    true
+                }
+                R.id.action_create_text_file -> {
+                    showCreateTextNoteDialog(viewModel)
                     true
                 }
                 R.id.action_automate_resource -> {
@@ -317,6 +331,11 @@ class ResourceOpsMenuManager @Inject constructor(
         }
         val inputEdit = TextInputEditText(tilWrapper.context).apply {
             inputType = InputType.TYPE_CLASS_TEXT
+            // Suppress system autofill prompts (e.g. "Sign in with Google" on devices without an account).
+            // This is a file-name field — credential autofill is meaningless here.
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO
+            }
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -361,6 +380,29 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
             }
         })
+    }
+
+    // -------------------------------------------------------------------------
+    // Create text note
+    // -------------------------------------------------------------------------
+
+    fun showCreateTextNoteDialog(viewModel: BrowseViewModel) {
+        // S0189: defend the keyboard-shortcut entry point with the same gate the toolbar/menu use
+        // (toolbar button + popup menu hide themselves, but a bound key still reaches this method).
+        val resource = viewModel.state.value.resource
+        if (resource == null
+            || resource.isReadOnly
+            || VirtualPathUtils.isVirtualPath(resource.path)
+            || !resource.supportsDocuments()
+        ) {
+            return
+        }
+
+        // S0189: no pre-creation rename dialog. The name is requested by the save-with-rename
+        // dialog when the user actually commits the note (defer-creation contract). Until then
+        // the file does not exist on disk, so asking for a name now is pure friction.
+        val default = com.sza.fastmediasorter.util.TextNoteFileNameProvider.defaultName()
+        viewModel.createTextNote(default)
     }
 }
 

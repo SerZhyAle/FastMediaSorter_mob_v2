@@ -76,7 +76,18 @@ class BrowseDialogHelper(
         fun onDirectoryRenameConfirmed(oldPath: String, newName: String)
         fun onCopyDestinationSelected(destinationPath: String)
         fun onMoveDestinationSelected(destinationPath: String)
-        fun onDeleteConfirmed(fileCount: Int)
+        /**
+         * Called when the user confirms a delete-files dialog.
+         *
+         * @param overridePaths When non-null, exact set of paths the dialog was shown
+         *   for (per-file overflow menu) — implementation must delete these and leave
+         *   the global multiselect untouched. When null, the dialog was shown for the
+         *   current global multiselect — implementation should read it as usual and
+         *   may clear it after deletion. Always-reading-global-selection here breaks
+         *   overflow-menu deletes when the global selection is empty (regression
+         *   observed 2026-05-17 — toast `no_files_selected`).
+         */
+        fun onDeleteConfirmed(overridePaths: Set<String>?)
         fun onCloudSignInRequested(provider: com.sza.fastmediasorter.data.cloud.CloudProvider)
         fun saveUndoOperation(undoOp: UndoOperation)
         fun reloadFiles()
@@ -229,8 +240,9 @@ class BrowseDialogHelper(
         }
 
         dialog.show()
+        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
-    
+
     private fun showDatePicker(currentDate: Long?, onDateSelected: (Long) -> Unit) {
         val calendar = Calendar.getInstance()
         if (currentDate != null) {
@@ -306,10 +318,11 @@ class BrowseDialogHelper(
             
             override fun getItemCount() = sortModes.size
         }
-        
+
         dialog.show()
+        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
-    
+
     private fun getSortModeName(mode: SortMode): String {
         return when (mode) {
             SortMode.MANUAL -> activity.getString(R.string.sort_mode_manual)
@@ -333,30 +346,39 @@ class BrowseDialogHelper(
         }
     }
     
+    /**
+     * Show delete-confirmation dialog for [files].
+     *
+     * @param overridePaths When non-null, forwarded to [DialogCallbacks.onDeleteConfirmed]
+     *   verbatim — used by the per-file overflow menu to delete a single file without
+     *   touching the global multiselect. When null, the callback resolves to the current
+     *   global multiselect.
+     */
     fun showDeleteConfirmation(
-        files: List<MediaFile>, 
-        resource: com.sza.fastmediasorter.domain.model.MediaResource?, 
-        settings: AppSettings
+        files: List<MediaFile>,
+        resource: com.sza.fastmediasorter.domain.model.MediaResource?,
+        settings: AppSettings,
+        overridePaths: Set<String>? = null
     ) {
         val fileCount = files.size
         if (fileCount == 0) return
 
         val isNetwork = resource?.type?.isNetworkResource == true
-        
+
         if (isNetwork) {
             val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)
             val prefKey = "dont_show_network_delete_${resource?.id ?: 0}"
             val dontShowAgain = prefs.getBoolean(prefKey, false)
-            
+
             if (!dontShowAgain) {
-                showNetworkDeleteConfirmation(files, resource, fileCount, prefKey)
+                showNetworkDeleteConfirmation(files, resource, fileCount, prefKey, overridePaths)
                 return
             }
         }
-        
+
         // Standard check
         val shouldConfirmDelete = settings.enableSafeMode && settings.confirmDelete
-        
+
         if (shouldConfirmDelete) {
             val dirCount = files.count { it.isDirectory }
             val message = when {
@@ -373,21 +395,22 @@ class BrowseDialogHelper(
                 .setTitle(R.string.confirm_delete_title)
                 .setMessage(message)
                 .setPositiveButton(R.string.delete) { _, _ ->
-                    callbacks.onDeleteConfirmed(fileCount)
+                    callbacks.onDeleteConfirmed(overridePaths)
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         } else {
             // Skip confirmation - execute immediately
-            callbacks.onDeleteConfirmed(fileCount)
+            callbacks.onDeleteConfirmed(overridePaths)
         }
     }
-    
+
     private fun showNetworkDeleteConfirmation(
-        files: List<MediaFile>, 
-        resource: com.sza.fastmediasorter.domain.model.MediaResource?, 
+        files: List<MediaFile>,
+        resource: com.sza.fastmediasorter.domain.model.MediaResource?,
         fileCount: Int,
-        prefKey: String
+        prefKey: String,
+        overridePaths: Set<String>?
     ) {
         val view = LayoutInflater.from(activity).inflate(R.layout.dialog_network_delete_confirmation, null)
         
@@ -425,7 +448,7 @@ class BrowseDialogHelper(
                     val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)
                     prefs.edit().putBoolean(prefKey, true).apply()
                 }
-                callbacks.onDeleteConfirmed(fileCount)
+                callbacks.onDeleteConfirmed(overridePaths)
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -447,8 +470,9 @@ class BrowseDialogHelper(
                 showErrorDetailsDialog(details)
             }
         }
-        
-        dialogBuilder.show()
+
+        val dialog = dialogBuilder.show()
+        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
     
     private fun showErrorDetailsDialog(details: String) {
@@ -672,8 +696,9 @@ class BrowseDialogHelper(
             
             dialog.dismiss()
         }
-        
+
         dialog.show()
+        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
 
         // Show keyboard for first EditText after RecyclerView is laid out
         dialogBinding.rvFileNames.postDelayed({

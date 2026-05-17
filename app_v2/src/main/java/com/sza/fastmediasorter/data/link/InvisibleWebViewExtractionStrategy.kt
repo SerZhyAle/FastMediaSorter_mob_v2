@@ -138,9 +138,13 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         }
 
         val preferred = nonImageCandidates.ifEmpty { merged }
-        if (shouldReturnBatch(preferred)) {
+        // S0224: batch result notifications show batch.items.size. Restrict the batch pool to
+        // authoritative embedded-json slides when they exist, otherwise request-sniffed preview
+        // assets inflate the visible total without producing additional saved files.
+        val batchCandidates = CandidateSelectionPolicy.batchPool(preferred)
+        if (shouldReturnBatch(batchCandidates)) {
             return OpenResult.Batch(
-                items = preferred.take(MAX_BATCH_ITEMS).map { SiteBatchItem(url = it.url) },
+                items = batchCandidates.take(MAX_BATCH_ITEMS).map { SiteBatchItem(url = it.url) },
             )
         }
 

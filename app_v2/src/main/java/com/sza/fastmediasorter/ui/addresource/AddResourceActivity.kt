@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.sza.fastmediasorter.ui.addresource
 
 import android.content.Context
@@ -84,13 +82,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
 
-    private val googleSignInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        lifecycleScope.launch {
-            unifiedAuthManager.processIntentResult(result.data)
-        }
-    }
+    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager handles sign-in
+    // through GoogleIdentityRepository.signInPrimary (via UnifiedCloudAuthManager).
 
     private val sshKeyFilePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -416,6 +409,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     // ========== Activity Result ==========
 
     @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION") // super.onActivityResult parent API is deprecated; we keep the override for the legacy permissions branch.
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -427,10 +421,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     Toast.makeText(this, getString(R.string.folder_selection_limitations), Toast.LENGTH_LONG).show()
                 }
             }
-            com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin.RC_SIGN_IN -> {
-                Timber.i("Google Sign-In onActivityResult: resultCode=$resultCode, hasData=${data != null}")
-                lifecycleScope.launch { unifiedAuthManager.processIntentResult(data) }
-            }
+            // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed — Credential
+            // Manager owns the handshake (no Intent round-trip).
         }
     }
 

@@ -1,0 +1,7 @@
+What's New:
+• Draw editor v2 — oval and text tools, 16-color palette, in-place save, Google Keep export
+• File size shown in media item info rows in browse list
+
+What's Fixed:
+• Image-edit toolbar buttons (crop, compress, draw) no longer hidden in viewer overflow
+• Link downloads no longer show spurious sign-in prompt when session is already active

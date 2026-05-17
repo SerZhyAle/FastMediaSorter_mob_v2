@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.data.link
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,9 +41,6 @@ class LinkUrlCanonicalizer @Inject constructor() {
             (host == YOUTUBE_BARE_HOST || host == WWW_YOUTUBE_HOST) && isShortsPath(parsed) ->
                 CanonicalizedUrl(buildShortsWatchUrl(parsed), audioOnly = false)
             else -> CanonicalizedUrl(url, audioOnly = false)
-        }
-        if (rewritten.url != url) {
-            Timber.d("S0190: canonicalize %s -> %s audioOnly=%s", url.take(80), rewritten.url.take(80), rewritten.audioOnly)
         }
         return rewritten
     }

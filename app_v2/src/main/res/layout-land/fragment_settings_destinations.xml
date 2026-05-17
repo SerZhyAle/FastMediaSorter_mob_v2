@@ -1,0 +1,786 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="false"
+    tools:ignore="NestedWeights">
+
+    <!-- Full-width content to match other Settings pages (Playback, General); 600dp M3 cap removed per user UX preference -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/settings_fragment_padding">
+
+            <!-- SAFETY & CONFIRMATION SECTION -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/settings_margin_standard"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="2dp"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/headerSafety"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="@dimen/settings_padding_vertical"
+                        android:text="@string/settings_category_safety"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/containerSafety"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_margin_standard"
+                        android:paddingEnd="@dimen/settings_margin_standard"
+                        android:paddingBottom="@dimen/settings_margin_standard">
+
+                        <LinearLayout
+                            android:id="@+id/layoutEnableSafeMode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:gravity="center_vertical"
+                            android:minHeight="@dimen/settings_item_min_height"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchEnableSafeMode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                android:checked="true"
+                                android:contentDescription="@string/enable_safe_mode" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/enable_safe_mode"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_safe_mode_desc"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_desc_text_size" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/containerConfirm"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/settings_nested_margin_start"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:id="@+id/layoutConfirmDelete"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/margin_tiny"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/settings_item_min_height"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.switchmaterial.SwitchMaterial
+                                    android:id="@+id/switchConfirmDelete"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                    android:checked="true"
+                                    android:contentDescription="@string/confirm_delete_safe_mode" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/confirm_delete_safe_mode"
+                                        android:textSize="@dimen/toggler_title_text_size" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/setting_confirm_delete_desc"
+                                        android:textColor="@color/text_color_secondary"
+                                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                                </LinearLayout>
+
+                                <ImageButton
+                                    android:id="@+id/iconHelpSafeMode"
+                                    android:layout_width="@dimen/settings_help_icon_size"
+                                    android:layout_height="@dimen/settings_help_icon_size"
+                                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:contentDescription="@string/tooltip_safe_mode_title"
+                                    android:src="@drawable/ic_help_outline_24"
+                                    app:tint="@color/text_color_secondary" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layoutConfirmMove"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/margin_tiny"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/settings_item_min_height"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.switchmaterial.SwitchMaterial
+                                    android:id="@+id/switchConfirmMove"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                    android:checked="true"
+                                    android:contentDescription="@string/confirm_move_safe_mode" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/confirm_move_safe_mode"
+                                        android:textSize="@dimen/toggler_title_text_size" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/setting_confirm_move_desc"
+                                        android:textColor="@color/text_color_secondary"
+                                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layoutUseTrash"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:gravity="center_vertical"
+                            android:minHeight="@dimen/settings_item_min_height"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchUseTrash"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                android:checked="false"
+                                android:contentDescription="@string/use_trash" />
+
+                            <ImageButton
+                                android:id="@+id/btnClearTrash"
+                                android:layout_width="@dimen/settings_help_icon_size"
+                                android:layout_height="@dimen/settings_help_icon_size"
+                                android:layout_marginEnd="@dimen/settings_help_icon_margin"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/clear_trash"
+                                android:src="@drawable/ic_delete"
+                                android:visibility="gone"
+                                app:tint="@color/text_color_secondary" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/use_trash"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/use_trash_summary"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_desc_text_size" />
+
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/iconHelpUseTrash"
+                                android:layout_width="@dimen/settings_help_icon_size"
+                                android:layout_height="@dimen/settings_help_icon_size"
+                                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/tooltip_use_trash_title"
+                                android:src="@drawable/ic_help_outline_24"
+                                app:tint="@color/text_color_secondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- COPY & MOVE SECTION -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/settings_margin_standard"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="2dp"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/headerCopyMove"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="@dimen/settings_padding_vertical"
+                        android:text="@string/settings_category_copy_move"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/containerFileOperations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_margin_standard"
+                        android:paddingEnd="@dimen/settings_margin_standard"
+                        android:paddingBottom="@dimen/settings_margin_standard">
+
+                        <!-- Enable Copy + Overwrite on Copy -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/resource_field_margin_end"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/button_height"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.switchmaterial.SwitchMaterial
+                                    android:id="@+id/switchEnableCopying"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                    android:contentDescription="@string/enable_copying" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/enable_copying"
+                                        android:textSize="@dimen/toggler_title_text_size" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/setting_enable_copying_desc"
+                                        android:textColor="@color/text_color_secondary"
+                                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layoutOverwriteCopyWrapper"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/button_height"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.switchmaterial.SwitchMaterial
+                                    android:id="@+id/switchOverwriteOnCopy"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                    android:contentDescription="@string/overwrite_on_copy" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/overwrite_on_copy"
+                                        android:textSize="@dimen/toggler_title_text_size" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/setting_overwrite_on_copy_desc"
+                                        android:textColor="@color/text_color_secondary"
+                                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <!-- Copy Options (go to next after copy) -->
+                        <LinearLayout
+                            android:id="@+id/layoutCopyOptions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:gravity="center_vertical"
+                            android:minHeight="@dimen/button_height"
+                            android:orientation="horizontal"
+                            android:paddingEnd="@dimen/padding_none"
+                            android:paddingStart="@dimen/settings_padding_horizontal_start">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchGoToNextAfterCopy"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                android:contentDescription="@string/go_to_next_after_copy" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/go_to_next_after_copy"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_go_to_next_after_copy_desc"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_desc_text_size" />
+
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/iconHelpGoToNextAfterCopy"
+                                android:layout_width="@dimen/settings_help_icon_size"
+                                android:layout_height="@dimen/settings_help_icon_size"
+                                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/tooltip_go_to_next_after_copy_title"
+                                android:src="@drawable/ic_help_outline_24"
+                                app:tint="@color/text_color_secondary" />
+
+                        </LinearLayout>
+
+                        <!-- Enable Move + Overwrite on Move -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/resource_field_margin_end"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/button_height"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.switchmaterial.SwitchMaterial
+                                    android:id="@+id/switchEnableMoving"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                    android:contentDescription="@string/enable_moving" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/enable_moving"
+                                        android:textSize="@dimen/toggler_title_text_size" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/setting_enable_moving_desc"
+                                        android:textColor="@color/text_color_secondary"
+                                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layoutOverwriteMoveWrapper"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/button_height"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.switchmaterial.SwitchMaterial
+                                    android:id="@+id/switchOverwriteOnMove"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                                    android:contentDescription="@string/overwrite_on_move" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/overwrite_on_move"
+                                        android:textSize="@dimen/toggler_title_text_size" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/setting_overwrite_on_move_desc"
+                                        android:textColor="@color/text_color_secondary"
+                                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- DESTINATIONS SECTION -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/settings_margin_standard"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="2dp"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/headerDestinations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="@dimen/settings_padding_vertical"
+                        android:text="@string/destinations_list_header"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/containerDestinations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_margin_standard"
+                        android:paddingEnd="@dimen/settings_margin_standard"
+                        android:paddingBottom="@dimen/settings_margin_standard">
+
+                        <!-- Max recipients + help icon -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="@dimen/settings_padding_vertical_top_small">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/tilMaxRecipients"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                                android:layout_width="@dimen/settings_width_input_medium"
+                                android:layout_height="wrap_content"
+                                android:hint="@string/max_recipients">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/etMaxRecipients"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="@string/max_recipients"
+                                    android:inputType="number"
+                                    android:maxLength="@integer/input_max_length_tiny" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <ImageButton
+                                android:id="@+id/iconHelpDestinations"
+                                android:layout_width="@dimen/settings_help_icon_size"
+                                android:layout_height="@dimen/settings_help_icon_size"
+                                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/tooltip_destinations_title"
+                                android:src="@drawable/ic_help_outline_24"
+                                app:tint="@color/text_color_secondary" />
+
+                        </LinearLayout>
+
+                        <!-- Add Destination Button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddDestination"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:paddingHorizontal="@dimen/settings_padding_horizontal_large"
+                            android:paddingVertical="@dimen/settings_padding_vertical"
+                            android:text="@string/add_destination"
+                            android:textSize="@dimen/resource_card_title_text_size"
+                            android:visibility="gone" />
+
+                        <!-- Message when no resources available -->
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/tvNoResourcesMessage"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
+                            android:text="@string/add_resources_first_message"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/resource_card_desc_text_size"
+                            android:visibility="gone" />
+
+                        <!-- Destinations List -->
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvDestinations"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/settings_padding_vertical"
+                            android:minHeight="@dimen/settings_height_container_min" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- SCHEDULED OPERATIONS SECTION -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/settings_margin_standard"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="2dp"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/headerScheduled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="@dimen/settings_padding_vertical"
+                        android:text="@string/scheduled_ops_section_title"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/containerScheduled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_margin_standard"
+                        android:paddingEnd="@dimen/settings_margin_standard"
+                        android:paddingBottom="@dimen/settings_margin_standard"
+                        android:visibility="gone">
+
+                        <!-- Master toggle -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchEnableScheduledOps"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/margin_small" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/scheduled_ops_toggle"
+                                    android:textAppearance="?attr/textAppearanceBody2" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:alpha="0.7"
+                                    android:text="@string/scheduled_ops_toggle_hint"
+                                    android:textAppearance="?attr/textAppearanceCaption" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <!-- Notification permission button (Android 13+) -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnScheduledNotificationPermission"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:text="@string/grant_notifications_permission"
+                            android:textSize="12sp"
+                            android:visibility="gone" />
+
+                        <!-- Operations list and toolbar -->
+                        <LinearLayout
+                            android:id="@+id/containerScheduledContent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <!-- Toolbar: Add + Log + Clear buttons -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="end"
+                                android:layout_marginTop="@dimen/margin_tiny"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnAddScheduledOp"
+                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/scheduled_ops_btn_add"
+                                    android:textSize="12sp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnScheduledLog"
+                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/scheduled_ops_btn_log"
+                                    android:textSize="12sp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnClearAllScheduled"
+                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/scheduled_ops_btn_clear_all"
+                                    android:textColor="?attr/colorError"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
+
+                            <!-- Empty state -->
+                            <TextView
+                                android:id="@+id/tvNoScheduledOps"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
+                                android:text="@string/scheduled_ops_no_destinations"
+                                android:textColor="?attr/colorError"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:visibility="gone" />
+
+                            <!-- Scheduled operations list -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvScheduledOps"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:nestedScrollingEnabled="false" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</ScrollView>

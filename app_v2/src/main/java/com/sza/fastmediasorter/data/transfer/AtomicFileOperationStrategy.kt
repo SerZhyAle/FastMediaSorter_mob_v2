@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
@@ -33,6 +35,7 @@ import java.io.FileOutputStream
  */
 class AtomicFileOperationStrategy(
     private val delegate: FileOperationStrategy,
+    private val destinationClassifier: LocalDestinationClassifier,
     private var enableAtomic: Boolean = true
 ) : FileOperationStrategy by delegate {
 
@@ -70,7 +73,14 @@ class AtomicFileOperationStrategy(
             Timber.d("AtomicFileOperationStrategy.copyFile: Atomic disabled, using direct copy")
             return delegate.copyFile(source, destination, overwrite, progressCallback)
         }
-        
+
+        // S0231: public collections handle atomicity via MediaStore IS_PENDING in
+        // LocalDestinationWriter — skip the *.temp_copy + rename layer for these paths.
+        val category = destinationClassifier.classify(destination)
+        if (category is LocalDestinationCategory.PublicCollection) {
+            return delegate.copyFile(source, destination, overwrite, progressCallback)
+        }
+
         Timber.d("AtomicFileOperationStrategy.copyFile: Using atomic pattern")
         Timber.d("  Source: $source")
         Timber.d("  Destination: $destination")

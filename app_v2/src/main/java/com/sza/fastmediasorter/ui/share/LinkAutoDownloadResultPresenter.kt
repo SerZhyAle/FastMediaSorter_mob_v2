@@ -9,6 +9,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
+import com.sza.fastmediasorter.data.browser.CctUnavailableException
+import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -27,6 +30,8 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val settings: SettingsRepository,
     private val authSessionRepository: AuthSessionRepository,
+    private val googleDomainBrowserLauncher: GoogleDomainBrowserLauncher,
+    private val cctChecker: CctAvailabilityChecker,
 ) {
 
     suspend fun present(
@@ -65,6 +70,8 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             LinkAutoDownloadCoordinator.Result.Failed.NoNetwork -> toast(R.string.link_autodownload_error_no_network)
             LinkAutoDownloadCoordinator.Result.Failed.Timeout -> toast(R.string.link_autodownload_error_timeout)
             LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound -> toast(R.string.link_autodownload_error_no_media)
+            LinkAutoDownloadCoordinator.Result.Failed.UnsupportedYouTubeCommunityPost ->
+                toast(R.string.link_autodownload_error_youtube_community_post)
             LinkAutoDownloadCoordinator.Result.Failed.DownloadCorrupted -> toast(R.string.link_autodownload_error_corrupted)
             LinkAutoDownloadCoordinator.Result.Failed.MimeBlocked -> toast(R.string.link_autodownload_error_mime_blocked)
             LinkAutoDownloadCoordinator.Result.Failed.DrmBlocked -> toast(R.string.s0116_toast_drm_blocked)
@@ -76,9 +83,8 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired -> {
                 if (openInPlayer) {
                     runCatching {
-                        WebViewAuthDialogFragment.newInstance(result.originalUrl)
-                            .show(hostActivity.supportFragmentManager, "s0116_webview_auth_retry")
-                    }.onFailure { Timber.w(it, "S0116: WebView auth dialog launch failed") }
+                        openAuthFlow(hostActivity, result.originalUrl, "s0116_webview_auth_retry")
+                    }.onFailure { Timber.w(it, "S0116: auth flow launch failed") }
                     runCatching { onAuthRetryRequested(result.originalUrl) }
                 } else {
                     toast(R.string.s0116_toast_auth_required, result.host)
@@ -163,10 +169,9 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                     }
                 }
                 runCatching {
-                    WebViewAuthDialogFragment.newInstance(loginUrl)
-                        .show(hostActivity.supportFragmentManager, "s0151_webview_reauth")
+                    openAuthFlow(hostActivity, loginUrl, "s0151_webview_reauth")
                 }.onFailure {
-                    Timber.w(it, "S0151/S0155: reauth WebView launch failed")
+                    Timber.w(it, "S0151/S0155: reauth auth flow launch failed")
                     toast(R.string.s0151_toast_content_unavailable)
                 }
             }
@@ -229,6 +234,8 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 appContext.getString(R.string.link_autodownload_error_timeout)
             LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound ->
                 appContext.getString(R.string.link_autodownload_error_no_media)
+            LinkAutoDownloadCoordinator.Result.Failed.UnsupportedYouTubeCommunityPost ->
+                appContext.getString(R.string.link_autodownload_error_youtube_community_post)
             LinkAutoDownloadCoordinator.Result.Failed.DownloadCorrupted ->
                 appContext.getString(R.string.link_autodownload_error_corrupted)
             LinkAutoDownloadCoordinator.Result.Failed.MimeBlocked ->
@@ -262,6 +269,33 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
     private fun toast(stringRes: Int, vararg args: Any) {
         val text = if (args.isEmpty()) appContext.getString(stringRes) else appContext.getString(stringRes, *args)
         Toast.makeText(appContext, text, Toast.LENGTH_LONG).show()
+    }
+
+    /**
+     * S0200 — host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
+     * keeps the legacy WebView flow. CCT-unavailable triggers the refusal dialog on [hostActivity].
+     */
+    private fun openAuthFlow(hostActivity: AppCompatActivity, url: String, tag: String) {
+        try {
+            googleDomainBrowserLauncher.routeAuthUrl(hostActivity, url) { fallbackUrl ->
+                WebViewAuthDialogFragment.newInstance(fallbackUrl)
+                    .show(hostActivity.supportFragmentManager, tag)
+            }
+        } catch (e: CctUnavailableException) {
+            Timber.w(e, "LinkAutoDownloadResultPresenter: CCT unavailable for url=%s", url)
+            showCctUnavailableDialog(hostActivity) { openAuthFlow(hostActivity, url, tag) }
+        }
+    }
+
+    private fun showCctUnavailableDialog(hostActivity: AppCompatActivity, onRetry: () -> Unit) {
+        MaterialAlertDialogBuilder(hostActivity)
+            .setTitle(R.string.s0200_cct_unavailable_title)
+            .setMessage(R.string.s0200_cct_unavailable_message)
+            .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->
+                if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(hostActivity, onRetry)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private companion object {

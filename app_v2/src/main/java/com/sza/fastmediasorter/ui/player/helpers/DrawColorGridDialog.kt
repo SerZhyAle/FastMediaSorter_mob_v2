@@ -21,7 +21,6 @@ class DrawColorGridDialog(
 ) {
 
     fun show() {
-        Timber.d("S0192: DrawColorGridDialog.show initial=#%08X".format(initialColor))
         val grid = GridLayout(activity).apply {
             columnCount = 4
             rowCount = 4

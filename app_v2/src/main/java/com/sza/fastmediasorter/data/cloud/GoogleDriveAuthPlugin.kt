@@ -2,162 +2,90 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
+import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.security.MessageDigest
 import javax.inject.Inject
 
 /**
- * Handles the interactive sign-in flow for Google Drive using GoogleSignIn API.
+ * Handles the interactive sign-in flow for Google Drive via the identity domain
+ * (Credential Manager — S0200 Phase 04b).
+ *
+ * The `InteractiveCloudAuthenticator` contract still surfaces `startInteractiveSignIn(activity)`
+ * as a synchronous void call (Dropbox / OneDrive plugins keep using it). This plugin bridges
+ * that contract to the suspending `identityRepository.signInPrimary(..)` by launching a
+ * background coroutine on a `SupervisorJob` scope. The result observable to the UI is the
+ * identity repository's `state` Flow (consumed by Phase 06's Settings card) — there is no
+ * Intent or `processIntentResult` round-trip anymore.
  */
 class GoogleDriveAuthPlugin @Inject constructor(
-    private val client: GoogleDriveRestClient
+    @Suppress("unused") private val client: GoogleDriveRestClient,
+    private val identityRepository: GoogleIdentityRepository
 ) : InteractiveCloudAuthenticator {
 
     override val provider: CloudProvider = CloudProvider.GOOGLE_DRIVE
 
-    companion object {
-        const val RC_SIGN_IN = 9001
-    }
+    private val pluginScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    @Volatile private var lastImmediateFailure: AuthResult.Error? = null
 
     override fun startInteractiveSignIn(activity: Activity) {
-        logDebugGoogleSignInEnvironment(activity)
-
-        // Sign out first to clear stale cached state that causes immediate silent failures
-        val signInOptions = client.getSignInOptions()
-        val gsiClient = GoogleSignIn.getClient(activity, signInOptions)
-        gsiClient.signOut().addOnCompleteListener {
-            Timber.d("Google Sign-In: signOut before interactive flow completed (success=${it.isSuccessful})")
-            val signInIntent = gsiClient.signInIntent
-            if (BuildConfig.DEBUG) {
-                Timber.d(
-                    "Google Sign-In debug: launch intent action=%s component=%s package=%s",
-                    signInIntent.action,
-                    signInIntent.component?.flattenToShortString(),
-                    signInIntent.`package`
+        lastImmediateFailure = null
+        pluginScope.launch {
+            try {
+                val result = identityRepository.signInPrimary(activity, DRIVE_SIGN_IN_SCOPES)
+                when (result) {
+                    is IdentitySignInResult.Success ->
+                        Timber.i("GoogleDriveAuthPlugin: signInPrimary succeeded for email=${result.account.email}")
+                    IdentitySignInResult.Cancelled ->
+                        Timber.i("GoogleDriveAuthPlugin: signInPrimary cancelled by user")
+                    is IdentitySignInResult.Failed ->
+                        Timber.e(result.cause, "GoogleDriveAuthPlugin: signInPrimary failed: ${result.reason}")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "GoogleDriveAuthPlugin: signInPrimary threw")
+                lastImmediateFailure = AuthResult.Error(
+                    "Google sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
                 )
             }
-            activity.startActivityForResult(signInIntent, RC_SIGN_IN)
         }
     }
 
-    override suspend fun processIntentResult(data: Intent?): AuthResult? {
-        Timber.d("GoogleDriveAuthPlugin.processIntentResult: hasData=${data != null}")
-        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-        return try {
-            val account = task.getResult(ApiException::class.java)
-            Timber.i("Google Sign-In succeeded: email=${account?.email}")
-            client.handleSignInResult(account)
-        } catch (e: ApiException) {
-            val statusName = CommonStatusCodes.getStatusCodeString(e.statusCode)
-            Timber.e(e, "Google Sign-In failed: statusCode=${e.statusCode} ($statusName)")
-            if (e.statusCode == 12501) {
-                // SIGN_IN_CANCELLED — user dismissed the dialog intentionally
-                Timber.i("Google Sign-In: user cancelled")
-                AuthResult.Cancelled
-            } else {
-                val friendlyMsg = mapGoogleSignInError(e.statusCode, data)
-                AuthResult.Error(friendlyMsg)
-            }
-        } catch (e: Exception) {
-            val msg = "Google Sign-In unexpected error: ${e.javaClass.simpleName}: ${e.message}"
-            Timber.e(e, msg)
-            AuthResult.Error(msg)
-        }
+    /**
+     * S0200 Phase 04b: Credential Manager does not produce an Intent result. Returns null —
+     * the contract default for plugins that do not use the activity-result channel.
+     * The contract method itself stays on the interface so Dropbox / OneDrive plugins
+     * still satisfy it.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    override suspend fun processIntentResult(data: Intent?): AuthResult? = null
+
+    override suspend fun handleResume(): AuthResult? = null
+
+    override fun consumeImmediateResult(): AuthResult? {
+        val snapshot = lastImmediateFailure
+        lastImmediateFailure = null
+        return snapshot
     }
 
-    private fun mapGoogleSignInError(statusCode: Int, data: Intent?): String = when (statusCode) {
-        10 -> // DEVELOPER_ERROR: SHA-1 not registered or package name mismatch
-            "Google Sign-In configuration error (code 10).\n\n" +
-            "Current package: ${BuildConfig.APPLICATION_ID}.\n" +
-            "Current build type/flavor: ${BuildConfig.BUILD_TYPE}/${BuildConfig.FLAVOR}.\n" +
-            "Ensure this package + SHA-1 pair is registered in Google Cloud Console (OAuth Android client)."
-        4 -> // SIGN_IN_REQUIRED
-            "Google account sign-in required. Please try again."
-        5 -> // INVALID_ACCOUNT
-            "Invalid Google account. Please choose a different account."
-        7 -> // NETWORK_ERROR
-            "Network error. Check your internet connection and try again."
-        8 -> // INTERNAL_ERROR
-            "Google Sign-In internal error. Please try again later."
-        12501 -> // SIGN_IN_CANCELLED
-            "Sign-in was cancelled."
-        12502 -> // SIGN_IN_CURRENTLY_IN_PROGRESS
-            "Sign-in already in progress. Please wait."
-        16 -> // API_NOT_CONNECTED
-            "Google Play Services not connected. Check if Google Play Services is up to date."
-        else -> {
-            val statusName = CommonStatusCodes.getStatusCodeString(statusCode)
-            "Google Sign-In failed (code $statusCode: $statusName). Please try again."
-        }
-    }
-
-    override suspend fun handleResume(): AuthResult? {
-        // Google Drive uses ActivityResult, not onResume
-        return null
-    }
-
-    private fun logDebugGoogleSignInEnvironment(activity: Activity) {
-        if (!BuildConfig.DEBUG) return
-
-        val gmsStatus = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(activity)
-        val gmsStatusName = when (gmsStatus) {
-            ConnectionResult.SUCCESS -> "SUCCESS"
-            ConnectionResult.SERVICE_MISSING -> "SERVICE_MISSING"
-            ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED -> "SERVICE_VERSION_UPDATE_REQUIRED"
-            ConnectionResult.SERVICE_DISABLED -> "SERVICE_DISABLED"
-            ConnectionResult.SERVICE_INVALID -> "SERVICE_INVALID"
-            else -> "CODE_$gmsStatus"
-        }
-
-        val sha1 = runCatching { computeSigningSha1(activity) }
-            .getOrElse { "error:${it.javaClass.simpleName}" }
-
-        val webClientId = runCatching { activity.getString(R.string.google_web_client_id) }
-            .getOrElse { "error:${it.javaClass.simpleName}" }
-
-        Timber.i(
-            "Google Sign-In debug: package=%s buildType=%s flavor=%s webClientId=%s gms=%s(%d) sha1=%s",
-            activity.packageName,
-            BuildConfig.BUILD_TYPE,
-            BuildConfig.FLAVOR,
-            webClientId,
-            gmsStatusName,
-            gmsStatus,
-            sha1
+    companion object {
+        // Initial Drive scope set per strategic §3.1 — DRIVE + readonly + identity for the
+        // Settings card email / avatar surface.
+        val DRIVE_SIGN_IN_SCOPES: Set<GoogleScope> = setOf(
+            GoogleScope.DRIVE,
+            GoogleScope.DRIVE_READONLY,
+            GoogleScope.EMAIL,
+            GoogleScope.PROFILE,
+            GoogleScope.OPENID
         )
-    }
 
-    private fun computeSigningSha1(activity: Activity): String {
-        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val signingInfo = activity.packageManager.getPackageInfo(
-                activity.packageName,
-                PackageManager.GET_SIGNING_CERTIFICATES
-            ).signingInfo ?: return "unavailable"
-            if (signingInfo.hasMultipleSigners()) {
-                signingInfo.apkContentsSigners ?: emptyArray()
-            } else {
-                signingInfo.signingCertificateHistory ?: emptyArray()
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            activity.packageManager
-                .getPackageInfo(activity.packageName, PackageManager.GET_SIGNATURES)
-                .signatures ?: emptyArray()
-        }
-
-        val first = signatures.firstOrNull()
-            ?: return "unavailable"
-
-        val digest = MessageDigest.getInstance("SHA1").digest(first.toByteArray())
-        return digest.joinToString(":") { "%02X".format(it) }
+        @Suppress("unused")
+        private val DEFAULT_FAILURE = IdentityFailureReason.UnknownError
     }
 }

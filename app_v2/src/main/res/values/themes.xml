@@ -31,11 +31,8 @@
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
     </style>
 
-    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
-        <!-- Status bar and navigation bar (transparent for edge-to-edge on API < 35) -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
+    <!-- System bar transparency is applied programmatically via enableEdgeToEdge() in BaseActivity. -->
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App" />
 
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
 

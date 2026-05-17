@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+import com.sza.fastmediasorter.data.cloud.CloudPathParser
 import com.sza.fastmediasorter.data.transfer.TempFileNamingStrategy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +22,8 @@ import javax.inject.Inject
  */
 class CleanupOrphanedTempFilesUseCase @Inject constructor(
     private val smbFileOperationHandler: SmbFileOperationHandler,
-    private val cloudFileOperationHandler: CloudFileOperationHandler
+    private val cloudFileOperationHandler: CloudFileOperationHandler,
+    private val cloudPathParser: CloudPathParser
 ) {
     
     /**
@@ -31,8 +33,10 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
      * @return Result with count of deleted files or failure
      */
     suspend operator fun invoke(directoryPath: String): Result<Int> = withContext(Dispatchers.IO) {
-        // Cloud paths (cloud://) have no concept of local temp files — nothing to clean
-        if (directoryPath.startsWith("cloud://", ignoreCase = true)) {
+        // Cloud paths (cloud:// and legacy cloud:/) have no concept of local temp files — nothing to clean.
+        // S0236: accept both legacy single-slash and current double-slash forms so a stale resource.path
+        // does not leak into SmbFileOperationHandler → LocalOperationStrategy and produce FileNotFoundException.
+        if (cloudPathParser.isCloudPath(directoryPath)) {
             Timber.d("CleanupOrphanedTempFilesUseCase: Skipping cloud path: $directoryPath")
             return@withContext Result.success(0)
         }

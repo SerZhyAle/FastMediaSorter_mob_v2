@@ -50,7 +50,11 @@ interface NetworkCredentialsDao {
     
     @Query("DELETE FROM network_credentials WHERE credentialId = :credentialId")
     suspend fun deleteByCredentialId(credentialId: String)
-    
+
+    /** S0200 Phase 05: bulk delete credentials by [type]. Used by [S0200AuthStateWipe] for `GOOGLE_DRIVE`. */
+    @Query("DELETE FROM network_credentials WHERE type = :type COLLATE NOCASE")
+    suspend fun deleteByType(type: String)
+
     @Query("DELETE FROM network_credentials")
     suspend fun deleteAll()
 

@@ -30,6 +30,10 @@ import timber.log.Timber
 import java.io.File
 import kotlin.math.roundToInt
 
+// S0238: VR-entry button visibility — open for video and pixel-media (image, gif).
+// Audio / docs / text / pdf / epub do not benefit from VR.
+private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
+
 /**
  * Manages command panel in PlayerActivity:
  * - Setup button click listeners
@@ -447,7 +451,7 @@ class CommandPanelController(
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || (isVideo && !isAudio) || isPdf
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
             if (BuildConfig.SUPPORT_VR_PLAYER) {
-                safeViews.btn3dVrCmd.isVisible = currentFile.type == MediaType.VIDEO
+                safeViews.btn3dVrCmd.isVisible = currentFile.type in VR_BUTTON_MEDIA_TYPES
             }
             safeViews.btnEditCmd.contentDescription = binding.root.context.getString(
                 if (isVideo) R.string.control else R.string.edit

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Night mode needs its own API 35 override because values-night outranks values-v35
+        during Android resource resolution.
+
+        Android 15 (API 35) enforces edge-to-edge at system level.
+        Window.setStatusBarColor() / setNavigationBarColor() are deprecated on API 35+ and
+        no longer need to be called — the OS manages system bar transparency automatically.
+
+        Material 1.13.0+ rewrote BottomSheetDialog edge-to-edge handling to use
+        WindowInsetsControllerCompat instead of the deprecated setStatusBarColor /
+        setNavigationBarColor APIs. Setting enableEdgeToEdge=true here instructs the
+        Material library to use the correct non-deprecated path.
+
+        AppCompat 1.7.0+ fixed onStart() applying night-mode colours via deprecated APIs.
+    -->
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
+        <item name="bottomSheetDialogTheme">@style/Theme.App.BottomSheetDialog.EdgeToEdgeCompat</item>
+    </style>
+
+    <style name="Theme.App.BottomSheetDialog.EdgeToEdgeCompat" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <!-- Material 1.13.0+: triggers WindowInsetsControllerCompat path, not deprecated APIs -->
+        <item name="enableEdgeToEdge">true</item>
+    </style>
+
+    <!-- Edge-to-edge is handled programmatically via enableEdgeToEdge() in BaseActivity. -->
+    <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
+
+    <style name="Theme.FastMediaSorter.FullScreen" parent="Theme.FastMediaSorter" />
+</resources>

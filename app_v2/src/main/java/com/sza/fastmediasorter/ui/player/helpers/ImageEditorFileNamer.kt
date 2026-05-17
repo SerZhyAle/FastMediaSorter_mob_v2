@@ -23,7 +23,6 @@ object ImageEditorFileNamer {
      * @param operation One of [CROP], [COMPRESS], [DRAW].
      */
     fun buildName(baseName: String, ext: String, operation: String): String {
-        Timber.d("S0126: buildName op=$operation base=$baseName")
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMdd-HHmm"))
         return "${baseName}_${operation}-${timestamp}.${ext}"
     }

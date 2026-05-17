@@ -6,6 +6,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
@@ -16,7 +18,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 
 /**
  * Strategy for SFTP (SSH File Transfer Protocol) file operations.
@@ -25,7 +26,11 @@ import java.io.FileOutputStream
 class SftpOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sftpClient: SftpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
     
     override suspend fun copyFile(
@@ -155,6 +160,30 @@ class SftpOperationStrategy @Inject constructor(
             sftpClient.createDirectory(connectionInfo, pathInfo.remotePath)
         } catch (e: Exception) {
             Timber.e(e, "SftpOperationStrategy: Create directory failed - $path")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // S0189: defer file creation — see SmbOperationStrategy.createTextFile.
+            val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
+            val localFile = File(dir, "${resourceId}_${fileName}")
+            stagingRegistry.register(
+                file = localFile,
+                targetResourceId = resourceId,
+                targetParentPath = parentPath,
+                intendedName = fileName,
+                kind = com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE,
+            )
+            Result.success(localFile.absolutePath)
+        } catch (e: Exception) {
+            Timber.e(e, "SftpOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
             Result.failure(e)
         }
     }
@@ -387,30 +416,42 @@ class SftpOperationStrategy @Inject constructor(
         try {
             val sourceInfo = parseSftpPath(source)
                 ?: return Result.failure(IllegalArgumentException("Invalid source path"))
-            
-            val destFile = File(destination)
-            destFile.parentFile?.mkdirs()
-            
-            // Get file size for progress
+
             val connectionInfo = getConnectionInfo(sourceInfo)
             val statResult = sftpClient.stat(connectionInfo, sourceInfo.remotePath)
             val fileSize = statResult.getOrNull()?.size ?: 0L
-            
-            FileOutputStream(destFile).use { outputStream ->
+
+            // S0231: route writes through LocalDestinationWriter — handles MediaStore IS_PENDING
+            // for public collections (Music/Movies/Pictures/DCIM/Downloads) so EACCES does not
+            // happen on Android 10+ scoped storage.
+            val category = destinationClassifier.classify(destination)
+            val sink = destinationWriter.open(category, overwrite = true).getOrElse { error ->
+                Timber.e(error, "SFTP to Local: writer.open failed for $destination")
+                return Result.failure(error)
+            }
+
+            return try {
                 val downloadResult = sftpClient.downloadFile(
                     connectionInfo,
                     sourceInfo.remotePath,
-                    outputStream,
+                    sink.outputStream,
                     fileSize,
                     progressCallback
                 )
-                
+
                 if (downloadResult.isFailure) {
+                    sink.abort()
                     return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
                 }
+
+                sink.commit().map { destination }
+            } catch (e: CancellationException) {
+                sink.abort()
+                throw e
+            } catch (e: Throwable) {
+                sink.abort()
+                Result.failure(e)
             }
-            
-            return Result.success(destination)
         } catch (e: Exception) {
             Timber.e(e, "SFTP to Local download failed: $source -> $destination")
             return Result.failure(e)

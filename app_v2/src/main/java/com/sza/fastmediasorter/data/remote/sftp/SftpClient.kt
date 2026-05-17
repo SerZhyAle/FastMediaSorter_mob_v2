@@ -113,11 +113,20 @@ class SftpClient @Inject constructor(
         reachabilityGate.requireAnyNetwork("SFTP")
         val transportKey = rememberTransportKey(info)
         idleDisconnectPolicy.touch(transportKey)
-        val result = pool.withConnection(info, block)
-        if (result.isSuccess) {
-            armTransport(info)
+        // S0219 Pillar C: rearm the idle timer on every completion path (success or failure), not
+        // only success. A failed op still leaves a transport that should stay under idle-policy
+        // supervision; only CancellationException (user-initiated cancel, S0205) skips rearm.
+        var cancelled = false
+        return try {
+            pool.withConnection(info, block)
+        } catch (e: CancellationException) {
+            cancelled = true
+            throw e
+        } finally {
+            if (!cancelled && trackedTransportKeys.contains(transportKey)) {
+                armTransport(info)
+            }
         }
-        return result
     }
 
     // ExoPlayer connection management lives in SftpConnectionPool.
@@ -153,7 +162,6 @@ class SftpClient @Inject constructor(
         recursive: Boolean = true,
         includeDirectories: Boolean = false
     ): Result<List<SftpFileListing>> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.listFiles unwrapped path entered for $remotePath")
         // S0219: SftpException/IOException now propagate so SftpConnectionPool runs the
         // dead-transport retry (S0147). CancellationException re-throw is preserved
         // explicitly per S0205 to keep the intent visible at the call site.
@@ -490,7 +498,6 @@ class SftpClient @Inject constructor(
         remotePath: String,
         data: ByteArray
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.uploadFile(bytes) unwrapped path entered for $remotePath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         val parentDir = remotePath.substringBeforeLast('/', "")
         if (parentDir.isNotEmpty()) {
@@ -510,7 +517,6 @@ class SftpClient @Inject constructor(
         fileSize: Long = 0,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.uploadFile(stream) unwrapped path entered for $remotePath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         val parentDir = remotePath.substringBeforeLast('/', "")
         if (parentDir.isNotEmpty()) {
@@ -532,7 +538,6 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<SftpFileAttributes> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.stat unwrapped path entered for $remotePath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         val attrs = channel.stat(remotePath)
         Result.success(
@@ -550,7 +555,6 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Boolean> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.exists unwrapped path entered for $remotePath")
         // S0219: only SSH_FX_NO_SUCH_FILE is a benign protocol response (path missing).
         // All other SftpException ids, any IOException, and CancellationException propagate
         // so SftpConnectionPool can run the dead-transport retry (S0147) and coroutine
@@ -568,7 +572,6 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.mkdir unwrapped path entered for $remotePath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         channel.mkdir(remotePath)
         Result.success(Unit)
@@ -579,7 +582,6 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.deleteFile unwrapped path entered for $remotePath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         channel.rm(remotePath)
         Result.success(Unit)
@@ -590,7 +592,6 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.deleteDirectory unwrapped path entered for $remotePath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         // Helper function for recursion within the same channel
         fun deleteRecursive(path: String) {
@@ -620,7 +621,6 @@ class SftpClient @Inject constructor(
         oldPath: String,
         newPath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        Timber.d("S0219: SftpClient.rename unwrapped path entered for $oldPath -> $newPath")
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         channel.rename(oldPath, newPath)
         Result.success(Unit)
@@ -671,11 +671,21 @@ class SftpClient @Inject constructor(
     ): Result<java.io.InputStream> {
         val transportKey = rememberTransportKey(connectionInfo)
         idleDisconnectPolicy.touch(transportKey)
-        val result = pool.openInputStream(connectionInfo, remotePath)
-        if (result.isSuccess) {
-            armTransport(connectionInfo)
+        // S0219 Pillar C: rearm idle timer on every non-cancellation completion path.
+        // Note: the InputStream lifetime extends past this function, but idle-disconnect concerns
+        // the pool's session state — activeBorrowCount (Phase 02) keeps the session alive while
+        // the stream is open regardless of the idle timer.
+        var cancelled = false
+        return try {
+            pool.openInputStream(connectionInfo, remotePath)
+        } catch (e: CancellationException) {
+            cancelled = true
+            throw e
+        } finally {
+            if (!cancelled && trackedTransportKeys.contains(transportKey)) {
+                armTransport(connectionInfo)
+            }
         }
-        return result
     }
     // Create directory on SFTP server
 

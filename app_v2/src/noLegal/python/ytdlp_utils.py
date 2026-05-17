@@ -10,6 +10,30 @@ Called from YtDlpExtractionStrategy.kt via Chaquopy.
 _PROBE_EXCLUDED_HOSTS = frozenset({"www.threads.com", "threads.com"})
 
 
+def _is_probe_excluded(url):
+    """
+    Returns True when yt-dlp should not be used for the given URL.
+    Covers both host-level exclusions and URL-pattern exclusions.
+
+    S0223: Instagram /p/ posts are image-only. yt-dlp 2026.3.17 InstagramIE
+    raises "There is no video in this post" for them, wasting ~10s probe time.
+    /reel/ URLs must remain un-excluded so yt-dlp continues to handle videos.
+    """
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        host = parsed.hostname or ""
+        if host in _PROBE_EXCLUDED_HOSTS:
+            return True
+        if host in ("www.instagram.com", "instagram.com"):
+            path = parsed.path or ""
+            if path.startswith("/p/"):
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def probe_url(url):
     """
     Check whether yt-dlp has a non-generic extractor for the given URL.
@@ -21,13 +45,8 @@ def probe_url(url):
     GenericIE is excluded: it matches almost any URL and would make every
     URL a candidate for yt-dlp regardless of actual support.
     """
-    try:
-        from urllib.parse import urlparse
-        host = urlparse(url).hostname or ""
-        if host in _PROBE_EXCLUDED_HOSTS:
-            return None
-    except Exception:
-        pass
+    if _is_probe_excluded(url):
+        return None
     try:
         import yt_dlp
         ydl = yt_dlp.YoutubeDL({'quiet': True, 'no_warnings': True})

@@ -23,7 +23,7 @@ class RestoreDeletedUseCaseTest {
     val temp: TemporaryFolder = TemporaryFolder()
 
     private val context: Context = mockk(relaxed = true)
-    private val localStrategy = LocalOperationStrategy(context)
+    private val localStrategy = LocalOperationStrategy(context, mockk(relaxed = true))
     private val smbStrategy: SmbOperationStrategy = mockk(relaxed = true)
     private val sftpStrategy: SftpOperationStrategy = mockk(relaxed = true)
     private val ftpStrategy: FtpOperationStrategy = mockk(relaxed = true)

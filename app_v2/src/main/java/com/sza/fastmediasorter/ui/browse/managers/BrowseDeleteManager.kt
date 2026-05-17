@@ -64,14 +64,17 @@ class BrowseDeleteManager(
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
-     * Delete currently selected files.
-     * Uses soft-delete (trash) when possible; hard-delete otherwise.
+     * Delete files. Uses soft-delete (trash) when possible; hard-delete otherwise.
      * Emits [BrowseEvent.PermissionRequired] for Android 11+ scoped-storage batch ops.
+     *
+     * @param overridePaths When non-null, deletes exactly these paths instead of the
+     *   global multiselect. Used by the per-file overflow menu so the user's existing
+     *   multiselect remains untouched. When non-null, [clearSelection] is also skipped.
      */
-    fun deleteSelectedFiles() {
-        Timber.d("BrowseDeleteManager.deleteSelectedFiles: ===== START =====")
+    fun deleteSelectedFiles(overridePaths: Set<String>? = null) {
+        Timber.d("BrowseDeleteManager.deleteSelectedFiles: ===== START ===== override=${overridePaths?.size ?: -1}")
         scope.launch(ioDispatcher) {
-            val selectedPaths = stateFlow.value.selectedFiles.toList()
+            val selectedPaths = (overridePaths ?: stateFlow.value.selectedFiles).toList()
             if (selectedPaths.isEmpty()) {
                 sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.no_files_selected)))
                 return@launch
@@ -80,7 +83,7 @@ class BrowseDeleteManager(
             setLoading(true)
 
             val allFiles = stateFlow.value.mediaFiles
-            val selectedSet = stateFlow.value.selectedFiles
+            val selectedSet = selectedPaths.toSet()
             val (dirItems, fileItems) = allFiles
                 .filter { it.path in selectedSet }
                 .partition { it.isDirectory }
@@ -188,7 +191,8 @@ class BrowseDeleteManager(
             }
 
             // --- Update UI ---
-            clearSelection()
+            // Preserve global multiselect when overridePaths is used (per-file overflow menu).
+            if (overridePaths == null) clearSelection()
             removeFiles(selectedPaths)
 
             scope.launch {

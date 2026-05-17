@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.utils.SmbPathUtils
@@ -19,13 +21,16 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 
 /** Strategy for SMB file operations (smb:// protocol via SmbClient). */
 class SmbOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
     
     override suspend fun copyFile(
@@ -123,6 +128,31 @@ class SmbOperationStrategy @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Create directory failed - $path")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // S0189: defer file creation — only register intent. Disk write happens on first Save
+            // (handled by SaveTextNoteUseCase). Cancel before save leaves no file on disk.
+            val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
+            val localFile = File(dir, "${resourceId}_${fileName}")
+            stagingRegistry.register(
+                file = localFile,
+                targetResourceId = resourceId,
+                targetParentPath = parentPath,
+                intendedName = fileName,
+                kind = com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE,
+            )
+            Result.success(localFile.absolutePath)
+        } catch (e: Exception) {
+            Timber.e(e, "SmbOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
             Result.failure(e)
         }
     }
@@ -251,41 +281,78 @@ class SmbOperationStrategy @Inject constructor(
     ): Result<String> {
         val pathInfo = SmbPathUtils.parseSmbPath(smbPath)
             ?: return Result.failure(Exception("Failed to parse SMB path: $smbPath"))
-        
+
         val connectionInfo = getConnectionInfo(pathInfo)
         val destUri = parseAndFixUri(localPath)
-        val outputStream = try {
-            if (destUri.scheme == "content") {
-                context.contentResolver.openOutputStream(destUri) 
+
+        // S0231: content URIs already bypass scoped storage (provider-backed). Filesystem paths
+        // are routed through LocalDestinationWriter for MediaStore-aware writes.
+        if (destUri.scheme == "content") {
+            val outputStream = try {
+                context.contentResolver.openOutputStream(destUri)
                     ?: return Result.failure(Exception("Failed to open output stream for content URI: $localPath"))
-            } else {
-                val localFile = File(if (destUri.scheme == "file") destUri.path ?: localPath else localPath)
-                localFile.parentFile?.mkdirs()
-                FileOutputStream(localFile)
+            } catch (e: Exception) {
+                return Result.failure(Exception("Failed to open local destination: ${e.message}"))
             }
-        } catch (e: Exception) {
-            return Result.failure(Exception("Failed to open local destination: ${e.message}"))
-        }
-        
-        return try {
-            outputStream.use { stream ->
-                when (val result = smbClient.downloadFile(
-                    connectionInfo,
-                    pathInfo.remotePath,
-                    stream,
-                    fileSize = 0L, // Unknown size
-                    progressCallback = progressCallback
-                )) {
-                    is SmbResult.Success -> {
-                        Timber.d("SmbOperationStrategy: Downloaded to $localPath")
-                        Result.success(localPath)
+            return try {
+                outputStream.use { stream ->
+                    when (val result = smbClient.downloadFile(
+                        connectionInfo,
+                        pathInfo.remotePath,
+                        stream,
+                        fileSize = 0L,
+                        progressCallback = progressCallback
+                    )) {
+                        is SmbResult.Success -> {
+                            Timber.d("SmbOperationStrategy: Downloaded to $localPath")
+                            Result.success(localPath)
+                        }
+                        is SmbResult.Error -> Result.failure(Exception(result.message))
                     }
-                    is SmbResult.Error -> Result.failure(Exception(result.message))
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "SmbOperationStrategy: Download failed")
+                Result.failure(e)
+            }
+        }
+
+        val resolvedPath = if (destUri.scheme == "file") destUri.path ?: localPath else localPath
+        val category = destinationClassifier.classify(resolvedPath)
+        val sink = destinationWriter.open(category, overwrite = true).getOrElse { error ->
+            Timber.e(error, "SmbOperationStrategy: writer.open failed for $resolvedPath")
+            return Result.failure(error)
+        }
+
+        return try {
+            val result = smbClient.downloadFile(
+                connectionInfo,
+                pathInfo.remotePath,
+                sink.outputStream,
+                fileSize = 0L,
+                progressCallback = progressCallback
+            )
+            when (result) {
+                is SmbResult.Success -> {
+                    sink.commit().fold(
+                        onSuccess = {
+                            Timber.d("SmbOperationStrategy: Downloaded to $localPath")
+                            Result.success(localPath)
+                        },
+                        onFailure = { err -> Result.failure(err) }
+                    )
+                }
+                is SmbResult.Error -> {
+                    sink.abort()
+                    Result.failure(Exception(result.message))
                 }
             }
         } catch (e: CancellationException) {
+            sink.abort()
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            sink.abort()
             Timber.e(e, "SmbOperationStrategy: Download failed")
             Result.failure(e)
         }

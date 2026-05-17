@@ -12,11 +12,7 @@ object CandidateSelectionPolicy {
         val httpOnly = candidates.filter { isHttpScheme(it.url) }
         if (httpOnly.isEmpty()) return null
 
-        // S0197: when an authoritative embedded-JSON candidate is present (Threads/IG data-sjs
-        // payload), restrict the winner search to that subset. Otherwise the size-first heuristic
-        // can pick a larger OG-preview/avatar on the same CDN that the post page also serves.
-        val pool = httpOnly.filter { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON }
-            .takeIf { it.isNotEmpty() } ?: httpOnly
+        val pool = authoritativePool(httpOnly)
 
         pool.firstOrNull { (it.tentativeSizeBytes ?: 0L) >= ONE_MEBIBYTE }?.let { return it }
 
@@ -34,6 +30,20 @@ object CandidateSelectionPolicy {
         }?.let { return it }
 
         return pool.first()
+    }
+
+    fun batchPool(candidates: List<HtmlMediaCandidate>): List<HtmlMediaCandidate> {
+        val httpOnly = candidates.filter { isHttpScheme(it.url) }
+        if (httpOnly.isEmpty()) return emptyList()
+        return authoritativePool(httpOnly)
+    }
+
+    // S0224: batch notifications derive their visible total from batch.items.size. When
+    // data-sjs provides authoritative slide URLs, keep batch selection on that subset so the
+    // total matches the number of files we will actually save instead of mixed preview noise.
+    private fun authoritativePool(candidates: List<HtmlMediaCandidate>): List<HtmlMediaCandidate> {
+        return candidates.filter { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON }
+            .takeIf { it.isNotEmpty() } ?: candidates
     }
 
     private fun isHttpScheme(url: String): Boolean {

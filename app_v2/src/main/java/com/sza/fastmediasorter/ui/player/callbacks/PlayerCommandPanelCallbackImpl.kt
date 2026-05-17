@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.CommandPanelController
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.StereoDetector
 import timber.log.Timber
 
 /**
@@ -14,6 +16,10 @@ class PlayerCommandPanelCallbackImpl(
     private val activity: PlayerActivity,
     private val viewModel: PlayerViewModel
 ) : CommandPanelController.CommandPanelCallback {
+
+    // S0238: user-initiated stereo detection on VR-toolbar tap (image / gif only).
+    // Mirrors the construction pattern used by PlayerMediaLoaderManager.
+    private val stereoDetector = StereoDetector()
 
     override fun onBackClicked() {
         activity.exitPlayerWithAudioCheck()
@@ -262,6 +268,31 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun on3dVrToggleClicked() {
+        // S0238: for image / gif the user explicitly signalled stereo intent — re-run detection
+        // in user-initiated mode and persist the result so VrPlayerActivity picks up the right
+        // stereo layer via the ViewModel state. Video keeps its existing path: there the user
+        // already chose the format in PlaybackControlDialog, do not override.
+        Timber.d("S0238: on3dVrToggleClicked — image-player VR-toolbar entry point")
+        val file = viewModel.state.value.currentFile
+        if (file != null && file.type in setOf(MediaType.IMAGE, MediaType.GIF)) {
+            val detected = stereoDetector.detectForImage(
+                path = file.path,
+                width = file.width,
+                height = file.height,
+                userInitiated = true,
+            )
+            if (detected != StereoMode.UNKNOWN &&
+                detected != StereoMode.AUTO &&
+                detected != viewModel.stereoMode.value
+            ) {
+                viewModel.setAutoDetectedStereoMode(detected)
+                Timber.i(
+                    "PlayerCommandPanelCallback: user-initiated VR-tap re-detected stereo for image " +
+                        "path=%s detected=%s",
+                    file.path, detected,
+                )
+            }
+        }
         // Delegate to the VR-specific override in VrPlayerActivity; base PlayerActivity no-ops.
         activity.handle3dVrToggleClicked()
     }

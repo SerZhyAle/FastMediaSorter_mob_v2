@@ -42,6 +42,7 @@ class BrowseButtonSetupHelper(
         fun onRetryClicked()
         fun onStopScanClicked()
         fun onCreateFolderClicked()
+        fun onCreateTextNoteClicked()
         fun isAudioOnlyResource(): Boolean
         fun onMicRecordTouchDown()
         fun onMicRecordTouchUp()
@@ -150,6 +151,11 @@ class BrowseButtonSetupHelper(
             callbacks.onCreateFolderClicked()
         }
 
+        binding.btnCreateTextFile?.setOnClickListener {
+            UserActionLogger.logButtonClick("CreateTextNote", "BrowseActivity")
+            callbacks.onCreateTextNoteClicked()
+        }
+
         var micTouchDownTime = 0L
         binding.btnMicRecord?.setOnTouchListener { _, event ->
             when (event.action) {
@@ -235,6 +241,7 @@ class BrowseButtonSetupHelper(
             binding.btnPlay.text = ctx.getString(R.string.slideshow)
             binding.btnPlayRandom?.text = ctx.getString(R.string.play_random_short)
             binding.btnCreateFolder?.text = ctx.getString(R.string.action_create_folder)
+            binding.btnCreateTextFile?.text = ctx.getString(R.string.action_create_text_file)
         } else {
             binding.btnBack.text = null
             binding.btnFilter.text = null
@@ -245,6 +252,7 @@ class BrowseButtonSetupHelper(
             binding.btnPlayRandom?.text = null
             binding.btnResourceOps?.text = null
             binding.btnCreateFolder?.text = null
+            binding.btnCreateTextFile?.text = null
         }
     }
 }

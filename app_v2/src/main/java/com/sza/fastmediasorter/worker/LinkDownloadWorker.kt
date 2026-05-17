@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
@@ -227,11 +228,26 @@ class LinkDownloadWorker @AssistedInject constructor(
             }
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
                 val s = result.summary
+                // S0224 §5.4: observability log so the batch notification total can be verified from logcat
+                // without device-side testing. Uses `Timber.i` (info) — not `Timber.d("S0224:` — because that
+                // tag idiom is bound to BlockNeedUserTest status only (CLAUDE.md "Debug Verification Tags").
+                Timber.i(
+                    "LinkDownloadNotification set total=%d success=%d label=%s",
+                    s.totalItems,
+                    s.successCount,
+                    s.label ?: "<none>",
+                )
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(
                         context.getString(R.string.link_download_notif_text_batch_done, s.successCount, s.totalItems),
                     )
+            }
+            LinkAutoDownloadCoordinator.Result.Failed.UnsupportedYouTubeCommunityPost -> {
+                builder
+                    .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                    .setContentText(context.getString(R.string.link_autodownload_error_youtube_community_post))
+                    .addAction(buildOpenUrlAction(originalUrl))
             }
             is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> {
                 // S0211: worker cannot show dialogs. Three branches:
@@ -298,6 +314,23 @@ class LinkDownloadWorker @AssistedInject constructor(
         return NotificationCompat.Action(
             R.drawable.ic_lock,
             context.getString(R.string.link_download_notif_action_sign_in),
+            pi,
+        )
+    }
+
+    private fun buildOpenUrlAction(url: String): NotificationCompat.Action {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        val pi = PendingIntent.getActivity(
+            context,
+            10_000 + Math.floorMod(url.hashCode(), 10_000),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        return NotificationCompat.Action(
+            android.R.drawable.ic_menu_view,
+            context.getString(R.string.action_open),
             pi,
         )
     }

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.cache
 
 import android.util.LruCache
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MetadataState
 import timber.log.Timber
 
 /**
@@ -44,6 +45,15 @@ object MediaFilesCacheManager {
      * Auto-fixes cloud paths if needed (cloud:/ → cloud://).
      */
     fun setCachedList(resourceId: Long, files: List<MediaFile>) {
+        // S0237 §6.4: refuse to persist lists that still contain PENDING / PARTIAL rows.
+        // The intermediate listing-only batch is emitted to UI for fast rendering only;
+        // the cache must hold the COMPLETE post-metadata snapshot.
+        val hasIncompleteRows = files.any { it.metadataState != MetadataState.COMPLETE }
+        if (hasIncompleteRows) {
+            Timber.w("MediaFilesCache: refusing to cache ${files.size} files for resource $resourceId — partial/pending states present, S0237 §6.4")
+            return
+        }
+
         val fixedFiles = files.map { file ->
             if (file.path.startsWith("cloud:/") && !file.path.startsWith("cloud://")) {
                 Timber.w("MediaFilesCache: Auto-fixing cloud path: ${file.path}")

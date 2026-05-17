@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.sza.fastmediasorter.ui.addresource
 
 import android.app.AlertDialog

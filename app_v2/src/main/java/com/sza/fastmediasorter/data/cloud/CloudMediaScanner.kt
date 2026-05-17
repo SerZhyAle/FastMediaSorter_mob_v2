@@ -24,7 +24,8 @@ class CloudMediaScanner @Inject constructor(
     private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
     private val oneDriveRestClient: OneDriveRestClient,
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    private val cloudPathParser: CloudPathParser
 ) : MediaScanner {
 
     override suspend fun scanFolder(
@@ -54,30 +55,41 @@ class CloudMediaScanner @Inject constructor(
         includeDirectories: Boolean
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
+            // S0236: normalize the incoming path so legacy single-slash form (cloud:/<provider>/<id>),
+            // produced by older builds and still stored in some resources.path rows, is treated
+            // identically to the canonical double-slash form. Without this, the legacy form falls
+            // into the `else` branch below, the entire path becomes the folderId, and the resource
+            // lookup never matches → empty browse screen.
+            Timber.d("S0236: CloudMediaScanner.scanFolderInternal entry path=$path")
+            val normalizedPath = cloudPathParser.normalizePath(path)
+
             // For cloud resources, path can be either:
             // 1. Full path like "cloud://google_drive/FOLDER_ID"
             // 2. Just the FOLDER_ID (for backward compatibility)
-            val isFullCloudPath = path.startsWith("cloud://")
+            val isFullCloudPath = normalizedPath.startsWith("cloud://")
             val folderId = if (isFullCloudPath) {
                 // Extract folder ID from full path: cloud://provider/FOLDER_ID
-                path.substringAfterLast("/")
+                normalizedPath.substringAfterLast("/")
             } else {
-                path
+                normalizedPath
             }
-            
+
             // Find resource - use path matching for full cloud paths, or cloudFolderId for legacy
             val resources = resourceRepository.getAllResourcesSync()
             val resource = if (isFullCloudPath) {
-                // Match by path first (handles Dropbox /path vs path mismatch)
-                resources.find { it.path == path }
+                // Match by path first (handles Dropbox /path vs path mismatch).
+                // Also try the original (un-normalized) path so resources stored with the legacy
+                // cloud:/ format still match before the Room migration runs.
+                resources.find { it.path == normalizedPath }
+                    ?: resources.find { it.path == path }
                     ?: resources.find { it.cloudFolderId == folderId }
                     ?: resources.find { it.cloudFolderId == "/$folderId" } // Dropbox uses leading slash
             } else {
                 resources.find { it.cloudFolderId == folderId }
             }
-            
+
             if (resource == null) {
-                Timber.w("CloudMediaScanner: No resource found for path=$path, folderId=$folderId")
+                Timber.w("CloudMediaScanner: No resource found for path=$normalizedPath, folderId=$folderId")
                 return@withContext emptyList()
             }
             

@@ -675,6 +675,18 @@
       }
     },
     {
+      "command_id": "sorting.create_text_note",
+      "group": "SORTING_ACTIONS",
+      "label_key": "cmd_sorting_create_text_note",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:42:4098"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
       "command_id": "sorting.paste",
       "group": "SORTING_ACTIONS",
       "label_key": "cmd_sorting_paste",

@@ -1,14 +1,18 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -20,10 +24,9 @@ import timber.log.Timber
 class BrowseCloudAuthManager(
     private val context: Context,
     private val coroutineScope: CoroutineScope,
-    private val googleDriveClient: GoogleDriveRestClient,
+    @Suppress("unused") private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
     private val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
-    private val googleSignInLauncher: ActivityResultLauncher<Intent>,
     private val callbacks: CloudAuthCallbacks
 ) {
     
@@ -31,14 +34,51 @@ class BrowseCloudAuthManager(
         fun onAuthenticationSuccess()
         fun onAuthenticationFailure()
     }
-    
+
     private var isDropboxAuthenticating = false
-    
+
+    /** S0200 Phase 04c: launch Credential Manager sign-in via the identity domain. */
     fun launchGoogleSignIn() {
         coroutineScope.launch {
             try {
-                val signInIntent = googleDriveClient.getSignInIntent()
-                googleSignInLauncher.launch(signInIntent)
+                val activity = context as? Activity
+                if (activity == null) {
+                    Timber.e("launchGoogleSignIn: context is not an Activity — Credential Manager requires one")
+                    callbacks.onAuthenticationFailure()
+                    return@launch
+                }
+                val identityRepo: GoogleIdentityRepository = EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    BrowseIdentityEntryPoint::class.java
+                ).identityRepository()
+                val result = identityRepo.signInPrimary(activity, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)
+                when (result) {
+                    is IdentitySignInResult.Success -> {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.google_drive_signed_in, result.account.email),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        callbacks.onAuthenticationSuccess()
+                    }
+                    IdentitySignInResult.Cancelled -> {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.google_sign_in_cancelled),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        callbacks.onAuthenticationFailure()
+                    }
+                    is IdentitySignInResult.Failed -> {
+                        Timber.e(result.cause, "Google Sign-In failed via identity domain: ${result.reason}")
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.google_drive_authentication_failed),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        callbacks.onAuthenticationFailure()
+                    }
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to launch Google Sign-In")
                 Toast.makeText(
@@ -50,53 +90,11 @@ class BrowseCloudAuthManager(
             }
         }
     }
-    
-    fun handleGoogleSignInResult(data: Intent?) {
-        coroutineScope.launch {
-            try {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                val account = task.getResult(ApiException::class.java)
-                
-                // Update Google Drive client with new credentials
-                val authResult = googleDriveClient.handleSignInResult(account)
-                
-                when (authResult) {
-                    is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.google_drive_signed_in, account.email ?: ""),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.onAuthenticationSuccess()
-                    }
-                    is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                        Timber.e("Failed to update Google Drive credentials: ${authResult.message}")
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.google_drive_authentication_failed),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.onAuthenticationFailure()
-                    }
-                    com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.google_sign_in_cancelled),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.onAuthenticationFailure()
-                    }
-                }
-            } catch (e: ApiException) {
-                Timber.e(e, "Google Sign-In failed: ${e.statusCode}")
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.google_drive_authentication_failed),
-                    Toast.LENGTH_SHORT
-                ).show()
-                callbacks.onAuthenticationFailure()
-            }
-        }
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface BrowseIdentityEntryPoint {
+        fun identityRepository(): GoogleIdentityRepository
     }
     
     fun launchDropboxSignIn() {

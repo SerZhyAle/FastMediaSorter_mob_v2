@@ -93,6 +93,7 @@ class PlayerDialogHelper(
             dialog.setOnDismissListener { activeDialogs.remove(dialog) }
             activeDialogs.add(dialog)
             dialog.show()
+            com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "PlayerDialogHelper: dialog show failed — bad window token")
             activeDialogs.remove(dialog)

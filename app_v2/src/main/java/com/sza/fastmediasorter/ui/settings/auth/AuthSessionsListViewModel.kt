@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.sza.fastmediasorter.ui.settings.auth
 
 import androidx.lifecycle.ViewModel
@@ -7,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResource
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
-import com.sza.fastmediasorter.domain.repository.AuthSessionDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -53,7 +50,8 @@ class AuthSessionsListViewModel @Inject constructor(
     }
 
     @Deprecated("Use accountGroups", ReplaceWith("accountGroups"))
-    val sessions: Flow<List<AuthSessionDomain>> = repository.observeDomains()
+    @Suppress("DEPRECATION") // Facade is deprecated; observeDomains() + the AuthSessionDomain it yields are deprecated too. Type is inferred to avoid an import-level warning that no narrow suppression can silence.
+    val sessions = repository.observeDomains()
 
     @Deprecated("Use deleteAccount(host, accountId)")
     fun delete(host: String) {

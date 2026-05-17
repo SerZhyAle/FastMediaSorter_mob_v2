@@ -61,7 +61,26 @@ interface FileOperationStrategy {
      * @return Result indicating success or failure
      */
     suspend fun createDirectory(path: String): Result<Unit>
-    
+
+    /**
+     * Creates a new text file in [parentPath] with given [fileName] and UTF-8 encoded [content].
+     * Returns the protocol-specific path of the created file.
+     * Caller is responsible for collision resolution — this method overwrites existing files of
+     * the same name only if the strategy explicitly states so in its impl docs (default: fail on conflict).
+     *
+     * @param parentPath  protocol-specific path of the containing directory
+     * @param fileName    name of the file to create (no slashes)
+     * @param content     initial UTF-8 content (may be empty string for blank notes)
+     * @param resourceId  id of the owning resource; used by network strategies for staging registration
+     * @return [Result] containing the absolute/protocol path of the created file on success
+     */
+    suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String>
+
     /**
      * Write text content to a file.
      * Useful for creating metadata files.

@@ -84,6 +84,15 @@ class BrowseFileOpenManager(
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))
     }
 
+    /**
+     * S0189: open [path] in PlayerActivity with edit mode pre-activated.
+     * Used by [BrowseTextNoteCreateManager] immediately after a text note is created.
+     */
+    fun openTextNoteInEditor(path: String, resourceId: Long) {
+        inlineStop()
+        sendEvent(BrowseEvent.NavigateToTextEditor(path, resourceId))
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /**

@@ -607,6 +607,7 @@ class StandaloneViewManager(
                 override fun exitFullscreenMode() { /* not exposed in standalone */ }
                 override fun setTouchZonesEnabled(enabled: Boolean) { /* not exposed in standalone */ }
                 override fun showEncodingDialog() { /* not exposed in standalone */ }
+                override fun finishActivity() { /* StandalonePlayer does not create notes */ }
             },
             translationManager = translationManager
         )

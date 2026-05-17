@@ -23,7 +23,9 @@ class TrashRenameUnavailableException(
  * Handles standard file:// and local path operations.
  */
 class LocalOperationStrategy @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    // S0189: registry of deferred new-note intents; LOCAL notes are written on first Save.
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
 ) : FileOperationStrategy {
     
     override suspend fun copyFile(
@@ -335,6 +337,39 @@ class LocalOperationStrategy @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.e(e, "LocalOperationStrategy: Create directory failed - $path")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // S0189: defer file creation. Validate parent dir + name conflict, but do NOT touch
+            // the filesystem here — the editor decides whether the user actually wants this note.
+            // The file is written by SaveTextNoteUseCase on first Save; Cancel leaves nothing.
+            val parent = File(parentPath)
+            if (!parent.exists() || !parent.isDirectory) {
+                return@withContext Result.failure(Exception("Parent path is not a directory: $parentPath"))
+            }
+            val target = File(parent, fileName)
+            if (target.exists()) {
+                return@withContext Result.failure(Exception("File already exists: ${target.absolutePath}"))
+            }
+            stagingRegistry.register(
+                file = target,
+                targetResourceId = resourceId,
+                targetParentPath = parentPath,
+                intendedName = fileName,
+                kind = com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE,
+                location = com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry.Location.LOCAL_DEFERRED,
+            )
+            Result.success(target.absolutePath)
+        } catch (e: Exception) {
+            Timber.e(e, "LocalOperationStrategy: createTextFile failed - $parentPath/$fileName")
             Result.failure(e)
         }
     }

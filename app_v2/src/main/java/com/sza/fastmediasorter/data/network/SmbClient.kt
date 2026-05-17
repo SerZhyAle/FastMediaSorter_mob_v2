@@ -3,46 +3,21 @@ package com.sza.fastmediasorter.data.network
 import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
-import com.hierynomus.smbj.SMBClient
-import com.hierynomus.smbj.SmbConfig
-import com.hierynomus.smbj.auth.AuthenticationContext
-import com.hierynomus.smbj.connection.Connection
-import com.hierynomus.smbj.session.Session
-import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
-import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.data.network.helpers.SmbDirectoryScanner
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
-import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbFileInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.ConnectionKey
 import timber.log.Timber
-import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import java.util.concurrent.ConcurrentHashMap
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.asCoroutineDispatcher
-import java.util.concurrent.Executors
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 
 /**
  * SMB/CIFS client facade for network file operations using SMBJ library.
@@ -80,6 +55,12 @@ class SmbClient @Inject constructor(
 
     // Share discovery (SMBJ has no enumeration API — trial-connect common share names)
     private val shareDiscovery = SmbShareDiscoveryHelper(connectionManager)
+
+    // Media scan + count (S0002 Wave 47 — extracted from SmbClient)
+    private val mediaScan = SmbMediaScanCoordinator(connectionManager, directoryScanner)
+
+    // Rename / move / mkdir-p (S0002 Wave 47 — extracted from SmbClient)
+    private val mutations = SmbFileMutationCoordinator(connectionManager)
 
 
     /**
@@ -196,10 +177,7 @@ class SmbClient @Inject constructor(
         }
     }
 
-    /**
-     * Scan SMB folder for media files (recursive)
-     * @param progressCallback Optional callback for progress updates (called every 10 files)
-     */
+    /** Scan SMB folder for media files (recursive). Delegates to SmbMediaScanCoordinator. */
     suspend fun scanMediaFiles(
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
@@ -207,95 +185,20 @@ class SmbClient @Inject constructor(
         scanSubdirectories: Boolean = true,
         progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback? = null,
         includeDirectories: Boolean = false
-    ): SmbResult<List<SmbFileInfo>> {
-        return try {
-            val startTime = System.currentTimeMillis()
-            val mediaFiles = mutableListOf<SmbFileInfo>()
-            
-            connectionManager.withConnection(connectionInfo) { share ->
-                val scannerResults = mutableListOf<SmbDirectoryScanner.SmbFileInfo>()
-                if (scanSubdirectories) {
-                    directoryScanner.scanDirectoryRecursive(share, remotePath, extensions, scannerResults, progressCallback)
-                } else {
-                    directoryScanner.scanDirectoryNonRecursive(share, remotePath, extensions, scannerResults, Int.MAX_VALUE, progressCallback, includeDirectories)
-                }
-                // Convert SmbDirectoryScanner.SmbFileInfo to SmbClient.SmbFileInfo
-                val convertedFiles = scannerResults.map { scannerFile ->
-                    SmbFileInfo(
-                        name = scannerFile.name,
-                        path = scannerFile.path,
-                        isDirectory = scannerFile.isDirectory,
-                        size = scannerFile.size,
-                        lastModified = scannerFile.lastModified
-                    )
-                }
-                mediaFiles.addAll(convertedFiles)
-                SmbResult.Success(mediaFiles)
-            }.also {
-                if (it is SmbResult.Success) {
-                    val durationMs = System.currentTimeMillis() - startTime
-                    progressCallback?.onComplete(it.data.size, durationMs)
-                }
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to scan SMB media files")
-            SmbResult.Error("Failed to scan media files: ${e.message}", e)
-        }
-    }
+    ): SmbResult<List<SmbFileInfo>> =
+        mediaScan.scanMediaFiles(connectionInfo, remotePath, extensions, scanSubdirectories, progressCallback, includeDirectories)
 
-    /**
-     * Scan SMB folder with limit (for lazy loading)
-     * Returns early after finding maxFiles files
-     */
+    /** Scan SMB folder with limit (for lazy loading). Delegates to SmbMediaScanCoordinator. */
     suspend fun scanMediaFilesChunked(
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String>? = MediaExtensions.IMAGE + MediaExtensions.VIDEO + MediaExtensions.AUDIO,
         maxFiles: Int = 100,
         scanSubdirectories: Boolean = true
-    ): SmbResult<List<SmbFileInfo>> {
-        return try {
-            Timber.d("SmbClient.scanMediaFilesChunked: START - share=${connectionInfo.shareName}, remotePath=$remotePath, maxFiles=$maxFiles, scanSubdirectories=$scanSubdirectories")
-            
-            val mediaFiles = mutableListOf<SmbFileInfo>()
-            
-            connectionManager.withConnection(connectionInfo) { share ->
-                Timber.d("SmbClient.scanMediaFilesChunked: Connection established, starting scan")
-                val scannerResults = mutableListOf<SmbDirectoryScanner.SmbFileInfo>()
-                if (scanSubdirectories) {
-                    directoryScanner.scanDirectoryRecursiveWithLimit(share, remotePath, extensions, scannerResults, maxFiles)
-                } else {
-                    // Only scan root folder, no recursion
-                    directoryScanner.scanDirectoryNonRecursive(share, remotePath, extensions, scannerResults, maxFiles, null)
-                }
-                val convertedFiles = scannerResults.map { scannerFile ->
-                    SmbFileInfo(
-                        name = scannerFile.name,
-                        path = scannerFile.path,
-                        isDirectory = scannerFile.isDirectory,
-                        size = scannerFile.size,
-                        lastModified = scannerFile.lastModified
-                    )
-                }
-                mediaFiles.addAll(convertedFiles)
-                Timber.d("SmbClient.scanMediaFilesChunked: Scan completed, found ${mediaFiles.size} files")
-                SmbResult.Success(mediaFiles)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to scan SMB media files (chunked)")
-            SmbResult.Error("Failed to scan media files: ${e.message}", e)
-        }
-    }
+    ): SmbResult<List<SmbFileInfo>> =
+        mediaScan.scanMediaFilesChunked(connectionInfo, remotePath, extensions, maxFiles, scanSubdirectories)
 
-    /**
-     * Scan media files with pagination support (optimized for lazy loading)
-     * Skips first 'offset' files, then collects up to 'limit' files
-     * Much faster than scanMediaFiles() for large folders with offset > 0
-     */
+    /** Scan media files with pagination support. Delegates to SmbMediaScanCoordinator. */
     suspend fun scanMediaFilesPaged(
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
@@ -303,68 +206,18 @@ class SmbClient @Inject constructor(
         offset: Int = 0,
         limit: Int = 50,
         scanSubdirectories: Boolean = true
-    ): SmbResult<List<SmbFileInfo>> {
-        return try {
-            val startTime = System.currentTimeMillis()
-            val mediaFiles = mutableListOf<SmbFileInfo>()
-            var skippedCount = 0
-            
-            connectionManager.withConnection(connectionInfo) { share ->
-                val scannerResults = mutableListOf<SmbDirectoryScanner.SmbFileInfo>()
-                if (scanSubdirectories) {
-                    directoryScanner.scanDirectoryWithOffsetLimit(share, remotePath, extensions, scannerResults, offset, limit, skippedCount)
-                } else {
-                    directoryScanner.scanDirectoryNonRecursiveWithOffset(share, remotePath, extensions, scannerResults, offset, limit)
-                }
-                val convertedFiles = scannerResults.map { scannerFile ->
-                    SmbFileInfo(
-                        name = scannerFile.name,
-                        path = scannerFile.path,
-                        isDirectory = scannerFile.isDirectory,
-                        size = scannerFile.size,
-                        lastModified = scannerFile.lastModified
-                    )
-                }
-                mediaFiles.addAll(convertedFiles)
-                Timber.d("SmbClient.scanMediaFilesPaged: offset=$offset, limit=$limit, scanSubdirs=$scanSubdirectories, returned=${mediaFiles.size}, took ${System.currentTimeMillis() - startTime}ms")
-                SmbResult.Success(mediaFiles)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to scan SMB media files (paged)")
-            SmbResult.Error("Failed to scan media files: ${e.message}", e)
-        }
-    }
+    ): SmbResult<List<SmbFileInfo>> =
+        mediaScan.scanMediaFilesPaged(connectionInfo, remotePath, extensions, offset, limit, scanSubdirectories)
 
-    /**
-     * Count media files in SMB folder (recursive, optimized)
-     * Returns count without creating SmbFileInfo objects
-     */
+    /** Count media files in SMB folder (recursive, optimized). Delegates to SmbMediaScanCoordinator. */
     suspend fun countMediaFiles(
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String>? = MediaExtensions.IMAGE + MediaExtensions.VIDEO + MediaExtensions.AUDIO,
         maxCount: Int = 1000, // Fast initial scan: stop at 1000 to return quickly
         scanSubdirectories: Boolean = true
-    ): SmbResult<Int> {
-        return try {
-            connectionManager.withConnection(connectionInfo) { share ->
-                val count = if (scanSubdirectories) {
-                    directoryScanner.countDirectoryRecursive(share, remotePath, extensions, maxCount)
-                } else {
-                    directoryScanner.countDirectoryNonRecursive(share, remotePath, extensions, maxCount)
-                }
-                if (count >= maxCount) {
-                    Timber.d("Fast count limit reached: $maxCount+ files")
-                }
-                SmbResult.Success(count)
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to count SMB media files")
-            SmbResult.Error("Failed to count media files: ${e.message}", e)
-        }
-    }
+    ): SmbResult<Int> =
+        mediaScan.countMediaFiles(connectionInfo, remotePath, extensions, maxCount, scanSubdirectories)
 
 
 
@@ -547,184 +400,23 @@ class SmbClient @Inject constructor(
         }
     }
 
-    /**
-     * Rename file on SMB share
-     * @param connectionInfo SMB connection information
-     * @param oldPath Current path (relative to share)
-     * @param newName New filename (without path)
-     */
+    /** Rename file on SMB share. Delegates to SmbFileMutationCoordinator. */
     suspend fun renameFile(
         connectionInfo: SmbConnectionInfo,
         oldPath: String,
         newName: String
-    ): SmbResult<Unit> {
-        return try {
-            connectionManager.withConnection(connectionInfo) { share ->
-                val fixedOldPath = oldPath.trim('/', '\\')
-                // Parse newName: if contains '/', treat it as full path from share root
-                // Otherwise, keep in same directory
-                val newPath = if (newName.contains('/')) {
-                    newName.trim('/', '\\')
-                } else {
-                    val directory = fixedOldPath.substringBeforeLast('/', "")
-                    if (directory.isEmpty()) newName else "$directory/$newName"
-                }
-                
-                Timber.d("Renaming SMB file: oldPath='$fixedOldPath' → newPath='$newPath'")
-                
-                // Validate new name (no invalid SMB characters: \ / : * ? " < > |)
-                val invalidChars = setOf('\\', '/', ':', '*', '?', '"', '<', '>', '|')
-                val newFileName = newPath.substringAfterLast('/')
-                if (newFileName.any { it in invalidChars }) {
-                    Timber.e("SMB rename: Invalid characters in new name: $newFileName")
-                    return@withConnection SmbResult.Error("New name contains invalid characters: ${invalidChars.filter { it in newFileName }}")
-                }
-                
-                // Check if target exists
-                val targetExists = try {
-                    share.fileExists(newPath)
-                } catch (e: Exception) {
-                    Timber.w(e, "SMB rename: Error checking target existence, assuming not exists")
-                    false
-                }
-                
-                if (targetExists) {
-                    Timber.e("SMB rename: Target file already exists: $newPath")
-                    return@withConnection SmbResult.Error("File already exists at target location")
-                }
-                
-                // Open source file for rename
-                val file = try {
-                    share.openFile(
-                        fixedOldPath,
-                        EnumSet.of(AccessMask.DELETE, AccessMask.GENERIC_READ),
-                        null,
-                        SMB2ShareAccess.ALL,
-                        SMB2CreateDisposition.FILE_OPEN,
-                        null
-                    )
-                } catch (e: Exception) {
-                    Timber.e(e, "SMB rename: Failed to open source file: $fixedOldPath")
-                    return@withConnection SmbResult.Error("Failed to open source file: ${e.message}")
-                }
-                
-                file.use {
-                    try {
-                        // SMBJ rename() accepts full path relative to share root
-                        it.rename(newPath, false)
-                        Timber.i("Successfully renamed SMB file to: $newPath")
-                    } catch (e: Exception) {
-                        Timber.e(e, "SMB rename: rename() call failed for $fixedOldPath → $newPath")
-                        throw e
-                    }
-                }
-                
-                SmbResult.Success(Unit)
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to rename file on SMB")
-            SmbResult.Error("Failed to rename file: ${e.message}", e)
-        }
-    }
+    ): SmbResult<Unit> = mutations.renameFile(connectionInfo, oldPath, newName)
 
-    /**
-     * Move file to different location on SMB share (copy + delete)
-     * Use this instead of renameFile when moving to subdirectories
-     */
+    /** Move file on SMB share (copy + delete). Delegates to SmbFileMutationCoordinator. */
     suspend fun moveFile(
         connectionInfo: SmbConnectionInfo,
         sourcePath: String,
         destinationPath: String
-    ): SmbResult<Unit> {
-        return try {
-            connectionManager.withConnection(connectionInfo) { share ->
-                val fixedSource = sourcePath.trim('/', '\\')
-                val fixedDest = destinationPath.trim('/', '\\')
-                Timber.d("Moving SMB file: sourcePath='$fixedSource' → destinationPath='$fixedDest'")
-                
-                // Check if source exists
-                if (!share.fileExists(fixedSource)) {
-                    return@withConnection SmbResult.Error("Source file does not exist: $fixedSource")
-                }
-                
-                // Check if destination exists
-                if (share.fileExists(fixedDest)) {
-                    return@withConnection SmbResult.Error("Destination file already exists: $fixedDest")
-                }
-                
-                // Ensure parent directory exists for destination
-                // Handle both forward and back slashes by replacing backslashes with forward slashes
-                val normalizedDest = fixedDest.replace('\\', '/')
-                val destParent = normalizedDest.substringBeforeLast('/', "")
-                Timber.d("MoveFile: fixedDest='$fixedDest', destParent='$destParent', isEmpty=${destParent.isEmpty()}")
-                if (destParent.isNotEmpty()) {
-                    Timber.d("Ensuring parent directory exists for move: $destParent")
-                    ensureSmbDirectoryExists(share, destParent)
-                    // Verify directory was created
-                    if (!share.folderExists(destParent)) {
-                        return@withConnection SmbResult.Error("Failed to create destination directory: $destParent")
-                    }
-                    Timber.d("Verified parent directory exists: $destParent")
-                }
-                
-                // Open source file for reading
-                val sourceFile = share.openFile(
-                    fixedSource,
-                    EnumSet.of(AccessMask.GENERIC_READ, AccessMask.DELETE),
-                    null,
-                    SMB2ShareAccess.ALL,
-                    SMB2CreateDisposition.FILE_OPEN,
-                    null
-                )
-                
-                try {
-                    // Open destination file for writing
-                    val destFile = share.openFile(
-                        fixedDest,
-                        EnumSet.of(AccessMask.GENERIC_WRITE),
-                        null,
-                        SMB2ShareAccess.ALL,
-                        SMB2CreateDisposition.FILE_CREATE,
-                        null
-                    )
-                    
-                    try {
-                        // Copy data
-                        sourceFile.inputStream.use { input ->
-                            destFile.outputStream.use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                        
-                        // Delete source file after successful copy
-                        sourceFile.deleteOnClose()
-                        
-                        Timber.i("Successfully moved SMB file to: $fixedDest")
-                        SmbResult.Success(Unit)
-                    } finally {
-                        destFile.close()
-                    }
-                } finally {
-                    sourceFile.close()
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to move file on SMB")
-            SmbResult.Error("Failed to move file: ${e.message}", e)
-        }
-    }
-    
-    /**
-     * Recursively create directory structure on SMB share.
-     * Handles race conditions where directory might be created by another process.
-     * @param share The connected DiskShare
-     * @param path The directory path to create (relative to share root)
-     */
-    private fun ensureSmbDirectoryExists(share: DiskShare, path: String) =
-        SmbClientErrorFormatter.ensureSmbDirectoryExists(share, path)
+    ): SmbResult<Unit> = mutations.moveFile(connectionInfo, sourcePath, destinationPath)
 
     /**
-     * Create directory on SMB share (recursively)
+     * Create directory on SMB share (recursively).
+     * Race-tolerant mkdir-p — delegates to SmbFileMutationCoordinator.
      */
     suspend fun createDirectory(
         connectionInfo: SmbConnectionInfo,
@@ -732,7 +424,7 @@ class SmbClient @Inject constructor(
     ): SmbResult<Unit> {
         return try {
             connectionManager.withConnection(connectionInfo) { share ->
-                ensureSmbDirectoryExists(share, remotePath.trim('/', '\\'))
+                mutations.ensureSmbDirectoryExists(share, remotePath.trim('/', '\\'))
                 SmbResult.Success(Unit)
             }
         } catch (e: Exception) {

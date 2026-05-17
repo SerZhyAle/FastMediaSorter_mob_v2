@@ -84,7 +84,9 @@ object DialogUtils {
             Timber.e(e, "DialogUtils: dialog show failed — bad window token")
             return
         }
-        
+        // S0230 Phase 04 — TalkBack initial focus on the most-meaningful button.
+        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
+
         // Resize dialog to 90% of screen width
         val displayMetrics = context.resources.displayMetrics
         val width = (displayMetrics.widthPixels * 0.9).toInt()

@@ -206,8 +206,37 @@ class StereoDetector @javax.inject.Inject constructor() {
      * Filename tokens remain authoritative because they carry stereo-layout details (SBS/OU/180).
      * GPano XMP is then used as a local-file fallback so plain `IMG_1234.JPG` panoramas do not
      * collapse to flat MONO when the filename is silent.
+     *
+     * @param userInitiated When `true`, the caller explicitly signalled stereo intent (e.g. the
+     *  user tapped the VR-toolbar icon on an image). If the conservative cascade returns
+     *  `UNKNOWN`/`MONO`, an aggressive aspect-ratio heuristic biases toward `SBS_FULL` / `OU`
+     *  (see [aggressiveDimensionGuess]). When `false` (default) behaviour is unchanged — the
+     *  passive `displayImage()` path must never falsely classify ordinary photos as stereo.
      */
-    fun detectForImage(path: String, width: Int? = null, height: Int? = null): StereoMode {
+    fun detectForImage(
+        path: String,
+        width: Int? = null,
+        height: Int? = null,
+        userInitiated: Boolean = false,
+    ): StereoMode {
+        val passive = detectForImagePassive(path, width, height)
+        if (!userInitiated) return passive
+        if (passive != StereoMode.UNKNOWN && passive != StereoMode.MONO) return passive
+
+        val aggressive = aggressiveDimensionGuess(width, height)
+        if (aggressive != StereoMode.MONO) {
+            Timber.d(
+                "VR_AUDIT/12: detectForImage result=%s source=user-initiated-tap filename=%s w=%s h=%s",
+                aggressive, path, width, height,
+            )
+        }
+        return aggressive
+    }
+
+    /**
+     * Conservative still-image cascade. Extracted so the user-initiated overload can compose it.
+     */
+    private fun detectForImagePassive(path: String, width: Int?, height: Int?): StereoMode {
         val filenameResult = detectFromFilename(path)
         if (filenameResult != StereoMode.UNKNOWN) {
             Timber.d("VR_AUDIT/12: detectForImage result=%s source=filename filename=%s", filenameResult, path)
@@ -234,6 +263,27 @@ class StereoDetector @javax.inject.Inject constructor() {
         Timber.d("VR_AUDIT/12: detectForImage result=%s source=dimensions filename=%s w=%s h=%s",
             dimensionResult, path, width, height)
         return dimensionResult
+    }
+
+    /**
+     * Aggressive aspect-ratio heuristic used only when the user has explicitly tapped the
+     * VR-toolbar icon on an image (95% intent is stereo). Returns `MONO` for ordinary landscape
+     * photo ratios so a regular DSLR JPG does not get false-3D-claimed.
+     *
+     * - aspect ≥ 1.6 and width ≥ 1024 → SBS_FULL
+     * - aspect ≤ 0.7 and height ≥ 1024 → OU
+     * - 0.9 ≤ aspect ≤ 1.1 and width ≥ 1024 → OU
+     * - everything else (including null dimensions) → MONO
+     */
+    private fun aggressiveDimensionGuess(width: Int?, height: Int?): StereoMode {
+        if (width == null || height == null || width <= 0 || height <= 0) return StereoMode.MONO
+        val aspect = width.toFloat() / height.toFloat()
+        return when {
+            aspect >= 1.6f && width >= 1024 -> StereoMode.SBS_FULL
+            aspect <= 0.7f && height >= 1024 -> StereoMode.OU
+            aspect in 0.9f..1.1f && width >= 1024 -> StereoMode.OU
+            else -> StereoMode.MONO
+        }
     }
 
     /**

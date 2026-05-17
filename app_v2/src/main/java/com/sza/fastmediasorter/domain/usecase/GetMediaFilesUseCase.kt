@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MetadataState
 import com.sza.fastmediasorter.domain.model.SortMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import com.sza.fastmediasorter.domain.usecase.scan.IncrementalScanStrategy
 import com.sza.fastmediasorter.domain.usecase.scan.ScanDispatcher
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import timber.log.Timber
 
 data class SizeFilter(
     val imageSizeMin: Long,
@@ -269,12 +271,18 @@ class GetMediaFilesUseCase @Inject constructor(
                         scanSubdirectories = resource.scanSubdirectories,
                         showHiddenFiles = showHiddenFiles
                     )
-                    if (quickFiles.size >= PROGRESSIVE_BATCH_SIZE) {
-                        StructuredLogger.d("Progressive: emitting early batch", "count" to quickFiles.size)
-                        val tagged = quickFiles.map { it.copy(resourceId = resource.id) }
+                    if (quickFiles.isNotEmpty()) {
+                        // S0237 §5.2: emit the listing-only batch as PENDING so UI renders
+                        // names/sizes/types immediately while the full metadata-pass continues
+                        // in the background. The cache layer ignores PENDING/PARTIAL rows.
+                        val tagged = quickFiles.map {
+                            it.copy(resourceId = resource.id, metadataState = MetadataState.PENDING)
+                        }
+                        StructuredLogger.d("S0237: emitting listing-only batch", "count" to tagged.size)
+                        Timber.d("S0237: PENDING listing-only emit count=${tagged.size} resource='${resource.name}'")
                         emit(tagged)
                     } else {
-                        StructuredLogger.d("Progressive: folder small (${quickFiles.size}), skipping early emit")
+                        StructuredLogger.d("Progressive: folder empty, skipping early emit")
                     }
                 } catch (e: Exception) {
                     StructuredLogger.w(e, "Progressive partial scan failed, continuing with full scan")

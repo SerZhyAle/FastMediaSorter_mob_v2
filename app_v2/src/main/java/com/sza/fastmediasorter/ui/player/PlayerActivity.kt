@@ -202,13 +202,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
     internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 
-    internal val googleSignInLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (::cloudAuthManager.isInitialized) {
-            cloudAuthManager.handleGoogleSignInResult(result.data)
-        }
-    }
+    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager replaces the
+    // activity-result handshake. Drive sign-in goes through GoogleIdentityRepository.signInPrimary.
 
     // Android 11+ batch delete permission (createDeleteRequest)
     internal val batchDeletePermissionLauncher = registerForActivityResult(
@@ -450,6 +445,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
             window.decorView.post { if (isDrawOverlayManagerReady) imageDrawOverlayManager.enterDrawMode() }
+        }
+        // S0189: signal textViewerManager to enter edit mode once text content finishes loading
+        if (intent.getBooleanExtra(EXTRA_TEXT_EDIT_MODE_ON_OPEN, false)) {
+            textViewerManager.setAutoOpenEditMode(true)
         }
         // S0162: pass accelerometer capability once; ViewModel launches settings collector internally
         viewModel.initRotationCapability(hasAccelerometer)
@@ -702,6 +701,12 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 
+    // S0189 Phase 06: save text note with rename dialog + network upload
+    @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
+
+    // S0189: registry for deferred new-note creations (consulted by TextViewerManager on load/cancel)
+    @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
+
     // S0192 Phase 05 — Google Keep export, invoked from the draw editor overflow menu.
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
 
@@ -716,7 +721,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         imageDrawOverlayManager.inPlaceSaveCallback =
             object : com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager.DrawOverlayInPlaceSaveCallback {
                 override fun onInPlaceSaveRequested(overlayBitmap: android.graphics.Bitmap) {
-                    Timber.d("S0192: onInPlaceSaveRequested")
                     val baseBitmap = viewModel.currentDisplayedBitmap ?: run {
                         Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                         return
@@ -731,21 +735,13 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                     } else {
                         android.graphics.Bitmap.CompressFormat.PNG
                     }
-                    val isReadOnly = viewModel.state.value.resource?.isReadOnly ?: false
-                    val isLocalFile = currentFile.path.startsWith("/")
 
-                    // ADR-4: silent fallback for read-only / non-local resources.
-                    // Route through the existing handleSaveRequest pipeline (file-name dialog → save-as-new).
-                    if (isReadOnly || !isLocalFile) {
-                        Timber.d("S0192: in-place save fallback (isReadOnly=$isReadOnly, isLocalFile=$isLocalFile) -> save-as-new")
-                        imageDrawOverlayManager.getOverlayBitmap()?.let { _ ->
-                            // Re-enter the legacy save path; handleSaveRequest will prompt
-                            // for a filename and then dispatch to saveCallback.
-                            imageDrawOverlayManager.exitDrawMode(save = true)
-                        }
-                        return
-                    }
-
+                    // "Save" always attempts in-place overwrite of currentFile.
+                    // No filename dialog under any circumstances — the prompt-based
+                    // "Save as.." flow is a separate command (draw_overflow_save_new).
+                    // If the write fails (read-only resource, cloud/SMB write denied,
+                    // permission revoked), we surface a single failure toast and stay
+                    // in draw mode so the user can decide what to do next.
                     val displayRect = activityBinding.photoView.displayRect
 
                     lifecycleScope.launch {
@@ -754,7 +750,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                         )
                         val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         val bytes = mergeResult.getOrElse { e ->
-                            Timber.e(e, "S0192: overlay merge failed (in-place)")
+                            Timber.e(e, "Draw overlay merge failed (in-place save)")
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                             }
@@ -763,10 +759,18 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
                         val writeOk = withContext(Dispatchers.IO) {
                             try {
-                                java.io.FileOutputStream(java.io.File(currentFile.path)).use { it.write(bytes) }
+                                val path = currentFile.path
+                                if (path.startsWith("content://")) {
+                                    val uri = android.net.Uri.parse(path)
+                                    val stream = contentResolver.openOutputStream(uri, "wt")
+                                        ?: return@withContext false
+                                    stream.use { it.write(bytes) }
+                                } else {
+                                    java.io.FileOutputStream(java.io.File(path)).use { it.write(bytes) }
+                                }
                                 true
                             } catch (e: Throwable) {
-                                Timber.e(e, "S0192: in-place write failed for ${currentFile.path}")
+                                Timber.e(e, "Draw overlay in-place write failed for ${currentFile.path}")
                                 false
                             }
                         }
@@ -1384,6 +1388,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         const val EXTRA_WINDOW_ID = "extra_window_id"
         // S0159: pre-activate draw overlay mode when launched from Browse overflow menu
         const val EXTRA_ACTIVATE_DRAW_MODE = "activate_draw_mode"
+        // S0189: open text file directly in edit mode (create-text-note flow)
+        const val EXTRA_TEXT_EDIT_MODE_ON_OPEN = "s0189_edit_mode_on_open"
 
         // S0026: detected stereo mode hint. Browse fills this when launching VR; VrPlayerActivity
         // primes PlayerStereoModeCoordinator with this value before applying user-settings, so the
@@ -1436,6 +1442,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             initialFilePath: String? = null,
             isPlaying: Boolean? = null,
             isSlideshowEnabled: Boolean = false,
+            shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
         ): Intent = Intent(context, PlayerActivity::class.java).apply {
             putExtra("resourceId", resourceId)
@@ -1444,6 +1451,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             initialFilePath?.let { putExtra("initialFilePath", it) }
             isPlaying?.let { putExtra("resumeIsPlaying", it) }
             if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
+            if (shuffleOnStart) putExtra("shuffleOnStart", true)
             detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
         }
     }

@@ -5,6 +5,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 
+// S0238: VR-entry button visibility — open for video and pixel-media (image, gif).
+// Audio / docs / text / pdf / epub do not benefit from VR.
+private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
+
 /**
  * Priority-driven portrait layout planner for the player command panel center group.
  *
@@ -257,8 +261,8 @@ class CommandPanelLayoutPlanner {
             if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
-            // 3DVR toggle: VR flavor only, video files only
-            if (BuildConfig.SUPPORT_VR_PLAYER && file.type == MediaType.VIDEO) add(PlayerCommand.VR_3D)
+            // 3DVR toggle: VR flavor only, pixel-media (video, image, gif). S0238.
+            if (BuildConfig.SUPPORT_VR_PLAYER && file.type in VR_BUTTON_MEDIA_TYPES) add(PlayerCommand.VR_3D)
             // S0028: multi-window tear-off — VR+setting guard already applied by controller
             if (allowSeparateWindow) add(PlayerCommand.OPEN_IN_SEPARATE_WINDOW)
             // S0106: Crop commands — static images only (exclude animated GIF and APNG)

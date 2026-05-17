@@ -26,6 +26,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import timber.log.Timber
@@ -78,8 +79,9 @@ class AudioMetadataLoader @Inject constructor(
     /** Background scope for network + parsing work. Cancelled items won't crash. */
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    // S0229: reduced from 3 → 2 to limit simultaneous SMB partial-read fetches during scroll-idle burst.
     /** Limits concurrent network fetches to avoid connection pool exhaustion. */
-    private val semaphore = Semaphore(3)
+    private val semaphore = Semaphore(2)
 
     /** In-memory cache: path → parsed metadata. Survives across scroll events. */
     private val memoryCache = ConcurrentHashMap<String, AudioMetadata>()
@@ -285,9 +287,15 @@ class AudioMetadataLoader @Inject constructor(
     }
 
     private fun shouldLogMetadataRetrieverFailureAsDebug(filePath: String, throwable: Throwable): Boolean {
+        Timber.d("S0229: shouldLogMetadataRetrieverFailureAsDebug path=$filePath cause=${throwable.javaClass.simpleName}")
         if (!isPartialNetworkMetadataPath(filePath)) return false
+        // S0229: EOFException and IOException are expected outcomes when parsing a 64 KB partial
+        // header — the truncated buffer makes a complete parse impossible by design. Treat them
+        // as debug-level noise alongside UnrecognizedInputFormatException.
         return throwableCauseChain(throwable).any {
-            it.javaClass.simpleName == "UnrecognizedInputFormatException"
+            it.javaClass.simpleName == "UnrecognizedInputFormatException" ||
+                it is java.io.EOFException ||
+                it is java.io.IOException
         }
     }
 
@@ -432,7 +440,11 @@ class AudioMetadataLoader @Inject constructor(
             tempFile.writeBytes(bytes)
             val mediaItem = MediaItem.fromUri(tempFile.toUri())
             val trackGroupsFuture = MetadataRetriever.retrieveMetadata(context, mediaItem)
-            val trackGroups = trackGroupsFuture.get(5, TimeUnit.SECONDS)
+            // S0229: runInterruptible ensures coroutine cancellation interrupts the blocking
+            // future.get() call. Without this, a cancelled scope leaves MetadataRetriever's
+            // internal handler running on a dead thread, producing "Handler on a dead thread".
+            Timber.d("S0229: extractMetadataFromBytes awaiting MetadataRetriever future filePath=$filePath bytes=${bytes.size}")
+            val trackGroups = runInterruptible { trackGroupsFuture.get(5, TimeUnit.SECONDS) }
 
             var artist: String? = null
             var album: String? = null

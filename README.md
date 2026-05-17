@@ -6,19 +6,24 @@
 
 **📖 Other Languages:** [🇷🇺 Русский](docs/README_RU.md) | [🇺🇦 Українська](docs/README_UK.md)
 
+**📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+
 ## About the Project
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5160.425 (May 2026)
+## What's New in v2.60.5172.102 (May 2026)
 
 **New:**
-Draw editor v2 (oval/text tools, 16-color palette, in-place save, Google Keep export), file size shown in browse list rows.
+Create text notes from Browse on local/SMB/SFTP/FTP/cloud, central Google account via Credential Manager, universal input router (D-pad/car/Bluetooth/hardware keys), VR image and GIF viewer (VR flavor), IzzyOnDroid distribution prepared.
+
+**Changed:**
+System-managed orientation (reverse-portrait, tablet, foldable), adaptive Copy/Move panels, SMB first-scan speedup, draw editor toolbar collapsed, welcome page extended to 6 feature tiles.
 
 **Fixed:**
-Image-edit toolbar buttons no longer hidden in overflow for image viewer, spurious sign-in prompt during link downloads eliminated.
+Instagram photo/carousel downloads, player advance-after-delete, SMB/SFTP idle stability, low-memory toast suppression, network-to-local copy in public collections on Android 10+, Google/OneDrive/Dropbox sign-in across all flavors, VR Headset Required dialog gating, legacy cloud:/ path visibility.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

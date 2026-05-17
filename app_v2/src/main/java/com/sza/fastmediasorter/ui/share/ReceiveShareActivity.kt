@@ -33,6 +33,9 @@ import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
+import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
+import com.sza.fastmediasorter.data.browser.CctUnavailableException
+import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,6 +66,8 @@ class ReceiveShareActivity : AppCompatActivity() {
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var authSessionRepository: AuthSessionRepository
     @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
+    @Inject lateinit var googleDomainBrowserLauncher: GoogleDomainBrowserLauncher
+    @Inject lateinit var cctChecker: CctAvailabilityChecker
 
     private lateinit var accountSelectionManager: AccountSelectionManager
 
@@ -310,13 +315,11 @@ class ReceiveShareActivity : AppCompatActivity() {
                         // S0155: use the accountId the fragment just created — avoids passing
                         // null when accounts went from 0→1 (root cause of the bug in on-device test).
                         val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
-                        Timber.d("S0155: offerAuthThenDownload resuming with accountId=%s", savedAccountId)
                         // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
                         // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
                         processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
                     }
-                    WebViewAuthDialogFragment.newInstance(loginUrl)
-                        .show(supportFragmentManager, "s0157_webview_auth_offer")
+                    openAuthFlow(loginUrl, "s0157_webview_auth_offer")
                 }
                 .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
                     Timber.i("[S0166] auth dismissed (no record created): type=%s host=%s", dialogType, host)
@@ -654,5 +657,31 @@ class ReceiveShareActivity : AppCompatActivity() {
             cachedFiles.forEach { it.delete() }
             tempDir.delete()
         }
+    }
+
+    /**
+     * S0200 — host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
+     * keeps the legacy WebView flow. CCT-unavailable triggers the refusal dialog.
+     */
+    private fun openAuthFlow(url: String, tag: String) {
+        try {
+            googleDomainBrowserLauncher.routeAuthUrl(this, url) { fallbackUrl ->
+                WebViewAuthDialogFragment.newInstance(fallbackUrl).show(supportFragmentManager, tag)
+            }
+        } catch (e: CctUnavailableException) {
+            Timber.w(e, "ReceiveShareActivity: CCT unavailable for url=%s", url)
+            showCctUnavailableDialog { openAuthFlow(url, tag) }
+        }
+    }
+
+    private fun showCctUnavailableDialog(onRetry: () -> Unit) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.s0200_cct_unavailable_title)
+            .setMessage(R.string.s0200_cct_unavailable_message)
+            .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->
+                if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(onRetry)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

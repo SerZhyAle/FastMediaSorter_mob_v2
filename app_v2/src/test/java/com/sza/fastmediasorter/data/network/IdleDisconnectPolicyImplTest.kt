@@ -52,6 +52,45 @@ class IdleDisconnectPolicyImplTest {
     }
 
     @Test
+    fun `touch suppresses stale timeout callback from older generation`() = runTest {
+        val policy = IdleDisconnectPolicyImpl(StandardTestDispatcher(testScheduler))
+        var firedCount = 0
+
+        policy.arm("smb@test", 1_000) {
+            firedCount += 1
+        }
+
+        advanceTimeBy(900)
+        policy.touch("smb@test")
+
+        advanceTimeBy(100)
+        runCurrent()
+        assertEquals(0, firedCount)
+
+        advanceTimeBy(900)
+        advanceUntilIdle()
+        assertEquals(1, firedCount)
+    }
+
+    @Test
+    fun `disarm cancels latest generation after touch`() = runTest {
+        val policy = IdleDisconnectPolicyImpl(StandardTestDispatcher(testScheduler))
+        var firedCount = 0
+
+        policy.arm("smb@test", 1_000) {
+            firedCount += 1
+        }
+
+        advanceTimeBy(500)
+        policy.touch("smb@test")
+        advanceTimeBy(100)
+        policy.disarm("smb@test")
+
+        advanceUntilIdle()
+        assertEquals(0, firedCount)
+    }
+
+    @Test
     fun `disarm cancels pending timeout`() = runTest {
         val policy = IdleDisconnectPolicyImpl(StandardTestDispatcher(testScheduler))
         var firedCount = 0

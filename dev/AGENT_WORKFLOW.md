@@ -10,8 +10,10 @@
 - **UI/UX Gate**: For any user-facing change, explicitly enumerate all ambiguous UI decisions before continuing. Minimum checklist: placement per orientation, direct button vs overflow vs top menu, visibility predicates by media/file type, action priority, hidden vs disabled behavior, labels/icons/tooltips/help text, empty/error/loading states, confirmation/overwrite/fallback behavior, and accessibility. If any item is unresolved, implementation is blocked.
 
 ### 8.1 RESEARCH PHASE (Исследование)
-- **Action**: Analyze current "AS-IS" state. Launch multiple subagents if needed.
-- **Focus**: Collect files, classes, current solutions, and exact line numbers.
+- **Action**: Analyze current "AS-IS" state. Launch multiple sub-agents in parallel for independent lookups — always prefer concurrent over sequential.
+- **Parallel pattern**: local catalog/grep agents + `WebSearch`/`WebFetch` agents for the same question run simultaneously in one message; do not wait for one before starting the other.
+- **Web search is default ON**: use `WebSearch`/`WebFetch` freely for Android API behaviour, library docs, best practices, open bugs — no permission needed, no need to announce it.
+- **Focus**: Collect files, classes, current solutions, exact line numbers, and relevant external references (docs, changelogs, known issues).
 - **Output**: A comprehensive temporary file in `temp/` with the full context.
 
 ### 8.2 DESIGN PHASE (Дизайн решения)

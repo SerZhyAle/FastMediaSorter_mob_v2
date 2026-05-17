@@ -14,7 +14,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
@@ -35,7 +34,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -53,29 +51,15 @@ class GeneralSettingsFragment : Fragment() {
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
 
+    // S0200 Phase 06: ViewModel for the new "Google Account" Settings card.
+    private val googleAccountViewModel: com.sza.fastmediasorter.ui.settings.GoogleAccountSettingsViewModel by viewModels()
+
+    @Inject lateinit var cctChecker: com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
+
     // Shared flag passed as lambdas to helpers that need to suppress listeners during programmatic updates
     private var isUpdatingSpinner = false
 
     // Activity result launchers must be registered at construction time (before onCreateView)
-    private val signInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        Timber.d("Sign-in activity result: resultCode=${result.resultCode}")
-        var apiErrorCode: Int? = null
-        val account = try {
-            GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                .getResult(com.google.android.gms.common.api.ApiException::class.java)
-        } catch (e: com.google.android.gms.common.api.ApiException) {
-            apiErrorCode = e.statusCode
-            Timber.w("Sign-in failed (code=${e.statusCode}), trying last signed-in account")
-            GoogleSignIn.getLastSignedInAccount(requireContext())
-        } catch (e: Exception) {
-            Timber.e(e, "Unexpected error parsing Google sign-in result")
-            GoogleSignIn.getLastSignedInAccount(requireContext())
-        }
-        backupViewModel.handleSignInResult(account, apiErrorCode)
-    }
-
     private val importCredentialsLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>> =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let { credentialHelper.importCredentialsFromUri(it) }
@@ -133,7 +117,10 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsCacheHelper(binding, viewModel, this, audioMetadataCacheRepository, calculateOptimalCacheSizeUseCase)
     }
     private val backupHelper by lazy {
-        GeneralSettingsBackupHelper(binding, this, backupViewModel, signInLauncher)
+        GeneralSettingsBackupHelper(binding, this, backupViewModel)
+    }
+    private val googleAccountHelper by lazy {
+        com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(this, googleAccountViewModel, cctChecker)
     }
     private val prefetchHelper by lazy {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
@@ -159,6 +146,8 @@ class GeneralSettingsFragment : Fragment() {
         setupGmsBanner()
         logHelper.setupVersionInfo()
         backupHelper.setupWearCompanionButton()
+        // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
+        view.findViewById<View>(R.id.cardGoogleAccount)?.let { googleAccountHelper.bind(it) }
         viewSetupHelper.setup()
         prefetchHelper.setup()
         collectOnLifecycle(viewModel.settings) { settings -> prefetchHelper.updateFromSettings(settings) }

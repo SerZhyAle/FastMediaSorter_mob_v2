@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 05 — Color swatch selector drawable.
-    The fill colour is applied at runtime via backgroundTintList; this drawable
-    only governs the ring/border that distinguishes the active swatch.
+    S0192 Phase 06 — Colour swatch state drawable.
+
+    The swatch View's runtime backgroundTint (= the swatch colour) is applied
+    src_in over this drawable, so any non-transparent pixel inherits the swatch
+    colour. Both states therefore render in the swatch colour; the qualitative
+    difference is shape — selected = solid disc, unselected = ring.
+
+    Active = filled disc → unmistakable visual signal for the current colour.
+    Inactive = 2dp ring → readable on the toolbar's #CC000000 background.
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Selected state — thick white ring -->
+    <!-- Selected state — solid filled disc -->
     <item android:state_selected="true">
         <shape android:shape="oval">
-            <solid android:color="@android:color/transparent" />
-            <stroke
-                android:width="3dp"
-                android:color="#FFFFFFFF" />
+            <solid android:color="#FFFFFFFF" />
         </shape>
     </item>
-    <!-- Default state — thin translucent ring -->
+    <!-- Default state — colour ring -->
     <item>
         <shape android:shape="oval">
             <solid android:color="@android:color/transparent" />
             <stroke
-                android:width="1dp"
-                android:color="#80FFFFFF" />
+                android:width="2dp"
+                android:color="#FFFFFFFF" />
         </shape>
     </item>
 </selector>

@@ -43,6 +43,9 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
         return ActivityOnedriveFolderPickerBinding.inflate(layoutInflater)
     }
 
+    // S0230 Phase 02 — TV initial focus on the folder list.
+    override fun getInitialFocusView(): android.view.View = binding.rvFolders
+
     override fun setupViews() {
         // Guard: Cloud storage is not supported by this flavor
         if (!BuildConfig.SUPPORT_CLOUD) {

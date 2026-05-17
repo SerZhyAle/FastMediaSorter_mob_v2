@@ -107,6 +107,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
     @Inject lateinit var memoryProbe: MemoryProbe
     @Inject lateinit var memoryProfileCoordinator: MemoryProfileCoordinator
+    // S0189: staging infra for text notes (and S0191 drawings) created in network/cloud directories
+    @Inject lateinit var stagingDirectoryProvider: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
+    @Inject lateinit var localStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
+    // S0231: scoped-storage-aware writer injected for ad-hoc CloudOperationStrategy construction.
+    @Inject lateinit var destinationClassifier: com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+    @Inject lateinit var destinationWriter: com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -130,11 +136,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             ?: intent.getStringExtra(EXTRA_WINDOW_ID)
             ?: ResumeStateRepository.WINDOW_ID_MAIN
         launcherManager = BrowseLauncherManager(this, object : BrowseLauncherCallbacks {
-            override fun handleGoogleSignInResult(data: Intent?) {
-                if (::initializer.isInitialized) {
-                    initializer.cloudAuthManager.handleGoogleSignInResult(data)
-                }
-            }
             override fun onPlayerActivityReturned(modifiedPaths: ArrayList<String>) {
                 viewModel.removeFilesFromList(modifiedPaths)
             }
@@ -159,7 +160,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         })
-        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient)
+        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient, stagingDirectoryProvider, localStagingRegistry, destinationClassifier, destinationWriter)
         cameraCaptureManager = BrowseCameraCaptureManager(
             activity = this,
             settingsRepository = settingsRepository,
@@ -225,6 +226,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun getViewBinding(): ActivityBrowseBinding {
         return ActivityBrowseBinding.inflate(layoutInflater)
     }
+
+    // S0230 Phase 02 — TV initial focus on the file list so the first D-pad press lands on a row.
+    override fun getInitialFocusView(): android.view.View = binding.rvMediaFiles
 
     override fun setupViews() {
         com.sza.fastmediasorter.ui.browse.managers.BrowseEdgeToEdgeHelper.apply(binding)

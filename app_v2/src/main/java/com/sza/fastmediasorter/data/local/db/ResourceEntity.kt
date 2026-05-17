@@ -96,5 +96,8 @@ data class ResourceEntity(
     val iconId: String? = null, // Format: ico-XX-NNN (XX=set 01..99, NNN=ordinal 001..999); null = unassigned legacy row
 
     @ColumnInfo(name = "host_key_fingerprint", defaultValue = "NULL")
-    val hostKeyFingerprint: String? = null // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive
+    val hostKeyFingerprint: String? = null, // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive
+
+    @ColumnInfo(name = "needs_sign_in", defaultValue = "0")
+    val needsSignIn: Boolean = false // S0200: Drive resource is in "requires sign-in" state (set by S0200AuthStateWipe; cleared on successful sign-in via clearNeedsSignInForCredentials)
 )

@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import timber.log.Timber
 
 interface BrowseLauncherCallbacks {
-    fun handleGoogleSignInResult(data: Intent?)
     fun onPlayerActivityReturned(modifiedPaths: ArrayList<String>)
     fun onEditResourceReturned()
     fun onDeletePermissionGranted()
@@ -24,11 +23,8 @@ class BrowseLauncherManager(
     activity: ComponentActivity,
     private val callbacks: BrowseLauncherCallbacks
 ) {
-    val googleSignInLauncher: ActivityResultLauncher<Intent> = activity.registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        callbacks.handleGoogleSignInResult(result.data)
-    }
+    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager replaces the
+    // activity-result handshake. Drive sign-in now goes through GoogleIdentityRepository.signInPrimary.
 
     val playerActivityLauncher: ActivityResultLauncher<Intent> = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()

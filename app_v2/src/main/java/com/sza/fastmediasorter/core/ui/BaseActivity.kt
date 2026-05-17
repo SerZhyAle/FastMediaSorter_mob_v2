@@ -2,10 +2,13 @@ package com.sza.fastmediasorter.core.ui
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.KeyEvent
+import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,9 +16,12 @@ import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.input.TvKeyRouter
+import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * Base Activity that provides common functionality for all activities.
@@ -23,6 +29,7 @@ import timber.log.Timber
  * - Provides logging
  * - Manages ViewBinding lifecycle
  * - Applies locale
+ * - Provides centralised TV / keyboard navigation dispatch via [TvKeyRouter] (S0230)
  */
 abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
@@ -30,6 +37,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // Show GMS warning at most once per process lifetime
         private var gmsWarningShown = false
     }
+
+    // S0230: field-injected so Hilt can supply the singleton without constructor changes.
+    @Inject
+    lateinit var tvKeyRouter: TvKeyRouter
 
     private var _binding: VB? = null
     protected val binding: VB
@@ -76,7 +87,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
         super.onCreate(savedInstanceState)
         Timber.d("onCreate: ${this::class.simpleName}")
-        
+
         _binding = getViewBinding()
         setContentView(binding.root)
         
@@ -93,13 +104,18 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             val setupT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
             setupViews()
             if (BuildConfig.DEBUG) {
-                Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${SystemClock.uptimeMillis() - setupT0}ms")
+                val setupMs = SystemClock.uptimeMillis() - setupT0
+                Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${setupMs}ms")
             }
             observeData()
             viewsReady = true
             if (resumePending) {
                 resumePending = false
                 onResumeWithViews()
+            }
+            // S0230: on TV, set initial focus so the first D-pad press has a target.
+            if (isTvDevice()) {
+                getInitialFocusView()?.requestFocus()
             }
             showGmsWarningIfNeeded()
         }
@@ -211,5 +227,66 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+    }
+
+    // ── S0230: TV / keyboard navigation ──────────────────────────────────────
+
+    /**
+     * Centralised key dispatch for TV remotes and physical keyboards.
+     *
+     * Routing order:
+     * 1. Route through [TvKeyRouter]; if it produces a [TvNavAction], offer to
+     *    [onTvNavigation] — if consumed, return true.
+     * 2. Fall through to [super.dispatchKeyEvent] (Android focus traversal,
+     *    gamepad via [GamepadInputManager] in subclasses, etc.).
+     *
+     * Subclasses that need to intercept key events BEFORE this (e.g. PlayerActivity)
+     * override [dispatchKeyEvent] themselves and call super only when they have not
+     * consumed the event — the subclass override naturally shadows this implementation.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val action = tvKeyRouter.route(event)
+        if (action != null) {
+            if (onTvNavigation(action)) return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    /**
+     * Hook for subclasses to react to TV remote / keyboard semantic actions.
+     *
+     * @return true if the action was fully consumed and should not be propagated further.
+     * Default: false (let Android handle focus traversal natively).
+     */
+    protected open fun onTvNavigation(action: TvNavAction): Boolean = false
+
+    /**
+     * Return the [View] that should receive initial focus when the Activity opens on a TV.
+     *
+     * Called after [setupViews] completes, only on TV devices ([isTvDevice]).
+     * Default: null (rely on Android's automatic focus on first focusable view).
+     *
+     * RecyclerView-based screens typically do not need to override this —
+     * Android's focus traversal picks the first item automatically.
+     * Non-list screens with a clear primary action button should return that button.
+     */
+    protected open fun getInitialFocusView(): View? = null
+
+    /**
+     * True when the app is running on a TV device (Android TV / Google TV / Fire TV).
+     *
+     * Uses the dual-check recommended by `developer.android.com/training/tv/get-started/hardware`:
+     * - Primary: `PackageManager.FEATURE_LEANBACK` — system feature declared by genuine TV ROMs.
+     * - Secondary: `Configuration.UI_MODE_TYPE_TELEVISION` — covers older / non-Leanback TV systems.
+     *
+     * Why both: `FEATURE_LEANBACK` is more resistant to "fake TV" boxes and phones with HDMI-out
+     * that mis-report UI mode; `UI_MODE_TYPE_TELEVISION` catches stripped-down TV systems that omit
+     * Leanback. Either positive signal is enough.
+     */
+    protected fun isTvDevice(): Boolean {
+        val hasLeanback = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+        val isTvUiMode = (resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
+            Configuration.UI_MODE_TYPE_TELEVISION
+        return hasLeanback || isTvUiMode
     }
 }

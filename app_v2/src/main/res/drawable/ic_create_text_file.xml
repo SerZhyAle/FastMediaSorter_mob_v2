@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Material "note_add" glyph: document page with a plus badge -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14,2L6,2C4.9,2 4,2.9 4,4L4,20C4,21.1 4.9,22 6,22L18,22C19.1,22 20,21.1 20,20L20,8L14,2ZM18,20L6,20L6,4L13,4L13,9L18,9L18,20ZM11,17L13,17L13,14L16,14L16,12L13,12L13,9L11,9L11,12L8,12L8,14L11,14L11,17Z" />
+</vector>

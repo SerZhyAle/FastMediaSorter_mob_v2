@@ -1,17 +1,12 @@
-@file:Suppress("DEPRECATION")
-
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
-import android.content.Intent
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -55,11 +50,13 @@ class GoogleDriveRestClient @Inject constructor(
     private val networkCredentialsRepository: NetworkCredentialsRepository,
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
+    // S0200 Phase 04a — additive plumbing; consumed by Phase 04b token-source switchover.
+    private val identityRepository: GoogleIdentityRepository,
 ) : CloudStorageClient {
-    
+
     override val provider = CloudProvider.GOOGLE_DRIVE
-    
-    private val auth = GoogleDriveAuthCoordinator(context, credentialsManager, httpClient, networkCredentialsRepository)
+
+    private val auth = GoogleDriveAuthCoordinator(context, credentialsManager, httpClient, networkCredentialsRepository, identityRepository)
 
     override fun isAuthenticated(): Boolean = auth.isAuthenticated()
 
@@ -136,24 +133,12 @@ class GoogleDriveRestClient @Inject constructor(
         return tryRestoreFromStorage()
     }
 
-    fun getSignInOptions(): GoogleSignInOptions = auth.buildSignInOptions(R.string.google_web_client_id)
-    
-    // Get sign-in intent for launching from Activity
-    fun getSignInIntent(): Intent {
-        val signInOptions = getSignInOptions()
-        val client = GoogleSignIn.getClient(context, signInOptions)
-        return client.signInIntent
-    }
-    
     override suspend fun authenticate(): AuthResult = auth.authenticate(R.string.google_web_client_id)
 
     private suspend fun silentSignIn(): AuthResult = auth.silentSignIn(R.string.google_web_client_id)
 
-    suspend fun handleSignInResult(account: GoogleSignInAccount?): AuthResult =
-        auth.handleSignInResult(account)
-
-    private suspend fun getAccessToken(account: GoogleSignInAccount, forceRefresh: Boolean = false): String? =
-        auth.getAccessToken(account, forceRefresh)
+    /** Fresh Drive access token sourced from the identity domain (S0200 Phase 04b). */
+    private suspend fun currentAccessToken(): String? = auth.fetchTokenFromIdentity()
 
     private suspend fun ensureTokenFresh() = auth.ensureTokenFresh(R.string.google_web_client_id)
     
@@ -163,7 +148,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun testConnection(): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val url = URL("$DRIVE_API_BASE/about?fields=user")
                 val response = makeAuthenticatedRequest(url, "GET", token)
@@ -200,7 +185,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Proactively refresh token if old
                 ensureTokenFresh()
                 
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val query = if (folderId != null) {
                     "'$folderId' in parents and trashed = false"
@@ -246,7 +231,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun listFolders(parentFolderId: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val parentQuery = if (parentFolderId != null) {
                     "'$parentFolderId' in parents"
@@ -290,7 +275,7 @@ class GoogleDriveRestClient @Inject constructor(
                     fileId
                 }
 
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, thumbnailLink, webViewLink, parents", "UTF-8")
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?fields=$fields")
@@ -325,7 +310,7 @@ class GoogleDriveRestClient @Inject constructor(
     private suspend fun resolveFileIdFromName(fileName: String, parentFolderId: String?): CloudResult<String> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
@@ -436,7 +421,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
@@ -513,7 +498,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val resolvedParentId = resolveFolderId(parentFolderId)
                 
@@ -591,7 +576,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val resolvedParentId = resolveFolderId(parentFolderId)
                 
@@ -628,7 +613,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun deleteFile(fileId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
@@ -654,7 +639,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun renameFile(fileId: String, newName: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val requestBody = JSONObject().apply {
                     put("name", newName)
@@ -691,7 +676,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun moveFile(fileId: String, newParentId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Get current parents
                 val metadataResult = getFileMetadata(fileId)
@@ -739,7 +724,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val requestBody = JSONObject().apply {
                     put("parents", JSONArray().put(newParentId))
@@ -770,7 +755,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Escape backslash and single quote per Drive API query language spec
                 val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
@@ -800,7 +785,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun searchFiles(query: String, mimeType: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val searchQuery = buildString {
                     append("name contains '$query' and trashed = false")
@@ -842,7 +827,7 @@ class GoogleDriveRestClient @Inject constructor(
     suspend fun findFolderByName(folderName: String, parentFolderId: String? = null): CloudResult<CloudFile?> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
@@ -929,7 +914,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun getThumbnail(fileId: String, size: Int): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Get thumbnail link from metadata
                 val metadataResult = getFileMetadata(fileId)
@@ -978,17 +963,15 @@ class GoogleDriveRestClient @Inject constructor(
         // Capture token before clearing — revoke call happens off-Main
         val tokenToRevoke = auth.captureToken()
 
-        // Local sign-out on Main thread; capture any failure to return early
+        // S0200 Phase 04b: delegate primary-account sign-out to identity domain.
+        // The repository revokes its own cached state and emits Unbound to observers.
         var signOutError: CloudResult.Error? = null
-        withContext(Dispatchers.Main) {
-            try {
-                val signInClient = GoogleSignIn.getClient(context, getSignInOptions())
-                signInClient.signOut()
-                auth.clearAuth()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to sign out")
-                signOutError = CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e)
-            }
+        try {
+            identityRepository.signOutPrimary()
+            auth.clearAuth()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to sign out")
+            signOutError = CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e)
         }
         if (signOutError != null) return signOutError!!
 
@@ -1056,22 +1039,13 @@ class GoogleDriveRestClient @Inject constructor(
         length: Long,
         retryCount: Int
     ): CloudResult<InputStream> {
-        // Get current account
-        val account = withContext(Dispatchers.Main) {
-            GoogleSignIn.getLastSignedInAccount(context)
-        }
-        if (account == null) {
-            Timber.e("getFileInputStream: No signed-in account")
-            return CloudResult.Error(googleDriveReauthRequiredMessage())
-        }
-        
-        // Get fresh OAuth token
-        val token = getAccessToken(account)
+        // S0200 Phase 04b: token sourced via identity domain (no GoogleSignIn.getLastSignedInAccount).
+        val token = currentAccessToken()
         if (token == null) {
-            Timber.e("getFileInputStream: Failed to obtain access token")
+            Timber.e("getFileInputStream: No primary account / silent refresh failed")
             return CloudResult.Error(googleDriveReauthRequiredMessage())
         }
-        
+
         val result = httpClient.getFileInputStream(fileId, DRIVE_API_BASE, token, position, length)
         
         // Handle 401 Unauthorized - Token expired

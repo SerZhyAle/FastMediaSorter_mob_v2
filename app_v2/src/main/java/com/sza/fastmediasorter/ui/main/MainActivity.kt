@@ -82,6 +82,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var bannerManager: MainChromeOsBannerManager
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
+    private var startupFullyDrawnReported = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -148,7 +149,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen.
         // BaseActivity.onCreate has already called setContentView(binding.root) by the time we
         // return from super.onCreate(), so binding.root is attached and post() runs after layout.
-        binding.root.post { memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN) }
+        binding.root.post {
+            memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN)
+        }
 
         // Log config changes to detect unexpected recreations
         Timber.d("MainActivity.onCreate: savedInstanceState=${savedInstanceState != null}, isChangingConfigurations=$isChangingConfigurations")
@@ -159,12 +162,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // (auth-required dialogs and open-in-player intents need an Activity context).
         lifecycleScope.launch {
             shareResultBus.pending.collect { pending ->
-                Timber.d(
-                    "S0202: MainActivity received share result url=%s outcome=%s notification=%s",
-                    pending.url,
-                    pending.result::class.simpleName,
-                    pending.notificationShown,
-                )
                 val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
                     pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
                     pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
@@ -213,20 +210,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             && AudioPlaybackService.currentResourceId > 0L) {
             Timber.d("MainActivity: service active on fresh launch — restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
             binding.root.post {
-                val playerIntent = PlayerActivity.createIntent(
+                // Audio playback is inherently a 2D surface — bypass the per-flavor
+                // PLAYER_ACTIVITY_CLASS override so noLegal/vr open the 2D PlayerActivity
+                // directly instead of routing through VrPlayerActivity → «VR Headset Required».
+                val playerIntent = PlayerActivity.createPanelIntent(
                     context = this,
                     resourceId = AudioPlaybackService.currentResourceId,
                     initialIndex = AudioPlaybackService.currentInitialIndex,
                     skipAvailabilityCheck = true
                 )
-                if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
-                    // FLAG_ACTIVITY_REORDER_TO_FRONT is meaningless once enterImmersive
-                    // forces a fresh task via FLAG_ACTIVITY_NEW_TASK, so skip it here.
-                    VrTaskTransition.enterImmersive(this, playerIntent)
-                } else {
-                    playerIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    startActivity(playerIntent)
-                }
+                playerIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                startActivity(playerIntent)
             }
             // MainActivity continues loading as the back-stack root; do NOT finish().
         }
@@ -369,15 +363,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
-        val playerIntent = PlayerActivity.createIntent(this, resourceId, index, skipAvailabilityCheck = true)
-        if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
-            VrTaskTransition.enterImmersive(this, playerIntent)
-        } else {
-            startActivity(playerIntent)
-        }
+        // Audio playback is inherently a 2D surface — use createPanelIntent so noLegal/vr
+        // bypass the PLAYER_ACTIVITY_CLASS override (would otherwise hit VrPlayerActivity
+        // → «VR Headset Required» on phones).
+        val playerIntent = PlayerActivity.createPanelIntent(this, resourceId, index, skipAvailabilityCheck = true)
+        startActivity(playerIntent)
     }
 
     override fun onResumeWithViews() {
+        if (!startupFullyDrawnReported) {
+            startupFullyDrawnReported = true
+            binding.root.post {
+                reportFullyDrawn()
+            }
+        }
+
         // Restore previous tab if returning from Favorites Browse — keeps the active tab
         // sticky after the user navigates back from the Favorites Browse screen.
         if (viewModel.state.value.previousTab != null) {
@@ -765,7 +765,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
                 is MainEvent.NavigateToPlayerRandomMusic -> {
-                    val intent = PlayerActivity.createIntent(
+                    // Random music is audio playback — always 2D, never VR.
+                    // Use createPanelIntent so noLegal/vr bypass the PLAYER_ACTIVITY_CLASS
+                    // override and avoid the «VR Headset Required» fallback on phones.
+                    val intent = PlayerActivity.createPanelIntent(
                         this@MainActivity,
                         event.resourceId,
                         initialIndex = 0,
@@ -773,13 +776,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         isPlaying = true,
                         shuffleOnStart = true
                     )
-                    if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
-                        VrTaskTransition.enterImmersive(this@MainActivity, intent)
-                    } else {
-                        startActivity(intent)
-                        @Suppress("DEPRECATION")
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                    }
+                    startActivity(intent)
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
                 is MainEvent.NavigateToEditResource -> {
                     // Check if resource has PIN protection before editing

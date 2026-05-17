@@ -412,32 +412,21 @@ class MediaFileAdapter(
     
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
         val file = getItem(position)
-        Timber.v("onBindViewHolder WITH PAYLOADS: position=$position, file=${file.name}, payloads=$payloads, isEmpty=${payloads.isEmpty()}, skipFlag=$skipInitialThumbnailLoad")
-        
         if (payloads.isEmpty()) {
             // Standard full bind
-            Timber.v("onBindViewHolder: payloads EMPTY, calling super (full bind) for ${file.name}")
             super.onBindViewHolder(holder, position, payloads)
         } else {
             // Handle multiple payloads - process each one
             if (payloads.contains("LOAD_THUMBNAILS")) {
                 // For audio/text files: load extension bitmap (fast path in loadThumbnail handles this)
                 // For other types: load full thumbnail via Glide
-                Timber.v("onBindViewHolder: LOAD_THUMBNAILS payload detected for ${file.name}, calling loadThumbnailOnly")
                 when (holder) {
-                    is ListViewHolder -> {
-                        Timber.v(">>> Calling ListViewHolder.loadThumbnailOnly for ${file.name}")
-                        holder.loadThumbnailOnly(file)
-                    }
-                    is GridViewHolder -> {
-                        Timber.v(">>> Calling GridViewHolder.loadThumbnailOnly for ${file.name}")
-                        holder.loadThumbnailOnly(file)
-                    }
+                    is ListViewHolder -> holder.loadThumbnailOnly(file)
+                    is GridViewHolder -> holder.loadThumbnailOnly(file)
                 }
             }
             if (payloads.contains("FAVORITE_CHANGED")) {
                 // Partial bind: only update favorite icon
-                Timber.v("onBindViewHolder: FAVORITE_CHANGED payload detected for ${file.name}, updating icon only")
                 when (holder) {
                     is ListViewHolder -> {
                         holder.itemView.findViewById<android.widget.ImageButton>(R.id.btnFavorite)?.setImageResource(
@@ -710,14 +699,7 @@ class MediaFileAdapter(
 
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
 
-            Timber.v("=== CACHE_KEY_DEBUG: loadThumbnailOnly called ===")
-            Timber.v("  File: ${file.name} | NewKey: ${newKey.take(80)} | LastKey: ${lastLoadedKey?.take(80)}")
-
-            if (lastLoadedKey == newKey) {
-                Timber.v("  Result: SKIPPED - key matches")
-                return
-            }
-            Timber.v("  Result: LOADING")
+            if (lastLoadedKey == newKey) return
             thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, isListMode = true)
             // Always update key so AUDIO/TEXT/Binary fast-paths don't re-trigger
             lastLoadedKey = newKey

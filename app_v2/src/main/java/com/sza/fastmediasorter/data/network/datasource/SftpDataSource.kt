@@ -143,6 +143,14 @@ class SftpDataSource(
 
         val bytesRead = try {
             inputStream?.read(buffer, offset, bytesToRead) ?: C.RESULT_END_OF_INPUT
+        } catch (e: InterruptedIOException) {
+            // ExoPlayer's Loader interrupts its worker thread on cancel/seek; JSch's
+            // PipedInputStream.read() then throws InterruptedIOException. Reconnecting here is
+            // futile (acquire would also throw) — restore the interrupt flag, mark the channel
+            // broken so the pool evicts it, propagate without noise.
+            Thread.currentThread().interrupt()
+            channelBroken = true
+            throw e
         } catch (e: Exception) {
             // One transparent reconnect — same strategy as SftpClientFirstResult on SftpException 4.
             // If the reconnect also fails, propagate so ExoPlayer handles it.

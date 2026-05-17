@@ -401,9 +401,6 @@ class VrStereoRenderer {
         targetWidthPx: Int,
         targetHeightPx: Int,
     ) {
-        if (!dbgFirstFisheyeLogged) {
-            Timber.d("S0132: renderFisheyeQuad entry — VR180 fisheye uniform diagnostic path")
-        }
         if (!isGlInitialized || fisheyeProgram == 0) {
             Timber.w("VrStereoRenderer: fisheye program not ready, skipping renderFisheyeQuad")
             return

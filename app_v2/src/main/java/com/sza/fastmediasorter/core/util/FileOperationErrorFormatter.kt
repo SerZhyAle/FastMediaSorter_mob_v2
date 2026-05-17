@@ -165,8 +165,12 @@ object FileOperationErrorFormatter {
      */
     private fun detectErrorType(cleanMessage: String): ErrorType {
         val lower = cleanMessage.lowercase()
-        
+
         return when {
+            // S0231: scoped-storage local write rejection — checked BEFORE the generic "permission"
+            // rule so it gets its own user message (Music/Movies/Pictures/Downloads guidance).
+            lower.contains("localdestinationpermissiondenied") ||
+                lower.contains("local destination not writable") -> ErrorType.LOCAL_SCOPED_STORAGE_DENIED
             lower.contains("authentication") || lower.contains("logon failure") -> ErrorType.AUTHENTICATION
             lower.contains("permission") || lower.contains("access denied") -> ErrorType.PERMISSION
             lower.contains("not found") || lower.contains("does not exist") -> ErrorType.NOT_FOUND
@@ -185,6 +189,8 @@ object FileOperationErrorFormatter {
      */
     private fun getUserFriendlyReason(context: Context, errorType: ErrorType, cleanMessage: String): String {
         return when (errorType) {
+            ErrorType.LOCAL_SCOPED_STORAGE_DENIED ->
+                context.getString(R.string.error_reason_local_destination_permission_denied)
             ErrorType.AUTHENTICATION -> context.getString(R.string.error_reason_authentication)
             ErrorType.PERMISSION -> context.getString(R.string.error_reason_permission)
             ErrorType.NOT_FOUND -> context.getString(R.string.error_reason_not_found)
@@ -216,6 +222,10 @@ object FileOperationErrorFormatter {
     }
 
     private enum class ErrorType {
+        // S0231: scoped-storage rejection on a local destination; distinguished
+        // from the generic PERMISSION case so the message can suggest Music/Movies/
+        // Pictures/Downloads as alternatives.
+        LOCAL_SCOPED_STORAGE_DENIED,
         AUTHENTICATION,
         PERMISSION,
         NOT_FOUND,

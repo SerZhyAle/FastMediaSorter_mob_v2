@@ -71,8 +71,8 @@ class BrowseDialogCallbacksImpl(
         // Not used - handled by MoveToDialog
     }
 
-    override fun onDeleteConfirmed(fileCount: Int) {
-        viewModel.deleteSelectedFiles()
+    override fun onDeleteConfirmed(overridePaths: Set<String>?) {
+        viewModel.deleteSelectedFiles(overridePaths)
     }
 
     override fun onCloudSignInRequested(provider: CloudProvider) {

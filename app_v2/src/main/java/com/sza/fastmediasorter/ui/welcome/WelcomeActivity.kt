@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import com.sza.fastmediasorter.core.input.TvNavAction
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -26,7 +27,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -140,10 +140,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 descriptionRes = R.string.welcome_description_1,
                 detailDescriptionRes = R.string.welcome_description_1_details,
                 featureCards = listOf(
+                    // Row 1 in 3-col grid: content + two storage origins
                     FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
+                    FeatureCard(R.drawable.ic_resource_local, R.string.welcome_feature_local_folders),
+                    FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network),
+                    // Row 2 in 3-col grid: cloud storage + two actions
                     FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
                     FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting),
-                    FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network)
+                    FeatureCard(R.drawable.ic_slideshow, R.string.welcome_feature_slideshow)
                 ),
                 showLanguagePicker = true,
                 onLanguageSelected = ::onWelcomeLanguageSelected,
@@ -498,6 +502,69 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 android.content.pm.PackageManager.PERMISSION_GRANTED
         }
     }
+
+    // ── S0230: TV / keyboard navigation ──────────────────────────────────────
+
+    /**
+     * Handle D-pad and keyboard navigation for the welcome slider.
+     *
+     * DPAD_RIGHT / TAB → next slide
+     * DPAD_LEFT / SHIFT+TAB → previous slide
+     * DPAD_CENTER / ENTER → activate the visible primary action button (Next or Finish)
+     * BACK → delegated to the system back handler (minimise / finish)
+     *
+     * Returns true when the action is consumed so the event is not re-dispatched.
+     */
+    override fun onTvNavigation(action: TvNavAction): Boolean {
+        return when (action) {
+            TvNavAction.Next -> {
+                if (!binding.fragmentContainerWelcome.isVisible && currentPage < pagerAdapter.itemCount - 1) {
+                    binding.viewPager.currentItem = currentPage + 1
+                    true
+                } else false
+            }
+            TvNavAction.Prev -> {
+                if (!binding.fragmentContainerWelcome.isVisible && currentPage > 0) {
+                    binding.viewPager.currentItem = currentPage - 1
+                    true
+                } else false
+            }
+            TvNavAction.Select -> {
+                // S0230 device-test 2026-05-17: if a focusable interactive view (button,
+                // toggle) already owns focus — typing ENTER / DPAD_CENTER must activate
+                // THAT view via Android's default focus->click path. Only when no
+                // interactive view is focused (or only a scroll-host) do we synthesise
+                // a click on the visible primary CTA, so D-pad users can advance the
+                // slider without manually focusing the bottom-right Next button first.
+                val focused = currentFocus
+                val focusIsButton = focused is android.widget.Button ||
+                    focused is com.google.android.material.button.MaterialButton
+                when {
+                    binding.fragmentContainerWelcome.isVisible -> false
+                    focusIsButton -> false
+                    binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
+                    binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
+                    else -> false
+                }
+            }
+            TvNavAction.Back -> {
+                onBackPressedDispatcher.onBackPressed()
+                true
+            }
+            // Up/Down have no meaning on the slider — let Android handle focus traversal.
+            TvNavAction.Up, TvNavAction.Down -> false
+            // Media transport and hardware buttons (car wheel, headset, volume, search, menu)
+            // are not meaningful on the welcome slider — let the system handle them natively
+            // (e.g. hardware volume keys must reach AudioManager).
+            is TvNavAction.Media, is TvNavAction.Hardware -> false
+        }
+    }
+
+    /**
+     * On TV, set initial focus to the primary forward-action button so the first D-pad
+     * press is immediately actionable without a random "focus init" key press.
+     */
+    override fun getInitialFocusView(): View = binding.btnNext
 
     companion object {
         private const val KEY_CURRENT_PAGE = "key_current_page"

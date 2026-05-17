@@ -98,6 +98,28 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
 
 **Multi-step tasks**: read `dev/AGENT_WORKFLOW.md` BEFORE execution (mandatory 5-step process).
 
+## Proactive Research & Parallelism
+
+### Web Search (default ON)
+- Use `WebSearch` and `WebFetch` freely for Android API behaviour, library docs, Kotlin patterns, open bugs, changelogs, best practices — no permission needed.
+- Preferred sources: developer.android.com, kotlinlang.org, GitHub issue/release pages, library CHANGELOGs, Stack Overflow.
+- When a local approach is ambiguous, search before guessing — never rely on stale training data for version-specific behaviour (e.g. Room v6 migrations, Media3 API surface, Hilt qualifier rules).
+- Adapt any external solution to this project's stack (Clean+MVVM, Hilt, Timber, Room v6, ExoPlayer Media3) before proposing.
+
+### Parallel Sub-Agents
+- Two independent tasks → single message, two `Agent()` calls running concurrently.
+- Patterns that **must** parallelise: research + build validation · multiple module lookups · spec draft + catalog query · changelog entry + test run · web search + local grep.
+- A data dependency (agent B needs agent A's output) is the only valid reason to serialise — document it.
+- Brief each sub-agent fully — it has zero conversation context; terse prompts produce shallow work.
+- Foreground for research agents whose output shapes the next step; background for validation/changelog when you can continue with other work.
+
+### Initiative
+- Do not stop to ask permission for: web searches, sub-agent spawns, debug builds (`.\a.ps1 bd`), catalog queries, dry-run script executions.
+- When multiple approaches exist, rank by fit for this project's architecture; state the concrete trade-off, not just the names.
+- If a better alternative to what was asked is visible, name it first: _"You asked for X — Y is cleaner here because Z. Proceeding with Y unless corrected."_
+- Surface blockers at the **start** of the task: missing class, undefined interface, unresolved spec decision → flag before writing any code.
+- Note adjacent debt spotted during a task (stale Timber tags, missing landscape layout, lint warning, tech-debt guard) as a one-bullet suggestion — no pressure to act immediately.
+
 ## Modules
 
 | Module | Root | Purpose |
@@ -143,6 +165,7 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 14. Internal script ownership: do not work around broken or insufficient repo scripts when the current task depends on them. If a project script is buggy, outdated, or can be materially improved to complete the task safely, fix the script itself and then use it.
 15. **Flavor isolation:** writing `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED`, or any other `BuildConfig.SUPPORT_*` / `BuildConfig.ENABLE_*` / `BuildConfig.IS_*` flavor guard inside `src/main/java/**` is **forbidden** for new code. Flavor-specific logic lives in `src/<flavor>/java/` (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`). Pattern: define an interface in `src/main/java/`, ship a No-Op default impl in `src/main/java/` (or `src/standard/java/`), override with the real impl in the target flavor source set, bind via a flavor-specific Hilt `@Module`. Layout/string overrides go to `src/<flavor>/res/`, manifest additions to `src/<flavor>/AndroidManifest.xml`. Source of truth: `dev/FLAVOR_DEVELOPMENT_RULES.md` — read it before any task that targets a non-`standard` flavor or mentions VR / noLegal / lite / photos / legacy capabilities. Existing legacy gates (≈169 occurrences in `src/main/` as of 2026-05-14) are technical debt, not a precedent — never add new ones; refactor incrementally when touching surrounding code.
 16. **Non-trivial step evidence:** a step that modifies any executable artifact (`.kt`, `.kts`, `.py`, `.ps1`, `.xml`, `.json` build config) cannot be marked done on narration alone. The step log must include the validation command run and its exit code or explicit PASS/FAIL result.
+17. **UI consistency & input coverage:** every new button, menu item, action, dialog, Activity, or Fragment must (a) follow the project's established visual design system (colors, typography, spacing, icon style, corner radii — match surrounding screens); (b) support all three input modes: **keyboard** (`nextFocusDown`/`Up`/`Left`/`Right`, `Enter`/`Space` to activate), **D-pad / TV remote** (focus traversal, `onKey` where needed), **mouse** (hover state, click); (c) be reachable by focus traversal in the same order as analogous controls elsewhere. Verify in layout XML: `focusable="true"`, `clickable="true"`, `nextFocus*` attributes set or logical focus chain exists. Any new screen must pass the same `/ui-clarify` gate as edits to existing screens.
 
 ## Feature Inventory
 

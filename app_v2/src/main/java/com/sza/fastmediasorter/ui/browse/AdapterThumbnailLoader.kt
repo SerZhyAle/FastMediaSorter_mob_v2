@@ -332,7 +332,6 @@ class AdapterThumbnailLoader(
         isScrolling: Boolean
     ) {
         val largePdfThumbnails = getShowPdfThumbnails()
-        Timber.v("PDF_THUMB_DEBUG: Loading PDF thumbnail for ${file.name}, largePdfMode=$largePdfThumbnails, isNetwork=$isNetworkPath, isCloud=$isCloudPath, size=${file.size}")
 
         if (!isCloudPath && !isNetworkPath) {
             val pdfFile = File(file.path)
@@ -359,10 +358,7 @@ class AdapterThumbnailLoader(
             } else {
                 if (isSmbPath) SMB_PDF_NORMAL_MAX_SIZE else NETWORK_PDF_NORMAL_MAX_SIZE
             }
-            Timber.v("PDF_THUMB_DEBUG: Network PDF ${file.name}, size=${file.size}, maxSize=$maxSize, isSMB=$isSmbPath, largePdfMode=$largePdfThumbnails")
-
             if (file.size > maxSize) {
-                Timber.v("PDF_THUMB_DEBUG: PDF too large, showing placeholder for ${file.name}")
                 if (isListMode) showGeneratedPlaceholder(imageView, file)
                 else imageView.setImageBitmap(createExtensionBitmap("PDF"))
             } else {
@@ -371,7 +367,6 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
-                Timber.v("PDF_THUMB_DEBUG: Loading network PDF thumbnail via Glide for ${file.name}")
                 val builder = Glide.with(context)
                     .asBitmap()
                     .load(NetworkFileData(
@@ -495,7 +490,6 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
-                            Timber.v("CACHE_HIT_DEBUG: Network image loaded from ${dataSource.name} for ${file.name}")
                             resetThumbnailStyle(imageView)
                             return false
                         }
@@ -532,7 +526,6 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
-                            Timber.v("CACHE_HIT_DEBUG: Local image loaded from ${dataSource.name} for ${file.name}")
                             resetThumbnailStyle(imageView)
                             return false
                         }
@@ -628,7 +621,6 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
-                            Timber.v("CACHE_HIT_DEBUG: Video loaded from ${dataSource.name} for ${file.name}")
                             resetThumbnailStyle(imageView)
                             return false
                         }
@@ -668,7 +660,6 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
-                            Timber.v("CACHE_HIT_DEBUG: Local video loaded from ${dataSource.name} for ${file.name}")
                             resetThumbnailStyle(imageView)
                             return false
                         }

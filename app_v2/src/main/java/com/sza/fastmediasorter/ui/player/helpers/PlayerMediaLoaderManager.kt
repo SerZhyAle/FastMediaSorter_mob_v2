@@ -1031,8 +1031,8 @@ class PlayerMediaLoaderManager(
      *   so a snackbar with an explicit "Skip" action can be shown; we do NOT auto-advance.
      */
     private fun handleCooldownReentry(path: String, remainingSec: Int) {
-        Timber.d("S0213: cooldown re-entry path=$path remainingSec=$remainingSec slideshow=${viewModel.state.value.isSlideShowActive}")
         val isSlideshow = viewModel.state.value.isSlideShowActive
+        Timber.d("S0213: Pillar A cooldown re-entry path=$path remainingSec=$remainingSec slideshow=$isSlideshow")
         if (isSlideshow) {
             Toast.makeText(activity, R.string.s0213_decoder_cooldown_skip, Toast.LENGTH_SHORT).show()
             Timber.i("S0213 cooldown skip (slideshow): path=$path remainingSec=$remainingSec")

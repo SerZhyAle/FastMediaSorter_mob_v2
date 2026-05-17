@@ -226,11 +226,13 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- Editor toolbar: undo/redo/find -->
+        <!-- S0189: unified editor toolbar — undo/redo/find on the left, cursor pos in the middle,
+             Save/Save&Close/Save&Send/SendKeep/Cancel on the right (moved up from the former bottom
+             red action panel so they stay reachable when the soft keyboard is open). -->
         <LinearLayout
             android:id="@+id/editorToolbar"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingHorizontal="4dp"
@@ -292,9 +294,72 @@
                 android:textColor="#B0FFFFFF"
                 android:textSize="11sp"
                 android:paddingHorizontal="8dp" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_marginHorizontal="4dp"
+                android:background="#40FFFFFF" />
+
+            <ImageButton
+                android:id="@+id/btnEditorSave"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:clickable="true"
+                android:contentDescription="@string/text_editor_action_save"
+                android:src="@drawable/ic_text_save"
+                app:tint="@color/selector_player_button_tint" />
+
+            <ImageButton
+                android:id="@+id/btnEditorSaveClose"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:clickable="true"
+                android:contentDescription="@string/text_editor_action_save_close"
+                android:src="@drawable/ic_text_save_close"
+                app:tint="@color/selector_player_button_tint" />
+
+            <ImageButton
+                android:id="@+id/btnEditorSaveSend"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:clickable="true"
+                android:contentDescription="@string/text_editor_action_save_send"
+                android:src="@drawable/ic_text_save_send"
+                app:tint="@color/selector_player_button_tint" />
+
+            <ImageButton
+                android:id="@+id/btnEditorSendKeep"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:clickable="true"
+                android:visibility="gone"
+                android:contentDescription="@string/text_editor_action_send_keep"
+                android:src="@drawable/ic_text_send_keep"
+                app:tint="@color/selector_player_button_tint" />
+
+            <ImageButton
+                android:id="@+id/btnEditorCancel"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:clickable="true"
+                android:contentDescription="@string/text_editor_action_cancel"
+                android:src="@drawable/ic_text_cancel"
+                app:tint="@color/selector_player_button_tint" />
         </LinearLayout>
 
         <ScrollView
+            android:id="@+id/textEditScrollView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -315,31 +380,6 @@
                 android:minLines="10" />
         </ScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@color/activity_player_unified_topCommandPanel_background"
-            android:padding="@dimen/player_search_panel_padding"
-            android:gravity="end">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancelEdit"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@android:string/cancel"
-                android:textColor="@color/white"
-                android:layout_marginEnd="@dimen/player_text_edit_margin_end" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSaveText"
-                style="@style/Widget.MaterialComponents.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@android:string/ok"
-                android:backgroundTint="@color/activity_player_unified_btnSaveText_backgroundTint" />
-        </LinearLayout>
     </LinearLayout>
 </FrameLayout>
 

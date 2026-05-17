@@ -5,6 +5,7 @@
     <string name="settings_category_interface">Інтерфейс</string>
     <string name="settings_category_files">Файли та дані</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
+    <string name="settings_category_about">Про програму</string>
     <string name="settings_category_app_data">Дані та резервні копії</string>
     <string name="settings_category_system">Мережа та кеш</string>
     <string name="settings_category_sorting_slideshow">Сортування, слайдшоу та відтворення</string>
@@ -60,7 +61,7 @@
     <string name="settings_tab_media">Медіа</string>
     <string name="settings_tab_playback">Відтворення</string>
     <string name="settings_tab_network">Мережа</string>
-    <string name="settings_tab_destinations">Операції</string>
+    <string name="settings_tab_operations">Операції</string>
 
     <!-- Copy Dialog -->
     <string name="copying_files">Копіюємо..</string>
@@ -789,6 +790,7 @@
 
     <!-- Welcome Feature Card Labels -->
     <string name="welcome_feature_photos">Фото і Відео</string>
+    <string name="welcome_feature_local_folders">Локальні папки</string>
     <string name="welcome_feature_cloud">Хмарне сховище</string>
     <string name="welcome_feature_sorting">Розумне сортування</string>
     <string name="welcome_feature_ocr">OCR і Переклад</string>
@@ -1054,6 +1056,7 @@
     <string name="link_autodownload_error_no_network">Немає підключення до мережі</string>
     <string name="link_autodownload_error_resource_unavailable">Вибраний ресурс недоступний</string>
     <string name="link_autodownload_error_no_media">За посиланням не знайдено файл для завантаження</string>
+    <string name="link_autodownload_error_youtube_community_post">Дописи спільноти YouTube не можна завантажити</string>
     <string name="link_autodownload_error_corrupted">Не вдалося завантажити придатний файл — сервер повернув сторінку з помилкою або неповний файл</string>
     <string name="link_autodownload_error_timeout">Перевищено час очікування завантаження</string>
     <string name="link_autodownload_error_mime_blocked">Цей тип файлу не підтримується</string>
@@ -1559,7 +1562,6 @@
     <string name="error_loading_media">Помилка завантаження файлу, пропуск</string>
     <string name="video_playback_failed_with_name">Не вдалося відтворити: %1$s</string>
     <string name="video_playback_failed_session_warning">У цій сесії цей файл вже не вдалося відтворити.</string>
-    <string name="warning_low_memory_playback">Мало пам\'яті — відтворення може не запуститись.</string>
     <string name="warning_audio_format_unsupported">Аудіоформат не підтримується — відтворення без звуку</string>
 
     <!-- S0213: захист відтворення відео від OOM — cooldown декодера та сповіщення про пам\'ять -->
@@ -2759,6 +2761,25 @@
     <string name="duplicate_scan_notif_running">Виконується пошук дублікатів..</string>
     <string name="duplicate_scan_notif_channel_name">Сканер дублікатів</string>
     <string name="action_create_folder">Створити папку</string>
+    <string name="action_create_text_file">Створити нотатку</string>
+    <string name="create_text_file_title">Нова нотатка</string>
+    <string name="create_text_file_hint">Імʼя файлу</string>
+    <string name="error_text_note_create_failed">Не вдалося створити нотатку тут. Спробуйте іншу теку.</string>
+    <string name="msg_text_note_created">Нотатку створено: %1$s</string>
+    <string name="error_invalid_text_note_name">Літери, цифри, дефіс; без / \\ : * ? \" &lt; &gt; |</string>
+    <string name="text_editor_action_save">Зберегти</string>
+    <string name="text_editor_action_save_close">Зберегти й закрити</string>
+    <string name="text_editor_action_save_send">Зберегти й надіслати</string>
+    <string name="text_editor_action_send_keep">У Keep</string>
+    <string name="text_editor_action_cancel">Скасувати</string>
+    <string name="text_editor_keep_unavailable">Google Keep не встановлено.</string>
+    <string name="text_note_save_dialog_title">Зберегти нотатку</string>
+    <string name="text_note_save_dialog_hint">Ім\'я файлу</string>
+    <string name="text_note_save_dialog_ok">Зберегти</string>
+    <string name="text_note_save_renamed_suffix">Збережено як %1$s (ім\'я було зайняте)</string>
+    <string name="text_note_save_error_network">Не вийшло достукатися до теки. Нотатка залишилась на пристрої — повторимо, коли з\'явиться зв\'язок.</string>
+    <string name="text_note_save_success_local">Збережено.</string>
+    <string name="text_note_save_success_remote">Збережено в %1$s.</string>
     <string name="menu_automate_source">Автоматизація..</string>
     <string name="menu_add_receiver">До списку сортування</string>
     <string name="msg_added_as_receiver">Ресурс додано до списку сортування</string>
@@ -3228,8 +3249,6 @@
     <string name="reset_cancel_button">Скасувати</string>
     <!-- Conflict label in capture dialog -->
     <string name="keybinding_capture_conflict">Вже призначено: %s</string>
-    <!-- S0017: показується після SMB-сканування, якщо витяг метаданих не вдався для частини файлів -->
-    <string name="smb_metadata_errors_warning">%d файл(ів) проіндексовано без метаданих (помилка читання)</string>
 
     <!-- S0050: налаштування режиму «Чорний екран» -->
     <string name="settings_black_screen_button_title">Показувати кнопку «Чорний екран»</string>
@@ -3289,7 +3308,6 @@
     <string name="draw_overlay_toolbar_brush">Пензель</string>
     <string name="draw_overlay_toolbar_rect">Прямокутник</string>
     <string name="draw_overlay_toolbar_eraser">Ластик</string>
-    <string name="draw_overlay_save_button">Зберегти як новий файл</string>
     <string name="draw_overlay_filename_hint">Ім\'я файлу</string>
     <string name="draw_overlay_saved_to_downloads">Збережено у Завантаження: %s</string>
     <string name="draw_overlay_save_failed">Не вдалося зберегти малюнок. Спробуйте ще раз.</string>
@@ -3476,9 +3494,11 @@
     <string name="draw_tool_selector_cd">Вибрати інструмент</string>
     <string name="draw_overflow_undo_last">Скасувати останнє</string>
     <string name="draw_overflow_undo_all">Скасувати все</string>
-    <string name="draw_overflow_save_new">Зберегти як новий файл</string>
+    <string name="draw_overflow_save_inplace">Зберегти</string>
+    <string name="draw_overflow_save_new">Зберегти як..</string>
     <string name="draw_overflow_settings">Налаштування</string>
     <string name="draw_color_custom_cd">Довільний колір</string>
     <string name="draw_save_ok_toast">Збережено</string>
     <string name="draw_save_failed_toast">Не вдалося зберегти</string>
+    <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти — Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
 </resources>

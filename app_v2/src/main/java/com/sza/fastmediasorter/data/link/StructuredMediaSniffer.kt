@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.data.link
 
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
-import timber.log.Timber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -37,6 +36,36 @@ class StructuredMediaSniffer @Inject constructor(
         }
     }
 
+    /**
+     * S0223: Parse the Instagram private API response (`/api/v1/media/{id}/info/`) and extract
+     * image/video candidates from the `items[]` array. The response schema is identical to the
+     * Threads `data-sjs` schema: `image_versions2.candidates[]` + `carousel_media[]`. Reuses
+     * the existing `collectThreadPost` traversal so no logic is duplicated.
+     */
+    fun sniffInstagramApiResponse(json: String, baseUri: String): List<HtmlMediaCandidate> {
+        val out = mutableListOf<HtmlMediaCandidate>()
+        try {
+            val root = JSONObject(json)
+            val items = root.optJSONArray("items") ?: return emptyList()
+            var itemCount = 0
+            for (i in 0 until items.length()) {
+                val post = items.optJSONObject(i) ?: continue
+                itemCount++
+                collectThreadPost(post, baseUri, out)
+            }
+            val unique = out.distinctBy { extractMetaAssetKey(it.url) }
+            LinkDownloadTrace.verbose(
+                "ig-api-sniffer harvested ${unique.size} unique assets from $itemCount items" +
+                    " baseUri=${LinkDownloadTrace.truncateUrl(baseUri)}",
+            )
+            return unique
+        } catch (t: Throwable) {
+            if (t is kotlinx.coroutines.CancellationException) throw t
+            LinkDownloadTrace.verbose("ig-api-sniffer failed: ${t::class.simpleName}")
+            return emptyList()
+        }
+    }
+
     fun sniffEmbeddedJson(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> {
         val doc = try {
             Jsoup.parse(rawHtml, baseUri)
@@ -53,7 +82,6 @@ class StructuredMediaSniffer @Inject constructor(
         val result = buildList {
             harvestEmbeddedJson(doc, this)
         }.distinctBy { extractMetaAssetKey(it.url) }
-        Timber.d("S0197: sniffEmbeddedJson unique=%d baseUri=%s", result.size, LinkDownloadTrace.truncateUrl(baseUri))
         LinkDownloadTrace.verbose(
             "structured-sniffer embedded-json harvested ${result.size} unique assets" +
                 " baseUri=${LinkDownloadTrace.truncateUrl(baseUri)}",

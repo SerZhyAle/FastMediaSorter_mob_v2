@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0192 Phase 05 — Overflow popup menu: Undo last / Undo all / Save to new / Settings / Send to Google Keep -->
+<!--
+    S0192 Phase 06 — Draw overlay overflow menu.
+
+    Order: Save (primary, in-place) → Save as.. (picker) → Undo last → Undo all
+    → Settings → Send to Google Keep.
+
+    The standalone bottom "Save" button was removed in Phase 06; both save modes
+    now live here. "Save" overwrites the current file in place (with silent
+    fallback to "Save as.." on read-only / non-local resources per ADR-4).
+-->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/draw_overflow_save_inplace"
+        android:title="@string/draw_overflow_save_inplace" />
+    <item
+        android:id="@+id/draw_overflow_save_new"
+        android:title="@string/draw_overflow_save_new" />
     <item
         android:id="@+id/draw_overflow_undo_last"
         android:title="@string/draw_overflow_undo_last" />
     <item
         android:id="@+id/draw_overflow_undo_all"
         android:title="@string/draw_overflow_undo_all" />
-    <item
-        android:id="@+id/draw_overflow_save_new"
-        android:title="@string/draw_overflow_save_new" />
     <item
         android:id="@+id/draw_overflow_settings"
         android:title="@string/draw_overflow_settings" />

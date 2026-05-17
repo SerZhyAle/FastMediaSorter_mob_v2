@@ -23,13 +23,15 @@ import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.data.network.config.MetadataBudgetConfig
+import com.sza.fastmediasorter.domain.model.MetadataState
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,7 +64,6 @@ class SmbMediaScanner @Inject constructor(
 
     private val exifCache = LruCache<String, ExifMetadata>(100)
     private val videoMetadataCache = LruCache<String, VideoMetadata>(100)
-    private val _metadataErrorCount = AtomicInteger(0)
 
     companion object {
         // Extensions moved to MediaTypeUtils
@@ -130,7 +131,12 @@ class SmbMediaScanner @Inject constructor(
                     if (skipMetadataExtraction) {
                         Timber.d("Large folder (${result.data.size} files) — skipping per-file EXIF/video metadata extraction")
                     }
-                    _metadataErrorCount.set(0)
+                    // S0237: bound each per-file metadata read with a short timeout so a
+                    // single misbehaving file does not stall the rest of the scan. Aggregate
+                    // timeouts across the scan and emit one diagnostic line — never per file.
+                    val budget = MetadataBudgetConfig.perFileTimeoutMs()
+                    val metadataTimeoutCount = java.util.concurrent.atomic.AtomicInteger(0)
+                    Timber.d("S0237: SMB metadata-pass entry path=$path files=${result.data.size} budget=${budget}ms skip=$skipMetadataExtraction")
                     val files = result.data.mapNotNull { fileInfo ->
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
                         // Skip directories in flat scan (recursive or not) - we only want files
@@ -139,18 +145,42 @@ class SmbMediaScanner @Inject constructor(
                         if (mediaType != null && supportedTypes.contains(mediaType)) {
                             if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
 
+                            var exifTimedOut = false
                             val exifMetadata = if (!skipMetadataExtraction && (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF)) {
-                                extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
+                                val tStart = System.currentTimeMillis()
+                                val r = withTimeoutOrNull(budget) {
+                                    extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
+                                }
+                                if (r == null && System.currentTimeMillis() - tStart >= budget - 50) {
+                                    exifTimedOut = true
+                                    metadataTimeoutCount.incrementAndGet()
+                                }
+                                r
                             } else {
                                 null
                             }
 
+                            var videoTimedOut = false
                             val videoMetadata = if (!skipMetadataExtraction && mediaType == MediaType.VIDEO) {
-                                extractVideoMetadata(connectionInfo.connectionInfo, fileInfo.path)
+                                val tStart = System.currentTimeMillis()
+                                val r = withTimeoutOrNull(budget) {
+                                    extractVideoMetadata(connectionInfo.connectionInfo, fileInfo.path)
+                                }
+                                if (r == null && System.currentTimeMillis() - tStart >= budget - 50) {
+                                    videoTimedOut = true
+                                    metadataTimeoutCount.incrementAndGet()
+                                }
+                                r
                             } else {
                                 null
                             }
-                            
+
+                            val state = when {
+                                skipMetadataExtraction -> MetadataState.PENDING
+                                exifTimedOut || videoTimedOut -> MetadataState.PARTIAL
+                                else -> MetadataState.COMPLETE
+                            }
+
                             MediaFile(
                                 name = fileInfo.name,
                                 path = buildFullSmbPath(connectionInfo, fileInfo.path),
@@ -167,12 +197,15 @@ class SmbMediaScanner @Inject constructor(
                                 videoCodec = videoMetadata?.codec,
                                 videoBitrate = videoMetadata?.bitrate,
                                 videoFrameRate = videoMetadata?.frameRate,
-                                videoRotation = videoMetadata?.rotation
+                                videoRotation = videoMetadata?.rotation,
+                                metadataState = state
                             )
                         } else null
                     }
-                    val errCount = _metadataErrorCount.get()
-                    if (errCount > 0) progressCallback?.onMetadataErrors(errCount)
+                    val timeoutTotal = metadataTimeoutCount.get()
+                    if (timeoutTotal > 0) {
+                        Timber.d("S0237: metadata_timeout_aggregate path=$path count=$timeoutTotal budget=${budget}ms files=${files.size}")
+                    }
                     files
                 }
                 is SmbResult.Error -> {
@@ -645,8 +678,8 @@ class SmbMediaScanner @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            _metadataErrorCount.incrementAndGet()
-            Timber.w(e, "SMB video metadata extraction failed for $remotePath")
+            // S0237: downgrade per-file warn to verbose; aggregate is reported once per scan.
+            Timber.v(e, "SMB video metadata extraction failed for $remotePath")
             null
         } finally {
             runCatching { tempFile?.delete() }

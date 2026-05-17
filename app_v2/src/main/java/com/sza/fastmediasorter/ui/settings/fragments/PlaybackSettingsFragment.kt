@@ -151,7 +151,6 @@ class PlaybackSettingsFragment : Fragment() {
         }
 
         binding.iconHelpSavedAuthorizations.setOnClickListener {
-            timber.log.Timber.d("S0142: saved-authorizations help tooltip opened")
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
                 R.string.tooltip_saved_authorizations_title,

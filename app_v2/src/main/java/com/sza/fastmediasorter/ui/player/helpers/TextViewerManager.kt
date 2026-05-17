@@ -47,7 +47,12 @@ class TextViewerManager(
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: TextViewerCallback,
-    private val translationManager: TranslationManager
+    private val translationManager: TranslationManager,
+    // S0189 Phase 06: orchestrates save-with-rename dialog; null = fallback to legacy saveEditedText()
+    private val saveFlow: TextEditorSaveFlow? = null,
+    // S0189: registry of deferred new-note intents. Non-null in panel PlayerActivity,
+    // null in StandalonePlayerActivity (which never creates notes).
+    private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry? = null,
 ) {
 
     companion object {
@@ -69,6 +74,8 @@ class TextViewerManager(
         fun exitFullscreenMode()
         fun setTouchZonesEnabled(enabled: Boolean)
         fun showEncodingDialog()
+        // S0189: invoked by Save & Close to return the user to Browse with the new file.
+        fun finishActivity()
     }
 
     private var currentFile: MediaFile? = null
@@ -112,7 +119,46 @@ class TextViewerManager(
 
     // Track EPUB WebView visibility state (to restore after translation close)
     private var wasEpubWebViewVisible = false
+
+    // S0189: when true, enterEditMode() is called automatically after text content loads
+    private var autoOpenEditMode = false
+
+    // S0189 Phase 09: action panel + dirty-state tracker built on the shared modules.
+    // [editContentFlow] mirrors the EditText content; [dirtyTextWatcher] feeds it on every change.
+    private val editContentFlow = kotlinx.coroutines.flow.MutableStateFlow("")
+    private val dirtyTracker = com.sza.fastmediasorter.ui.editor.dirty.EditorDirtyStateTracker<String>(
+        contentFlow = editContentFlow,
+        initialBaseline = "",
+    ).also { it.start(coroutineScope) }
+    private val dirtyTextWatcher = object : android.text.TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+        override fun afterTextChanged(s: android.text.Editable?) {
+            editContentFlow.value = s?.toString().orEmpty()
+        }
+    }
+    private val keepChecker = com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(context)
+    // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
+    private var autoFitFontManager: TextEditorAutoFitFontManager? = null
     private val safeViews = PlayerBindingSafeViews(binding)
+    private val actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel by lazy {
+        com.sza.fastmediasorter.ui.editor.actions.EditorActionPanelBinder(
+            buttons = com.sza.fastmediasorter.ui.editor.actions.EditorActionButtons(
+                save = safeViews.btnEditorSave,
+                saveClose = safeViews.btnEditorSaveClose,
+                saveSend = safeViews.btnEditorSaveSend,
+                sendKeep = safeViews.btnEditorSendKeep,
+                cancel = safeViews.btnEditorCancel,
+            ),
+            // S0189: dirty-state tint applies to the top editor toolbar (action buttons live there now).
+            hostView = safeViews.editorToolbar,
+            keepAvailable = keepChecker.isKeepAvailable(),
+            isDirty = dirtyTracker.isDirty,
+            coroutineScope = coroutineScope,
+            cleanColor = com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter.TRANSPARENT_PRESERVE_ORIGINAL,
+            dirtyColor = android.graphics.Color.parseColor("#992C2C"),
+        )
+    }
 
     // Delegated helpers
     private val findReplaceManager = TextEditorFindReplaceManager(
@@ -209,6 +255,14 @@ class TextViewerManager(
             false // Let ScrollView handle scrolling
         }
 
+        // Edit mode uses a different surface than the read-only viewer, so gestures must be
+        // attached to the EditText itself or horizontal swipes never reach textGestureDetector.
+        safeViews.etTextContent.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
+            textGestureDetector.onTouchEvent(event)
+            false // Keep native EditText selection/scroll behaviour intact.
+        }
+
         // Text action buttons (now in top command panel)
         binding.btnCopyTextCmd.setOnClickListener {
             val text = safeViews.tvTextContent.text.toString()
@@ -225,13 +279,125 @@ class TextViewerManager(
             enterEditMode()
         }
 
-        safeViews.btnCancelEdit.setOnClickListener {
-            exitEditMode()
-        }
-
-        safeViews.btnSaveText.setOnClickListener {
-            saveEditedText()
-        }
+        // S0189: 5-action panel — replaces the former 2-button row
+        actionPanelManager.setup(com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks(
+            onSave = {
+                val flow = saveFlow
+                val localFile = currentLocalFile
+                val capturedContent = safeViews.etTextContent.text.toString()
+                if (flow != null && localFile != null) {
+                    flow.commit(
+                        currentLocalFile = localFile,
+                        currentName = saveDialogDefaultName(localFile),
+                        currentContent = capturedContent,
+                        afterSave = { outcome ->
+                            cacheNewlySavedNote(outcome, capturedContent)
+                            // S0189: reset dirty-state — Save & Close on a clean buffer must skip
+                            // the redundant re-save (which would orphan a file in the staging dir).
+                            dirtyTracker.rebaseline(capturedContent)
+                        }
+                    )
+                } else {
+                    saveEditedText()
+                    dirtyTracker.rebaseline(capturedContent)
+                }
+            },
+            onSaveAndClose = saveAndClose@{
+                val flow = saveFlow
+                val localFile = currentLocalFile
+                val capturedContent = safeViews.etTextContent.text.toString()
+                // S0189: if the buffer is already clean (user did Save then Save & Close), skip the
+                // duplicate save and just return to Browse. Avoids orphan staging files and the
+                // "blank viewer after save" state when the activity stayed open.
+                if (!dirtyTracker.isDirty.value) {
+                    callback.finishActivity()
+                    return@saveAndClose
+                }
+                if (flow != null && localFile != null) {
+                    flow.commit(
+                        currentLocalFile = localFile,
+                        currentName = saveDialogDefaultName(localFile),
+                        currentContent = capturedContent,
+                        afterSave = { outcome ->
+                            cacheNewlySavedNote(outcome, capturedContent)
+                            dirtyTracker.rebaseline(capturedContent)
+                            callback.finishActivity()
+                        }
+                    )
+                } else {
+                    saveEditedText()
+                    dirtyTracker.rebaseline(capturedContent)
+                    callback.finishActivity()
+                }
+            },
+            onSaveAndSend = {
+                val flow = saveFlow
+                val localFile = currentLocalFile
+                val capturedContent = safeViews.etTextContent.text.toString()
+                if (flow != null && localFile != null) {
+                    flow.commit(
+                        currentLocalFile = localFile,
+                        currentName = saveDialogDefaultName(localFile),
+                        currentContent = capturedContent,
+                        afterSave = { outcome ->
+                            cacheNewlySavedNote(outcome, capturedContent)
+                            val shareFile = java.io.File(outcome.finalPath)
+                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                shareFile
+                            )
+                            com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
+                                context = context,
+                                payload = com.sza.fastmediasorter.core.share.SharePayload.Text(
+                                    content = capturedContent,
+                                    streamUri = uri,
+                                    grantReadPermission = true,
+                                ),
+                                chooserTitle = context.getString(com.sza.fastmediasorter.R.string.share),
+                            )
+                        }
+                    )
+                } else {
+                    saveEditedText()
+                    com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
+                        context = context,
+                        payload = com.sza.fastmediasorter.core.share.SharePayload.Text(content = capturedContent),
+                        chooserTitle = context.getString(com.sza.fastmediasorter.R.string.share),
+                    )
+                }
+            },
+            onSendToKeep = sendKeep@{
+                val currentText = safeViews.etTextContent.text.toString()
+                val keepPackage = keepChecker.resolveTargetPackage() ?: run {
+                    android.widget.Toast.makeText(context, com.sza.fastmediasorter.R.string.text_editor_keep_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+                    return@sendKeep
+                }
+                val sent = com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
+                    context = context,
+                    payload = com.sza.fastmediasorter.core.share.SharePayload.Text(content = currentText),
+                    preferredPackage = keepPackage,
+                )
+                if (!sent) {
+                    android.widget.Toast.makeText(context, com.sza.fastmediasorter.R.string.text_editor_keep_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+                }
+            },
+            onCancel = {
+                // S0189: if this was a deferred new-note that auto-save already flushed to disk,
+                // delete the file and drop the registry entry so Cancel leaves no trace.
+                val localFile = currentLocalFile
+                if (localFile != null) {
+                    val stagedNote = textNoteStagingRegistry?.lookup(localFile)
+                    if (stagedNote != null) {
+                        if (localFile.exists()) {
+                            localFile.delete()
+                        }
+                        textNoteStagingRegistry.unregister(localFile)
+                    }
+                }
+                exitEditMode()
+            },
+        ))
 
         // Editor toolbar buttons — delegated
         findReplaceManager.setupEditorToolbar()
@@ -319,6 +485,11 @@ class TextViewerManager(
                     ) {
                         if (diffX > 0) increaseTextFontSize() else decreaseTextFontSize()
                         return true
+                    }
+
+                    // In edit mode, vertical gestures must remain plain text scrolling.
+                    if (safeViews.textEditContainer.isVisible) {
+                        return false
                     }
 
                     // Vertical swipe → page navigation or fullscreen exit
@@ -450,21 +621,36 @@ class TextViewerManager(
     }
 
     private fun increaseTextFontSize() {
-        textFontSizeSp = (textFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
+        val baseSizeSp = if (safeViews.textEditContainer.isVisible) {
+            autoFitFontManager?.currentFontSizeSp() ?: textFontSizeSp
+        } else {
+            textFontSizeSp
+        }
+        textFontSizeSp = (baseSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
         applyTextFontSize()
+        // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
+        autoFitFontManager?.notifyManualOverride(textFontSizeSp)
         Timber.d("Text font size increased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
 
     private fun decreaseTextFontSize() {
-        textFontSizeSp = (textFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
+        val baseSizeSp = if (safeViews.textEditContainer.isVisible) {
+            autoFitFontManager?.currentFontSizeSp() ?: textFontSizeSp
+        } else {
+            textFontSizeSp
+        }
+        textFontSizeSp = (baseSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
         applyTextFontSize()
+        // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
+        autoFitFontManager?.notifyManualOverride(textFontSizeSp)
         Timber.d("Text font size decreased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
 
     private fun applyTextFontSize() {
         safeViews.tvTextContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
+        safeViews.etTextContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
     }
 
     private fun increaseTranslationFontSize() {
@@ -564,20 +750,49 @@ class TextViewerManager(
                     BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
             }
             try {
-                val file = try {
-                    networkFileManager.prepareFileForRead(mediaFile)
-                } catch (e: Exception) {
+                // S0189: a new note may be registered as deferred — the file is created on first
+                // Save, not when the editor opens. Skip the not-found error in that case and
+                // render an empty buffer; auto-open edit mode is the next step.
+                val deferredStaged = textNoteStagingRegistry?.lookup(java.io.File(mediaFile.path))
+                val file = if (deferredStaged != null) {
+                    deferredStaged.localFile
+                } else {
+                    try {
+                        networkFileManager.prepareFileForRead(mediaFile)
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            binding.progressBar.isVisible = false
+                            callback.showError(context.getString(R.string.text_file_load_failed))
+                        }
+                        return@launch
+                    }
+                }
+
+                if (!file.exists() && deferredStaged == null) {
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError(context.getString(R.string.text_file_load_failed))
+                        callback.showError(context.getString(R.string.text_file_not_found))
                     }
                     return@launch
                 }
 
                 if (!file.exists()) {
+                    // Deferred new note — render an empty buffer without the pager (no bytes to page).
+                    currentLocalFile = file
+                    originalTextWithoutNumbers = ""
+                    val settings = settingsRepository.getSettings().first()
+                    markdownRendered = settings.markdownRendered
+                    syntaxHighlightingEnabled = settings.syntaxHighlighting
+                    currentReaderTheme = resolveTheme(settings.textReaderTheme)
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError(context.getString(R.string.text_file_not_found))
+                        renderPageContent("", settings.showTextLineNumbers, 1)
+                        safeViews.textPageNavigation.isVisible = false
+                        safeViews.tvTextEncodingIndicator.text = Charsets.UTF_8.name()
+                        if (autoOpenEditMode) {
+                            autoOpenEditMode = false
+                            enterEditMode(autoOpen = true)
+                        }
                     }
                     return@launch
                 }
@@ -652,6 +867,12 @@ class TextViewerManager(
                         "TextViewerManager: Displaying page 0, " +
                                 "${pageText.length} chars, charset=$currentCharset"
                     )
+
+                    // S0189: auto-open edit mode when launched from the "create text note" flow
+                    if (autoOpenEditMode) {
+                        autoOpenEditMode = false
+                        enterEditMode(autoOpen = true)
+                    }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
@@ -912,7 +1133,9 @@ class TextViewerManager(
         startLineNumber: Int
     ) {
         if (pageText.isEmpty()) {
-            safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
+            // S0189: leave the viewer blank for empty files (new notes start blank). The
+            // previous "File is empty" placeholder leaked into the editor as initial text.
+            safeViews.tvTextContent.text = ""
             return
         }
 
@@ -957,7 +1180,16 @@ class TextViewerManager(
 
     // ===== H.3: Editor enter/exit/save =====
 
-    private fun enterEditMode() {
+    /**
+     * S0189: signal that edit mode should be activated automatically once text content loads.
+     * Called by [PlayerActivity] when launched with [PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN].
+     */
+    fun setAutoOpenEditMode(enabled: Boolean) {
+        autoOpenEditMode = enabled
+    }
+
+    /** Enter text edit mode. [autoOpen] distinguishes automatic (S0189 create flow) from manual entry. */
+    internal fun enterEditMode(autoOpen: Boolean = false) {
         val pager = textFilePager
         if (pager != null && !pager.isSinglePage()) {
             Toast.makeText(context, R.string.text_editing_large_file, Toast.LENGTH_SHORT).show()
@@ -990,6 +1222,28 @@ class TextViewerManager(
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
 
+        // S0189 Phase 09: bind dirty-state tracker to the EditText and reset panel tint.
+        // The text watcher pumps content into [editContentFlow]; the tracker compares against
+        // the baseline we just set via [rebaseline].
+        safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
+        editContentFlow.value = textToEdit
+        dirtyTracker.rebaseline(textToEdit)
+        safeViews.etTextContent.addTextChangedListener(dirtyTextWatcher)
+        actionPanelManager.onEnterEditMode()
+
+        // S0189 Phase 07: auto-fit font — uses max of persistent setting; locks on manual swipe
+        val maxFontSp = DEFAULT_TEXT_FONT_SIZE_SP *
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.HUGE.multiplier
+        autoFitFontManager?.detach()
+        autoFitFontManager = TextEditorAutoFitFontManager(
+            editText = safeViews.etTextContent,
+            scrollView = safeViews.textEditScrollView,
+            maxSizeSp = maxFontSp
+        ).also {
+            it.attach()
+            it.reset()
+        }
+
         // Detach previous undo/redo manager if exists (M-10 fix)
         undoRedoManager?.detach()
 
@@ -1010,6 +1264,44 @@ class TextViewerManager(
         imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
     }
 
+    /**
+     * S0189: after a successful Save of a new note, append the resulting file directly to
+     * [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] for its resource. Browse's
+     * onResume → syncWithCache picks it up without triggering a full network rescan.
+     *
+     * Skipped for non-staged edits (the file already exists in the resource list).
+     */
+    private fun cacheNewlySavedNote(outcome: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome, content: String) {
+        val resourceId = currentFile?.resourceId ?: return
+        val previousLocalFile = currentLocalFile ?: return
+        // Only act for a deferred-staged note. For arbitrary text-file edits the cache list
+        // already contains this file — adding again would create a duplicate.
+        textNoteStagingRegistry?.lookup(previousLocalFile) ?: return
+        val newFile = com.sza.fastmediasorter.domain.model.MediaFile(
+            name = outcome.finalName,
+            path = outcome.finalPath,
+            type = com.sza.fastmediasorter.domain.model.MediaType.TEXT,
+            size = content.toByteArray(Charsets.UTF_8).size.toLong(),
+            createdDate = System.currentTimeMillis(),
+            lastModified = System.currentTimeMillis(),
+            resourceId = resourceId,
+        )
+        com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.addFile(resourceId, newFile)
+    }
+
+    /**
+     * S0189: pre-fill name for the save-with-rename dialog.
+     *
+     * Network staging files are stored on disk as `<resourceId>_<intendedName>` to keep entries
+     * unique inside the shared `Downloads/FastMediaSorter/notes/` directory; without this lookup
+     * the resource-id prefix leaks into the SMB/FTP/SFTP/Cloud upload as the final filename.
+     * Falls back to the on-disk name for non-registered (already-saved or arbitrary) text files.
+     */
+    private fun saveDialogDefaultName(localFile: java.io.File): String {
+        val stagedNote = textNoteStagingRegistry?.lookup(localFile)
+        return stagedNote?.intendedName ?: localFile.name
+    }
+
     private fun exitEditMode() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
@@ -1017,6 +1309,15 @@ class TextViewerManager(
         undoRedoManager?.detach()
         undoRedoManager = null
         autoSaveManager?.stopAutoSave()
+
+        // S0189 Phase 09: detach the text watcher (so subsequent EditText changes don't dirty
+        // the tracker once the editor is closed) and reset the panel tint.
+        safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
+        actionPanelManager.onExitEditMode()
+
+        // S0189 Phase 07: detach auto-fit font manager
+        autoFitFontManager?.detach()
+        autoFitFontManager = null
 
         // Close find panel if open — delegated
         findReplaceManager.closeFindPanel()
@@ -1178,7 +1479,6 @@ class TextViewerManager(
         safeViews.btnCloseTextViewer.isVisible = true
 
         binding.btnEditTextCmd.isVisible = false
-        safeViews.btnSaveText.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
         binding.btnCopyTextCmd.isVisible = true
@@ -1277,7 +1577,6 @@ class TextViewerManager(
         )
 
         binding.btnEditTextCmd.isVisible = false
-        safeViews.btnSaveText.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
         binding.btnCopyTextCmd.isVisible = true

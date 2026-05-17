@@ -141,6 +141,21 @@ class LinkAutoDownloadCoordinatorTest {
         coVerify { authSessionRepository.markLastUsed("instagram.com", "acc1") }
     }
 
+    @Test
+    fun youtube_community_post_short_circuits_before_session_or_strategy_work() = runTest {
+        val result = coordinator.handle(
+            "https://m.youtube.com/post/UgkxExampleCommunityPost?feature=share",
+            noOpCallbacks,
+            null,
+        )
+
+        assert(result == LinkAutoDownloadCoordinator.Result.Failed.UnsupportedYouTubeCommunityPost) {
+            "Expected UnsupportedYouTubeCommunityPost, got: $result"
+        }
+        verify(exactly = 0) { registry.ordered() }
+        verify(exactly = 0) { sessionContext.set(any(), any(), any(), any()) }
+    }
+
     // S0186: cascade resilience — open() must not abort the strategy chain on uncaught Throwable.
     // Strategy A throws (simulates yt-dlp PyException). Strategy B must still be reached.
 

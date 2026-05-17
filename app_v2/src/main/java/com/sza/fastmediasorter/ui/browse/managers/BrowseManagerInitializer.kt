@@ -143,7 +143,7 @@ class BrowseManagerInitializer(
             override fun onDirectoryRenameConfirmed(oldPath: String, newName: String) = viewModel.renameDirectory(oldPath, newName)
             override fun onCopyDestinationSelected(destinationPath: String) {}
             override fun onMoveDestinationSelected(destinationPath: String) {}
-            override fun onDeleteConfirmed(fileCount: Int) = viewModel.deleteSelectedFiles()
+            override fun onDeleteConfirmed(overridePaths: Set<String>?) = viewModel.deleteSelectedFiles(overridePaths)
             override fun onCloudSignInRequested(provider: CloudProvider) = when (provider) {
                 CloudProvider.GOOGLE_DRIVE -> cloudAuthManager.launchGoogleSignIn()
                 CloudProvider.DROPBOX -> cloudAuthManager.launchDropboxSignIn()
@@ -320,6 +320,7 @@ class BrowseManagerInitializer(
                     viewModel.navigateUp()
                 }
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
+                override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
                 override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
@@ -345,7 +346,6 @@ class BrowseManagerInitializer(
             googleDriveClient = googleDriveClient,
             dropboxClient = dropboxClient,
             oneDriveClient = oneDriveClient,
-            googleSignInLauncher = launcherManager.googleSignInLauncher,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
                 override fun onAuthenticationSuccess() = viewModel.reloadFiles()
                 override fun onAuthenticationFailure() {}
@@ -547,6 +547,9 @@ class BrowseManagerInitializer(
                 Timber.d("S0165: btnCreateFolder clicked → showCreateFolderDialog")
                 resourceOpsMenuManager.showCreateFolderDialog(viewModel)
             }
+            override fun onCreateTextNoteClicked() {
+                resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
+            }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
             override fun onMicRecordTouchDown() = activity.onMicRecordTouchDown()
             override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
@@ -590,6 +593,11 @@ class BrowseManagerInitializer(
         }
 
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
+
+        // S0189: wire notifyCreatedForOpen so the editor opens immediately after text note creation
+        viewModel.setOpenNoteCallback { createdPath ->
+            viewModel.openTextNoteInEditor(createdPath)
+        }
     }
 
     private fun setupDragToReorder() {
@@ -648,7 +656,11 @@ class BrowseManagerInitializer(
         if (resource?.isReadOnly == true) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
         val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
         val sel = state.mediaFiles.filter { it.path in selectedPaths }
-        lifecycleScope.launch { dialogHelper.showDeleteConfirmation(sel, resource, viewModel.getSettings()) }
+        // Forward overridePaths so the dialog callback can target exactly these files
+        // without touching the global multiselect (per-file overflow menu use case).
+        lifecycleScope.launch {
+            dialogHelper.showDeleteConfirmation(sel, resource, viewModel.getSettings(), overridePaths)
+        }
     }
 
     /**
@@ -721,8 +733,15 @@ class BrowseManagerInitializer(
         val actualIndex = maxOf(0, startIndex)
         val file = state.mediaFiles[actualIndex]
         val isDoc = file.type == MediaType.TEXT || file.type == MediaType.PDF || file.type == MediaType.EPUB
-        val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
-            .apply { if (!isDoc) putExtra("slideshow_mode", true) }
+        // Document surfaces (TEXT/PDF/EPUB) are never VR-eligible — bypass the per-flavor
+        // PLAYER_ACTIVITY_CLASS override so noLegal/vr open the 2D PlayerActivity directly
+        // instead of routing through VrPlayerActivity → «VR Headset Required» on phones.
+        val intent = if (isDoc) {
+            PlayerActivity.createPanelIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
+        } else {
+            PlayerActivity.createIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
+                .apply { putExtra("slideshow_mode", true) }
+        }
         if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
         else activity.startActivity(intent)
     }

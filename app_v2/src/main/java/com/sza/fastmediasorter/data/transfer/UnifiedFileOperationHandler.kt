@@ -255,6 +255,31 @@ class UnifiedFileOperationHandler @Inject constructor(
     }
 
     /**
+     * Creates a new text file in the given parent path using the matching strategy.
+     *
+     * @param parentPath  protocol-specific path of the parent directory
+     * @param fileName    name of the new file (no slashes)
+     * @param resourceId  id of the owning resource; forwarded to strategy for staging registration
+     * @param content     initial file content (empty string for blank notes)
+     * @return [Result] containing the absolute/protocol path of the created file
+     */
+    suspend fun executeCreateTextFile(
+        parentPath: String,
+        fileName: String,
+        resourceId: Long,
+        content: String = ""
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val strategy = getStrategy(parentPath)
+            strategy.createTextFile(parentPath, fileName, content, resourceId)
+        } catch (e: Exception) {
+            val errorMsg = errorHandler.handleError(e, "create_text_file", parentPath)
+            Timber.e(e, "Create text file failed: $errorMsg")
+            Result.failure(Exception(errorMsg, e))
+        }
+    }
+
+    /**
      * Soft delete file (move to .trash/ folder).
      * 
      * @return Result with trash path

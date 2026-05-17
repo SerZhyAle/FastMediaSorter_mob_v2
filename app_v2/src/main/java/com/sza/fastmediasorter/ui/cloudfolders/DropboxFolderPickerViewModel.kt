@@ -75,7 +75,11 @@ class DropboxFolderPickerViewModel @Inject constructor(
                 val authResult = dropboxClient.authenticate()
                 if (authResult is AuthResult.Error) {
                     Timber.e("Dropbox authentication failed: ${authResult.message}")
-                    _events.send(DropboxFolderPickerEvent.ShowError(authFailedMessage()))
+                    _events.send(
+                        DropboxFolderPickerEvent.ShowError(
+                            authResult.message.takeIf { it.isNotBlank() } ?: authFailedMessage()
+                        )
+                    )
                     _state.update { it.copy(isLoading = false) }
                     return@launch
                 }
@@ -95,7 +99,11 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load Dropbox folders: ${result.message}")
-                        _events.send(DropboxFolderPickerEvent.ShowError(genericErrorMessage()))
+                        _events.send(
+                            DropboxFolderPickerEvent.ShowError(
+                                result.message.takeIf { it.isNotBlank() } ?: genericErrorMessage()
+                            )
+                        )
                         _state.update { it.copy(isLoading = false) }
                     }
                 }
