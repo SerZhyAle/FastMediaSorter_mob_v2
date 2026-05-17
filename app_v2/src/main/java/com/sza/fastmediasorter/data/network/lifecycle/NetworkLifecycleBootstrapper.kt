@@ -83,8 +83,6 @@ class NetworkLifecycleBootstrapper @Inject constructor(
             }
             latch.await()
         }
-
-        Timber.i("S0195: network lifecycle bootstrap complete")
     }
 
     private fun doRegistrations() {
