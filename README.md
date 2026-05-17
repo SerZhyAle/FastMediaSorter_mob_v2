@@ -14,13 +14,16 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5160.425 (May 2026)
+## What's New in v2.60.5172.102 (May 2026)
 
 **New:**
-Draw editor v2 (oval/text tools, 16-color palette, in-place save, Google Keep export), file size shown in browse list rows.
+Create text notes from Browse on local/SMB/SFTP/FTP/cloud, central Google account via Credential Manager, universal input router (D-pad/car/Bluetooth/hardware keys), VR image and GIF viewer (VR flavor), IzzyOnDroid distribution prepared.
+
+**Changed:**
+System-managed orientation (reverse-portrait, tablet, foldable), adaptive Copy/Move panels, SMB first-scan speedup, draw editor toolbar collapsed, welcome page extended to 6 feature tiles.
 
 **Fixed:**
-Image-edit toolbar buttons no longer hidden in overflow for image viewer, spurious sign-in prompt during link downloads eliminated.
+Instagram photo/carousel downloads, player advance-after-delete, SMB/SFTP idle stability, low-memory toast suppression, network-to-local copy in public collections on Android 10+, Google/OneDrive/Dropbox sign-in across all flavors, VR Headset Required dialog gating, legacy cloud:/ path visibility.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

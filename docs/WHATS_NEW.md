@@ -1,6 +1,50 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5160.425** (May 2026)
+**Current release: 2.60.5172.102** (May 2026)
+
+> Changes since version 2.60.5160.425
+
+---
+
+## What's New
+
+- **Create text notes from Browse** — write notes on local, SMB, SFTP, FTP, or cloud resources with a 5-action save panel (S0189)
+- **Central Google account** — one primary account via Credential Manager powers Drive and future Google integrations (S0200)
+- **Universal input router** — D-pad, car steering, Bluetooth headset, and hardware keys mapped to semantic actions (S0230)
+- **VR image and GIF viewer** — 3D/VR toolbar icon opens images in immersive view with auto-detected stereo layout (S0238, VR flavor)
+- **IzzyOnDroid distribution** — fastlane metadata, changelog pipeline, and README badge prepared for catalog submission (S0215)
+
+## What's Changed
+
+- **System-managed rotation** — orientation lock removed; reverse-portrait, tablet, and foldable layouts now work (S0222)
+- **Adaptive Copy/Move panels** — single-row layout on wide screens; button font scales with measured width (S0227)
+- **SMB first-scan speedup** — listing appears before metadata pass; per-file 1500ms budget; concurrency 2 → 8 (S0237)
+- **Draw editor toolbar** — collapsed to one row; save actions moved into overflow; filled palette swatch (S0192)
+- **Welcome feature tiles** — 4 → 6 entries for symmetric 3-column tablet and VR layouts
+
+## What's Fixed
+
+- Instagram photo posts and carousels download correctly (S0223)
+- Player no longer jumps to wrong file after delete-with-advance (S0226)
+- SMB idle timeout no longer fires repeat bursts after one window (S0228)
+- SFTP browse no longer fails with "inputstream is closed" after idle (S0219)
+- Low-memory pre-playback toast suppressed in normal usage (S0207)
+- SMB audio metadata noise (Handler-on-dead-thread, EOFException) cleared (S0229)
+- YouTube community-post shares get a specific unsupported message (S0225)
+- Carousel batch download notifications use accurate slide counts (S0224)
+- Create-note and create-folder dialogs no longer trigger Google sign-in prompt
+- OneDrive, Google Drive, and Dropbox sign-in restored on noLegal and VR sideload builds (S0232, S0233, S0235)
+- Network-to-local copy works in public collections on Android 10+ without all-files access (S0231)
+- Google sign-in reports PlayServicesOutdated with an update Play Services CTA
+- noLegal and VR flavors no longer show "VR Headset Required" for text, audio, PDF, and EPUB
+- noLegal on phones falls back to 2D player when no OpenXR runtime is available
+- Legacy `cloud:/` path content visibility restored (S0236)
+- Per-file overflow Delete no longer fails with "Files not selected"
+- Welcome screen TAB key traverses to language pickers correctly (S0230)
+
+---
+
+## Previous Release: 2.60.5160.425 (May 2026)
 
 > Changes since version 2.60.5150.150
 
