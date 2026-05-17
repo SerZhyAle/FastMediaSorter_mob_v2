@@ -34,6 +34,12 @@ Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Gree
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 
+# CRITICAL: pin CWD to $projectRoot so Gradle resolves the correct project
+# directory regardless of how the script was invoked (e.g. when a.ps1
+# delegates from the dev worktree into the release worktree).
+Push-Location $projectRoot
+try {
+
 # Update build.gradle.kts
 $buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
 $content = Get-Content $buildGradlePath -Raw
@@ -121,4 +127,9 @@ if (Test-Path -Path $7zipPath) {
 else {
     Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
     Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+}
+
+}
+finally {
+    Pop-Location
 }

@@ -32,6 +32,15 @@ Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Gree
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 
+# CRITICAL: pin CWD to $projectRoot for the duration of the gradle invocations.
+# Gradle derives its project directory from CWD, not from gradlew.bat's path,
+# so an inherited CWD (e.g. when a.ps1 delegates from the dev worktree to the
+# release worktree) would silently build the wrong project. The previous
+# "sibling fallback" search was a band-aid that hid exactly this bug — after
+# the Push-Location below, outputs are guaranteed to be under $projectRoot.
+Push-Location $projectRoot
+try {
+
 # Update build.gradle.kts
 $buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
 $content = Get-Content $buildGradlePath -Raw
@@ -61,33 +70,16 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "`nAPK Build Successful!" -ForegroundColor Green
 
-# Find the AAB file
-# When running from a release worktree, Gradle may reuse a shared daemon and write
-# build outputs to the dev project directory instead of the worktree directory.
-# Search both locations and prefer the most recently written file.
+# Find the AAB file. With CWD pinned to $projectRoot above, Gradle writes
+# outputs deterministically under $projectRoot/app_v2/build/outputs/.
+# A missing file here is a hard error, not a hint to search elsewhere.
 $aabDir = Join-Path $projectRoot "app_v2\build\outputs\bundle\standardRelease"
 $aabPath = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
 if (-not $aabPath) {
-    # Fallback: Gradle daemon reuse can write build outputs to a sibling project directory
-    # (e.g. the dev worktree) instead of the release worktree. Search all siblings.
-    $parentDir = Split-Path $projectRoot -Parent
-    $siblings = Get-ChildItem -Path $parentDir -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -ne $projectRoot }
-    foreach ($sibling in $siblings) {
-        $fallbackDir = Join-Path $sibling.FullName "app_v2\build\outputs\bundle\standardRelease"
-        $candidate = Get-ChildItem -Path $fallbackDir -Filter *.aab -ErrorAction SilentlyContinue |
-            Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if ($candidate) {
-            Write-Host "Note: AAB found via Gradle daemon reuse in $($candidate.FullName)" -ForegroundColor Yellow
-            $aabPath = $candidate
-            break
-        }
-    }
-}
-
-if (-not $aabPath) {
-    Write-Host "Error: AAB not found in $aabDir (and no fallback found)" -ForegroundColor Red
+    Write-Host "Error: AAB not found in $aabDir" -ForegroundColor Red
+    Write-Host "  Gradle reported success but produced no AAB at the expected path." -ForegroundColor Red
+    Write-Host "  This usually means CWD/project-dir mismatch — check gradle invocation." -ForegroundColor Red
     exit 1
 }
 
@@ -107,29 +99,12 @@ Write-Host "AAB copied to $destAabPath" -ForegroundColor Green
 $aabSize = [math]::Round($aabPath.Length / 1MB, 2)
 Write-Host "AAB size: $aabSize MB" -ForegroundColor Cyan
 
-# Find the APK file
+# Find the APK file (same CWD guarantee as for AAB above).
 $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\release"
 $apkPath = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
 if (-not $apkPath) {
-    # Same daemon-reuse fallback as for AAB
-    $parentDir = Split-Path $projectRoot -Parent
-    $siblings = Get-ChildItem -Path $parentDir -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -ne $projectRoot }
-    foreach ($sibling in $siblings) {
-        $fallbackDir = Join-Path $sibling.FullName "app_v2\build\outputs\apk\standard\release"
-        $candidate = Get-ChildItem -Path $fallbackDir -Filter *.apk -ErrorAction SilentlyContinue |
-            Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if ($candidate) {
-            Write-Host "Note: APK found via Gradle daemon reuse in $($candidate.FullName)" -ForegroundColor Yellow
-            $apkPath = $candidate
-            break
-        }
-    }
-}
-
-if (-not $apkPath) {
-    Write-Host "Warning: APK not found in $apkDir (and no fallback found)" -ForegroundColor Yellow
+    Write-Host "Warning: APK not found in $apkDir" -ForegroundColor Yellow
 } else {
     Write-Host "APK location: $($apkPath.FullName)" -ForegroundColor Green
     $destApkPath = Join-Path $downloadsDir "FastMediaSorter_standard_release.apk"
@@ -234,3 +209,8 @@ if (Test-Path -Path $destApkPath) {
 
 Write-Host "`nAAB + APK build complete!" -ForegroundColor Green
 Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan
+
+}
+finally {
+    Pop-Location
+}
