@@ -93,7 +93,7 @@ Write-Host "Clearing logcat..." -ForegroundColor Cyan
 # Install and launch the debug build
 Write-Host "Installing and launching VR debug build..." -ForegroundColor Cyan
 & $adb install -r -d $apkPath
-& $adb shell am start -n com.sza.fastmediasorter.vr.debug/com.sza.fastmediasorter.ui.main.MainActivity
+& $adb shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity
 
 Write-Host "`nVR debug build launched successfully!" -ForegroundColor Green
 

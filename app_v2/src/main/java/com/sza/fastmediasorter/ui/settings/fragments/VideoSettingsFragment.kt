@@ -193,14 +193,6 @@ class VideoSettingsFragment : Fragment() {
             )
         }
 
-        // Auto-detect format switch
-        binding.switchVrAutoDetect.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(vrAutoDetectFormat = isChecked))
-            }
-        }
-
         // Forced flat format spinner
         val forcedPlatFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
         binding.spinnerVrForcedFormat.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
@@ -225,39 +217,11 @@ class VideoSettingsFragment : Fragment() {
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
 
-        // Rendering mode spinner
-        val renderingModeValues = resources.getStringArray(R.array.vr_rendering_mode_values)
-        binding.spinnerVrRenderingMode.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings && position in renderingModeValues.indices) {
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(vrRenderingMode = renderingModeValues[position]))
-                }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        }
-
         // Remember file format switch
         binding.switchVrRememberFormat.setOnCheckedChangeListener { _, isChecked ->
             if (!isUpdatingFromSettings) {
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(vrRememberFileFormat = isChecked))
-            }
-        }
-
-        // Auto-immersive on stereo content switch
-        binding.switchVrAutoImmersive.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(vrAutoImmersive = isChecked))
-            }
-        }
-
-        // Show VR FPS switch
-        binding.switchVrShowFps.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(vrShowFps = isChecked))
             }
         }
 
@@ -320,8 +284,6 @@ class VideoSettingsFragment : Fragment() {
 
                     // VR settings — update spinners and switches (only if VR block is visible)
                     if (BuildConfig.SUPPORT_VR_PLAYER) {
-                        binding.switchVrAutoDetect.isChecked = settings.vrAutoDetectFormat
-
                         val forcedFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
                         val forcedIdx = forcedFormatValues.indexOf(settings.vrForcedPlatFormat).coerceAtLeast(0)
                         binding.spinnerVrForcedFormat.setSelection(forcedIdx)
@@ -330,16 +292,7 @@ class VideoSettingsFragment : Fragment() {
                         val forcedSphericalIdx = forcedSphericalFormatValues.indexOf(settings.vrForcedSphericalFormat).coerceAtLeast(0)
                         binding.spinnerVrForcedSphericalFormat.setSelection(forcedSphericalIdx)
 
-                        val renderingModeValues = resources.getStringArray(R.array.vr_rendering_mode_values)
-                        val modeIdx = renderingModeValues.indexOf(settings.vrRenderingMode).coerceAtLeast(0)
-                        binding.spinnerVrRenderingMode.setSelection(modeIdx)
-
                         binding.switchVrRememberFormat.isChecked = settings.vrRememberFileFormat
-                        binding.switchVrAutoImmersive.isChecked = settings.vrAutoImmersive
-                        binding.switchVrShowFps.isChecked = settings.vrShowFps
-                        val vrGloballyEnabled = !settings.disable3dVr
-                        binding.switchVrShowFps.isEnabled = vrGloballyEnabled
-                        binding.tvVrShowFpsDisabledHint.visibility = if (vrGloballyEnabled) View.GONE else View.VISIBLE
                         binding.switchPlayerShowFps.isChecked = settings.playerShowFps
                     }
 

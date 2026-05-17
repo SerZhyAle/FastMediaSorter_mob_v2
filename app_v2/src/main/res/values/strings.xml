@@ -944,28 +944,17 @@ Close the player and try again.</string>
 
     <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
     <string name="settings_vr_section_title">VR</string>
-    <string name="settings_vr_auto_detect">Auto-detect format</string>
-    <string name="settings_vr_auto_detect_desc">Detect SBS/OU/Mono via metadata and heuristics</string>
     <string name="settings_vr_forced_flat_format">Forced flat format</string>
     <string name="settings_vr_forced_flat_format_desc">Override auto-detection for flat SBS/OU/mono playback in the current session</string>
     <string name="settings_vr_forced_spherical_format">Forced spherical format</string>
     <string name="settings_vr_forced_spherical_format_desc">Override auto-detection for 360°, VR180, and cylinder playback in the current session</string>
-    <string name="settings_vr_rendering_mode">VR rendering mode</string>
-    <string name="settings_vr_rendering_mode_desc">Cinema = flat screen in VR; Full = per-eye rendering</string>
     <string name="settings_vr_remember_format">Remember file format</string>
     <string name="settings_vr_remember_format_desc">Cache detected format per file in local database</string>
-    <string name="settings_vr_auto_immersive">Auto-enter immersive on stereo content</string>
-    <string name="settings_vr_auto_immersive_desc">When off, stereo files stay on the flat screen; switch to VR with the 3DVR button in the player.</string>
-    <string name="settings_vr_show_fps">Show VR FPS</string>
-    <string name="settings_vr_show_fps_desc">Display diagnostic FPS counter in immersive HUD</string>
-    <string name="settings_vr_show_fps_hint_disabled">Available when VR is enabled</string>
     <string name="settings_player_show_fps">Show FPS over player</string>
     <string name="settings_player_show_fps_desc">Display diagnostic FPS counter over the flat 2D player</string>
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">In separate window</string>
     <string name="setting_allow_separate_window">Allow opening in a separate window</string>
-    <string name="settings_vr_disable_3d">Disable 3D/VR</string>
-    <string name="settings_vr_disable_3d_desc">Treat all content as plain 2D; disables 3D/VR detection and the 3D tab in the playback dialog</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
     <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen — comfortable to watch without 3D glasses. Default: ON for non-VR builds, OFF for VR.</string>
     <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
@@ -1002,16 +991,6 @@ Close the player and try again.</string>
         <item>EQUIRECT_180_SBS</item>
         <item>VR180_FISHEYE_SBS</item>
         <item>CYLINDER_180</item>
-    </string-array>
-    <string-array name="vr_rendering_mode_entries">
-        <item>Cinema</item>
-        <item>Full SBS</item>
-        <item>Full OU</item>
-    </string-array>
-    <string-array name="vr_rendering_mode_values">
-        <item>CINEMA</item>
-        <item>FULL_SBS</item>
-        <item>FULL_OU</item>
     </string-array>
 
     <!-- Permissions -->
@@ -1971,7 +1950,9 @@ Close the player and try again.</string>
     <!-- OCR Feature -->
     <string name="enable_ocr">Enable text recognition (OCR)</string>
     <string name="enable_ocr_summary">Extract text from images and PDF for copying</string>
-    <string name="ocr_requires_newer_device">OCR requires newer device (Memory: %1$s, API: %2$d). Requires API 26+ and 4GB+ RAM.</string>
+    <string name="ocr_requires_newer_device">OCR is unavailable on this device. %1$s (API: %2$d). Requires API 26+ and 3GB+ RAM.</string>
+    <string name="ocr_unavailable_reason_os">Android version is too old</string>
+    <string name="ocr_unavailable_reason_ram">Insufficient device RAM</string>
     <string name="ocr_font_size">OCR Font Size</string>
     <string name="ocr_font_family">OCR Font Family</string>
     <string name="ocr_button_description">Extract Text</string>
@@ -3012,15 +2993,6 @@ Close the player and try again.</string>
     <string name="playback_settings_3d_manual_toast">Format: %s</string>
     <string name="player_3d_detected_toast">3D video detected. Use File Info to open it in an external VR player.</string>
     <string name="playback_settings_3d_hint">For best effect, use a phone-based VR viewer (Google Cardboard, etc.)</string>
-
-    <!-- VR PlaybackControlDialog 3DVR tab (spec §5.8 — visible only in VR flavor) -->
-    <string name="playback_vr_content_type_video">Content: Video</string>
-    <string name="playback_vr_content_type_photo">Content: Photo</string>
-    <string name="playback_vr_rendering_mode">Rendering mode</string>
-    <string name="playback_vr_render_cinema">Cinema</string>
-    <string name="playback_vr_render_full_stereo">Full Stereo</string>
-    <string name="playback_vr_ipd_label">IPD: %s mm</string>
-    <string name="playback_vr_ipd_label_default">IPD (inter-pupillary distance)</string>
 
     <string name="vr_immersive_start_failed">Immersive mode failed to start. Playback was stopped to avoid background audio.</string>
     <string name="vr_immersive_unsupported_media">Immersive mode is only available for stereo videos and supported 3D images. Opening this file in the standard player.</string>

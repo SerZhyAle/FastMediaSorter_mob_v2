@@ -290,7 +290,7 @@ class VrPlayerActivity : PlayerActivity() {
         )
 
         vrToggleButtonManager = VrToggleButtonManager(
-            button = safeViews.btn3dVrCmd,
+            button = null,
             onSwitchToPanelRequested = { vrSessionLifecycleManager.switchToPanelPreservingPosition() },
             onSwitchToImmersiveRequested = { vrSessionLifecycleManager.switchToImmersivePreservingPosition() },
         )
@@ -585,10 +585,6 @@ class VrPlayerActivity : PlayerActivity() {
         if (event.getAxisValue(MotionEvent.AXIS_BRAKE) >= VR_AXIS_ACTIVITY_DEADZONE) return true
         if (event.getAxisValue(MotionEvent.AXIS_GAS) >= VR_AXIS_ACTIVITY_DEADZONE) return true
         return false
-    }
-
-    override fun handle3dVrToggleClicked() {
-        vrToggleButtonManager?.onToggleRequested()
     }
 
     internal fun captureStereoSnapshotFromCommand(): Boolean {

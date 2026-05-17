@@ -48,7 +48,6 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
-import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -739,20 +738,18 @@ class BrowseManagerInitializer(
         val intent = if (isDoc) {
             PlayerActivity.createPanelIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
         } else {
-            PlayerActivity.createIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
+            PlayerActivity.createPanelIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
                 .apply { putExtra("slideshow_mode", true) }
         }
-        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
-        else activity.startActivity(intent)
+        activity.startActivity(intent)
     }
 
     private fun startRandomPlay() {
         if (viewModel.state.value.mediaFiles.isEmpty()) return Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         viewModel.reshuffleRandom()
         val resource = viewModel.state.value.resource
-        val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, 0, isSkipAvailabilityCheck)
-        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
-        else activity.startActivity(intent)
+        val intent = PlayerActivity.createPanelIntent(activity, resource?.id ?: 0L, 0, isSkipAvailabilityCheck)
+        activity.startActivity(intent)
     }
 
     /**
@@ -823,10 +820,9 @@ class BrowseManagerInitializer(
         val state = viewModel.state.value
         val resource = state.resource ?: return
         val index = state.mediaFiles.indexOfFirst { it.path == file.path }.coerceAtLeast(0)
-        val intent = PlayerActivity.createIntent(activity, resource.id, index, isSkipAvailabilityCheck)
+        val intent = PlayerActivity.createPanelIntent(activity, resource.id, index, isSkipAvailabilityCheck)
             .putExtra(PlayerActivity.EXTRA_ACTIVATE_DRAW_MODE, true)
-        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
-        else activity.startActivity(intent)
+        activity.startActivity(intent)
     }
 
     private fun toggleCurrentItemSelection(position: Int) {

@@ -102,7 +102,7 @@ Write-Host "Clearing logcat..." -ForegroundColor Cyan
 # Install and launch
 Write-Host "Installing and launching NoLegal debug build..." -ForegroundColor Cyan
 & $adb install -r -d $apkPath
-& $adb shell am start -n com.sza.fastmediasorter.nolegal.debug/com.sza.fastmediasorter.ui.main.MainActivity
+& $adb shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity
 
 Write-Host "`nNoLegal debug build launched successfully!" -ForegroundColor Green
 

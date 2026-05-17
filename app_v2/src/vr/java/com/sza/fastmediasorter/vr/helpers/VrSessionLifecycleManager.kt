@@ -124,7 +124,10 @@ internal class VrSessionLifecycleManager(
         requestedStereoMode: StereoMode,
     ): VrRouteDecision {
         val settings = activity.viewModelInternal.getSettings()
-        val effectiveMode = resolveLaunchStereoMode(currentFile, requestedStereoMode, settings.vrAutoDetectFormat)
+        // The shared auto-detect toggle was removed from src/main during the VR extraction.
+        // Keep VR launch detection always enabled until the rewrite reintroduces a dedicated surface.
+        val autoDetectEnabled = true
+        val effectiveMode = resolveLaunchStereoMode(currentFile, requestedStereoMode, autoDetectEnabled)
         val routeDecision = routeDecisionHelper.decide(
             currentFile,
             effectiveMode,
@@ -132,7 +135,7 @@ internal class VrSessionLifecycleManager(
             activity.forceImmersiveThisLaunchInternal,
             activity.forcePanelThisLaunchInternal,
         )
-        routeDecision.logTo(currentFile, requestedStereoMode, settings.vrAutoDetectFormat)
+        routeDecision.logTo(currentFile, requestedStereoMode, autoDetectEnabled)
         return routeDecision
     }
 

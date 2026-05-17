@@ -2,7 +2,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 Write-Host "Building VR Debug APK (auto-versioned)..." -ForegroundColor Cyan
-Write-Host "Features: Full standard + OpenXR VR rendering" -ForegroundColor Yellow
+Write-Host "Features: Standard runtime + VR visual shell" -ForegroundColor Yellow
 
 # Generate version
 $now = Get-Date
@@ -81,7 +81,7 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
-Write-Host "Package name: com.sza.fastmediasorter.vr.debug" -ForegroundColor Cyan
+Write-Host "Package name: com.sza.fastmediasorter.debug" -ForegroundColor Cyan
 
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"

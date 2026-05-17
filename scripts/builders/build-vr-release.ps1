@@ -2,7 +2,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 Write-Host "Building VR Release APK (auto-versioned)..." -ForegroundColor Cyan
-Write-Host "Features: Full standard + OpenXR VR rendering" -ForegroundColor Yellow
+Write-Host "Features: Standard runtime + VR visual shell" -ForegroundColor Yellow
 Write-Host "Target: Meta Horizon Store (Quest)" -ForegroundColor Magenta
 
 # Generate version
@@ -85,7 +85,7 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
-Write-Host "Package name: com.sza.fastmediasorter.vr" -ForegroundColor Cyan
+Write-Host "Package name: com.sza.fastmediasorter" -ForegroundColor Cyan
 
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"

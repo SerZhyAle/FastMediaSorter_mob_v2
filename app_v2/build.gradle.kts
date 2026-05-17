@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260517220
-        versionName = "2.60.5172.207"
+        versionCode = 260518011
+        versionName = "2.60.5180.116"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -182,8 +182,9 @@ android {
             }
             // S0117: keep the full standard capability surface while isolating
             // site-specific/GPL code behind a dedicated sideload-only flavor.
-            // S0156: VR capability surface enabled (ADR-8). On non-Quest devices
-            // VrPlayerActivity must fall back gracefully to PlayerActivity.
+            // S0241: while the dedicated VR runtime is being rewritten, noLegal keeps the
+            // vr source set mounted but routes shared runtime entry points through the
+            // standard player path.
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
@@ -195,9 +196,9 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
-            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
@@ -320,8 +321,8 @@ android {
                     )
                 }
             }
-            // Full feature set identical to standard, plus VR headset rendering
-            // Target: Meta Quest headsets for stereoscopic 3D video/photo viewing
+            // S0241: keep the VR visual shell/source-set overlay buildable while routing the
+            // shared runtime through the same player path as standard until the rewrite lands.
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
@@ -333,14 +334,9 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
-            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
-            // S0008 + S0019 (spec B landed): immersive HUD scene driver and interactive panel
-            // composer are wired through VrInteractivePanelDriver / VrHudSceneDriver and dispatch
-            // real playback commands. Flip to true so isImmersiveUiLocked() stops no-op'ing
-            // OpenControls / OpenFileOps / Cheatsheet inside immersive.
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
-            // VR flavor routes all player launches to VrPlayerActivity (OpenXR host)
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
@@ -389,11 +385,12 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
-            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
-            // S0008 + S0019 (spec B landed): same flip as `vr` flavor — interactive panel + HUD
-            // are wired; isImmersiveUiLocked() stops gating commands inside immersive.
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
+            // S0241 Phase 03: vrUnlicensed aligned with vr/standard — VR runtime detached from
+            // main player entry-point during the rewrite window. The src/vr/ source-set is still
+            // packaged but the immersive runtime is no longer reached at runtime.
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")  // Always true — no store restrictions
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module

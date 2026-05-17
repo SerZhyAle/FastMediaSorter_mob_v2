@@ -305,16 +305,6 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(resumeOnNextLaunch = isChecked))
         }
 
-        // Disable 3D/VR — visible only in VR flavor
-        binding.layoutDisable3dVr.isVisible = BuildConfig.SUPPORT_VR_PLAYER
-        if (BuildConfig.SUPPORT_VR_PLAYER) {
-            binding.switchDisable3dVr.setOnCheckedChangeListener { _, isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(disable3dVr = isChecked))
-            }
-        }
-
         binding.switchShowBlackScreenButton.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -522,13 +512,6 @@ class PlaybackSettingsFragment : Fragment() {
                         // Phase 05 will resolve the resource label via GetDestinationsUseCase.
                         getString(R.string.link_autodownload_resource_not_set)
                     }
-
-                    if (BuildConfig.SUPPORT_VR_PLAYER) {
-                        if (binding.switchDisable3dVr.isChecked != settings.disable3dVr) {
-                            binding.switchDisable3dVr.isChecked = settings.disable3dVr
-                        }
-                    }
-
                     if (binding.switchShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
                         binding.switchShowBlackScreenButton.isChecked = settings.showBlackScreenButton
                     }

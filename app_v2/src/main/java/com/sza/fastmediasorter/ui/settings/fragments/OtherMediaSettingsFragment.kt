@@ -39,38 +39,47 @@ class OtherMediaSettingsFragment : Fragment() {
     }
     
     /**
-     * Hide UI elements that are not supported by the current device hardware/Android version.
-     * OCR requires API 26+ and sufficient RAM (>= 4GB recommended).
+     * Hide UI elements that are not supported by the current device hardware / Android version.
+     * OCR availability is decided by [com.sza.fastmediasorter.core.util.DeviceCapabilities],
+     * which uses physical RAM + API level — never the per-process heap limit. This is the
+     * correct signal for a feature like ML Kit text recognition; using [MemoryTier] here
+     * incorrectly disabled OCR on Quest 3 / canonical emulator (7 GB RAM, 512 MB heap).
      */
     private fun applyDeviceCapabilityRestrictions() {
-        // OCR/Text Analysis feature requires modern device
-        val memoryTier = com.sza.fastmediasorter.core.util.MemoryTier.detect(requireContext())
-        val apiLevel = android.os.Build.VERSION.SDK_INT
-        
-        // Hide OCR if device is too old or has insufficient memory
-        if (memoryTier == com.sza.fastmediasorter.core.util.MemoryTier.LOW || apiLevel < 26) {
+        val support = com.sza.fastmediasorter.core.util.DeviceCapabilities.ocrSupport(requireContext())
+        if (support is com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrSupport.Unsupported) {
             val ocrContainer = binding.switchEnableOcr.parent as? View
             ocrContainer?.let {
                 // Disable OCR switch and show explanation
                 binding.switchEnableOcr.isEnabled = false
                 binding.switchEnableOcr.isChecked = false
                 binding.tvOcrSummary.isVisible = true
+                val reasonStringRes = when (support.reason) {
+                    com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrUnavailableReason.OS_TOO_OLD ->
+                        com.sza.fastmediasorter.R.string.ocr_unavailable_reason_os
+                    com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrUnavailableReason.DEVICE_TOO_WEAK ->
+                        com.sza.fastmediasorter.R.string.ocr_unavailable_reason_ram
+                }
                 binding.tvOcrSummary.text = getString(
                     com.sza.fastmediasorter.R.string.ocr_requires_newer_device,
-                    memoryTier.name,
-                    apiLevel
+                    getString(reasonStringRes),
+                    support.apiLevel
                 )
                 binding.tvOcrSummary.alpha = 1.0f
-                
-                // Update settings to disable OCR
+
+                // Force-disable OCR in settings only if the device truly can't run it
                 val current = viewModel.settings.value
                 if (current.enableOcr) {
                     viewModel.updateSettings(current.copy(enableOcr = false))
                 }
-                
-                timber.log.Timber.i("OtherMediaSettingsFragment: OCR disabled - memoryTier=$memoryTier, API=$apiLevel")
+
+                timber.log.Timber.i(
+                    "OtherMediaSettingsFragment: OCR disabled - reason=${support.reason}, " +
+                        "API=${support.apiLevel}, totalRAM=${"%.2f".format(support.totalRamGb)}GB, " +
+                        "isLowRamDevice=${support.isLowRamDevice}"
+                )
             }
-            
+
             // Hide OCR font settings
             binding.layoutOcrFontSize?.isVisible = false
             binding.layoutOcrFontFamily?.isVisible = false

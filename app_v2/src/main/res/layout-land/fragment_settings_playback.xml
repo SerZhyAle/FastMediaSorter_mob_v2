@@ -449,18 +449,6 @@
 
                     </LinearLayout>
 
-                    <!-- Toggle: Disable 3D/VR (VR flavor only — hidden in standard/lite/photos/legacy) -->
-                    <LinearLayout android:id="@+id/layoutDisable3dVr" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:visibility="gone">
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDisable3dVr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_vr_disable_3d" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_vr_disable_3d_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
-
-                    </LinearLayout>
-
                     <!-- S0142: sub-section "Camera capture" — divider + caps header -->
                     <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 

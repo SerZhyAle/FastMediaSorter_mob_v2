@@ -25,3 +25,14 @@ app_v2/src/main/res/xml/sza_resources.xml
 
 # Google Services / Firebase config (if present)
 google-services.json
+
+# FFmpeg / DTS audio decoder AAR — gitignored (libs/ is in .gitignore).
+# Required at compile time for the standard/legacy/noLegal flavors that
+# include the AUDIO capability; missing this file causes
+# `mergeStandardReleaseArtProfile` to fail with ExtractAarTransform error.
+app_v2/libs/fms-ffmpeg-dts.aar
+
+# MSAL config for Microsoft account sign-in (release flavor).
+# Carries the production signing-hash in redirect_uri — kept out of repo
+# via .gitignore exception, synced into worktree at build time.
+app_v2/src/release/res/raw/msal_config.json

@@ -4,65 +4,20 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.main.MainActivity
 import timber.log.Timber
 
 /**
- * Task-swap contract for the Meta Hybrid App Model on HorizonOS.
+ * Exit-side task-swap contract for the Meta Hybrid App Model on HorizonOS.
  *
- * WHY this exists: HorizonOS only transitions an OpenXR session to
- * XR_SESSION_STATE_FOCUSED when the immersive Activity (a) declares
- * `com.oculus.intent.category.VR` and (b) runs in a task that does NOT
- * contain any `com.oculus.intent.category.2D` panel Activity. The VR
- * flavor's AndroidManifest gives [com.sza.fastmediasorter.vr.VrPlayerActivity]
- * a dedicated taskAffinity; this helper performs the matching runtime
- * handoff: FLAG_ACTIVITY_NEW_TASK + finishAndRemoveTask() on entry, and
- * a HorizonOS home-intent + PendingIntent on exit so the user lands on
- * a fresh MainActivity panel instead of a dead task.
- *
- * The helper is flavor-safe: [shouldEnterImmersiveTask] always returns
- * false when [BuildConfig.SUPPORT_VR_PLAYER] is false, so non-VR flavors
- * compile and behave identically to the pre-hybrid world.
+ * Phase 03 keeps the VR build structure alive but removes dead main-side immersive-entry
+ * plumbing from `src/main`. The remaining responsibility here is only the vr-side return
+ * path back into a live panel task.
  */
 object VrTaskTransition {
 
     /** Key used by HorizonOS vrshell to relaunch the panel task from the home intent. */
     private const val EXTRA_LAUNCH_IN_HOME_PENDING_INTENT = "extra_launch_in_home_pending_intent"
-
-    /**
-     * True only for intents whose resolved target component is the VR immersive player.
-     *
-     * Explicit [com.sza.fastmediasorter.ui.player.PlayerActivity] intents (standard-player
-     * override used by `BrowseEventHandler.createStandardPlayerIntent`) return false even
-     * on the VR flavor — they must remain panel launches without the task swap.
-     */
-    fun shouldEnterImmersiveTask(intent: Intent): Boolean {
-        if (!BuildConfig.SUPPORT_VR_PLAYER) return false
-        val targetClassName = intent.component?.className ?: return false
-        return targetClassName == BuildConfig.PLAYER_ACTIVITY_CLASS
-    }
-
-    /**
-     * Launch VrPlayerActivity in its own task; remove the caller's panel task.
-     *
-     * ACTION_MAIN + FLAG_ACTIVITY_NEW_TASK is required by the hybrid-app sample so that
-     * the VR Activity's declared taskAffinity creates a fresh task rather than stacking
-     * onto the caller. finishAndRemoveTask() tears down the panel task so the compositor
-     * no longer has a 2D window competing with the VR task for foreground — without this
-     * the XR session stalls at VISIBLE and never reaches FOCUSED.
-     */
-    fun enterImmersive(source: Activity, vrIntent: Intent) {
-        vrIntent.action = Intent.ACTION_MAIN
-        vrIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        Timber.i(
-            "VrTaskTransition.enterImmersive: source=%s target=%s",
-            source.javaClass.simpleName,
-            vrIntent.component?.className,
-        )
-        source.startActivity(vrIntent)
-        source.finishAndRemoveTask()
-    }
 
     /**
      * Return from the VR task to a fresh MainActivity panel via HorizonOS home-intent.
@@ -73,13 +28,12 @@ object VrTaskTransition {
      *
      * Use [exitImmersiveToFlatPlayer] for user-driven «exit to playback panel» — that path
      * carries playback context (file/position/resource) so the user is not stranded on
-     * the file browser. This `exitImmersiveToPanel` overload is for recovery fallbacks
-     * (XR init failure, file-ops dialog requesting browser navigation) where landing
-     * on the browser root is the intended behaviour.
+     * the file browser. This helper now only covers the recovery/browser-root fallback
+     * path that the surviving VR runtime still uses.
      */
-    fun exitImmersiveToPanel(source: Activity, resumePlayerIntent: Intent? = null) {
+    fun exitImmersiveToPanel(source: Activity) {
         val ctx: Context = source.applicationContext
-        val panelIntent = resumePlayerIntent ?: Intent(ctx, MainActivity::class.java).apply {
+        val panelIntent = Intent(ctx, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
         }
         // WHY: S0038 — FLAG_ACTIVITY_SINGLE_TOP prevents HorizonOS from creating a new window

@@ -16,7 +16,7 @@ import timber.log.Timber
  * invokes a caller-supplied lambda so this class stays UI-only.
  */
 internal class VrToggleButtonManager(
-    private val button: ImageButton,
+    private val button: ImageButton?,
     private val onSwitchToPanelRequested: () -> Unit,
     private val onSwitchToImmersiveRequested: () -> Unit,
 ) {
@@ -25,12 +25,14 @@ internal class VrToggleButtonManager(
     /** Call this after XR session starts (immersive) or when returning to panel mode. */
     fun updateState(immersive: Boolean) {
         isImmersiveMode = immersive
+        // S0241 Phase 1 removes the shared command-bar VR button before the VR flavor code is
+        // deleted, but thumbstick/menu-driven toggle requests still pass through this manager.
         if (immersive) {
-            button.setImageResource(R.drawable.ic_vr_exit)
-            button.contentDescription = button.context.getString(R.string.vr_toggle_exit_description)
+            button?.setImageResource(R.drawable.ic_vr_exit)
+            button?.contentDescription = button?.context?.getString(R.string.vr_toggle_exit_description)
         } else {
-            button.setImageResource(R.drawable.ic_vr_3d)
-            button.contentDescription = button.context.getString(R.string.vr_toggle_enter_description)
+            button?.setImageResource(R.drawable.ic_vr_3d)
+            button?.contentDescription = button?.context?.getString(R.string.vr_toggle_enter_description)
         }
         Timber.d("VrToggleButtonManager: state updated — immersive=$immersive")
     }

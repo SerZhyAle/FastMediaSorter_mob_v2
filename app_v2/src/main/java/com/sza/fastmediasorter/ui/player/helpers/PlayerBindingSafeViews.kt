@@ -39,7 +39,6 @@ class PlayerBindingSafeViews(
     val btnOverflowMenu: ImageButton get() = required(binding.btnOverflowMenu, R.id.btnOverflowMenu)
     val btnEditCmd: ImageButton get() = required(binding.btnEditCmd, R.id.btnEditCmd)
     val btnSaveFrameCmd: ImageButton get() = required(R.id.btnSaveFrameCmd)
-    val btn3dVrCmd: ImageButton get() = required(R.id.btn3dVrCmd)
     val btnPrintCmd: ImageButton get() = required(R.id.btnPrintCmd)
     // S0217: inline accessors for image-edit commands (root-lookup — added to XML post-binding)
     val btnOpenInSeparateWindowCmd: ImageButton get() = required(R.id.btnOpenInSeparateWindowCmd)

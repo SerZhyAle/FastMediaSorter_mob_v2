@@ -56,7 +56,6 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
-import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -922,46 +921,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         else blackScreenOverlayManager.show()
     }
 
-    /**
-     * Called when user taps the immersive toggle button. Overridden in VrPlayerActivity.
-     *
-     * WHY this base implementation exists: in the VR flavor, PlayerActivity may serve as
-     * a panel-mode fallback for non-stereo content. If the user taps "3DVR" they want to
-     * enter immersive XR mode. We relaunch using VrTaskTransition so the HorizonOS task
-     * affinity rules are satisfied (separate VR task). Class is resolved via
-     * BuildConfig.PLAYER_ACTIVITY_CLASS to avoid a layering dependency on VrPlayerActivity.
-     */
-    internal open fun handle3dVrToggleClicked() {
-        if (!BuildConfig.SUPPORT_VR_PLAYER) return
-        try {
-            val vrClass = Class.forName(BuildConfig.PLAYER_ACTIVITY_CLASS)
-            val vrIntent = Intent(intent).apply {
-                setClass(this@PlayerActivity, vrClass)
-                // VrPlayerActivity reads this flag to bypass stereo-detection and force
-                // immersive XR route. Key must stay in sync with VrPlayerActivity.EXTRA_FORCE_IMMERSIVE.
-                putExtra("com.sza.fastmediasorter.EXTRA_FORCE_IMMERSIVE", true)
-            }
-            VrTaskTransition.enterImmersive(this, vrIntent)
-        } catch (e: ClassNotFoundException) {
-            Timber.w("handle3dVrToggleClicked: VrPlayerActivity not found in this build (%s)", e.message)
-        }
-    }
-
-    /**
-     * S0019: explicit «launch immersive on the current file» entry point used by the
-     * «Apply and 3D» combo button in [PlaybackControlDialogFragment]. Thin wrapper over
-     * [handle3dVrToggleClicked] that adds a Timber.i marker with a caller-supplied reason
-     * so the dialog → immersive transition is greppable in logs.
-     */
-    internal fun launchImmersiveOnCurrentFile(reason: String) {
-        Timber.i("PlayerActivity: launchImmersiveOnCurrentFile reason=%s", reason)
-        Timber.d("VR_AUDIT/4: apply-and-3d clicked reason=%s currentStereoBefore=%s currentFile=%s",
-            reason,
-            viewModel.stereoMode.value,
-            currentFilePath ?: "<null>")
-        handle3dVrToggleClicked()
-    }
-
     // S0028: tear off current Player to a new window slot; current player finishes (returns to Browse)
     internal fun tearOffPlayer() {
         val filePath = currentFilePath ?: return
@@ -1407,15 +1366,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
         ): Intent {
-            // PLAYER_ACTIVITY_CLASS is set per-flavor in build.gradle.kts.
-            // VR flavor routes to VrPlayerActivity (OpenXR host); all other flavors use PlayerActivity.
-            val playerClass: Class<*> = try {
-                Class.forName(BuildConfig.PLAYER_ACTIVITY_CLASS)
-            } catch (e: ClassNotFoundException) {
-                Timber.w("PLAYER_ACTIVITY_CLASS not found: ${BuildConfig.PLAYER_ACTIVITY_CLASS}, falling back to PlayerActivity")
-                PlayerActivity::class.java
-            }
-            return Intent(context, playerClass).apply {
+            // S0241 Phase 03: VR runtime detached from main player entry-point — every flavor now
+            // routes to the flat PlayerActivity directly. Previously this resolved
+            // BuildConfig.PLAYER_ACTIVITY_CLASS reflectively to support the VrPlayerActivity override.
+            return Intent(context, PlayerActivity::class.java).apply {
                 putExtra("resourceId", resourceId)
                 putExtra("initialIndex", initialIndex)
                 putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
@@ -1428,11 +1382,12 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         }
 
         /**
-         * S0019 / S0038: build an intent that targets the **2D** panel [PlayerActivity]
-         * directly, bypassing the per-flavor [BuildConfig.PLAYER_ACTIVITY_CLASS] override.
-         * Used by VR-flavor user-driven «exit to flat player» path so the user lands on
-         * the actual 2D player rather than a panel-mode VrPlayerActivity that immediately
-         * relaunches via STANDARD_PANEL_FALLBACK (the clone-window regression).
+         * Build an intent that targets the flat panel [PlayerActivity] directly.
+         * Historically (S0019 / S0038) this bypassed the per-flavor
+         * [BuildConfig.PLAYER_ACTIVITY_CLASS] override to escape the VR clone-window regression;
+         * after S0241 Phase 03 there is no per-flavor override and this is now equivalent to
+         * [createIntent]. The separate method is preserved so call-sites that explicitly want
+         * the 2D entry-point remain easy to identify.
          */
         fun createPanelIntent(
             context: Context,

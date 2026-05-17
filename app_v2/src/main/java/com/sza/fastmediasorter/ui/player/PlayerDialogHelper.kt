@@ -136,13 +136,10 @@ class PlayerDialogHelper(
             return
         }
 
-        // Read disable3dVr asynchronously to avoid blocking the main thread on DataStore,
-        // then show the dialog with the correct tab visibility.
         activity.lifecycleScope.launch {
-            val disable3dVr = runCatching { viewModel.getSettings().disable3dVr }.getOrDefault(false)
             if (activity.isFinishing || activity.isDestroyed || fragmentManager.isStateSaved) return@launch
             if (fragmentManager.findFragmentByTag(PlaybackControlDialogFragment.TAG) != null) return@launch
-            PlaybackControlDialogFragment.newInstance(disable3dVrEnabled = disable3dVr)
+            PlaybackControlDialogFragment.newInstance()
                 .show(fragmentManager, PlaybackControlDialogFragment.TAG)
         }
     }

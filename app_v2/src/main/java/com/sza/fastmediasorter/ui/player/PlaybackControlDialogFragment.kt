@@ -61,14 +61,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 add(ControlSection.VOLUME)
                 add(ControlSection.AUDIO)
                 add(ControlSection.SUBTITLES)
-                // 3D/Stereo tab: shown in VR flavor (unless kill-switch is ON), AND in any flavor
-                // when the current file has stereo content detected (SBS/OU image or video).
-                val disable3dVr = arguments?.getBoolean(ARG_DISABLE_3D_VR, false) ?: false
+                // Phase 02: the main-side kill-switch is gone, so keep the stereo tab whenever
+                // the current file still exposes a stereo layout or the VR flavor is active.
                 val currentStereo = host().stereoMode.value
                 val isStereoContent = currentStereo != StereoMode.AUTO &&
                     currentStereo != StereoMode.MONO &&
                     currentStereo != StereoMode.UNKNOWN
-                if (!disable3dVr && (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent)) {
+                if (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent) {
                     add(ControlSection.STEREO)
                 }
                 add(ControlSection.HUE)
@@ -109,21 +108,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
         // All changes are applied immediately from the controls, so the explicit action here is
         // only to close the dialog in an obvious way for touch users.
         binding.btnClosePlaybackControl.setOnClickListener { dismiss() }
-
-        // S0019: «Apply and 3D» combo button — visible only on VR-flavor builds.
-        // One click closes the dialog AND launches immersive playback with current settings
-        // (the «settings → apply → 3D» scenario from S0019 §2 goal 5).
-        binding.btnApplyAnd3D.isVisible = BuildConfig.SUPPORT_VR_PLAYER
-        binding.btnApplyAnd3D.setOnClickListener {
-            Timber.i("PlaybackControlDialog: btnApplyAnd3D clicked — dismissing + launching immersive")
-            val host = activity
-            dismiss()
-            if (host is com.sza.fastmediasorter.ui.player.PlayerActivity) {
-                host.launchImmersiveOnCurrentFile("dialog-apply-and-3d")
-            } else {
-                Timber.w("PlaybackControlDialog: btnApplyAnd3D — host is not PlayerActivity (host=%s)", host?.javaClass?.simpleName)
-            }
-        }
     }
 
     override fun onStart() {
@@ -381,71 +365,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
             updateStereoFamilyAvailability(resolveStereoFamily(host().stereoMode.value), isChecked)
         }
 
-        // VR-specific controls (spec §5.8) — only visible in VR flavor
-        if (BuildConfig.SUPPORT_VR_PLAYER) {
-            setupVrStereoControls()
-        }
-    }
-
-    /**
-     * VR-only controls inside the 3D/Stereo tab (spec §5.8):
-     * content type label, rendering mode chips, IPD slider.
-     */
-    private fun setupVrStereoControls() {
-        // Content type label
-        val contentTypeRes = when (currentMediaType) {
-            MediaType.VIDEO -> R.string.playback_vr_content_type_video
-            MediaType.IMAGE, MediaType.GIF -> R.string.playback_vr_content_type_photo
-            else -> R.string.playback_vr_content_type_video
-        }
-        binding.tvVrContentType?.setText(contentTypeRes)
-        binding.tvVrContentType?.isVisible = true
-
-        // Rendering mode chips
-        binding.tvVrRenderingModeLabel?.isVisible = true
-        binding.chipGroupVrRenderingMode?.isVisible = true
-
-        val currentRenderMode = prefs.getString(
-            PlaybackControlPreferences.KEY_VR_RENDERING_MODE, "CINEMA"
-        )
-        when (currentRenderMode) {
-            "FULL_STEREO" -> binding.chipRenderFullStereo?.isChecked = true
-            else -> binding.chipRenderCinema?.isChecked = true
-        }
-
-        binding.chipGroupVrRenderingMode?.setOnCheckedStateChangeListener { _, checkedIds ->
-            val mode = when {
-                checkedIds.contains(R.id.chipRenderFullStereo) -> "FULL_STEREO"
-                else -> "CINEMA"
-            }
-            Timber.d("PlaybackControlDialog: VR rendering mode → $mode")
-            prefs.edit().putString(PlaybackControlPreferences.KEY_VR_RENDERING_MODE, mode).apply()
-        }
-
-        // IPD slider (50-75mm range, mapped to 0-100 seekbar)
-        binding.tvVrIpdLabel?.isVisible = true
-        binding.seekVrIpd?.isVisible = true
-
-        val savedIpd = prefs.getFloat(PlaybackControlPreferences.KEY_VR_IPD_MM, 63.0f)
-        val ipdProgress = ((savedIpd - 50f) / 25f * 100f).toInt().coerceIn(0, 100)
-        binding.seekVrIpd?.progress = ipdProgress
-        updateIpdLabel(savedIpd)
-
-        binding.seekVrIpd?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                val ipdMm = 50f + (progress / 100f * 25f)
-                Timber.d("PlaybackControlDialog: VR IPD → ${ipdMm}mm (progress=$progress)")
-                prefs.edit().putFloat(PlaybackControlPreferences.KEY_VR_IPD_MM, ipdMm).apply()
-                updateIpdLabel(ipdMm)
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
-            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
-        })
-    }
-
-    private fun updateIpdLabel(ipdMm: Float) {
-        binding.tvVrIpdLabel?.text = getString(R.string.playback_vr_ipd_label, "%.1f".format(ipdMm))
     }
 
     private fun bindStereoMode(mode: StereoMode) {
@@ -693,13 +612,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "PlaybackControlDialog"
         private const val STATE_SELECTED_TAB = "selected_tab"
-        private const val ARG_DISABLE_3D_VR = "disable_3d_vr"
 
-        fun newInstance(disable3dVrEnabled: Boolean = false): PlaybackControlDialogFragment =
-            PlaybackControlDialogFragment().apply {
-                arguments = android.os.Bundle().apply {
-                    putBoolean(ARG_DISABLE_3D_VR, disable3dVrEnabled)
-                }
-            }
+        fun newInstance(): PlaybackControlDialogFragment = PlaybackControlDialogFragment()
     }
 }

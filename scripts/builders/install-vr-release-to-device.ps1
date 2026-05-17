@@ -26,7 +26,7 @@ if (-not (Test-Path -Path $adb)) {
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $variant = 'release'
-$packageName = 'com.sza.fastmediasorter.vr'
+$packageName = 'com.sza.fastmediasorter'
 
 Write-Host "VR APK installer — RELEASE" -ForegroundColor Cyan
 Write-Host "Launch policy: install only — DO NOT auto-launch (see script header)" -ForegroundColor Magenta

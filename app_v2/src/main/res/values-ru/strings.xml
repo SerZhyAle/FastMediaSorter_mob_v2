@@ -654,10 +654,6 @@
     <string name="add_resources_first_message">Сначала добавьте папки на главном экране, прежде чем отмечать их для быстрой сортировки.</string>
     <string name="register_as_destination">Быстрая сортировка</string>
 
-    <!-- VR show_fps strings (canonical: settings_vr_remember_format + auto_immersive defined later in file) -->
-    <string name="settings_vr_show_fps">Показывать FPS в VR</string>
-    <string name="settings_vr_show_fps_desc">Отображать диагностический счётчик FPS в иммерсивном HUD</string>
-    <string name="settings_vr_show_fps_hint_disabled">Доступно при включённом VR</string>
     <!-- S0021: panel-fps-overlay -->
     <string name="settings_player_show_fps">Показывать FPS поверх плеера</string>
     <string name="settings_player_show_fps_desc">Отображать диагностический счётчик FPS поверх плоского 2D-плеера</string>
@@ -823,20 +819,12 @@
 
     <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
     <string name="settings_vr_section_title">VR</string>
-    <string name="settings_vr_auto_detect">Автоопределение формата</string>
-    <string name="settings_vr_auto_detect_desc">Определять SBS/OU/Mono по метаданным и эвристике</string>
     <string name="settings_vr_forced_flat_format">Принудительный плоский формат</string>
     <string name="settings_vr_forced_flat_format_desc">Переопределить автоопределение для плоского SBS/OU/mono в текущей сессии</string>
     <string name="settings_vr_forced_spherical_format">Принудительный сферический формат</string>
     <string name="settings_vr_forced_spherical_format_desc">Переопределить автоопределение для 360°, VR180 и цилиндрического воспроизведения</string>
-    <string name="settings_vr_rendering_mode">Режим VR-рендеринга</string>
-    <string name="settings_vr_rendering_mode_desc">Cinema = плоский экран в VR; Full = раздельный рендеринг для каждого глаза</string>
     <string name="settings_vr_remember_format">Запоминать формат файла</string>
     <string name="settings_vr_remember_format_desc">Кэшировать определённый формат каждого файла в локальной базе</string>
-    <string name="settings_vr_auto_immersive">Автопереход в иммерсив для стерео-контента</string>
-    <string name="settings_vr_auto_immersive_desc">Когда выключено, стерео-файлы остаются на плоском экране; вход в VR — кнопкой 3DVR в плеере.</string>
-    <string name="settings_vr_disable_3d">Отключить 3D/VR</string>
-    <string name="settings_vr_disable_3d_desc">Открывать весь контент как обычное 2D; отключает распознавание 3D/VR и вкладку «3D» в диалоге управления воспроизведением</string>
     <string name="pref_panel_stereo_single_eye_title">Показывать 3D-контент с одного глаза</string>
     <string name="pref_panel_stereo_single_eye_summary">Если включено, SBS- и OU-стерео-видео и полноэкранные фото обрезаются до одного глаза и растягиваются на весь экран — удобно смотреть без 3D-очков. По умолчанию: включено в обычных сборках, выключено в VR-сборке.</string>
     <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрезан до одного глаза</string>
@@ -873,11 +861,6 @@
         <item>EQUIRECT_180_SBS</item>
         <item>VR180_FISHEYE_SBS</item>
         <item>CYLINDER_180</item>
-    </string-array>
-    <string-array name="vr_rendering_mode_entries">
-        <item>Кинотеатр</item>
-        <item>Полный SBS</item>
-        <item>Полный OU</item>
     </string-array>
 
     <!-- Permissions -->
@@ -1647,7 +1630,9 @@
     <!-- OCR Feature -->
     <string name="enable_ocr">Разрешить распознавание текста (OCR)</string>
     <string name="enable_ocr_summary">Извлечение текста из изображений и PDF для копирования</string>
-    <string name="ocr_requires_newer_device">OCR требует более нового устройства (Память: %1$s, API: %2$d). Требуется API 26+ и 4 ГБ+ ОЗУ.</string>
+    <string name="ocr_requires_newer_device">OCR недоступен на этом устройстве. %1$s (API: %2$d). Требуется API 26+ и 3 ГБ+ ОЗУ.</string>
+    <string name="ocr_unavailable_reason_os">Версия Android слишком старая</string>
+    <string name="ocr_unavailable_reason_ram">Недостаточно ОЗУ устройства</string>
     <string name="ocr_font_size">Размер шрифта для OCR</string>
     <string name="ocr_font_family">Шрифт для OCR</string>
     <string name="ocr_button_description">Извлечь текст</string>
@@ -2927,15 +2912,6 @@
     <string name="playback_settings_3d_manual_toast">Формат: %s</string>
     <string name="player_3d_detected_toast">Обнаружено 3D-видео. Используйте «Информация о файле», чтобы открыть его во внешнем VR-проигрывателе.</string>
     <string name="playback_settings_3d_hint">Для лучшего эффекта используйте VR-очки (Google Cardboard и т. д.)</string>
-
-    <!-- VR PlaybackControlDialog 3DVR tab (spec §5.8) -->
-    <string name="playback_vr_content_type_video">Контент: Видео</string>
-    <string name="playback_vr_content_type_photo">Контент: Фото</string>
-    <string name="playback_vr_rendering_mode">Режим рендеринга</string>
-    <string name="playback_vr_render_cinema">Кинотеатр</string>
-    <string name="playback_vr_render_full_stereo">Полное стерео</string>
-    <string name="playback_vr_ipd_label">IPD: %s мм</string>
-    <string name="playback_vr_ipd_label_default">IPD (межзрачковое расстояние)</string>
 
     <string name="vr_immersive_start_failed">Не удалось запустить immersive-режим. Воспроизведение остановлено, чтобы не оставлять фоновое аудио.</string>
     <string name="vr_immersive_unsupported_media">Immersive-режим доступен только для стерео-видео и поддерживаемых 3D-изображений. Этот файл будет открыт в стандартном плеере.</string>

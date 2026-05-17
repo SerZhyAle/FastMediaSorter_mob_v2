@@ -150,7 +150,6 @@ data class BackupSettings(
     val linkDownloadAudioOnly: Boolean? = null,
     val linkDownloadLoginWallHeuristicEnabled: Boolean? = null,
     // VR settings (spec §5.7 / Phase 8)
-    val vrAutoDetectFormat: Boolean = true,
     val vrForcedPlatFormat: String = "AUTO",
     val vrForcedSphericalFormat: String = "AUTO",
     val vrRenderingMode: String = "CINEMA",
