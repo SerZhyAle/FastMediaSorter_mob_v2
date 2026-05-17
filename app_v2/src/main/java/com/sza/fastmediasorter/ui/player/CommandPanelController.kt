@@ -111,7 +111,7 @@ class CommandPanelController(
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var latestBigButtonsBarCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
-    // S0028: cached from settings; BuildConfig.SUPPORT_VR_PLAYER guard applied at write time
+    // S0028: cached from settings (separate-window allow flag)
     private var lastKnownAllowSeparateWindow: Boolean = false
 
     // Cached state for overflow menu visibility
@@ -345,7 +345,7 @@ class CommandPanelController(
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                val shouldAllowSeparateWindow = BuildConfig.SUPPORT_VR_PLAYER && settings.allowSeparateWindow
+                val shouldAllowSeparateWindow = false
                 withContext(Dispatchers.Main) {
                     val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
                     val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow

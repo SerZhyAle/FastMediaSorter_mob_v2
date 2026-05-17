@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.SearchView
-import com.sza.fastmediasorter.BuildConfig
 
 /**
  * Manages ActionBar/Toolbar state and menu interactions in BrowseActivity.
@@ -12,7 +11,7 @@ import com.sza.fastmediasorter.BuildConfig
 class BrowseActionBarManager(
     private val callbacks: ActionBarCallbacks
 ) {
-    
+
     interface ActionBarCallbacks {
         fun onSearchQueryChanged(query: String)
         fun onSearchClosed()
@@ -25,16 +24,18 @@ class BrowseActionBarManager(
         fun onDeleteClicked()
         fun onShareClicked()
     }
-    
+
     fun initialize() {
         // Initialization logic will be added in Phase 4
     }
-    
+
     fun cleanup() {
         // Release resources
     }
 
-    // S0028: tear off current Browse window to a new window slot; guarded by VR + setting
+    // S0028: tear-off to a separate window was VR-only. S0241 removed the VR stack, so this
+    // action is permanently unreachable on every flavor. Kept as a no-op stub to preserve
+    // the public surface until call sites are cleaned up centrally.
     fun handleSeparateWindowAction(
         allowSeparateWindow: Boolean,
         browseEventHandler: BrowseEventHandler,
@@ -42,8 +43,6 @@ class BrowseActionBarManager(
         currentFilePath: String?,
         scrollPosition: Int
     ) {
-        if (BuildConfig.SUPPORT_VR_PLAYER && allowSeparateWindow) {
-            browseEventHandler.tearOffBrowse(resourceId, currentFilePath, scrollPosition)
-        }
+        // No-op: VR multi-window tear-off was removed with the OpenXR stack (S0241).
     }
 }

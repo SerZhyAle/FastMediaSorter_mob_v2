@@ -732,9 +732,9 @@ class BrowseManagerInitializer(
         val actualIndex = maxOf(0, startIndex)
         val file = state.mediaFiles[actualIndex]
         val isDoc = file.type == MediaType.TEXT || file.type == MediaType.PDF || file.type == MediaType.EPUB
-        // Document surfaces (TEXT/PDF/EPUB) are never VR-eligible — bypass the per-flavor
-        // PLAYER_ACTIVITY_CLASS override so noLegal/vr open the 2D PlayerActivity directly
-        // instead of routing through VrPlayerActivity → «VR Headset Required» on phones.
+        // S0241: VR stack removed — every flavor now routes to the flat PlayerActivity directly
+        // via createPanelIntent. The doc branch stays so non-doc media can still pick up the
+        // slideshow_mode extra; both branches share the same target activity.
         val intent = if (isDoc) {
             PlayerActivity.createPanelIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
         } else {

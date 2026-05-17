@@ -194,9 +194,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             && AudioPlaybackService.currentResourceId > 0L) {
             Timber.d("MainActivity: service active on fresh launch — restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
             binding.root.post {
-                // Audio playback is inherently a 2D surface — bypass the per-flavor
-                // PLAYER_ACTIVITY_CLASS override so noLegal/vr open the 2D PlayerActivity
-                // directly instead of routing through VrPlayerActivity → «VR Headset Required».
+                // Audio playback is inherently a 2D surface. createPanelIntent is kept
+                // here as an explicit "open the flat 2D player" semantics marker — every
+                // flavor now routes to PlayerActivity directly (immersive VR removed in S0241).
                 val playerIntent = PlayerActivity.createPanelIntent(
                     context = this,
                     resourceId = AudioPlaybackService.currentResourceId,
@@ -347,9 +347,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
-        // Audio playback is inherently a 2D surface — use createPanelIntent so noLegal/vr
-        // bypass the PLAYER_ACTIVITY_CLASS override (would otherwise hit VrPlayerActivity
-        // → «VR Headset Required» on phones).
+        // Audio playback is inherently a 2D surface — createPanelIntent makes that
+        // intent explicit at call sites. All flavors open PlayerActivity directly
+        // (immersive VR removed in S0241).
         val playerIntent = PlayerActivity.createPanelIntent(this, resourceId, index, skipAvailabilityCheck = true)
         startActivity(playerIntent)
     }
@@ -728,9 +728,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
                 is MainEvent.NavigateToPlayerRandomMusic -> {
-                    // Random music is audio playback — always 2D, never VR.
-                    // Use createPanelIntent so noLegal/vr bypass the PLAYER_ACTIVITY_CLASS
-                    // override and avoid the «VR Headset Required» fallback on phones.
+                    // Random music is audio playback — always 2D. createPanelIntent
+                    // documents the flat-surface intent at the call site. All flavors
+                    // open PlayerActivity directly (immersive VR removed in S0241).
                     val intent = PlayerActivity.createPanelIntent(
                         this@MainActivity,
                         event.resourceId,

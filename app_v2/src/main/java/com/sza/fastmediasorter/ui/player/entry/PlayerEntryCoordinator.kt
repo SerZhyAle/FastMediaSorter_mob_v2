@@ -16,7 +16,7 @@ interface PlayerEntryCoordinator {
 }
 
 data class PlaybackEntryRequest(
-    /** true when running vr flavor (BuildConfig.SUPPORT_VR_PLAYER) */
+    /** historically true only on the vr flavor; after S0241 always false on every flavor */
     val flavorSupportsVr: Boolean,
     val currentDeviceClass: DeviceClass,
     val detectedStereoMode: StereoMode,

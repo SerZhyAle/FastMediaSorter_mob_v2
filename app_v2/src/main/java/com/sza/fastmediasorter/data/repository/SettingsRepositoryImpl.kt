@@ -390,7 +390,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true,
                     vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
-                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: !BuildConfig.SUPPORT_VR_PLAYER,
+                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
                     vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
 
@@ -411,7 +411,7 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?: 7,
 
                     // S0028: Multi-window mode
-                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER,
+                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: false,
 
                     // S0162: absent key → default true (no behaviour change on upgrade)
                     followSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,

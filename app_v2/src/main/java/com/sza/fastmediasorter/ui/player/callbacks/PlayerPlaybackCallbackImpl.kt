@@ -175,11 +175,9 @@ class PlayerPlaybackCallbackImpl(
         val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
         if (is3d && !stereoToastShownForCurrentFile && !activity.isDestroyed && !activity.isFinishing) {
             stereoToastShownForCurrentFile = true
-            // In standard flavor (no VR support): show CTA dialog suggesting VR edition
-            if (!com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER) {
-                Timber.d("PlayerPlaybackCallbackImpl: showing VR install CTA for mode=$mode")
-                viewModel.showVrInstallCta(mode)
-            }
+            // Show CTA dialog suggesting VR edition for detected 3D content.
+            Timber.d("PlayerPlaybackCallbackImpl: showing VR install CTA for mode=$mode")
+            viewModel.showVrInstallCta(mode)
         }
     }
 }

@@ -61,11 +61,9 @@ class DualSurfaceStaticImageRenderer(
     private var currentStereoMode: StereoMode = StereoMode.MONO
     // Panel single-eye crop master toggle — see spec_panel-stereo-single-eye.
     // When false, stereo crop is suppressed regardless of currentStereoMode.
-    // Default matches AppSettings flavor-aware default; PlayerManagerInitializer
-    // overrides on first DataStore emission.
+    // Default true; PlayerManagerInitializer overrides on first DataStore emission.
     @Volatile
-    private var panelStereoSingleEyeEnabled: Boolean =
-        !com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
+    private var panelStereoSingleEyeEnabled: Boolean = true
 
     private val appContext = surfaceA.context.applicationContext
     private val decodeFormatResolver by lazy { appContext.memoryPressureDecodeFormatResolver() }

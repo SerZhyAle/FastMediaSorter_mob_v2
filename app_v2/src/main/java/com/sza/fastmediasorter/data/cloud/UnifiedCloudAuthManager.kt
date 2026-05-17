@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -80,6 +81,19 @@ class UnifiedCloudAuthManager @Inject constructor(
                         if (fastFail != null) {
                             StructuredLogger.w("Fast async auth failure detected", "provider" to provider.name)
                             processPluginResult(provider, fastFail)
+                        }
+                    }
+                }
+                // Hot-fix: Google Drive's Credential Manager flow (Phase 04b) completes after
+                // several seconds of interactive UI — well past the 1-second poll above. The
+                // plugin pushes the final AuthResult through its [asyncResults] flow; collect
+                // the next emission and route it through processPluginResult so AddResourceActivity
+                // observes AuthEvent.Success and navigates to the folder picker.
+                if (plugin is GoogleDriveAuthPlugin) {
+                    appScope.launch(Dispatchers.Main) {
+                        val asyncResult = plugin.asyncResults.first()
+                        if (activeProvider == provider) {
+                            processPluginResult(provider, asyncResult)
                         }
                     }
                 }
