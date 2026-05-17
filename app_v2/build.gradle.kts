@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260516040
-        versionName = "2.60.5160.406"
+        versionCode = 260517051
+        versionName = "2.60.5170.510"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -80,7 +80,18 @@ android {
         buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
     }
     
-    // Product Flavors: Different app versions for different use cases
+    // Product Flavors: Different app versions for different use cases.
+    //
+    // S0232 applicationId policy: cloud-enabled flavors that are NOT published to a store
+    // (noLegal, vr, vrUnlicensed) share applicationId = com.sza.fastmediasorter with
+    // `standard`. They are alternate builds of the same product, not separately distributed
+    // apps. A single set of OAuth / MSAL / Dropbox registrations covers all of them.
+    // Store-published flavors (photos, legacy) keep their applicationIdSuffix because the
+    // Store binds the listing identity to it. lite has no cloud surface and is unaffected.
+    // Any new signing keystore additionally requires:
+    //   (a) a new <intent-filter> path in src/main/AndroidManifest.xml BrowserTabActivity, and
+    //   (b) a matching redirect URI registered in Azure (OneDrive), Google Cloud (Drive) and
+    //       Dropbox app consoles.
     flavorDimensions += listOf("version")
     
     productFlavors {
@@ -141,7 +152,9 @@ android {
         //   to PlayerActivity when System.loadLibrary("openxr_native") throws UnsatisfiedLinkError.
         create("noLegal") {
             dimension = "version"
-            applicationIdSuffix = ".nolegal"
+            // S0232: no applicationIdSuffix — noLegal shares com.sza.fastmediasorter with
+            // standard so cloud OAuth/MSAL/Dropbox registrations cover it without per-flavor
+            // setup. See policy comment above productFlavors block.
             versionNameSuffix = "-NoLegal"
             // S0174: Chaquopy 17.x Python 3.12 ships wheels only for arm64-v8a and x86_64.
             // armeabi-v7a and x86 are excluded — 32-bit ARMv7 devices (pre-2017) and x86
@@ -276,7 +289,10 @@ android {
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
         create("vr") {
             dimension = "version"
-            applicationIdSuffix = ".vr"
+            // S0232: no applicationIdSuffix — vr shares com.sza.fastmediasorter with standard
+            // for cloud OAuth identity. Re-add a .vr suffix here if/when this flavor lands on
+            // Meta Horizon Store (the Store binds the listing identity to applicationId);
+            // at that point a dedicated Azure/Google/Dropbox app registration becomes required.
             versionNameSuffix = "-VR"
             // Meta Quest 2/3/Pro use arm64-v8a exclusively; skip 32-bit to halve APK size.
             ndk {
@@ -339,7 +355,9 @@ android {
         // See ADR-004 in spec_ffmpeg-custom-build-dts.md.
         create("vrUnlicensed") {
             dimension = "version"
-            applicationIdSuffix = ".vr"          // Same app ID as vr — replaces it on the device
+            // S0232: no applicationIdSuffix — sideload-only flavor stays at com.sza.fastmediasorter
+            // permanently so the same Azure/Google/Dropbox app registrations cover it. Replaces
+            // the `vr` flavor on the device because both now share the same package name.
             versionNameSuffix = "-VR-Unlicensed"
             // Meta Quest 2/3/Pro: arm64-v8a only, same as vr.
             ndk {
@@ -386,6 +404,7 @@ android {
     // AGP does not inherit flavor source sets automatically, so we add src/vr/ dirs explicitly.
     //
     // S0116 §3.2: streamingEnabled — Media3 HLS/DASH + MediaMuxer; streamingDisabled — NoOp pipeline for lite/photos.
+    // S0200: cloudEnabled — Credential Manager Google identity + Drive auth; cloudDisabled — no-op identity for lite.
     // Both shared source-sets are mounted into every flavor that needs them; AGP does not
     // expose pseudo-flavor inheritance, so each flavor explicitly maps to one of the two.
     sourceSets {
@@ -394,8 +413,12 @@ android {
             res.directories.add("src/vr/res")
             manifest.srcFile("src/vr/AndroidManifest.xml")
             java.directories.add("src/streamingEnabled/java")
+            java.directories.add("src/cloudEnabled/java")
         }
-        getByName("standard") { java.directories.add("src/streamingEnabled/java") }
+        getByName("standard") {
+            java.directories.add("src/streamingEnabled/java")
+            java.directories.add("src/cloudEnabled/java")
+        }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
             // Mount vr source set so VrPlayerActivity and OpenXR bridge are available.
@@ -403,11 +426,24 @@ android {
             res.directories.add("src/vr/res")
             manifest.srcFile("src/vr/AndroidManifest.xml")
             java.directories.add("src/streamingEnabled/java")
+            java.directories.add("src/cloudEnabled/java")
         }
-        getByName("legacy") { java.directories.add("src/streamingEnabled/java") }
-        getByName("vr") { java.directories.add("src/streamingEnabled/java") }
-        getByName("lite") { java.directories.add("src/streamingDisabled/java") }
-        getByName("photos") { java.directories.add("src/streamingDisabled/java") }
+        getByName("legacy") {
+            java.directories.add("src/streamingEnabled/java")
+            java.directories.add("src/cloudEnabled/java")
+        }
+        getByName("vr") {
+            java.directories.add("src/streamingEnabled/java")
+            java.directories.add("src/cloudEnabled/java")
+        }
+        getByName("photos") {
+            java.directories.add("src/streamingDisabled/java")
+            java.directories.add("src/cloudEnabled/java")
+        }
+        getByName("lite") {
+            java.directories.add("src/streamingDisabled/java")
+            java.directories.add("src/cloudDisabled/java")
+        }
     }
 
     testOptions {
@@ -644,34 +680,43 @@ androidComponents {
 
 // CRITICAL: Do not change - must match compileOptions.targetCompatibility
 
-// S0174: Chaquopy is applied conditionally — only when chaquopy.enabled=true is set.
-// Reason: Chaquopy 17.x requires minSdk >= 24 for every variant it processes.
-// The `legacy` flavor has minSdk=23 (intentional — covers API 23-25 devices) and must
-// not be altered. There is no Kotlin-DSL variantFilter in Chaquopy (that API is
-// Groovy-only / Chaquopy ≤14). Gradle project property is the only CC-compatible,
-// zero-compromise path — gradle.startParameter.taskNames is not CC-tracked.
+// S0174: Chaquopy is applied conditionally — only when a noLegal build is in progress.
+// Reason: Chaquopy 17.x requires minSdk >= 24 for every variant it processes, and the
+// `legacy` flavor has minSdk=23 (intentional — covers API 23-25 devices). There is no
+// Kotlin-DSL variantFilter in Chaquopy (that API is Groovy-only / Chaquopy ≤14), so we
+// must avoid applying the plugin at all unless noLegal is actually being built.
 //
-// To build noLegal:
-//   ./gradlew assembleNoLegalDebug -Pchaquopy.enabled=true
-//   ./gradlew assembleNoLegalRelease -Pchaquopy.enabled=true
-// Or add chaquopy.enabled=true to local.properties (machine-local, excluded from VCS).
-// All other flavors omit the flag — Chaquopy is never applied to them.
+// Activation sources (first match wins):
+//   1. Explicit -Pchaquopy.enabled=true|false (CLI / gradle.properties) — hard override.
+//   2. Auto-detect: any task in gradle.startParameter.taskNames contains "noLegal"
+//      (case-insensitive). Covers Android Studio's debug/run button which schedules
+//      :app_v2:assembleNoLegalDebug / :installNoLegalDebug for the active build variant.
+//      Configuration cache is disabled project-wide (gradle.properties:
+//      org.gradle.configuration-cache=false), so reading startParameter.taskNames is safe.
+//      IDE sync runs no assemble* task, so this path stays false during sync and the
+//      Build Variants dropdown keeps showing every flavor (beforeVariants stays inactive).
+//   3. Fallback: chaquopy.enabled=true in local.properties (machine-local opt-in).
+//
+// CLI examples:
+//   ./gradlew :app_v2:assembleNoLegalDebug                          # auto-enabled
+//   ./gradlew :app_v2:assembleNoLegalDebug -Pchaquopy.enabled=true  # explicit
+//   ./gradlew :app_v2:assembleStandardDebug -Pchaquopy.enabled=false # force-off override
 //
 // S0175 fix: providers.gradleProperty() does NOT read local.properties. Read it explicitly
-// so that the "add to local.properties" comment above actually works.
+// so that the "add to local.properties" fallback actually works.
 val _chaquopyLocalPropsFile = rootProject.file("local.properties")
 val _chaquopyLocalProps = Properties()
 if (_chaquopyLocalPropsFile.exists()) {
     _chaquopyLocalProps.load(FileInputStream(_chaquopyLocalPropsFile))
 }
-// Explicit -Pchaquopy.enabled (CLI or gradle.properties) takes strict precedence over local.properties.
-// This lets build scripts pass -Pchaquopy.enabled=false to build non-noLegal flavors even when
-// local.properties has chaquopy.enabled=true (machine-level IDE-sync convenience setting).
 val _gradleChaquopyPropRaw = providers.gradleProperty("chaquopy.enabled").orNull
-val isNoLegalBuild = if (_gradleChaquopyPropRaw != null) {
-    _gradleChaquopyPropRaw.equals("true", ignoreCase = true)
-} else {
-    _chaquopyLocalProps.getProperty("chaquopy.enabled", "false").equals("true", ignoreCase = true)
+val _noLegalTaskRequested = gradle.startParameter.taskNames.any {
+    it.contains("noLegal", ignoreCase = true)
+}
+val isNoLegalBuild = when {
+    _gradleChaquopyPropRaw != null -> _gradleChaquopyPropRaw.equals("true", ignoreCase = true)
+    _noLegalTaskRequested -> true
+    else -> _chaquopyLocalProps.getProperty("chaquopy.enabled", "false").equals("true", ignoreCase = true)
 }
 if (isNoLegalBuild) {
     // Chaquopy 17.x validates all variants at configuration time. Constraints:
@@ -739,7 +784,15 @@ dependencies {
     
     // Security (EncryptedSharedPreferences for cloud credentials)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    
+
+    // S0200 — Credential Manager (Google identity binding) + Chrome Custom Tabs.
+    // Credential Manager replaces the deprecated Google Sign-In SDK; googleid supplies GetGoogleIdOption.
+    // androidx.browser is consumed by Phase 03 CCT routing — added here to keep all S0200 deps colocated.
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("androidx.browser:browser:1.8.0")
+
     // Jetpack Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
     implementation(composeBom)

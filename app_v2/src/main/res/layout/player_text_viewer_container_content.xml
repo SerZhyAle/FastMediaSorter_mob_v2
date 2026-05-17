@@ -295,6 +295,7 @@
         </LinearLayout>
 
         <ScrollView
+            android:id="@+id/textEditScrollView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -315,30 +316,76 @@
                 android:minLines="10" />
         </ScrollView>
 
+        <!-- S0189: 5-action editor panel. Dirty-state changes this container's backgroundTint. -->
         <LinearLayout
+            android:id="@+id/textEditorActionPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:background="@color/activity_player_unified_topCommandPanel_background"
             android:padding="@dimen/player_search_panel_padding"
-            android:gravity="end">
+            android:gravity="center_vertical">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancelEdit"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:id="@+id/btnTextEditorSave"
+                style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@android:string/cancel"
-                android:textColor="@color/white"
-                android:layout_marginEnd="@dimen/player_text_edit_margin_end" />
+                android:contentDescription="@string/text_editor_action_save"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_text_save"
+                app:iconTint="@color/white" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSaveText"
-                style="@style/Widget.MaterialComponents.Button"
+                android:id="@+id/btnTextEditorSaveClose"
+                style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@android:string/ok"
-                android:backgroundTint="@color/activity_player_unified_btnSaveText_backgroundTint" />
+                android:contentDescription="@string/text_editor_action_save_close"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_text_save_close"
+                app:iconTint="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTextEditorSaveSend"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/text_editor_action_save_send"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_text_save_send"
+                app:iconTint="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTextEditorSendKeep"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/text_editor_action_send_keep"
+                android:focusable="true"
+                android:clickable="true"
+                android:visibility="gone"
+                app:icon="@drawable/ic_text_send_keep"
+                app:iconTint="@color/white" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTextEditorCancel"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/text_editor_action_cancel"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_text_cancel"
+                app:iconTint="@color/white" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

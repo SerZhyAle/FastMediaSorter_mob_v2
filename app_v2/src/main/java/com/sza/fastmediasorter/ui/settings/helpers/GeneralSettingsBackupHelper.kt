@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.content.Intent
 import android.view.View
-import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -19,7 +17,6 @@ class GeneralSettingsBackupHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val backupViewModel: BackupRestoreViewModel,
-    private val signInLauncher: ActivityResultLauncher<Intent>,
 ) {
     fun setupWearCompanionButton() {
         if (!BuildConfig.SUPPORT_WEAR_COMPANION) {
@@ -106,10 +103,10 @@ class GeneralSettingsBackupHelper(
         }
     }
 
+    /** S0200 Phase 04c: Credential Manager sign-in via the ViewModel's [BackupRestoreViewModel.startSignIn]. */
     private fun launchBackupSignIn() {
         try {
-            val intent = backupViewModel.getSignInIntent()
-            signInLauncher.launch(intent)
+            backupViewModel.startSignIn(fragment.requireActivity())
         } catch (e: Exception) {
             Timber.e(e, "Failed to launch Google sign-in")
             showBackupSnackbar(fragment.getString(R.string.backup_failed))

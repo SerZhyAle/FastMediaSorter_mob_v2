@@ -4,6 +4,8 @@ import android.content.Context
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
@@ -37,26 +39,34 @@ class SftpFileOperationHandler @Inject constructor(
     private val sftpClient: SftpClient,
     private val smbClient: SmbClient,
     private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val stagingDir: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter
 ) : BaseFileOperationHandler(context) {
 
     private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        SftpOperationStrategy(context, sftpClient, credentialsRepository),
+        SftpOperationStrategy(context, sftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
+        destinationClassifier = destinationClassifier,
         enableAtomic = true
     )
-    
+
     private val smbStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        SmbOperationStrategy(context, smbClient, credentialsRepository),
+        SmbOperationStrategy(context, smbClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
+        destinationClassifier = destinationClassifier,
         enableAtomic = true
     )
-    
+
     private val ftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        FtpOperationStrategy(context, ftpClient, credentialsRepository),
+        FtpOperationStrategy(context, ftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
+        destinationClassifier = destinationClassifier,
         enableAtomic = true
     )
-    
+
     private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
         LocalOperationStrategy(context),
+        destinationClassifier = destinationClassifier,
         enableAtomic = true
     )
 

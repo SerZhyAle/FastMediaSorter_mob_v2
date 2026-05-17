@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -60,6 +61,15 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible = canCreateFolder
+
+        // Create text note (S0189): writable + non-virtual + documents-flavored library
+        // (allFiles OR supportedMediaTypes includes TEXT/PDF/EPUB). Hidden for audio/video/photo-only
+        // libraries where a created .txt would not appear in the file list.
+        val canCreateTextNote = resource != null
+                && !resource.isReadOnly
+                && !VirtualPathUtils.isVirtualPath(resource.path)
+                && resource.supportsDocuments()
+        popup.menu.findItem(R.id.action_create_text_file)?.isVisible = canCreateTextNote
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
@@ -118,6 +128,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_create_folder -> {
                     showCreateFolderDialog(viewModel)
+                    true
+                }
+                R.id.action_create_text_file -> {
+                    showCreateTextNoteDialog(viewModel)
                     true
                 }
                 R.id.action_automate_resource -> {
@@ -317,6 +331,11 @@ class ResourceOpsMenuManager @Inject constructor(
         }
         val inputEdit = TextInputEditText(tilWrapper.context).apply {
             inputType = InputType.TYPE_CLASS_TEXT
+            // Suppress system autofill prompts (e.g. "Sign in with Google" on devices without an account).
+            // This is a file-name field — credential autofill is meaningless here.
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO
+            }
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -352,6 +371,94 @@ class ResourceOpsMenuManager @Inject constructor(
                     }
                     text.any { it in forbiddenChars } -> {
                         tilWrapper.error = activity.getString(R.string.error_invalid_folder_name)
+                        okButton?.isEnabled = false
+                    }
+                    else -> {
+                        tilWrapper.error = null
+                        okButton?.isEnabled = true
+                    }
+                }
+            }
+        })
+    }
+
+    // -------------------------------------------------------------------------
+    // Create text note
+    // -------------------------------------------------------------------------
+
+    fun showCreateTextNoteDialog(viewModel: BrowseViewModel) {
+        val activity = context as? BrowseActivity ?: return
+
+        // S0189: defend the keyboard-shortcut entry point with the same gate the toolbar/menu use
+        // (toolbar button + popup menu hide themselves, but a bound key still reaches this method).
+        val resource = viewModel.state.value.resource
+        if (resource == null
+            || resource.isReadOnly
+            || VirtualPathUtils.isVirtualPath(resource.path)
+            || !resource.supportsDocuments()
+        ) {
+            Timber.d("S0189: showCreateTextNoteDialog blocked — resource not documents-flavored / read-only / virtual")
+            return
+        }
+
+        val forbiddenChars = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
+        val default = com.sza.fastmediasorter.util.TextNoteFileNameProvider.defaultName()
+
+        Timber.d("S0189: ResourceOpsMenuManager.showCreateTextNoteDialog default=$default")
+
+        val dp16 = (16 * activity.resources.displayMetrics.density).toInt()
+        val dp24 = (24 * activity.resources.displayMetrics.density).toInt()
+
+        val tilWrapper = TextInputLayout(activity, null,
+            com.google.android.material.R.attr.textInputOutlinedStyle
+        ).apply {
+            hint = activity.getString(R.string.create_text_file_hint)
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            setPadding(dp24, dp16, dp24, dp16)
+        }
+        val inputEdit = TextInputEditText(tilWrapper.context).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            // Suppress system autofill prompts (e.g. "Sign in with Google" on devices without an account).
+            // This is a file-name field — credential autofill is meaningless here.
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO
+            }
+            setText(default)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        tilWrapper.addView(inputEdit)
+
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.create_text_file_title)
+            .setView(tilWrapper)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val noteName = inputEdit.text.toString().trim()
+                if (noteName.isNotEmpty()) {
+                    viewModel.createTextNote(noteName)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+
+        val okButton = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
+        // Default name is valid — enable immediately.
+        okButton?.isEnabled = default.isNotEmpty() && default.none { it in forbiddenChars }
+
+        inputEdit.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) {
+                val text = s?.toString()?.trim() ?: ""
+                when {
+                    text.isEmpty() -> {
+                        tilWrapper.error = null
+                        okButton?.isEnabled = false
+                    }
+                    text.any { it in forbiddenChars } -> {
+                        tilWrapper.error = activity.getString(R.string.error_invalid_text_note_name)
                         okButton?.isEnabled = false
                     }
                     else -> {

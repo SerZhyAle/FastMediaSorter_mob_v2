@@ -49,7 +49,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         if (exactCookies.isNotEmpty()) return host
 
         // eTLD+1 fallback — scan all accounts for a matching registrable domain.
-        Timber.d("S0176: exact lookup empty for host=%s — attempting eTLD+1 fallback", host)
         val reg = registrableDomainOrNull(host) ?: return null
         val match = if (accountId != null) {
             cookieStore.listAllAccounts()
@@ -72,7 +71,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // S0190: optional audioOnly hint is propagated from canonicalize() — true for
     // YouTube Music share URLs so the downstream extractor picks an audio-only format.
     private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
-        Timber.d("S0176: applySessionContext entry host=%s accountId=%s", host, accountId ?: "auto")
         val resolvedHost = resolveSessionHost(host, accountId) ?: return null
         val cookies = when {
             accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
@@ -91,12 +89,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     .firstOrNull()
             }
             sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly)
-            Timber.d(
-                "S0182: applySessionContext bound resolvedHost=%s accountId=%s pinnedUa=%s",
-                resolvedHost,
-                accountId ?: "auto",
-                if (pinnedUa != null) "pinned" else "fallback",
-            )
             Timber.i(
                 "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
                 host,
@@ -130,7 +122,10 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // propagated into LinkDownloadSessionContext so downstream extractors can pick
         // an audio-only format.
         val canonical = urlCanonicalizer.canonicalize(url)
-        Timber.d("S0190: handle entry url=%s accountId=%s audioOnly=%s", url.take(80), accountId ?: "auto", canonical.audioOnly)
+        unsupportedContentFailure(canonical.url)?.let { unsupported ->
+            Timber.i("S0225: rejected unsupported YouTube community post before extraction url=%s", canonical.url.take(120))
+            return unsupported
+        }
 
         val host = canonical.url.toHttpUrlOrNull()?.host ?: ""
         val appliedSessionHost =
@@ -182,6 +177,10 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         callbacks: Callbacks,
         accountId: String? = null,
     ): Result {
+        unsupportedContentFailure(url)?.let { unsupported ->
+            Timber.i("S0225: rejected unsupported YouTube community post in batch/direct path url=%s", url.take(120))
+            return unsupported
+        }
         callbacks.onProgress(ProgressState.Probing)
 
         var openedStream: OpenResult.Stream? = null
@@ -461,6 +460,25 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
     }
 
+    private fun unsupportedContentFailure(url: String): Result.Failed? {
+        return if (isYouTubeCommunityPostUrl(url)) {
+            Result.Failed.UnsupportedYouTubeCommunityPost
+        } else {
+            null
+        }
+    }
+
+    private fun isYouTubeCommunityPostUrl(url: String): Boolean {
+        val parsed = url.toHttpUrlOrNull() ?: return false
+        val host = parsed.host.lowercase()
+        if (host != "youtube.com" && host != "www.youtube.com") return false
+
+        val segments = parsed.pathSegments
+        // Match the stable /post/<id> shape instead of the current Ugk* prefix so the
+        // guard survives future YouTube ID-format changes without another extractor round-trip.
+        return segments.size >= 2 && segments[0] == "post" && segments[1].isNotBlank()
+    }
+
     private suspend fun runStreaming(
         streaming: OpenResult.Streaming,
         settings: AppSettings,
@@ -571,6 +589,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             data object NoNetwork : Failed
             data object Timeout : Failed
             data object NoMediaFound : Failed
+            data object UnsupportedYouTubeCommunityPost : Failed
 
             /** S0170 BUG-2: media URL was found but the downloaded bytes are not a usable file. */
             data object DownloadCorrupted : Failed

@@ -67,6 +67,15 @@
         <intent>
             <action android:name="android.media.action.VIDEO_CAPTURE" />
         </intent>
+        <!-- S0200: Chrome Custom Tabs package resolution on API 30+ -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
     </queries>
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:banner="@drawable/tv_banner" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
@@ -79,7 +88,7 @@
             <meta-data android:name="androidx.work.WorkManagerInitializer" android:value="androidx.startup" tools:node="remove" />
         </provider>
 
-        <activity android:name=".ui.main.MainActivity" android:exported="true" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+        <activity android:name=".ui.main.MainActivity" android:exported="true" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
             <!--
               <layout> provides the initial large landscape window size when the app is launched
               on a VR headset (Quest) in panel mode for any product flavor (standard/lite/photos/legacy).
@@ -97,30 +106,30 @@
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
 
-        <activity android:name=".ui.browse.BrowseActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.browse.BrowseActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.player.PlayerActivity" android:exported="false" android:screenOrientation="sensor" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.PlayerActivity" android:exported="false" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
-        <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
 
-        <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->
-        <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
-        <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.resourceeditor.ResourceEditorActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.resourceeditor.ResourceEditorActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.welcome.WelcomeActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.NoActionBar" />
+        <activity android:name=".ui.welcome.WelcomeActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.NoActionBar" />
 
-        <activity android:name=".ui.cloudfolders.GoogleDriveFolderPickerActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.cloudfolders.GoogleDriveFolderPickerActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.cloudfolders.DropboxFolderPickerActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.cloudfolders.DropboxFolderPickerActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.cloudfolders.OneDriveFolderPickerActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.cloudfolders.OneDriveFolderPickerActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <!-- Dropbox Auth Activity -->
         <activity android:name="com.dropbox.core.android.AuthActivity" android:configChanges="orientation|keyboard" android:exported="true" android:launchMode="singleTask">
@@ -132,7 +141,8 @@
             </intent-filter>
         </activity>
 
-        <!-- MSAL Browser Tab Activity for OneDrive -->
+        <!-- MSAL Browser Tab Activity for OneDrive. All cloud-enabled flavors reuse the
+             standard msauth host, so every official signing certificate hash must be listed. -->
         <activity android:name="com.microsoft.identity.client.BrowserTabActivity" android:exported="true" android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout" tools:replace="android:configChanges">
             <!-- Release keystore signature hash -->
             <intent-filter>
@@ -147,6 +157,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/WdRIvjP3wXJ5jte7TPUOqtT59es=" />
+            </intent-filter>
+            <!-- Custom debug keystore signature hash (debug.keystore.properties -> debugCustom) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/iRMe/7fhUe3Plj8y2z5NIOOXsZ8=" />
             </intent-filter>
             <!-- Release keystore (fastmediasorter.keystore) signature hash -->
             <intent-filter>
@@ -254,12 +271,12 @@
         </provider>
 
         <!-- Standalone Player for external intents -->
-        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:screenOrientation="sensor" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
              Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().
              Translucent theme ensures only the Copy-to dialog is visible (no blank window). -->
-        <activity android:name=".ui.share.ReceiveShareActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+        <activity android:name=".ui.share.ReceiveShareActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 

@@ -163,12 +163,10 @@
 
                 <LinearLayout android:id="@+id/containerDestinations" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Header: Destinations List + Max Recipients (One Row) -->
+                    <!-- Max Recipients (One Row) -->
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal" android:paddingTop="@dimen/settings_padding_vertical_top_small">
 
-                        <com.google.android.material.textview.MaterialTextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/destinations_list_header" android:textColor="?attr/colorOnSurface" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="bold" />
-
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilMaxRecipients" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_width_input_medium" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:hint="@string/max_recipients">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilMaxRecipients" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_width_input_medium" android:layout_height="wrap_content" android:hint="@string/max_recipients">
 
                             <AutoCompleteTextView android:id="@+id/etMaxRecipients" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/max_recipients" android:inputType="number" android:maxLength="@integer/input_max_length_tiny" />
 

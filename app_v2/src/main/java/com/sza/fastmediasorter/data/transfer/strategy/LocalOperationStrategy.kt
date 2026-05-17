@@ -339,6 +339,33 @@ class LocalOperationStrategy @Inject constructor(
         }
     }
 
+    override suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String> = withContext(Dispatchers.IO) {
+        Timber.d("S0189: LocalOperationStrategy.createTextFile parent=$parentPath name=$fileName")
+        try {
+            val parent = File(parentPath)
+            if (!parent.exists() || !parent.isDirectory) {
+                return@withContext Result.failure(Exception("Parent path is not a directory: $parentPath"))
+            }
+            val target = File(parent, fileName)
+            if (target.exists()) {
+                return@withContext Result.failure(Exception("File already exists: ${target.absolutePath}"))
+            }
+            if (!target.createNewFile()) {
+                return@withContext Result.failure(Exception("createNewFile returned false: ${target.absolutePath}"))
+            }
+            target.writeText(content, Charsets.UTF_8)
+            Result.success(target.absolutePath)
+        } catch (e: Exception) {
+            Timber.e(e, "LocalOperationStrategy: createTextFile failed - $parentPath/$fileName")
+            Result.failure(e)
+        }
+    }
+
     override suspend fun writeFile(path: String, content: String): Result<Unit> =
         safeIo("LocalOperationStrategy.writeFile($path)") { File(path).writeText(content) }
 

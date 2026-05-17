@@ -360,7 +360,6 @@ class YtDlpExtractionStrategy @Inject constructor(
                     if (cdnHost.endsWith(".googlevideo.com") || cdnHost == "googlevideo.com") {
                         // S0190 Phase D: googlevideo throttles non-player linear reads → use yt-dlp
                         // internal downloader (range-chunked, retry, throttle-aware).
-                        Timber.d("S0190: googlevideo Python downloader url=%s audioOnly=%s", url.take(80), audioOnly)
                         Timber.d(
                             "YtDlpExtractionStrategy: googlevideo CDN, Python download url=%s audioOnly=%s",
                             url, audioOnly

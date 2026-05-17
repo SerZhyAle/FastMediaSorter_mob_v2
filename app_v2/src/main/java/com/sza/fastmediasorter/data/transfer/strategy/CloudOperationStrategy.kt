@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +30,11 @@ class CloudOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient
+    private val oneDriveClient: OneDriveRestClient,
+    private val stagingDir: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
 
     override suspend fun copyFile(
@@ -177,6 +183,26 @@ class CloudOperationStrategy @Inject constructor(
         }
     }
 
+    override suspend fun createTextFile(
+        parentPath: String,
+        fileName: String,
+        content: String,
+        resourceId: Long
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            Timber.d("S0189: CloudOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId")
+            val dir = stagingDir.ensureDirectory()
+            val localFile = File(dir, "${resourceId}_${fileName}")
+            localFile.createNewFile()
+            localFile.writeText(content, Charsets.UTF_8)
+            stagingRegistry.register(localFile, resourceId, parentPath, fileName)
+            Result.success(localFile.absolutePath)
+        } catch (e: Exception) {
+            Timber.e(e, "CloudOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
+            Result.failure(e)
+        }
+    }
+
     override suspend fun writeFile(path: String, content: String): Result<Unit> = withContext(Dispatchers.IO) {
         val tempFile = File.createTempFile("cloud_write", ".tmp", context.cacheDir)
         try {
@@ -252,30 +278,45 @@ class CloudOperationStrategy @Inject constructor(
         localPath: String,
         progressCallback: ByteProgressCallback?
     ): Result<String> {
+        Timber.d("S0231: cloud download via LocalDestinationWriter destination=$localPath")
         val info = parseCloudUri(cloudPath)
             ?: return Result.failure(Exception("Failed to parse cloud path: $cloudPath"))
 
         val client = getClientOrThrow(info.provider)
-        val localFile = File(localPath)
-        localFile.parentFile?.mkdirs()
         val progressScope = CoroutineScope(currentCoroutineContext())
 
+        // S0231: route writes through LocalDestinationWriter for scoped-storage awareness.
+        val category = destinationClassifier.classify(localPath)
+        val sink = destinationWriter.open(category, overwrite = true).getOrElse { error ->
+            Timber.e(error, "CloudOperationStrategy: writer.open failed for $localPath")
+            return Result.failure(error)
+        }
+
         return try {
-            localFile.outputStream().use { output ->
-                when (val result = client.downloadFile(
-                    fileId = info.fileIdForDownload,
-                    outputStream = output,
-                    progressCallback = { progress ->
-                        progressScope.launch {
-                            progressCallback?.onProgress(progress.bytesTransferred, progress.totalBytes, 0L)
-                        }
+            val result = client.downloadFile(
+                fileId = info.fileIdForDownload,
+                outputStream = sink.outputStream,
+                progressCallback = { progress ->
+                    progressScope.launch {
+                        progressCallback?.onProgress(progress.bytesTransferred, progress.totalBytes, 0L)
                     }
-                )) {
-                    is CloudResult.Success -> Result.success(localPath)
-                    is CloudResult.Error -> Result.failure(Exception(result.message, result.cause))
+                }
+            )
+            when (result) {
+                is CloudResult.Success -> sink.commit().fold(
+                    onSuccess = { Result.success(localPath) },
+                    onFailure = { err -> Result.failure(err) }
+                )
+                is CloudResult.Error -> {
+                    sink.abort()
+                    Result.failure(Exception(result.message, result.cause))
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            sink.abort()
+            throw e
+        } catch (e: Throwable) {
+            sink.abort()
             Result.failure(e)
         }
     }

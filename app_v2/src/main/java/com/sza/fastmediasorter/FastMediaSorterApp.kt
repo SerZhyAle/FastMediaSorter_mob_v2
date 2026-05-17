@@ -77,6 +77,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var unifiedCache: dagger.Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
+    /** S0200 Phase 05: run-once legacy auth-state wipe. Injected via Hilt; called from onCreate. */
+    @Inject
+    lateinit var s0200AuthStateWipe: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0200AuthStateWipe>
+
     @Inject
     lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
 
@@ -211,6 +215,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             logAppStartupInfo()
+        }
+
+        // S0200 Phase 05: legacy auth-state wipe — idempotent, runs once after upgrade then no-ops.
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            s0200AuthStateWipe.get().runIfNeeded()
         }
         
         // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)

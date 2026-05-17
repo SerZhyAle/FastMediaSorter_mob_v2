@@ -54,6 +54,29 @@ class CandidateSelectionPolicyTest {
         assertEquals(manifest, out)
     }
 
+    @Test
+    fun `batch pool prefers authoritative embedded json candidates`() {
+        val preview = candidate("https://cdn.example.com/preview.jpg", HtmlMediaCandidate.Source.OG_IMAGE)
+        val embedded1 = candidate("https://cdn.example.com/slide-1.jpg", HtmlMediaCandidate.Source.EMBEDDED_JSON)
+        val embedded2 = candidate("https://cdn.example.com/slide-2.jpg", HtmlMediaCandidate.Source.EMBEDDED_JSON)
+        val sniffed = candidate("https://cdn.example.com/request-asset.jpg", HtmlMediaCandidate.Source.INLINE_LINK)
+
+        val out = CandidateSelectionPolicy.batchPool(listOf(preview, embedded1, sniffed, embedded2))
+
+        assertEquals(listOf(embedded1, embedded2), out)
+    }
+
+    @Test
+    fun `batch pool falls back to http candidates when no embedded json is present`() {
+        val nonHttp = candidate("blob:https://example.com/video", HtmlMediaCandidate.Source.VIDEO_TAG)
+        val preview = candidate("https://cdn.example.com/preview.jpg", HtmlMediaCandidate.Source.OG_IMAGE)
+        val direct = candidate("https://cdn.example.com/video.mp4", HtmlMediaCandidate.Source.VIDEO_TAG)
+
+        val out = CandidateSelectionPolicy.batchPool(listOf(nonHttp, preview, direct))
+
+        assertEquals(listOf(preview, direct), out)
+    }
+
     /**
      * S0166 Phase 06: social-preview guard invariant.
      *

@@ -575,12 +575,22 @@ class ResourceAdapter(
                     android.view.View.GONE
                 }
                 
-                tvAvailabilityIndicator.visibility = if (resource.isAvailable) {
-                    android.view.View.GONE
+                // S0200 Phase 06: needs-sign-in indicator for Drive resources whose primary account
+                // is unbound or stale. Takes priority over the generic isAvailable indicator.
+                val driveNeedsSignIn = resource.type == ResourceType.CLOUD &&
+                    resource.cloudProvider == com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE &&
+                    resource.needsSignIn
+                if (driveNeedsSignIn) {
+                    tvAvailabilityIndicator.visibility = android.view.View.VISIBLE
+                    tvAvailabilityIndicator.text = root.context.getString(R.string.s0200_resource_needs_sign_in_label)
                 } else {
-                    android.view.View.VISIBLE
+                    tvAvailabilityIndicator.visibility = if (resource.isAvailable) {
+                        android.view.View.GONE
+                    } else {
+                        android.view.View.VISIBLE
+                    }
                 }
-                
+
                 if (!resource.isAvailable) {
                     val bgColor = ContextCompat.getColor(
                         rootLayout.context,

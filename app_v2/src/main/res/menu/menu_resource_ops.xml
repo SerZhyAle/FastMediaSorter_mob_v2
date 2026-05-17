@@ -21,6 +21,9 @@
         android:id="@+id/action_create_folder"
         android:title="@string/action_create_folder" />
     <item
+        android:id="@+id/action_create_text_file"
+        android:title="@string/action_create_text_file" />
+    <item
         android:id="@+id/action_automate_resource"
         android:title="@string/menu_automate_source" />
     <item

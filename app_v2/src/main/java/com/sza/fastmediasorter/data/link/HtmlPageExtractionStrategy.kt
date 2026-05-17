@@ -219,9 +219,17 @@ class HtmlPageExtractionStrategy @Inject constructor(
         } else {
             emptyList()
         }
+        // S0223: Instagram /p/ posts do not contain data-sjs blocks (sniffEmbeddedJson returns
+        // empty). Call the Instagram private API to get image_versions2 / carousel_media JSON
+        // and produce EMBEDDED_JSON candidates that bypass the SocialPreviewOnly guard.
+        val igApiCandidates = if (embedded.isEmpty() && isInstagramPhotoPost(baseUri)) {
+            fetchInstagramApiCandidates(baseUri)
+        } else {
+            emptyList()
+        }
         val staticCandidates = harvestStaticCandidates(html, baseUri)
-        // Embedded first so selection sees the authoritative candidates ahead of OG/IMG noise.
-        val merged = (embedded + structured + staticCandidates).distinctBy { it.url }
+        // igApiCandidates first — authoritative; then embedded (Threads data-sjs); then static noise.
+        val merged = (igApiCandidates + embedded + structured + staticCandidates).distinctBy { it.url }
 
         val structuredCount = merged.count {
             it.source == HtmlMediaCandidate.Source.JSON_LD ||
@@ -332,6 +340,59 @@ class HtmlPageExtractionStrategy @Inject constructor(
         }
     }
 
+    // S0223: returns true for Instagram photo-post URLs (path /p/<shortcode>).
+    // Reel URLs (/reel/) and profile URLs (/) are intentionally excluded.
+    private fun isInstagramPhotoPost(url: String): Boolean {
+        val httpUrl = url.toHttpUrlOrNull() ?: return false
+        val host = httpUrl.host.lowercase().removePrefix("www.")
+        return host == "instagram.com" && httpUrl.encodedPath.startsWith("/p/")
+    }
+
+    private fun extractInstagramShortcode(url: String): String? {
+        val path = url.toHttpUrlOrNull()?.encodedPath ?: return null
+        return Regex("/p/([A-Za-z0-9_-]+)").find(path)?.groupValues?.getOrNull(1)
+            ?.takeIf { it.isNotBlank() }
+    }
+
+    // S0223: base-62 decode of Instagram post shortcode using the IG alphabet.
+    // Unknown characters contribute 0 so malformed input does not crash.
+    private fun shortcodeToMediaId(shortcode: String): Long {
+        var id = 0L
+        for (ch in shortcode) {
+            val digit = IG_ALPHABET.indexOf(ch)
+            id = id * 64 + if (digit >= 0) digit else 0
+        }
+        return id
+    }
+
+    private suspend fun fetchInstagramApiCandidates(pageUrl: String): List<HtmlMediaCandidate> {
+        val shortcode = extractInstagramShortcode(pageUrl) ?: return emptyList()
+        val mediaId = shortcodeToMediaId(shortcode)
+        val apiUrl = "$IG_API_BASE/$mediaId/info/"
+        return try {
+            withContext(Dispatchers.IO) {
+                val request = Request.Builder()
+                    .url(apiUrl)
+                    .header("x-ig-app-id", IG_APP_ID)
+                    .build()
+                httpClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        LinkDownloadTrace.verbose(
+                            "S0223: ig-api request failed status=${response.code}" +
+                                " url=${LinkDownloadTrace.truncateUrl(apiUrl)}",
+                        )
+                        return@withContext emptyList()
+                    }
+                    val json = response.body?.string().orEmpty()
+                    structuredMediaSniffer.sniffInstagramApiResponse(json, pageUrl)
+                }
+            }
+        } catch (io: IOException) {
+            Timber.w(io, "S0223: ig-api fetch failed for %s", pageUrl)
+            emptyList()
+        }
+    }
+
     private fun looksLikeSoftLoginWall(html: String, finalUrl: String): Boolean {
         val doc = runCatching { Jsoup.parse(html, finalUrl) }.getOrNull() ?: return false
         var signals = 0
@@ -370,6 +431,14 @@ class HtmlPageExtractionStrategy @Inject constructor(
         const val CANDIDATE_BUDGET_MS: Long = 4_000L
         const val MIN_LOGIN_WALL_SIGNALS: Int = 2
         const val MAX_BATCH_ITEMS: Int = 12
+
+        // S0223: Instagram private API constants.
+        // IG_APP_ID is the standard Instagram web app ID sent by all IG web clients;
+        // the private media-info endpoint returns 401 without it even with valid session cookies.
+        const val IG_APP_ID = "936619743392459"
+        const val IG_API_BASE = "https://i.instagram.com/api/v1/media"
+        // Instagram base-62 alphabet for shortcode → media_id conversion.
+        const val IG_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
         val LOGIN_MARKERS = listOf("login", "signin", "auth")
         val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif")

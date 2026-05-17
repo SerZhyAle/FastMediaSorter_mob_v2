@@ -137,6 +137,15 @@ class BrowseStateUiUpdater(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
+
+        // Create text note (S0189): writable + non-virtual + documents-flavored library
+        // (allFiles OR supportedMediaTypes includes TEXT/PDF/EPUB). Hidden for audio/video/photo-only
+        // libraries where a created .txt would not appear in the file list.
+        val canCreateTextNote = resource != null
+                && !resource.isReadOnly
+                && !VirtualPathUtils.isVirtualPath(resource.path)
+                && resource.supportsDocuments()
+        binding.btnCreateTextFile?.isVisible = canCreateTextNote
     }
 
     private fun updateResourceActionButton(state: BrowseState) {

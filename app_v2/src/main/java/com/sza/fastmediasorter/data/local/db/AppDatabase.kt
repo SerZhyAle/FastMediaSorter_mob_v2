@@ -25,7 +25,7 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         StreamingCacheEntry::class,
         InputBindingEntity::class
     ],
-    version = 28,
+    version = 29,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -669,6 +669,15 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_27_28 = object : Migration(27, 28) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE resources ADD COLUMN host_key_fingerprint TEXT DEFAULT NULL")
+            }
+        }
+
+        /** S0200 Phase 05: Drive resource "needs sign-in" state column. Data wipe is owned by [S0200AuthStateWipe]; this migration only adds the schema. */
+        val MIGRATION_28_29 = object : Migration(28, 29) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!hasColumn(db, "resources", "needs_sign_in")) {
+                    db.execSQL("ALTER TABLE resources ADD COLUMN needs_sign_in INTEGER NOT NULL DEFAULT 0")
+                }
             }
         }
 

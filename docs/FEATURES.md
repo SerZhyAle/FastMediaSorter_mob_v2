@@ -200,6 +200,10 @@ This document is the canonical inventory of all user-facing features implemented
 - **Rendering**: Automatic charset detection, Markdown rendering, and native code syntax highlighting.
 - **Reading features**: Line numbers display, reader themes, and gesture-based font sizing.
 - **Editing**: In-place text editing with auto-save and undo history for local and remote files.
+- **Create new text note from Browse**: tap the "New Note" button in the Browse toolbar to create a `.txt` file in the current folder (local, SMB, SFTP, FTP, or cloud) and open it immediately in the editor. Network notes are staged locally in Downloads/FastMediaSorter/notes/ until saved.
+- **Save-with-rename dialog**: on Save / Save & Close / Save & Send the editor shows a dialog to confirm or rename the file; filename collisions are resolved automatically with a seconds suffix.
+- **5-button action panel**: Save, Save & Close, Save & Send, Send to Keep, Cancel — with a dirty-state indicator that tints the panel when unsaved edits are present.
+- **Auto-fit font**: editor font starts at the maximum configured size and shrinks automatically to fit the viewport as content grows; a swipe gesture locks the manual size.
 - **Inline search panel**: Tap-to-search works in both the internal file browser and standalone "Open with" mode.
 
 ## 14. Translation & OCR (cross-viewer feature)
@@ -225,6 +229,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 - **Google Drive, Dropbox, OneDrive**: Natively integrated folder picking, streaming, and remote file modifications.
 - **Unified OAuth authentication**: Secure login via browser OAuth flows with locally encrypted tokens.
+- **Google account binding**: a single sign-in to your Google account that powers Drive and any future Google integrations. Adding new Drive folders does not require another sign-in.
 - **Rigorous state backups**: Serialize application settings, profiles, and favorites into a JSON payload backed up to Google Drive.
 
 ## 17. Favorites

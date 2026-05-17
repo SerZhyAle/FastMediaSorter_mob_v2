@@ -69,13 +69,14 @@
     <string name="settings_tab_media">Media</string>
     <string name="settings_tab_playback">Playback</string>
     <string name="settings_tab_network">Network</string>
-    <string name="settings_tab_destinations">Operations</string>
+    <string name="settings_tab_operations">Operations</string>
 
     <!-- General Settings -->
     <string name="documentation">Documentation Portal</string>
     <string name="settings_category_interface">Interface</string>
     <string name="settings_category_files">Files &amp; Data</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
+    <string name="settings_category_about">About</string>
     <string name="settings_category_app_data">App Data &amp; Backups</string>
     <string name="settings_category_system">Network &amp; Cache</string>
     <string name="settings_category_sorting_slideshow">Sorting, Slideshow &amp; Playback</string>
@@ -1208,6 +1209,7 @@ Close the player and try again.</string>
     <string name="link_autodownload_error_no_network">No network connection</string>
     <string name="link_autodownload_error_resource_unavailable">Selected resource is unavailable</string>
     <string name="link_autodownload_error_no_media">No downloadable media at this link</string>
+    <string name="link_autodownload_error_youtube_community_post">YouTube community posts can\'t be downloaded</string>
     <string name="link_autodownload_error_corrupted">Couldn\'t download a usable file — the server returned an error page or an incomplete file</string>
     <string name="link_autodownload_error_timeout">Download timed out</string>
     <string name="link_autodownload_error_mime_blocked">This file type is not supported</string>
@@ -2842,6 +2844,25 @@ Close the player and try again.</string>
     <string name="duplicate_scan_notif_running">Scanning for duplicates..</string>
     <string name="duplicate_scan_notif_channel_name">Duplicate scanner</string>
     <string name="action_create_folder">Create Folder</string>
+    <string name="action_create_text_file">Create text note</string>
+    <string name="create_text_file_title">New text note</string>
+    <string name="create_text_file_hint">File name</string>
+    <string name="error_text_note_create_failed">Couldn\'t create the note here. Please try a different folder.</string>
+    <string name="msg_text_note_created">Note created: %1$s</string>
+    <string name="error_invalid_text_note_name">Use letters, digits, dashes; avoid / \\ : * ? \" &lt; &gt; |</string>
+    <string name="text_editor_action_save">Save</string>
+    <string name="text_editor_action_save_close">Save &amp; close</string>
+    <string name="text_editor_action_save_send">Save &amp; send</string>
+    <string name="text_editor_action_send_keep">Send to Keep</string>
+    <string name="text_editor_action_cancel">Cancel</string>
+    <string name="text_editor_keep_unavailable">Google Keep isn\'t installed.</string>
+    <string name="text_note_save_dialog_title">Save note</string>
+    <string name="text_note_save_dialog_hint">File name</string>
+    <string name="text_note_save_dialog_ok">Save</string>
+    <string name="text_note_save_renamed_suffix">Saved as %1$s (name was taken)</string>
+    <string name="text_note_save_error_network">Couldn\'t reach the folder. Your note stayed on the device — try again when you\'re back online.</string>
+    <string name="text_note_save_success_local">Saved.</string>
+    <string name="text_note_save_success_remote">Saved to %1$s.</string>
     <string name="msg_folder_created">Folder "%1$s" created</string>
     <string name="msg_folder_renamed">Folder renamed</string>
     <string name="error_folder_create_failed">Could not create the folder.</string>
@@ -3572,6 +3593,7 @@ Close the player and try again.</string>
     <string name="draw_color_custom_cd">Custom color</string>
     <string name="draw_save_ok_toast">Saved</string>
     <string name="draw_save_failed_toast">Failed to save</string>
+    <string name="error_reason_local_destination_permission_denied">Couldn\'t save here — Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
 </resources>
 
 

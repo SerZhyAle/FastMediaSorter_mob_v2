@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.graphics.Color
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
+import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
@@ -22,7 +25,7 @@ import timber.log.Timber
 /**
  * Manages destination buttons in PlayerActivity:
  * - Populates Copy/Move grids with destination buttons
- * - Calculates button distribution (5x2, 4x3, 3x3 layouts)
+ * - Calculates button distribution — width-adaptive single row, then lookup fallback
  * - Handles panel collapse/expand toggle
  * - Persists collapsed state to settings
  */
@@ -34,11 +37,13 @@ class DestinationButtonsManager(
     private val callback: DestinationButtonsCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
-    
+
     // Cache settings to avoid repeated reads
     private var cachedCopyCollapsed: Boolean? = null
     private var cachedMoveCollapsed: Boolean? = null
     private var cachedMaxRecipients: Int? = null
+    private var cachedPanelContentWidthPx: Int? = null
+    private var isPopulateDeferredUntilLayout = false
     
     interface DestinationButtonsCallback {
         fun onCopyClicked(destination: MediaResource)
@@ -84,7 +89,20 @@ class DestinationButtonsManager(
                 
                 val destinationsList = destinations.take(maxRecipients)
                 val count = destinationsList.size
-                
+
+                val density = binding.root.context.resources.displayMetrics.density
+                val measuredPanelContentWidthPx = resolveMeasuredPanelContentWidthPx()
+                val availableWidthPx = measuredPanelContentWidthPx ?: run {
+                    // S0227 relies on real panel width, but the first populate can race the initial layout.
+                    // Build once with display fallback, then repopulate exactly once after the next layout pass.
+                    schedulePopulateAfterNextLayout()
+                    computeFallbackPanelContentWidthPx()
+                }
+                if (measuredPanelContentWidthPx != null) {
+                    cachedPanelContentWidthPx = measuredPanelContentWidthPx
+                }
+                val availableWidthDp = availableWidthPx / density
+
                 // Calculate button distribution per specification (V2_Specification_RU.md lines 357-370)
                 // Standard: max 5 buttons per row for maxRecipients <= 10
                 // Extended: max 10 buttons per row when maxRecipients > 10 (user explicitly increased limit)
@@ -106,22 +124,41 @@ class DestinationButtonsManager(
                         }
                     }
                 } else {
-                    // Standard mode: max 5 buttons per row, specific patterns for 1-10
-                    when (count) {
-                        1 -> listOf(1)         // 1 row: 1 button (full width)
-                        2 -> listOf(2)         // 1 row: 2 buttons (1/2 width each)
-                        3 -> listOf(3)         // 1 row: 3 buttons (1/3 width each)
-                        4 -> listOf(4)         // 1 row: 4 buttons (1/4 width each)
-                        5 -> listOf(5)         // 1 row: 5 buttons (1/5 width each)
-                        6 -> listOf(3, 3)      // 2 rows: 3+3 buttons (1/3 width each)
-                        7 -> listOf(4, 3)      // 2 rows: 4+3 buttons (1/4 and 1/3 width)
-                        8 -> listOf(4, 4)      // 2 rows: 4+4 buttons (1/4 width each)
-                        9 -> listOf(5, 4)      // 2 rows: 5+4 buttons (1/5 and 1/4 width)
-                        10 -> listOf(5, 5)     // 2 rows: 5+5 buttons (1/5 width each)
-                        else -> listOf(5, 5)   // Fallback (shouldn't happen with maxRecipients <= 10)
+                    // Standard mode: adaptive check first (S0227), then hardcoded lookup table fallback.
+                    // If all buttons fit in one row at the current screen width, collapse to a single row.
+                    // Otherwise fall back to the original fixed patterns (no regression on narrow screens).
+                    val maxPerRow = computeMaxPerRow(availableWidthDp)
+                    if (count > 0 && count <= maxPerRow) {
+                        // Width-adaptive single row — saves vertical space on tablets and landscape phones
+                        listOf(count)
+                    } else {
+                        when (count) {
+                            1 -> listOf(1)         // 1 row: 1 button (full width)
+                            2 -> listOf(2)         // 1 row: 2 buttons (1/2 width each)
+                            3 -> listOf(3)         // 1 row: 3 buttons (1/3 width each)
+                            4 -> listOf(4)         // 1 row: 4 buttons (1/4 width each)
+                            5 -> listOf(5)         // 1 row: 5 buttons (1/5 width each)
+                            6 -> listOf(3, 3)      // 2 rows: 3+3 buttons (1/3 width each)
+                            7 -> listOf(4, 3)      // 2 rows: 4+3 buttons (1/4 and 1/3 width)
+                            8 -> listOf(4, 4)      // 2 rows: 4+4 buttons (1/4 width each)
+                            9 -> listOf(5, 4)      // 2 rows: 5+4 buttons (1/5 and 1/4 width)
+                            10 -> listOf(5, 5)     // 2 rows: 5+5 buttons (1/5 width each)
+                            else -> listOf(5, 5)   // Fallback (shouldn't happen with maxRecipients <= 10)
+                        }
                     }
                 }
                 
+                // Compute font size from actual button width in the first (widest) row (S0227).
+                // Distribution may have 1 or 2 rows; the densest row yields the smallest button width.
+                // All rows use the same fontSizeSp for visual consistency.
+                val buttonsInDensestRow = distribution.maxOrNull() ?: 1
+                val buttonWidthDp = computeButtonWidthDp(
+                    availableWidthDp = availableWidthDp,
+                    buttonsInRow = buttonsInDensestRow,
+                    reserveCustomPathButtonWidth = distribution.size == 1
+                )
+                val fontSizeSp = computeFontSizeSp(buttonWidthDp)
+
                 // Create rows for Copy panel
                 var destIndex = 0
                 distribution.forEach { rowCount ->
@@ -129,7 +166,7 @@ class DestinationButtonsManager(
                         val rowLayout = createButtonRow()
                         repeat(rowCount) {
                             if (destIndex < destinationsList.size) {
-                                val btn = createDestinationButton(destinationsList[destIndex], destIndex, true, rowCount)
+                                val btn = createDestinationButton(destinationsList[destIndex], destIndex, true, fontSizeSp)
                                 rowLayout.addView(btn)
                                 destIndex++
                             }
@@ -140,7 +177,7 @@ class DestinationButtonsManager(
                         }
                     }
                 }
-                
+
                 // Create rows for Move panel
                 destIndex = 0
                 distribution.forEach { rowCount ->
@@ -148,7 +185,7 @@ class DestinationButtonsManager(
                         val rowLayout = createButtonRow()
                         repeat(rowCount) {
                             if (destIndex < destinationsList.size) {
-                                val btn = createDestinationButton(destinationsList[destIndex], destIndex, false, rowCount)
+                                val btn = createDestinationButton(destinationsList[destIndex], destIndex, false, fontSizeSp)
                                 rowLayout.addView(btn)
                                 destIndex++
                             }
@@ -271,15 +308,50 @@ class DestinationButtonsManager(
         cachedMaxRecipients = null
         Timber.d("DestinationButtonsManager: Settings cache cleared")
     }
+
+    private fun resolveMeasuredPanelContentWidthPx(): Int? {
+        val containerWidthPx = safeViews.bottomPanelsContainer.width
+        if (containerWidthPx <= 0) return null
+        return (containerWidthPx - safeViews.copyToPanel.paddingLeft - safeViews.copyToPanel.paddingRight)
+            .coerceAtLeast(0)
+    }
+
+    private fun computeFallbackPanelContentWidthPx(): Int {
+        val displayWidthPx = binding.root.context.resources.displayMetrics.widthPixels
+        return (displayWidthPx - safeViews.copyToPanel.paddingLeft - safeViews.copyToPanel.paddingRight)
+            .coerceAtLeast(0)
+    }
+
+    private fun schedulePopulateAfterNextLayout() {
+        if (isPopulateDeferredUntilLayout) return
+
+        isPopulateDeferredUntilLayout = true
+        safeViews.bottomPanelsContainer.doOnNextLayout {
+            isPopulateDeferredUntilLayout = false
+            val measuredWidthPx = resolveMeasuredPanelContentWidthPx() ?: return@doOnNextLayout
+            if (measuredWidthPx <= 0 || measuredWidthPx == cachedPanelContentWidthPx) {
+                return@doOnNextLayout
+            }
+
+            cachedPanelContentWidthPx = measuredWidthPx
+            Timber.d(
+                "DestinationButtonsManager: Rebuilding destination buttons after layout width became available - panelContentWidthPx=$measuredWidthPx"
+            )
+            populateDestinationButtons()
+        }
+        safeViews.bottomPanelsContainer.requestLayout()
+    }
     
     /**
-     * Create destination button with short name, color, click handler
+     * Create destination button with short name, color, click handler.
+     *
+     * @param fontSizeSp pre-computed text size from [computeFontSizeSp] — width-adaptive (S0227)
      */
     private fun createDestinationButton(
         destination: MediaResource,
         @Suppress("UNUSED_PARAMETER") index: Int,
         isCopy: Boolean,
-        @Suppress("UNUSED_PARAMETER") buttonsInRow: Int
+        fontSizeSp: Float
     ): MaterialButton {
         return MaterialButton(binding.root.context).apply {
             // Short name - take first 8 characters or first word
@@ -289,13 +361,17 @@ class DestinationButtonsManager(
                 else -> destination.name.take(8) + ".."
             }
             text = shortName
-            
-            // Dynamic text size based on text length (reduced by 2sp)
-            textSize = when {
-                shortName.length <= 8 -> 12f  // Short names: larger font
-                shortName.length <= 12 -> 10f // Medium names: standard font
-                else -> 8f                    // Long names: smaller font
-            }
+
+            // S0227: auto-size keeps long labels stable, while the computed cap lets wide buttons grow.
+            val maxAutoSizeSp = fontSizeSp.toInt().coerceIn(SP_MIN.toInt(), SP_MAX.toInt())
+            TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                this,
+                SP_MIN.toInt(),
+                maxAutoSizeSp,
+                1,
+                TypedValue.COMPLEX_UNIT_SP
+            )
+            textSize = SP_MIN
             
             // Calculate brightness to determine text color
             val color = destination.destinationColor
@@ -345,6 +421,7 @@ class DestinationButtonsManager(
             // Center text and allow wrapping
             gravity = Gravity.CENTER
             maxLines = 2
+            isSingleLine = false
             
             setOnClickListener {
                 Timber.d("DestinationButtonsManager: Destination button clicked - ${destination.name}, isCopy=$isCopy")
@@ -439,6 +516,68 @@ class DestinationButtonsManager(
                 lp.weight = 0f
             }
             panel.layoutParams = lp
+        }
+    }
+
+    companion object {
+        // Adaptive layout constants (S0227)
+        // MIN_BUTTON_WIDTH_DP chosen so that 360 dp screen with 5 buttons keeps a single row via
+        // the lookup table (maxPerRow = 4 < 5, lookup returns listOf(5)) — no regression.
+        private const val MIN_BUTTON_WIDTH_DP = 58f
+        // Approximate wrap_content width of the «..» button
+        private const val DOT_DOT_WIDTH_DP = 44f
+        // Total horizontal margin per button (2 dp left + 2 dp right)
+        private const val BUTTON_MARGIN_DP = 4f
+        // Font size range for button text scaling
+        private const val SP_MIN = 10f
+        private const val SP_MAX = 16f
+        // Upper bound for button width in font interpolation (dp)
+        private const val FONT_WIDTH_MAX_DP = 200f
+
+        /**
+         * Maximum buttons that fit in a single row at the given available width.
+         * Pure function — no side effects, covered by unit tests.
+         *
+         * Formula: floor((available - dotDot - dotDotMargin) / (minWidth + margin))
+         */
+        fun computeMaxPerRow(availableWidthDp: Float): Int {
+            val usable = availableWidthDp - DOT_DOT_WIDTH_DP - BUTTON_MARGIN_DP
+            if (usable <= 0f) return 0
+            return (usable / (MIN_BUTTON_WIDTH_DP + BUTTON_MARGIN_DP)).toInt()
+        }
+
+        /**
+         * Approximate destination button width for the densest row.
+         *
+         * reserveCustomPathButtonWidth is true only when all buttons share the same single row as «..».
+         */
+        fun computeButtonWidthDp(
+            availableWidthDp: Float,
+            buttonsInRow: Int,
+            reserveCustomPathButtonWidth: Boolean
+        ): Float {
+            if (buttonsInRow <= 0) return MIN_BUTTON_WIDTH_DP
+
+            val customPathOccupiedWidthDp = if (reserveCustomPathButtonWidth) {
+                DOT_DOT_WIDTH_DP + BUTTON_MARGIN_DP
+            } else {
+                0f
+            }
+            val rowMarginsDp = BUTTON_MARGIN_DP * buttonsInRow
+            return ((availableWidthDp - customPathOccupiedWidthDp - rowMarginsDp) / buttonsInRow)
+                .coerceAtLeast(0f)
+        }
+
+        /**
+         * Interpolate button text size from actual button width.
+         * Pure function — no side effects, covered by unit tests.
+         *
+         * Result is clamped to [SP_MIN, SP_MAX].
+         */
+        fun computeFontSizeSp(buttonWidthDp: Float): Float {
+            val t = ((buttonWidthDp - MIN_BUTTON_WIDTH_DP) / (FONT_WIDTH_MAX_DP - MIN_BUTTON_WIDTH_DP))
+                .coerceIn(0f, 1f)
+            return SP_MIN + t * (SP_MAX - SP_MIN)
         }
     }
 }

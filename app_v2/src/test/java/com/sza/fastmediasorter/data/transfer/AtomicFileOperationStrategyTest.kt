@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
@@ -37,7 +39,7 @@ class AtomicFileOperationStrategyTest {
 
     @Test
     fun `test scaffold uses runTest and mockk`() = runTest {
-        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.SUCCESS_CREATE_TEMP))
+        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.SUCCESS_CREATE_TEMP), FakeClassifier(forceNonPublic = true))
 
         val result = strategy.copyFile(
             source = sourceFile.absolutePath,
@@ -51,7 +53,7 @@ class AtomicFileOperationStrategyTest {
 
     @Test
     fun `success rename leaves destination exists and temp file gone`() = runTest {
-        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.SUCCESS_CREATE_TEMP))
+        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.SUCCESS_CREATE_TEMP), FakeClassifier(forceNonPublic = true))
         val tempDestination = TempFileNamingStrategy.getTempPath(destinationFile.absolutePath)
 
         val result = strategy.copyFile(
@@ -70,7 +72,7 @@ class AtomicFileOperationStrategyTest {
 
     @Test
     fun `CancellationException after partial write cleans temp and preserves cancellation cause`() = runTest {
-        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.CANCEL_AFTER_PARTIAL_WRITE))
+        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.CANCEL_AFTER_PARTIAL_WRITE), FakeClassifier(forceNonPublic = true))
         val tempDestination = TempFileNamingStrategy.getTempPath(destinationFile.absolutePath)
 
         val result = strategy.copyFile(
@@ -88,7 +90,7 @@ class AtomicFileOperationStrategyTest {
 
     @Test
     fun `missing temp postcondition returns failure after delegate reported success`() = runTest {
-        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.SUCCESS_WITHOUT_TEMP))
+        val strategy = AtomicFileOperationStrategy(FakeDelegate(FakeMode.SUCCESS_WITHOUT_TEMP), FakeClassifier(forceNonPublic = true))
         val tempDestination = TempFileNamingStrategy.getTempPath(destinationFile.absolutePath)
 
         val result = strategy.copyFile(
@@ -158,6 +160,15 @@ class AtomicFileOperationStrategyTest {
             return Result.success(Unit)
         }
 
+        // S0231: createTextFile stub keeps the FakeDelegate compilable against the
+        // current FileOperationStrategy contract; unused in atomic tests.
+        override suspend fun createTextFile(
+            parentPath: String,
+            fileName: String,
+            content: String,
+            resourceId: Long
+        ): Result<String> = Result.failure(UnsupportedOperationException("unused in atomic tests"))
+
         override suspend fun readFile(path: String): Result<String> =
             Result.success(File(path).readText())
 
@@ -167,5 +178,132 @@ class AtomicFileOperationStrategyTest {
         override fun supportsProtocol(path: String): Boolean = true
 
         override fun getProtocolName(): String = "fake-local"
+    }
+
+    /**
+     * S0231: deterministic classifier substitute for tests.
+     * When [forceNonPublic] is true, every call returns NonPublic (existing scaffolding
+     * relies on the temp_copy + rename path). When false, returns PublicCollection to
+     * exercise the public-collection short-circuit branch.
+     */
+    private class FakeClassifier(
+        private val forceNonPublic: Boolean
+    ) : LocalDestinationClassifier() {
+        var classifyCallCount: Int = 0
+        var lastClassifiedPath: String? = null
+
+        override fun classify(absolutePath: String): LocalDestinationCategory {
+            classifyCallCount += 1
+            lastClassifiedPath = absolutePath
+            val displayName = File(absolutePath).name
+            return if (forceNonPublic) {
+                LocalDestinationCategory.NonPublic(
+                    absolutePath = absolutePath,
+                    displayName = displayName,
+                    mimeType = "application/octet-stream"
+                )
+            } else {
+                LocalDestinationCategory.PublicCollection(
+                    collection = LocalDestinationCategory.PublicCollection.Kind.AUDIO,
+                    relativePath = "Music/",
+                    displayName = displayName,
+                    mimeType = "audio/mpeg"
+                )
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ S0231
+
+    @Test
+    fun `S0231 public collection destination bypasses temp_copy and delegates raw`() = runTest {
+        val classifier = FakeClassifier(forceNonPublic = false)
+        val delegate = RecordingDelegate()
+        val strategy = AtomicFileOperationStrategy(delegate, classifier)
+
+        val publicDestination = "/storage/emulated/0/Music/song.mp3"
+        val result = strategy.copyFile(
+            source = sourceFile.absolutePath,
+            destination = publicDestination,
+            overwrite = true,
+            progressCallback = progressCallback
+        )
+
+        assertTrue(result.isSuccess)
+        assertEquals(publicDestination, delegate.lastDestination)
+        assertFalse(
+            "delegate was called with .temp_copy suffix on public collection",
+            delegate.lastDestination?.endsWith(".temp_copy") == true
+        )
+    }
+
+    @Test
+    fun `S0231 non-public destination still uses temp_copy + rename pattern`() = runTest {
+        val classifier = FakeClassifier(forceNonPublic = true)
+        val delegate = RecordingDelegate()
+        val strategy = AtomicFileOperationStrategy(delegate, classifier)
+
+        val nonPublicDestination = "/storage/emulated/0/SomeApp/file.bin"
+        strategy.copyFile(
+            source = sourceFile.absolutePath,
+            destination = nonPublicDestination,
+            overwrite = true,
+            progressCallback = progressCallback
+        )
+
+        assertTrue(
+            "delegate was not called with .temp_copy suffix for non-public destination",
+            delegate.lastDestination?.endsWith(".temp_copy") == true
+        )
+    }
+
+    @Test
+    fun `S0231 enableAtomic false bypasses classifier entirely`() = runTest {
+        val classifier = FakeClassifier(forceNonPublic = false)
+        val delegate = RecordingDelegate()
+        val strategy = AtomicFileOperationStrategy(delegate, classifier, enableAtomic = false)
+
+        strategy.copyFile(
+            source = sourceFile.absolutePath,
+            destination = "/storage/emulated/0/Music/song.mp3",
+            overwrite = true,
+            progressCallback = progressCallback
+        )
+
+        assertEquals(0, classifier.classifyCallCount)
+    }
+
+    /**
+     * S0231: records the destination passed to copyFile for assertion-driven tests.
+     * Always succeeds; does not actually copy bytes.
+     */
+    private class RecordingDelegate : FileOperationStrategy {
+        var lastDestination: String? = null
+
+        override suspend fun copyFile(
+            source: String,
+            destination: String,
+            overwrite: Boolean,
+            progressCallback: ByteProgressCallback?
+        ): Result<String> {
+            lastDestination = destination
+            return Result.success(destination)
+        }
+
+        override suspend fun moveFile(source: String, destination: String): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteFile(path: String): Result<Unit> = Result.success(Unit)
+        override suspend fun exists(path: String): Result<Boolean> = Result.success(false)
+        override suspend fun createDirectory(path: String): Result<Unit> = Result.success(Unit)
+        override suspend fun createTextFile(
+            parentPath: String,
+            fileName: String,
+            content: String,
+            resourceId: Long
+        ): Result<String> = Result.failure(UnsupportedOperationException("unused in atomic tests"))
+        override suspend fun writeFile(path: String, content: String): Result<Unit> = Result.success(Unit)
+        override suspend fun readFile(path: String): Result<String> = Result.success("")
+        override suspend fun listFiles(path: String): Result<List<String>> = Result.success(emptyList())
+        override fun supportsProtocol(path: String): Boolean = true
+        override fun getProtocolName(): String = "recording-fake"
     }
 }

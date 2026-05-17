@@ -6,6 +6,8 @@
 
 **📖 Другие языки:** [🇺🇸 English](README.md) | [🇺🇦 Українська](README_UK.md)
 
+**📦 Скачать:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+
 ## О проекте
 
 FastMediaSorter v2 — это мощное Android-приложение для быстрой и удобной сортировки медиафайлов (изображений, видео, GIF, аудио, документов). Оно спроектировано как единый центр для управления файлами из различных источников: локальные папки устройства, сетевые диски (SMB, SFTP, FTP) и облачные хранилища (Google Drive, OneDrive, Dropbox).

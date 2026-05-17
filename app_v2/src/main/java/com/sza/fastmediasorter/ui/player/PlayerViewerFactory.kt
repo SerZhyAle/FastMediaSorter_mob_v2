@@ -126,6 +126,11 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
     }
 
     fun createTextViewerManager(): TextViewerManager {
+        val saveFlow = com.sza.fastmediasorter.ui.player.helpers.TextEditorSaveFlow(
+            context = activity,
+            saveTextNoteUseCase = activity.saveTextNoteUseCase,
+            scope = activity.lifecycleScope
+        )
         return TextViewerManager(
             context = activity,
             binding = activity.activityBinding,
@@ -154,7 +159,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                     activity.dialogHelper.showEncodingDialog()
                 }
             },
-            translationManager = activity.translationManager
+            translationManager = activity.translationManager,
+            saveFlow = saveFlow
         )
     }
 }

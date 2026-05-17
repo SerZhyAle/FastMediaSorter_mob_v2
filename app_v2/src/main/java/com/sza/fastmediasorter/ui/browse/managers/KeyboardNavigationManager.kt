@@ -36,6 +36,7 @@ class KeyboardNavigationManager(
         fun refreshFiles()
         fun navigateUp()
         fun showCreateFolderDialog()
+        fun showCreateTextNoteDialog()
         fun showHelp()
         fun showContextMenu()
         fun extendSelectionUp()
@@ -55,6 +56,7 @@ class KeyboardNavigationManager(
         "sorting.copy"              -> dispatchAction(InputAction.CopySelection)
         "sorting.move"              -> dispatchAction(InputAction.MoveSelection)
         "sorting.rename"            -> dispatchAction(InputAction.RenameSelection)
+        "sorting.create_text_note"  -> dispatchAction(InputAction.CreateTextNote)
         "navigation.next_file"      -> dispatchAction(InputAction.MoveFocus(FocusDirection.DOWN))
         "navigation.previous_file"  -> dispatchAction(InputAction.MoveFocus(FocusDirection.UP))
         else                        -> false
@@ -84,6 +86,7 @@ class KeyboardNavigationManager(
             InputAction.RenameSelection -> { if (hasSelection) callbacks.showRenameDialog(); true }
             InputAction.DeleteSelection -> { if (hasSelection) callbacks.showDeleteConfirmation(); true }
             InputAction.CreateFolder -> { callbacks.showCreateFolderDialog(); true }
+            InputAction.CreateTextNote -> { callbacks.showCreateTextNoteDialog(); true }
             InputAction.RefreshCurrent -> { callbacks.refreshFiles(); true }
             InputAction.SelectAll -> { callbacks.selectAllFiles(); true }
             InputAction.ClearSelection -> { callbacks.clearSelection(); true }

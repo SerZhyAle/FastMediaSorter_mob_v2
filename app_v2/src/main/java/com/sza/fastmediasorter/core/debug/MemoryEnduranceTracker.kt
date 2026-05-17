@@ -14,9 +14,12 @@ import timber.log.Timber
  *
  * Emits structured Logcat lines prefixed with `MEM_ENDURANCE |` at each checkpoint
  * (verbose logging is `BuildConfig.DEBUG`-only; state tracking and verdict emission are always on).
- * On verdict FAIL — or when drift_from_baseline ≥ [DRIFT_FAIL_THRESHOLD] at cooldown — the tracker
+ * On verdict FAIL — and when drift_from_baseline ≥ [DRIFT_FAIL_THRESHOLD] at cooldown — the tracker
  * forwards a one-shot event to the wired [MemoryDegradationSignal] so the UI layer can react
  * (release-safe: needed in production to drive the "Close player" snackbar from S0213 §5.1 Pillar C).
+ * Both conditions must hold: a FAIL verdict at SCENARIO_END AND high drift at COOLDOWN_RESULT.
+ * High drift alone (SUSPICIOUS/PLATEAU verdict) does not trigger the snackbar — transient native
+ * heap growth during normal video playback would otherwise cause false-positive events.
  *
  * Usage:
  * - Call [startScenario] when the endurance scenario begins.
@@ -59,6 +62,13 @@ object MemoryEnduranceTracker {
     private var lastCycleHeapMb: Long = 0L
     private var monotonicGrowthCount: Int = 0
     private var cycleCount: Int = 0
+
+    /**
+     * Verdict from the most recent [endScenario] call.
+     * Stored so [cooldownCheckpoint] can guard its [MemoryDegradationSignal] emit on FAIL-only
+     * (S0213 §5.1 Pillar C fix: high drift alone must not trigger the snackbar).
+     */
+    private var lastScenarioVerdict: String = ""
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -120,6 +130,7 @@ object MemoryEnduranceTracker {
         // S0213 Pillar C: release-safe forwarding to the UI layer. Drift at SCENARIO_END is not
         // yet known (computed only in COOLDOWN_RESULT) — pass 0; the cooldown-result branch will
         // emit a second event with the actual drift value if the threshold is crossed.
+        lastScenarioVerdict = verdict
         if (verdict == "FAIL") {
             degradationSignal?.emitFail(scenarioId, peakHeapMb.toInt(), driftPercent = 0)
         }
@@ -142,9 +153,10 @@ object MemoryEnduranceTracker {
                     " | drift_from_baseline=${recovery}%"
             )
         }
-        // S0213 Pillar C: high cooldown drift means native graph did not release after
-        // SCENARIO_END — emit even if endScenario verdict was below FAIL threshold.
-        if (recovery >= DRIFT_FAIL_THRESHOLD) {
+        // S0213 Pillar C: both conditions must hold — FAIL verdict at SCENARIO_END and high
+        // drift at COOLDOWN_RESULT. Drift alone (SUSPICIOUS/PLATEAU) does not trigger the snackbar;
+        // transient native heap growth during normal video playback reaches 50%+ without a real leak.
+        if (lastScenarioVerdict == "FAIL" && recovery >= DRIFT_FAIL_THRESHOLD) {
             degradationSignal?.emitFail(scenarioId, peakHeapMb.toInt(), driftPercent = recovery)
         }
     }

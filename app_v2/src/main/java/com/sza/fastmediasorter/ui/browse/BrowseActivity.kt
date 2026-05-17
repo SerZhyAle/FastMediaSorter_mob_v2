@@ -107,6 +107,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
     @Inject lateinit var memoryProbe: MemoryProbe
     @Inject lateinit var memoryProfileCoordinator: MemoryProfileCoordinator
+    // S0189: staging infra for text notes created in network/cloud directories
+    @Inject lateinit var textNoteStagingDirectory: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory
+    @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+    // S0231: scoped-storage-aware writer injected for ad-hoc CloudOperationStrategy construction.
+    @Inject lateinit var destinationClassifier: com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+    @Inject lateinit var destinationWriter: com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -130,11 +136,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             ?: intent.getStringExtra(EXTRA_WINDOW_ID)
             ?: ResumeStateRepository.WINDOW_ID_MAIN
         launcherManager = BrowseLauncherManager(this, object : BrowseLauncherCallbacks {
-            override fun handleGoogleSignInResult(data: Intent?) {
-                if (::initializer.isInitialized) {
-                    initializer.cloudAuthManager.handleGoogleSignInResult(data)
-                }
-            }
             override fun onPlayerActivityReturned(modifiedPaths: ArrayList<String>) {
                 viewModel.removeFilesFromList(modifiedPaths)
             }
@@ -159,7 +160,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         })
-        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient)
+        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient, textNoteStagingDirectory, textNoteStagingRegistry, destinationClassifier, destinationWriter)
         cameraCaptureManager = BrowseCameraCaptureManager(
             activity = this,
             settingsRepository = settingsRepository,

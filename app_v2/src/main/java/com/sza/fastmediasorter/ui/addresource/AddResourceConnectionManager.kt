@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.sza.fastmediasorter.ui.addresource
 
 import android.app.AlertDialog
@@ -8,10 +6,6 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -20,11 +14,17 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.ui.common.DialogUtils
 import com.sza.fastmediasorter.ui.dialog.ErrorDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -37,7 +37,21 @@ internal class AddResourceConnectionManager(
     private val oneDriveClient: dagger.Lazy<OneDriveRestClient>
 ) {
 
-    private var googleDriveAccount: GoogleSignInAccount? = null
+    /** S0200 Phase 04b: email of the currently bound primary Google account via identity domain. */
+    private var googleDriveAccountEmail: String? = null
+
+    private val identityRepository: GoogleIdentityRepository by lazy {
+        EntryPointAccessors.fromApplication(
+            activity.applicationContext,
+            AddResourceIdentityEntryPoint::class.java
+        ).identityRepository()
+    }
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface AddResourceIdentityEntryPoint {
+        fun identityRepository(): GoogleIdentityRepository
+    }
 
     fun observeAuthEvents() {
         activity.collectOnLifecycle(unifiedAuthManager.authEvents) { event ->
@@ -75,10 +89,12 @@ internal class AddResourceConnectionManager(
     // ========== Cloud Status ==========
 
     fun updateCloudStorageStatus() {
-        googleDriveAccount = GoogleSignIn.getLastSignedInAccount(activity)
+        // S0200 Phase 04b: source primary account state from the identity domain.
+        val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
+        googleDriveAccountEmail = boundEmail
         binding.tvGoogleDriveStatus.isVisible = true
-        binding.tvGoogleDriveStatus.text = if (googleDriveAccount != null) {
-            activity.getString(R.string.connected_as, googleDriveAccount?.email ?: "")
+        binding.tvGoogleDriveStatus.text = if (boundEmail != null) {
+            activity.getString(R.string.connected_as, boundEmail)
         } else {
             activity.getString(R.string.not_connected)
         }
@@ -128,51 +144,34 @@ internal class AddResourceConnectionManager(
     // ========== Google Drive ==========
 
     fun startGoogleDriveAuth() {
-        val account = GoogleSignIn.getLastSignedInAccount(activity)
-        if (account != null) showGoogleDriveSignedInOptions(account)
+        val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
+        if (boundEmail != null) showGoogleDriveSignedInOptions(boundEmail)
         else unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.GOOGLE_DRIVE)
     }
 
-    fun handleGoogleSignInResult(data: Intent?) {
-        try {
-            val account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
-            googleDriveAccount = account
-            updateCloudStorageStatus()
-            Toast.makeText(
-                activity,
-                activity.getString(R.string.google_drive_signed_in, account.email ?: ""),
-                Toast.LENGTH_SHORT
-            ).show()
-            navigateToGoogleDriveFolderPicker(account.email)
-        } catch (e: ApiException) {
-            Timber.e(e, "Google Sign-In failed: ${e.statusCode}")
-            val errorMessage = when (e.statusCode) {
-                10 -> activity.getString(R.string.google_drive_sign_in_unavailable)
-                12 -> activity.getString(R.string.google_sign_in_cancelled)
-                7 -> activity.getString(R.string.no_internet_connection)
-                else -> activity.getString(R.string.google_drive_authentication_failed)
-            }
-            AppErrorNotifier.show(activity, errorMessage, ErrorSeverity.CRITICAL)
-        }
-    }
-
-    private fun showGoogleDriveSignedInOptions(account: GoogleSignInAccount) {
+    private fun showGoogleDriveSignedInOptions(accountEmail: String) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.google_drive)
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
-                navigateToGoogleDriveFolderPicker(account.email ?: account.displayName)
+                navigateToGoogleDriveFolderPicker(accountEmail)
             }
             .setNeutralButton(android.R.string.cancel, null)
             .show()
     }
 
+    @Suppress("unused")
     private fun signOutGoogleDrive() {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build()
-        GoogleSignIn.getClient(activity, gso).signOut().addOnCompleteListener {
-            googleDriveAccount = null
-            updateCloudStorageStatus()
-            Toast.makeText(activity, activity.getString(R.string.google_drive_signed_out), Toast.LENGTH_SHORT).show()
+        // S0200 Phase 04b: primary-account sign-out goes through the identity domain.
+        activity.lifecycleScope.launch {
+            try {
+                identityRepository.signOutPrimary()
+                googleDriveAccountEmail = null
+                updateCloudStorageStatus()
+                Toast.makeText(activity, activity.getString(R.string.google_drive_signed_out), Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to sign out from Google Drive (identity domain)")
+            }
         }
     }
 

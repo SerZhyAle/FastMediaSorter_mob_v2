@@ -8,11 +8,16 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.data.transfer.local.MediaStoreLocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
+import com.sza.fastmediasorter.data.local.TextNoteStagingDirectory
+import com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.Module
 import dagger.Provides
@@ -49,8 +54,15 @@ object DirectoryStrategyModule {
     fun provideSmbDirectoryStrategy(
         @ApplicationContext context: Context,
         smbClient: SmbClient,
-        credentialsRepository: NetworkCredentialsRepository
-    ): FileOperationStrategy = SmbOperationStrategy(context, smbClient, credentialsRepository)
+        credentialsRepository: NetworkCredentialsRepository,
+        stagingDir: TextNoteStagingDirectory,
+        stagingRegistry: TextNoteStagingRegistry,
+        destinationClassifier: LocalDestinationClassifier,
+        destinationWriter: LocalDestinationWriter
+    ): FileOperationStrategy = SmbOperationStrategy(
+        context, smbClient, credentialsRepository, stagingDir, stagingRegistry,
+        destinationClassifier, destinationWriter
+    )
 
     @Provides
     @Singleton
@@ -59,8 +71,15 @@ object DirectoryStrategyModule {
     fun provideSftpDirectoryStrategy(
         @ApplicationContext context: Context,
         sftpClient: SftpClient,
-        credentialsRepository: NetworkCredentialsRepository
-    ): FileOperationStrategy = SftpOperationStrategy(context, sftpClient, credentialsRepository)
+        credentialsRepository: NetworkCredentialsRepository,
+        stagingDir: TextNoteStagingDirectory,
+        stagingRegistry: TextNoteStagingRegistry,
+        destinationClassifier: LocalDestinationClassifier,
+        destinationWriter: LocalDestinationWriter
+    ): FileOperationStrategy = SftpOperationStrategy(
+        context, sftpClient, credentialsRepository, stagingDir, stagingRegistry,
+        destinationClassifier, destinationWriter
+    )
 
     @Provides
     @Singleton
@@ -69,8 +88,15 @@ object DirectoryStrategyModule {
     fun provideFtpDirectoryStrategy(
         @ApplicationContext context: Context,
         ftpClient: FtpClient,
-        credentialsRepository: NetworkCredentialsRepository
-    ): FileOperationStrategy = FtpOperationStrategy(context, ftpClient, credentialsRepository)
+        credentialsRepository: NetworkCredentialsRepository,
+        stagingDir: TextNoteStagingDirectory,
+        stagingRegistry: TextNoteStagingRegistry,
+        destinationClassifier: LocalDestinationClassifier,
+        destinationWriter: LocalDestinationWriter
+    ): FileOperationStrategy = FtpOperationStrategy(
+        context, ftpClient, credentialsRepository, stagingDir, stagingRegistry,
+        destinationClassifier, destinationWriter
+    )
 
     @Provides
     @Singleton
@@ -80,6 +106,24 @@ object DirectoryStrategyModule {
         @ApplicationContext context: Context,
         googleDriveClient: GoogleDriveRestClient,
         dropboxClient: DropboxClient,
-        oneDriveClient: OneDriveRestClient
-    ): FileOperationStrategy = CloudOperationStrategy(context, googleDriveClient, dropboxClient, oneDriveClient)
+        oneDriveClient: OneDriveRestClient,
+        stagingDir: TextNoteStagingDirectory,
+        stagingRegistry: TextNoteStagingRegistry,
+        destinationClassifier: LocalDestinationClassifier,
+        destinationWriter: LocalDestinationWriter
+    ): FileOperationStrategy = CloudOperationStrategy(
+        context, googleDriveClient, dropboxClient, oneDriveClient, stagingDir, stagingRegistry,
+        destinationClassifier, destinationWriter
+    )
+
+    // S0231: scoped-storage-aware writer for network -> local public collections.
+    @Provides
+    @Singleton
+    fun provideLocalDestinationClassifier(): LocalDestinationClassifier = LocalDestinationClassifier()
+
+    @Provides
+    @Singleton
+    fun provideLocalDestinationWriter(
+        @ApplicationContext context: Context
+    ): LocalDestinationWriter = MediaStoreLocalDestinationWriter(context)
 }

@@ -10,11 +10,21 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * S0140: pure-JVM coverage for structured data harvesting. OkHttp is stubbed with
  * an interceptor so JSON-LD and oEmbed stay testable without Android runtime.
+ *
+ * S0223: @RunWith(RobolectricTestRunner::class) added so that org.json.JSONObject is
+ * backed by the real Android implementation (not the JVM stub that returns null from
+ * all methods under isReturnDefaultValues=true). Required for any test that exercises
+ * JSON parsing in StructuredMediaSniffer.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdkVersion=35 would fail without this.
 class StructuredMediaSnifferTest {
 
     @Test
@@ -206,6 +216,108 @@ class StructuredMediaSnifferTest {
                 )
                 assertTrue(out.all { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON })
         }
+
+    // --- S0223: sniffInstagramApiResponse tests ---
+
+    @Test
+    fun `sniffInstagramApiResponse single image post returns EMBEDDED_JSON candidate`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        val json = """
+            {
+              "items": [
+                {
+                  "image_versions2": {
+                    "candidates": [
+                      { "url": "https://cdninstagram.com/img_full.jpg", "width": 1080, "height": 1080 },
+                      { "url": "https://cdninstagram.com/img_thumb.jpg", "width": 150, "height": 150 }
+                    ]
+                  }
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val out = sniffer.sniffInstagramApiResponse(json, "https://www.instagram.com/p/ABC/")
+
+        // First candidate is taken (highest-res, first in array)
+        assertEquals(1, out.size)
+        assertEquals("https://cdninstagram.com/img_full.jpg", out[0].url)
+        assertEquals(HtmlMediaCandidate.Source.EMBEDDED_JSON, out[0].source)
+    }
+
+    @Test
+    fun `sniffInstagramApiResponse carousel returns all slide candidates`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        val json = """
+            {
+              "items": [
+                {
+                  "carousel_media": [
+                    { "image_versions2": { "candidates": [{ "url": "https://cdninstagram.com/slide1.jpg" }] } },
+                    { "image_versions2": { "candidates": [{ "url": "https://cdninstagram.com/slide2.jpg" }] } },
+                    { "image_versions2": { "candidates": [{ "url": "https://cdninstagram.com/slide3.jpg" }] } }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val out = sniffer.sniffInstagramApiResponse(json, "https://www.instagram.com/p/ABC/")
+
+        assertEquals(3, out.size)
+        assertTrue(out.all { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON })
+        assertEquals(
+            listOf(
+                "https://cdninstagram.com/slide1.jpg",
+                "https://cdninstagram.com/slide2.jpg",
+                "https://cdninstagram.com/slide3.jpg",
+            ),
+            out.map { it.url },
+        )
+    }
+
+    @Test
+    fun `sniffInstagramApiResponse empty items returns empty list`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        val json = """{"items":[]}"""
+
+        val out = sniffer.sniffInstagramApiResponse(json, "https://www.instagram.com/p/ABC/")
+
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun `sniffInstagramApiResponse malformed JSON returns empty list without crash`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+
+        val out = sniffer.sniffInstagramApiResponse("not-json!!!", "https://www.instagram.com/p/ABC/")
+
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun `sniffInstagramApiResponse deduplicates slides with same CDN asset key`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        // Two URLs for the same asset differ only in CDN edge node and signing params;
+        // last path segment (the asset key) is identical.
+        val json = """
+            {
+              "items": [
+                {
+                  "carousel_media": [
+                    { "image_versions2": { "candidates": [{ "url": "https://edge1.cdninstagram.com/v/img_abc123_n.jpg?token=A" }] } },
+                    { "image_versions2": { "candidates": [{ "url": "https://edge2.cdninstagram.com/v/img_abc123_n.jpg?token=B" }] } }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val out = sniffer.sniffInstagramApiResponse(json, "https://www.instagram.com/p/ABC/")
+
+        // Same asset key → deduplicated to 1
+        assertEquals(1, out.size)
+    }
 
     private fun fakeHttpClient(jsonBody: String): OkHttpClient {
         val mediaType = "application/json".toMediaType()

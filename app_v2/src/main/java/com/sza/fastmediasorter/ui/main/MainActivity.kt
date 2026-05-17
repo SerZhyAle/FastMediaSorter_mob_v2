@@ -82,6 +82,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var bannerManager: MainChromeOsBannerManager
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
+    private var startupFullyDrawnReported = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -148,7 +149,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen.
         // BaseActivity.onCreate has already called setContentView(binding.root) by the time we
         // return from super.onCreate(), so binding.root is attached and post() runs after layout.
-        binding.root.post { memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN) }
+        binding.root.post {
+            memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN)
+        }
 
         // Log config changes to detect unexpected recreations
         Timber.d("MainActivity.onCreate: savedInstanceState=${savedInstanceState != null}, isChangingConfigurations=$isChangingConfigurations")
@@ -378,6 +381,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun onResumeWithViews() {
+        if (!startupFullyDrawnReported) {
+            startupFullyDrawnReported = true
+            binding.root.post {
+                reportFullyDrawn()
+            }
+        }
+
         // Restore previous tab if returning from Favorites Browse — keeps the active tab
         // sticky after the user navigates back from the Favorites Browse screen.
         if (viewModel.state.value.previousTab != null) {

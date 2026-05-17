@@ -27,7 +27,9 @@ $srcRoots = @(
     (Join-Path $Root "$Module\src\main\java"),
     (Join-Path $Root "$Module\src\vr\java"),
     (Join-Path $Root "$Module\src\noLegal\java"),
-    (Join-Path $Root "$Module\src\streamingEnabled\java")
+    (Join-Path $Root "$Module\src\streamingEnabled\java"),
+    (Join-Path $Root "$Module\src\cloudEnabled\java"),
+    (Join-Path $Root "$Module\src\cloudDisabled\java")
 ) | Where-Object { Test-Path $_ }
 if (-not $srcRoots -or $srcRoots.Count -eq 0) {
     throw "No supported source roots found for module '$Module'"

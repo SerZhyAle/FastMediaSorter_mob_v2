@@ -47,7 +47,9 @@ class TextViewerManager(
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: TextViewerCallback,
-    private val translationManager: TranslationManager
+    private val translationManager: TranslationManager,
+    // S0189 Phase 06: orchestrates save-with-rename dialog; null = fallback to legacy saveEditedText()
+    private val saveFlow: TextEditorSaveFlow? = null
 ) {
 
     companion object {
@@ -112,6 +114,28 @@ class TextViewerManager(
 
     // Track EPUB WebView visibility state (to restore after translation close)
     private var wasEpubWebViewVisible = false
+
+    // S0189: when true, enterEditMode() is called automatically after text content loads
+    private var autoOpenEditMode = false
+
+    // S0189: action panel + dirty-state tracker
+    private val dirtyTracker = TextEditorDirtyStateTracker()
+    private val keepChecker = com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(context)
+    // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
+    private var autoFitFontManager: TextEditorAutoFitFontManager? = null
+    private val actionPanelManager: TextEditorActionPanelManager by lazy {
+        TextEditorActionPanelManager(
+            panel = safeViews.textEditorActionPanel,
+            btnSave = safeViews.btnTextEditorSave,
+            btnSaveClose = safeViews.btnTextEditorSaveClose,
+            btnSaveSend = safeViews.btnTextEditorSaveSend,
+            btnSendKeep = safeViews.btnTextEditorSendKeep,
+            btnCancel = safeViews.btnTextEditorCancel,
+            keepChecker = keepChecker,
+            dirtyTracker = dirtyTracker,
+            coroutineScope = coroutineScope
+        )
+    }
     private val safeViews = PlayerBindingSafeViews(binding)
 
     // Delegated helpers
@@ -209,6 +233,14 @@ class TextViewerManager(
             false // Let ScrollView handle scrolling
         }
 
+        // Edit mode uses a different surface than the read-only viewer, so gestures must be
+        // attached to the EditText itself or horizontal swipes never reach textGestureDetector.
+        safeViews.etTextContent.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
+            textGestureDetector.onTouchEvent(event)
+            false // Keep native EditText selection/scroll behaviour intact.
+        }
+
         // Text action buttons (now in top command panel)
         binding.btnCopyTextCmd.setOnClickListener {
             val text = safeViews.tvTextContent.text.toString()
@@ -225,13 +257,97 @@ class TextViewerManager(
             enterEditMode()
         }
 
-        safeViews.btnCancelEdit.setOnClickListener {
-            exitEditMode()
-        }
-
-        safeViews.btnSaveText.setOnClickListener {
-            saveEditedText()
-        }
+        // S0189: 5-action panel — replaces the former 2-button row
+        actionPanelManager.setup(object : TextEditorActionPanelManager.ActionPanelCallbacks {
+            override fun onSave() {
+                Timber.d("S0189: TextViewerManager.onSave")
+                val flow = saveFlow
+                val localFile = currentLocalFile
+                if (flow != null && localFile != null) {
+                    flow.commit(
+                        currentLocalFile = localFile,
+                        currentName = localFile.name,
+                        currentContent = safeViews.etTextContent.text.toString(),
+                        afterSave = { _ -> /* stay in edit mode; content already persisted */ }
+                    )
+                } else {
+                    saveEditedText()
+                }
+            }
+            override fun onSaveAndClose() {
+                Timber.d("S0189: TextViewerManager.onSaveAndClose")
+                val flow = saveFlow
+                val localFile = currentLocalFile
+                if (flow != null && localFile != null) {
+                    flow.commit(
+                        currentLocalFile = localFile,
+                        currentName = localFile.name,
+                        currentContent = safeViews.etTextContent.text.toString(),
+                        afterSave = { _ -> exitEditMode() }
+                    )
+                } else {
+                    saveEditedText()
+                    exitEditMode()
+                }
+            }
+            override fun onSaveAndSend() {
+                Timber.d("S0189: TextViewerManager.onSaveAndSend")
+                val flow = saveFlow
+                val localFile = currentLocalFile
+                val capturedContent = safeViews.etTextContent.text.toString()
+                if (flow != null && localFile != null) {
+                    flow.commit(
+                        currentLocalFile = localFile,
+                        currentName = localFile.name,
+                        currentContent = capturedContent,
+                        afterSave = { outcome ->
+                            val shareFile = java.io.File(outcome.finalPath)
+                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                shareFile
+                            )
+                            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                putExtra(android.content.Intent.EXTRA_TEXT, capturedContent)
+                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(android.content.Intent.createChooser(intent, context.getString(com.sza.fastmediasorter.R.string.share)))
+                        }
+                    )
+                } else {
+                    saveEditedText()
+                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, capturedContent)
+                    }
+                    context.startActivity(android.content.Intent.createChooser(intent, context.getString(com.sza.fastmediasorter.R.string.share)))
+                }
+            }
+            override fun onSendToKeep() {
+                val currentText = safeViews.etTextContent.text.toString()
+                Timber.d("S0189: TextViewerManager.onSendToKeep currentTextLen=${currentText.length}")
+                val keepPackage = keepChecker.resolveTargetPackage() ?: run {
+                    android.widget.Toast.makeText(context, com.sza.fastmediasorter.R.string.text_editor_keep_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+                    return@onSendToKeep
+                }
+                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(android.content.Intent.EXTRA_TEXT, currentText)
+                    setPackage(keepPackage)
+                }
+                try {
+                    context.startActivity(intent)
+                } catch (_: android.content.ActivityNotFoundException) {
+                    android.widget.Toast.makeText(context, com.sza.fastmediasorter.R.string.text_editor_keep_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onCancel() {
+                Timber.d("S0189: TextViewerManager.onCancel — dropping unsaved edits")
+                exitEditMode()
+            }
+        })
 
         // Editor toolbar buttons — delegated
         findReplaceManager.setupEditorToolbar()
@@ -319,6 +435,11 @@ class TextViewerManager(
                     ) {
                         if (diffX > 0) increaseTextFontSize() else decreaseTextFontSize()
                         return true
+                    }
+
+                    // In edit mode, vertical gestures must remain plain text scrolling.
+                    if (safeViews.textEditContainer.isVisible) {
+                        return false
                     }
 
                     // Vertical swipe → page navigation or fullscreen exit
@@ -450,21 +571,36 @@ class TextViewerManager(
     }
 
     private fun increaseTextFontSize() {
-        textFontSizeSp = (textFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
+        val baseSizeSp = if (safeViews.textEditContainer.isVisible) {
+            autoFitFontManager?.currentFontSizeSp() ?: textFontSizeSp
+        } else {
+            textFontSizeSp
+        }
+        textFontSizeSp = (baseSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
         applyTextFontSize()
+        // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
+        autoFitFontManager?.notifyManualOverride(textFontSizeSp)
         Timber.d("Text font size increased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
 
     private fun decreaseTextFontSize() {
-        textFontSizeSp = (textFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
+        val baseSizeSp = if (safeViews.textEditContainer.isVisible) {
+            autoFitFontManager?.currentFontSizeSp() ?: textFontSizeSp
+        } else {
+            textFontSizeSp
+        }
+        textFontSizeSp = (baseSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
         applyTextFontSize()
+        // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
+        autoFitFontManager?.notifyManualOverride(textFontSizeSp)
         Timber.d("Text font size decreased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
 
     private fun applyTextFontSize() {
         safeViews.tvTextContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
+        safeViews.etTextContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
     }
 
     private fun increaseTranslationFontSize() {
@@ -652,6 +788,12 @@ class TextViewerManager(
                         "TextViewerManager: Displaying page 0, " +
                                 "${pageText.length} chars, charset=$currentCharset"
                     )
+
+                    // S0189: auto-open edit mode when launched from the "create text note" flow
+                    if (autoOpenEditMode) {
+                        autoOpenEditMode = false
+                        enterEditMode(autoOpen = true)
+                    }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
@@ -957,7 +1099,17 @@ class TextViewerManager(
 
     // ===== H.3: Editor enter/exit/save =====
 
-    private fun enterEditMode() {
+    /**
+     * S0189: signal that edit mode should be activated automatically once text content loads.
+     * Called by [PlayerActivity] when launched with [PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN].
+     */
+    fun setAutoOpenEditMode(enabled: Boolean) {
+        autoOpenEditMode = enabled
+    }
+
+    /** Enter text edit mode. [autoOpen] distinguishes automatic (S0189 create flow) from manual entry. */
+    internal fun enterEditMode(autoOpen: Boolean = false) {
+        Timber.d("S0189: TextViewerManager.enterEditMode invoked autoOpen=$autoOpen")
         val pager = textFilePager
         if (pager != null && !pager.isSinglePage()) {
             Toast.makeText(context, R.string.text_editing_large_file, Toast.LENGTH_SHORT).show()
@@ -990,6 +1142,23 @@ class TextViewerManager(
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
 
+        // S0189: bind dirty-state tracker and reset panel tint
+        actionPanelManager.onEnterEditMode(safeViews.etTextContent, textToEdit)
+
+        // S0189 Phase 07: auto-fit font — uses max of persistent setting; locks on manual swipe
+        val maxFontSp = DEFAULT_TEXT_FONT_SIZE_SP *
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.HUGE.multiplier
+        Timber.d("S0189: TextViewerManager.enterEditMode autoFitMaxSp=$maxFontSp")
+        autoFitFontManager?.detach()
+        autoFitFontManager = TextEditorAutoFitFontManager(
+            editText = safeViews.etTextContent,
+            scrollView = safeViews.textEditScrollView,
+            maxSizeSp = maxFontSp
+        ).also {
+            it.attach()
+            it.reset()
+        }
+
         // Detach previous undo/redo manager if exists (M-10 fix)
         undoRedoManager?.detach()
 
@@ -1017,6 +1186,13 @@ class TextViewerManager(
         undoRedoManager?.detach()
         undoRedoManager = null
         autoSaveManager?.stopAutoSave()
+
+        // S0189: detach dirty-state tracker and reset panel tint
+        actionPanelManager.onExitEditMode()
+
+        // S0189 Phase 07: detach auto-fit font manager
+        autoFitFontManager?.detach()
+        autoFitFontManager = null
 
         // Close find panel if open — delegated
         findReplaceManager.closeFindPanel()
@@ -1178,7 +1354,6 @@ class TextViewerManager(
         safeViews.btnCloseTextViewer.isVisible = true
 
         binding.btnEditTextCmd.isVisible = false
-        safeViews.btnSaveText.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
         binding.btnCopyTextCmd.isVisible = true
@@ -1277,7 +1452,6 @@ class TextViewerManager(
         )
 
         binding.btnEditTextCmd.isVisible = false
-        safeViews.btnSaveText.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
         binding.btnCopyTextCmd.isVisible = true

@@ -23,9 +23,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
+import com.sza.fastmediasorter.data.browser.CctUnavailableException
+import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -34,6 +38,9 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
 
     private val viewModel: AuthSessionsListViewModel by viewModels()
     private lateinit var adapter: AuthAccountGroupAdapter
+
+    @Inject lateinit var googleDomainBrowserLauncher: GoogleDomainBrowserLauncher
+    @Inject lateinit var cctChecker: CctAvailabilityChecker
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -97,8 +104,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     private fun launchAddAccount(host: String, loginUrl: String) {
         if (loginUrl.isNotBlank()) {
             Timber.i("AuthSessionsListFragment: adding account for host=%s", host)
-            WebViewAuthDialogFragment.newInstance(loginUrl)
-                .show(parentFragmentManager, "s0155_webview_add_account")
+            openAuthWebView(loginUrl, "s0155_webview_add_account")
         } else {
             promptForManualUrl()
         }
@@ -132,8 +138,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     private fun launchRelogin(host: String, accountId: String, loginUrl: String) {
         Timber.i("AuthSessionsListFragment: re-login for host=%s accountId=%s", host, accountId)
         val url = if (loginUrl.isNotBlank()) loginUrl else KnownAuthResources.matchHost(host)?.loginUrl ?: return
-        WebViewAuthDialogFragment.newInstance(url)
-            .show(parentFragmentManager, "s0155_webview_relogin")
+        openAuthWebView(url, "s0155_webview_relogin")
     }
 
     private fun promptForUrlAndOpenWebView() {
@@ -144,8 +149,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             .setItems(labels) { _, which ->
                 val resource = resources.getOrNull(which)
                 if (resource != null) {
-                    WebViewAuthDialogFragment.newInstance(resource.loginUrl)
-                        .show(parentFragmentManager, "s0116_webview_auth")
+                    openAuthWebView(resource.loginUrl, "s0116_webview_auth")
                 } else {
                     promptForManualUrl()
                 }
@@ -164,11 +168,36 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val url = input.text?.toString()?.trim().orEmpty()
                 if (url.startsWith("http://", true) || url.startsWith("https://", true)) {
-                    WebViewAuthDialogFragment.newInstance(url)
-                        .show(parentFragmentManager, "s0116_webview_auth")
+                    openAuthWebView(url, "s0116_webview_auth")
                 } else {
                     Snackbar.make(requireView(), R.string.webview_auth_invalid_url, Snackbar.LENGTH_SHORT).show()
                 }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * S0200 — host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
+     * keeps the legacy WebView flow. CCT-unavailable triggers the refusal dialog.
+     */
+    private fun openAuthWebView(url: String, tag: String) {
+        try {
+            googleDomainBrowserLauncher.routeAuthUrl(requireContext(), url) { fallbackUrl ->
+                WebViewAuthDialogFragment.newInstance(fallbackUrl).show(parentFragmentManager, tag)
+            }
+        } catch (e: CctUnavailableException) {
+            Timber.w(e, "AuthSessionsListFragment: CCT unavailable for url=%s", url)
+            showCctUnavailableDialog { openAuthWebView(url, tag) }
+        }
+    }
+
+    private fun showCctUnavailableDialog(onRetry: () -> Unit) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.s0200_cct_unavailable_title)
+            .setMessage(R.string.s0200_cct_unavailable_message)
+            .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->
+                if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(onRetry)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.dropbox.core.DbxException
+import com.dropbox.core.DbxHost
 import com.dropbox.core.DbxRequestConfig
+import com.dropbox.core.IncludeGrantedScopes
 import com.dropbox.core.android.Auth
 import com.dropbox.core.http.OkHttp3Requestor
 import com.sza.fastmediasorter.R
@@ -97,6 +99,12 @@ class DropboxClient @Inject constructor(
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         }
     }
+
+    // Build-type resource overlays swap the Dropbox app key, so credential restore must
+    // use the same key that launched the PKCE flow for this installed variant.
+    private val dropboxAppKey by lazy {
+        context.getString(R.string.dropbox_app_key)
+    }
     
     companion object {
         private const val APP_NAME = "FastMediaSorter/2.0"
@@ -104,15 +112,22 @@ class DropboxClient @Inject constructor(
         private const val KEY_CREDENTIALS = "credentials_json"           // Legacy single-account key
         private const val KEY_CREDENTIALS_PREFIX = "credentials_json_"   // Per-account key prefix
         
-        // Dropbox App Key for credential restoration
-        private const val DROPBOX_APP_KEY = "dpy64e70kqobr6x"
-        
         // Dropbox uses "" for root folder, not null
         private const val ROOT_PATH = ""
         
         // Retry logic for transient errors
         private const val RETRY_MAX_ATTEMPTS = 3
         private const val RETRY_DELAY_MS = 2000L  // 2 seconds between retries
+
+        // S0235: request the folder-browsing scopes explicitly instead of relying on whatever
+        // the Dropbox App Console happens to grant by default for PKCE tokens.
+        private const val REQUIRED_METADATA_SCOPE = "files.metadata.read"
+        private val REQUIRED_PKCE_SCOPES = listOf(
+            REQUIRED_METADATA_SCOPE,
+            "files.content.read",
+            "files.content.write",
+            "account_info.read"
+        )
         
         // Common image extensions
         private val IMAGE_EXTENSIONS = MediaExtensions.IMAGE
@@ -211,7 +226,14 @@ class DropboxClient @Inject constructor(
      * Replaces the legacy Auth.startOAuth2Authentication() to avoid Dropbox security alerts.
      */
     fun startPkceAuthentication(activity: android.app.Activity, appKey: String) {
-        Auth.startOAuth2PKCE(activity, appKey, dbxRequestConfig)
+        Auth.startOAuth2PKCE(
+            activity,
+            appKey,
+            dbxRequestConfig,
+            DbxHost.DEFAULT,
+            REQUIRED_PKCE_SCOPES,
+            IncludeGrantedScopes.USER
+        )
     }
 
     /**
@@ -289,6 +311,12 @@ class DropboxClient @Inject constructor(
                 // Try PKCE credential first (new method)
                 val credential = Auth.getDbxCredential()
                 if (credential != null) {
+                    val grantedScopes = Auth.getScope()
+                    if (!hasRequiredMetadataScope(grantedScopes)) {
+                        return@withContext AuthResult.Error(
+                            "Dropbox sign-in did not grant files.metadata.read. Sign in again after enabling Dropbox app permissions."
+                        )
+                    }
                     val result = initializeWithCredential(credential)
                     if (result) {
                         return@withContext AuthResult.Success(
@@ -324,6 +352,13 @@ class DropboxClient @Inject constructor(
                 AuthResult.Error(buildUserFriendlyErrorMessage(e))
             }
         }
+    }
+
+    private fun hasRequiredMetadataScope(scopeGrant: String?): Boolean {
+        if (scopeGrant.isNullOrBlank()) return false
+        return scopeGrant
+            .split(' ', ',')
+            .any { it.equals(REQUIRED_METADATA_SCOPE, ignoreCase = true) }
     }
     
     /**
@@ -396,7 +431,7 @@ class DropboxClient @Inject constructor(
         DropboxClientUtils.serializeCredential(credential)
 
     private fun deserializeCredential(json: String): DbxCredential? =
-        DropboxClientUtils.deserializeCredential(json, DROPBOX_APP_KEY)
+        DropboxClientUtils.deserializeCredential(json, dropboxAppKey)
 
     private suspend fun registerAccountInDatabase(email: String) {
         val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.DROPBOX.name, email)
@@ -547,10 +582,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(folders)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to list folders in: $parentFolderId")
-                CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
+                CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error listing folders")
-                CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
+                CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             }
         }
     }

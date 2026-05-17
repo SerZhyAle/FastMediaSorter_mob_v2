@@ -1027,9 +1027,17 @@ class SmbConnectionManager @Inject constructor(
         return "smb@${key.server}:${key.port}:${key.shareName}:${key.username}:${key.domain}"
     }
 
+    // Stale generations are filtered in IdleDisconnectPolicyImpl, so the SMB timeout
+    // callback must stay cleanup-only and never add probes, retries, or extra guards.
+    private fun handleIdleTimeout(transportKey: String, key: ConnectionKey) {
+        Timber.d("IdleDisconnect: SMB timeout callback accepted (transport=%s)", transportKey)
+        Timber.d("S0228: SMB idle timeout cleanup transport=$transportKey")
+        pool.removeAndCloseAsync(key)
+    }
+
     private fun armIdleTransport(transportKey: String, key: ConnectionKey) {
         idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
-            pool.removeAndCloseAsync(key)
+            handleIdleTimeout(transportKey, key)
         }
     }
 

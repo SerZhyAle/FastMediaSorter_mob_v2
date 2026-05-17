@@ -47,7 +47,7 @@ class SettingsSearchAdapter(
             return when (sectionId) {
                 "general" -> binding.root.context.getString(R.string.settings_tab_general)
                 "playback" -> binding.root.context.getString(R.string.settings_tab_playback)
-                "destinations" -> binding.root.context.getString(R.string.settings_tab_destinations)
+                "destinations" -> binding.root.context.getString(R.string.settings_tab_operations)
                 "images" -> binding.root.context.getString(R.string.settings_category_images)
                 "video" -> binding.root.context.getString(R.string.settings_category_video)
                 "audio" -> binding.root.context.getString(R.string.settings_category_audio)

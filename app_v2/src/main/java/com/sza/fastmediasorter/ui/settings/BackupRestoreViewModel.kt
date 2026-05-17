@@ -1,15 +1,17 @@
-@file:Suppress("DEPRECATION")
 package com.sza.fastmediasorter.ui.settings
 
+import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
+import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesExportResult
 import com.sza.fastmediasorter.domain.model.FavoritesImportPreview
@@ -68,7 +70,9 @@ class BackupRestoreViewModel @Inject constructor(
     private val googleDriveClient: GoogleDriveRestClient,
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val exportFavoritesUseCase: ExportFavoritesUseCase,
-    private val importFavoritesUseCase: ImportFavoritesUseCase
+    private val importFavoritesUseCase: ImportFavoritesUseCase,
+    // S0200 Phase 04b — direct identity-domain access for the new sign-in path.
+    private val identityRepository: GoogleIdentityRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BackupRestoreUiState>(BackupRestoreUiState.Idle)
@@ -83,7 +87,45 @@ class BackupRestoreViewModel @Inject constructor(
     /** Pending action after auth completes: "backup" or "restore" */
     private var pendingAction: String? = null
 
-    fun getSignInIntent(): Intent = googleDriveClient.getSignInIntent()
+    /**
+     * S0200 Phase 04b: launch Credential Manager sign-in via the identity domain.
+     * On success, continues any [pendingAction] (backup / restore). On cancellation or failure,
+     * surfaces a user-facing error via [_uiState].
+     */
+    fun startSignIn(activity: Activity) {
+        viewModelScope.launch {
+            _uiState.value = BackupRestoreUiState.Authenticating
+            val result = identityRepository.signInPrimary(activity, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)
+            when (result) {
+                is IdentitySignInResult.Success -> {
+                    when (pendingAction) {
+                        "backup" -> performBackup()
+                        "restore" -> fetchBackupInfo()
+                        else -> _uiState.value = BackupRestoreUiState.Idle
+                    }
+                    pendingAction = null
+                }
+                IdentitySignInResult.Cancelled -> {
+                    _uiState.value = BackupRestoreUiState.Error(
+                        context.getString(R.string.google_sign_in_cancelled)
+                    )
+                    pendingAction = null
+                }
+                is IdentitySignInResult.Failed -> {
+                    val message = when (result.reason) {
+                        IdentityFailureReason.UserCancelled ->
+                            context.getString(R.string.google_sign_in_cancelled)
+                        IdentityFailureReason.NetworkError ->
+                            context.getString(R.string.no_internet_connection)
+                        else ->
+                            context.getString(R.string.google_drive_authentication_failed)
+                    }
+                    _uiState.value = BackupRestoreUiState.Error(message)
+                    pendingAction = null
+                }
+            }
+        }
+    }
 
     fun isAuthenticated(): Boolean = googleDriveClient.isAuthenticated()
 
@@ -136,54 +178,6 @@ class BackupRestoreViewModel @Inject constructor(
     fun confirmRestore() {
         viewModelScope.launch {
             performRestore()
-        }
-    }
-
-    /**
-     * Process sign-in result from Activity.
-     * @param account Signed-in account, or null if sign-in did not complete.
-     * @param apiErrorCode ApiException.statusCode from the sign-in flow, if available.
-     *                     Used to distinguish cancellation (12501/4) from other failures.
-     */
-    fun handleSignInResult(account: GoogleSignInAccount?, apiErrorCode: Int? = null) {
-        viewModelScope.launch {
-            if (account == null) {
-                val message = when {
-                    // 12501 = SIGN_IN_CANCELLED (back press), 4 = legacy cancelled
-                    apiErrorCode == 12501 || apiErrorCode == 4 ->
-                        context.getString(R.string.google_sign_in_cancelled)
-                    apiErrorCode != null ->
-                        context.getString(R.string.google_sign_in_failed, apiErrorCode)
-                    else ->
-                        context.getString(R.string.google_sign_in_cancelled)
-                }
-                _uiState.value = BackupRestoreUiState.Error(message)
-                pendingAction = null
-                return@launch
-            }
-
-            val authResult = googleDriveClient.handleSignInResult(account)
-            when (authResult) {
-                is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
-                    when (pendingAction) {
-                        "backup" -> performBackup()
-                        "restore" -> fetchBackupInfo()
-                    }
-                    pendingAction = null
-                }
-                is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                    _uiState.value = BackupRestoreUiState.Error(
-                        context.getString(R.string.auth_failed)
-                    )
-                    pendingAction = null
-                }
-                is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                    _uiState.value = BackupRestoreUiState.Error(
-                        context.getString(R.string.google_sign_in_cancelled)
-                    )
-                    pendingAction = null
-                }
-            }
         }
     }
 

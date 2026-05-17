@@ -113,11 +113,21 @@ class SftpClient @Inject constructor(
         reachabilityGate.requireAnyNetwork("SFTP")
         val transportKey = rememberTransportKey(info)
         idleDisconnectPolicy.touch(transportKey)
-        val result = pool.withConnection(info, block)
-        if (result.isSuccess) {
-            armTransport(info)
+        Timber.d("S0219: SftpClient.withConnection enter transport=$transportKey")
+        // S0219 Pillar C: rearm the idle timer on every completion path (success or failure), not
+        // only success. A failed op still leaves a transport that should stay under idle-policy
+        // supervision; only CancellationException (user-initiated cancel, S0205) skips rearm.
+        var cancelled = false
+        return try {
+            pool.withConnection(info, block)
+        } catch (e: CancellationException) {
+            cancelled = true
+            throw e
+        } finally {
+            if (!cancelled && trackedTransportKeys.contains(transportKey)) {
+                armTransport(info)
+            }
         }
-        return result
     }
 
     // ExoPlayer connection management lives in SftpConnectionPool.
@@ -671,11 +681,22 @@ class SftpClient @Inject constructor(
     ): Result<java.io.InputStream> {
         val transportKey = rememberTransportKey(connectionInfo)
         idleDisconnectPolicy.touch(transportKey)
-        val result = pool.openInputStream(connectionInfo, remotePath)
-        if (result.isSuccess) {
-            armTransport(connectionInfo)
+        Timber.d("S0219: SftpClient.openInputStream enter transport=$transportKey path=$remotePath")
+        // S0219 Pillar C: rearm idle timer on every non-cancellation completion path.
+        // Note: the InputStream lifetime extends past this function, but idle-disconnect concerns
+        // the pool's session state — activeBorrowCount (Phase 02) keeps the session alive while
+        // the stream is open regardless of the idle timer.
+        var cancelled = false
+        return try {
+            pool.openInputStream(connectionInfo, remotePath)
+        } catch (e: CancellationException) {
+            cancelled = true
+            throw e
+        } finally {
+            if (!cancelled && trackedTransportKeys.contains(transportKey)) {
+                armTransport(connectionInfo)
+            }
         }
-        return result
     }
     // Create directory on SFTP server
 

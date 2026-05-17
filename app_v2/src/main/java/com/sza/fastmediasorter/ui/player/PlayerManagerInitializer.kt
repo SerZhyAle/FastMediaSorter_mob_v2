@@ -143,7 +143,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             googleDriveClient = activity.googleDriveClient,
             dropboxClient = activity.dropboxClient,
             oneDriveClient = activity.oneDriveClient,
-            googleSignInLauncher = activity.googleSignInLauncher,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
                 override fun onAuthenticationSuccess() {}
                 override fun onAuthenticationFailure() {}
@@ -403,6 +402,15 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                         MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
                     }
                     activity.navigationManager.navigateNextAfterOperation("Pre-delete: stop and optimistic advance")
+                    // S0226: Persist lastViewedFile immediately after the optimistic advance so that
+                    // a new player session opened before the debounced save (5 s) fires lands on the
+                    // correct next file instead of the now-deleted one. Skip when the list had only
+                    // one file — nextFile() wraps back to the same path and the Activity will finish
+                    // when the delete completes anyway.
+                    val nextPath = activity.viewModel.state.value.currentFile?.path
+                    if (nextPath != null && nextPath != deletedFilePath) {
+                        activity.viewModel.saveLastViewedFile(nextPath)
+                    }
                 }
 
                 override fun onCopySuccess(destination: com.sza.fastmediasorter.domain.model.MediaResource, goToNext: Boolean) {

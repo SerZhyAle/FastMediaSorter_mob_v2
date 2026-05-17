@@ -202,13 +202,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
     internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 
-    internal val googleSignInLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (::cloudAuthManager.isInitialized) {
-            cloudAuthManager.handleGoogleSignInResult(result.data)
-        }
-    }
+    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager replaces the
+    // activity-result handshake. Drive sign-in goes through GoogleIdentityRepository.signInPrimary.
 
     // Android 11+ batch delete permission (createDeleteRequest)
     internal val batchDeletePermissionLauncher = registerForActivityResult(
@@ -450,6 +445,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
             window.decorView.post { if (isDrawOverlayManagerReady) imageDrawOverlayManager.enterDrawMode() }
+        }
+        // S0189: signal textViewerManager to enter edit mode once text content finishes loading
+        if (intent.getBooleanExtra(EXTRA_TEXT_EDIT_MODE_ON_OPEN, false)) {
+            textViewerManager.setAutoOpenEditMode(true)
         }
         // S0162: pass accelerometer capability once; ViewModel launches settings collector internally
         viewModel.initRotationCapability(hasAccelerometer)
@@ -701,6 +700,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal val isDrawOverlayManagerReady: Boolean get() = ::imageDrawOverlayManager.isInitialized
 
     @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
+
+    // S0189 Phase 06: save text note with rename dialog + network upload
+    @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 
     // S0192 Phase 05 — Google Keep export, invoked from the draw editor overflow menu.
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
@@ -1384,6 +1386,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         const val EXTRA_WINDOW_ID = "extra_window_id"
         // S0159: pre-activate draw overlay mode when launched from Browse overflow menu
         const val EXTRA_ACTIVATE_DRAW_MODE = "activate_draw_mode"
+        // S0189: open text file directly in edit mode (create-text-note flow)
+        const val EXTRA_TEXT_EDIT_MODE_ON_OPEN = "s0189_edit_mode_on_open"
 
         // S0026: detected stereo mode hint. Browse fills this when launching VR; VrPlayerActivity
         // primes PlayerStereoModeCoordinator with this value before applying user-settings, so the

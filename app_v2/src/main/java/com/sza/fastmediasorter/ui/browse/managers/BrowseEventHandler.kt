@@ -114,6 +114,21 @@ class BrowseEventHandler(
                     }
                 }
             }
+            is BrowseEvent.NavigateToTextEditor -> {
+                // S0189: open text file in edit mode — bypasses normal file-index resolution
+                val activityHost = activity as? ComponentActivity ?: run {
+                    Timber.e("BrowseEventHandler: activity is not ComponentActivity, cannot launch text editor")
+                    return
+                }
+                val playerIntent = PlayerActivity.createIntent(
+                    activity,
+                    event.resourceId,
+                    initialFilePath = event.filePath,
+                ).putExtra(PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN, true)
+                playerActivityLauncher.launch(playerIntent)
+                @Suppress("DEPRECATION")
+                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
             is BrowseEvent.ShowCloudAuthenticationRequired -> {
                 onShowCloudAuthDialog(event.provider)
             }

@@ -200,6 +200,21 @@ if ($gdPath) {
     }
 }
 
+# Generate fastlane changelogs for IzzyOnDroid / F-Droid (S0215 Phase 04).
+# Non-blocking — warnings on failure; does not abort the release flow.
+$changelogScript = Join-Path $projectRoot "scripts\release\gen_fastlane_changelog.ps1"
+if (Test-Path $changelogScript) {
+    Write-Host "Generating fastlane changelogs (versionCode=$versionCodeInt)..." -ForegroundColor Yellow
+    & $changelogScript -VersionCode $versionCodeInt 2>&1 | ForEach-Object { Write-Host $_ }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: fastlane changelog generation failed — F-Droid changelogs not updated." -ForegroundColor Yellow
+    } else {
+        Write-Host "Fastlane changelogs generated." -ForegroundColor Green
+    }
+} else {
+    Write-Host "Note: gen_fastlane_changelog.ps1 not found — skipping F-Droid changelog step." -ForegroundColor DarkGray
+}
+
 # Log to builds journal
 $journalPath = Join-Path $downloadsDir "builds_versions.lst"
 $apkSizeStr = if ($apkPath) { ", APK: $apkSize MB" } else { "" }

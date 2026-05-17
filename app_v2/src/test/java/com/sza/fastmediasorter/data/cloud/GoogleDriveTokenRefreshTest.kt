@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,6 +52,12 @@ class GoogleDriveTokenRefreshTest {
             networkCredentialsRepository = mockCredentialsRepo,
             reachabilityGate = mockk(relaxed = true),
             lifecycleBootstrapper = dagger.Lazy { mockk(relaxed = true) },
+            // S0200 Phase 04b: identity-domain injection. Reflection-based field access below
+            // targets RestClient internals; those internal fields moved to the Coordinator in
+            // Phase 04b so this test class's runtime assertions will fail. Tracked under
+            // "pre-existing test failures" until Phase 04b.6 wires the FakeGoogleIdentityRepository
+            // contract. Compile-correctness is preserved by passing a mockk.
+            identityRepository = mockk<GoogleIdentityRepository>(relaxed = true),
         )
     }
 

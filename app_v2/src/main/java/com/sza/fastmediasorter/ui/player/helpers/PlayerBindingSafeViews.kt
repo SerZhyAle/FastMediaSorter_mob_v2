@@ -129,8 +129,15 @@ class PlayerBindingSafeViews(
     val tvTextContent: TextView get() = required(R.id.tvTextContent)
     val textEditContainer: LinearLayout get() = required(R.id.textEditContainer)
     val etTextContent: EditText get() = required(R.id.etTextContent)
-    val btnCancelEdit: MaterialButton get() = required(R.id.btnCancelEdit)
-    val btnSaveText: MaterialButton get() = required(R.id.btnSaveText)
+    // S0189: scroll container that hosts etTextContent in edit mode
+    val textEditScrollView: ScrollView get() = required(R.id.textEditScrollView)
+    // S0189: 5-action editor panel replacing the legacy 2-button row
+    val textEditorActionPanel: LinearLayout get() = required(R.id.textEditorActionPanel)
+    val btnTextEditorSave: MaterialButton get() = required(R.id.btnTextEditorSave)
+    val btnTextEditorSaveClose: MaterialButton get() = required(R.id.btnTextEditorSaveClose)
+    val btnTextEditorSaveSend: MaterialButton get() = required(R.id.btnTextEditorSaveSend)
+    val btnTextEditorSendKeep: MaterialButton get() = required(R.id.btnTextEditorSendKeep)
+    val btnTextEditorCancel: MaterialButton get() = required(R.id.btnTextEditorCancel)
 
     // Page navigation
     val textPageNavigation: LinearLayout get() = required(R.id.textPageNavigation)
@@ -237,11 +244,28 @@ val ActivityPlayerUnifiedBinding.textEditContainer: LinearLayout
 val ActivityPlayerUnifiedBinding.etTextContent: EditText
     get() = requiredFromRoot(R.id.etTextContent)
 
-val ActivityPlayerUnifiedBinding.btnCancelEdit: MaterialButton
-    get() = requiredFromRoot(R.id.btnCancelEdit)
+// S0189: scroll container hosting etTextContent in edit mode
+val ActivityPlayerUnifiedBinding.textEditScrollView: ScrollView
+    get() = requiredFromRoot(R.id.textEditScrollView)
 
-val ActivityPlayerUnifiedBinding.btnSaveText: MaterialButton
-    get() = requiredFromRoot(R.id.btnSaveText)
+// S0189: 5-action editor panel extension properties
+val ActivityPlayerUnifiedBinding.textEditorActionPanel: LinearLayout
+    get() = requiredFromRoot(R.id.textEditorActionPanel)
+
+val ActivityPlayerUnifiedBinding.btnTextEditorSave: MaterialButton
+    get() = requiredFromRoot(R.id.btnTextEditorSave)
+
+val ActivityPlayerUnifiedBinding.btnTextEditorSaveClose: MaterialButton
+    get() = requiredFromRoot(R.id.btnTextEditorSaveClose)
+
+val ActivityPlayerUnifiedBinding.btnTextEditorSaveSend: MaterialButton
+    get() = requiredFromRoot(R.id.btnTextEditorSaveSend)
+
+val ActivityPlayerUnifiedBinding.btnTextEditorSendKeep: MaterialButton
+    get() = requiredFromRoot(R.id.btnTextEditorSendKeep)
+
+val ActivityPlayerUnifiedBinding.btnTextEditorCancel: MaterialButton
+    get() = requiredFromRoot(R.id.btnTextEditorCancel)
 
 val ActivityPlayerUnifiedBinding.textPageNavigation: LinearLayout
     get() = requiredFromRoot(R.id.textPageNavigation)

@@ -320,6 +320,7 @@ class BrowseManagerInitializer(
                     viewModel.navigateUp()
                 }
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
+                override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
                 override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
@@ -345,7 +346,6 @@ class BrowseManagerInitializer(
             googleDriveClient = googleDriveClient,
             dropboxClient = dropboxClient,
             oneDriveClient = oneDriveClient,
-            googleSignInLauncher = launcherManager.googleSignInLauncher,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
                 override fun onAuthenticationSuccess() = viewModel.reloadFiles()
                 override fun onAuthenticationFailure() {}
@@ -547,6 +547,10 @@ class BrowseManagerInitializer(
                 Timber.d("S0165: btnCreateFolder clicked → showCreateFolderDialog")
                 resourceOpsMenuManager.showCreateFolderDialog(viewModel)
             }
+            override fun onCreateTextNoteClicked() {
+                Timber.d("S0189: btnCreateTextFile clicked → showCreateTextNoteDialog")
+                resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
+            }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
             override fun onMicRecordTouchDown() = activity.onMicRecordTouchDown()
             override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
@@ -590,6 +594,12 @@ class BrowseManagerInitializer(
         }
 
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
+
+        // S0189: wire notifyCreatedForOpen so the editor opens immediately after text note creation
+        viewModel.setOpenNoteCallback { createdPath ->
+            Timber.d("S0189: BrowseManagerInitializer.notifyCreatedForOpen path=$createdPath")
+            viewModel.openTextNoteInEditor(createdPath)
+        }
     }
 
     private fun setupDragToReorder() {

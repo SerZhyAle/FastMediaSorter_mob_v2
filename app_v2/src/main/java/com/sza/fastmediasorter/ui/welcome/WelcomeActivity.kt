@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import com.sza.fastmediasorter.core.input.TvNavAction
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -498,6 +499,57 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 android.content.pm.PackageManager.PERMISSION_GRANTED
         }
     }
+
+    // ── S0230: TV / keyboard navigation ──────────────────────────────────────
+
+    /**
+     * Handle D-pad and keyboard navigation for the welcome slider.
+     *
+     * DPAD_RIGHT / TAB → next slide
+     * DPAD_LEFT / SHIFT+TAB → previous slide
+     * DPAD_CENTER / ENTER → activate the visible primary action button (Next or Finish)
+     * BACK → delegated to the system back handler (minimise / finish)
+     *
+     * Returns true when the action is consumed so the event is not re-dispatched.
+     */
+    override fun onTvNavigation(action: TvNavAction): Boolean {
+        Timber.d("S0230: WelcomeActivity.onTvNavigation action=$action page=$currentPage")
+        return when (action) {
+            TvNavAction.Next -> {
+                if (!binding.fragmentContainerWelcome.isVisible && currentPage < pagerAdapter.itemCount - 1) {
+                    binding.viewPager.currentItem = currentPage + 1
+                    true
+                } else false
+            }
+            TvNavAction.Prev -> {
+                if (!binding.fragmentContainerWelcome.isVisible && currentPage > 0) {
+                    binding.viewPager.currentItem = currentPage - 1
+                    true
+                } else false
+            }
+            TvNavAction.Select -> {
+                // Activate the visible forward-navigation button so D-pad center works like a tap.
+                when {
+                    binding.fragmentContainerWelcome.isVisible -> false
+                    binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
+                    binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
+                    else -> false
+                }
+            }
+            TvNavAction.Back -> {
+                onBackPressedDispatcher.onBackPressed()
+                true
+            }
+            // Up/Down have no meaning on the slider — let Android handle focus traversal.
+            TvNavAction.Up, TvNavAction.Down -> false
+        }
+    }
+
+    /**
+     * On TV, set initial focus to the primary forward-action button so the first D-pad
+     * press is immediately actionable without a random "focus init" key press.
+     */
+    override fun getInitialFocusView(): View = binding.btnNext
 
     companion object {
         private const val KEY_CURRENT_PAGE = "key_current_page"

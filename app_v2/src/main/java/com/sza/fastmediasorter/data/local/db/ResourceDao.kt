@@ -26,6 +26,34 @@ abstract class ResourceDao {
     @Query("DELETE FROM resources")
     abstract suspend fun deleteAllResources()
 
+    // --- S0200: Drive resource "needs sign-in" state ---
+
+    /**
+     * S0200 Phase 05: mark every Drive resource as requiring a fresh primary sign-in (or unmark).
+     * Used ONLY by [S0200AuthStateWipe] on first launch after upgrade (ADR-6: full legacy
+     * auth-state purge). Sign-out from the primary account must NOT use this — it has to spare
+     * secondary multi-account Drive resources (strategic §11.5 / §5.2). Use
+     * [markDriveNeedsSignInForCredentials] there instead.
+     */
+    @Query("UPDATE resources SET needs_sign_in = :flag WHERE type = 'CLOUD' AND cloudProvider = 'GOOGLE_DRIVE'")
+    abstract suspend fun markAllDriveNeedsSignIn(flag: Boolean)
+
+    /**
+     * S0200 §11.5 fix: mark only the Drive resources whose [credentialsId] (= the bound Google
+     * email per [GoogleDriveCredentialsManager]) matches the primary account being signed out.
+     * Symmetric to [clearNeedsSignInForCredentials]; preserves access to secondary multi-account
+     * Drive resources per strategic ADR-3 / §5.2.
+     */
+    @Query("UPDATE resources SET needs_sign_in = :flag WHERE type = 'CLOUD' AND cloudProvider = 'GOOGLE_DRIVE' AND credentialsId = :credentialsId")
+    abstract suspend fun markDriveNeedsSignInForCredentials(credentialsId: String, flag: Boolean)
+
+    /**
+     * S0200 Phase 05: clear the needs-sign-in flag for every resource matching [credentialsId].
+     * Called by [GoogleAccountSettingsViewModel.signInPrimary] on success.
+     */
+    @Query("UPDATE resources SET needs_sign_in = 0 WHERE credentialsId = :credentialsId")
+    abstract suspend fun clearNeedsSignInForCredentials(credentialsId: String)
+
     // --- FTS Table Operations ---
 
     @Query("INSERT INTO resources_fts(docid, name, path) VALUES (:docid, :name, :path)")

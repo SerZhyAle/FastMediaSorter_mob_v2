@@ -6,6 +6,7 @@
     <string name="settings_category_interface">Интерфейс</string>
     <string name="settings_category_files">Файлы и данные</string>
     <string name="settings_category_permissions">Разрешения и доступ</string>
+    <string name="settings_category_about">О приложении</string>
     <string name="settings_category_app_data">Данные и резервные копии</string>
     <string name="settings_category_system">Сеть и кэш</string>
     <string name="settings_category_sorting_slideshow">Сортировка, слайдшоу и воспроизведение</string>
@@ -61,7 +62,7 @@
     <string name="settings_tab_media">Медиа</string>
     <string name="settings_tab_playback">Воспроизведение</string>
     <string name="settings_tab_network">Сеть</string>
-    <string name="settings_tab_destinations">Операции</string>
+    <string name="settings_tab_operations">Операции</string>
 
     <!-- Copy Dialog -->
     <string name="copying_files">Копируем..</string>
@@ -1060,6 +1061,7 @@
     <string name="link_autodownload_error_no_network">Нет подключения к сети</string>
     <string name="link_autodownload_error_resource_unavailable">Выбранный ресурс недоступен</string>
     <string name="link_autodownload_error_no_media">По ссылке не найден файл для скачивания</string>
+    <string name="link_autodownload_error_youtube_community_post">Посты сообщества YouTube нельзя скачать</string>
     <string name="link_autodownload_error_corrupted">Не удалось скачать пригодный файл — сервер вернул страницу с ошибкой или неполный файл</string>
     <string name="link_autodownload_error_timeout">Превышено время ожидания загрузки</string>
     <string name="link_autodownload_error_mime_blocked">Этот тип файла не поддерживается</string>
@@ -2751,6 +2753,25 @@
     <string name="duplicate_scan_notif_running">Выполняется поиск дубликатов..</string>
     <string name="duplicate_scan_notif_channel_name">Сканнер дубликатов</string>
     <string name="action_create_folder">Создать папку</string>
+    <string name="action_create_text_file">Создать заметку</string>
+    <string name="create_text_file_title">Новая заметка</string>
+    <string name="create_text_file_hint">Имя файла</string>
+    <string name="error_text_note_create_failed">Не получилось создать заметку здесь. Попробуйте другую папку.</string>
+    <string name="msg_text_note_created">Заметка создана: %1$s</string>
+    <string name="error_invalid_text_note_name">Используйте буквы, цифры, дефис; без / \\ : * ? \" &lt; &gt; |</string>
+    <string name="text_editor_action_save">Сохранить</string>
+    <string name="text_editor_action_save_close">Сохранить и закрыть</string>
+    <string name="text_editor_action_save_send">Сохранить и отправить</string>
+    <string name="text_editor_action_send_keep">В Keep</string>
+    <string name="text_editor_action_cancel">Отменить</string>
+    <string name="text_editor_keep_unavailable">Google Keep не установлен.</string>
+    <string name="text_note_save_dialog_title">Сохранить заметку</string>
+    <string name="text_note_save_dialog_hint">Имя файла</string>
+    <string name="text_note_save_dialog_ok">Сохранить</string>
+    <string name="text_note_save_renamed_suffix">Сохранено как %1$s (имя было занято)</string>
+    <string name="text_note_save_error_network">Не удалось добраться до папки. Заметка осталась на устройстве — повторим, когда снова будет связь.</string>
+    <string name="text_note_save_success_local">Сохранено.</string>
+    <string name="text_note_save_success_remote">Сохранено в %1$s.</string>
     <string name="menu_automate_source">Автоматизация..</string>
     <string name="menu_add_receiver">В список сортировки</string>
     <string name="msg_added_as_receiver">Ресурс добавлен в список сортировки</string>
@@ -3520,4 +3541,5 @@
     <string name="draw_color_custom_cd">Пользовательский цвет</string>
     <string name="draw_save_ok_toast">Сохранено</string>
     <string name="draw_save_failed_toast">Не удалось сохранить</string>
+    <string name="error_reason_local_destination_permission_denied">Не удалось сохранить — Android не разрешает запись в эту папку. Попробуйте сохранить в Music, Movies, Pictures или Downloads.</string>
 </resources>

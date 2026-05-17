@@ -36,6 +36,7 @@ class SmbConnectionManagerTest {
     private lateinit var mockShare: DiskShare
     private lateinit var mockNetworkStateMonitor: NetworkStateMonitor
     private lateinit var mockReachabilityGate: NetworkReachabilityGate
+    private lateinit var mockIdleDisconnectPolicy: IdleDisconnectPolicy
 
     @Before
     fun setup() {
@@ -46,6 +47,7 @@ class SmbConnectionManagerTest {
         mockShare = mockk(relaxed = true)
         mockNetworkStateMonitor = mockk(relaxed = true)
         mockReachabilityGate = mockk(relaxed = true)
+        mockIdleDisconnectPolicy = mockk(relaxed = true)
         every { mockReachabilityGate.requireWifi(any()) } just Runs
         every { mockReachabilityGate.requireAnyNetwork(any()) } just Runs
         
@@ -73,7 +75,7 @@ class SmbConnectionManagerTest {
             mockk<SmbPlaybackConnectionTracker>(relaxed = true),
             mockReachabilityGate,
             dagger.Lazy { mockk(relaxed = true) },
-            mockk<IdleDisconnectPolicy>(relaxed = true),
+            mockIdleDisconnectPolicy,
         )
     }
     
@@ -119,6 +121,40 @@ class SmbConnectionManagerTest {
             verify(exactly = 1) { mockSmbClient.connect("testserver", 445) }
             verify(exactly = 1) { mockConnection.authenticate(any()) }
             verify(exactly = 1) { mockSession.connectShare("testshare") }
+        }
+    }
+
+    @Test
+    fun `withConnection touches and arms the same SMB transport key`() = runBlocking {
+        val connectionInfo = SmbConnectionInfo(
+            server = "testserver",
+            shareName = "testshare",
+            username = "testuser",
+            password = "testpass",
+            domain = "",
+            port = 445
+        )
+
+        val touchTransportSlot = slot<String>()
+        val armTransportSlot = slot<String>()
+        val idleMsSlot = slot<Long>()
+        every { mockIdleDisconnectPolicy.touch(capture(touchTransportSlot)) } just Runs
+        every { mockIdleDisconnectPolicy.arm(capture(armTransportSlot), capture(idleMsSlot), any()) } just Runs
+
+        mockkObject(connectionManager) {
+            every { connectionManager.getClient(any(), any()) } returns mockSmbClient
+
+            val result = connectionManager.withConnection(connectionInfo) {
+                SmbResult.Success(Unit)
+            }
+
+            assertTrue("Result should be Success", result is SmbResult.Success)
+            assertEquals("smb@testserver:445:testshare:testuser:", touchTransportSlot.captured)
+            assertEquals(touchTransportSlot.captured, armTransportSlot.captured)
+            assertEquals(30_000L, idleMsSlot.captured)
+
+            verify(exactly = 1) { mockIdleDisconnectPolicy.touch(any()) }
+            verify(exactly = 1) { mockIdleDisconnectPolicy.arm(any(), any(), any()) }
         }
     }
     

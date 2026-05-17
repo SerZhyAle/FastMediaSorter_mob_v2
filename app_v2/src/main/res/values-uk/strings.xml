@@ -5,6 +5,7 @@
     <string name="settings_category_interface">Інтерфейс</string>
     <string name="settings_category_files">Файли та дані</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
+    <string name="settings_category_about">Про програму</string>
     <string name="settings_category_app_data">Дані та резервні копії</string>
     <string name="settings_category_system">Мережа та кеш</string>
     <string name="settings_category_sorting_slideshow">Сортування, слайдшоу та відтворення</string>
@@ -60,7 +61,7 @@
     <string name="settings_tab_media">Медіа</string>
     <string name="settings_tab_playback">Відтворення</string>
     <string name="settings_tab_network">Мережа</string>
-    <string name="settings_tab_destinations">Операції</string>
+    <string name="settings_tab_operations">Операції</string>
 
     <!-- Copy Dialog -->
     <string name="copying_files">Копіюємо..</string>
@@ -1054,6 +1055,7 @@
     <string name="link_autodownload_error_no_network">Немає підключення до мережі</string>
     <string name="link_autodownload_error_resource_unavailable">Вибраний ресурс недоступний</string>
     <string name="link_autodownload_error_no_media">За посиланням не знайдено файл для завантаження</string>
+    <string name="link_autodownload_error_youtube_community_post">Дописи спільноти YouTube не можна завантажити</string>
     <string name="link_autodownload_error_corrupted">Не вдалося завантажити придатний файл — сервер повернув сторінку з помилкою або неповний файл</string>
     <string name="link_autodownload_error_timeout">Перевищено час очікування завантаження</string>
     <string name="link_autodownload_error_mime_blocked">Цей тип файлу не підтримується</string>
@@ -2759,6 +2761,25 @@
     <string name="duplicate_scan_notif_running">Виконується пошук дублікатів..</string>
     <string name="duplicate_scan_notif_channel_name">Сканер дублікатів</string>
     <string name="action_create_folder">Створити папку</string>
+    <string name="action_create_text_file">Створити нотатку</string>
+    <string name="create_text_file_title">Нова нотатка</string>
+    <string name="create_text_file_hint">Імʼя файлу</string>
+    <string name="error_text_note_create_failed">Не вдалося створити нотатку тут. Спробуйте іншу теку.</string>
+    <string name="msg_text_note_created">Нотатку створено: %1$s</string>
+    <string name="error_invalid_text_note_name">Літери, цифри, дефіс; без / \\ : * ? \" &lt; &gt; |</string>
+    <string name="text_editor_action_save">Зберегти</string>
+    <string name="text_editor_action_save_close">Зберегти й закрити</string>
+    <string name="text_editor_action_save_send">Зберегти й надіслати</string>
+    <string name="text_editor_action_send_keep">У Keep</string>
+    <string name="text_editor_action_cancel">Скасувати</string>
+    <string name="text_editor_keep_unavailable">Google Keep не встановлено.</string>
+    <string name="text_note_save_dialog_title">Зберегти нотатку</string>
+    <string name="text_note_save_dialog_hint">Ім\'я файлу</string>
+    <string name="text_note_save_dialog_ok">Зберегти</string>
+    <string name="text_note_save_renamed_suffix">Збережено як %1$s (ім\'я було зайняте)</string>
+    <string name="text_note_save_error_network">Не вийшло достукатися до теки. Нотатка залишилась на пристрої — повторимо, коли з\'явиться зв\'язок.</string>
+    <string name="text_note_save_success_local">Збережено.</string>
+    <string name="text_note_save_success_remote">Збережено в %1$s.</string>
     <string name="menu_automate_source">Автоматизація..</string>
     <string name="menu_add_receiver">До списку сортування</string>
     <string name="msg_added_as_receiver">Ресурс додано до списку сортування</string>
@@ -3481,4 +3502,5 @@
     <string name="draw_color_custom_cd">Довільний колір</string>
     <string name="draw_save_ok_toast">Збережено</string>
     <string name="draw_save_failed_toast">Не вдалося зберегти</string>
+    <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти — Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
 </resources>

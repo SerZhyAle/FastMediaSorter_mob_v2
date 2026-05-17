@@ -41,6 +41,8 @@ sealed class BrowseEvent {
     data class ResourceAddedAsDestination(val resourceId: Long) : BrowseEvent()
     /** Scroll the Browse list to the file with this name (emitted after camera capture save). */
     data class ScrollToFile(val fileName: String) : BrowseEvent()
+    /** S0189: open [filePath] in PlayerActivity with edit mode pre-activated. */
+    data class NavigateToTextEditor(val filePath: String, val resourceId: Long) : BrowseEvent()
     /** Shown after SMB scan when one or more files could not have metadata extracted. */
     data class ShowMetadataWarning(val errorCount: Int) : BrowseEvent()
     /** Scan failed because ACCESS_LOCAL_NETWORK permission is not granted (API 37+). */

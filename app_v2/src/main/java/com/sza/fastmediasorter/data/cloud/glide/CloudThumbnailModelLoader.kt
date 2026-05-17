@@ -9,13 +9,17 @@ import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.signature.ObjectKey
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.GoogleScope
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
-import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
@@ -24,7 +28,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 /**
@@ -326,43 +329,37 @@ class CloudThumbnailDataFetcher(
         }
     }
 
+    /**
+     * S0200 Phase 04c: Drive thumbnail tokens now come from [GoogleIdentityRepository] via an
+     * EntryPoint accessor (Glide's data fetcher is not Hilt-managed). Cold-start race handled
+     * by the catch — returns null and Glide retries on the next thumbnail request.
+     */
     private fun getGoogleAccessToken(): String? {
         val now = System.currentTimeMillis()
         cachedGoogleToken?.let { token -> if (now < googleTokenExpiryMs) return token }
 
         return try {
-            val account = GoogleSignIn.getLastSignedInAccount(context)
-            if (account?.account == null) {
-                Timber.w("No Google account signed in")
-                return null
-            }
-            val token = fetchGoogleTokenWithRetry(account.account!!)
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                CloudThumbnailIdentityEntryPoint::class.java
+            )
+            val identityRepo: GoogleIdentityRepository = entryPoint.identityRepository()
+            val token = runBlocking { identityRepo.getAccessToken(setOf(GoogleScope.DRIVE_READONLY))?.token }
             if (token != null) {
                 cachedGoogleToken = token
                 googleTokenExpiryMs = System.currentTimeMillis() + TOKEN_TTL_MS
             }
             token
         } catch (e: Exception) {
-            Timber.e(e, "Error getting Google access token")
+            Timber.e(e, "Error getting Drive access token via identity-domain (cold-start race? primary unbound?)")
             null
         }
     }
 
-    private fun fetchGoogleTokenWithRetry(account: android.accounts.Account): String? {
-        val scope = "oauth2:https://www.googleapis.com/auth/drive.readonly"
-        for (attempt in 0..1) {
-            try {
-                return GoogleAuthUtil.getToken(context, account, scope)
-            } catch (e: IOException) {
-                if (e.cause is android.os.DeadObjectException && attempt == 0) {
-                    Timber.w("GMS binder dead, retrying token fetch (attempt $attempt)…")
-                    Thread.sleep(300)
-                } else {
-                    throw e
-                }
-            }
-        }
-        return null
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface CloudThumbnailIdentityEntryPoint {
+        fun identityRepository(): GoogleIdentityRepository
     }
 
     override fun cleanup() {

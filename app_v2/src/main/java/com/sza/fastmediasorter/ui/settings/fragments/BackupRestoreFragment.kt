@@ -11,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -43,24 +42,6 @@ class BackupRestoreFragment : Fragment() {
         if (uri != null) {
             viewModel.previewFavoritesImport(uri)
         }
-    }
-
-    private val signInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        Timber.d("Sign-in activity result: resultCode=${result.resultCode}")
-        var apiErrorCode: Int? = null
-        val account = try {
-            GoogleSignIn.getSignedInAccountFromIntent(result.data).getResult(com.google.android.gms.common.api.ApiException::class.java)
-        } catch (e: com.google.android.gms.common.api.ApiException) {
-            apiErrorCode = e.statusCode
-            Timber.w("Sign-in failed (code=${e.statusCode}), trying last signed-in account")
-            GoogleSignIn.getLastSignedInAccount(requireContext())
-        } catch (e: Exception) {
-            Timber.e(e, "Unexpected error parsing Google sign-in result")
-            GoogleSignIn.getLastSignedInAccount(requireContext())
-        }
-        viewModel.handleSignInResult(account, apiErrorCode)
     }
 
     override fun onCreateView(
@@ -307,10 +288,10 @@ class BackupRestoreFragment : Fragment() {
         }
     }
 
+    /** S0200 Phase 04c: launch Credential Manager sign-in via the ViewModel. */
     private fun launchSignIn() {
         try {
-            val intent = viewModel.getSignInIntent()
-            signInLauncher.launch(intent)
+            viewModel.startSignIn(requireActivity())
         } catch (e: Exception) {
             Timber.e(e, "Failed to launch Google sign-in")
             showSnackbar(getString(R.string.backup_failed))

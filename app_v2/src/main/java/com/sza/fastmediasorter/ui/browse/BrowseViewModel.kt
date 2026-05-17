@@ -78,6 +78,7 @@ class BrowseViewModel @Inject constructor(
     private val getResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase,
     private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
     private val createDirectoryUseCase: com.sza.fastmediasorter.domain.usecase.CreateDirectoryUseCase,
+    private val createTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.CreateTextNoteUseCase,
     private val archiveFilesUseCase: com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase,
     private val extractArchiveUseCase: com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase,
     private val addResourceAsDestinationUseCase: com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase,
@@ -275,6 +276,27 @@ class BrowseViewModel @Inject constructor(
         stateFlow = state,
         sendEvent = { event -> sendEvent(event) },
         reloadResource = { loadResource() }
+    )
+
+    // --- Text note creation (delegated to BrowseTextNoteCreateManager) ---
+    // notifyCreatedForOpen lambda is replaced by BrowseManagerInitializer via setOpenNoteCallback().
+    private var openNoteCallback: ((String) -> Unit)? = null
+    internal fun setOpenNoteCallback(cb: (String) -> Unit) { openNoteCallback = cb }
+
+    /** S0189: open a freshly created text note in the editor with edit mode pre-activated. */
+    internal fun openTextNoteInEditor(path: String) {
+        fileOpenManager.openTextNoteInEditor(path, resourceId)
+    }
+
+    private val textNoteCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseTextNoteCreateManager(
+        context = context,
+        createTextNoteUseCase = createTextNoteUseCase,
+        scope = viewModelScope,
+        ioDispatcher = ioDispatcher,
+        stateFlow = state,
+        sendEvent = { event -> sendEvent(event) },
+        reloadResource = { loadResource() },
+        notifyCreatedForOpen = { path -> openNoteCallback?.invoke(path) }
     )
 
     // --- Favorites / cache sync (delegated to BrowseStateSyncManager) ---
@@ -602,6 +624,11 @@ class BrowseViewModel @Inject constructor(
     fun updateFile(oldPath: String, newFile: MediaFile): Unit = fileListMutationManager.updateFile(oldPath, newFile)
     
     fun createFolder(name: String) = directoryOpsManager.createFolder(name)
+
+    fun createTextNote(name: String) {
+        Timber.d("S0189: BrowseViewModel.createTextNote name=$name")
+        textNoteCreateManager.createTextNote(name)
+    }
 
     fun renameDirectory(path: String, newName: String) = directoryOpsManager.renameDirectory(path, newName)
 

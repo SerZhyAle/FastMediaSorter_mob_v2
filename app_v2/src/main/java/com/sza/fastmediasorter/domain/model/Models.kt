@@ -180,7 +180,8 @@ data class MediaResource(
     val lastSpeedTestDate: Long? = null,
 
     val iconId: String? = null, // Format: ico-XX-NNN; null until S0034 backfill assigns one
-    val hostKeyFingerprint: String? = null // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive (no pinning)
+    val hostKeyFingerprint: String? = null, // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive (no pinning)
+    val needsSignIn: Boolean = false // S0200: Drive resource requires fresh primary sign-in (set by S0200AuthStateWipe; cleared on sign-in)
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)
@@ -193,6 +194,19 @@ data class MediaResource(
     /** True only for a video-only library (single type, not allFiles). */
     fun isVideoOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.VIDEO)
+    }
+
+    /**
+     * True when the resource is documents-flavored — content may include any document type (TEXT, PDF or EPUB)
+     * or the catch-all `allFiles` mode is enabled. Used to gate document-authoring entry points (e.g. S0189
+     * "Create text note") so they do not appear in audio/video/photo-only libraries where a freshly created
+     * `.txt`/`.pdf`/`.epub` would not be listed anyway.
+     */
+    fun supportsDocuments(): Boolean {
+        if (allFiles) return true
+        return MediaType.TEXT in supportedMediaTypes ||
+                MediaType.PDF in supportedMediaTypes ||
+                MediaType.EPUB in supportedMediaTypes
     }
 }
 
