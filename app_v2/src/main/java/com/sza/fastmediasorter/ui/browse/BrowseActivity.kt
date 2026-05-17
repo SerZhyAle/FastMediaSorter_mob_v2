@@ -107,9 +107,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
     @Inject lateinit var memoryProbe: MemoryProbe
     @Inject lateinit var memoryProfileCoordinator: MemoryProfileCoordinator
-    // S0189: staging infra for text notes created in network/cloud directories
-    @Inject lateinit var textNoteStagingDirectory: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory
-    @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+    // S0189: staging infra for text notes (and S0191 drawings) created in network/cloud directories
+    @Inject lateinit var stagingDirectoryProvider: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
+    @Inject lateinit var localStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
     // S0231: scoped-storage-aware writer injected for ad-hoc CloudOperationStrategy construction.
     @Inject lateinit var destinationClassifier: com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
     @Inject lateinit var destinationWriter: com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
@@ -160,7 +160,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         })
-        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient, textNoteStagingDirectory, textNoteStagingRegistry, destinationClassifier, destinationWriter)
+        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient, stagingDirectoryProvider, localStagingRegistry, destinationClassifier, destinationWriter)
         cameraCaptureManager = BrowseCameraCaptureManager(
             activity = this,
             settingsRepository = settingsRepository,

@@ -232,7 +232,6 @@ class VrPlayerActivity : PlayerActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Timber.d("S0132: VrPlayerActivity.onCreate — cold-start stage breakdown + swapchain + fisheye logging path")
         // High-priority diagnostic: android.util.Log.e so this always appears in logcat
         // even when the buffer is flooded by system (XR runtime) log spam.
         Log.e("VR_BOOT", "VrPlayerActivity.onCreate intent=${intent?.toUri(0)} savedState=$savedInstanceState")

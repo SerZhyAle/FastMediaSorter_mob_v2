@@ -37,8 +37,6 @@ class CreateTextNoteUseCase @Inject constructor(
         fileName: String,
         content: String = ""
     ): Result<String> = withContext(Dispatchers.IO) {
-        Timber.d("S0189: CreateTextNoteUseCase.invoke parent=$parentPath name=$fileName resource=${resource.type}")
-
         if (resource.isReadOnly) {
             return@withContext Result.failure(Exception("Resource is read-only"))
         }

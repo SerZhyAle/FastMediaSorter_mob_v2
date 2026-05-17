@@ -302,7 +302,7 @@
                 android:background="#40FFFFFF" />
 
             <ImageButton
-                android:id="@+id/btnTextEditorSave"
+                android:id="@+id/btnEditorSave"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -313,7 +313,7 @@
                 app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
-                android:id="@+id/btnTextEditorSaveClose"
+                android:id="@+id/btnEditorSaveClose"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -324,7 +324,7 @@
                 app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
-                android:id="@+id/btnTextEditorSaveSend"
+                android:id="@+id/btnEditorSaveSend"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -335,7 +335,7 @@
                 app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
-                android:id="@+id/btnTextEditorSendKeep"
+                android:id="@+id/btnEditorSendKeep"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -347,7 +347,7 @@
                 app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
-                android:id="@+id/btnTextEditorCancel"
+                android:id="@+id/btnEditorCancel"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"

@@ -258,12 +258,6 @@ class SlideshowResourceAvailabilityManager(
 
     private fun resetFailureTracking(reason: String) {
         if (imageFailureStreak == 0 && playbackFailureStreak == 0 && lastPlaybackReadyAtMs == null) return
-        Timber.d(
-            "S0188: reset failure tracking (%s) image=%d playback=%d",
-            reason,
-            imageFailureStreak,
-            playbackFailureStreak
-        )
         imageFailureStreak = 0
         playbackFailureStreak = 0
         lastPlaybackReadyAtMs = null

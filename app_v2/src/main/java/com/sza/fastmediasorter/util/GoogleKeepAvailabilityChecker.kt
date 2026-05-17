@@ -35,7 +35,6 @@ class GoogleKeepAvailabilityChecker(private val context: Context) {
             context.packageManager.queryIntentActivities(probe, 0).isNotEmpty()
         }
         resolvedPackageCache = resolved
-        Timber.d("S0189: GoogleKeepAvailabilityChecker -> $resolved")
         return resolved
     }
 

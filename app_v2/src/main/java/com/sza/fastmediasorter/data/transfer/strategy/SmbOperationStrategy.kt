@@ -27,8 +27,8 @@ class SmbOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val stagingDir: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory,
-    private val stagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
+    private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
@@ -139,12 +139,17 @@ class SmbOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("S0189: SmbOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId (deferred)")
             // S0189: defer file creation — only register intent. Disk write happens on first Save
             // (handled by SaveTextNoteUseCase). Cancel before save leaves no file on disk.
-            val dir = stagingDir.ensureDirectory()
+            val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
             val localFile = File(dir, "${resourceId}_${fileName}")
-            stagingRegistry.register(localFile, resourceId, parentPath, fileName)
+            stagingRegistry.register(
+                file = localFile,
+                targetResourceId = resourceId,
+                targetParentPath = parentPath,
+                intendedName = fileName,
+                kind = com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE,
+            )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
@@ -274,7 +279,6 @@ class SmbOperationStrategy @Inject constructor(
         localPath: String,
         progressCallback: ByteProgressCallback?
     ): Result<String> {
-        Timber.d("S0231: smb download via LocalDestinationWriter destination=$localPath")
         val pathInfo = SmbPathUtils.parseSmbPath(smbPath)
             ?: return Result.failure(Exception("Failed to parse SMB path: $smbPath"))
 

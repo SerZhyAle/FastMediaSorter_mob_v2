@@ -79,7 +79,6 @@ class GoogleAccountSettingsHelper(
 
     // S0234: reuse the existing ErrorDialog (title + message + collapsible details + copy/share/save).
     private fun showSignInErrorDialog(reason: IdentityFailureReason) {
-        Timber.d("S0234: showSignInErrorDialog reason=$reason")
         val context = fragment.context ?: return
         val (summaryRes, ctaRes) = errorReasonStrings(reason)
         val message = context.getString(summaryRes)
@@ -190,7 +189,6 @@ class GoogleAccountSettingsHelper(
     // S0234: per-reason action click — PlayServicesOutdated routes to Play Store,
     // everything else retries signInPrimary (Decision D1).
     private fun handleErrorAction(reason: IdentityFailureReason) {
-        Timber.d("S0234: handleErrorAction reason=$reason")
         when (reason) {
             IdentityFailureReason.PlayServicesOutdated -> openPlayServicesInPlayStore()
             else -> viewModel.signInPrimary(fragment.requireActivity())

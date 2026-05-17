@@ -91,6 +91,5 @@ class TextEditorAutoFitFontManager(
             editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, chosen)
             currentSizeSp = chosen
         }
-        Timber.d("S0189: TextEditorAutoFitFontManager.recomputeAndApply chose=${chosen}sp autoFit=$autoFitEnabled")
     }
 }

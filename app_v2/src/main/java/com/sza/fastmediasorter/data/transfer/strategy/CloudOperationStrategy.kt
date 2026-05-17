@@ -31,8 +31,8 @@ class CloudOperationStrategy @Inject constructor(
     private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
     private val oneDriveClient: OneDriveRestClient,
-    private val stagingDir: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory,
-    private val stagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
+    private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
@@ -190,11 +190,16 @@ class CloudOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("S0189: CloudOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId (deferred)")
             // S0189: defer file creation — see SmbOperationStrategy.createTextFile.
-            val dir = stagingDir.ensureDirectory()
+            val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
             val localFile = File(dir, "${resourceId}_${fileName}")
-            stagingRegistry.register(localFile, resourceId, parentPath, fileName)
+            stagingRegistry.register(
+                file = localFile,
+                targetResourceId = resourceId,
+                targetParentPath = parentPath,
+                intendedName = fileName,
+                kind = com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE,
+            )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
             Timber.e(e, "CloudOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
@@ -277,7 +282,6 @@ class CloudOperationStrategy @Inject constructor(
         localPath: String,
         progressCallback: ByteProgressCallback?
     ): Result<String> {
-        Timber.d("S0231: cloud download via LocalDestinationWriter destination=$localPath")
         val info = parseCloudUri(cloudPath)
             ?: return Result.failure(Exception("Failed to parse cloud path: $cloudPath"))
 

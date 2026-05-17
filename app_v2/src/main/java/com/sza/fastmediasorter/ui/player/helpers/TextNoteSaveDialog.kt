@@ -34,8 +34,6 @@ object TextNoteSaveDialog {
         onConfirm: (chosenName: String) -> Unit,
         onCancel: () -> Unit = {}
     ) {
-        Timber.d("S0189: TextNoteSaveDialog.show default=$defaultName")
-
         val dp16 = (16 * context.resources.displayMetrics.density).toInt()
         val dp24 = (24 * context.resources.displayMetrics.density).toInt()
 

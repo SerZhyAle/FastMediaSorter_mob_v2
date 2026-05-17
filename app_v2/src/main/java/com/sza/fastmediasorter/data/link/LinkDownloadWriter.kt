@@ -90,7 +90,6 @@ class LinkDownloadWriter @Inject constructor(
             val sniff = sniffMedia(tempFile)
             if (sniff != null) {
                 Timber.w("LinkDownloadWriter: rejected corrupted download — kind=%s bytes=%d name=%s", sniff, totalBytes, fileName)
-                Timber.d("S0170: rejected corrupted link download — kind=%s bytes=%d mime=%s", sniff, totalBytes, mime)
                 return@withContext WriteResult.Corrupted(bytesWritten = totalBytes, sniffedKind = sniff)
             }
 

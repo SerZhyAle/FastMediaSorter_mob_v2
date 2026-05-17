@@ -112,7 +112,11 @@ class CloudFileOperationHandlerTest {
             credentialsRepository = mockk(),
             cloudPathParser = cloudPathParser,
             networkCredentialsResolver = mockk(),
-            cloudAuthHelper = mockk()
+            cloudAuthHelper = mockk(),
+            stagingDir = mockk(relaxed = true),
+            stagingRegistry = mockk(relaxed = true),
+            destinationClassifier = mockk(relaxed = true),
+            destinationWriter = mockk(relaxed = true),
         )
     }
 }

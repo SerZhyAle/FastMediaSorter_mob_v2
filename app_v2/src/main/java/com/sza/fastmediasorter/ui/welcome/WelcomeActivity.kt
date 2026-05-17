@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -517,7 +516,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * Returns true when the action is consumed so the event is not re-dispatched.
      */
     override fun onTvNavigation(action: TvNavAction): Boolean {
-        Timber.d("S0230: WelcomeActivity.onTvNavigation action=$action page=$currentPage")
         return when (action) {
             TvNavAction.Next -> {
                 if (!binding.fragmentContainerWelcome.isVisible && currentPage < pagerAdapter.itemCount - 1) {

@@ -626,7 +626,6 @@ class BrowseViewModel @Inject constructor(
     fun createFolder(name: String) = directoryOpsManager.createFolder(name)
 
     fun createTextNote(name: String) {
-        Timber.d("S0189: BrowseViewModel.createTextNote name=$name")
         textNoteCreateManager.createTextNote(name)
     }
 

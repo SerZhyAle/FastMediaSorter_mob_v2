@@ -247,7 +247,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = tvKeyRouter.route(event)
         if (action != null) {
-            Timber.d("S0230: dispatchKeyEvent routed ${event.keyCode} → $action in ${this::class.simpleName}")
             if (onTvNavigation(action)) return true
         }
         return super.dispatchKeyEvent(event)

@@ -64,7 +64,6 @@ class GoogleAccountSettingsViewModel @Inject constructor(
             var previous: PrimaryGoogleAccountState = identityRepository.state.value
             identityRepository.state.collect { current ->
                 if (previous !is PrimaryGoogleAccountState.Error && current is PrimaryGoogleAccountState.Error) {
-                    timber.log.Timber.d("S0234: VM emits ShowSignInError reason=${current.cause}")
                     _events.send(Event.ShowSignInError(current.cause))
                 }
                 previous = current

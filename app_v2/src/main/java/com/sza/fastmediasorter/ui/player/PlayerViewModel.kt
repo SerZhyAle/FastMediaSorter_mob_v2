@@ -85,7 +85,7 @@ class PlayerViewModel @Inject constructor(
     private val streamOffloadUseCase: StreamOffloadUseCase,
     private val streamingCacheRepository: StreamingCacheRepository,
     // S0189: lookup for newly-created staged text notes (Downloads/FastMediaSorter/notes/)
-    private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
+    private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(

@@ -78,7 +78,6 @@ class AtomicFileOperationStrategy(
         // LocalDestinationWriter — skip the *.temp_copy + rename layer for these paths.
         val category = destinationClassifier.classify(destination)
         if (category is LocalDestinationCategory.PublicCollection) {
-            Timber.d("S0231: atomic short-circuit (public collection) destination=$destination")
             return delegate.copyFile(source, destination, overwrite, progressCallback)
         }
 

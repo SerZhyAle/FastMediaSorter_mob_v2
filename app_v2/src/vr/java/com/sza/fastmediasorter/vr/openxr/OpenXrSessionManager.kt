@@ -89,7 +89,6 @@ class OpenXrSessionManager(
      *         or EGL setup failed. On failure, no thread is left running.
      */
     fun initialize(activity: Activity): Boolean {
-        Timber.d("S0132: OpenXrSessionManager.initialize entry — swapchain format anchor + XR-init stage breakdown")
         synchronized(this) {
             if (running.get()) {
                 Timber.w("OpenXrSessionManager: already running")

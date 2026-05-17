@@ -395,7 +395,6 @@ class ResourceOpsMenuManager @Inject constructor(
             || VirtualPathUtils.isVirtualPath(resource.path)
             || !resource.supportsDocuments()
         ) {
-            Timber.d("S0189: showCreateTextNoteDialog blocked — resource not documents-flavored / read-only / virtual")
             return
         }
 
@@ -403,7 +402,6 @@ class ResourceOpsMenuManager @Inject constructor(
         // dialog when the user actually commits the note (defer-creation contract). Until then
         // the file does not exist on disk, so asking for a name now is pure friction.
         val default = com.sza.fastmediasorter.util.TextNoteFileNameProvider.defaultName()
-        Timber.d("S0189: ResourceOpsMenuManager.showCreateTextNoteDialog default=$default (skipped — defer to save)")
         viewModel.createTextNote(default)
     }
 }

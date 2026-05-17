@@ -705,7 +705,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 
     // S0189: registry for deferred new-note creations (consulted by TextViewerManager on load/cancel)
-    @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+    @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 
     // S0192 Phase 05 — Google Keep export, invoked from the draw editor overflow menu.
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper

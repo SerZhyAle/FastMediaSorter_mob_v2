@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicInteger
@@ -89,7 +90,6 @@ class SftpConnectionPool {
                 // S0219 Pillar B: track FILE_OPS borrow so invalidation defers disconnect until
                 // the last borrower releases rather than disconnecting a session mid-block.
                 pooled.activeBorrowCount.incrementAndGet()
-                Timber.d("S0219: SftpConnectionPool.withConnection borrow tracked host=${info.host} active=${pooled.activeBorrowCount.get()}")
                 // Tracks the connection actually holding the borrow for the deferred-disconnect check.
                 // Swaps to newPooled on retry so the finally decrements the correct counter.
                 var actualRetryBorrowed: PooledConnection? = null
@@ -248,7 +248,6 @@ class SftpConnectionPool {
                 } else {
                     Timber.d("SFTP invalidate deferred for ${key.host} (activeBorrow=${pooled.activeBorrowCount.get()}) — last borrower will disconnect")
                 }
-                Timber.d("S0219: SftpConnectionPool.invalidateSession path=${if (deferred) "deferred" else "immediate"} host=${key.host}")
             }
         } finally {
             poolMutex.unlock()
@@ -371,6 +370,16 @@ class SftpConnectionPool {
             } finally {
                 pooled.openChannelLock.unlock()
             }
+        } catch (e: InterruptedException) {
+            // ExoPlayer's Loader.release() interrupts its worker thread; the semaphore acquire
+            // then throws InterruptedException. This is orderly cancellation during player teardown,
+            // not a connection failure — log at DEBUG, restore the interrupt flag, propagate as
+            // InterruptedIOException so callers (SftpDataSource.read) can short-circuit instead of
+            // retrying a doomed reconnect.
+            connectionSemaphore.release()
+            Thread.currentThread().interrupt()
+            Timber.d("SFTP [PLAYBACK] acquire cancelled (player teardown) host=${connectionInfo.host}")
+            throw InterruptedIOException("SFTP connection acquire cancelled").apply { initCause(e) }
         } catch (e: Exception) {
             connectionSemaphore.release()
             Timber.e(e, "SFTP [PLAYBACK] failed to get connection for ${connectionInfo.host}")

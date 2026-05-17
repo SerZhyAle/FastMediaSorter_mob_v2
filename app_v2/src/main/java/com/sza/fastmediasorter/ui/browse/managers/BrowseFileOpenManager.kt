@@ -89,7 +89,6 @@ class BrowseFileOpenManager(
      * Used by [BrowseTextNoteCreateManager] immediately after a text note is created.
      */
     fun openTextNoteInEditor(path: String, resourceId: Long) {
-        Timber.d("S0189: BrowseFileOpenManager.openTextNoteInEditor path=$path resource=$resourceId")
         inlineStop()
         sendEvent(BrowseEvent.NavigateToTextEditor(path, resourceId))
     }

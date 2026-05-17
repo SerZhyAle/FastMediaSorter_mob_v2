@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
+import com.sza.fastmediasorter.domain.files.FileNameConflictResolver
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import timber.log.Timber
 import java.io.File
@@ -17,7 +18,7 @@ import javax.inject.Inject
  */
 class SaveTextNoteUseCase @Inject constructor(
     private val fileOperationUseCase: FileOperationUseCase,
-    private val stagingRegistry: TextNoteStagingRegistry,
+    private val stagingRegistry: LocalStagingRegistry,
     private val resourceRepository: ResourceRepository
 ) {
 
@@ -39,9 +40,9 @@ class SaveTextNoteUseCase @Inject constructor(
 
             // S0189: LOCAL_DEFERRED = file was never created on disk; write directly to the
             // intended target inside the LOCAL resource directory, then drop the registry entry.
-            if (stagedNote != null && stagedNote.kind == TextNoteStagingRegistry.Kind.LOCAL_DEFERRED) {
+            if (stagedNote != null && stagedNote.location == LocalStagingRegistry.Location.LOCAL_DEFERRED) {
                 val parentDir = File(stagedNote.targetParentPath)
-                val (finalName, renamed) = TextNoteNameConflictResolver.resolveLocal(parentDir, intendedName)
+                val (finalName, renamed) = FileNameConflictResolver.resolveLocal(parentDir, intendedName)
                 val targetFile = File(parentDir, finalName)
                 targetFile.writeText(content, Charsets.UTF_8)
                 stagingRegistry.unregister(currentLocalFile)
@@ -52,7 +53,6 @@ class SaveTextNoteUseCase @Inject constructor(
                     isLocalSaveOnly = true,
                     finalPath = targetFile.absolutePath
                 )
-                Timber.d("S0189: SaveTextNoteUseCase LOCAL_DEFERRED outcome=$outcome")
                 return Result.success(outcome)
             }
 
@@ -61,7 +61,7 @@ class SaveTextNoteUseCase @Inject constructor(
                 val parentDir = currentLocalFile.parentFile
                     ?: return Result.failure(IllegalStateException("Parent dir is null for ${currentLocalFile.absolutePath}"))
 
-                val (finalName, renamed) = TextNoteNameConflictResolver.resolveLocal(parentDir, intendedName)
+                val (finalName, renamed) = FileNameConflictResolver.resolveLocal(parentDir, intendedName)
                 val targetFile = File(parentDir, finalName)
 
                 targetFile.writeText(content, Charsets.UTF_8)
@@ -76,7 +76,6 @@ class SaveTextNoteUseCase @Inject constructor(
                     isLocalSaveOnly = true,
                     finalPath = targetFile.absolutePath
                 )
-                Timber.d("S0189: SaveTextNoteUseCase outcome=$outcome")
                 Result.success(outcome)
 
             } else {
@@ -121,7 +120,6 @@ class SaveTextNoteUseCase @Inject constructor(
                         isLocalSaveOnly = false,
                         finalPath = "${stagedNote.targetParentPath}/$finalName"
                     )
-                    Timber.d("S0189: SaveTextNoteUseCase outcome=$outcome")
                     Result.success(outcome)
                 } else {
                     val errMsg = result.toString()
@@ -132,7 +130,6 @@ class SaveTextNoteUseCase @Inject constructor(
                         remoteFailureMessage = errMsg,
                         finalPath = finalStagingFile.absolutePath
                     )
-                    Timber.d("S0189: SaveTextNoteUseCase outcome=$outcome")
                     Result.success(outcome)
                 }
             }

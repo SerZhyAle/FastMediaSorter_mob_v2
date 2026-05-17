@@ -47,8 +47,8 @@ class SmbFileOperationHandler @Inject constructor(
     private val sftpClient: com.sza.fastmediasorter.data.remote.sftp.SftpClient,
     private val ftpClient: com.sza.fastmediasorter.data.remote.ftp.FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val stagingDir: com.sza.fastmediasorter.data.local.TextNoteStagingDirectory,
-    private val stagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
+    private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
+    private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter
 ) : BaseFileOperationHandler(context) {

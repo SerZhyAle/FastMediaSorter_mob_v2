@@ -16,8 +16,8 @@ import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
-import com.sza.fastmediasorter.data.local.TextNoteStagingDirectory
-import com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
+import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.Module
 import dagger.Provides
@@ -45,7 +45,7 @@ object DirectoryStrategyModule {
     @StringKey("local")
     fun provideLocalDirectoryStrategy(
         @ApplicationContext context: Context,
-        stagingRegistry: TextNoteStagingRegistry,
+        stagingRegistry: LocalStagingRegistry,
     ): FileOperationStrategy = LocalOperationStrategy(context, stagingRegistry)
 
     @Provides
@@ -56,8 +56,8 @@ object DirectoryStrategyModule {
         @ApplicationContext context: Context,
         smbClient: SmbClient,
         credentialsRepository: NetworkCredentialsRepository,
-        stagingDir: TextNoteStagingDirectory,
-        stagingRegistry: TextNoteStagingRegistry,
+        stagingDir: StagingDirectoryProvider,
+        stagingRegistry: LocalStagingRegistry,
         destinationClassifier: LocalDestinationClassifier,
         destinationWriter: LocalDestinationWriter
     ): FileOperationStrategy = SmbOperationStrategy(
@@ -73,8 +73,8 @@ object DirectoryStrategyModule {
         @ApplicationContext context: Context,
         sftpClient: SftpClient,
         credentialsRepository: NetworkCredentialsRepository,
-        stagingDir: TextNoteStagingDirectory,
-        stagingRegistry: TextNoteStagingRegistry,
+        stagingDir: StagingDirectoryProvider,
+        stagingRegistry: LocalStagingRegistry,
         destinationClassifier: LocalDestinationClassifier,
         destinationWriter: LocalDestinationWriter
     ): FileOperationStrategy = SftpOperationStrategy(
@@ -90,8 +90,8 @@ object DirectoryStrategyModule {
         @ApplicationContext context: Context,
         ftpClient: FtpClient,
         credentialsRepository: NetworkCredentialsRepository,
-        stagingDir: TextNoteStagingDirectory,
-        stagingRegistry: TextNoteStagingRegistry,
+        stagingDir: StagingDirectoryProvider,
+        stagingRegistry: LocalStagingRegistry,
         destinationClassifier: LocalDestinationClassifier,
         destinationWriter: LocalDestinationWriter
     ): FileOperationStrategy = FtpOperationStrategy(
@@ -108,8 +108,8 @@ object DirectoryStrategyModule {
         googleDriveClient: GoogleDriveRestClient,
         dropboxClient: DropboxClient,
         oneDriveClient: OneDriveRestClient,
-        stagingDir: TextNoteStagingDirectory,
-        stagingRegistry: TextNoteStagingRegistry,
+        stagingDir: StagingDirectoryProvider,
+        stagingRegistry: LocalStagingRegistry,
         destinationClassifier: LocalDestinationClassifier,
         destinationWriter: LocalDestinationWriter
     ): FileOperationStrategy = CloudOperationStrategy(

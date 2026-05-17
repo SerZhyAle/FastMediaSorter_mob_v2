@@ -315,7 +315,6 @@ class ReceiveShareActivity : AppCompatActivity() {
                         // S0155: use the accountId the fragment just created — avoids passing
                         // null when accounts went from 0→1 (root cause of the bug in on-device test).
                         val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
-                        Timber.d("S0155: offerAuthThenDownload resuming with accountId=%s", savedAccountId)
                         // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
                         // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
                         processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)

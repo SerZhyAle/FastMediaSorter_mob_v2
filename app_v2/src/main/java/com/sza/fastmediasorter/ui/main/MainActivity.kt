@@ -162,12 +162,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // (auth-required dialogs and open-in-player intents need an Activity context).
         lifecycleScope.launch {
             shareResultBus.pending.collect { pending ->
-                Timber.d(
-                    "S0202: MainActivity received share result url=%s outcome=%s notification=%s",
-                    pending.url,
-                    pending.result::class.simpleName,
-                    pending.notificationShown,
-                )
                 val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
                     pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
                     pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted

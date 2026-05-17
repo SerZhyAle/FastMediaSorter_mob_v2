@@ -548,7 +548,6 @@ class BrowseManagerInitializer(
                 resourceOpsMenuManager.showCreateFolderDialog(viewModel)
             }
             override fun onCreateTextNoteClicked() {
-                Timber.d("S0189: btnCreateTextFile clicked → showCreateTextNoteDialog")
                 resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
             }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
@@ -597,7 +596,6 @@ class BrowseManagerInitializer(
 
         // S0189: wire notifyCreatedForOpen so the editor opens immediately after text note creation
         viewModel.setOpenNoteCallback { createdPath ->
-            Timber.d("S0189: BrowseManagerInitializer.notifyCreatedForOpen path=$createdPath")
             viewModel.openTextNoteInEditor(createdPath)
         }
     }

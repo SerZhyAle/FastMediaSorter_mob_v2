@@ -173,7 +173,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
             return
         }
         val cookies = currentCookies()
-        Timber.d("S0170: webview auth cookies collected (deduped) — host=%s count=%d", targetHost, cookies.size)
         if (cookies.isEmpty()) {
             refreshSaveButtonState()
             view?.let {
@@ -214,10 +213,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
                         "[S0166] browser login saved: account=%s host=%s",
                         displayName,
                         targetHost,
-                    )
-                    Timber.d(
-                        "S0155: WebView auth saved host=%s accountId=%s ua=%s",
-                        targetHost, savedAccountId ?: "(null)", capturedUa?.take(60) ?: "(none)"
                     )
                     emitResultAndDismiss(saved = savedAccountId != null, accountId = savedAccountId)
                 }

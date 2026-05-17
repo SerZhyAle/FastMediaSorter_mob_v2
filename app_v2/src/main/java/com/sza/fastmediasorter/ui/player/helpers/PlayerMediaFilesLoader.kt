@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -51,7 +51,7 @@ class PlayerMediaFilesLoader(
     private val favoritesUseCase: FavoritesUseCase,
     private val googleDriveClient: GoogleDriveRestClient,
     private val cachedFileListRepository: CachedFileListRepository,
-    private val textNoteStagingRegistry: TextNoteStagingRegistry,
+    private val textNoteStagingRegistry: LocalStagingRegistry,
     private val stateFlow: StateFlow<PlayerViewModel.PlayerState>,
     private val updateState: ((PlayerViewModel.PlayerState) -> PlayerViewModel.PlayerState) -> Unit,
     private val sendEvent: (PlayerViewModel.PlayerEvent) -> Unit,
@@ -172,12 +172,17 @@ class PlayerMediaFilesLoader(
                     runCatching { textNoteStagingRegistry.lookup(java.io.File(path)) }.getOrNull()
                 }
                 if (stagedNote != null) {
-                    Timber.d("S0189: PlayerMediaFilesLoader staged-note bypass path=${stagedNote.localFile.absolutePath} resource=${resource.id} kind=${stagedNote.kind} fileExists=${stagedNote.localFile.exists()}")
                     val fileExists = stagedNote.localFile.exists()
+                    // S0189 Phase 09: pick MediaType from StagedKind so future kinds (S0191 drawings)
+                    // route into the right viewer without further changes here.
+                    val stagedType = when (stagedNote.kind) {
+                        com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE -> MediaType.TEXT
+                        com.sza.fastmediasorter.data.local.staging.StagedKind.DRAWING -> MediaType.IMAGE
+                    }
                     val stagedFile = MediaFile(
                         name = stagedNote.intendedName,
                         path = stagedNote.localFile.absolutePath,
-                        type = MediaType.TEXT,
+                        type = stagedType,
                         size = if (fileExists) stagedNote.localFile.length() else 0L,
                         createdDate = if (fileExists) stagedNote.localFile.lastModified() else System.currentTimeMillis(),
                         lastModified = if (fileExists) stagedNote.localFile.lastModified() else System.currentTimeMillis(),

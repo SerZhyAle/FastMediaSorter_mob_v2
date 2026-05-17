@@ -44,18 +44,14 @@ class TextEditorSaveFlow(
         afterSave: (SaveTextNoteUseCase.SaveOutcome) -> Unit,
         onCancel: () -> Unit = {}
     ) {
-        Timber.d("S0189: TextEditorSaveFlow.commit current=$currentName")
-
         TextNoteSaveDialog.show(
             context = context,
             defaultName = currentName,
             onConfirm = { chosen ->
-                Timber.d("S0189: TextEditorSaveFlow.commit chosen=$chosen")
                 scope.launch(ioDispatcher) {
                     val result = saveTextNoteUseCase(currentLocalFile, chosen, currentContent)
                     withContext(Dispatchers.Main) {
                         result.onSuccess { outcome ->
-                            Timber.d("S0189: TextEditorSaveFlow.outcome $outcome")
                             showSuccessToasts(outcome)
                             afterSave(outcome)
                         }
