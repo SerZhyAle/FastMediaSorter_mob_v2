@@ -253,8 +253,19 @@ if ($releaseCommands -contains $Command) {
         }
         Write-Host "Executing (worktree): $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
         Write-Host ""
-        & $worktreeScript @scriptArgs
-        $buildExit = $LASTEXITCODE
+        # CRITICAL: change CWD to worktree before invoking the build script.
+        # Gradle resolves the project directory from CWD (not from gradlew.bat location),
+        # so without this Push-Location Gradle would build the DEV project even though
+        # the script writes versionCode/Name into the worktree's build.gradle.kts —
+        # producing artifacts with stale versions and silently mirroring dev outputs.
+        Push-Location $worktreePath
+        try {
+            & $worktreeScript @scriptArgs
+            $buildExit = $LASTEXITCODE
+        }
+        finally {
+            Pop-Location
+        }
 
         # Mirror DOWNLOADS from worktree to local dev directory
         if ($buildExit -eq 0) {

@@ -267,36 +267,6 @@ class PlayerCommandPanelCallbackImpl(
         activity.saveCurrentFrame()
     }
 
-    override fun on3dVrToggleClicked() {
-        // S0238: for image / gif the user explicitly signalled stereo intent — re-run detection
-        // in user-initiated mode and persist the result so VrPlayerActivity picks up the right
-        // stereo layer via the ViewModel state. Video keeps its existing path: there the user
-        // already chose the format in PlaybackControlDialog, do not override.
-        Timber.d("S0238: on3dVrToggleClicked — image-player VR-toolbar entry point")
-        val file = viewModel.state.value.currentFile
-        if (file != null && file.type in setOf(MediaType.IMAGE, MediaType.GIF)) {
-            val detected = stereoDetector.detectForImage(
-                path = file.path,
-                width = file.width,
-                height = file.height,
-                userInitiated = true,
-            )
-            if (detected != StereoMode.UNKNOWN &&
-                detected != StereoMode.AUTO &&
-                detected != viewModel.stereoMode.value
-            ) {
-                viewModel.setAutoDetectedStereoMode(detected)
-                Timber.i(
-                    "PlayerCommandPanelCallback: user-initiated VR-tap re-detected stereo for image " +
-                        "path=%s detected=%s",
-                    file.path, detected,
-                )
-            }
-        }
-        // Delegate to the VR-specific override in VrPlayerActivity; base PlayerActivity no-ops.
-        activity.handle3dVrToggleClicked()
-    }
-
     override fun onBlackScreenClicked() {
         activity.blackScreenOverlayManager.show()
     }

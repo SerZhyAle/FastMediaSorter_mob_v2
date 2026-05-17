@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,24 +37,50 @@ class GoogleDriveAuthPlugin @Inject constructor(
 
     @Volatile private var lastImmediateFailure: AuthResult.Error? = null
 
+    /**
+     * Hot-fix async result channel. Credential Manager flows (Phase 04b) complete after several
+     * seconds of interactive UI — long after [UnifiedCloudAuthManager]'s `consumeImmediateResult`
+     * poll (immediate + 1s delay) has finished. Without this channel, [AuthResult.Success] never
+     * reaches the unified manager and `AddResourceConnectionManager` never navigates to the folder
+     * picker, leaving the user stuck on `AddResourceActivity` after a successful Google sign-in.
+     * Long-term fix tracked separately as a refactor of [InteractiveCloudAuthenticator].
+     */
+    private val _asyncResults = MutableSharedFlow<AuthResult>(extraBufferCapacity = 1)
+    internal val asyncResults = _asyncResults.asSharedFlow()
+
     override fun startInteractiveSignIn(activity: Activity) {
         lastImmediateFailure = null
         pluginScope.launch {
             try {
                 val result = identityRepository.signInPrimary(activity, DRIVE_SIGN_IN_SCOPES)
                 when (result) {
-                    is IdentitySignInResult.Success ->
+                    is IdentitySignInResult.Success -> {
                         Timber.i("GoogleDriveAuthPlugin: signInPrimary succeeded for email=${result.account.email}")
-                    IdentitySignInResult.Cancelled ->
+                        _asyncResults.tryEmit(
+                            AuthResult.Success(
+                                accountName = result.account.email,
+                                credentialsJson = result.account.email
+                            )
+                        )
+                    }
+                    IdentitySignInResult.Cancelled -> {
                         Timber.i("GoogleDriveAuthPlugin: signInPrimary cancelled by user")
-                    is IdentitySignInResult.Failed ->
+                        _asyncResults.tryEmit(AuthResult.Cancelled)
+                    }
+                    is IdentitySignInResult.Failed -> {
                         Timber.e(result.cause, "GoogleDriveAuthPlugin: signInPrimary failed: ${result.reason}")
+                        _asyncResults.tryEmit(
+                            AuthResult.Error("Google sign-in failed: ${result.reason}")
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "GoogleDriveAuthPlugin: signInPrimary threw")
-                lastImmediateFailure = AuthResult.Error(
+                val err = AuthResult.Error(
                     "Google sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
                 )
+                lastImmediateFailure = err
+                _asyncResults.tryEmit(err)
             }
         }
     }

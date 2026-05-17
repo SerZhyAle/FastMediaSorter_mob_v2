@@ -111,25 +111,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             iconRes = 0,
             group = PermissionGroup.SYSTEM, optional = true,
         ),
-        // VR
-        PermissionEntry(
-            id = "hand_tracking",
-            manifestName = "com.oculus.permission.HAND_TRACKING",
-            titleRes = R.string.perm_title_hand_tracking,
-            descriptionRes = R.string.perm_desc_hand_tracking,
-            iconRes = 0,
-            group = PermissionGroup.VR, optional = true,
-            flavorGates = setOf("SUPPORT_VR_PLAYER"),
-        ),
-        PermissionEntry(
-            id = "headset_camera",
-            manifestName = "horizonos.permission.HEADSET_CAMERA",
-            titleRes = R.string.perm_title_headset_camera,
-            descriptionRes = R.string.perm_desc_headset_camera,
-            iconRes = 0,
-            group = PermissionGroup.VR, optional = true,
-            flavorGates = setOf("SUPPORT_VR_PLAYER"),
-        ),
+        // S0241: VR group entries (hand_tracking, headset_camera) removed with the OpenXR stack.
     )
 
     override fun getEntries(): List<PermissionEntry> =

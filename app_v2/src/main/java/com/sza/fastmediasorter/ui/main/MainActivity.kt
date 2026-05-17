@@ -1,17 +1,13 @@
 package com.sza.fastmediasorter.ui.main
 
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
-import com.sza.fastmediasorter.core.xr.VrPanelSizePreference
-import com.sza.fastmediasorter.core.xr.XrDeviceDetector
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -34,7 +30,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
-import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter
@@ -133,17 +128,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
-        // On VR headsets, force landscape orientation so the panel opens correctly.
-        // IMPORTANT: Do NOT set window.attributes.width/height here — fixed pixel values
-        // lock the window size in HorizonOS and prevent the user from resizing it.
-        // Initial large size is handled by <layout> in vr/AndroidManifest.xml (and main
-        // AndroidManifest.xml for non-vr flavors). HorizonOS then natively persists the
-        // user-adjusted size across sessions — no manual SharedPrefs restore needed.
-        if (XrDeviceDetector.isXrHeadset(this)) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            Timber.d("MainActivity: VR headset detected — forcing landscape orientation")
-        }
-
         super.onCreate(savedInstanceState)
 
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen.
@@ -210,9 +194,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             && AudioPlaybackService.currentResourceId > 0L) {
             Timber.d("MainActivity: service active on fresh launch — restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
             binding.root.post {
-                // Audio playback is inherently a 2D surface — bypass the per-flavor
-                // PLAYER_ACTIVITY_CLASS override so noLegal/vr open the 2D PlayerActivity
-                // directly instead of routing through VrPlayerActivity → «VR Headset Required».
+                // Audio playback is inherently a 2D surface. createPanelIntent is kept
+                // here as an explicit "open the flat 2D player" semantics marker — every
+                // flavor now routes to PlayerActivity directly (immersive VR removed in S0241).
                 val playerIntent = PlayerActivity.createPanelIntent(
                     context = this,
                     resourceId = AudioPlaybackService.currentResourceId,
@@ -363,9 +347,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
-        // Audio playback is inherently a 2D surface — use createPanelIntent so noLegal/vr
-        // bypass the PLAYER_ACTIVITY_CLASS override (would otherwise hit VrPlayerActivity
-        // → «VR Headset Required» on phones).
+        // Audio playback is inherently a 2D surface — createPanelIntent makes that
+        // intent explicit at call sites. All flavors open PlayerActivity directly
+        // (immersive VR removed in S0241).
         val playerIntent = PlayerActivity.createPanelIntent(this, resourceId, index, skipAvailabilityCheck = true)
         startActivity(playerIntent)
     }
@@ -416,23 +400,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (requestCode == PermissionHelper.REQUEST_CODE_MANAGE_STORAGE) {
             permissionsHelper.onSettingsResult()
         }
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        // On VR headsets, HorizonOS delivers window resize events via onConfigurationChanged.
-        // Persist the new size so it is restored on the next cold start.
-        if (!XrDeviceDetector.isXrHeadset(this)) return
-        val bounds = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            windowManager.currentWindowMetrics.bounds
-        } else {
-            val sz = android.graphics.Point()
-            @Suppress("DEPRECATION")
-            windowManager.defaultDisplay.getRealSize(sz)
-            android.graphics.Rect(0, 0, sz.x, sz.y)
-        }
-        Timber.d("MainActivity: VR panel resize detected — ${bounds.width()}x${bounds.height()}")
-        VrPanelSizePreference.save(this, bounds.width(), bounds.height())
     }
 
     override fun onDestroy() {
@@ -748,7 +715,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
                 is MainEvent.NavigateToPlayerSlideshow -> {
-                    val intent = PlayerActivity.createIntent(
+                    val intent = PlayerActivity.createPanelIntent(
                         this@MainActivity,
                         event.resourceId,
                         initialIndex = 0,
@@ -756,18 +723,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     ).apply {
                         putExtra("slideshow_mode", true)
                     }
-                    if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
-                        VrTaskTransition.enterImmersive(this@MainActivity, intent)
-                    } else {
-                        startActivity(intent)
-                        @Suppress("DEPRECATION")
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                    }
+                    startActivity(intent)
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
                 is MainEvent.NavigateToPlayerRandomMusic -> {
-                    // Random music is audio playback — always 2D, never VR.
-                    // Use createPanelIntent so noLegal/vr bypass the PLAYER_ACTIVITY_CLASS
-                    // override and avoid the «VR Headset Required» fallback on phones.
+                    // Random music is audio playback — always 2D. createPanelIntent
+                    // documents the flat-surface intent at the call site. All flavors
+                    // open PlayerActivity directly (immersive VR removed in S0241).
                     val intent = PlayerActivity.createPanelIntent(
                         this@MainActivity,
                         event.resourceId,

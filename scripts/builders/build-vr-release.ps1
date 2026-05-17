@@ -2,7 +2,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 Write-Host "Building VR Release APK (auto-versioned)..." -ForegroundColor Cyan
-Write-Host "Features: Full standard + OpenXR VR rendering" -ForegroundColor Yellow
+Write-Host "Features: Standard runtime + VR visual shell" -ForegroundColor Yellow
 Write-Host "Target: Meta Horizon Store (Quest)" -ForegroundColor Magenta
 
 # Generate version
@@ -33,6 +33,12 @@ Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Gree
 # Resolve paths relative to script location
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
+
+# CRITICAL: pin CWD to $projectRoot so Gradle resolves the correct project
+# directory regardless of how the script was invoked (e.g. when a.ps1
+# delegates from the dev worktree into the release worktree).
+Push-Location $projectRoot
+try {
 
 # Update build.gradle.kts
 $buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
@@ -79,7 +85,7 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
-Write-Host "Package name: com.sza.fastmediasorter.vr" -ForegroundColor Cyan
+Write-Host "Package name: com.sza.fastmediasorter" -ForegroundColor Cyan
 
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"
@@ -121,4 +127,9 @@ if (Test-Path -Path $7zipPath) {
 else {
     Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
     Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+}
+
+}
+finally {
+    Pop-Location
 }

@@ -89,7 +89,6 @@ class CommandPanelController(
         fun onEpubSearchAllClicked()
         fun onPrintClicked()
         fun onSaveFrameClicked()
-        fun on3dVrToggleClicked()
         fun onBlackScreenClicked()
         fun onOpenInSeparateWindowClicked()
         fun onCropClicked()
@@ -112,7 +111,7 @@ class CommandPanelController(
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var latestBigButtonsBarCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
-    // S0028: cached from settings; BuildConfig.SUPPORT_VR_PLAYER guard applied at write time
+    // S0028: cached from settings (separate-window allow flag)
     private var lastKnownAllowSeparateWindow: Boolean = false
 
     // Cached state for overflow menu visibility
@@ -180,12 +179,6 @@ class CommandPanelController(
 
         safeViews.btnSaveFrameCmd.setOnClickListener {
             callback.onSaveFrameClicked()
-        }
-
-        if (BuildConfig.SUPPORT_VR_PLAYER) {
-            safeViews.btn3dVrCmd.setOnClickListener {
-                callback.on3dVrToggleClicked()
-            }
         }
 
         safeViews.btnPrintCmd.setOnClickListener {
@@ -352,7 +345,7 @@ class CommandPanelController(
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                val shouldAllowSeparateWindow = BuildConfig.SUPPORT_VR_PLAYER && settings.allowSeparateWindow
+                val shouldAllowSeparateWindow = false
                 withContext(Dispatchers.Main) {
                     val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
                     val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow
@@ -450,9 +443,6 @@ class CommandPanelController(
                 isWifiConnected(binding.root.context)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || (isVideo && !isAudio) || isPdf
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
-            if (BuildConfig.SUPPORT_VR_PLAYER) {
-                safeViews.btn3dVrCmd.isVisible = currentFile.type in VR_BUTTON_MEDIA_TYPES
-            }
             safeViews.btnEditCmd.contentDescription = binding.root.context.getString(
                 if (isVideo) R.string.control else R.string.edit
             )
@@ -988,7 +978,6 @@ class CommandPanelController(
             R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
             R.id.menu_print -> callback.onPrintClicked()
             R.id.menu_save_frame -> callback.onSaveFrameClicked()
-            R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
             R.id.menu_black_screen -> callback.onBlackScreenClicked()
             R.id.menu_open_in_separate_window -> callback.onOpenInSeparateWindowClicked()
             R.id.menu_crop -> callback.onCropClicked()
@@ -1050,7 +1039,6 @@ class CommandPanelController(
             safeViews.btnOcrImageCmd,
             safeViews.btnGoogleLensImageCmd
         )
-        if (BuildConfig.SUPPORT_VR_PLAYER) list.add(safeViews.btn3dVrCmd)
         return list
     }
 
@@ -1100,8 +1088,6 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.CROP_TO_FILE -> safeViews.btnCropToFileCmd
             CommandPanelLayoutPlanner.PlayerCommand.COMPRESS_COPY -> safeViews.btnCompressCopyCmd
             CommandPanelLayoutPlanner.PlayerCommand.DRAW_OVERLAY -> safeViews.btnDrawOverlayCmd
-            CommandPanelLayoutPlanner.PlayerCommand.VR_3D ->
-                if (BuildConfig.SUPPORT_VR_PLAYER) safeViews.btn3dVrCmd else null
             else -> null // Overflow-only commands have no bar view
         }
     }

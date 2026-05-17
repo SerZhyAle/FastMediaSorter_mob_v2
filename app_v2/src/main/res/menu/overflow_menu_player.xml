@@ -66,13 +66,6 @@
         android:title="@string/menu_save_frame"
         app:showAsAction="never" />
 
-    <!-- 3DVR toggle (VR flavor only) — relaunch current video in immersive VR mode -->
-    <item
-        android:id="@+id/menu_3d_vr"
-        android:icon="@drawable/ic_vr_3d"
-        android:title="@string/vr_toggle_enter_description"
-        app:showAsAction="never" />
-
     <!-- Search (PDF/TXT/EPUB) -->
     <item
         android:id="@+id/menu_search"

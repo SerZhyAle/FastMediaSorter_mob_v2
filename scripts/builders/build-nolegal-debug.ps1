@@ -4,7 +4,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 Write-Host "Building NoLegal Debug APK (auto-versioned)..." -ForegroundColor Cyan
-Write-Host "Features: Full standard + OpenXR VR + sideload-only (NewPipe, etc.)" -ForegroundColor Yellow
+Write-Host "Features: Standard runtime + sideload-only extras (NewPipe, etc.)" -ForegroundColor Yellow
 Write-Host "Distribution: ADB sideload only — not for any public store." -ForegroundColor Magenta
 
 # Generate version
@@ -89,7 +89,7 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
-Write-Host "Package name: com.sza.fastmediasorter.nolegal.debug" -ForegroundColor Cyan
+Write-Host "Package name: com.sza.fastmediasorter.debug" -ForegroundColor Cyan
 
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"

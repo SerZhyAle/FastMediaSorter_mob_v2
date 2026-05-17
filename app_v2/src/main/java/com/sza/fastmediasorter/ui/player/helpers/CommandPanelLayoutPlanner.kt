@@ -68,9 +68,6 @@ class CommandPanelLayoutPlanner {
             R.string.big_btn_short_rename),
         EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit,
             R.string.big_btn_short_edit),
-        // VR flavor only: placed directly after EDIT so it sits next to the Control dialog button.
-        VR_3D(211, R.id.menu_3d_vr, true, R.string.vr_toggle_enter_description,
-            R.drawable.ic_vr_3d),
         UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert,
             R.string.big_btn_short_undo),
         CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast,
@@ -261,8 +258,6 @@ class CommandPanelLayoutPlanner {
             if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
-            // 3DVR toggle: VR flavor only, pixel-media (video, image, gif). S0238.
-            if (BuildConfig.SUPPORT_VR_PLAYER && file.type in VR_BUTTON_MEDIA_TYPES) add(PlayerCommand.VR_3D)
             // S0028: multi-window tear-off — VR+setting guard already applied by controller
             if (allowSeparateWindow) add(PlayerCommand.OPEN_IN_SEPARATE_WINDOW)
             // S0106: Crop commands — static images only (exclude animated GIF and APNG)

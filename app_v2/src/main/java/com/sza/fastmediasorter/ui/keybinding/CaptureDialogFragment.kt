@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCaptureKeybindingBinding
 import com.sza.fastmediasorter.domain.input.InputTrigger
@@ -73,12 +72,6 @@ class CaptureDialogFragment : DialogFragment() {
 
         setupInputListeners()
         startCountdown()
-
-        if (BuildConfig.SUPPORT_VR_PLAYER) {
-            // VR capture is not available in this settings context — the VR player is not running.
-            // Triggers must be remapped while the VR player is active (future enhancement).
-            Timber.d("CaptureDialog: SUPPORT_VR_PLAYER build — VR trigger capture deferred to VR player context")
-        }
     }
 
     override fun onDestroyView() {

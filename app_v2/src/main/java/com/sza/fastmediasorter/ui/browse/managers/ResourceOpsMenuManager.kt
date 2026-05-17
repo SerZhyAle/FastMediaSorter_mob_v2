@@ -18,7 +18,6 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -43,9 +42,10 @@ class ResourceOpsMenuManager @Inject constructor(
         isDestinationsFull: Boolean = false,
         onCameraCapture: (() -> Unit)? = null,
         isCameraVisible: Boolean = false,
-        // S0028: multi-window entry point — open resource Browse in a new window
-        allowSeparateWindow: Boolean = false,
-        openBrowseInNewWindow: ((Long) -> Unit)? = null,
+        // S0028: multi-window entry point — VR-only, permanently disabled after S0241 VR removal.
+        // Parameters kept for source compatibility with existing call sites.
+        @Suppress("UNUSED_PARAMETER") allowSeparateWindow: Boolean = false,
+        @Suppress("UNUSED_PARAMETER") openBrowseInNewWindow: ((Long) -> Unit)? = null,
         // S0096: black screen for audio — shown only for audio-only libraries
         isAudioOnly: Boolean = false,
         onBlackScreenClicked: (() -> Unit)? = null
@@ -93,8 +93,8 @@ class ResourceOpsMenuManager @Inject constructor(
             !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
-        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
-            BuildConfig.SUPPORT_VR_PLAYER && allowSeparateWindow && openBrowseInNewWindow != null
+        // S0241: "Open in separate window" was VR-only; permanently hidden after VR stack removal.
+        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible = false
 
         popup.menu.findItem(R.id.action_black_screen)?.isVisible =
             isAudioOnly && onBlackScreenClicked != null
@@ -144,10 +144,6 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_camera_capture -> {
                     onCameraCapture?.invoke()
-                    true
-                }
-                R.id.action_open_in_separate_window -> {
-                    resource?.id?.let { openBrowseInNewWindow?.invoke(it) }
                     true
                 }
                 R.id.action_black_screen -> {

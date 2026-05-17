@@ -175,7 +175,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
 
-        // VR settings (spec §5.7)
+        // Legacy shared auto-detect toggle removed during the VR rewrite.
         private val KEY_VR_AUTO_DETECT_FORMAT = booleanPreferencesKey("vr_auto_detect_format")
         private val KEY_VR_FORCED_FORMAT = stringPreferencesKey("vr_forced_format")
         private val KEY_VR_FORCED_PLAT_FORMAT = stringPreferencesKey("vr_forced_plat_format")
@@ -382,7 +382,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     linkDownloadLoginWallHeuristicEnabled = preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] ?: true,
 
                     // VR settings (spec §5.7 / Phase 8)
-                    vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
                     vrForcedPlatFormat = readVrForcedPlatFormat(preferences),
                     vrForcedSphericalFormat = readVrForcedSphericalFormat(preferences),
                     vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
@@ -391,7 +390,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true,
                     vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
-                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: !BuildConfig.SUPPORT_VR_PLAYER,
+                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
                     vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
 
@@ -412,7 +411,7 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?: 7,
 
                     // S0028: Multi-window mode
-                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER,
+                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: false,
 
                     // S0162: absent key → default true (no behaviour change on upgrade)
                     followSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,
@@ -572,9 +571,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] = settings.linkDownloadAudioOnly
             preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] = settings.linkDownloadLoginWallHeuristicEnabled
 
-            // VR settings (spec §5.7 / Phase 8 split). Legacy key is removed on write so
-            // existing installs migrate forward after the first successful save.
-            preferences[KEY_VR_AUTO_DETECT_FORMAT] = settings.vrAutoDetectFormat
+            // VR settings (spec §5.7 / Phase 8 split). Remove the deprecated shared
+            // auto-detect key so existing installs converge after the first successful save.
+            preferences.remove(KEY_VR_AUTO_DETECT_FORMAT)
             preferences[KEY_VR_FORCED_PLAT_FORMAT] = settings.vrForcedPlatFormat
             preferences[KEY_VR_FORCED_SPHERICAL_FORMAT] = settings.vrForcedSphericalFormat
             preferences.remove(KEY_VR_FORCED_FORMAT)

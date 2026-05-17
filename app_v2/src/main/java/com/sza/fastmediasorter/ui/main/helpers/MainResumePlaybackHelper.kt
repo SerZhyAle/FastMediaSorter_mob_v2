@@ -129,16 +129,6 @@ class MainResumePlaybackHelper(
                     else -> state.isPlaying
                 }
 
-                // VR flavor: PlayerActivity routes to VrPlayerActivity which auto-starts an XR session
-                // — disorienting for resume. Skip PLAYER resume only; BROWSER resume (2D panel) is fine.
-                if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
-                    && state.screenType == com.sza.fastmediasorter.domain.model.ScreenType.PLAYER) {
-                    Timber.d("MainResumePlaybackHelper: Skipping PLAYER resume on VR flavor — XR auto-entry not supported yet")
-                    clearResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
-                    dismissResumeLoading()
-                    return@launch
-                }
-
                 dismissResumeLoading()
 
                 when (state.screenType) {

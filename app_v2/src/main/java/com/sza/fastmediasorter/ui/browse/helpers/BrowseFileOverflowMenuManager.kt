@@ -110,7 +110,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
      *
     * Excluded (player-only, meaningless without an open player session):
     * FULLSCREEN, RANDOM, BLACK_SCREEN, UNDO, CAST, SLEEP_TIMER,
-     * ROTATION_TOGGLE, VR_3D, OPEN_IN_SEPARATE_WINDOW, SLIDESHOW.
+     * ROTATION_TOGGLE, OPEN_IN_SEPARATE_WINDOW, SLIDESHOW.
      * Also excluded: DELETE and RENAME — already in the basic group above.
      *
      * Non-player actions (FAVORITE, SHARE, INFO, GOOGLE_LENS_IMAGE, DRAW_OVERLAY,

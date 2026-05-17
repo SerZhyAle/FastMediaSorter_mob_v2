@@ -205,42 +205,6 @@
                 app:tint="@color/text_color_secondary" />
         </LinearLayout>
 
-        <!-- Auto-detect format switch -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchVrAutoDetect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="true" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_auto_detect"
-                    android:textSize="@dimen/toggler_title_text_size" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_auto_detect_desc"
-                    android:textColor="@color/text_color_secondary"
-                    android:textSize="@dimen/toggler_desc_text_size" />
-            </LinearLayout>
-        </LinearLayout>
-
         <!-- Forced flat format spinner -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -303,37 +267,6 @@
             android:textColor="@color/text_color_secondary"
             android:textSize="@dimen/toggler_desc_text_size" />
 
-        <!-- VR rendering mode spinner -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
-                android:text="@string/settings_vr_rendering_mode"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <Spinner
-                android:id="@+id/spinnerVrRenderingMode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:entries="@array/vr_rendering_mode_entries" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:text="@string/settings_vr_rendering_mode_desc"
-            android:textColor="@color/text_color_secondary"
-            android:textSize="@dimen/toggler_desc_text_size" />
-
         <!-- Remember file format switch -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -367,87 +300,6 @@
                     android:text="@string/settings_vr_remember_format_desc"
                     android:textColor="@color/text_color_secondary"
                     android:textSize="@dimen/toggler_desc_text_size" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Auto-enter immersive switch -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchVrAutoImmersive"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="true" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_auto_immersive"
-                    android:textSize="@dimen/toggler_title_text_size" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_auto_immersive_desc"
-                    android:textColor="@color/text_color_secondary"
-                    android:textSize="@dimen/toggler_desc_text_size" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Show VR FPS switch -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchVrShowFps"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_show_fps"
-                    android:textSize="@dimen/toggler_title_text_size" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_show_fps_desc"
-                    android:textColor="@color/text_color_secondary"
-                    android:textSize="@dimen/toggler_desc_text_size" />
-
-                <TextView
-                    android:id="@+id/tvVrShowFpsDisabledHint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_show_fps_hint_disabled"
-                    android:textColor="@color/text_color_secondary"
-                    android:textSize="@dimen/toggler_desc_text_size"
-                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
 

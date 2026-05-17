@@ -14,16 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5172.102 (May 2026)
-
-**New:**
-Create text notes from Browse on local/SMB/SFTP/FTP/cloud, central Google account via Credential Manager, universal input router (D-pad/car/Bluetooth/hardware keys), VR image and GIF viewer (VR flavor), IzzyOnDroid distribution prepared.
+## What's New in v2.60.5180.136 (May 2026)
 
 **Changed:**
-System-managed orientation (reverse-portrait, tablet, foldable), adaptive Copy/Move panels, SMB first-scan speedup, draw editor toolbar collapsed, welcome page extended to 6 feature tiles.
+Simplified player controls (stereo content type, rendering mode and IPD removed on non-VR flavors), OCR restored on high-RAM low-heap devices (Quest 3), VR dead code purge across 16 main-side files.
 
 **Fixed:**
-Instagram photo/carousel downloads, player advance-after-delete, SMB/SFTP idle stability, low-memory toast suppression, network-to-local copy in public collections on Android 10+, Google/OneDrive/Dropbox sign-in across all flavors, VR Headset Required dialog gating, legacy cloud:/ path visibility.
+"Low memory, close player" snackbar false-fires on capable devices, VR-only Browse routing branch on non-VR flavors, Google Drive sign-in navigation to folder picker.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

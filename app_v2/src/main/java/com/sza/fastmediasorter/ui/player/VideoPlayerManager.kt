@@ -16,7 +16,6 @@ import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
@@ -291,19 +290,18 @@ class VideoPlayerManager(
     internal val managerScope = CoroutineScope(Dispatchers.Main + Job())
 
     // Panel single-eye crop flag — see spec_panel-stereo-single-eye.md.
-    // Default at construction matches the AppSettings default (flavor-aware via BuildConfig);
-    // overridden as soon as the first DataStore emission arrives below.
+    // Default true; overridden as soon as the first DataStore emission arrives below.
     @Volatile
-    internal var panelStereoSingleEyeEnabled: Boolean = !BuildConfig.SUPPORT_VR_PLAYER
+    internal var panelStereoSingleEyeEnabled: Boolean = true
 
-    // VR-only override: when VrPlayerActivity enters immersive rendering, the immersive
-    // renderer (VrStereoRenderer) owns per-eye crop; suppress panel single-eye crop here
-    // to avoid double-cropping. Toggled by VrPlayerActivity.setVrRenderingActive().
+    // Override: when the VR flavor enters immersive rendering, the immersive renderer
+    // owns per-eye crop; suppress panel single-eye crop here to avoid double-cropping.
+    // Toggled by the VR flavor via setVrImmersiveActive().
     @Volatile
     internal var vrImmersiveActive: Boolean = false
 
     /**
-     * Set by VrPlayerActivity when the OpenXR immersive render loop becomes active or inactive.
+     * Set by the VR flavor when its immersive render loop becomes active or inactive.
      * While active, panel single-eye crop is suppressed regardless of the user setting.
      */
     fun setVrImmersiveActive(active: Boolean) {
@@ -339,7 +337,7 @@ class VideoPlayerManager(
 
     /**
      * Invoked on the main thread after every fresh ExoPlayer instance is created.
-     * Used by VrPlayerActivity to flush a pending VR surface redirect when the XR
+     * Used by the VR flavor to flush a pending VR surface redirect when the VR
      * session became ready before ExoPlayer existed.
      */
     var onPlayerCreated: ((ExoPlayer) -> Unit)? = null

@@ -23,19 +23,6 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <!-- S0019: «Apply and 3D» combo button — visible only on VR-flavor builds.
-             One click closes the dialog AND launches immersive playback with current settings. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnApplyAnd3D"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:focusable="true"
-            android:focusableInTouchMode="false"
-            android:text="@string/dialog_playback_apply_and_3d"
-            android:visibility="gone" />
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClosePlaybackControl"
             style="@style/Widget.Material3.Button"
@@ -420,75 +407,6 @@
                         android:text="@string/playback_settings_3d_hint"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
-                    <!-- VR-only controls (visible when SUPPORT_VR_PLAYER) -->
-
-                    <!-- Content type label (read-only) -->
-                    <TextView
-                        android:id="@+id/tvVrContentType"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-
-                    <!-- VR Rendering mode chips -->
-                    <TextView
-                        android:id="@+id/tvVrRenderingModeLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/playback_vr_rendering_mode"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupVrRenderingMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        app:singleSelection="true"
-                        app:selectionRequired="true"
-                        android:visibility="gone">
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipRenderCinema"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:text="@string/playback_vr_render_cinema"
-                            android:checked="true" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipRenderFullStereo"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:text="@string/playback_vr_render_full_stereo" />
-                    </com.google.android.material.chip.ChipGroup>
-
-                    <!-- IPD (inter-pupillary distance) slider -->
-                    <TextView
-                        android:id="@+id/tvVrIpdLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:visibility="gone" />
-
-                    <SeekBar
-                        android:id="@+id/seekVrIpd"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:max="100"
-                        android:progress="50"
-                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout

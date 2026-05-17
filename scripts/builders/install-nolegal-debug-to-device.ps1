@@ -30,7 +30,7 @@ if (-not (Test-Path -Path $adb)) {
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $variant = 'debug'
-$packageName = 'com.sza.fastmediasorter.nolegal.debug'
+$packageName = 'com.sza.fastmediasorter.debug'
 
 Write-Host "noLegal APK installer — DEBUG" -ForegroundColor Cyan
 Write-Host "Launch policy: install only — DO NOT auto-launch (see script header)" -ForegroundColor Magenta

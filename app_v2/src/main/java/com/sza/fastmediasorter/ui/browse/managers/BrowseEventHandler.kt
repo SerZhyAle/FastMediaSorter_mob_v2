@@ -21,8 +21,6 @@ import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.StereoDetector
-import com.sza.fastmediasorter.ui.player.VrForcedFormatResolver
-import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -73,45 +71,28 @@ class BrowseEventHandler(
                         ?.takeIf { it.path == event.filePath }
                         ?: viewModel.state.value.mediaFiles.firstOrNull { it.path == event.filePath }
 
-                    val playerIntent = if (file != null && shouldLaunchStandardPlayer(file)) {
-                        createStandardPlayerIntent(resourceId, event.fileIndex, event.filePath)
-                    } else {
-                        // S0026: forward detected stereo mode so VrPlayerActivity primes the
-                        // coordinator before settings apply (otherwise inner route decision sees MONO).
-                        val detectedForVr = file?.let { detectStereoForLaunch(it) }
-                        PlayerActivity.createIntent(
-                            activity,
-                            resourceId,
-                            event.fileIndex,
-                            skipAvailabilityCheck,
-                            event.filePath,
-                            detectedStereoMode = detectedForVr,
-                        )
-                    }
 
-                    if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
-                        // Hybrid-app entry: browse task is destroyed on enterImmersive, so no
-                        // activity result can be delivered back. Standard-player intents (above
-                        // if-branch) still go through playerActivityLauncher to preserve the
-                        // EXTRA_MODIFIED_FILES result contract used by the browse list.
-                        Timber.d(
-                            "VR_AUDIT/5: BrowseEventHandler startActivity target=VR component=%s extras_detected=%s file=%s",
-                            playerIntent.component?.className,
-                            playerIntent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE),
-                            event.filePath,
-                        )
-                        VrTaskTransition.enterImmersive(activity, playerIntent)
-                    } else {
-                        Timber.d(
-                            "VR_AUDIT/5: BrowseEventHandler startActivity target=PANEL component=%s extras_detected=%s file=%s",
-                            playerIntent.component?.className,
-                            playerIntent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE),
-                            event.filePath,
-                        )
-                        playerActivityLauncher.launch(playerIntent)
-                        @Suppress("DEPRECATION")
-                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                    }
+                    // S0241 Phase 02: Browse no longer launches the immersive task directly.
+                    // We still forward the detected stereo hint so the flat player starts with
+                    // the same context that previously primed the VR host.
+                    val detectedStereoMode = file?.let { detectStereoForLaunch(it) }
+                        ?.takeUnless { it == StereoMode.UNKNOWN }
+                    val playerIntent = createStandardPlayerIntent(
+                        resourceId = resourceId,
+                        fileIndex = event.fileIndex,
+                        filePath = event.filePath,
+                        detectedStereoMode = detectedStereoMode,
+                    )
+
+                    Timber.d(
+                        "VR_AUDIT/5: BrowseEventHandler startActivity target=PANEL component=%s extras_detected=%s file=%s",
+                        playerIntent.component?.className,
+                        playerIntent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE),
+                        event.filePath,
+                    )
+                    playerActivityLauncher.launch(playerIntent)
+                    @Suppress("DEPRECATION")
+                    activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
             }
             is BrowseEvent.NavigateToTextEditor -> {
@@ -224,78 +205,19 @@ class BrowseEventHandler(
         Timber.i("BrowseActivity: ========================================")
     }
 
-    private suspend fun shouldLaunchStandardPlayer(file: MediaFile): Boolean {
-        if (file.type != MediaType.VIDEO) {
-            // Keep still images and document viewers in the standard player for now.
-            // The vr flavor currently lacks an explicit "enter immersive" step, so routing
-            // non-video content through VrPlayerActivity would drop the user into XR immediately.
-            Timber.i(
-                "BrowseEventHandler: force standard player for non-video file=%s type=%s",
-                file.path,
-                file.type,
-            )
-            return true
-        }
-
-        val settings = viewModel.getSettings()
-
-        // Global VR kill-switch: when enabled, all 3D/VR detection is bypassed and content
-        // follows the standard 2D player path regardless of format.
-        if (settings.disable3dVr) {
-            Timber.i(
-                "BrowseEventHandler: disable3dVr=true — forcing standard player for file=%s",
-                file.path,
-            )
-            return true
-        }
-
-        val detectedByFilename = stereoDetector.detectFromFilename(file.path)
-        val detectedMode = if (detectedByFilename != StereoMode.UNKNOWN) {
-            detectedByFilename
-        } else if (file.width != null && file.height != null) {
-            stereoDetector.detectFromDimensions(file.width, file.height)
-        } else {
-            StereoMode.UNKNOWN
-        }
-
-        val effectiveMode = if (!settings.vrAutoDetectFormat && !detectedMode.isSpherical()) {
-            // Flat content must stay on the standard path when VR auto-detection is disabled,
-            // otherwise the user sees the VR host flash before fallback.
-            StereoMode.MONO
-        } else {
-            VrForcedFormatResolver.resolve(
-                detected = detectedMode,
-                perFileOverride = null,
-                forcedPlat = VrForcedFormatResolver.mapPlatSetting(settings.vrForcedPlatFormat),
-                forcedSpherical = VrForcedFormatResolver.mapSphericalSetting(settings.vrForcedSphericalFormat),
-            )
-        }
-
-        val route = BrowseRoutingDecision.decide(file, effectiveMode, settings)
-        val shouldUseStandard = route == BrowseRoutingDecision.Route.STANDARD_PLAYER
-        Timber.i(
-            "BrowseEventHandler: route file=%s type=%s detected=%s effective=%s autoDetect=%b autoImmersive=%b -> standard=%b",
-            file.path,
-            file.type,
-            detectedMode,
-            effectiveMode,
-            settings.vrAutoDetectFormat,
-            settings.vrAutoImmersive,
-            shouldUseStandard,
-        )
-        return shouldUseStandard
-    }
-
     private fun createStandardPlayerIntent(
         resourceId: Long,
         fileIndex: Int,
         filePath: String,
-    ): Intent = Intent(activity, PlayerActivity::class.java).apply {
-        putExtra("resourceId", resourceId)
-        putExtra("initialIndex", fileIndex)
-        putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
-        putExtra("initialFilePath", filePath)
-    }
+        detectedStereoMode: StereoMode? = null,
+    ): Intent = PlayerActivity.createPanelIntent(
+        context = activity,
+        resourceId = resourceId,
+        initialIndex = fileIndex,
+        skipAvailabilityCheck = skipAvailabilityCheck,
+        initialFilePath = filePath,
+        detectedStereoMode = detectedStereoMode,
+    )
 
     /**
      * S0026: same detection priority as [shouldLaunchStandardPlayer], but returns the actual
