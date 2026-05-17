@@ -27,9 +27,21 @@ build/
 bin/
 gen/
 out/
-release/
+# Note: a broad `release/` rule was removed (collateral damage —
+# it excluded `app_v2/src/release/` source set and `scripts/release/`
+# tooling from the repo, which silently broke release builds on main).
+# Gradle build outputs under `release/` are already covered by `**/build/`
+# above; transient release artifacts live under `temp/` (covered separately).
 build_output.txt
 aab_contents/
+
+# Release source set: secret/machine-specific files only (the rest of
+# `app_v2/src/release/` is tracked).
+# MSAL config carries the production signing-hash; kept out of repo and
+# synced into the release worktree via scripts/release-worktree-sync.txt.
+app_v2/src/release/res/raw/msal_config.json
+# OAuth client secrets (production credentials).
+app_v2/src/release/res/values/google_oauth.xml
 
 # Gradle wrapper (KEEP - required for project build)
 !gradle/

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Release manifest overlay.
+    Removes permissions that require Google Play policy justification
+    for features not yet submitted for review (scheduled ops).
+    Re-enable FOREGROUND_SERVICE_DATA_SYNC when submitting scheduled operations.
+
+    NOTE: FOREGROUND_SERVICE_MEDIA_PLAYBACK and AudioPlaybackService foregroundServiceType
+    must remain declared — Media3 (API 34+) unconditionally calls startForeground(mediaPlayback)
+    on any playback start. Removing them causes IllegalArgumentException crash on Android 14+.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Remove until scheduled operations feature is submitted for Play review -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        tools:node="remove" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"
+        tools:node="remove" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+        tools:node="remove" />
+
+    <!-- ScheduledOperationsBootReceiver: disabled in release (feature hidden) -->
+    <application>
+        <receiver android:name=".worker.ScheduledOperationsBootReceiver"
+            android:enabled="false"
+            tools:node="merge"
+            tools:replace="android:enabled" />
+    </application>
+
+</manifest>
