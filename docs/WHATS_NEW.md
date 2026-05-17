@@ -1,6 +1,26 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5172.102** (May 2026)
+**Current release: 2.60.5180.136** (May 2026)
+
+> Changes since version 2.60.5172.102
+
+---
+
+## What's Changed
+
+- **Simplified player controls** — stereo content type, rendering mode, and IPD removed on non-VR flavors (S0241)
+- **OCR on high-RAM low-heap devices** — text recognition restored on Quest 3 (7 GB RAM, 512 MB heap)
+- **VR dead code purge** — 16 main-side files cleaned, 2 VR-only permissions removed (S0241 Phase 03)
+
+## What's Fixed
+
+- "Low memory, close player" snackbar no longer false-fires on capable devices (S0213)
+- VR-only Browse routing branch removed on non-VR flavors (S0241)
+- Google Drive sign-in now navigates to folder picker after Credential Manager flow completes
+
+---
+
+## Previous Release: 2.60.5172.102 (May 2026)
 
 > Changes since version 2.60.5160.425
 
