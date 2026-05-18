@@ -200,7 +200,7 @@ class MouseEventHandler(
                 true
             }
             else -> {
-                // Resolved but no specific legacy bridge — action consumed; callers may
+                // Resolved but no specific legacy bridge - action consumed; callers may
                 // intercept via onInputAction(view, ShowContextMenu) for catch-all right-click.
                 true
             }

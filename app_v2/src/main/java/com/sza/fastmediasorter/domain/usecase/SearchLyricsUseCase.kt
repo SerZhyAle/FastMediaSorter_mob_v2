@@ -49,7 +49,7 @@ class SearchLyricsUseCase @Inject constructor(
             Timber.d("Extracted metadata - Artist: $artist, Title: $title, Album: $album")
             val filteredResolvedTitle = SearchQueryUtils.filterPlaceholder(resolvedTitle)
             val filteredResolvedArtist = SearchQueryUtils.filterPlaceholder(resolvedArtist)
-            // Extract artist from parent dir — last-resort fallback for "YYYY-Artist-Album/track.mp3" structures
+            // Extract artist from parent dir - last-resort fallback for "YYYY-Artist-Album/track.mp3" structures
             val dirArtist = parseArtistFromPath(mediaFile.path)
             if (!dirArtist.isNullOrBlank()) {
                 Timber.d("AudioMetadataLoader: dirArtist extracted from path: '$dirArtist'")
@@ -494,7 +494,7 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
     
-    // NOTE: searchLyricsOvhApi removed — api.lyrics.ovh returns 502 permanently (server dead since 2024).
+    // NOTE: searchLyricsOvhApi removed - api.lyrics.ovh returns 502 permanently (server dead since 2024).
     
     /** Search Genius API and scrape lyrics from the returned song page. */
     private suspend fun searchGeniusApi(query: String): String? = withContext(Dispatchers.IO) {
@@ -604,7 +604,7 @@ class SearchLyricsUseCase @Inject constructor(
             val titleCleaned = SearchQueryUtils.cleanForSearch(titleRaw)
             val title = (titleCleaned.ifBlank { titleRaw }).lowercase().replace(Regex("[^a-z0-9]"), "")
 
-            // AZLyrics only indexes ASCII content — skip if artist or title is non-ASCII
+            // AZLyrics only indexes ASCII content - skip if artist or title is non-ASCII
             if (artist.isEmpty() || title.isEmpty()) {
                 Timber.d("AZLyrics: skipping non-ASCII query '$artistRaw / $titleRaw'")
                 return@withContext null
@@ -654,5 +654,5 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
 
-    // NOTE: searchMegalyrics removed — megalyrics.ru migrated to WordPress blog, no longer serves lyrics (March 2026).
+    // NOTE: searchMegalyrics removed - megalyrics.ru migrated to WordPress blog, no longer serves lyrics (March 2026).
 }

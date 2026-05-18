@@ -55,7 +55,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // S0194: 13 Application-level singletons wrapped in dagger.Lazy<T> so Hilt
     // defers their construction until first .get(). The 4 fields below that
     // synchronously register lifecycle observers / OS callbacks in onCreate
-    // intentionally stay eager — they are addressed separately by S0195.
+    // intentionally stay eager - they are addressed separately by S0195.
     @Inject
     lateinit var workManagerScheduler: dagger.Lazy<WorkManagerScheduler>
 
@@ -87,7 +87,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // S0195: the four network lifecycle hooks (NetworkStateMonitor / SmbConnectionManager /
     // SmbBackgroundLifecycleManager / NetworkLifecycleObserver) used to be @Inject'd here and
     // started in onCreate. They are now bootstrapped lazily by NetworkLifecycleBootstrapper
-    // on first real remote use — see data.network.lifecycle.NetworkLifecycleBootstrapper.
+    // on first real remote use - see data.network.lifecycle.NetworkLifecycleBootstrapper.
 
     @Inject
     lateinit var tempFileManager: dagger.Lazy<com.sza.fastmediasorter.domain.transfer.TempFileManager>
@@ -104,7 +104,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var defaultsMapLoader: dagger.Lazy<com.sza.fastmediasorter.data.input.DefaultsMapLoader>
 
-    // S0207 Phase 01: memory observability channel — emitted at fixed lifecycle anchors.
+    // S0207 Phase 01: memory observability channel - emitted at fixed lifecycle anchors.
     // Direct (non-Lazy) injection: used at end of onCreate, before any background work runs.
     @Inject
     lateinit var memoryProbe: MemoryProbe
@@ -175,7 +175,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         })
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
-        // NetworkLifecycleBootstrapper on first remote use — formerly attached eagerly here.
+        // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.
 
         // PDF Support: Using built-in Android PdfRenderer (API 21+)
         // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
@@ -186,13 +186,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
         // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
-        // Skipped on flavors without Cast support (VR — Horizon OS has no Google Play Services Cast module).
+        // Skipped on flavors without Cast support (VR - Horizon OS has no Google Play Services Cast module).
         if (BuildConfig.SUPPORT_CAST) {
             try {
                 com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
                 Timber.d("FastMediaSorterApp: Cast SDK initialized")
             } catch (e: Exception) {
-                Timber.w("FastMediaSorterApp: Cast SDK not available — ${e.message}")
+                Timber.w("FastMediaSorterApp: Cast SDK not available - ${e.message}")
             }
         }
 
@@ -200,7 +200,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Warn if the previous session ended with a crash (user should export logs)
         if (LoggingHelper.hasPreviousCrash()) {
-            Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH — use 'Export debug logs' to collect reports ===")
+            Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH - use 'Export debug logs' to collect reports ===")
         }
 
         // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
@@ -217,7 +217,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             logAppStartupInfo()
         }
 
-        // S0200 Phase 05: legacy auth-state wipe — idempotent, runs once after upgrade then no-ops.
+        // S0200 Phase 05: legacy auth-state wipe - idempotent, runs once after upgrade then no-ops.
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0200AuthStateWipe.get().runIfNeeded()
@@ -252,7 +252,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                     scheduler.cancelResourcesSync()
                     Timber.d("FastMediaSorterApp: Background sync is disabled, skipping scheduling")
                 }
-                // Orphan cleanup runs regardless of sync setting — lightweight maintenance task
+                // Orphan cleanup runs regardless of sync setting - lightweight maintenance task
                 scheduler.scheduleOrphanCleanup()
                 // Retry any OAuth token revocations that failed during sign-out (B5-T3)
                 scheduler.schedulePendingRevocation()
@@ -269,7 +269,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         }
 
-        // S0207 Phase 01: APP_STARTED memory probe — last call in onCreate so the
+        // S0207 Phase 01: APP_STARTED memory probe - last call in onCreate so the
         // measurement reflects the post-init state of the process.
         memoryProbe.record(MemoryCheckpoint.APP_STARTED)
     }
@@ -406,20 +406,20 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // Disk cache is cleared: manually in settings, on file delete/move/rename, or by FIFO eviction
             }
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
-                // App is FOREGROUND but system RAM is low — clear Glide memory cache to avoid OOM kill.
+                // App is FOREGROUND but system RAM is low - clear Glide memory cache to avoid OOM kill.
                 // Disk cache is preserved for fast reload.
                 Timber.w("LOW memory (foreground): level=$level($levelName), mem=$memInfo, clearing Glide memory cache")
                 Glide.get(this).clearMemory()
             }
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE -> {
-                // App is FOREGROUND, moderate pressure — trim Glide to free LRU bitmaps.
+                // App is FOREGROUND, moderate pressure - trim Glide to free LRU bitmaps.
                 Timber.w("MODERATE memory (foreground): level=$level($levelName), mem=$memInfo, trimming Glide")
                 Glide.get(this).trimMemory(level)
             }
             ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
-                // App is in background — trim to release LRU bitmaps, preserve hot items.
+                // App is in background - trim to release LRU bitmaps, preserve hot items.
                 if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
                     Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, trimming Glide")
                     Glide.get(this).trimMemory(level)

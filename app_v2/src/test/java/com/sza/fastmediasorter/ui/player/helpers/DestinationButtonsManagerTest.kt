@@ -10,7 +10,7 @@ import kotlin.math.abs
  * Unit tests for the pure helper functions introduced in S0227:
  * [DestinationButtonsManager.computeMaxPerRow] and [DestinationButtonsManager.computeFontSizeSp].
  *
- * These functions contain all the business logic for adaptive layout — they are deliberately
+ * These functions contain all the business logic for adaptive layout - they are deliberately
  * extracted to companion object so they can be tested without Android framework dependencies.
  */
 class DestinationButtonsManagerTest {
@@ -122,7 +122,7 @@ class DestinationButtonsManagerTest {
         val maxPerRow = DestinationButtonsManager.computeMaxPerRow(availableWidthDp)
         val count = 5
         val usesAdaptive = count > 0 && count <= maxPerRow
-        // Adaptive path NOT taken; lookup returns listOf(5) — 1 row, no regression
+        // Adaptive path NOT taken; lookup returns listOf(5) - 1 row, no regression
         assertEquals("360dp + 5 buttons: maxPerRow=4 < 5, adaptive NOT triggered", 4, maxPerRow)
         assertTrue("360dp + 5: lookup path taken (count > maxPerRow)", !usesAdaptive)
     }
@@ -133,7 +133,7 @@ class DestinationButtonsManagerTest {
         val count = 6
         val usesAdaptive = count > 0 && count <= maxPerRow
         assertTrue("360dp + 6 buttons: should NOT use adaptive single row", !usesAdaptive)
-        // lookup → listOf(3,3) — 2 rows, no regression
+        // lookup → listOf(3,3) - 2 rows, no regression
     }
 
     @Test

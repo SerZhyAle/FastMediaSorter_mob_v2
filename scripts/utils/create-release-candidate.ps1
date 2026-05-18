@@ -21,7 +21,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
 Set-Location $repoRoot
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host " FastMediaSorter — Release Candidate" -ForegroundColor Cyan
+Write-Host " FastMediaSorter - Release Candidate" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
 # Step 1: Generate version (reuse existing logic from build-with-version.ps1)

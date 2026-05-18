@@ -69,7 +69,7 @@ class NetworkFileManager(
             val f = File(mediaFile.path)
             if (f.exists()) return f
 
-            // Fallback 1: MediaStore contentUri — available for media files on API 29+.
+            // Fallback 1: MediaStore contentUri - available for media files on API 29+.
             // Files in Android/data/<other_package>/ may not have one, but worth checking.
             val contentUri = mediaFile.contentUri
             if (!contentUri.isNullOrEmpty()) {
@@ -77,7 +77,7 @@ class NetworkFileManager(
                 return copyUriToTemp(contentUri, mediaFile.name)
             }
 
-            // Fallback 2: try direct FileInputStream — handles the Android FUSE quirk where
+            // Fallback 2: try direct FileInputStream - handles the Android FUSE quirk where
             // File.exists() returns false (e.g. stat() denied on parent) but the file itself
             // is still accessible. Also surfaces EACCES as IOException for better diagnostics.
             try {
@@ -88,7 +88,7 @@ class NetworkFileManager(
             }
         }
 
-        // Content URIs from external intents (e.g. "Open With") — copy to temp file
+        // Content URIs from external intents (e.g. "Open With") - copy to temp file
         if (mediaFile.path.startsWith("content://")) {
             return copyUriToTemp(mediaFile.path, mediaFile.name)
         }

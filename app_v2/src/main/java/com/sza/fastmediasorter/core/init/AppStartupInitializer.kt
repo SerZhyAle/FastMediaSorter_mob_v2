@@ -36,7 +36,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
  * S0194: All seven repository / use-case dependencies are passed as [dagger.Lazy]
  * so the underlying singletons are not constructed until the corresponding async
  * task actually runs. Each task dereferences `.get()` inside its own coroutine
- * body — never at construction time.
+ * body - never at construction time.
  */
 @Singleton
 class AppStartupInitializer @Inject constructor(
@@ -82,8 +82,8 @@ class AppStartupInitializer @Inject constructor(
 
     private suspend fun runDeferredTask(label: String, block: suspend () -> Unit) {
         runCatching { block() }
-            .onSuccess { Timber.i("AppStartupInitializer: deferred task complete — %s", label) }
-            .onFailure { Timber.e(it, "AppStartupInitializer: deferred task failed — %s", label) }
+            .onSuccess { Timber.i("AppStartupInitializer: deferred task complete - %s", label) }
+            .onFailure { Timber.e(it, "AppStartupInitializer: deferred task failed - %s", label) }
     }
 
     private suspend fun applyDefaultsChromeOsIfEmpty() {
@@ -247,7 +247,7 @@ class AppStartupInitializer @Inject constructor(
             fun granted(perm: String) =
                 ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
 
-            // Media / storage permissions — depends on API level
+            // Media / storage permissions - depends on API level
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
                 Timber.i("%-40s = %s", "READ_MEDIA_IMAGES", granted(Manifest.permission.READ_MEDIA_IMAGES))
                 Timber.i("%-40s = %s", "READ_MEDIA_VIDEO", granted(Manifest.permission.READ_MEDIA_VIDEO))
@@ -259,7 +259,7 @@ class AppStartupInitializer @Inject constructor(
                 }
             }
 
-            // All Files Access — MANAGE_EXTERNAL_STORAGE (API 30+)
+            // All Files Access - MANAGE_EXTERNAL_STORAGE (API 30+)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 Timber.i("%-40s = %s", "MANAGE_EXTERNAL_STORAGE (AllFiles)", Environment.isExternalStorageManager())
             }

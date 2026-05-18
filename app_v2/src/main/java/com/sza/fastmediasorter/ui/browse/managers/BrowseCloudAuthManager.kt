@@ -43,7 +43,7 @@ class BrowseCloudAuthManager(
             try {
                 val activity = context as? Activity
                 if (activity == null) {
-                    Timber.e("launchGoogleSignIn: context is not an Activity — Credential Manager requires one")
+                    Timber.e("launchGoogleSignIn: context is not an Activity - Credential Manager requires one")
                     callbacks.onAuthenticationFailure()
                     return@launch
                 }

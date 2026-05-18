@@ -31,9 +31,9 @@ import kotlin.random.Random
  * playback session looks distinct.
  *
  * Public lifecycle API mirrors [AudioBreathingBarsView]:
- *  - [startAnimation] — called when audio starts playing
- *  - [pauseAnimation] — called when audio is paused (retains last frame)
- *  - [stopAndReset]   — cancels animator, clears buffer, resets time
+ *  - [startAnimation] - called when audio starts playing
+ *  - [pauseAnimation] - called when audio is paused (retains last frame)
+ *  - [stopAndReset]   - cancels animator, clears buffer, resets time
  */
 class AudioWaveParticleView @JvmOverloads constructor(
     context: Context,
@@ -46,7 +46,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         // ValueAnimator fires ~60fps; 0.003 per tick gives ~0.18/s drift.
         private const val TIME_INCREMENT = 0.003f
 
-        // Randomization ranges — normal devices
+        // Randomization ranges - normal devices
         private const val WAVE_COUNT_MIN    = 5
         private const val WAVE_COUNT_MAX    = 12
         private const val STEP_PX_BASE      = 20f   // ±20 % → 16..24 px
@@ -86,13 +86,13 @@ class AudioWaveParticleView @JvmOverloads constructor(
     init {
         val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
         isLowRam = am?.isLowRamDevice == true
-        if (isLowRam) Timber.d("AudioWaveParticleView: low-RAM device detected — reduced object counts")
+        if (isLowRam) Timber.d("AudioWaveParticleView: low-RAM device detected - reduced object counts")
     }
 
     private var time = 0f
     private var startupFrameCount = 0
 
-    // ── Randomized session parameters — re-rolled on each fresh startAnimation() ──
+    // ── Randomized session parameters - re-rolled on each fresh startAnimation() ──
 
     /** Number of sine-wave paths to draw this session (5..12). */
     private var waveCount = 6
@@ -150,7 +150,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
     private var offBitmap: Bitmap? = null
     private var offCanvas: Canvas? = null
 
-    // rgba(10, 10, 10, 0.15) ≈ argb(38, 10, 10, 10) — semi-transparent black overlay
+    // rgba(10, 10, 10, 0.15) ≈ argb(38, 10, 10, 10) - semi-transparent black overlay
     private val fadeOverlayPaint = Paint().apply {
         color = Color.argb(38, 10, 10, 10)
         style = Paint.Style.FILL
@@ -195,7 +195,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         // Deferred start: startAnimation() was called before layout completed
         if (pendingStart) {
             pendingStart = false
-            Timber.d("AudioWaveParticleView: onSizeChanged — firing deferred startAnimation")
+            Timber.d("AudioWaveParticleView: onSizeChanged - firing deferred startAnimation")
             wavePaint.strokeWidth = waveStrokeWidth
             animator.start()
         }
@@ -273,8 +273,8 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 val w = width
                 val h = height
                 if (w <= 0 || h <= 0) {
-                    // Layout not done yet — defer until onSizeChanged() fires
-                    Timber.d("AudioWaveParticleView: startAnimation() deferred — view has no size yet")
+                    // Layout not done yet - defer until onSizeChanged() fires
+                    Timber.d("AudioWaveParticleView: startAnimation() deferred - view has no size yet")
                     pendingStart = true
                     return
                 }
@@ -283,7 +283,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 wavePaint.strokeWidth = waveStrokeWidth
                 animator.start()
             }
-            // already running — no-op
+            // already running - no-op
         }
     }
 
@@ -348,7 +348,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
             oc.drawPath(wavePath, wavePaint)
         }
 
-        // Drifting particles with edge bounce — radius, speed, hue vary per session
+        // Drifting particles with edge bounce - radius, speed, hue vary per session
         for (p in particles) {
             p.x += p.vx
             p.y += p.vy

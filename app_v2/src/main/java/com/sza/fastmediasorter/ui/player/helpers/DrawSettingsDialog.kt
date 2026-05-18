@@ -16,7 +16,7 @@ import timber.log.Timber
  * and reads/writes their values through [DrawEditorPrefs]. The Cancel button discards
  * any in-dialog edits; OK persists all three values and invokes [onApply] so the
  * active drawing session can pick them up on the next stroke (already true because
- * `DrawCanvasView` reads prefs at action creation time — `onApply` exists as a hook
+ * `DrawCanvasView` reads prefs at action creation time - `onApply` exists as a hook
  * for future cases like refreshing a "current brush" preview indicator).
  */
 class DrawSettingsDialog(

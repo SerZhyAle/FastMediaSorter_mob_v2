@@ -137,7 +137,7 @@ class StandaloneViewManager(
     private var videoPositionSaveJob: Job? = null
     private var lastSavedPosition: Long = -1L
     private var currentVideoFilePath: String? = null
-    // Media3 1.2.1 deferral flags — mirrors VideoPlayerManager logic.
+    // Media3 1.2.1 deferral flags - mirrors VideoPlayerManager logic.
     private var standaloneVideoSizeKnown = false
     private var standalonePendingEffects = false
     private var audioServiceController: AudioServiceController? = null
@@ -217,7 +217,7 @@ class StandaloneViewManager(
         if (mediaType == MediaType.AUDIO) audioServiceController?.player else exoPlayer
 
     fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
-        Timber.d("StandaloneViewManager: showing $mediaType — ${mediaFile.name}")
+        Timber.d("StandaloneViewManager: showing $mediaType - ${mediaFile.name}")
         hidePhotoAndPlayerViews()
         when (mediaType) {
             MediaType.IMAGE -> showImage(mediaFile)
@@ -254,7 +254,7 @@ class StandaloneViewManager(
     fun release() {
         Timber.d("StandaloneViewManager: release")
         stopPositionAutoSave()
-        // Capture position before releasing the player — a coroutine launched after release() would arrive too late.
+        // Capture position before releasing the player - a coroutine launched after release() would arrive too late.
         val pathToSave = currentVideoFilePath
         val pos = exoPlayer?.currentPosition ?: -1L
         val dur = exoPlayer?.duration ?: -1L
@@ -273,7 +273,7 @@ class StandaloneViewManager(
         audioFocusManager = null
         exoPlayer?.release()
         exoPlayer = null
-        // Standalone mode must never continue audio in background — stop before releasing the service controller.
+        // Standalone mode must never continue audio in background - stop before releasing the service controller.
         audioServiceController?.player?.stop()
         audioServiceController?.release()
         audioServiceController = null
@@ -288,7 +288,7 @@ class StandaloneViewManager(
     // ── Image ───────────────────────────────────────────────────────────────
 
     private fun showImage(mediaFile: MediaFile) {
-        // photoView lives inside photoDualSurfaceContainer — both must be visible
+        // photoView lives inside photoDualSurfaceContainer - both must be visible
         // Container is nullable in the binding (config-variant view)
         binding.photoDualSurfaceContainer?.let { it.isVisible = true }
         binding.photoView.isVisible = true
@@ -346,7 +346,7 @@ class StandaloneViewManager(
         // setVideoEffects() is called before the decoder emits the first frame.
         if (!standaloneVideoSizeKnown && effects.isNotEmpty()) {
             standalonePendingEffects = true
-            Timber.d("StandaloneViewManager: applyVideoColorEffects deferred — video size not yet known")
+            Timber.d("StandaloneViewManager: applyVideoColorEffects deferred - video size not yet known")
             return
         }
         exoPlayer?.setVideoEffects(effects)
@@ -366,7 +366,7 @@ class StandaloneViewManager(
         binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
         val controller = AudioServiceController(activity)
         audioServiceController = controller
-        // Do NOT use AudioFocusManager here — ExoPlayer inside AudioPlaybackService is built with
+        // Do NOT use AudioFocusManager here - ExoPlayer inside AudioPlaybackService is built with
         // setAudioAttributes(..., handleAudioFocus=true) and manages focus automatically.
         // Creating a separate AudioFocusManager in the Activity would cause a double-focus conflict:
         // the Activity's manager would receive AUDIOFOCUS_LOSS as soon as the service's ExoPlayer
@@ -406,7 +406,7 @@ class StandaloneViewManager(
     fun toggleEpubTranslation()   { _epubViewerManager?.toggleTranslation() }
     fun togglePdfTranslation()    { _pdfViewerManager?.toggleTranslation() }
 
-    // Viewer manager providers — for SearchControlsManager wiring in StandalonePlayerActivity
+    // Viewer manager providers - for SearchControlsManager wiring in StandalonePlayerActivity
     fun epubViewerManagerProvider(): EpubViewerManager = epubViewerManager
     fun pdfViewerManagerProvider(): PdfViewerManager   = pdfViewerManager
     fun textViewerManagerProvider(): TextViewerManager = textViewerManager
@@ -492,7 +492,7 @@ class StandaloneViewManager(
                 else -> activity.getString(R.string.error_playback_failed)
             }
             showToastError(msg)
-            Timber.e(error, "StandaloneViewManager: playback error — $msg")
+            Timber.e(error, "StandaloneViewManager: playback error - $msg")
         }
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {

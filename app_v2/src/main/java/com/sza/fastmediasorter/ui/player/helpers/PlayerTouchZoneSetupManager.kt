@@ -11,7 +11,7 @@ import timber.log.Timber
  *
  * Responsibilities:
  * - Wire legacy 2-zone and 3-zone click listeners (permanently hidden views, preserved for
- *   backward compatibility — actual navigation is handled by TouchZoneGestureManager)
+ *   backward compatibility - actual navigation is handled by TouchZoneGestureManager)
  * - Show context-aware hint overlays (9-zone grid, 3-zone text, media-bottom-reserved)
  * - Dismiss overlays on first tap
  *
@@ -26,7 +26,7 @@ class PlayerTouchZoneSetupManager(
 
     /**
      * Wire legacy 2-zone and 3-zone click listeners.
-     * Views are always hidden — listeners preserved for backward compatibility only.
+     * Views are always hidden - listeners preserved for backward compatibility only.
      */
     fun setupLegacyTouchZoneListeners() {
         safeViews.touchZonePrevious.setOnClickListener {
@@ -41,7 +41,7 @@ class PlayerTouchZoneSetupManager(
         safeViews.touchZone3Next.setOnClickListener {
             navigationManager.navigateNextFromTouchZone()
         }
-        // Center gesture zone — no click handler, handled by TouchZoneGestureManager
+        // Center gesture zone - no click handler, handled by TouchZoneGestureManager
     }
 
     /**

@@ -16,7 +16,7 @@ Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imp
 /spec-tech <Sxxxx-or-slug> --dry-run
 ```
 
-**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding (the spec was just written — manual approval gate adds no value). Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort — they require explicit resolution.
+**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding (the spec was just written - manual approval gate adds no value). Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort - they require explicit resolution.
 
 The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 
@@ -25,7 +25,7 @@ The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 ## Directory layout
 
 ```text
-PLAN/Sxxxx_<short-name>.md          # strategic (Russian) — owned by /spec
+PLAN/Sxxxx_<short-name>.md          # strategic (Russian) - owned by /spec
 PLAN/Sxxxx_<short-name>/
   INDEX.md
   PHASE_01__<slug>.md
@@ -39,7 +39,7 @@ No `_spec_` segment in any path. Phase-slug: kebab-case, ≤4 words. Examples: `
 
 ## Process
 
-**1 — Validate strategic spec.**
+**1 - Validate strategic spec.**
 
 Resolve `Sxxxx` and slug via `select.ps1`. Read `PLAN/Sxxxx_<short-name>.md`. Abort if missing or `Status: Block*` (block states require resolution first).
 
@@ -51,11 +51,11 @@ If `Status: Draft` → auto-promote to `Approved`:
 pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
 ```
 
-Note in chat: `Status was Draft — auto-promoted to Approved.`
+Note in chat: `Status was Draft - auto-promoted to Approved.`
 
 Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars (§5.1), open research items (§6), ADRs (§9), criteria (§11).
 
-**2 — Read project context.**
+**2 - Read project context.**
 
 - `dev/PROJECT_OPERATIONS_INDEX.md`
 - `dev/CATALOG/<module>.md` or `.jsonl`
@@ -63,25 +63,25 @@ Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars
 - `app_v2/build.gradle.kts`
 - All source files for the affected area. Every file path referenced in a step must exist or be explicitly marked "New".
 
-**2.5 — Evaluate complexity (PRIMITIVE check).**
+**2.5 - Evaluate complexity (PRIMITIVE check).**
 
 Score the task against the primitive checklist:
 
-- [ ] ≤ 3 existing files need changes — no new files required
+- [ ] ≤ 3 existing files need changes - no new files required
 - [ ] No new classes, interfaces, or abstract types introduced
 - [ ] No Room schema change (`@Database` version bump or new `@Entity`)
 - [ ] No new Hilt `@Module` or `@Provides` required
 - [ ] No new UI screens, fragments, or navigation destinations
-- [ ] Implementation is mechanically deterministic — no design decisions deferred
+- [ ] Implementation is mechanically deterministic - no design decisions deferred
 - [ ] Estimated line delta < 100 lines total
 
 **If ALL pass → PRIMITIVE path** (skip steps 3–8):
 
 1. Implement the changes directly in the source files identified in step 2.
-2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry — per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
+2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
 3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
 4. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-2 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
-5. Chat output: `<Sxxxx> — Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
+5. Chat output: `<Sxxxx> - Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
 No `INDEX.md`, no `PHASE_NN__*.md` files are written. No `/spec-dev` chain.
 
@@ -89,7 +89,7 @@ No `INDEX.md`, no `PHASE_NN__*.md` files are written. No `/spec-dev` chain.
 
 ---
 
-**3 — Design phase graph.**
+**3 - Design phase graph.**
 
 Partition into sequential phases, each:
 
@@ -100,26 +100,26 @@ Partition into sequential phases, each:
 Ordering rules:
 
 1. Foundations first: data classes, repo interfaces, DI, Room schema+migration.
-2. Dependency order within phases — state in `Depends on`.
+2. Dependency order within phases - state in `Depends on`.
 3. User-visible changes last within their area.
 4. Final phase always `PHASE_NN__docs-catalog-cleanup.md`: FEATURES trilingual, catalog regen, dev log.
 5. Minimum one phase per strategic pillar (§5.1). Small pillars may fuse.
 
 Target 3–8 phases. >10 → split the feature into multiple specs.
 
-**4 — Write `INDEX.md`** using the template below.
+**4 - Write `INDEX.md`** using the template below.
 
-**5 — Write each `PHASE_NN__<slug>.md`** using the phase template. Steps numbered `NN.M`.
+**5 - Write each `PHASE_NN__<slug>.md`** using the phase template. Steps numbered `NN.M`.
 
 > **Communication policy gate:** For any step that adds or rewrites user-visible strings, include in its `Prompt for developer:` a check against `docs/COMMUNICATION_POLICY.md` §2 (message formula for the relevant type) and §6 (tone checklist). Make the tone checklist a Verification predicate: `Strings pass COMMUNICATION_POLICY §6 checklist`.
 
-**6 — Update strategic spec.** Flip `Status:` to `Tactical`. Add:
+**6 - Update strategic spec.** Flip `Status:` to `Tactical`. Add:
 
 ```markdown
 **Tactical plan:** `PLAN/Sxxxx_<short-name>/INDEX.md`
 ```
 
-**7 — Run dev log** for every file written.
+**7 - Run dev log** for every file written.
 
 ```powershell
 .\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>/INDEX.md" "spec-tech" "Create tactical plan for <Sxxxx>"
@@ -128,9 +128,9 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 .\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-tech" "Status → Tactical"
 ```
 
-**8 — Auto-chain to `/spec-dev`.** *(COMPLEX path only — skip if PRIMITIVE path was taken in step 2.5.)*
+**8 - Auto-chain to `/spec-dev`.** *(COMPLEX path only - skip if PRIMITIVE path was taken in step 2.5.)*
 
-If there are no unchecked Pre-Implementation Blockers in INDEX — immediately invoke `/spec-dev <Sxxxx>` to start implementation. If any blocker is unchecked — list them and stop: implementation cannot proceed until they are resolved.
+If there are no unchecked Pre-Implementation Blockers in INDEX - immediately invoke `/spec-dev <Sxxxx>` to start implementation. If any blocker is unchecked - list them and stop: implementation cannot proceed until they are resolved.
 
 **Chat output:** `<Sxxxx>: N phases. Blockers: [list or none]. → Running /spec-dev…` (or `→ Blocked: [list]. Resolve and run /spec-dev <Sxxxx>` if blockers present.)
 
@@ -139,7 +139,7 @@ If there are no unchecked Pre-Implementation Blockers in INDEX — immediately i
 ## `INDEX.md` Template
 
 ```markdown
-# Tactical Plan: <Sxxxx> — <short-name>
+# Tactical Plan: <Sxxxx> - <short-name>
 
 **Strategic spec:** [`../Sxxxx_<short-name>.md`](../Sxxxx_<short-name>.md)
 **Feature:** <feature name>
@@ -157,7 +157,7 @@ If there are no unchecked Pre-Implementation Blockers in INDEX — immediately i
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | <slug> | — | ⬜ Not started | 0/N | [PHASE_01__<slug>.md](PHASE_01__<slug>.md) |
+| 01 | <slug> | - | ⬜ Not started | 0/N | [PHASE_01__<slug>.md](PHASE_01__<slug>.md) |
 | 02 | <slug> | 01 | ⬜ Not started | 0/N | [PHASE_02__<slug>.md](PHASE_02__<slug>.md) |
 | NN | docs-catalog-cleanup | all | ⬜ Not started | 0/N | [PHASE_NN__docs-catalog-cleanup.md](PHASE_NN__docs-catalog-cleanup.md) |
 
@@ -169,14 +169,14 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 <Every §6 research item with `Status: Open` becomes a checkbox. Phase 01 must not start while any blocker is unchecked.>
 
-- [ ] **Research:** <title> — required before Phase <NN>. See strategic §6.X.
+- [ ] **Research:** <title> - required before Phase <NN>. See strategic §6.X.
 
 ---
 
 ## Completion Gate
 
 - [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (if user-facing — see strategic §8).
+- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (if user-facing - see strategic §8).
 - [ ] `dev/CHANGELOG.md` has an entry for every modified file.
 - [ ] `dev/CATALOG/<module>.jsonl` regenerated if public API changed.
 - [ ] `/spec-check <Sxxxx>` returns `Verified`.
@@ -196,13 +196,13 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 ## Blockers Log
 
-- <YYYY-MM-DD> — Phase NN blocked: <cause>. Next: <who/what/when>.
+- <YYYY-MM-DD> - Phase NN blocked: <cause>. Next: <who/what/when>.
 
 ---
 
 ## Change Log
 
-- <YYYY-MM-DD> — Initial tactical plan authored by `/spec-tech`.
+- <YYYY-MM-DD> - Initial tactical plan authored by `/spec-tech`.
 ```
 
 ---
@@ -210,16 +210,16 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 ## Phase File Template
 
 ```markdown
-# Phase NN — <Phase Title>
+# Phase NN - <Phase Title>
 
 **Strategic spec:** [`../Sxxxx_<short-name>.md`](../Sxxxx_<short-name>.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
 **Status:** ⬜ Not started
-**Depends on:** Phase NN-M (or "none — foundation phase")
+**Depends on:** Phase NN-M (or "none - foundation phase")
 **Blocks:** Phase NN+K, Phase NN+L
 **Steps done:** 0 / N
-**Started:** —
-**Completed:** —
+**Started:** -
+**Completed:** -
 
 ---
 
@@ -251,10 +251,10 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 ## Steps
 
-### Step NN.1 — <Imperative title>
+### Step NN.1 - <Imperative title>
 
 **Files:** `path/to/File.kt`
-**Depends on:** — start of phase
+**Depends on:** - start of phase
 
 **Prompt for developer:**
 
@@ -262,15 +262,15 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 **Verification:**
 
-- `Glob` — `path/to/File.kt` exists.
-- `Grep` — `class <ClassName>` matches exactly once in that file (declaration line, not comment).
-- `Grep` — `<ExpectedMethodSignature>` present.
+- `Glob` - `path/to/File.kt` exists.
+- `Grep` - `class <ClassName>` matches exactly once in that file (declaration line, not comment).
+- `Grep` - `<ExpectedMethodSignature>` present.
 
 **Status:** `[ ]` not done
 
 ---
 
-### Step NN.2 — <Imperative title>
+### Step NN.2 - <Imperative title>
 
 **Files:** ..
 **Depends on:** Step NN.1
@@ -290,7 +290,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 ## Phase Done Criteria
 
 - [ ] Every `Step NN.*` above is `[x] done`.
-- [ ] Project compiles — run `/build` (do not invoke gradle directly).
+- [ ] Project compiles - run `/build` (do not invoke gradle directly).
 - [ ] `Grep` for `TODO(phase-<NN>)` returns zero hits.
 - [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
 - [ ] If public API changed: `dev/CATALOG/<module>.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>`.
@@ -299,13 +299,13 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 ## Handoff Notes to Next Phase
 
-<Invariants this phase established. If final phase — "Final phase — see INDEX.md Completion Gate.">
+<Invariants this phase established. If final phase - "Final phase - see INDEX.md Completion Gate.">
 
 ---
 
 ## Rollback Plan
 
-<If risk warrants: which commits to revert, config to restore. For low-risk: "Revert phase commit(s) — no data migration or user-facing surface changed.">
+<If risk warrants: which commits to revert, config to restore. For low-risk: "Revert phase commit(s) - no data migration or user-facing surface changed.">
 ```
 
 ---
@@ -313,7 +313,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 ## Constraints
 
 - One step = one atomic unit: committable in isolation without breaking the build.
-- Every step Verification must be static (Glob/Grep/value equality) — no "works correctly".
+- Every step Verification must be static (Glob/Grep/value equality) - no "works correctly".
 - No step references read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - File >500 lines after edit → backup step required. File >1500 lines → refuse; split via Manager pattern first.
 - Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
@@ -322,9 +322,9 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications.
 - Timber only: `Grep -n "Log\.d\("` returning zero hits mandatory for any file the step modifies.
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
-- Do not duplicate strategic content — tactical says *what*, not *why*.
-- Never write phase steps that create audit / fix files in `PLAN/` — those are abolished.
-- **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent — not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
+- Do not duplicate strategic content - tactical says *what*, not *why*.
+- Never write phase steps that create audit / fix files in `PLAN/` - those are abolished.
+- **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent - not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
 
 ---
 

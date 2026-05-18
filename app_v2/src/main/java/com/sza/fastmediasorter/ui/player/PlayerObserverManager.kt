@@ -107,7 +107,7 @@ internal class PlayerObserverManager(
         if (!isAudio) {
             activity.sleepTimerManager?.stopVinylAnimation()
         }
-        // Re-evaluate PiP button on every file change — audio files must not show PiP.
+        // Re-evaluate PiP button on every file change - audio files must not show PiP.
         activity.pipManager?.setupPipButton(
             activity.currentSettings?.enablePictureInPicture == true,
             isAudio

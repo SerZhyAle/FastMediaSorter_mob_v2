@@ -143,10 +143,10 @@ class SettingsViewModel @Inject constructor(
             try {
                 if (enabled) {
                     workManagerScheduler.rescheduleAll()
-                    Timber.i("SettingsViewModel: Scheduled operations enabled — rescheduled all")
+                    Timber.i("SettingsViewModel: Scheduled operations enabled - rescheduled all")
                 } else {
                     workManagerScheduler.cancelAllScheduledOperations()
-                    Timber.i("SettingsViewModel: Scheduled operations disabled — cancelled all workers")
+                    Timber.i("SettingsViewModel: Scheduled operations disabled - cancelled all workers")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "SettingsViewModel: applyScheduledOperationsToggle failed")

@@ -86,7 +86,7 @@ class FtpResourceStrategyContractTest : ResourceEditorContractTestBase() {
     @Test
     fun `validate - blank path is valid (FTP allows empty path)`() {
         val result = strategy.validate(networkForm(ResourceType.FTP, path = ""))
-        assertTrue("FTP path is optional — blank path must be valid", result.isValid)
+        assertTrue("FTP path is optional - blank path must be valid", result.isValid)
     }
 
     // --- Port validation (A2-T9) ---

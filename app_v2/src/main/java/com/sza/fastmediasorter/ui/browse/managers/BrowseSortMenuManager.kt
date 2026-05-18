@@ -11,12 +11,12 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 /**
  * Manages sort mode popup menu and sort mode display names for BrowseActivity.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseSortMenuManager(
     private val context: Context,
     private val onSortModeSelected: (SortMode) -> Unit,
-    // Called when user picks RANDOM regardless of current sort mode — always reshuffles.
+    // Called when user picks RANDOM regardless of current sort mode - always reshuffles.
     private val onRandomReshuffle: () -> Unit,
     private val getCurrentSortMode: () -> SortMode,
     private val getCurrentResource: () -> MediaResource?

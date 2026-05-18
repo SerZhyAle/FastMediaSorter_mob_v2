@@ -13,7 +13,7 @@
 #
 # Output:
 #   app_v2\libs\fms-ffmpeg-dts.aar  (16 KB page-size compliant)
-#   After success: app_v2\build.gradle.kts is auto-updated — or run:
+#   After success: app_v2\build.gradle.kts is auto-updated - or run:
 #   .\scripts\builders\build-ffmpeg-dts-wsl.ps1 and follow the printed steps.
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -46,12 +46,12 @@ catch {
 $WorkDirCheck = wsl bash -c "test -d ~/ffmpeg-android-build/media && echo ok || echo missing_media" 2>&1
 $NdkCheck = wsl bash -c "test -d ~/android-ndk-r27c && echo ok || echo missing_ndk" 2>&1
 if ($WorkDirCheck -ne "ok") {
-    Write-Host "[ERROR] Phase 1 not complete — media3 not cloned. Run this first in a WSL2 terminal:" -ForegroundColor Red
+    Write-Host "[ERROR] Phase 1 not complete - media3 not cloned. Run this first in a WSL2 terminal:" -ForegroundColor Red
     Write-Host "  wsl bash /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/wsl2-phase1-setup.sh" -ForegroundColor Yellow
     exit 1
 }
 if ($NdkCheck -ne "ok") {
-    Write-Host "[ERROR] Phase 1 not complete — Linux NDK r27c missing at ~/android-ndk-r27c. Run:" -ForegroundColor Red
+    Write-Host "[ERROR] Phase 1 not complete - Linux NDK r27c missing at ~/android-ndk-r27c. Run:" -ForegroundColor Red
     Write-Host "  wsl bash /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/wsl2-phase1-setup.sh" -ForegroundColor Yellow
     exit 1
 }
@@ -74,7 +74,7 @@ if ($exitCode -eq 0) {
         Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Green
         Write-Host " SUCCESS: fms-ffmpeg-dts.aar ($sizeMb MB)"                     -ForegroundColor Green
         Write-Host ""
-        Write-Host " Phase 4 — verify + re-enable in Gradle:"
+        Write-Host " Phase 4 - verify + re-enable in Gradle:"
         Write-Host "   1. 16 KB alignment: already verified by the build script (readelf -l per ABI)."
         Write-Host "      The build fails fast if any slice is non-compliant; nothing to re-check manually."
         Write-Host "   2. app_v2\build.gradle.kts already wired (ENABLE_DTS_DECODER=true + AAR deps)."

@@ -129,7 +129,7 @@ class PlayerPrefetchOffloadCoordinator(
     }
 
     fun declineOffload(@Suppress("UNUSED_PARAMETER") offer: OffloadOffer) {
-        Timber.d("PlayerPrefetchOffloadCoordinator: offload declined — caller proceeds with MARGINAL plan")
+        Timber.d("PlayerPrefetchOffloadCoordinator: offload declined - caller proceeds with MARGINAL plan")
     }
 
     fun cancelOffload() {
@@ -193,7 +193,7 @@ class PlayerPrefetchOffloadCoordinator(
             }.onFailure {
                 Timber.w(it, "PlayerPrefetchOffloadCoordinator: deleteLocalCopy failed for %s", entry.resourceHash)
             }
-            Timber.d("PlayerPrefetchOffloadCoordinator: deleteLocalCopy complete — %s", entry.resourceHash)
+            Timber.d("PlayerPrefetchOffloadCoordinator: deleteLocalCopy complete - %s", entry.resourceHash)
         }
     }
 }

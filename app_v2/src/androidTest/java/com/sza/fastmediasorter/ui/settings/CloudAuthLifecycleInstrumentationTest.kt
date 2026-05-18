@@ -22,7 +22,7 @@ class CloudAuthLifecycleInstrumentationTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        // Cloud token cleared — UI must show unauthenticated state
+        // Cloud token cleared - UI must show unauthenticated state
         context.getSharedPreferences("cloud_auth_prefs", Context.MODE_PRIVATE)
             .edit()
             .clear()

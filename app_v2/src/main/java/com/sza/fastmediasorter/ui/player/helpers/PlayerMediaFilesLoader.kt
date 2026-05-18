@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import com.sza.fastmediasorter.ui.player.VrForcedFormatResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -72,12 +71,8 @@ class PlayerMediaFilesLoader(
                 settingsRepository.getSettings().collect { settings ->
                     val resource = stateFlow.value.resource
 
-                    // Cache family-specific forced settings for synchronous reads in image stereo detection.
-                    stereoCoordinator.applySettings(
-                        forcedPlatFormat = VrForcedFormatResolver.mapPlatSetting(settings.vrForcedPlatFormat),
-                        forcedSphericalFormat = VrForcedFormatResolver.mapSphericalSetting(settings.vrForcedSphericalFormat),
-                        rememberFileFormat = settings.vrRememberFileFormat
-                    )
+                    // S0241: per-user VR forced-format overrides removed. PlayerStereoModeCoordinator
+                    // now relies on detected stereo modes alone (no applySettings call here).
 
                     // Determine showCommandPanel:
                     // Priority: runtime session value → initial load via same logic as loadMediaFiles().
@@ -223,7 +218,7 @@ class PlayerMediaFilesLoader(
                     Timber.d("PlayerViewModel: Configured ConnectionThrottleManager for $resourceKey with ${resource.recommendedThreads} threads")
                 }
 
-                // Determine actual resource type from current file path — ensures auth for subfolder browsed out of cloud root.
+                // Determine actual resource type from current file path - ensures auth for subfolder browsed out of cloud root.
                 val actualResourceType = stateFlow.value.currentFile?.path?.let { path ->
                     when {
                         path.startsWith("cloud://") -> ResourceType.CLOUD
@@ -264,7 +259,7 @@ class PlayerMediaFilesLoader(
                     audioSizeMax = settings.audioSizeMax
                 )
 
-                // Load from cache (instant) — BrowseActivity already loaded and cached the list.
+                // Load from cache (instant) - BrowseActivity already loaded and cached the list.
                 val cachedFiles = MediaFilesCacheManager.getCachedList(resource.id)
                 val cacheHasOnlyDirectories = cachedFiles != null && cachedFiles.isNotEmpty() && cachedFiles.all { it.isDirectory }
 
@@ -276,7 +271,7 @@ class PlayerMediaFilesLoader(
                 val normalizedInitialPath = initialFilePath?.let { normalizePath(it) }
                 // Declared early so the scope check and the position-restore section share one instance.
                 val normalizedCurrentPath = currentFilePath?.let { normalizePath(it) }
-                // Scope check accepts the cache when the current (actively-playing) file is present —
+                // Scope check accepts the cache when the current (actively-playing) file is present -
                 // avoids a full re-read just because the original launch file was sorted away.
                 val cacheMatchesCurrentFile = normalizedCurrentPath != null &&
                     cachedFiles != null && cachedFiles.any { normalizePath(it.path) == normalizedCurrentPath }
@@ -290,11 +285,11 @@ class PlayerMediaFilesLoader(
                     cachedFiles
                 } else {
                     // Split cold-start (cache absent) from true scope mismatch (cache exists but wrong folder).
-                    // Cold start is normal — downgrade to debug to avoid misleading "subfolder mismatch" noise.
+                    // Cold start is normal - downgrade to debug to avoid misleading "subfolder mismatch" noise.
                     if (cachedFiles == null) {
                         Timber.d("PlayerMediaFilesLoader: cache empty (cold start), loading from $initialFileDir")
                     } else if (!cacheMatchesInitialFile) {
-                        Timber.w("PlayerMediaFilesLoader: cache scope mismatch — cached ${cachedFiles.size} files contain neither current ($currentFilePath) nor initial ($initialFilePath), reloading from $initialFileDir")
+                        Timber.w("PlayerMediaFilesLoader: cache scope mismatch - cached ${cachedFiles.size} files contain neither current ($currentFilePath) nor initial ($initialFilePath), reloading from $initialFileDir")
                     } else if (cacheHasOnlyDirectories) {
                         Timber.w("Cache contains only directories (${cachedFiles.size} items), loading actual files from current path")
                     } else {
@@ -368,8 +363,8 @@ class PlayerMediaFilesLoader(
                     sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
                 } else {
                     // Priority order for determining index:
-                    // 1. Current file path (reloading during playback — preserve position)
-                    // 2. Initial file path (from BrowseActivity — pagination mode)
+                    // 1. Current file path (reloading during playback - preserve position)
+                    // 2. Initial file path (from BrowseActivity - pagination mode)
                     // 3. Initial index (default fallback)
                     val safeIndex = if (normalizedCurrentPath != null) {
                         val foundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedCurrentPath }
@@ -380,7 +375,7 @@ class PlayerMediaFilesLoader(
                             Timber.w("Current file not found: $currentFilePath, trying initialFilePath")
                             if (normalizedInitialPath != null) {
                                 val initialFoundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedInitialPath }
-                                // Neither current nor initial found — land at nearest-by-order position.
+                                // Neither current nor initial found - land at nearest-by-order position.
                                 if (initialFoundIndex >= 0) initialFoundIndex else currentIndexBeforeReload.coerceIn(0, filesWithFavorites.size - 1)
                             } else {
                                 initialIndex.coerceIn(0, filesWithFavorites.size - 1)

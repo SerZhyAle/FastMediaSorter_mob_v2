@@ -10,7 +10,7 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <!-- GROUP: Sorting & Slideshow -->
-                <TextView android:id="@+id/headerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_sorting_slideshow" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_sorting_slideshow" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
                 <LinearLayout android:id="@+id/containerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
@@ -53,7 +53,7 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <!-- GROUP: File Operations -->
-                <TextView android:id="@+id/headerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_file_operations" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_file_operations" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
                 <LinearLayout android:id="@+id/containerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
@@ -105,7 +105,7 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <!-- GROUP: Grid View -->
-                <TextView android:id="@+id/headerGridView" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_grid_view" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerGridView" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_grid_view" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
                 <LinearLayout android:id="@+id/containerGridView" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
@@ -167,7 +167,7 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <!-- GROUP: Player UI -->
-                <TextView android:id="@+id/headerPlayerUI" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_player_ui" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerPlayerUI" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_player_ui" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
                 <LinearLayout android:id="@+id/containerPlayerUI" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
@@ -271,7 +271,7 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <!-- GROUP: Touch Zones -->
-                <TextView android:id="@+id/headerTouchZones" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_touch_zones" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerTouchZones" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_touch_zones" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
                 <LinearLayout android:id="@+id/containerTouchZones" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
@@ -313,9 +313,9 @@
                     <!-- Touch Zones Scheme Header and Button -->
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
 
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/touch_zones_scheme" android:textColor="?attr/colorPrimary" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/touch_zones_scheme" android:textColor="?attr/colorPrimary" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowHintNow" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hint_now" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowHintNow" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hint_now" />
 
                     </LinearLayout>
 
@@ -345,12 +345,12 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Behaviour (collapsible) — primary player, shared files, resume on next launch -->
+        <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
         <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_behaviour" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_behaviour" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
                 <LinearLayout android:id="@+id/containerBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
@@ -383,12 +383,12 @@
 
                     </LinearLayout>
 
-                    <!-- S0142: sub-section "Incoming links" — divider + caps header -->
+                    <!-- S0142: sub-section "Incoming links" - divider + caps header -->
                     <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_subcategory_incoming_links" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
 
-                    <!-- S0003: Link auto-download — master toggle -->
+                    <!-- S0003: Link auto-download - master toggle -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_link_autodownload_enabled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
@@ -400,7 +400,7 @@
 
                     </LinearLayout>
 
-                    <!-- S0003: Link auto-download — destination resource (label-only stub; picker wired in Phase 05) -->
+                    <!-- S0003: Link auto-download - destination resource (label-only stub; picker wired in Phase 05) -->
                     <LinearLayout android:id="@+id/row_link_autodownload_resource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_label" android:textSize="@dimen/toggler_title_text_size" />
@@ -408,7 +408,7 @@
 
                     </LinearLayout>
 
-                    <!-- S0003: Link auto-download — open in player toggle -->
+                    <!-- S0003: Link auto-download - open in player toggle -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_link_autodownload_open_in_player" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
@@ -420,7 +420,7 @@
 
                     </LinearLayout>
 
-                    <!-- S0116 §5.1 pillar K: saved authorizations sub-screen entry — S0142: nav-row styling (help icon + chevron) -->
+                    <!-- S0116 §5.1 pillar K: saved authorizations sub-screen entry - S0142: nav-row styling (help icon + chevron) -->
                     <LinearLayout android:id="@+id/row_saved_authorizations" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <ImageButton android:id="@+id/iconHelpSavedAuthorizations" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginEnd="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_saved_authorizations_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -449,7 +449,7 @@
 
                     </LinearLayout>
 
-                    <!-- S0142: sub-section "Camera capture" — divider + caps header -->
+                    <!-- S0142: sub-section "Camera capture" - divider + caps header -->
                     <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_subcategory_camera_capture" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
@@ -492,7 +492,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_playback_section" style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_playback_section" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" />
 
         <!-- Controls & Keybindings entry -->
         <com.google.android.material.card.MaterialCardView

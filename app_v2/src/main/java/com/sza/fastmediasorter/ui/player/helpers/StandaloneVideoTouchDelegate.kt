@@ -166,7 +166,7 @@ class StandaloneVideoTouchDelegate(
         }
     )
 
-    /** Attach the gesture indicator TextView (optional — found by ID in playerView). */
+    /** Attach the gesture indicator TextView (optional - found by ID in playerView). */
     fun attachIndicator(indicator: android.widget.TextView?) {
         gestureIndicator = indicator
     }

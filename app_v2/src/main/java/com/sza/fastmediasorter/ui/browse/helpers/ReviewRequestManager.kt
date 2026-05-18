@@ -47,11 +47,11 @@ class ReviewRequestManager @Inject constructor(
                 }
                 val eligible = recordSortSuccessUseCase.record(count)
                 if (eligible) {
-                    Timber.d("ReviewRequestManager: eligible — requesting review flow")
+                    Timber.d("ReviewRequestManager: eligible - requesting review flow")
                     withContext(Dispatchers.Main) { launchReviewFlow(activity) }
                 }
             } catch (e: Exception) {
-                Timber.d("ReviewRequestManager: error in record — ${e.message}")
+                Timber.d("ReviewRequestManager: error in record - ${e.message}")
             }
         }
     }
@@ -70,21 +70,21 @@ class ReviewRequestManager @Inject constructor(
         val request = reviewManager.requestReviewFlow()
         request.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                Timber.d("ReviewRequestManager: reviewInfo obtained — launching flow")
+                Timber.d("ReviewRequestManager: reviewInfo obtained - launching flow")
                 reviewManager.launchReviewFlow(activity, task.result)
                     .addOnCompleteListener {
                         Timber.d("ReviewRequestManager: launchReviewFlow complete (platform-controlled outcome)")
                     }
-                // Mark shown regardless of actual platform decision — quota is enforced by platform
+                // Mark shown regardless of actual platform decision - quota is enforced by platform
                 scope.launch {
                     try {
                         recordSortSuccessUseCase.markReviewShown()
                     } catch (e: Exception) {
-                        Timber.d("ReviewRequestManager: markReviewShown error — ${e.message}")
+                        Timber.d("ReviewRequestManager: markReviewShown error - ${e.message}")
                     }
                 }
             } else {
-                Timber.d("ReviewRequestManager: requestReviewFlow failed — ${task.exception?.message}")
+                Timber.d("ReviewRequestManager: requestReviewFlow failed - ${task.exception?.message}")
             }
         }
     }

@@ -138,7 +138,7 @@ class CaptureDialogFragment : DialogFragment() {
         capturedTrigger = trigger
         binding.tvCaptured.text = getString(R.string.keybinding_capture_current, formatter.format(trigger))
 
-        // Conflict check — block policy: disable commit if trigger already used by another command.
+        // Conflict check - block policy: disable commit if trigger already used by another command.
         val pendingCapture = viewModel.state.value.pendingCapture
         val conflictMap = viewModel.state.value.conflicts
         val conflictingCommands = conflictMap[trigger]

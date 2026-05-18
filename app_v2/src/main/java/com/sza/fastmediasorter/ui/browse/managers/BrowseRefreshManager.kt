@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.mutation.MutationJournal
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -28,12 +29,15 @@ import java.io.File
  * - Local resource maintenance (MediaStore sync on reload; delegated trash cleanup elsewhere).
  * - Cache invalidation and forced resource reload.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseRefreshManager(
     private val syncMediaStoreUseCase: SyncMediaStoreUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val cachedFileListRepository: CachedFileListRepository,
+    // S0242 Phase 03 - pull-to-refresh clears pending journal entries so the Reconciler
+    // does not re-apply stale mutations to the freshly-fetched listing on next onResume.
+    private val mutationJournal: MutationJournal,
     private val resourceId: Long,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
@@ -47,10 +51,15 @@ class BrowseRefreshManager(
      * Launches refresh pipeline and returns the running [Job] so caller can cancel/debounce.
      *
      * @param syncMediaStore When false, skips the MediaStore sync step. Pass false when this
-     *   reload is triggered by a MediaStore ContentObserver — the OS already knows about the
+     *   reload is triggered by a MediaStore ContentObserver - the OS already knows about the
      *   change, so running sync would produce more ContentObserver events and cause a loop.
      */
     fun launchReload(clearList: Boolean, syncMediaStore: Boolean = true): Job {
+        // S0242 Phase 03: drop pending journal state for the current resource BEFORE the
+        // rescan is enqueued. A full refresh fetches ground truth from the source, so any
+        // pending entry would re-apply stale state to the fresh listing on next onResume.
+        mutationJournal.clearResource(resourceId)
+        Timber.d("BrowseRefreshManager: cleared MutationJournal for resource=$resourceId")
         return scope.launch(ioDispatcher) {
             val currentResource = stateFlow.value.resource
 
@@ -129,12 +138,12 @@ class BrowseRefreshManager(
                 when (resource.type) {
                     ResourceType.LOCAL -> {
                         // S0209: local reload/shutdown must not collapse the restore TTL window.
-                        Timber.d("BrowseRefreshManager: LOCAL trash cleanup skipped — periodic worker handles TTL cleanup")
+                        Timber.d("BrowseRefreshManager: LOCAL trash cleanup skipped - periodic worker handles TTL cleanup")
                     }
                     else -> {
                         val credentialsId = resource.credentialsId
                         if (credentialsId.isNullOrBlank()) {
-                            Timber.w("BrowseRefreshManager: network trash cleanup skipped — missing credentialsId for '${resource.name}'")
+                            Timber.w("BrowseRefreshManager: network trash cleanup skipped - missing credentialsId for '${resource.name}'")
                             return@launch
                         }
                         val result = smbOperationsUseCase.cleanupTrash(

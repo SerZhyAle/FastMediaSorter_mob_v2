@@ -10,7 +10,7 @@ import timber.log.Timber
  *
  * For standard phone screens, SBS and OU content is displayed by cropping to one fixed eye
  * (right half for SBS, bottom half for OU) and letting the player scale the result to fill
- * the screen. This gives a normal mono view of one eye's perspective — the correct default
+ * the screen. This gives a normal mono view of one eye's perspective - the correct default
  * for non-VR viewing.
  *
  * [StereoMode.MONO] / [StereoMode.AUTO] / [StereoMode.UNKNOWN] → no GL effect (full-frame).
@@ -60,7 +60,7 @@ class StereoVideoProcessor {
     }
 
     /**
-     * Returns the currently active mode (resolved — never AUTO or UNKNOWN).
+     * Returns the currently active mode (resolved - never AUTO or UNKNOWN).
      */
     fun getCurrentMode(): StereoMode = currentMode
 
@@ -71,7 +71,7 @@ class StereoVideoProcessor {
      * crop the right eye (right half of frame) and let [PlayerView] scale it to fill the screen.
      * The right eye occupies x=[0, 1] in Media3 NDC, so `Crop(0, 1, -1, 1)` extracts exactly
      * the right half. In panel mode equirect content is not sphere-projected, so the same
-     * half-frame crop applies as for flat SBS — otherwise both eyes are shown side by side.
+     * half-frame crop applies as for flat SBS - otherwise both eyes are shown side by side.
      *
      * OU / EQUIRECT_360_OU → crop the bottom eye (bottom half of frame). In GL NDC y increases
      * upward, so the bottom half is y=[-1, 0]. `Crop(-1, 1, -1, 0)` extracts the bottom half.
@@ -87,7 +87,7 @@ class StereoVideoProcessor {
             StereoMode.VR180_FISHEYE_SBS -> {
                 // Right eye is the right half of the SBS frame (NDC x = 0..1).
                 // Equirect modes in panel mode are not sphere-rendered, so the same right-half
-                // crop applies — without it, both SBS eyes appear side by side on screen.
+                // crop applies - without it, both SBS eyes appear side by side on screen.
                 Timber.d("StereoVideoProcessor: buildGlEffect → SBS right-eye crop for $mode")
                 Crop(0f, 1f, -1f, 1f)
             }

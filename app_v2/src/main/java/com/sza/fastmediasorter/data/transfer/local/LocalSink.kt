@@ -5,12 +5,12 @@ import java.io.OutputStream
 /**
  * Open, write-once sink to a local destination.
  *
- * **Lifecycle contract** — caller must invoke **exactly one** of [commit] or
+ * **Lifecycle contract** - caller must invoke **exactly one** of [commit] or
  * [abort] after writing finishes (success or failure). The sink closes
- * [outputStream] internally during `commit`/`abort` — the caller does not
+ * [outputStream] internally during `commit`/`abort` - the caller does not
  * close it directly.
  *
- * **Atomicity** — external observers (MediaStore, gallery, media player)
+ * **Atomicity** - external observers (MediaStore, gallery, media player)
  * must not see the destination until [commit] succeeds. For MediaStore-backed
  * sinks this is realized via `IS_PENDING = 1` on insert and `IS_PENDING = 0`
  * on commit. For raw filesystem sinks atomicity is the caller's concern

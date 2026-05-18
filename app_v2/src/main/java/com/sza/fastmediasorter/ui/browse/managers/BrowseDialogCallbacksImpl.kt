@@ -17,7 +17,7 @@ import java.io.File
  * Implements [BrowseDialogHelper.DialogCallbacks] by delegating to [viewModel] and
  * the provided action lambdas.
  *
- * Extracted from BrowseActivity.setupViews() (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity.setupViews() (Wave 1.5 decomposition - IV.1).
  */
 class BrowseDialogCallbacksImpl(
     private val viewModel: BrowseViewModel,

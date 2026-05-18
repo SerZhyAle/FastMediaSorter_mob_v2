@@ -1,62 +1,40 @@
 package com.sza.fastmediasorter.domain.model
 
 /**
- * Metadata enrichment lifecycle state of a [MediaFile].
+ * Persistence-grade state of per-file metadata enrichment (S0248 Phase 1/3).
  *
- * Introduced by S0237 — first-time SMB scan splits listing from metadata extraction,
- * so a `MediaFile` may temporarily exist with only the data the directory listing
- * provided (name, size, type, mimeType) and no extractor-derived fields yet.
+ * Stored as TEXT in `file_metadata_cache.metadataState`. Legacy rows that
+ * predate migration 30→31 are mapped to [COMPLETE] via the SQL DEFAULT - see
+ * [com.sza.fastmediasorter.data.local.db.AppDatabase.MIGRATION_30_31].
  *
- * The state captures *what the consumer can trust on this instance*, not *what the
- * underlying file contains*. A file may be `PARTIAL` simply because the per-file
- * metadata budget elapsed during this scan; a later session may yield `COMPLETE` for
- * the same physical file.
+ * Lifecycle:
+ *  - Successful enrichment within the per-file budget → [COMPLETE].
+ *  - Per-file timeout in EXIF/ID3/video probe → [PARTIAL]. Retried on every
+ *    subsequent scan; cached so the row remains visible meanwhile.
+ *  - Hard error (extractor exception other than timeout) → [BROKEN]. NOT
+ *    retried automatically - only on an explicit user-triggered refresh.
  *
- * Cache discipline (see strategic spec §6.4): only `COMPLETE` instances are persisted
- * to [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager]. `PENDING` and
- * `PARTIAL` live in-memory until they upgrade.
+ * The strategic spec also referenced a transient PENDING state for listing-only
+ * rows that have not yet entered enrichment. PENDING is an in-memory marker on
+ * [com.sza.fastmediasorter.domain.model.MediaFile]; it is NOT persisted, hence
+ * no enum entry here - the cache row only exists after enrichment has been
+ * attempted at least once.
  */
 enum class MetadataState {
-    /**
-     * Listing-only row — directory listing returned name / size / mimeType / lastModified
-     * basics, but the per-file metadata extractor has not run yet (or has not started).
-     *
-     * Guaranteed populated: filename, full path, size, basic [MediaType], mimeType (when
-     * derivable from name), `lastModified` if the listing carried it.
-     *
-     * May be null / default: `durationMs`, image/video resolution fields, EXIF date,
-     * audio tags, embedded thumbnail hints.
-     *
-     * UI rendering convention: pending rows render the listing-derived fields and leave
-     * extractor-derived fields blank (no placeholder dash, no spinner — see §6.3).
-     */
-    PENDING,
+    /** Extraction succeeded within the per-file budget. Default for legacy rows. */
+    COMPLETE,
 
     /**
-     * Metadata extraction attempted and elapsed the per-file timeout
-     * ([com.sza.fastmediasorter.data.network.config.MetadataBudgetConfig.perFileTimeoutMs]),
-     * so the result is whatever the extractor managed to read before the budget cut it
-     * off — possibly a header fragment, possibly nothing.
-     *
-     * Guaranteed populated: same as [PENDING] plus any fields the extractor was able to
-     * fill before the timeout fired.
-     *
-     * May be null / default: any field the extractor did not reach in time. Consumers
-     * must treat absent fields the same way they do for [PENDING].
-     *
-     * Not persisted to [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] —
-     * the next scan of the same resource will retry the extraction.
+     * Per-file timeout elapsed; the row contains whatever the extractor managed
+     * to capture before the budget cut it off (often listing fields only).
+     * Re-attempted on every scan.
      */
     PARTIAL,
 
     /**
-     * Metadata extractor ran to completion within the per-file budget. Every field the
-     * source format can yield has been populated (subject to format-level absence —
-     * e.g. a JPEG without EXIF date will still be `COMPLETE` with `null` date).
-     *
-     * This is the only state safe to persist to
-     * [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager]. Legacy instances
-     * (constructed before S0237) default to this state to preserve source compatibility.
+     * Extractor raised a hard error (corrupt file, unreadable stream, format
+     * exception). Retried only when the caller explicitly opts in via
+     * `forceRefresh = true` (typically a user-triggered refresh action).
      */
-    COMPLETE,
+    BROKEN,
 }

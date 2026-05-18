@@ -29,7 +29,7 @@ class IconPickerBottomSheet : BottomSheetDialogFragment() {
         private const val ARG_CURRENT_ICON_ID = "current_icon_id"
         private const val ARG_DEFAULT_SET = "default_set"
 
-        /** Factory — pass the currently-assigned icon id and the set to pre-open. */
+        /** Factory - pass the currently-assigned icon id and the set to pre-open. */
         fun newInstance(currentIconId: String?, defaultSet: ResourceIconSet): IconPickerBottomSheet =
             IconPickerBottomSheet().apply {
                 arguments = Bundle().apply {

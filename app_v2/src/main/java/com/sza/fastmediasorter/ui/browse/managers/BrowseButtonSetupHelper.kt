@@ -15,7 +15,7 @@ import timber.log.Timber
 /**
  * Sets up button click listeners and scroll FAB handlers for BrowseActivity.
  *
- * Extracted from BrowseActivity.setupViews() (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity.setupViews() (Wave 1.5 decomposition - IV.1).
  */
 class BrowseButtonSetupHelper(
     private val binding: ActivityBrowseBinding,

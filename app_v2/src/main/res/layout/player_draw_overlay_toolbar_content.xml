@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 06 — Draw overlay toolbar v2 (portrait), single row.
+    S0192 Phase 06 - Draw overlay toolbar v2 (portrait), single row.
 
     Layout (left → right):
       [tool selector] [B][W][R][C] ......(weighted spacer)...... [⋮] [X]

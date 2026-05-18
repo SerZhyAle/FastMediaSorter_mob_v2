@@ -13,7 +13,7 @@ import javax.inject.Inject
  * The first path segment under the external storage root is inspected against
  * the canonical `Environment.DIRECTORY_*` constants. Anything that matches
  * a media collection becomes a [PublicCollection] (with the appropriate
- * `Kind`); everything else — including paths outside external storage —
+ * `Kind`); everything else - including paths outside external storage -
  * becomes a [NonPublic].
  *
  * Pure path arithmetic + `MimeTypeMap`. No `Context` injected.
@@ -42,7 +42,7 @@ open class LocalDestinationClassifier @Inject constructor() {
         val relativeToRoot = normalizedInput.substring(normalizedExternal.length + 1)
         val segments = relativeToRoot.split('/').filter { it.isNotEmpty() }
         if (segments.size < 2) {
-            // Bare external root or file directly in root — treat as non-public.
+            // Bare external root or file directly in root - treat as non-public.
             return NonPublic(
                 absolutePath = absolutePath,
                 displayName = displayName,

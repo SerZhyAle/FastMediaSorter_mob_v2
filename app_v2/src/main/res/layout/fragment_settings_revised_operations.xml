@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- The revised host owns the Operations row tree directly so switchConfirmDelete and the
+         EXTRA_SOURCE_RESOURCE_ID preselection flow no longer depend on a hosted legacy fragment. -->
+    <include
+        android:id="@+id/revisedOperationsLegacyContent"
+        layout="@layout/fragment_settings_destinations" />
+
+</FrameLayout>

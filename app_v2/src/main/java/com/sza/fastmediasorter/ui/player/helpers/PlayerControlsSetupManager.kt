@@ -71,7 +71,7 @@ class PlayerControlsSetupManager(
 
     /**
      * S0158: Expand ExoPlayer controls button row to full-width 2× height when big buttons mode
-     * is active. Targets [R.id.exoPlayerButtonRow] inside the PlayerView — the visible playback
+     * is active. Targets [R.id.exoPlayerButtonRow] inside the PlayerView - the visible playback
      * controls in both portrait and landscape non-fullscreen mode.
      */
     fun applyBigButtonsModeToPlaybackRow() {
@@ -364,7 +364,7 @@ class PlayerControlsSetupManager(
             UserActionLogger.logButtonClick("PdfTextSettingsCmd", "PlayerActivity")
             translationButtonManager.showTranslationSettingsDialog()
         }
-        // Thumbnail navigation button (landscape cmd panel) — same action as overflow menu_pdf_thumbnails
+        // Thumbnail navigation button (landscape cmd panel) - same action as overflow menu_pdf_thumbnails
         binding.btnPdfThumbnailsCmd?.setOnClickListener {
             UserActionLogger.logButtonClick("PdfThumbnailsCmd", "PlayerActivity")
             if (activity._pdfViewerManager != null) activity.pdfViewerManager.showThumbnailNavigation()

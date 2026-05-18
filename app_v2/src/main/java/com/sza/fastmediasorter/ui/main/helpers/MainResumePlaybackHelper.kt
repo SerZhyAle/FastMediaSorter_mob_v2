@@ -49,12 +49,12 @@ class MainResumePlaybackHelper(
         // Skip DB-based resume if AudioPlaybackService is still running (process wasn't killed).
         // The redirect to PlayerActivity is handled in MainActivity.onCreate above this call.
         if (AudioPlaybackService.isRunning) {
-            Timber.d("MainResumePlaybackHelper: Skipping DB resume — AudioPlaybackService is running")
+            Timber.d("MainResumePlaybackHelper: Skipping DB resume - AudioPlaybackService is running")
             return false
         }
         // Skip if storage permissions are missing
         if (!PermissionHelper.hasStoragePermission(activity)) {
-            Timber.d("MainResumePlaybackHelper: Skipping resume — no storage permissions")
+            Timber.d("MainResumePlaybackHelper: Skipping resume - no storage permissions")
             return false
         }
         return true
@@ -119,7 +119,7 @@ class MainResumePlaybackHelper(
                     return@launch
                 }
 
-                // Force isPlaying=false for video over network/cloud — autoplay is unreliable
+                // Force isPlaying=false for video over network/cloud - autoplay is unreliable
                 // and the user typically wants to confirm before streaming starts.
                 val effectiveIsPlaying = when {
                     resource.type in setOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP)

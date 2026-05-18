@@ -44,19 +44,19 @@
         <!-- Small space -->
         <Space android:layout_width="@dimen/match_constraint" android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
-        <!-- Create Folder (S0165) — shown only when resource has subfoldersAsItems + writable + !virtual -->
+        <!-- Create Folder (S0165) - shown only when resource has subfoldersAsItems + writable + !virtual -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnCreateFolder" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/action_create_folder" android:gravity="start|center_vertical" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:visibility="gone" app:icon="@drawable/ic_create_new_folder_24" app:iconTint="?attr/colorControlNormal" />
 
-        <!-- Create Text Note (S0189) — shown for documents-flavored writable non-virtual resources (allFiles OR supportedMediaTypes ∩ {TEXT, PDF, EPUB} ≠ ∅) -->
+        <!-- Create Text Note (S0189) - shown for documents-flavored writable non-virtual resources (allFiles OR supportedMediaTypes ∩ {TEXT, PDF, EPUB} ≠ ∅) -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnCreateTextFile" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/action_create_text_file" android:gravity="start|center_vertical" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:visibility="gone" app:icon="@drawable/ic_create_text_file" app:iconTint="?attr/colorControlNormal" />
 
         <!-- Resource Operations -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnResourceOps" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/cd_resource_ops_menu" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@drawable/ic_more_vert" app:iconTint="?attr/colorControlNormal" />
 
-        <!-- Mic Record (S0100) — hold to record audio into current folder; visibility controlled at runtime -->
+        <!-- Mic Record (S0100) - hold to record audio into current folder; visibility controlled at runtime -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnMicRecord" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/mic_recording_button_content_desc" android:gravity="start|center_vertical" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:visibility="gone" app:icon="@drawable/ic_microphone" app:iconTint="?attr/colorControlNormal" />
 
-        <!-- Play Random — shown only for single-type libraries (audio/image/video) -->
+        <!-- Play Random - shown only for single-type libraries (audio/image/video) -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnPlayRandom" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:gravity="start|center_vertical" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:text="@string/play_random_short" android:textColor="?attr/colorControlNormal" android:textSize="12sp" android:visibility="gone" android:contentDescription="@string/play_random" app:icon="@drawable/ic_sort_random" app:iconTint="?attr/colorControlNormal" />
 
         <!-- Play/Slideshow -->

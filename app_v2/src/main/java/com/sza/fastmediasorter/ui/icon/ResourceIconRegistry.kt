@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.R
 
 /**
  * Constant registry mapping `ico-XX-NNN` icon ids to `@DrawableRes` integers.
- * All 60 entries are listed by hand — no reflection used.
+ * All 60 entries are listed by hand - no reflection used.
  */
 object ResourceIconRegistry {
 
@@ -14,7 +14,7 @@ object ResourceIconRegistry {
 
     /** Backing map: key = `ico-NN-NNN`, value = R.drawable.ico_NN_NNN */
     private val registry: Map<String, Int> = mapOf(
-        // Set 01 — Music
+        // Set 01 - Music
         "ico-01-001" to R.drawable.ico_01_001,
         "ico-01-002" to R.drawable.ico_01_002,
         "ico-01-003" to R.drawable.ico_01_003,
@@ -25,7 +25,7 @@ object ResourceIconRegistry {
         "ico-01-008" to R.drawable.ico_01_008,
         "ico-01-009" to R.drawable.ico_01_009,
         "ico-01-010" to R.drawable.ico_01_010,
-        // Set 02 — Video
+        // Set 02 - Video
         "ico-02-001" to R.drawable.ico_02_001,
         "ico-02-002" to R.drawable.ico_02_002,
         "ico-02-003" to R.drawable.ico_02_003,
@@ -36,7 +36,7 @@ object ResourceIconRegistry {
         "ico-02-008" to R.drawable.ico_02_008,
         "ico-02-009" to R.drawable.ico_02_009,
         "ico-02-010" to R.drawable.ico_02_010,
-        // Set 03 — Image
+        // Set 03 - Image
         "ico-03-001" to R.drawable.ico_03_001,
         "ico-03-002" to R.drawable.ico_03_002,
         "ico-03-003" to R.drawable.ico_03_003,
@@ -47,7 +47,7 @@ object ResourceIconRegistry {
         "ico-03-008" to R.drawable.ico_03_008,
         "ico-03-009" to R.drawable.ico_03_009,
         "ico-03-010" to R.drawable.ico_03_010,
-        // Set 04 — Documents
+        // Set 04 - Documents
         "ico-04-001" to R.drawable.ico_04_001,
         "ico-04-002" to R.drawable.ico_04_002,
         "ico-04-003" to R.drawable.ico_04_003,
@@ -58,7 +58,7 @@ object ResourceIconRegistry {
         "ico-04-008" to R.drawable.ico_04_008,
         "ico-04-009" to R.drawable.ico_04_009,
         "ico-04-010" to R.drawable.ico_04_010,
-        // Set 05 — Other / Abstract
+        // Set 05 - Other / Abstract
         "ico-05-001" to R.drawable.ico_05_001,
         "ico-05-002" to R.drawable.ico_05_002,
         "ico-05-003" to R.drawable.ico_05_003,

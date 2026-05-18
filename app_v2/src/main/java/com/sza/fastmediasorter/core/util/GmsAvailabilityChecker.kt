@@ -12,7 +12,7 @@ import timber.log.Timber
  *
  * The cached [status] reflects the default GMS version check (`minApkVersion = 0`), which only
  * verifies that the installed GMS is at least as new as the version `play-services-auth` was
- * built against. Specific Google APIs require newer GMS than that baseline — callers that need
+ * built against. Specific Google APIs require newer GMS than that baseline - callers that need
  * such a stricter check should use [recheckFor] with the appropriate minimum version constant.
  */
 object GmsAvailabilityChecker {
@@ -23,7 +23,7 @@ object GmsAvailabilityChecker {
      * Minimum Google Play Services version (`com.google.android.gms` versionCode) required by
      * Credential Manager's `credentials-play-services-auth` provider plugin. Devices below this
      * version (e.g. emulators pinned to older system images) fail Credential Manager calls with
-     * `GetCredentialProviderConfigurationException: no provider dependencies found` — the generic
+     * `GetCredentialProviderConfigurationException: no provider dependencies found` - the generic
      * `isGooglePlayServicesAvailable(context)` returns SUCCESS for them, so a stricter check is
      * needed before invoking `CredentialManager.getCredential()`.
      *
@@ -46,7 +46,7 @@ object GmsAvailabilityChecker {
     /**
      * Re-runs the availability check against a specific minimum GMS version and updates the cached
      * [status] accordingly. Used by API-specific guards (e.g. Credential Manager sign-in) where the
-     * default version baseline is insufficient. Always live — does not consult the cache, because
+     * default version baseline is insufficient. Always live - does not consult the cache, because
      * GMS may be updated mid-session via Play Store.
      */
     fun recheckFor(context: Context, minApkVersion: Int): Status {

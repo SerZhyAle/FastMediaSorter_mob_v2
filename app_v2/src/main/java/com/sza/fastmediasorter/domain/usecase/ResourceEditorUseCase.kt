@@ -232,7 +232,7 @@ class ResourceEditorUseCase @Inject constructor(
                         )
                     }
                     updateResourceUseCase(model).getOrThrow()
-                    // Invalidate caches if scan depth changed — stale root-only list must not survive
+                    // Invalidate caches if scan depth changed - stale root-only list must not survive
                     if (existing != null && existing.scanSubdirectories != model.scanSubdirectories) {
                         MediaFilesCacheManager.clearCache(existingId)
                         cachedFileListRepository.deleteCachedFiles(existingId)

@@ -6,7 +6,7 @@
     android:viewportWidth="200"
     android:viewportHeight="200">
 
-    <!-- Background circle — Deep Purple 50 -->
+    <!-- Background circle - Deep Purple 50 -->
     <path
         android:fillColor="#EDE7F6"
         android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0" />
@@ -82,7 +82,7 @@
             android:pathData="M101,64 L105,64 Q110,64 110,69 Q110,74 105,74 L101,74 Z" />
     </group>
 
-    <!-- Stereo content floating card (left — left-eye view, slightly offset) -->
+    <!-- Stereo content floating card (left - left-eye view, slightly offset) -->
     <group
         android:pivotX="55"
         android:pivotY="155"
@@ -105,7 +105,7 @@
             android:pathData="M38,148 L42,148 L42,153 L45,153 L45,155 L38,155 Z" />
     </group>
 
-    <!-- Stereo content floating card (right — right-eye view, slightly offset) -->
+    <!-- Stereo content floating card (right - right-eye view, slightly offset) -->
     <group
         android:pivotX="145"
         android:pivotY="155"
@@ -115,7 +115,7 @@
             android:pathData="M125,145 L165,145 L165,175 L125,175 Z"
             android:strokeColor="#7E57C2"
             android:strokeWidth="1.5" />
-        <!-- Mountain/landscape icon for right eye — same scene, slightly shifted -->
+        <!-- Mountain/landscape icon for right eye - same scene, slightly shifted -->
         <path
             android:fillColor="#81C784"
             android:pathData="M125,175 L137,158 L145,167 L152,155 L165,175 Z" />

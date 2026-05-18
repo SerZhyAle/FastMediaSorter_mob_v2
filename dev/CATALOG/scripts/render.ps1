@@ -56,7 +56,7 @@ $out = New-Object System.Collections.ArrayList
 [void]$out.Add("")
 [void]$out.Add("_Generated: $now · $total classes_")
 [void]$out.Add("")
-[void]$out.Add("Source of truth: [$Module.jsonl]($Module.jsonl). This file is auto-generated — edit JSONL, then re-render.")
+[void]$out.Add("Source of truth: [$Module.jsonl]($Module.jsonl). This file is auto-generated - edit JSONL, then re-render.")
 [void]$out.Add("")
 
 [void]$out.Add("## Layer summary")
@@ -76,9 +76,9 @@ foreach ($g in $byLayer) {
 foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Expression={$_.path}})) {
     $sourceLink = Resolve-SourceLink $Module $r.path $Root
     $pathLink = "[$($r.path)]($sourceLink)"
-    $role = if ($r.role) { $r.role } else { '_—_' }
+    $role = if ($r.role) { $r.role } else { '_-_' }
     $status = if ($r.status) { $r.status } else { 'unknown' }
-    $last = if ($r.lastTouched) { $r.lastTouched } else { '—' }
+    $last = if ($r.lastTouched) { $r.lastTouched } else { '-' }
     [void]$out.Add("| $pathLink | ``$($r.class)`` | $($r.layer) | $($r.loc) | $last | $status | $role |")
 }
 [void]$out.Add("")
@@ -92,15 +92,15 @@ foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Exp
     if ($r.userFeedback) { $flags += 'user-feedback' }
     if ($r.usesTimber) { $flags += 'timber' }
     if ($r.hasTests) { $flags += 'tests' }
-    $flagsStr = if ($flags.Count) { ($flags -join ' · ') } else { '—' }
+    $flagsStr = if ($flags.Count) { ($flags -join ' · ') } else { '-' }
 
-    $seStr = if ($r.sideEffects -and $r.sideEffects.Count) { ($r.sideEffects -join ', ') } else { '—' }
-    $injStr = if ($r.injected -and $r.injected.Count) { ($r.injected -join ', ') } else { '—' }
-    $noFlavStr = if ($r.noFlavors -and $r.noFlavors.Count) { ($r.noFlavors -join ', ') } else { '—' }
+    $seStr = if ($r.sideEffects -and $r.sideEffects.Count) { ($r.sideEffects -join ', ') } else { '-' }
+    $injStr = if ($r.injected -and $r.injected.Count) { ($r.injected -join ', ') } else { '-' }
+    $noFlavStr = if ($r.noFlavors -and $r.noFlavors.Count) { ($r.noFlavors -join ', ') } else { '-' }
 
-    [void]$out.Add("### ``$($r.class)`` — [$($r.path)]($sourceLink)")
+    [void]$out.Add("### ``$($r.class)`` - [$($r.path)]($sourceLink)")
     [void]$out.Add("")
-    [void]$out.Add("**Layer:** $($r.layer) · **LOC:** $($r.loc) · **Last:** $(if ($r.lastTouched) { $r.lastTouched } else { '—' }) · **Status:** $(if ($r.status) { $r.status } else { 'unknown' }) · **NoFlavors:** $noFlavStr")
+    [void]$out.Add("**Layer:** $($r.layer) · **LOC:** $($r.loc) · **Last:** $(if ($r.lastTouched) { $r.lastTouched } else { '-' }) · **Status:** $(if ($r.status) { $r.status } else { 'unknown' }) · **NoFlavors:** $noFlavStr")
     [void]$out.Add("")
     [void]$out.Add("**Injected:** $injStr  ")
     [void]$out.Add("**Side effects:** $seStr  ")
@@ -114,7 +114,7 @@ foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Exp
         [void]$out.Add("")
         foreach ($f in $r.functions) {
             $desc = if ($f.description) { $f.description } else { '_(unfilled)_' }
-            [void]$out.Add("- ``$($f.name)`` — $desc")
+            [void]$out.Add("- ``$($f.name)`` - $desc")
         }
         [void]$out.Add("")
     }

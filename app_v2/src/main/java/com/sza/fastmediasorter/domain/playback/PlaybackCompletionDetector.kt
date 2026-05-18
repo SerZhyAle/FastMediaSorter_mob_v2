@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.domain.playback
 import kotlin.math.min
 
 /**
- * Decides whether a playback position is inside the "near-end" zone — used to
+ * Decides whether a playback position is inside the "near-end" zone - used to
  * recognise that the user effectively watched the file to its end even when
  * ExoPlayer never fires STATE_ENDED (e.g. user closes the activity 1 second
  * before the natural end).

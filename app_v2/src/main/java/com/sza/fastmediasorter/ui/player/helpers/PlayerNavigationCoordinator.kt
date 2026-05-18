@@ -304,7 +304,7 @@ class PlayerNavigationCoordinator(
 
     /**
      * Next audio file for network-source prefetch. Returns null when the next file is not
-     * AUDIO — local playlists use ExoPlayer's own queue instead.
+     * AUDIO - local playlists use ExoPlayer's own queue instead.
      */
     fun getNextAudioFile(): MediaFile? {
         val currentState = stateFlow.value
@@ -316,7 +316,7 @@ class PlayerNavigationCoordinator(
         return if (nextFile.type == MediaType.AUDIO) nextFile else null
     }
 
-    /** Persist `lastViewedFile` after a 5 s quiet period — reduces DB writes during slideshows. */
+    /** Persist `lastViewedFile` after a 5 s quiet period - reduces DB writes during slideshows. */
     private fun saveLastViewedFileDebounced(filePath: String) {
         val resource = stateFlow.value.resource ?: return
         saveLastViewedFileJob?.cancel()

@@ -315,7 +315,7 @@ class TouchZoneGestureManager(
             }
         }
         
-        // onFling not overridden: conflicts with onSingleTapConfirmed — GestureDetector
+        // onFling not overridden: conflicts with onSingleTapConfirmed - GestureDetector
         // cannot distinguish quick tap from slow swipe (any finger movement triggers
         // onFling, suppressing onSingleTapConfirmed). Images use tap zones only;
         // PDF uses PhotoView.setOnSingleFlingListener (see PlayerGestureSetupManager).

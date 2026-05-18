@@ -10,12 +10,12 @@ import com.jcraft.jsch.SftpException
  * upper layers can produce specific user-facing messages instead of generic
  * "operation failed" text.
  *
- * S0149 — conservative approach: only SSH_FX_PERMISSION_DENIED (3) maps to
+ * S0149 - conservative approach: only SSH_FX_PERMISSION_DENIED (3) maps to
  * the "access denied" category; all other failures fall into GENERIC.
  * TRANSIENT is reserved for connection/IO failures that bypass the SFTP protocol layer.
  */
 enum class SftpFailureCategory {
-    /** SFTP status code 3 — server explicitly denied the operation. */
+    /** SFTP status code 3 - server explicitly denied the operation. */
     PERMISSION_DENIED,
 
     /** Any other SFTP protocol error or non-SFTP exception. */
@@ -34,7 +34,7 @@ data class SftpOperationFailure(
     val operationKind: String? = null,
     /**
      * True when this failure occurred during the delete phase of a move operation,
-     * meaning the copy phase completed successfully — the file exists at the destination.
+     * meaning the copy phase completed successfully - the file exists at the destination.
      */
     val copyCompleted: Boolean = false,
 ) {

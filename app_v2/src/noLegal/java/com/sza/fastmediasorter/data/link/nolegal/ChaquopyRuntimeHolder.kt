@@ -12,7 +12,7 @@ import javax.inject.Singleton
  * Ensures the Chaquopy Python runtime is initialised exactly once per process.
  *
  * Double-checked locking guards against concurrent first-init. Once [FAILED], the state
- * is permanent — repeated crash attempts are avoided. Callers must treat [FAILED] as
+ * is permanent - repeated crash attempts are avoided. Callers must treat [FAILED] as
  * NotApplicable and fall through to the next extraction strategy.
  */
 @Singleton
@@ -27,7 +27,7 @@ class ChaquopyRuntimeHolder @Inject constructor(
 
     /**
      * Ensures the Chaquopy Python runtime is initialised. Returns `true` if the runtime
-     * is ready for use, `false` if initialisation has failed (permanent — no retry).
+     * is ready for use, `false` if initialisation has failed (permanent - no retry).
      */
     fun ensureInitialized(): Boolean {
         if (state == State.READY) return true

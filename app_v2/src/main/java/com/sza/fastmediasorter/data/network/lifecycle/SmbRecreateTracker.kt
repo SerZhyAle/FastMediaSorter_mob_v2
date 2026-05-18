@@ -13,8 +13,8 @@ import javax.inject.Singleton
  * `invalidateExoPlayerConnection` paths to feed S0066 transient-classification.
  *
  * Resource keys:
- *  - `"smb://<host>:<port>"` — server-level (matches `ConnectionThrottleManager` keys)
- *  - `"smb://<host>:<port>/<share>"` — share-level (matches SMB `PooledConnection` granularity)
+ *  - `"smb://<host>:<port>"` - server-level (matches `ConnectionThrottleManager` keys)
+ *  - `"smb://<host>:<port>/<share>"` - share-level (matches SMB `PooledConnection` granularity)
  */
 @Singleton
 class SmbRecreateTracker @Inject constructor() {

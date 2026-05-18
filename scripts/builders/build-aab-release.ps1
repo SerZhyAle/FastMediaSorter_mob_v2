@@ -36,7 +36,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 # Gradle derives its project directory from CWD, not from gradlew.bat's path,
 # so an inherited CWD (e.g. when a.ps1 delegates from the dev worktree to the
 # release worktree) would silently build the wrong project. The previous
-# "sibling fallback" search was a band-aid that hid exactly this bug — after
+# "sibling fallback" search was a band-aid that hid exactly this bug - after
 # the Push-Location below, outputs are guaranteed to be under $projectRoot.
 Push-Location $projectRoot
 try {
@@ -79,7 +79,7 @@ $aabPath = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContin
 if (-not $aabPath) {
     Write-Host "Error: AAB not found in $aabDir" -ForegroundColor Red
     Write-Host "  Gradle reported success but produced no AAB at the expected path." -ForegroundColor Red
-    Write-Host "  This usually means CWD/project-dir mismatch — check gradle invocation." -ForegroundColor Red
+    Write-Host "  This usually means CWD/project-dir mismatch - check gradle invocation." -ForegroundColor Red
     exit 1
 }
 
@@ -124,14 +124,14 @@ if (-not (Test-Path -Path $gdPath)) {
         New-Item -ItemType Directory -Path $gdPath | Out-Null
     }
     catch {
-        Write-Host "Warning: Google Drive folder not available ($gdPath) — GD copy + ZIP skipped." -ForegroundColor Yellow
+        Write-Host "Warning: Google Drive folder not available ($gdPath) - GD copy + ZIP skipped." -ForegroundColor Yellow
         $gdPath = $null
     }
 }
 
 if ($gdPath) {
     try {
-        # Always copy raw artifacts first — survives even if 7-Zip is missing.
+        # Always copy raw artifacts first - survives even if 7-Zip is missing.
         Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
         Write-Host "AAB copied to $gdPath" -ForegroundColor Green
         if ($destApkPath -and (Test-Path -Path $destApkPath)) {
@@ -176,18 +176,18 @@ if ($gdPath) {
 }
 
 # Generate fastlane changelogs for IzzyOnDroid / F-Droid (S0215 Phase 04).
-# Non-blocking — warnings on failure; does not abort the release flow.
+# Non-blocking - warnings on failure; does not abort the release flow.
 $changelogScript = Join-Path $projectRoot "scripts\release\gen_fastlane_changelog.ps1"
 if (Test-Path $changelogScript) {
     Write-Host "Generating fastlane changelogs (versionCode=$versionCodeInt)..." -ForegroundColor Yellow
     & $changelogScript -VersionCode $versionCodeInt 2>&1 | ForEach-Object { Write-Host $_ }
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Warning: fastlane changelog generation failed — F-Droid changelogs not updated." -ForegroundColor Yellow
+        Write-Host "Warning: fastlane changelog generation failed - F-Droid changelogs not updated." -ForegroundColor Yellow
     } else {
         Write-Host "Fastlane changelogs generated." -ForegroundColor Green
     }
 } else {
-    Write-Host "Note: gen_fastlane_changelog.ps1 not found — skipping F-Droid changelog step." -ForegroundColor DarkGray
+    Write-Host "Note: gen_fastlane_changelog.ps1 not found - skipping F-Droid changelog step." -ForegroundColor DarkGray
 }
 
 # Log to builds journal

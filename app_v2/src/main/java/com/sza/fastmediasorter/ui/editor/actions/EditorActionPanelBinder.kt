@@ -15,7 +15,7 @@ import timber.log.Timber
  *
  * The host view is normally the editor toolbar that owns the buttons; the tint serves as
  * a single, very visible "you have unsaved changes" indicator. Dirty state is observed via
- * the caller-supplied [isDirty] flow — the binder is content-agnostic.
+ * the caller-supplied [isDirty] flow - the binder is content-agnostic.
  */
 class EditorActionPanelBinder(
     private val buttons: EditorActionButtons,
@@ -45,7 +45,7 @@ class EditorActionPanelBinder(
     }
 
     override fun onEnterEditMode() {
-        // No-op for the binder itself — content-specific tracker bookkeeping happens
+        // No-op for the binder itself - content-specific tracker bookkeeping happens
         // in the caller. Reserved so future editors can clear residual tint state here.
         tinter.resetToClean()
     }

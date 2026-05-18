@@ -280,7 +280,7 @@ class GeneralSettingsViewSetupHelper(
         lastCommittedDefaultUser = currentSettings.defaultUser
         lastCommittedDefaultPassword = currentSettings.defaultPassword
 
-        // Clear any programmatic filters — these fields accept any character including Cyrillic.
+        // Clear any programmatic filters - these fields accept any character including Cyrillic.
         binding.etDefaultUser.filters = arrayOf()
         binding.etDefaultPassword.filters = arrayOf()
         binding.etDefaultUser.isFocusableInTouchMode = true
@@ -288,7 +288,7 @@ class GeneralSettingsViewSetupHelper(
 
         binding.etDefaultUser.setText(lastCommittedDefaultUser)
         binding.etDefaultUser.imeOptions = EditorInfo.IME_ACTION_NEXT
-        // No setOnClickListener on til/et — overriding performClick() breaks Chrome OS IME
+        // No setOnClickListener on til/et - overriding performClick() breaks Chrome OS IME
         // connection: ARC establishes keyboard routing inside the system click handler, and a
         // custom listener replaces it.  TextInputLayout already forwards container clicks to the
         // inner EditText automatically, so no click listeners are needed here.

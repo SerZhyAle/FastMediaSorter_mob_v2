@@ -1,4 +1,4 @@
-# FastMediaSorter v2 — Project Operations Index
+# FastMediaSorter v2 - Project Operations Index
 
 Last Updated: 2026-03-19
 Purpose: single entrypoint for fast research and navigation.
@@ -17,21 +17,21 @@ Purpose: single entrypoint for fast research and navigation.
 ## 2) Source Layout (Main App)
 Root package: `app_v2/src/main/java/com/sza/fastmediasorter/`
 
-- `ui/` — screens/fragments/compose + ViewModels (no business logic)
-- `domain/` — use cases and domain abstractions/interfaces
-- `data/` — repositories/data sources/network/db adapters
-- `di/` — Hilt DI modules
-- `core/`, `util/`, `utils/`, `worker/`, `widget/` — shared infra/background/widget
-- `FastMediaSorterApp.kt` — application entrypoint
+- `ui/` - screens/fragments/compose + ViewModels (no business logic)
+- `domain/` - use cases and domain abstractions/interfaces
+- `data/` - repositories/data sources/network/db adapters
+- `di/` - Hilt DI modules
+- `core/`, `util/`, `utils/`, `worker/`, `widget/` - shared infra/background/widget
+- `FastMediaSorterApp.kt` - application entrypoint
 
 Data flow rule: `UI -> ViewModel -> UseCase -> Repository -> DataSource`
 
 ## 3) Source Layout (Wear)
 Root package: `wear/src/main/java/com/sza/fastmediasorter/wear/`
 
-- `ui/`, `domain/`, `data/`, `di/` — same layering principles
-- `MainActivity.kt` — thin host activity
-- `FastMediaSorterWearApp.kt` — wear application entrypoint
+- `ui/`, `domain/`, `data/`, `di/` - same layering principles
+- `MainActivity.kt` - thin host activity
+- `FastMediaSorterWearApp.kt` - wear application entrypoint
 
 ## 4) Build & Variants (Source of Truth)
 - Modules included: `settings.gradle.kts` -> `:app_v2`, `:wear`
@@ -69,7 +69,7 @@ Dependency version policy:
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
 - Feature specs, roadmaps, proposals: `PLAN/` folder
 - Documentation map: `docs/DOCS_MAP.md`
-- **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` — query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.
+- **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` - query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.
 
 ## 8) Quick Start Research Checklist
 1. Confirm target module (`app_v2` or `wear`) and flavor impact.

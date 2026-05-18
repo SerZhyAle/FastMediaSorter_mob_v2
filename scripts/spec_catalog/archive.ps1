@@ -35,7 +35,7 @@ if (Test-Path $specFile) {
     Move-Item -LiteralPath $specFile -Destination (Join-Path $doneDir "${Id}_${slug}.md") -Force
     $moved.Add("${Id}_${slug}.md")
 } else {
-    Write-Warning "Strategic file not found at PLAN/${Id}_${slug}.md — skipping file move."
+    Write-Warning "Strategic file not found at PLAN/${Id}_${slug}.md - skipping file move."
 }
 
 if (Test-Path $tacticalDir) {

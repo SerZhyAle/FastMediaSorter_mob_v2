@@ -74,7 +74,7 @@ object ScanMetricsRecorder {
             _events.removeAt(0)
         }
 
-        // Structured Timber log — easy to grep / send to analytics later.
+        // Structured Timber log - easy to grep / send to analytics later.
         Timber.d(
             "ScanMetrics: scan_complete " +
                 "resourceId=${token.resourceId} " +
@@ -86,7 +86,7 @@ object ScanMetricsRecorder {
         val thresholdMs = effectiveThreshold(token.expectedFileCount)
         if (durationMs > thresholdMs) {
             Timber.w(
-                "ScanMetrics: SLOW SCAN detected — ${durationMs}ms " +
+                "ScanMetrics: SLOW SCAN detected - ${durationMs}ms " +
                     "threshold=${thresholdMs}ms " +
                     "expected_file_count=${token.expectedFileCount} " +
                     "actual_file_count=$fileCount " +

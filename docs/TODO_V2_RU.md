@@ -17,8 +17,8 @@ permalink: /docs/TODO_V2_RU.html
 
 ## Источники отслеживания
 
-- [dev/CHANGELOG.md](../dev/CHANGELOG.md) — история реализованных изменений
-- [TEST_SCENARIOS.md](TEST_SCENARIOS.md) — покрытие проверок
-- [WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) — сводка по предупреждениям
+- [dev/CHANGELOG.md](../dev/CHANGELOG.md) - история реализованных изменений
+- [TEST_SCENARIOS.md](TEST_SCENARIOS.md) - покрытие проверок
+- [WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) - сводка по предупреждениям
 
 Подробное планирование ведётся во внутренних инженерных workflow-документах.

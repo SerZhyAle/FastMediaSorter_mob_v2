@@ -25,7 +25,7 @@ import javax.inject.Singleton
  * noLegal APK install action for the Browse binary-file bottom sheet.
  *
  * Uses system install UI (ACTION_INSTALL_PACKAGE + EXTRA_RETURN_RESULT).
- * Silent install via session API is forbidden — S0183 §3, S0156 ADR-4.
+ * Silent install via session API is forbidden - S0183 §3, S0156 ADR-4.
  *
  * S0183: APK install from Browse (noLegal only).
  */
@@ -34,11 +34,11 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : BrowseBinaryFileMenuAction {
 
-    // ActivityResultLaunchers — re-registered on each Activity.onCreate via registerLaunchers().
+    // ActivityResultLaunchers - re-registered on each Activity.onCreate via registerLaunchers().
     private var installLauncher: ActivityResultLauncher<Intent>? = null
     private var settingsLauncher: ActivityResultLauncher<Intent>? = null
 
-    // Weak reference to the current Activity — used for UI (AlertDialog, Toast) only.
+    // Weak reference to the current Activity - used for UI (AlertDialog, Toast) only.
     // ApplicationContext is used for PackageManager and FileProvider.
     private var activityRef: WeakReference<Activity> = WeakReference(null)
 
@@ -66,7 +66,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                 Activity.RESULT_OK -> R.string.s0183_apk_install_success
                 Activity.RESULT_CANCELED -> R.string.s0183_apk_install_cancelled
                 else -> {
-                    Timber.w("S0183: APK install failed — resultCode=${result.resultCode}")
+                    Timber.w("S0183: APK install failed - resultCode=${result.resultCode}")
                     R.string.s0183_apk_install_failed
                 }
             }
@@ -88,12 +88,12 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
     }
 
     private fun showInstallMenu(file: MediaFile, onDismiss: () -> Unit) {
-        // Dismiss the bottom sheet immediately — install flow continues independently.
+        // Dismiss the bottom sheet immediately - install flow continues independently.
         onDismiss()
 
         val act = activityRef.get()
         if (act == null || act.isFinishing || act.isDestroyed) {
-            Timber.w("S0183: showInstallMenu called with no valid activity — ignoring")
+            Timber.w("S0183: showInstallMenu called with no valid activity - ignoring")
             return
         }
 
@@ -129,7 +129,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                 apkFile
             )
             // ACTION_INSTALL_PACKAGE is deprecated since API 25 and has no handler on Android 14+.
-            // Modern path: ACTION_VIEW with the APK MIME type — the system PackageInstaller activity
+            // Modern path: ACTION_VIEW with the APK MIME type - the system PackageInstaller activity
             // registers for this intent in its manifest and shows the standard install confirmation UI.
             // EXTRA_RETURN_RESULT is honoured by PackageInstallerActivity regardless of the action.
             val intent = Intent(Intent.ACTION_VIEW).apply {

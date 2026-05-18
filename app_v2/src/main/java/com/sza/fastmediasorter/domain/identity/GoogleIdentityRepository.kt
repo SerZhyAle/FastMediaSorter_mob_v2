@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
  * directly. Implementations live in the `cloudEnabled` source set (real Credential Manager binding)
  * and `cloudDisabled` (no-op for `lite` flavor).
  *
- * Thread safety: implementations are expected to be safe for concurrent callers — token issuance
+ * Thread safety: implementations are expected to be safe for concurrent callers - token issuance
  * serialises internally via mutex.
  *
  * @see PrimaryGoogleAccountState observable state contract
@@ -25,7 +25,7 @@ interface GoogleIdentityRepository {
      * Launches interactive sign-in via Credential Manager. Suspends until the user cancels or
      * the grant completes. On success, [state] flips to [PrimaryGoogleAccountState.Bound].
      *
-     * @param activityContext an Activity context — Credential Manager bottom sheet needs an Activity.
+     * @param activityContext an Activity context - Credential Manager bottom sheet needs an Activity.
      * @param scopes the OAuth scopes to request. Must be a subset of [GoogleScope] non-restricted constants.
      */
     suspend fun signInPrimary(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult

@@ -156,7 +156,7 @@ class CloudAuthenticationHelperTest {
 
         // Assert
         assertTrue(result is CloudAuthenticationHelper.CloudClientResult.Success)
-        // State machine should not be called — already authenticated
+        // State machine should not be called - already authenticated
         coVerify(exactly = 0) { mockStateMachine.authenticateOrRestore(any(), any()) }
     }
 

@@ -11,7 +11,7 @@
 #   1. Stops every running Gradle daemon for the project.
 #   2. Removes only the volatile kapt / kotlin / executionHistory directories that
 #      are responsible for incremental-mode wedges. It does NOT nuke `.gradle/` or
-#      `app_v2/build/` — that is what `scripts/builders/clean-gradle-caches.ps1`
+#      `app_v2/build/` - that is what `scripts/builders/clean-gradle-caches.ps1`
 #      is for, and it costs a full rebuild.
 #   3. Optionally re-runs a target Gradle task once with `--no-daemon` so the
 #      retry runs in a fresh JVM with no leftover daemon state.
@@ -108,7 +108,7 @@ Write-Host "Retrying target task once with --no-daemon: $Task" -ForegroundColor 
 
 # Chaquopy gate: noLegal flavor requires the plugin, every other flavor must turn it off
 # so the Chaquopy beforeVariants block does not hide non-noLegal variants (see
-# project_build_gotchas memory entry — S0174 / S0175 follow-up).
+# project_build_gotchas memory entry - S0174 / S0175 follow-up).
 $chaquopyFlag = if ($Task -match '(?i)noLegal') { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
 
 & $gradleWrapper $Task $chaquopyFlag --no-daemon --no-build-cache

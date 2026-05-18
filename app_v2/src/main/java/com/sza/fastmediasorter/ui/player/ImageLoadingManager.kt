@@ -271,7 +271,7 @@ class ImageLoadingManager(
         val h = currentDeviceHeight.takeIf { it > 0 } ?: return
         Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h} placeholder=$isPlaceholder")
         // processFromBitmap internally uses the backgroundView dimensions via process(),
-        // which now receives the view size — but for video we pass screen dims as fallback;
+        // which now receives the view size - but for video we pass screen dims as fallback;
         // the processor will use backgroundView.width/height if available via its own layout.
         dynamicBackgroundProcessor?.processFromBitmap(bitmap, w, h)
         binding.ivDynamicBackground.contentDescription = if (isPlaceholder) {
@@ -590,7 +590,7 @@ class ImageLoadingManager(
                     setOnScaleChangeListener { scaleFactor, focusX, focusY ->
                         Timber.d("GESTURE_DEBUG: Scale change - factor=${"%.2f".format(scaleFactor)}, focus=(${"%.0f".format(focusX)}, ${"%.0f".format(focusY)})")
                         if (isPhotoViewImageLoaded && kotlin.math.abs(scaleFactor - 1.0f) > 0.02f) {
-                            // Real user pinch-zoom — notify overlay manager
+                            // Real user pinch-zoom - notify overlay manager
                             onZoomInteraction?.invoke()
                         }
                     }

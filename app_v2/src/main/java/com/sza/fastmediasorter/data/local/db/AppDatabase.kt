@@ -7,6 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sza.fastmediasorter.data.input.InputBindingDao
 import com.sza.fastmediasorter.data.input.InputBindingEntity
+import timber.log.Timber
 
 @Database(
     entities = [
@@ -25,7 +26,7 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         StreamingCacheEntry::class,
         InputBindingEntity::class
     ],
-    version = 30,
+    version = 31,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -604,7 +605,7 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * v24 — adds `streaming_cache_entries` table used when streaming is NOT_VIABLE
+         * v24 - adds `streaming_cache_entries` table used when streaming is NOT_VIABLE
          * and the user chooses to offload the file locally before playing.
          * See PLAN/spec_adaptive-playback-strategy.md §5.7.
          */
@@ -685,7 +686,7 @@ abstract class AppDatabase : RoomDatabase() {
          * S0236: normalize legacy cloud:/<provider>/<id> resource paths to cloud://<provider>/<id>.
          * Early builds produced the single-slash form; current readers (CloudMediaScanner,
          * CleanupOrphanedTempFilesUseCase) only accept the double-slash form, so a stale row left
-         * a Google Drive resource visibly empty until this migration ran. Idempotent — touches
+         * a Google Drive resource visibly empty until this migration ran. Idempotent - touches
          * only rows in the legacy shape, leaves canonical and non-cloud paths untouched.
          */
         val MIGRATION_29_30 = object : Migration(29, 30) {
@@ -694,6 +695,24 @@ abstract class AppDatabase : RoomDatabase() {
                     "UPDATE resources SET path = REPLACE(path, 'cloud:/', 'cloud://') " +
                         "WHERE path LIKE 'cloud:/_%' AND path NOT LIKE 'cloud://%'"
                 )
+            }
+        }
+
+        /**
+         * S0248 Phase 1: add `metadataState` column to `file_metadata_cache` to
+         * persist per-file enrichment lifecycle (COMPLETE / PARTIAL / BROKEN).
+         * Legacy rows default to `'COMPLETE'` - they were written by code that
+         * only persisted fully-enriched results. Idempotent.
+         */
+        val MIGRATION_30_31 = object : Migration(30, 31) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!hasColumn(db, "file_metadata_cache", "metadataState")) {
+                    db.execSQL(
+                        "ALTER TABLE file_metadata_cache " +
+                            "ADD COLUMN metadataState TEXT NOT NULL DEFAULT 'COMPLETE'"
+                    )
+                }
+                Timber.d("S0248: Room migration 30->31 applied (file_metadata_cache.metadataState column)")
             }
         }
 

@@ -4,7 +4,7 @@ import java.net.HttpCookie
 
 /**
  * S0211: extracts a stable, server-issued identity from harvested cookies for known
- * social platforms. The returned string is the dedup key for a (host, identity) pair —
+ * social platforms. The returned string is the dedup key for a (host, identity) pair -
  * stable across sessions because the platform's user-id cookie does not rotate on
  * re-login.
  *
@@ -12,7 +12,7 @@ import java.net.HttpCookie
  * absent / blank. Callers must treat `null` as "do not deduplicate" and fall back to
  * inserting a fresh `accountId`.
  *
- * Pure function — no Android imports, no logging, no IO.
+ * Pure function - no Android imports, no logging, no IO.
  */
 object AccountIdentityExtractor {
 

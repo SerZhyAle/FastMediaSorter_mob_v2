@@ -279,7 +279,7 @@ class AudioCoverArtLoader(
                                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                                     if (is404NotFound(e)) {
                                         rememberMissingCoverUrl(model)
-                                        Timber.d("loadAudioCoverArt[$callId]: cover art not found (404) — ${urlHost(model)}")
+                                        Timber.d("loadAudioCoverArt[$callId]: cover art not found (404) - ${urlHost(model)}")
                                     } else {
                                         Timber.w("loadAudioCoverArt[$callId]: cover art load failed: ${e?.message}")
                                     }
@@ -382,7 +382,7 @@ class AudioCoverArtLoader(
                             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                                 if (is404NotFound(e)) {
                                     rememberMissingCoverUrl(model)
-                                    Timber.d("searchOnlineAndDisplayCover[$callId]: cover art not found (404) — ${urlHost(model)}")
+                                    Timber.d("searchOnlineAndDisplayCover[$callId]: cover art not found (404) - ${urlHost(model)}")
                                 } else {
                                     Timber.w("searchOnlineAndDisplayCover[$callId]: cover art load failed: ${e?.message}")
                                 }
@@ -447,7 +447,7 @@ class AudioCoverArtLoader(
     }
 
     /**
-     * Returns true if the GlideException root cause is HTTP 404 — expected "not found",
+     * Returns true if the GlideException root cause is HTTP 404 - expected "not found",
      * not a real network failure. Suppressed to DEBUG to avoid log noise.
      */
     private fun isKnownMissingCoverUrl(url: String?): Boolean =

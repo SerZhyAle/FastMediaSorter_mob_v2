@@ -28,7 +28,7 @@ import java.io.File
  * per-track title/artist metadata in the MediaSession and system notification.
  *
  * Constructor-instantiated in PlayerActivity (same pattern as SleepTimerManager).
- * All playback commands are delegated — this manager holds no ExoPlayer reference.
+ * All playback commands are delegated - this manager holds no ExoPlayer reference.
  *
  * Entry points are guarded by [BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK].
  */
@@ -103,7 +103,7 @@ class NowPlayingManager(
      * Called from PlayerActivity.onResume to refresh bar visibility and state.
      *
      * @param currentMediaType The type of the file currently loaded in the player.
-     *   The mini bar is suppressed entirely during VIDEO playback — the user expects
+     *   The mini bar is suppressed entirely during VIDEO playback - the user expects
      *   full-screen video with touch zones, not a background-audio overlay.
      */
     fun onStart(currentMediaType: MediaType? = null, showPanel: Boolean = false) {
@@ -113,7 +113,7 @@ class NowPlayingManager(
 
     /**
      * Update mini bar visibility and content based on service state.
-     * Suppressed when [currentMediaType] is [MediaType.VIDEO] — the user expects
+     * Suppressed when [currentMediaType] is [MediaType.VIDEO] - the user expects
      * full-screen video; showing a background-audio overlay there is wrong UX.
      *
      * Should be called whenever AudioPlaybackService.isRunning may have changed.
@@ -121,7 +121,7 @@ class NowPlayingManager(
     fun updateBarVisibility(currentMediaType: MediaType? = null, showPanel: Boolean = false) {
         if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK || miniBar == null) return
 
-        // Never show when the user is directly viewing an audio or video file —
+        // Never show when the user is directly viewing an audio or video file -
         // they control playback via the player UI itself, not the background bar.
         if (currentMediaType == MediaType.VIDEO || currentMediaType == MediaType.AUDIO) {
             miniBar.root.isVisible = false
@@ -136,33 +136,33 @@ class NowPlayingManager(
 
         if (!AudioPlaybackService.isRunning) {
             miniBar.root.isVisible = false
-            Timber.d("NowPlayingManager: updateBarVisibility — service not running, hiding bar")
+            Timber.d("NowPlayingManager: updateBarVisibility - service not running, hiding bar")
             return
         }
 
         // Service is running but MediaController may not be connected yet (e.g. when opening
-        // a photo PlayerActivity while audio plays in background). Connect status-only — no playback
-        // is started — then inspect the real playbackState before showing the bar.
-        Timber.d("NowPlayingManager: updateBarVisibility — service running, connecting for status")
+        // a photo PlayerActivity while audio plays in background). Connect status-only - no playback
+        // is started - then inspect the real playbackState before showing the bar.
+        Timber.d("NowPlayingManager: updateBarVisibility - service running, connecting for status")
         audioServiceController.connectForStatus { player ->
             Handler(Looper.getMainLooper()).post {
                 if (player == null) {
                     // Service died during connect attempt
                     miniBar.root.isVisible = false
-                    Timber.d("NowPlayingManager: updateBarVisibility — connectForStatus returned null, hiding")
+                    Timber.d("NowPlayingManager: updateBarVisibility - connectForStatus returned null, hiding")
                     return@post
                 }
                 val state = player.playbackState
                 val activelyPlaying = state == Player.STATE_READY || state == Player.STATE_BUFFERING
                 if (!activelyPlaying) {
-                    // STATE_ENDED / IDLE — service is shutting down, hide bar
+                    // STATE_ENDED / IDLE - service is shutting down, hide bar
                     miniBar.root.isVisible = false
-                    Timber.d("NowPlayingManager: updateBarVisibility — playbackState=$state (not active), hiding")
+                    Timber.d("NowPlayingManager: updateBarVisibility - playbackState=$state (not active), hiding")
                     return@post
                 }
-                // Service alive and playing — show and populate bar
+                // Service alive and playing - show and populate bar
                 miniBar.root.isVisible = true
-                Timber.d("NowPlayingManager: updateBarVisibility — showing bar (playbackState=$state)")
+                Timber.d("NowPlayingManager: updateBarVisibility - showing bar (playbackState=$state)")
                 val meta = player.mediaMetadata
                 miniBar.miniTitle.text = meta.title?.toString()
                     ?: activityBinding.root.context.getString(R.string.now_playing_label)

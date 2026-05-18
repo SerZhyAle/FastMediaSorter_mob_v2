@@ -39,19 +39,19 @@ class SendResourcesToWatchUseCase @Inject constructor(
         for (resource in networkResources) {
             val credId = resource.credentialsId
             if (credId == null) {
-                Timber.w("Resource ${resource.name} has no credentialsId — skipping")
+                Timber.w("Resource ${resource.name} has no credentialsId - skipping")
                 skipped++
                 continue
             }
             val creds = credentialsRepository.getByCredentialId(credId)
             if (creds == null) {
-                Timber.w("Credentials not found for ${resource.name} ($credId) — skipping")
+                Timber.w("Credentials not found for ${resource.name} ($credId) - skipping")
                 skipped++
                 continue
             }
             val password = creds.password
             if (password.isEmpty() && creds.encryptedPassword.isNotEmpty()) {
-                Timber.e("Password decryption failed for ${resource.name} — skipping")
+                Timber.e("Password decryption failed for ${resource.name} - skipping")
                 skipped++
                 continue
             }

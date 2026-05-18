@@ -166,7 +166,7 @@ class BrowseLoadingManager(
         }
         
         Timber.d("BrowseLoadingManager: Calling GetMediaFilesUseCase (progressive=$useProgressiveLoading)...")
-        // Collect all emissions — for progressive loading the flow may emit
+        // Collect all emissions - for progressive loading the flow may emit
         // an early partial batch followed by the complete list.
         var latestFiles: List<MediaFile> = emptyList()
         
@@ -190,7 +190,7 @@ class BrowseLoadingManager(
             }
             .collect { files ->
                 val elapsed = System.currentTimeMillis() - flowStartTime
-                Timber.d("BrowseLoadingManager: Flow COLLECT after ${elapsed}ms — ${files.size} files")
+                Timber.d("BrowseLoadingManager: Flow COLLECT after ${elapsed}ms - ${files.size} files")
                 latestFiles = files
                 
                 // Show every intermediate emission immediately so the user sees
@@ -200,10 +200,10 @@ class BrowseLoadingManager(
                 callbacks.updateLoadingProgress(files.size)
             }
         
-        // --- Flow completed — final processing on the last emission ---
+        // --- Flow completed - final processing on the last emission ---
         val files = latestFiles
         val totalElapsed = System.currentTimeMillis() - flowStartTime
-        Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms — final batch: ${files.size} files")
+        Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms - final batch: ${files.size} files")
         
         if (files.isEmpty()) {
             callbacks.updateState(emptyList(), false, 0, 0, false)

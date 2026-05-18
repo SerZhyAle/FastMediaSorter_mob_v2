@@ -7,7 +7,7 @@ import org.junit.Test
 
 /**
  * S0116 Phase 02 step 5: pure-JVM unit suite for [StreamingManifestSniffer].
- * No Robolectric required — Jsoup parses HTML without Android framework.
+ * No Robolectric required - Jsoup parses HTML without Android framework.
  */
 class StreamingManifestSnifferTest {
 

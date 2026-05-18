@@ -7,7 +7,7 @@ import com.sza.fastmediasorter.domain.input.CommandGroup
 
 /**
  * Thin [AlertDialog.Builder] wrapper for destructive reset confirmations.
- * Caller supplies the [onConfirm] action — only invoked on the positive button.
+ * Caller supplies the [onConfirm] action - only invoked on the positive button.
  */
 object ResetConfirmationDialog {
 

@@ -3,7 +3,7 @@
     <!--
       Layout reference resolved at PlayerView inflate time for `app:controller_layout_id`.
       Default = compact baseline; overlay Theme.FastMediaSorter.LargePlayerControls swaps to the large variant.
-      Driven by AppSettings.useCompactElements (true → compact, false → large) — applied via
+      Driven by AppSettings.useCompactElements (true → compact, false → large) - applied via
       theme.applyStyle(...) in PlayerActivity.onCreate before super.onCreate (app restart required to flip).
     -->
     <attr name="customPlayerControlsLayout" format="reference" />

@@ -1,4 +1,4 @@
-# Activity Catalog — wear
+# Activity Catalog - wear
 
 *Generated: 2026-05-09 15:08*
 

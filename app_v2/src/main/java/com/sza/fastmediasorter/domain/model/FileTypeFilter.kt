@@ -4,17 +4,17 @@ package com.sza.fastmediasorter.domain.model
  * Bitmask flags for scheduled operation file type filter.
  * Stored in DB as INTEGER column `file_type_mask`.
  *
- * ALL_FILES (bit 0) — special flag: process ALL files in the source resource,
+ * ALL_FILES (bit 0) - special flag: process ALL files in the source resource,
  *   including non-media files (binaries, archives, unknown formats).
  *   Activated by passing MediaType.entries.toSet() to the scanner (triggers
  *   isAllFilesMode / null-extensions path in SmbMediaScanner, CloudMediaScanner, etc.).
  *   Subdirectory recursion is governed by resource.scanSubdirectories as usual.
  *   When ALL_FILES is set, the other flags are irrelevant during execution.
  *
- * IMAGES    (bit 1) — IMAGE + GIF
- * AUDIO     (bit 2) — AUDIO
- * VIDEO     (bit 3) — VIDEO
- * DOCUMENTS (bit 4) — PDF + EPUB + TEXT
+ * IMAGES    (bit 1) - IMAGE + GIF
+ * AUDIO     (bit 2) - AUDIO
+ * VIDEO     (bit 3) - VIDEO
+ * DOCUMENTS (bit 4) - PDF + EPUB + TEXT
  */
 object FileTypeFlags {
     const val ALL_FILES: Int = 1 shl 0   // 1

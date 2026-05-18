@@ -349,7 +349,7 @@ class LocalOperationStrategy @Inject constructor(
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             // S0189: defer file creation. Validate parent dir + name conflict, but do NOT touch
-            // the filesystem here — the editor decides whether the user actually wants this note.
+            // the filesystem here - the editor decides whether the user actually wants this note.
             // The file is written by SaveTextNoteUseCase on first Save; Cancel leaves nothing.
             val parent = File(parentPath)
             if (!parent.exists() || !parent.isDirectory) {

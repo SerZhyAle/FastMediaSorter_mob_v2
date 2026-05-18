@@ -22,8 +22,8 @@ class LinkExtractionRegistry @Inject constructor(
 
     private companion object {
         // S0174: "ytdlp" is registered only in the noLegal flavor DI module.
-        // In other flavors this id matches no strategy — sort falls back to Int.MAX_VALUE, harmless.
-        // S0177: native site extractors — noLegal only, benign no-op in other flavors.
+        // In other flavors this id matches no strategy - sort falls back to Int.MAX_VALUE, harmless.
+        // S0177: native site extractors - noLegal only, benign no-op in other flavors.
         val CANONICAL_ORDER = listOf("artstation", "deviantart", "vimeo", "dailymotion", "ytdlp", "site", "direct", "html", "dynamic")
     }
 }

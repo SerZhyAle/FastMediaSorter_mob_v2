@@ -1,23 +1,23 @@
-PLATFORM: Reddit — r/DataHoarder
+PLATFORM: Reddit - r/DataHoarder
 URL: https://www.reddit.com/r/DataHoarder/
 FORMAT: Reddit Markdown
 TONE: Practical, storage-problem-focused, dev disclosure
 
 ---
 TITLE:
-I built an Android app for managing large media collections across NAS + cloud — SHA-256 duplicate detection, cross-protocol transfers, scheduled automation
+I built an Android app for managing large media collections across NAS + cloud - SHA-256 duplicate detection, cross-protocol transfers, scheduled automation
 
 ---
 BODY:
 
 Dev here. I think this community might actually get the most use out of this.
 
-**FastMediaSorter v2** is an Android file manager built specifically for people who have media spread across local storage, NAS, and multiple cloud providers — and need to actually manage it, not just browse it.
+**FastMediaSorter v2** is an Android file manager built specifically for people who have media spread across local storage, NAS, and multiple cloud providers - and need to actually manage it, not just browse it.
 
 **The features most relevant here:**
 
 **Duplicate detection**
-SHA-256 byte-for-byte matching across any combination of sources. You can run it comparing local storage vs. SMB share, or NAS vs. Google Drive. Not filename matching, not size matching — full checksum. Finds true duplicates regardless of where they're stored.
+SHA-256 byte-for-byte matching across any combination of sources. You can run it comparing local storage vs. SMB share, or NAS vs. Google Drive. Not filename matching, not size matching - full checksum. Finds true duplicates regardless of where they're stored.
 
 **Cross-protocol file operations**
 Copy/move files between any two connected sources without staging locally. Supported combinations:
@@ -41,7 +41,7 @@ Cron-style background jobs:
 The app indexes large SMB directories into a local Room database. Subsequent opens of a 50k-file NAS folder are near-instant.
 
 **What it's not:**
-- Not a deduplication tool with auto-merge logic — it shows you duplicates, you decide what to do
+- Not a deduplication tool with auto-merge logic - it shows you duplicates, you decide what to do
 - No RAID management, no server-side anything
 - Direct SMB access only (no Plex/Jellyfin client mode)
 

@@ -30,7 +30,7 @@ import timber.log.Timber
 import java.io.File
 import kotlin.math.roundToInt
 
-// S0238: VR-entry button visibility — open for video and pixel-media (image, gif).
+// S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
 
@@ -328,7 +328,7 @@ class CommandPanelController(
         val isAudio = currentFile.type == MediaType.AUDIO
         val showSlideshow = isImage || isVideo
 
-        // Back + Previous/Next are fixed anchors — always visible when command panel is shown.
+        // Back + Previous/Next are fixed anchors - always visible when command panel is shown.
         binding.btnBack.isVisible = effectiveShowCommandPanel
         binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
         binding.btnNextCmd.isVisible = effectiveShowCommandPanel
@@ -501,7 +501,7 @@ class CommandPanelController(
             getOverflowableButtons().forEach { it.isVisible = false }
         }
         
-        // Enable states (set regardless of visibility — overflow menu uses the same callbacks)
+        // Enable states (set regardless of visibility - overflow menu uses the same callbacks)
         binding.btnBack.isEnabled = true
         binding.btnPreviousCmd.isEnabled = true
         binding.btnNextCmd.isEnabled = true

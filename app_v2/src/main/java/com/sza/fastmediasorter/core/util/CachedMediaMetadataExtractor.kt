@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheEntity
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MetadataState
 import com.sza.fastmediasorter.domain.model.ResourceType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,12 +36,22 @@ class CachedMediaMetadataExtractor(
 
     /**
      * Enriches a list of files with metadata, using Room cache when available and valid.
+     *
+     * S0248 Phase 3 retry policy applied to cached rows:
+     *  - `COMPLETE` → use as-is, no re-extraction.
+     *  - `PARTIAL`  → re-attempt extraction (every scan).
+     *  - `BROKEN`   → keep cached payload, do NOT re-attempt unless [forceRefresh] is true
+     *    (set by an explicit user-triggered refresh action).
+     *
+     * Legacy rows that predate migration 30→31 are persisted as `COMPLETE` via the SQL
+     * DEFAULT (see [com.sza.fastmediasorter.data.local.db.AppDatabase.MIGRATION_30_31]).
      */
     suspend fun enrichBatch(
         resourceId: Long,
         resourceType: ResourceType,
         credentialsId: String?,
-        files: List<MediaFile>
+        files: List<MediaFile>,
+        forceRefresh: Boolean = false
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         val cache = fileMetadataCacheDao.getAllForResource(resourceId).associateBy { it.filePath }
         val toUpdate = mutableListOf<FileMetadataCacheEntity>()
@@ -49,24 +60,48 @@ class CachedMediaMetadataExtractor(
             if (file.isDirectory || !isLocalPath(file.path)) return@map file
 
             val cached = cache[file.path]
-            if (cached != null && cached.lastModified == file.createdDate && cached.fileSize == file.size) {
+            val cachedValid = cached != null &&
+                cached.lastModified == file.createdDate &&
+                cached.fileSize == file.size
+            val cachedState = cached?.metadataState?.let { runCatching { MetadataState.valueOf(it) }.getOrDefault(MetadataState.COMPLETE) }
+
+            // S0248 Phase 3: decide whether the cached row may be reused as-is, or whether
+            // we must re-extract. PARTIAL always re-extracts. BROKEN re-extracts only when
+            // the caller opted into a forced refresh.
+            val reuseCached = cachedValid && when (cachedState) {
+                MetadataState.COMPLETE -> true
+                MetadataState.PARTIAL -> false
+                MetadataState.BROKEN -> !forceRefresh
+                null -> true // defensive: treat unknown as COMPLETE
+            }
+
+            if (reuseCached) {
                 cacheHitCount.incrementAndGet()
                 file.copy(
-                    duration = cached.durationMs ?: file.duration,
-                    width = cached.width ?: file.width,
-                    height = cached.height ?: file.height,
-                    videoRotation = cached.videoRotation ?: file.videoRotation,
-                    exifDateTime = cached.exifDateTime ?: file.exifDateTime,
-                    artist = cached.artist ?: file.artist,
-                    album = cached.album ?: file.album,
-                    title = cached.title ?: file.title
+                    duration = cached?.durationMs ?: file.duration,
+                    width = cached?.width ?: file.width,
+                    height = cached?.height ?: file.height,
+                    videoRotation = cached?.videoRotation ?: file.videoRotation,
+                    exifDateTime = cached?.exifDateTime ?: file.exifDateTime,
+                    artist = cached?.artist ?: file.artist,
+                    album = cached?.album ?: file.album,
+                    title = cached?.title ?: file.title,
+                    metadataState = cachedState ?: MetadataState.COMPLETE
                 )
             } else {
                 val freshlyEnriched = enrichInternal(file)
-                if (freshlyEnriched != file) {
-                    toUpdate.add(mapToEntity(resourceId, resourceType, credentialsId, freshlyEnriched))
+                // Local extractor never times out (no I/O budget on disk), so the only two
+                // outcomes are: enrichment changed the row (= COMPLETE) or it returned the
+                // input unchanged. The latter could mean "no metadata available for the
+                // type" (e.g. plain text) - recorded as COMPLETE - OR an exception
+                // suppressed by runCatching → also reaches us as `file`. We treat that
+                // case as COMPLETE here; the dedicated PARTIAL/BROKEN states are produced
+                // by network scanners with a real per-file timeout.
+                val finalFile = freshlyEnriched.copy(metadataState = MetadataState.COMPLETE)
+                if (finalFile != file) {
+                    toUpdate.add(mapToEntity(resourceId, resourceType, credentialsId, finalFile))
                 }
-                freshlyEnriched
+                finalFile
             }
         }
 
@@ -174,7 +209,8 @@ class CachedMediaMetadataExtractor(
             exifJson = null, // Could serialize full EXIF here if needed
             artist = file.artist,
             album = file.album,
-            title = file.title
+            title = file.title,
+            metadataState = file.metadataState.name
         )
     }
 

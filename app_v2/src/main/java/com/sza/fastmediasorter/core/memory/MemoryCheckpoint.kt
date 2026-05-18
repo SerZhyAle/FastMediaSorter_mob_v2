@@ -8,16 +8,16 @@ package com.sza.fastmediasorter.core.memory
  * log. The order of declaration matches the canonical scenario
  * `cold start -> SFTP browse -> tap MP3` documented in S0207.
  *
- * S0207 — Phase 01 (memory-instrumentation).
+ * S0207 - Phase 01 (memory-instrumentation).
  */
 enum class MemoryCheckpoint {
-    /** End of `Application.onCreate()` — after Timber init and startup banner. */
+    /** End of `Application.onCreate()` - after Timber init and startup banner. */
     APP_STARTED,
 
-    /** First main screen rendered — posted after `MainActivity.setContentView`. */
+    /** First main screen rendered - posted after `MainActivity.setContentView`. */
     MAIN_DRAWN,
 
-    /** Browse screen opened — at the end of `BrowseActivity.onCreate`. */
+    /** Browse screen opened - at the end of `BrowseActivity.onCreate`. */
     BROWSE_OPENED,
 
     /** All visible thumbnails for the current scroll window finished loading. */
@@ -26,6 +26,6 @@ enum class MemoryCheckpoint {
     /** Just before the player engages a media source for the chosen item. */
     PRE_PLAY,
 
-    /** Player reached `STATE_READY` — first decoded frame / audio buffer is queued. */
+    /** Player reached `STATE_READY` - first decoded frame / audio buffer is queued. */
     AFTER_STATE_READY,
 }

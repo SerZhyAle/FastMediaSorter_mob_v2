@@ -25,7 +25,7 @@ import timber.log.Timber
 /**
  * Manages destination buttons in PlayerActivity:
  * - Populates Copy/Move grids with destination buttons
- * - Calculates button distribution — width-adaptive single row, then lookup fallback
+ * - Calculates button distribution - width-adaptive single row, then lookup fallback
  * - Handles panel collapse/expand toggle
  * - Persists collapsed state to settings
  */
@@ -129,7 +129,7 @@ class DestinationButtonsManager(
                     // Otherwise fall back to the original fixed patterns (no regression on narrow screens).
                     val maxPerRow = computeMaxPerRow(availableWidthDp)
                     if (count > 0 && count <= maxPerRow) {
-                        // Width-adaptive single row — saves vertical space on tablets and landscape phones
+                        // Width-adaptive single row - saves vertical space on tablets and landscape phones
                         listOf(count)
                     } else {
                         when (count) {
@@ -345,7 +345,7 @@ class DestinationButtonsManager(
     /**
      * Create destination button with short name, color, click handler.
      *
-     * @param fontSizeSp pre-computed text size from [computeFontSizeSp] — width-adaptive (S0227)
+     * @param fontSizeSp pre-computed text size from [computeFontSizeSp] - width-adaptive (S0227)
      */
     private fun createDestinationButton(
         destination: MediaResource,
@@ -522,7 +522,7 @@ class DestinationButtonsManager(
     companion object {
         // Adaptive layout constants (S0227)
         // MIN_BUTTON_WIDTH_DP chosen so that 360 dp screen with 5 buttons keeps a single row via
-        // the lookup table (maxPerRow = 4 < 5, lookup returns listOf(5)) — no regression.
+        // the lookup table (maxPerRow = 4 < 5, lookup returns listOf(5)) - no regression.
         private const val MIN_BUTTON_WIDTH_DP = 58f
         // Approximate wrap_content width of the «..» button
         private const val DOT_DOT_WIDTH_DP = 44f
@@ -536,7 +536,7 @@ class DestinationButtonsManager(
 
         /**
          * Maximum buttons that fit in a single row at the given available width.
-         * Pure function — no side effects, covered by unit tests.
+         * Pure function - no side effects, covered by unit tests.
          *
          * Formula: floor((available - dotDot - dotDotMargin) / (minWidth + margin))
          */
@@ -570,7 +570,7 @@ class DestinationButtonsManager(
 
         /**
          * Interpolate button text size from actual button width.
-         * Pure function — no side effects, covered by unit tests.
+         * Pure function - no side effects, covered by unit tests.
          *
          * Result is clamped to [SP_MIN, SP_MAX].
          */

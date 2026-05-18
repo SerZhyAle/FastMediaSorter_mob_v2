@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.R
  * layout (compact vs large) before the player Activity inflates its content view.
  *
  * Lives in a dedicated SharedPreferences file because the canonical setting is in DataStore
- * (async) and DefaultTimeBar reads bar/touch/scrubber sizes from XML at inflate time only —
+ * (async) and DefaultTimeBar reads bar/touch/scrubber sizes from XML at inflate time only -
  * meaning the choice must be made before super.onCreate. The setting toggle in
  * Settings → General writes here in addition to DataStore right before triggering an app restart.
  */
@@ -36,7 +36,7 @@ object PlayerLayoutModePrefs {
     fun isBigButtonsMode(context: Context): Boolean {
         val prefs = context.applicationContext
             .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
-        // Default false — standard layout unless user enables Big Buttons Mode (ADR-2: read once at player init).
+        // Default false - standard layout unless user enables Big Buttons Mode (ADR-2: read once at player init).
         return prefs.getBoolean(KEY_BIG_BUTTONS_MODE, false)
     }
 

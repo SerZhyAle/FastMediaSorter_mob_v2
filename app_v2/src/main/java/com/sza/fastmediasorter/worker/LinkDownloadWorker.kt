@@ -31,9 +31,9 @@ import timber.log.Timber
  * source app (Instagram, browser, etc.) immediately after sharing a URL.
  *
  * Input data:
- *  - [KEY_URL]        — single URL (mutually exclusive with [KEY_URLS]).
- *  - [KEY_URLS]       — string array for batch (multiple URLs from one share intent).
- *  - [KEY_ACCOUNT_ID] — account whose cookies the coordinator should use (single-URL only).
+ *  - [KEY_URL]        - single URL (mutually exclusive with [KEY_URLS]).
+ *  - [KEY_URLS]       - string array for batch (multiple URLs from one share intent).
+ *  - [KEY_ACCOUNT_ID] - account whose cookies the coordinator should use (single-URL only).
  *
  * The worker posts a [NOTIF_ID_PROGRESS] foreground notification during download, then
  * a separate auto-cancel result notification when done.  For [SocialPreviewOnly] results
@@ -80,11 +80,11 @@ class LinkDownloadWorker @AssistedInject constructor(
         val accountId = inputData.getString(KEY_ACCOUNT_ID)
 
         if (url == null && urls.isNullOrEmpty()) {
-            Timber.e("LinkDownloadWorker: no url(s) in inputData — aborting")
+            Timber.e("LinkDownloadWorker: no url(s) in inputData - aborting")
             return Result.failure()
         }
 
-        // S0202: dual-mode worker — single-URL share runs as a long-running foreground
+        // S0202: dual-mode worker - single-URL share runs as a long-running foreground
         // worker (setForeground from getForegroundInfo) so backgrounding the share Activity
         // does not kill the download. Batch mode keeps the existing short-lived expedited
         // path (no setForeground), because batch is enqueued from the share-Activity in a
@@ -125,7 +125,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             .build()
         // S0202: also push the terminal result to the in-memory bus so the foreground
         // Activity (typically MainActivity when the user returns from Instagram/Threads)
-        // can present it on resume — toast, open-in-player, or auth-required dialog —
+        // can present it on resume - toast, open-in-player, or auth-required dialog -
         // without depending on whether the share Activity is still alive.
         runCatching {
             resultBus.publish(
@@ -139,7 +139,7 @@ class LinkDownloadWorker @AssistedInject constructor(
         return Result.success(outputData)
     }
 
-    /** No-op callbacks — progress is not reflected in the notification for simplicity. */
+    /** No-op callbacks - progress is not reflected in the notification for simplicity. */
     private fun silentCallbacks() = object : LinkAutoDownloadCoordinator.Callbacks {
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
     }
@@ -150,7 +150,7 @@ class LinkDownloadWorker @AssistedInject constructor(
      * via `LinkDownloadProgressCodec.decode`) AND into the ongoing foreground notification
      * (so backgrounded users still see live progress in the system shade).
      *
-     * `setProgressAsync` is fire-and-forget — `onProgress` is a non-suspending interface
+     * `setProgressAsync` is fire-and-forget - `onProgress` is a non-suspending interface
      * method called from Dispatchers.IO; awaiting the ListenableFuture would force us to
      * either block the IO thread or wrap each callback in a coroutine builder, both of
      * which add latency for no observable benefit.
@@ -229,7 +229,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
                 val s = result.summary
                 // S0224 §5.4: observability log so the batch notification total can be verified from logcat
-                // without device-side testing. Uses `Timber.i` (info) — not `Timber.d("S0224:` — because that
+                // without device-side testing. Uses `Timber.i` (info) - not `Timber.d("S0224:` - because that
                 // tag idiom is bound to BlockNeedUserTest status only (CLAUDE.md "Debug Verification Tags").
                 Timber.i(
                     "LinkDownloadNotification set total=%d success=%d label=%s",
@@ -251,10 +251,10 @@ class LinkDownloadWorker @AssistedInject constructor(
             }
             is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> {
                 // S0211: worker cannot show dialogs. Three branches:
-                // - extractor already ran with a valid stored session (hadExistingSession) — honest
+                // - extractor already ran with a valid stored session (hadExistingSession) - honest
                 //   notice, no Sign-In CTA. Mirrors LinkAutoDownloadResultPresenter.presentSocialPreviewOnly.
-                // - "don't ask" recorded for this host — quiet failure notification.
-                // - no session yet — heads-up sign-in notification with re-auth CTA.
+                // - "don't ask" recorded for this host - quiet failure notification.
+                // - no session yet - heads-up sign-in notification with re-auth CTA.
                 when {
                     result.hadExistingSession -> {
                         Timber.d("S0211: LinkDownloadWorker notify preview-only-signed-in host=%s", result.host)
@@ -361,7 +361,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     }
 
     /**
-     * Cancel action wired to WorkManager.createCancelPendingIntent — tapping it
+     * Cancel action wired to WorkManager.createCancelPendingIntent - tapping it
      * cancels this worker's unique work, which in turn raises CancellationException
      * inside coordinator.handle (Phase 03 ensures atomic cleanup).
      */

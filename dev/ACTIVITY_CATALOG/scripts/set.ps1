@@ -63,7 +63,7 @@ if ($matches.Count -eq 0) {
 }
 if ($matches.Count -gt 1) {
     $names = ($matches | ForEach-Object { $_.class }) -join ", "
-    throw "Ambiguous match for '$Class' — found: $names. Provide a more specific name."
+    throw "Ambiguous match for '$Class' - found: $names. Provide a more specific name."
 }
 
 $target = $matches[0]

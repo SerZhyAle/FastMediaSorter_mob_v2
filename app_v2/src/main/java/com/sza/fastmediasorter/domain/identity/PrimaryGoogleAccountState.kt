@@ -17,7 +17,7 @@ sealed interface PrimaryGoogleAccountState {
     /** Account bound and tokens are usable (subject to silent refresh). */
     data class Bound(val account: PrimaryGoogleAccount) : PrimaryGoogleAccountState
 
-    /** Account known but silent refresh failed — user must re-sign-in with the same email. */
+    /** Account known but silent refresh failed - user must re-sign-in with the same email. */
     data class NeedsResignIn(
         val account: PrimaryGoogleAccount,
         val reason: NeedsResignInReason

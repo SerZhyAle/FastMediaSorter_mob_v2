@@ -60,6 +60,55 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.SettingsButton.OutlinedIcon" parent="Widget.MaterialComponents.Button.OutlinedButton.Icon">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.SettingsButton.Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.SettingsButton.TextIcon" parent="Widget.MaterialComponents.Button.TextButton.Icon">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.SettingsButton.TextM3" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.SettingsButton.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.SettingsButton.OutlinedM3" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textSize">@dimen/toggler_title_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
     <!--
       Theme overlay applied via theme.applyStyle() in PlayerActivity.onCreate (before super.onCreate)
       when AppSettings.useCompactElements == false. Swaps the player controls layout reference to the

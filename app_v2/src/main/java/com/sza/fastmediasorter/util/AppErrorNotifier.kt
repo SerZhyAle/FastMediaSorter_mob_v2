@@ -52,7 +52,7 @@ object AppErrorNotifier {
         }
 
         if (activity.isFinishing || activity.isDestroyed) {
-            Timber.w("AppErrorNotifier: Activity is finishing/destroyed — skipping notification")
+            Timber.w("AppErrorNotifier: Activity is finishing/destroyed - skipping notification")
             return
         }
 
@@ -81,7 +81,7 @@ object AppErrorNotifier {
         val rootView = activity.window.decorView.rootView
 
         val snackbar = Snackbar.make(rootView, displayMessage, Snackbar.LENGTH_INDEFINITE)
-        // backgroundTintList is required on Material3/Android 12+ — setBackgroundColor() only sets
+        // backgroundTintList is required on Material3/Android 12+ - setBackgroundColor() only sets
         // the SnackbarLayout outer shell and is overridden by the inner SnackbarContentLayout tint.
         val bgColor = ContextCompat.getColor(activity, bgColorRes)
         snackbar.view.backgroundTintList = ColorStateList.valueOf(bgColor)

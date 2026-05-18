@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Tracks which subsystem originally created the pooled connection.
- * ExoPlayer must not reuse a SCANNER connection — directory-scan sessions have been
+ * ExoPlayer must not reuse a SCANNER connection - directory-scan sessions have been
  * observed silently dropping their TCP socket between scan completion and playback
  * start; SMBJ's isConnected flag cannot detect that and the subsequent openFile()
  * blocks indefinitely inside the socket write.
@@ -46,7 +46,7 @@ data class PooledConnection(
  * Extracted from [SmbConnectionManager] in S0061 phase 01 to bring the manager
  * back below the 1000-LOC limit and to localise pool ownership in one place.
  *
- * No retry/diagnostic policy lives here — that stays in [SmbConnectionManager].
+ * No retry/diagnostic policy lives here - that stays in [SmbConnectionManager].
  */
 class SmbConnectionPool {
 
@@ -79,7 +79,7 @@ class SmbConnectionPool {
 
     /**
      * Remove the entry and schedule its close on the cleanup scope.
-     * Honours [PooledConnection.usageCount] — if a consumer is still using the
+     * Honours [PooledConnection.usageCount] - if a consumer is still using the
      * connection, the close is deferred until the usage count returns to zero.
      */
     fun removeAndCloseAsync(key: ConnectionKey): PooledConnection? {
@@ -103,7 +103,7 @@ class SmbConnectionPool {
                     pooled.connection.close()
                     Timber.d("Connection closed successfully")
                 } catch (_: Exception) {
-                    // Swallow — forced cleanup, nothing to recover here.
+                    // Swallow - forced cleanup, nothing to recover here.
                 }
             } else {
                 Timber.d("Connection marked for close but currently in use (count=${pooled.usageCount.get()}). Will be closed after use.")

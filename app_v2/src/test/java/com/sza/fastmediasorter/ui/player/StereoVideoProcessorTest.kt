@@ -15,12 +15,12 @@ import org.junit.Test
  *
  * Tests cover:
  * 1. Default state after construction
- * 2. Mode transitions — valid resolved modes (MONO, SBS_FULL, SBS_HALF, OU)
+ * 2. Mode transitions - valid resolved modes (MONO, SBS_FULL, SBS_HALF, OU)
  * 3. isStereoActive flag logic
- * 4. setStereoMode precondition — rejects AUTO and UNKNOWN
+ * 4. setStereoMode precondition - rejects AUTO and UNKNOWN
  * 5. No-op on same-mode set (idempotency)
  * 6. release() resets state to MONO
- * 7. GL effect contract — SBS/OU/EQUIRECT stereo return a Crop effect; mono/unresolved return null
+ * 7. GL effect contract - SBS/OU/EQUIRECT stereo return a Crop effect; mono/unresolved return null
  */
 class StereoVideoProcessorTest {
 
@@ -121,7 +121,7 @@ class StereoVideoProcessorTest {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 4. Precondition — rejects unresolved modes
+    // 4. Precondition - rejects unresolved modes
     // ──────────────────────────────────────────────────────────────────────────
 
     @Test(expected = IllegalArgumentException::class)
@@ -140,12 +140,12 @@ class StereoVideoProcessorTest {
         try {
             processor.setStereoMode(StereoMode.AUTO)
         } catch (_: IllegalArgumentException) {}
-        // Mode must remain SBS_FULL — no partial state mutation
+        // Mode must remain SBS_FULL - no partial state mutation
         assertEquals(StereoMode.SBS_FULL, processor.getCurrentMode())
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 5. Idempotency — no-op on same mode
+    // 5. Idempotency - no-op on same mode
     // ──────────────────────────────────────────────────────────────────────────
 
     @Test

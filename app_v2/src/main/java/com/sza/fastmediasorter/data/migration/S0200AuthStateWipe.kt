@@ -13,14 +13,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0200 Phase 05 — run-once legacy auth-state wipe per strategic ADR-6.
+ * S0200 Phase 05 - run-once legacy auth-state wipe per strategic ADR-6.
  *
  * On first launch of the upgraded app, clears ALL legacy Google Drive auth state while preserving
  * the `ResourceEntity` rows (folder name, sync flags, `credentialsId` string). Marks every Drive
  * resource as `needsSignIn = true` so the UI (Phase 06) renders the "requires sign-in" indicator.
  *
  * Idempotent: a sentinel flag in `SharedPreferences("s0200_migration")` prevents re-execution.
- * If any step throws, the sentinel is NOT set, so the next launch retries from scratch — order
+ * If any step throws, the sentinel is NOT set, so the next launch retries from scratch - order
  * of operations enqueues token revocation FIRST (so the token strings are not lost), persists
  * the sentinel LAST.
  *
@@ -38,14 +38,14 @@ class S0200AuthStateWipe @Inject constructor(
 ) {
 
     /**
-     * Idempotent wipe. Safe to call from `Application.onCreate` on every launch — early-exit
+     * Idempotent wipe. Safe to call from `Application.onCreate` on every launch - early-exit
      * when [KEY_DONE] is set.
      */
     suspend fun runIfNeeded() {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_DONE, false)) return
         try {
-            // 1. Snapshot stored credential blobs BEFORE clearing — they hold the token strings
+            // 1. Snapshot stored credential blobs BEFORE clearing - they hold the token strings
             //    used for offline revocation via PendingRevocationEntity (Phase 03's bg revoker).
             val staleBlobs = driveCredentialsManager.snapshotAllCredentialBlobs()
             staleBlobs.forEach { blob ->
@@ -68,7 +68,7 @@ class S0200AuthStateWipe @Inject constructor(
             networkCredentialsDao.deleteByType("GOOGLE_DRIVE")
 
             // 5. Mark every Drive ResourceEntity as needs-sign-in. Folder names / sync flags are
-            //    preserved — user only has to sign in again to restore access.
+            //    preserved - user only has to sign in again to restore access.
             resourceDao.markAllDriveNeedsSignIn(true)
 
             // 6. Persist sentinel LAST so a partial-failure run re-attempts on next launch.

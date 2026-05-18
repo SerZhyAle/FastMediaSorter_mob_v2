@@ -7,7 +7,9 @@ import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * SMB media-file scanning coordinator.
@@ -17,13 +19,39 @@ import timber.log.Timber
  * results to the public [SmbFileInfo] model.
  *
  * Extracted from `SmbClient` (S0002 Wave 47) to keep that facade under the 700-LOC
- * stretch target. No behaviour change — every public method's signature, retry
+ * stretch target. No behaviour change - every public method's signature, retry
  * shape, logging, and error mapping mirror the original SmbClient implementations.
  */
 class SmbMediaScanCoordinator(
     private val connectionManager: SmbConnectionManager,
     private val directoryScanner: SmbDirectoryScanner
 ) {
+
+    /**
+     * S0248 Phase 4: defensive in-flight coalescer for full-scan listings.
+     * Two callers that issue an identical [scanMediaFiles] request on the same
+     * (server, share, port, remotePath, extensions, scanSubdirectories, includeDirectories)
+     * key concurrently will share a single underlying directory listing. The entry
+     * is evicted in `finally` so a future scan is never blocked by a stale Deferred.
+     *
+     * This is the SECONDARY layer. The primary root cause - namely the deliberate
+     * two-phase pattern `scanFolderChunked` → `scanFolder` in GetMediaFilesUseCase
+     * (progressive loading) - is by design: the chunked early-emit and the full
+     * scan use different `maxFiles` budgets and therefore produce different
+     * coalesce keys. The coalescer only merges genuinely identical requests.
+     */
+    private val inFlightFullScan = ConcurrentHashMap<String, CompletableDeferred<SmbResult<List<SmbFileInfo>>>>()
+
+    private fun fullScanKey(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String,
+        extensions: Set<String>?,
+        scanSubdirectories: Boolean,
+        includeDirectories: Boolean
+    ): String {
+        val extKey = extensions?.sorted()?.joinToString(",") ?: "*"
+        return "${connectionInfo.server}:${connectionInfo.port}/${connectionInfo.shareName}|$remotePath|$extKey|sub=$scanSubdirectories|dirs=$includeDirectories"
+    }
 
     suspend fun scanMediaFiles(
         connectionInfo: SmbConnectionInfo,
@@ -32,6 +60,35 @@ class SmbMediaScanCoordinator(
         scanSubdirectories: Boolean = true,
         progressCallback: ScanProgressCallback? = null,
         includeDirectories: Boolean = false
+    ): SmbResult<List<SmbFileInfo>> {
+        // S0248 Phase 4: coalesce identical concurrent listings.
+        val key = fullScanKey(connectionInfo, remotePath, extensions, scanSubdirectories, includeDirectories)
+        val mine = CompletableDeferred<SmbResult<List<SmbFileInfo>>>()
+        val existing = inFlightFullScan.putIfAbsent(key, mine)
+        if (existing != null) {
+            Timber.d("SmbMediaScanCoordinator: dedup hit on $key")
+            Timber.d("S0248: listing-dedup coalescer hit key=$key")
+            return existing.await()
+        }
+        try {
+            val result = runScanMediaFiles(connectionInfo, remotePath, extensions, scanSubdirectories, progressCallback, includeDirectories)
+            mine.complete(result)
+            return result
+        } catch (e: Throwable) {
+            mine.completeExceptionally(e)
+            throw e
+        } finally {
+            inFlightFullScan.remove(key)
+        }
+    }
+
+    private suspend fun runScanMediaFiles(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String,
+        extensions: Set<String>?,
+        scanSubdirectories: Boolean,
+        progressCallback: ScanProgressCallback?,
+        includeDirectories: Boolean
     ): SmbResult<List<SmbFileInfo>> {
         return try {
             val startTime = System.currentTimeMillis()

@@ -20,7 +20,7 @@ import java.util.UUID
  * - Delete `cached_file_lists` rows whose parent resource no longer exists.
  * - Delete expired / orphaned entries from `file_metadata_cache` (A5-T8: TTL cleanup).
  * - Log network credentials that have no associated resources (orphan audit).
- *   Credentials are NOT auto-deleted — manual cleanup is intentional to avoid
+ *   Credentials are NOT auto-deleted - manual cleanup is intentional to avoid
  *   accidental data loss.
  *
  * Scheduled as a periodic task by [WorkManagerScheduler].
@@ -60,7 +60,7 @@ class OrphanCleanupWorker @AssistedInject constructor(
 
     /**
      * Delete cached file list entries whose parent resource was deleted.
-     * Safe to auto-delete — these are transient cache records only.
+     * Safe to auto-delete - these are transient cache records only.
      */
     private suspend fun cleanOrphanedCaches(correlationId: String) {
         val deleted = cachedFileListDao.deleteOrphaned()
@@ -75,8 +75,8 @@ class OrphanCleanupWorker @AssistedInject constructor(
      * Purge stale and orphaned entries from the per-file metadata cache (A5-T8).
      *
      * Two passes:
-     * 1. TTL expiry — entries not refreshed within [METADATA_TTL_MS].
-     * 2. Orphan sweep — entries whose parent resource row was deleted (FK cascade
+     * 1. TTL expiry - entries not refreshed within [METADATA_TTL_MS].
+     * 2. Orphan sweep - entries whose parent resource row was deleted (FK cascade
      *    may already handle this, but an explicit pass is a safety net).
      */
     private suspend fun cleanMetadataCache(correlationId: String) {
@@ -112,7 +112,7 @@ class OrphanCleanupWorker @AssistedInject constructor(
 
     /**
      * Log network credentials that are no longer referenced by any resource.
-     * Does NOT auto-delete — credentials might be re-associated or the user
+     * Does NOT auto-delete - credentials might be re-associated or the user
      * may want them retained for future resources.
      */
     private suspend fun auditOrphanedCredentials(correlationId: String) {

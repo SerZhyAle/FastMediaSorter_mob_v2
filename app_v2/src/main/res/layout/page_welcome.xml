@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Standard welcome page: compact header (icon + title + short summary) pinned at the top,
      then a scrollable "details" block below for the few-paragraph long copy. The page itself
-     never scrolls — only the details ScrollView does. Content is capped at
+     never scrolls - only the details ScrollView does. Content is capped at
      welcome_content_max_width and centred for wide / TV screens. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

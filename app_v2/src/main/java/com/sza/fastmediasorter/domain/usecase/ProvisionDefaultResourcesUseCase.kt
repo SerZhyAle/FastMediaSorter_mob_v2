@@ -41,12 +41,12 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         val existingPaths = resourceRepository.getAllResources().first().map { it.path }.toSet()
         val settings = settingsRepository.getSettings().first()
 
-        // Slot counter — increments for every predefined resource slot (created or skipped),
+        // Slot counter - increments for every predefined resource slot (created or skipped),
         // keeping displayOrder stable whether this is a fresh install or a repair pass.
         var displayOrder = 0
         var provisionedCount = 0
 
-        // 1. Recent — show all files by default (S0059: users expect full file history, not media-only)
+        // 1. Recent - show all files by default (S0059: users expect full file history, not media-only)
         if (LocalMediaScanner.VIRTUAL_PATH_RECENT !in existingPaths) {
             createVirtualResource(
                 name = context.getString(R.string.recent_media),

@@ -16,7 +16,7 @@ import timber.log.Timber
  * - onResume scroll restoration (secondary path when list unchanged)
  * - Storage permission check & dialog for local resources on Android 11+
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseLifecycleHelper(
     private val activity: Activity,

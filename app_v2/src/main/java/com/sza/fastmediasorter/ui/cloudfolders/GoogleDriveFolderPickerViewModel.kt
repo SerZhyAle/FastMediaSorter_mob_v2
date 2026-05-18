@@ -60,7 +60,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    /** Account email passed from AddResourceActivity — stored as credentialsId in the resource */
+    /** Account email passed from AddResourceActivity - stored as credentialsId in the resource */
     private val accountEmail: String? = savedStateHandle["extra_account_email"]
 
     private val _state = MutableStateFlow(GoogleDriveFolderPickerState())

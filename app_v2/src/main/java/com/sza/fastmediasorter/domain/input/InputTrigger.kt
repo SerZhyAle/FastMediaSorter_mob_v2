@@ -45,7 +45,7 @@ sealed class InputTrigger {
     }
 }
 
-// Modifier mask — bit layout matches KeyEvent.META_* values:
+// Modifier mask - bit layout matches KeyEvent.META_* values:
 //   META_SHIFT_ON=0x1, META_ALT_ON=0x2, META_CTRL_ON=0x1000 (Caps/Num/Scroll ignored).
 private fun extractModifiers(event: KeyEvent): Int =
     event.metaState and (KeyEvent.META_SHIFT_ON or KeyEvent.META_ALT_ON or KeyEvent.META_CTRL_ON)
@@ -65,7 +65,7 @@ fun InputTrigger.Companion.fromGamepadButton(keyCode: Int): InputTrigger.Gamepad
  *
  * @param axis     [android.view.MotionEvent] axis constant (e.g. AXIS_Y, AXIS_RZ).
  * @param value    Centred, optionally inverted axis value (caller handles AXIS_Y inversion).
- * @param deadzone Hard deadzone floor; if `abs(value) < deadzone` the trigger is null — no
+ * @param deadzone Hard deadzone floor; if `abs(value) < deadzone` the trigger is null - no
  *                 binding can fire when the stick is at rest. Matches [GamepadInputManager.DEADZONE].
  * @return null when the deflection is below [deadzone], otherwise a directional trigger.
  */
@@ -82,6 +82,5 @@ private val Float.sign: Float get() = kotlin.math.sign(this)
 
 /**
  * Build a [InputTrigger.VrEvent] for the given raw XrInputEventType code.
- * Used by [com.sza.fastmediasorter.vr.helpers.VrControllerInputManager] in [dispatchXrEvent].
  */
 fun InputTrigger.Companion.fromXrInputEvent(type: Int): InputTrigger.VrEvent = InputTrigger.VrEvent(type)

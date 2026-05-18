@@ -7,7 +7,7 @@ import com.google.gson.Gson
  * Stores information needed to restore deleted files.
  *
  * Serialized/deserialized via Gson so it works in both production and JVM unit tests.
- * Field names map directly to JSON keys — do not rename without a migration path.
+ * Field names map directly to JSON keys - do not rename without a migration path.
  */
 data class TrashMetadata(
     val originalPath: String,           // Full path where file was located

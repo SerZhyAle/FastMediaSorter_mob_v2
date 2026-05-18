@@ -25,7 +25,7 @@ import timber.log.Timber
  * Handles ViewModel lifecycle setup: init tasks, settings load, filter restore,
  * state-observer wiring, and startup cleanup.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseLifecycleSetupManager(
     private val context: Context,
@@ -93,7 +93,7 @@ class BrowseLifecycleSetupManager(
             try {
                 val savedState = getResumeStateUseCase(windowIdProvider())
                 if (savedState != null && savedState.resourceId != resourceId) {
-                    Timber.d("BrowseLifecycleSetupManager: resource changed (saved=${savedState.resourceId}, current=$resourceId) — clearing resume state")
+                    Timber.d("BrowseLifecycleSetupManager: resource changed (saved=${savedState.resourceId}, current=$resourceId) - clearing resume state")
                     clearResumeStateUseCase(windowIdProvider())
                 }
             } catch (e: Exception) {

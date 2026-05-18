@@ -1,4 +1,4 @@
-FastMediaSorter is an Android tool for organizing media files across local storage, network shares and cloud services in one place. It combines a file browser, image viewer, video and audio player, slideshow, PDF and EPUB reader, OCR and translation — without forcing you to install separate apps for each source.
+FastMediaSorter is an Android tool for organizing media files across local storage, network shares and cloud services in one place. It combines a file browser, image viewer, video and audio player, slideshow, PDF and EPUB reader, OCR and translation - without forcing you to install separate apps for each source.
 
 What it can do:
 
@@ -19,12 +19,12 @@ Non-free dependencies in this build (declared via Anti-Features):
 This is the STANDARD edition, published as-is on IzzyOnDroid. It depends on proprietary SDKs to deliver some of its features:
 
 • Google Drive, OneDrive and Dropbox cloud integration (proprietary SDKs).
-• Google Cast (Chromecast output) — proprietary SDK.
-• ML Kit Translation, Text Recognition and Language Identification — Google on-device proprietary libraries.
+• Google Cast (Chromecast output) - proprietary SDK.
+• ML Kit Translation, Text Recognition and Language Identification - Google on-device proprietary libraries.
 • Google Play Services (auth and wearable bridge for the Wear OS companion).
 • Google Play In-App Review.
 
-All of the above are optional inside the app — local, SMB, FTP, SFTP usage, the image, video, audio, PDF and EPUB viewers, OCR via Tesseract and the slideshow all work without ever calling a proprietary service.
+All of the above are optional inside the app - local, SMB, FTP, SFTP usage, the image, video, audio, PDF and EPUB viewers, OCR via Tesseract and the slideshow all work without ever calling a proprietary service.
 
 Free components used by the app: Tesseract OCR, SMBJ, JSch (SFTP), Apache Commons Net (FTP), ExoPlayer / Media3, Glide, OkHttp, BouncyCastle, Markwon, EPUB4j. The application source code is published under Apache License 2.0.
 

@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.first
  * with the values currently persisted in DataStore.
  *
  * Invoked once per process start from FastMediaSorterApp.onCreate. The underlying
- * PackageManager.setComponentEnabledSetting is idempotent — calling it with the value already in effect
- * is a no-op at the OS level — so this bootstrap is safe to run on every start without any "first run"
+ * PackageManager.setComponentEnabledSetting is idempotent - calling it with the value already in effect
+ * is a no-op at the OS level - so this bootstrap is safe to run on every start without any "first run"
  * flag. After a reinstall or clear-data, the system forgets runtime overrides; this bootstrap restores
  * them automatically on the next launch, so the app reappears in the OS share-sheet without user action.
  *
- * Flavor filtering is delegated entirely to DefaultPlayerManager — only aliases supported by the current
+ * Flavor filtering is delegated entirely to DefaultPlayerManager - only aliases supported by the current
  * BuildConfig flags are ever touched.
  */
 object DefaultPlayerStateBootstrapper {

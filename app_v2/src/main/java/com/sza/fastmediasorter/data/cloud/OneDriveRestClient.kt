@@ -683,7 +683,7 @@ class OneDriveRestClient @Inject constructor(
     }
     
     override suspend fun signOut(): CloudResult<Boolean> {
-        // Capture token before clearing — best-effort server-side revocation queued to DB
+        // Capture token before clearing - best-effort server-side revocation queued to DB
         val tokenToRevoke = auth.captureToken()
 
         // Local sign-out on Main thread (delegates to coordinator)
@@ -728,6 +728,6 @@ class OneDriveRestClient @Inject constructor(
         OneDriveRestClientUtils.parseItem(item, parentPath)
 }
 
-// ApiResponse moved to OneDriveRestClientUtils.ApiResponse — top-level alias so the rest of
+// ApiResponse moved to OneDriveRestClientUtils.ApiResponse - top-level alias so the rest of
 // OneDriveRestClient keeps using the unqualified name without churn.
 private typealias ApiResponse = OneDriveRestClientUtils.ApiResponse

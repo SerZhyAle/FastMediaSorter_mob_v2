@@ -147,7 +147,7 @@ function Fix-MdFile($path) {
 # ─── Main ─────────────────────────────────────────────────────────────────────
 Write-Host ""
 if (-not $Apply) {
-    Write-Host "DRY RUN mode — no files will be modified. Use -Apply to apply changes." -ForegroundColor Yellow
+    Write-Host "DRY RUN mode - no files will be modified. Use -Apply to apply changes." -ForegroundColor Yellow
 }
 Write-Host "Processing strings.xml files..." -ForegroundColor Gray
 
@@ -158,7 +158,7 @@ foreach ($f in $mdFiles) { Fix-MdFile $f }
 
 Write-Host ""
 if ($totalChanges -eq 0) {
-    Write-Host "No '...' found — all files already use '..' style." -ForegroundColor Green
+    Write-Host "No '...' found - all files already use '..' style." -ForegroundColor Green
 }
 else {
     if ($Apply) {

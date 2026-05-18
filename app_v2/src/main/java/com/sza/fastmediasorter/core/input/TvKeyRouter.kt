@@ -10,14 +10,14 @@ import javax.inject.Singleton
  * [TvNavAction]s so each Activity only declares *what* to do, not *how* the
  * raw key code maps to that action.
  *
- * Sources covered (non-exhaustive — the router never inspects vendor IDs):
- * - TV remotes (D-pad) — typically arrive with [InputDevice.SOURCE_KEYBOARD]
+ * Sources covered (non-exhaustive - the router never inspects vendor IDs):
+ * - TV remotes (D-pad) - typically arrive with [InputDevice.SOURCE_KEYBOARD]
  *   or [InputDevice.SOURCE_DPAD].
  * - Physical USB / Bluetooth keyboards.
- * - Car steering-wheel media buttons (Android Auto, Bluetooth HID) — arrive
+ * - Car steering-wheel media buttons (Android Auto, Bluetooth HID) - arrive
  *   as `KEYCODE_MEDIA_*` from various sources.
  * - Wired / wireless headset hooks (`KEYCODE_HEADSETHOOK`, `KEYCODE_MEDIA_PLAY_PAUSE`).
- * - Hardware buttons on phones / tablets / set-top boxes — volume, mute,
+ * - Hardware buttons on phones / tablets / set-top boxes - volume, mute,
  *   menu, search.
  *
  * Scope guard:
@@ -26,7 +26,7 @@ import javax.inject.Singleton
  *   has its own rate-limiting, analog-axis handling and key-binding remap.
  * - Only [KeyEvent.ACTION_DOWN] produces an action; ACTION_UP returns null.
  *
- * Complexity: O(1) — no I/O, no allocations beyond the sealed-class instances.
+ * Complexity: O(1) - no I/O, no allocations beyond the sealed-class instances.
  */
 @Singleton
 class TvKeyRouter @Inject constructor() {
@@ -63,7 +63,7 @@ class TvKeyRouter @Inject constructor() {
             KeyEvent.KEYCODE_BACK -> TvNavAction.Back
 
             // ── Media (car wheel, BT headset, AAC remote) ────────────────────
-            // HEADSETHOOK is the wired-headset single-tap "play/pause" key —
+            // HEADSETHOOK is the wired-headset single-tap "play/pause" key -
             // semantically identical to MEDIA_PLAY_PAUSE.
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
             KeyEvent.KEYCODE_HEADSETHOOK -> TvNavAction.PlayPause

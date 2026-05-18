@@ -5,7 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * S0176: Contract tests for [registrableDomainOrNull] — freezes the PSL-aware
+ * S0176: Contract tests for [registrableDomainOrNull] - freezes the PSL-aware
  * registrable-domain parsing behaviour expected by the link-download cookie path.
  */
 class LinkCookieDomainResolverTest {
@@ -42,7 +42,7 @@ class LinkCookieDomainResolverTest {
 
     @Test
     fun bare_public_suffix_returns_null() {
-        // "com" alone has no registrable domain — topPrivateDomain() returns null.
+        // "com" alone has no registrable domain - topPrivateDomain() returns null.
         assertNull(registrableDomainOrNull("com"))
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 02 — Draw editor settings dialog content view.
+    S0192 Phase 02 - Draw editor settings dialog content view.
     Hosted by DrawSettingsDialog as the body of an AlertDialog.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,7 +9,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Brush size — continuous slider 1..36 -->
+    <!-- Brush size - continuous slider 1..36 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,7 +39,7 @@
             android:text="12" />
     </LinearLayout>
 
-    <!-- Text size — small / medium / large -->
+    <!-- Text size - small / medium / large -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -76,7 +76,7 @@
             android:text="@string/draw_settings_text_large" />
     </RadioGroup>
 
-    <!-- Opacity — 0/25/50/75/100 % (literal %, language neutral) -->
+    <!-- Opacity - 0/25/50/75/100 % (literal %, language neutral) -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

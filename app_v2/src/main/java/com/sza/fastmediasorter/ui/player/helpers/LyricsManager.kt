@@ -100,7 +100,7 @@ class LyricsManager(
     
     /**
      * Display lyrics in overlay viewer with font customization.
-     * Prepends a metadata header (Artist — Album — Title).
+     * Prepends a metadata header (Artist - Album - Title).
      */
     private fun showLyricsViewer(
         lyrics: String,
@@ -118,11 +118,11 @@ class LyricsManager(
         val header = buildString {
             if (!headerArtist.isNullOrBlank()) append(headerArtist)
             if (!headerAlbum.isNullOrBlank()) {
-                if (isNotEmpty()) append(" — ")
+                if (isNotEmpty()) append(" - ")
                 append(headerAlbum)
             }
             if (!headerTitle.isNullOrBlank()) {
-                if (isNotEmpty()) append(" — ")
+                if (isNotEmpty()) append(" - ")
                 append(headerTitle)
             }
             if (isNotEmpty()) {

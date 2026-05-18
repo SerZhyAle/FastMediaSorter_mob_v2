@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Touch-zones welcome page, landscape: left column = title + the inline 3×3 zone map;
-     right column = scrollable details. The page itself never scrolls — only the details ScrollView does. -->
+     right column = scrollable details. The page itself never scrolls - only the details ScrollView does. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

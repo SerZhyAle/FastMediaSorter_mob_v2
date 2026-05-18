@@ -20,14 +20,14 @@ import timber.log.Timber
  * Extracted from EpubViewerManager (S0002 Wave 42) to keep that class under 1500 LOC.
  *
  * Requires:
- * - [binding] — unified player binding for overlay views
- * - [safeViews] — safe-access wrapper for views that may be absent in some layouts
- * - [settingsRepository] — to read translation language pair
- * - [translationManager] — ML Kit wrapper
- * - [coroutineScope] — caller's coroutine scope
- * - [webViewProvider] — returns current WebView (nullable)
- * - [callback] — error and display callbacks
- * - [updateTranslateButtonIcon] — called whenever translation state changes to refresh button UI
+ * - [binding] - unified player binding for overlay views
+ * - [safeViews] - safe-access wrapper for views that may be absent in some layouts
+ * - [settingsRepository] - to read translation language pair
+ * - [translationManager] - ML Kit wrapper
+ * - [coroutineScope] - caller's coroutine scope
+ * - [webViewProvider] - returns current WebView (nullable)
+ * - [callback] - error and display callbacks
+ * - [updateTranslateButtonIcon] - called whenever translation state changes to refresh button UI
  */
 class EpubTranslationOverlayHelper(
     private val binding: ActivityPlayerUnifiedBinding,
@@ -229,7 +229,7 @@ class EpubTranslationOverlayHelper(
 
     /**
      * Restore saved translation font size (called from EpubViewerManager.init).
-     * Does NOT call [applyTranslationFontSize] — caller decides when to apply.
+     * Does NOT call [applyTranslationFontSize] - caller decides when to apply.
      */
     fun restoreFontSize(savedSize: Int) {
         translationFontSize = savedSize.coerceIn(MIN_TRANSLATION_FONT_SIZE, MAX_TRANSLATION_FONT_SIZE)

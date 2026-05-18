@@ -27,7 +27,7 @@ object OperationMetricsRecorder {
     private val connectionTestSuccessTotal = AtomicLong(0)
     private val connectionTestFailureTotal = AtomicLong(0)
 
-    // Per-type success/failure — keyed by ResourceType.ordinal for allocation-free increment.
+    // Per-type success/failure - keyed by ResourceType.ordinal for allocation-free increment.
     private val connectionTestSuccessByType = Array(ResourceType.entries.size) { AtomicLong(0) }
     private val connectionTestFailureByType = Array(ResourceType.entries.size) { AtomicLong(0) }
 

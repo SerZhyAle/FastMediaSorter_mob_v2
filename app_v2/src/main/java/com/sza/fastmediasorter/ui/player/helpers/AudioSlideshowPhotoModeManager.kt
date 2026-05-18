@@ -48,7 +48,7 @@ class AudioSlideshowPhotoModeManager(
     private val safeViews = PlayerBindingSafeViews(binding)
     private val context: android.content.Context get() = activity
 
-    /** Current mode state — true when fullscreen photo mode is active */
+    /** Current mode state - true when fullscreen photo mode is active */
     var isActive: Boolean = false
         private set
 

@@ -7,7 +7,7 @@ import java.io.File
 
 /**
  * Determines whether a full re-scan can be skipped in favour of the cached
- * file list (A5-T3 — delta path without full re-scan).
+ * file list (A5-T3 - delta path without full re-scan).
  *
  * ### Decision logic
  *
@@ -44,7 +44,7 @@ object IncrementalScanStrategy {
     /**
      * Maximum age of a cached snapshot that is considered "fresh" (ms).
      *
-     * Default: 5 minutes — conservative enough for local sources.
+     * Default: 5 minutes - conservative enough for local sources.
      * Set to 0 to disable age-based cache invalidation.
      */
     var maxCacheAgeMs: Long = 5L * 60 * 1000
@@ -76,7 +76,7 @@ object IncrementalScanStrategy {
             return false
         }
 
-        // Non-LOCAL resources: skip the optimisation — see KDoc for rationale.
+        // Non-LOCAL resources: skip the optimisation - see KDoc for rationale.
         if (enableForLocalOnly && resourceType != ResourceType.LOCAL) {
             StructuredLogger.d("IncrementalScan: non-local → optimisation disabled", "type" to resourceType.name)
             return false
@@ -136,7 +136,7 @@ object IncrementalScanStrategy {
      *         exist or is not a directory.
      */
     fun currentFolderMtime(path: String): Long? {
-        // Virtual resources have no folder — always return null to force full scan
+        // Virtual resources have no folder - always return null to force full scan
         if (com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(path)) return null
 
         return try {

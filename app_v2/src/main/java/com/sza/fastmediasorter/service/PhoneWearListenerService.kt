@@ -108,7 +108,7 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private fun handleSyncRequest() {
-        Timber.i("Watch requested sync — sending resources")
+        Timber.i("Watch requested sync - sending resources")
         serviceScope.launch {
             sendResourcesToWatchUseCase().onFailure { e ->
                 Timber.e(e, "Failed to send resources on watch request")

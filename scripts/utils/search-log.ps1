@@ -9,10 +9,10 @@
 
 .PARAMETER LogFile
     Path to the log file. Default: temp\current.log.
-    Accepts ALL three log formats — auto-detected at load time:
-      FORMAT 1 LOGCAT  — standard adb/AS copy-paste: DATE TIME PID-TID TAG PKG LVL  MSG
-      FORMAT 2 JSON    — Android Studio "Export to File" (.logcat JSON)
-      FORMAT 3 TIMBER  — app device export: DATE TIME LVL/TAG: MSG
+    Accepts ALL three log formats - auto-detected at load time:
+      FORMAT 1 LOGCAT  - standard adb/AS copy-paste: DATE TIME PID-TID TAG PKG LVL  MSG
+      FORMAT 2 JSON    - Android Studio "Export to File" (.logcat JSON)
+      FORMAT 3 TIMBER  - app device export: DATE TIME LVL/TAG: MSG
     Use .\scripts\utils\extract-device-logs.ps1 to pull a fresh log from a connected device.
     Use .\scripts\utils\convert-log.ps1 to pre-convert any format to standard logcat text.
 
@@ -204,7 +204,7 @@ function ConvertTo-LevelChar([string]$level) {
 }
 
 # ─── Parse line into PSCustomObject ──────────────────────────────────────────
-# Format 1 — standard logcat: DATE TIME PID-TID TAG<spaces> PACKAGE<spaces> LEVEL  MESSAGE
+# Format 1 - standard logcat: DATE TIME PID-TID TAG<spaces> PACKAGE<spaces> LEVEL  MESSAGE
 $LineRegex = '^(?<ts>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+)\s+(?<pid>\d+-\d+)\s+(?<tag>\S+)\s+(?<pkg>\S+)\s+(?<lvl>[VDIWEF])\s+(?<msg>.*)$'
 
 function Parse-Line([string]$line) {
@@ -223,7 +223,7 @@ function Parse-Line([string]$line) {
     return $null
 }
 
-# Format 3 — Timber device export: DATE TIME LVL/TAG: MSG
+# Format 3 - Timber device export: DATE TIME LVL/TAG: MSG
 $TimberLineRegex = '^(?<ts>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+)\s+(?<lvl>[VDIWEF])/(?<tag>[^:]+):\s*(?<msg>.*)$'
 
 function Parse-TimberLine([string]$line) {
@@ -234,7 +234,7 @@ function Parse-TimberLine([string]$line) {
             Time = $Matches['ts'].Substring(11, 8)
             PID  = "0-0"
             Tag  = $Matches['tag'].Trim()
-            Pkg  = "com.sza.fastmediasorter"  # Timber is always app-only — package is implicit
+            Pkg  = "com.sza.fastmediasorter"  # Timber is always app-only - package is implicit
             Lvl  = $Matches['lvl']
             Msg  = $Matches['msg']
         }
@@ -367,7 +367,7 @@ if ($Summary) {
         }
     }
 
-    # For JSON format — show device metadata from the .logcat header
+    # For JSON format - show device metadata from the .logcat header
     if ($logFormat -eq "JSON") {
         $jsonMeta = (Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json).metadata
         if ($jsonMeta.device -and ($jsonMeta.device.PSObject.Properties.Name -contains 'physicalDevice')) {
@@ -384,13 +384,13 @@ if ($Summary) {
         }
     }
 
-    # Startup banner — check continuation lines (LOGCAT/TIMBER) and Timber header lines
+    # Startup banner - check continuation lines (LOGCAT/TIMBER) and Timber header lines
     $bannerEntry = $parsed | Where-Object {
         $_.Continuation.Count -gt 5 -and
         ($_.Continuation | Where-Object { $_ -match 'FAST MEDIA SORTER' })
     } | Select-Object -First 1
 
-    # For Timber format — also look for the === App version === header line in raw lines
+    # For Timber format - also look for the === App version === header line in raw lines
     if (-not $bannerEntry -and $logFormat -eq "TIMBER") {
         $verLine = $rawLines | Where-Object { $_ -match '^={3,}\s*App version:' } | Select-Object -First 1
         if ($verLine -and $verLine -match 'App version:\s*(.+?)\s*={0,}$') {
@@ -575,7 +575,7 @@ else {
     $results = @($results)
 }
 
-# ─── Context mode (index-based — handles duplicate log lines correctly) ───────
+# ─── Context mode (index-based - handles duplicate log lines correctly) ───────
 if ($Context -gt 0 -and ($Pattern -ne "" -or $Tag -ne "")) {
     Write-Out "`n=== RESULTS WITH CONTEXT ($Context lines) ===" "Cyan"
 

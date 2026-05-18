@@ -31,7 +31,7 @@ object LoggingHelper {
     /**
      * Install a global uncaught exception handler that writes crash reports to a dedicated
      * log file and flushes the current session log before yielding to the system handler.
-     * Safe to call multiple times — installs only once. Call early in attachBaseContext.
+     * Safe to call multiple times - installs only once. Call early in attachBaseContext.
      */
     fun installCrashHandler() {
         if (previousCrashHandler != null) return
@@ -329,7 +329,7 @@ object LoggingHelper {
 
         /**
          * Write crash report synchronously without going through Timber.
-         * Called from UncaughtExceptionHandler — must not throw, must not use coroutines.
+         * Called from UncaughtExceptionHandler - must not throw, must not use coroutines.
          * Creates a dedicated crash file AND marks the current session log.
          */
         fun writeCrashSynchronously(thread: Thread, throwable: Throwable) {

@@ -82,7 +82,7 @@ if ($orphans.Count -gt 0) {
 }
 
 # 5. Journal -> filesystem: every record should point at an existing file.
-#    - Archived            : skipped — soft-deleted, file is expected to live under temp/done/.
+#    - Archived            : skipped - soft-deleted, file is expected to live under temp/done/.
 #    - Verified / Implemented : strategic spec already consumed by /spec-tech & /spec-dev; a
 #                            missing .md is recoverable hygiene debt, not a blocker -> WARN.
 #    - any other (in-flight) status : the spec is being worked on right now and MUST exist -> FAIL.
@@ -104,7 +104,7 @@ if ($missingActive.Count -gt 0) {
     Add-Result 'Journal->FS' 'FAIL' ('missing files for in-flight specs: {0}' -f ($missingActive -join ', '))
 }
 if ($missingDone.Count -gt 0) {
-    Add-Result 'Journal->FS' 'WARN' ('Verified/Implemented specs with missing .md (hygiene debt — restore or archive): {0}' -f ($missingDone -join ', '))
+    Add-Result 'Journal->FS' 'WARN' ('Verified/Implemented specs with missing .md (hygiene debt - restore or archive): {0}' -f ($missingDone -join ', '))
 }
 if ($missingActive.Count -eq 0 -and $missingDone.Count -eq 0) {
     Add-Result 'Journal->FS' 'OK' 'every non-archived record points at an existing file'

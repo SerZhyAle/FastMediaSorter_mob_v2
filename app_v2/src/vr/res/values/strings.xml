@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0245 Stage 0: VR settings scaffold strings -->
+    <string name="settings_tab_vr">VR</string>
+    <string name="vr_settings_master_toggle_label">Enable 3D VR</string>
+    <string name="vr_settings_master_toggle_summary">Show VR features in this app</string>
+    <string name="vr_settings_placeholder_summary">More VR settings will appear here as features are added.</string>
+</resources>

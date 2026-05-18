@@ -171,7 +171,7 @@ class SftpOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // S0189: defer file creation — see SmbOperationStrategy.createTextFile.
+            // S0189: defer file creation - see SmbOperationStrategy.createTextFile.
             val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
             val localFile = File(dir, "${resourceId}_${fileName}")
             stagingRegistry.register(
@@ -183,7 +183,7 @@ class SftpOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
-            Timber.e(e, "SftpOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
+            Timber.e(e, "SftpOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
     }
@@ -262,7 +262,7 @@ class SftpOperationStrategy @Inject constructor(
                  Result.failure(Exception("List files failed: ${listResult.exceptionOrNull()?.message}"))
             }
         } catch (e: CancellationException) {
-            // Navigation away from the screen cancels the listing scope — expected, not a failure.
+            // Navigation away from the screen cancels the listing scope - expected, not a failure.
             throw e
         } catch (e: Exception) {
             Timber.e(e, "SftpOperationStrategy: listFiles failed - $path")
@@ -421,7 +421,7 @@ class SftpOperationStrategy @Inject constructor(
             val statResult = sftpClient.stat(connectionInfo, sourceInfo.remotePath)
             val fileSize = statResult.getOrNull()?.size ?: 0L
 
-            // S0231: route writes through LocalDestinationWriter — handles MediaStore IS_PENDING
+            // S0231: route writes through LocalDestinationWriter - handles MediaStore IS_PENDING
             // for public collections (Music/Movies/Pictures/DCIM/Downloads) so EACCES does not
             // happen on Android 10+ scoped storage.
             val category = destinationClassifier.classify(destination)

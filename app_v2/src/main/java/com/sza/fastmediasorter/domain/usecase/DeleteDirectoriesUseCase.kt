@@ -21,7 +21,7 @@ class DeleteDirectoriesUseCase @Inject constructor(
      *
      * @param directories List of [MediaFile] items with [MediaFile.isDirectory] == true.
      * @param progressCallback Optional callback (deletedCount, total, currentName).
-     * @return Result<Int> — total number of entries deleted across all directories.
+     * @return Result<Int> - total number of entries deleted across all directories.
      */
     suspend operator fun invoke(
         directories: List<MediaFile>,

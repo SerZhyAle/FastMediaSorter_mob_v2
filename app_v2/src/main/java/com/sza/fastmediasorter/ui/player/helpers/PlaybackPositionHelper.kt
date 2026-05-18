@@ -6,7 +6,7 @@ import timber.log.Timber
 /**
  * Playback-position auto-save and seek utilities.
  *
- * Extension functions on [VideoPlayerManager] — extracted to a separate file to reduce
+ * Extension functions on [VideoPlayerManager] - extracted to a separate file to reduce
  * per-file CFG complexity for the Kotlin compiler (avoids GC overhead during parallel
  * flavor compilation of the original 1 700-line VideoPlayerManager.kt).
  */
@@ -73,6 +73,6 @@ fun VideoPlayerManager.seekBackward(seconds: Int) {
 // Time formatting
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Format milliseconds as [H:]MM:SS — delegates to [PlaybackPositionRestorer.formatTimeMs]. */
+/** Format milliseconds as [H:]MM:SS - delegates to [PlaybackPositionRestorer.formatTimeMs]. */
 internal fun VideoPlayerManager.formatTime(millis: Long): String =
     PlaybackPositionRestorer.formatTimeMs(millis)

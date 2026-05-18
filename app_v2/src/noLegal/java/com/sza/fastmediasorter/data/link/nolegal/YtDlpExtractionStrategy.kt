@@ -31,7 +31,7 @@ import javax.inject.Singleton
  * Positioned first in [LinkExtractionRegistry.CANONICAL_ORDER] so it is tried before
  * direct/html/dynamic strategies.
  *
- * Thread safety: yt-dlp's YoutubeDL class is not thread-safe — a new instance is created
+ * Thread safety: yt-dlp's YoutubeDL class is not thread-safe - a new instance is created
  * per call on a dedicated single-thread executor (ADR-4 in S0174 strategic spec).
  */
 @Singleton
@@ -46,7 +46,7 @@ class YtDlpExtractionStrategy @Inject constructor(
     override val id: String = "ytdlp"
 
     override suspend fun probe(url: String): ProbeResult = withContext(Dispatchers.IO) {
-        // Skip direct CDN media URLs — extension check is O(1) and avoids Python startup cost.
+        // Skip direct CDN media URLs - extension check is O(1) and avoids Python startup cost.
         val ext = url.toHttpUrlOrNull()?.pathSegments?.lastOrNull()?.substringAfterLast('.', "")
         if (ext.isNullOrBlank().not() && MediaMimeWhitelist.mimeForExtension(ext) != null) {
             return@withContext ProbeResult.NotApplicable
@@ -62,7 +62,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                     runCatching {
                         val py = Python.getInstance()
                         // ytdlp_utils.probe_url() iterates yt-dlp extractors and calls
-                        // ie.suitable(url) — pure URL pattern matching, zero network calls.
+                        // ie.suitable(url) - pure URL pattern matching, zero network calls.
                         // Returns True if a non-generic extractor matches, None otherwise.
                         // This avoids the auth-required failure: extract_info(download=False)
                         // still makes real HTTP calls, which fail for Instagram/TikTok/Facebook
@@ -115,14 +115,14 @@ class YtDlpExtractionStrategy @Inject constructor(
                 runCatching {
                     val py = Python.getInstance()
                     val ytdlp = py.getModule("yt_dlp")
-                    // Must be a native Python dict — yt-dlp calls opts.get(key, default)
+                    // Must be a native Python dict - yt-dlp calls opts.get(key, default)
                     // with 2 args internally. Kotlin Map.get() only accepts 1 arg, causing
                     // PyException: TypeError: MapBuilder.get takes 1 argument (2 given).
                     val opts = py.builtins.callAttr("dict")
                     opts.callAttr("__setitem__", "quiet", true)
                     opts.callAttr("__setitem__", "no_warnings", true)
                     opts.callAttr("__setitem__", "socket_timeout", 8)
-                    // Single-stream format chain — no ffmpeg required for merge.
+                    // Single-stream format chain - no ffmpeg required for merge.
                     // YouTube without ffmpeg: pick best progressive MP4 (typically 720p
                     // format 22, fallback to 360p format 18); higher resolutions are
                     // DASH/HLS-only and would require merge. The Kotlin-side format
@@ -143,7 +143,7 @@ class YtDlpExtractionStrategy @Inject constructor(
 
                     val infoType = info.callAttr("get", "_type")?.toString()
                     if (infoType == "playlist" || infoType == "multi_video") {
-                        // Carousel / playlist — return batch of URLs
+                        // Carousel / playlist - return batch of URLs
                         val entries = info.callAttr("get", "entries")
                         val items = mutableListOf<SiteBatchItem>()
                         if (entries != null) {
@@ -161,15 +161,15 @@ class YtDlpExtractionStrategy @Inject constructor(
                         }
                         val label = info.callAttr("get", "title")?.toString()
                         // Empty batch means yt-dlp couldn't access media (image-only post,
-                        // restricted carousel, etc.) — fall through to html/dynamic strategy.
+                        // restricted carousel, etc.) - fall through to html/dynamic strategy.
                         if (items.isEmpty()) {
                             return@runCatching OpenResult.NotFound("ytdlp_empty_batch")
                         }
                         return@runCatching OpenResult.Batch(items, label)
                     }
 
-                    // Single video — split formats into progressive (direct OkHttp download
-                    // is possible) and manifest (HLS/DASH — must go via yt-dlp Python).
+                    // Single video - split formats into progressive (direct OkHttp download
+                    // is possible) and manifest (HLS/DASH - must go via yt-dlp Python).
                     // yt-dlp returns formats in ASCENDING quality order so we must iterate
                     // all and pick best per-bucket.
                     val formats = info.callAttr("get", "formats")
@@ -214,7 +214,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                                 fmt.callAttr("get", "acodec")?.toString()
                             }.getOrNull() ?: ""
                             val quality = fmtHeight * 10_000L + fmtTbr
-                            // Manifest protocols cannot be served by OkHttp as a single MP4 —
+                            // Manifest protocols cannot be served by OkHttp as a single MP4 -
                             // routes via yt-dlp Python downloader instead.
                             val isManifest = fmtProtocol == "m3u8" ||
                                 fmtProtocol == "m3u8_native" ||
@@ -252,7 +252,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                             }
                         }
                     } else {
-                        // No formats list — try top-level url (single direct media)
+                        // No formats list - try top-level url (single direct media)
                         progressiveUrl = info.callAttr("get", "url")?.toString()
                     }
                     Timber.d(
@@ -292,19 +292,19 @@ class YtDlpExtractionStrategy @Inject constructor(
                         }
                         // Always override Referer; add UA fallback if source didn't provide one.
                         extraHeaders["Referer"] = url
-                        // S0182: always override UA with the session-pinned one — the
+                        // S0182: always override UA with the session-pinned one - the
                         // headers yt-dlp put on the format come from yt-dlp's own UA
                         // which may not match the cookies' origin UA.
                         extraHeaders["User-Agent"] = sessionUa
                         DelegateParams(progressiveUrl, safeTitle, progressiveExt, extraHeaders)
                     } else if (manifestSeen) {
                         Timber.d(
-                            "YtDlpExtractionStrategy: only manifest formats — Python download url=%s",
+                            "YtDlpExtractionStrategy: only manifest formats - Python download url=%s",
                             url
                         )
                         PythonOnly(safeTitle, "mp4")
                     } else if (firstUrl != null) {
-                        // Legacy: no progressive, no manifest with video — try first URL
+                        // Legacy: no progressive, no manifest with video - try first URL
                         // (audio-only formats land here). direct.open will handle MIME check.
                         val extraHeaders = mutableMapOf<String, String>(
                             "Referer" to url,
@@ -336,7 +336,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                     if (msg.contains("There is no video in this post", ignoreCase = true) ||
                         msg.contains("Unsupported URL:", ignoreCase = true) ||
                         msg.contains("Instagram sent an empty media response", ignoreCase = true) ||
-                        // S0187: YouTube PoToken/JS-challenge failure — format selection raises
+                        // S0187: YouTube PoToken/JS-challenge failure - format selection raises
                         // DownloadError instead of returning an empty list. Return NotFound so
                         // the extraction cascade continues to NewPipeSiteExtractionStrategy.
                         msg.contains("Requested format is not available", ignoreCase = true)) {
@@ -396,7 +396,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                     }
                 }
                 is PythonOnly -> {
-                    // No progressive URL — use yt-dlp Python download (HLS/DASH native).
+                    // No progressive URL - use yt-dlp Python download (HLS/DASH native).
                     downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
                 }
                 is OpenResult -> result
@@ -414,7 +414,7 @@ class YtDlpExtractionStrategy @Inject constructor(
      * - [direct] returns 403 (TikTok session-bound CDN URL)
      * - [direct] returns MimeNotAllowed (e.g., HLS manifest content-type)
      * - Format selection found only HLS/DASH manifests (no progressive URL)
-     * - CDN is *.googlevideo.com (throttled by range-request detection — S0190 Phase D)
+     * - CDN is *.googlevideo.com (throttled by range-request detection - S0190 Phase D)
      *
      * yt-dlp's Python HTTP client downloads the file directly (re-using the same session
      * that generated the CDN URL, handling HLS/DASH natively without ffmpeg). The temp file
@@ -509,7 +509,7 @@ class YtDlpExtractionStrategy @Inject constructor(
         fun invoke(downloaded: Long, total: Long)
     }
 
-    /** Internal carrier for CDN delegation params — direct.open will handle the download. */
+    /** Internal carrier for CDN delegation params - direct.open will handle the download. */
     private data class DelegateParams(
         val cdnUrl: String,
         val safeTitle: String,
@@ -517,7 +517,7 @@ class YtDlpExtractionStrategy @Inject constructor(
         val extraHeaders: Map<String, String>,
     )
 
-    /** Marker — extraction found only manifest formats; skip direct.open and use Python. */
+    /** Marker - extraction found only manifest formats; skip direct.open and use Python. */
     private data class PythonOnly(
         val safeTitle: String,
         val ext: String,
@@ -529,7 +529,7 @@ class YtDlpExtractionStrategy @Inject constructor(
 
         /**
          * Single-thread executor for yt-dlp calls.
-         * YoutubeDL instances are not thread-safe — a new instance is created per call,
+         * YoutubeDL instances are not thread-safe - a new instance is created per call,
          * but Chaquopy's GIL wrapper serialises Python execution regardless.
          * Using a dedicated thread avoids interference with IO thread pool task scheduling.
          */

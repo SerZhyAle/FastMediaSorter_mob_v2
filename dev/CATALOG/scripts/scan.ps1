@@ -26,6 +26,7 @@ if (-not $OutFile) {
 $srcRoots = @(
     (Join-Path $Root "$Module\src\main\java"),
     (Join-Path $Root "$Module\src\vr\java"),
+    (Join-Path $Root "$Module\src\vrStub\java"),
     (Join-Path $Root "$Module\src\noLegal\java"),
     (Join-Path $Root "$Module\src\streamingEnabled\java"),
     (Join-Path $Root "$Module\src\cloudEnabled\java"),

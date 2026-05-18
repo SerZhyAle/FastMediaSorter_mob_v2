@@ -15,9 +15,9 @@ import timber.log.Timber
 
 /**
  * Owns the stereo-mode resolution pipeline for the player:
- *   - `stereoMode` — effective mode driving rendering; combines auto-detection, per-file
+ *   - `stereoMode` - effective mode driving rendering; combines auto-detection, per-file
  *     override, and the global VR forced-format settings.
- *   - `detectedStereoMode` — last value reported by the auto-detector; persisted so the
+ *   - `detectedStereoMode` - last value reported by the auto-detector; persisted so the
  *     dialog can return to AUTO without re-running detection.
  *
  * The coordinator is created inside PlayerViewModel's constructor and uses `viewModelScope`
@@ -31,7 +31,7 @@ class PlayerStereoModeCoordinator(
 ) {
 
     /**
-     * Requested stereo mode — represents user/detector intent before pipeline application.
+     * Requested stereo mode - represents user/detector intent before pipeline application.
      * May carry [StereoMode.AUTO] (let detector decide) or [StereoMode.UNKNOWN] (sentinel,
      * detector ran but produced no conclusive result). Not safe to feed into renderer/decoder.
      */
@@ -39,7 +39,7 @@ class PlayerStereoModeCoordinator(
     val requestedStereoMode: StateFlow<StereoMode> = _requestedStereoMode.asStateFlow()
 
     /**
-     * Effective stereo mode — the value actually applied to renderer/decoder pipeline.
+     * Effective stereo mode - the value actually applied to renderer/decoder pipeline.
      * Initialised to [StereoMode.MONO] and never moves to [StereoMode.AUTO] or
      * [StereoMode.UNKNOWN]; if a transition would resolve to either, the prior known
      * effective is kept until detection produces a concrete value.
@@ -177,7 +177,7 @@ class PlayerStereoModeCoordinator(
 
     /**
      * Apply the latest settings snapshot. Returns true if any value relevant to
-     * the effective mode changed — caller should then re-resolve the mode if the user
+     * the effective mode changed - caller should then re-resolve the mode if the user
      * hasn't picked a manual override.
      */
     fun applySettings(

@@ -27,7 +27,7 @@ for both interaction profiles so it behaves identically on every headset.
 | **Trigger** | (Reserved for future ray-pointer + click on overlay.) |
 | **Grip** | Zoom. Hold and move hand forward/back to resize the image. |
 | **Thumbstick ↑ / ↓** | Volume up / down. |
-| **Thumbstick ← / →** | Previous / next file. Edge-trigger only — no auto-repeat. |
+| **Thumbstick ← / →** | Previous / next file. Edge-trigger only - no auto-repeat. |
 | **Thumbstick click** | Re-center the scene in front of your face. |
 
 ### Left controller
@@ -39,7 +39,7 @@ for both interaction profiles so it behaves identically on every headset.
 | **Y (long press ≥ 0.8s)** | Toggle the controls cheatsheet. |
 | **≡ (menu)** | Open the playback control dialog (stereo format, audio track, subtitles, speed, brightness). |
 | **Trigger** | (Reserved for future ray-pointer.) |
-| **Grip** | Zoom — same behavior as the right grip. |
+| **Grip** | Zoom - same behavior as the right grip. |
 | **Thumbstick ↑ / ↓** | Volume up / down (duplicate of the right stick). |
 | **Thumbstick ← / →** | Seek −10s / +10s. Edge-trigger, no auto-repeat. |
 | **Thumbstick click** | Toggle immersive ↔ flat screen inside the VR task. |
@@ -105,7 +105,7 @@ browser-YouTube letters, and standard BT media keys.
 
 - **Media Play/Pause** → Pause / Play.
 - **Media Next / Previous** → Next / previous file.
-- **Volume ± / Mute** are **not** intercepted — Android's system keys handle them.
+- **Volume ± / Mute** are **not** intercepted - Android's system keys handle them.
 
 ## 3. Bluetooth mouse
 
@@ -124,7 +124,7 @@ the Android cursor; a 3D ray overlay is future work).
 
 ## 4. File operations workflow
 
-1. Open the panel with **Y** (left controller), **F7**, or **Ctrl+Y** — or jump
+1. Open the panel with **Y** (left controller), **F7**, or **Ctrl+Y** - or jump
    straight to an action via **F2 / F3 / F5 / F6 / F8**.
 2. Playback auto-pauses while the panel is visible and resumes when it closes
    (only if the pause was applied by the panel).
@@ -151,7 +151,7 @@ Auto-dismissing toasts overlaid on the scene provide visual feedback:
 
 - **Controllers silent in immersive.** Confirm you're on the `vr` flavor; other
   flavors never load the OpenXR input system. On Quest Pro with Touch Pro
-  controllers, the same bindings are active — they share the logical action set.
+  controllers, the same bindings are active - they share the logical action set.
 - **Keyboard works in the 2D panel but not inside VR.** Force-close the
   activity and reopen; some BT keyboards need to be paired after the immersive
   session is focused.

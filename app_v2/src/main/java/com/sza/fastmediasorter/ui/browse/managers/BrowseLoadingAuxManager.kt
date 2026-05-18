@@ -37,7 +37,7 @@ import timber.log.Timber
  * Holds the mutable [playerWarmupJob] and [audioMetadataEnrichmentJob] so that
  * [BrowseViewModel.cancelScan] / [BrowseViewModel.onCleared] can cancel them via [cancelAll].
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseLoadingAuxManager(
     private val context: Context,
@@ -65,7 +65,7 @@ class BrowseLoadingAuxManager(
         context.getString(resolveFriendlyBrowseErrorRes(throwable))
 
     private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
-        // WifiRequiredException fires before any socket attempt — clearly a Wi-Fi gate rejection,
+        // WifiRequiredException fires before any socket attempt - clearly a Wi-Fi gate rejection,
         // not a generic outage. Must be checked by type before the message-based heuristics below.
         if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
 
@@ -147,7 +147,7 @@ class BrowseLoadingAuxManager(
             (e.message?.contains("Google Drive authentication required", ignoreCase = true) == true ||
                 e.message?.contains("Not authenticated", ignoreCase = true) == true)
         ) {
-            Timber.d("BrowseLoadingAuxManager: Cloud auth error — sending ShowCloudAuthenticationRequired")
+            Timber.d("BrowseLoadingAuxManager: Cloud auth error - sending ShowCloudAuthenticationRequired")
             // Clear lastBrowseDate so this resource is not auto-reopened on next startup.
             // Prevents orphaned/unauthenticated cloud resources from showing the error dialog
             // every time the app starts (even if the user never added this resource themselves).

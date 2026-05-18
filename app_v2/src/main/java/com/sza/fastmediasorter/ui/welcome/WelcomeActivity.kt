@@ -54,7 +54,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
     override fun setupViews() {
         // On the permission screen (fromWelcome mode) Back completes the flow instead of closing
-        // the app — WelcomeActivity is the root task at this point so a naked finish() would exit.
+        // the app - WelcomeActivity is the root task at this point so a naked finish() would exit.
         // On the slide pages, Back minimises instead of finishing for the same reason.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -95,7 +95,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             applyWindowInsets(insets)
             insets
         }
-        // setupViews() runs inside post{} — the first insets dispatch has already happened.
+        // setupViews() runs inside post{} - the first insets dispatch has already happened.
         // Use getRootWindowInsets() to apply them immediately; fall back to requestApplyInsets
         // for the rare case where insets aren't cached yet.
         val current = androidx.core.view.ViewCompat.getRootWindowInsets(binding.root)
@@ -111,7 +111,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
         val cutout = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout())
 
-        // In landscape the status bar / nav bar / cutout may sit on a side edge — pad both sides.
+        // In landscape the status bar / nav bar / cutout may sit on a side edge - pad both sides.
         val sideInset = maxOf(
             statusBar.left, statusBar.right,
             navBar.left, navBar.right,
@@ -174,7 +174,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 descriptionRes = R.string.welcome_description_4,
                 detailDescriptionRes = R.string.welcome_description_4_details
             ),
-            // Page 5: Powerful Extras — adaptive grid of additional capabilities (each tile BuildConfig-gated)
+            // Page 5: Powerful Extras - adaptive grid of additional capabilities (each tile BuildConfig-gated)
             WelcomePage(
                 iconRes = R.drawable.welcome_hero_features,
                 titleRes = R.string.welcome_title_5,
@@ -186,7 +186,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
         // Page 6 (first install only): Default Player onboarding
         // markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user reaches
-        // this page — so skipping welcome doesn't suppress future display.
+        // this page - so skipping welcome doesn't suppress future display.
         val shouldShowDefaultPlayerPage = BuildConfig.SUPPORTS_DEFAULT_PLAYER &&
             (!viewModel.isDefaultPlayerOnboardingShown() ||
                 !DefaultPlayerHelper.isAlreadyDefaultPlayer(this))
@@ -200,7 +200,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                     descriptionRes = 0,
                     isDefaultPlayerPage = true,
                     onSetDefaultForTypeClick = { mimeType ->
-                        // Enable aliases synchronously first — the system must see the alias
+                        // Enable aliases synchronously first - the system must see the alias
                         // as enabled before it will consider the app eligible for ROLE_MUSIC.
                         DefaultPlayerManager.applyPrimaryPlayerState(this, true)
                         viewModel.enablePrimaryMediaPlayer() // persist to DataStore
@@ -305,7 +305,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
     private fun setupButtons() {
         binding.btnSkip.setOnClickListener {
-            // Phase 4: "not suppressed on first launch" — if the default player card exists
+            // Phase 4: "not suppressed on first launch" - if the default player card exists
             // and the user hasn't seen it yet, redirect to it instead of finishing.
             // onPageSelected() will mark it as shown; subsequent Skip presses call finishWelcome().
             if (defaultPlayerPageIndex != -1 && currentPage < defaultPlayerPageIndex) {
@@ -370,7 +370,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     private fun onWelcomeLanguageSelected(code: String) {
         LocaleHelper.saveLanguage(this, code)
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
-            // API < 33: LocaleManager is unavailable — recreate Activity manually.
+            // API < 33: LocaleManager is unavailable - recreate Activity manually.
             // overridePendingTransition(0, 0) called after recreate() suppresses the
             // default enter animation of the new Activity instance.
             // S0218: API < 33 < 34, so overrideActivityTransition (API 34+) is unreachable
@@ -514,7 +514,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             }
             TvNavAction.Select -> {
                 // S0230 device-test 2026-05-17: if a focusable interactive view (button,
-                // toggle) already owns focus — typing ENTER / DPAD_CENTER must activate
+                // toggle) already owns focus - typing ENTER / DPAD_CENTER must activate
                 // THAT view via Android's default focus->click path. Only when no
                 // interactive view is focused (or only a scroll-host) do we synthesise
                 // a click on the visible primary CTA, so D-pad users can advance the
@@ -534,10 +534,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 onBackPressedDispatcher.onBackPressed()
                 true
             }
-            // Up/Down have no meaning on the slider — let Android handle focus traversal.
+            // Up/Down have no meaning on the slider - let Android handle focus traversal.
             TvNavAction.Up, TvNavAction.Down -> false
             // Media transport and hardware buttons (car wheel, headset, volume, search, menu)
-            // are not meaningful on the welcome slider — let the system handle them natively
+            // are not meaningful on the welcome slider - let the system handle them natively
             // (e.g. hardware volume keys must reach AudioManager).
             is TvNavAction.Media, is TvNavAction.Hardware -> false
         }

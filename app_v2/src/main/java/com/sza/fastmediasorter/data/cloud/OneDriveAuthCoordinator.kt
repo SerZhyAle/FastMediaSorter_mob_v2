@@ -208,7 +208,7 @@ class OneDriveAuthCoordinator(
                 if (exception is MsalDeclinedScopeException) {
                     val grantedScopes = exception.grantedScopes
                     if (grantedScopes.contains("Files.ReadWrite.All")) {
-                        // Interactive login partially succeeded — try silent auth with whatever was granted
+                        // Interactive login partially succeeded - try silent auth with whatever was granted
                         Timber.w("Interactive declined scopes, proceeding with granted: $grantedScopes")
                         applicationScope.launch(Dispatchers.IO) {
                             val currentAccount = app.currentAccount.currentAccount

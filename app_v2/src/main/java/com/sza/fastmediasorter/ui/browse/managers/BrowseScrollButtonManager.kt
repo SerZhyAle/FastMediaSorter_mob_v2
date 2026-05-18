@@ -12,7 +12,7 @@ import timber.log.Timber
 /**
  * Manages scroll button (FAB) visibility and safe RecyclerView notification for BrowseActivity.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseScrollButtonManager(
     private val activity: Activity,

@@ -50,7 +50,7 @@ object DropboxClientUtils {
         }
     }
 
-    /** Emit a structured log line with TLS-relevant device/proxy state — used when cert validation fails. */
+    /** Emit a structured log line with TLS-relevant device/proxy state - used when cert validation fails. */
     fun logTlsDiagnostics(error: Throwable, stage: String) {
         try {
             val nowIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US).apply {

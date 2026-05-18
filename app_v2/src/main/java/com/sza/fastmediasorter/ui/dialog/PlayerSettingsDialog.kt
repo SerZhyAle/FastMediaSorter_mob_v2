@@ -36,7 +36,7 @@ class PlayerSettingsDialog(
         val showSubtitles: Boolean = false,
         val subtitleLanguage: LanguageOption = LanguageOption.DEFAULT,
         val audioLanguage: LanguageOption = LanguageOption.DEFAULT,
-        // 3D SBS stereo preference — AUTO means let StereoDetector decide from metadata/AR
+        // 3D SBS stereo preference - AUTO means let StereoDetector decide from metadata/AR
         val stereoMode: StereoMode = StereoMode.AUTO
     )
 
@@ -104,7 +104,7 @@ class PlayerSettingsDialog(
     }
 
     private fun setupStereoSection() {
-        // OU is a future option — keep it in the list but disabled so users know it's coming
+        // OU is a future option - keep it in the list but disabled so users know it's coming
         binding.radio3DOU?.isEnabled = false
     }
 
@@ -142,7 +142,7 @@ class PlayerSettingsDialog(
         // Set audio language
         binding.spinnerAudioLanguage.setSelection(currentSettings.audioLanguage.ordinal)
 
-        // Set 3D stereo mode radio — SBS_HALF maps to SBS_FULL in dialog (both shown as "SBS")
+        // Set 3D stereo mode radio - SBS_HALF maps to SBS_FULL in dialog (both shown as "SBS")
         val radioId = when (currentSettings.stereoMode) {
             StereoMode.SBS_FULL, StereoMode.SBS_HALF -> R.id.radio3DSbs
             StereoMode.OU -> R.id.radio3DOU

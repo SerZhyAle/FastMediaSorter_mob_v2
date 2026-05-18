@@ -20,7 +20,7 @@ class CloudAuthenticationHelper @Inject constructor(
     private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
     private val oneDriveClient: OneDriveRestClient,
-    /** Unified auth state machine — updated on every auth/restore outcome. */
+    /** Unified auth state machine - updated on every auth/restore outcome. */
     private val authStateMachine: CloudAuthStateMachine
 ) {
 

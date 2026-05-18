@@ -17,8 +17,8 @@ This page provides a high-level roadmap pointer for FastMediaSorter v2.
 
 ## Tracking sources
 
-- [dev/CHANGELOG.md](../dev/CHANGELOG.md) — implemented changes history
-- [docs/TEST_SCENARIOS.md](TEST_SCENARIOS.md) — verification scope
-- [docs/WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) — warning analysis summary
+- [dev/CHANGELOG.md](../dev/CHANGELOG.md) - implemented changes history
+- [docs/TEST_SCENARIOS.md](TEST_SCENARIOS.md) - verification scope
+- [docs/WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) - warning analysis summary
 
 Detailed implementation planning is maintained in internal engineering workflow documents.

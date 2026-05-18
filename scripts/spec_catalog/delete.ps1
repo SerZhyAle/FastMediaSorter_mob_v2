@@ -18,7 +18,7 @@ for ($i = 0; $i -lt $records.Count; $i++) {
 if ($idx -lt 0) { throw "Record '$Id' not found." }
 
 if (-not $Confirm) {
-    Write-Output "Would soft-delete $Id ($($records[$idx].name) — current status: $($records[$idx].status)). Re-run with -Confirm to apply."
+    Write-Output "Would soft-delete $Id ($($records[$idx].name) - current status: $($records[$idx].status)). Re-run with -Confirm to apply."
     exit 1
 }
 

@@ -7,11 +7,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.error.ErrorSeverity
+import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.util.AppErrorNotifier
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
 
 /**
  * Handles player error display and ViewModel event dispatching.
@@ -35,8 +37,25 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 showError(event.message)
             is PlayerViewModel.PlayerEvent.ShowMessage ->
                 Toast.makeText(activity, event.message, Toast.LENGTH_SHORT).show()
-            is PlayerViewModel.PlayerEvent.FileModified ->
-                activity.lifecycleManager.trackModifiedFile(event.filePath)
+            is PlayerViewModel.PlayerEvent.FileModified -> {
+                // S0242 Phase 02: FileModified is fired only after a successful delete
+                // from PlayerDeleteUndoCoordinator - journal it as Mutation.Delete so the
+                // Browse Reconciler picks it up on its next onResume.
+                val resourceId = activity.lifecycleManager.currentResourceId()
+                val resourceType = activity.lifecycleManager.currentResourceType()
+                if (resourceId != null && resourceType != null) {
+                    activity.lifecycleManager.recordMutation(
+                        Mutation.Delete(
+                            resourceId = resourceId,
+                            canonicalPath = activity.lifecycleManager
+                                .pathNormalizer()
+                                .canonical(event.filePath, resourceType),
+                            opId = UUID.randomUUID().toString(),
+                            timestampMs = System.currentTimeMillis(),
+                        )
+                    )
+                }
+            }
             is PlayerViewModel.PlayerEvent.ShowUndoSnackbar ->
                 activity.undoOperationManager.showUndoSnackbar(event.operation)
             is PlayerViewModel.PlayerEvent.CloudAuthRequired ->
@@ -130,7 +149,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         } catch (e: WindowManager.BadTokenException) {
-            Timber.e(e, "PlayerEventHandler: showFileNotFound failed — bad window token")
+            Timber.e(e, "PlayerEventHandler: showFileNotFound failed - bad window token")
         }
     }
 
@@ -190,8 +209,17 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
 
     /**
      * Show VR install CTA dialog when 3D content is detected in standard flavor.
-     * "Open in store" → Play Store listing for the VR edition.
-     * "Play anyway" → dismiss and continue standard playback.
+     *
+     * S0232 - Play Store launch is intentionally disabled. The previous target package
+     * `com.sza.fastmediasorter.vr` no longer exists (after S0232 the `vr`/`vrUnlicensed`
+     * flavors share `applicationId = com.sza.fastmediasorter` with standard), and the VR
+     * edition is not published yet anyway. Quest VR builds, when published, will land on
+     * Meta Horizon Store rather than Play Store - Play Store is not the correct target.
+     *
+     * TODO(S0232 §3 "vr re-suffix on Store publication"): wire the positive button to the
+     * actual store listing once the VR edition is published. At that point the action
+     * must dispatch to Meta Horizon Store (Quest) or Play Store (Android XR) based on
+     * the runtime device profile, not a hard-coded Play Store URL.
      */
     private fun showVrInstallCtaDialog() {
         if (activity.isFinishing || activity.isDestroyed) return
@@ -200,27 +228,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.vr_install_cta_title)
                 .setMessage(R.string.vr_install_cta_message)
-                .setPositiveButton(R.string.vr_install_cta_action) { dialog, _ ->
-                    dialog.dismiss()
-                    // Open Play Store listing for VR edition
-                    val vrPackage = "com.sza.fastmediasorter.vr"
-                    try {
-                        activity.startActivity(
-                            android.content.Intent(
-                                android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("market://details?id=$vrPackage")
-                            )
-                        )
-                    } catch (_: android.content.ActivityNotFoundException) {
-                        // Fallback to web Play Store URL
-                        activity.startActivity(
-                            android.content.Intent(
-                                android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("https://play.google.com/store/apps/details?id=$vrPackage")
-                            )
-                        )
-                    }
-                }
+                // S0232: positive button removed - store launch is dead until VR edition ships.
                 .setNegativeButton(R.string.vr_install_cta_dismiss) { dialog, _ ->
                     dialog.dismiss()
                 }

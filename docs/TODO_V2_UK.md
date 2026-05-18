@@ -17,8 +17,8 @@ permalink: /docs/TODO_V2_UK.html
 
 ## Джерела відстеження
 
-- [dev/CHANGELOG.md](../dev/CHANGELOG.md) — історія реалізованих змін
-- [TEST_SCENARIOS.md](TEST_SCENARIOS.md) — покриття перевірок
-- [WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) — зведення щодо попереджень
+- [dev/CHANGELOG.md](../dev/CHANGELOG.md) - історія реалізованих змін
+- [TEST_SCENARIOS.md](TEST_SCENARIOS.md) - покриття перевірок
+- [WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) - зведення щодо попереджень
 
 Детальне планування ведеться у внутрішніх інженерних workflow-документах.

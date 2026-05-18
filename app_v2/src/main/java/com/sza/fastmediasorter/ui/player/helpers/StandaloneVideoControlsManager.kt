@@ -32,6 +32,6 @@ class StandaloneVideoControlsManager(
     }
 
     fun updateTrackButtonsVisibility(hasMultipleAudio: Boolean, hasSubtitles: Boolean) {
-        Timber.d("StandaloneVideoControlsManager: track buttons — audio=$hasMultipleAudio, subtitles=$hasSubtitles")
+        Timber.d("StandaloneVideoControlsManager: track buttons - audio=$hasMultipleAudio, subtitles=$hasSubtitles")
     }
 }

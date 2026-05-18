@@ -7,7 +7,7 @@ import java.io.File
  * Zero-dependency parser for the PDF /Info dictionary.
  *
  * Covers the common case where /Info points to a standalone indirect object. Compressed
- * object streams (PDF 1.5+ ObjStm) are not decoded — implementing FlateDecode purely for
+ * object streams (PDF 1.5+ ObjStm) are not decoded - implementing FlateDecode purely for
  * metadata would cost far more than it returns. In practice, the vast majority of PDF
  * producers emit /Info as a standalone object because it is written before cross-ref build.
  */
@@ -64,7 +64,7 @@ internal object PdfInfoParser {
                 if (read <= 0) break
                 total += read
                 if (total > MAX_BYTES_FOR_DEEP_PARSE) {
-                    // Return whatever version the already-read prefix gave us — we bail on deep parse.
+                    // Return whatever version the already-read prefix gave us - we bail on deep parse.
                     val prefix = buffer.toByteArray()
                     return PdfInfo(version = parseHeader(prefix))
                 }

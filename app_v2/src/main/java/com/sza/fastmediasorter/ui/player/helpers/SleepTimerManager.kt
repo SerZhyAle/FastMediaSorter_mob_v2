@@ -212,7 +212,7 @@ class SleepTimerManager(
         /** Duration of one full vinyl rotation (ms) */
         private const val VINYL_ROTATION_DURATION_MS = 4000L
 
-        /** Sleep timer tick interval (ms) — update badge every minute */
+        /** Sleep timer tick interval (ms) - update badge every minute */
         private const val TIMER_TICK_INTERVAL_MS = 60_000L
 
         /** Fade out duration before pause (ms) */

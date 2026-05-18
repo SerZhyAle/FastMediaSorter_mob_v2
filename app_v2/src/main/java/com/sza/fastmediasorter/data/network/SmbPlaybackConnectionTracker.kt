@@ -9,13 +9,13 @@ import javax.inject.Singleton
 /**
  * Tracks PLAYER connection lifecycle state and watchdog timestamps across
  * SmbDataSource instances. ExoPlayer creates a new DataSource per retry, so
- * per-instance fields cannot carry state between attempts — this singleton does.
+ * per-instance fields cannot carry state between attempts - this singleton does.
  *
  * Lifecycle:
- *   FRESH       — connection just created, no successful file open yet
- *   VALIDATED   — openFile() succeeded at least once on this connection
- *   SUSPECT     — transport error or watchdog fired; connection will be invalidated
- *   INVALIDATED — invalidateExoPlayerConnection() called; pool entry removed
+ *   FRESH       - connection just created, no successful file open yet
+ *   VALIDATED   - openFile() succeeded at least once on this connection
+ *   SUSPECT     - transport error or watchdog fired; connection will be invalidated
+ *   INVALIDATED - invalidateExoPlayerConnection() called; pool entry removed
  *
  * S0148: the watchdog "fail-fast" lockout is attempt-scoped, not server-scoped.
  * A watchdog fired while opening/reading a file blocks only retries of *that same
@@ -33,7 +33,7 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
     private val states = ConcurrentHashMap<ConnectionKey, PlaybackConnectionState>()
     private val watchdogs = ConcurrentHashMap<ConnectionKey, WatchdogRecord>()
 
-    /** Most recent watchdog hit for a server. [uri] — the file being opened/read when it fired. */
+    /** Most recent watchdog hit for a server. [uri] - the file being opened/read when it fired. */
     private data class WatchdogRecord(val lastAt: Long, val lastUri: String, val count: Int)
 
     companion object {
@@ -44,7 +44,7 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
         private const val WATCHDOG_WINDOW_MS = 15_000L
 
         // Within the window, this many watchdog hits for *different* files on the same
-        // server escalates the lockout to server-wide — the server itself is stalled,
+        // server escalates the lockout to server-wide - the server itself is stalled,
         // so further per-file honest attempts would just hang one after another.
         private const val SERVER_ESCALATION_THRESHOLD = 2
     }
@@ -62,7 +62,7 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
         states.remove(key)
     }
 
-    /** Current state name for log context — avoids exposing enum across package boundary. */
+    /** Current state name for log context - avoids exposing enum across package boundary. */
     fun getStateName(key: ConnectionKey): String = states[key]?.name ?: "absent"
 
     /** Record a watchdog hit. [uri] identifies the file that stalled (media-item URI). */
@@ -84,8 +84,8 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
 
     /**
      * True if the caller must fail-fast instead of attempting [uri] on [key].
-     * Fires for: a retry of the same stalled file within the window, OR — once the
-     * server-escalation threshold is reached — any file on that server within the window.
+     * Fires for: a retry of the same stalled file within the window, OR - once the
+     * server-escalation threshold is reached - any file on that server within the window.
      */
     fun isRecentWatchdog(key: ConnectionKey, uri: String): Boolean {
         val rec = watchdogs[key] ?: return false
@@ -108,7 +108,7 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
         watchdogs.clear()
     }
 
-    /** Called on network reset or manual pool clear — allows fresh attempts after recovery. */
+    /** Called on network reset or manual pool clear - allows fresh attempts after recovery. */
     fun clearAll() {
         states.clear()
         watchdogs.clear()

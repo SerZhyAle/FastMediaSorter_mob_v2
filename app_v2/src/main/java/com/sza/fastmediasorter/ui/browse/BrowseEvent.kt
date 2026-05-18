@@ -22,7 +22,7 @@ sealed class BrowseEvent {
         val totalBytes: Long,
         val matchedFiles: List<MediaFile>
     ) : BrowseEvent()
-    /** Archive operation progress — emitted during ZIP creation. */
+    /** Archive operation progress - emitted during ZIP creation. */
     data class ArchiveProgress(val current: Int, val total: Int, val fileName: String) : BrowseEvent()
     /** Archive completed successfully. */
     data class ArchiveSuccess(val archivePath: String, val archivedCount: Int) : BrowseEvent()

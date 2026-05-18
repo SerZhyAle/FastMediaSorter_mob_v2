@@ -44,7 +44,6 @@ class FavoritesRemoteViewsFactory(private val context: Context) : RemoteViewsSer
 
     override fun onDataSetChanged() {
         loadFavorites()
-        Timber.d("S0134: FavoritesWidgetService onDataSetChanged size=${favorites.size}")
     }
 
     private fun loadFavorites() {

@@ -59,7 +59,7 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
         return ActivityGoogleDriveFolderPickerBinding.inflate(layoutInflater)
     }
 
-    // S0230 Phase 02 — TV initial focus on the folder list.
+    // S0230 Phase 02 - TV initial focus on the folder list.
     override fun getInitialFocusView(): android.view.View = binding.rvFolders
 
     override fun setupViews() {
@@ -120,7 +120,7 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
             (view as? android.view.ViewGroup)?.clipToPadding = false
             insets
         }
-        // setupViews() runs inside post{} — initial insets dispatch was already missed.
+        // setupViews() runs inside post{} - initial insets dispatch was already missed.
         androidx.core.view.ViewCompat.requestApplyInsets(binding.rvFolders)
     }
 

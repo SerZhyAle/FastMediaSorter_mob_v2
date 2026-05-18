@@ -56,7 +56,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
     sealed class SpeedTestStatus {
         data class Progress(val messageResId: Int) : SpeedTestStatus()
         data class Complete(val result: SpeedTestResult) : SpeedTestStatus()
-        // No usable measurement returned (e.g. empty/truncated server response) — not a real failure
+        // No usable measurement returned (e.g. empty/truncated server response) - not a real failure
         data class MeasurementUnavailable(val reason: String) : SpeedTestStatus()
         data class Error(val message: String) : SpeedTestStatus()
     }
@@ -121,11 +121,11 @@ class NetworkSpeedTestUseCase @Inject constructor(
             
         } catch (e: Exception) {
             if (isEmptyMeasurementError(e)) {
-                // Benign: server returned no parseable measurement — not a real failure
-                Timber.d("Speed test: measurement unavailable for ${resource.name} — ${e.message}")
+                // Benign: server returned no parseable measurement - not a real failure
+                Timber.d("Speed test: measurement unavailable for ${resource.name} - ${e.message}")
                 emit(SpeedTestStatus.MeasurementUnavailable(e.message ?: "no data"))
             } else {
-                // Unexpected error — one short WARNING, no stack-trace, no ERROR channel noise
+                // Unexpected error - one short WARNING, no stack-trace, no ERROR channel noise
                 Timber.w("Speed test failed for ${resource.name}: ${e.message}")
                 emit(SpeedTestStatus.Error(e.message ?: "Unknown error"))
             }

@@ -77,7 +77,7 @@ class PdfLinkAndSearchManager(
             page.close()
 
             if (links.isEmpty()) {
-                Timber.d("PDF: page ${pageIndex + 1} — no links")
+                Timber.d("PDF: page ${pageIndex + 1} - no links")
                 emptyList()
             } else {
                 val scaleX = bitmapWidth.toFloat() / pageWidthPt
@@ -94,7 +94,7 @@ class PdfLinkAndSearchManager(
                         )
                     }
                 }.also { extracted ->
-                    Timber.d("PDF: page ${pageIndex + 1} — ${extracted.size} link(s) extracted natively")
+                    Timber.d("PDF: page ${pageIndex + 1} - ${extracted.size} link(s) extracted natively")
                 }
             }
         } catch (e: Exception) {

@@ -175,19 +175,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
 
-        // Legacy shared auto-detect toggle removed during the VR rewrite.
-        private val KEY_VR_AUTO_DETECT_FORMAT = booleanPreferencesKey("vr_auto_detect_format")
-        private val KEY_VR_FORCED_FORMAT = stringPreferencesKey("vr_forced_format")
-        private val KEY_VR_FORCED_PLAT_FORMAT = stringPreferencesKey("vr_forced_plat_format")
-        private val KEY_VR_FORCED_SPHERICAL_FORMAT = stringPreferencesKey("vr_forced_spherical_format")
-        private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
-        private val KEY_VR_REMEMBER_FILE_FORMAT = booleanPreferencesKey("vr_remember_file_format")
-        private val KEY_VR_AUTO_IMMERSIVE = booleanPreferencesKey("vr_auto_immersive")
-        // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
-        private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
-        // Panel-mode single-eye crop (spec_panel-stereo-single-eye)
+        // S0241: legacy VR/immersive keys removed. Only the panel single-eye crop and the
+        // player FPS overlay survive.
         private val KEY_PANEL_STEREO_SINGLE_EYE = booleanPreferencesKey("panel_stereo_single_eye")
-        private val KEY_VR_SHOW_FPS = booleanPreferencesKey("vr_show_fps")
         private val KEY_PLAYER_SHOW_FPS = booleanPreferencesKey("player_show_fps")
 
         // S0028: Multi-window mode
@@ -205,20 +195,9 @@ class SettingsRepositoryImpl @Inject constructor(
         /** Allowed values for [KEY_STREAMING_CACHE_TTL_DAYS]; `0` means "off". */
         private val STREAMING_CACHE_TTL_VALID = setOf(0, 1, 3, 7, 30)
 
-        private val VR_FORCED_PLAT_VALUES = setOf("AUTO", "SBS", "OU", "MONO")
-        private val VR_FORCED_SPHERICAL_VALUES = setOf(
-            "AUTO",
-            "EQUIRECT_360_MONO",
-            "EQUIRECT_360_SBS",
-            "EQUIRECT_360_OU",
-            "EQUIRECT_180_MONO",
-            "EQUIRECT_180_SBS",
-            "VR180_FISHEYE_SBS",
-            "CYLINDER_180"
-        )
     }
 
-    // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
+    // Cached once per singleton - avoids repeated getSharedPreferences() calls inside DataStore map {}
     private val glidePrefs by lazy {
         context.getSharedPreferences("app_settings_glide", Context.MODE_PRIVATE)
     }
@@ -243,7 +222,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     ?: com.sza.fastmediasorter.core.util.LocaleHelper.getLanguage(context)
                 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
-                // glidePrefs is a lazy singleton field — no disk access on every emission
+                // glidePrefs is a lazy singleton field - no disk access on every emission
                 val cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048
                 val savedCacheSize = glidePrefs.getInt("cache_size_mb_cached", 0)
                 if (savedCacheSize != cacheSizeMb) {
@@ -382,16 +361,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     linkDownloadLoginWallHeuristicEnabled = preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] ?: true,
 
                     // VR settings (spec §5.7 / Phase 8)
-                    vrForcedPlatFormat = readVrForcedPlatFormat(preferences),
-                    vrForcedSphericalFormat = readVrForcedSphericalFormat(preferences),
-                    vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
-                        ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
-                        ?: "CINEMA",
-                    vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true,
-                    vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
-                    disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
+                    // S0241: VR/immersive runtime removed; only the panel single-eye crop survives.
                     panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
-                    vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
 
                     // Default true: resumes playback on fresh installs and on update from old versions
@@ -430,11 +401,11 @@ class SettingsRepositoryImpl @Inject constructor(
         // fragments fire setOnCheckedChangeListener callbacks during initial UI inflation.
         val current = runCatching { getSettings().first() }.getOrNull()
         if (current != null && current == settings) {
-            Timber.v("SettingsRepo: updateSettings idempotent — skipping DataStore write")
+            Timber.v("SettingsRepo: updateSettings idempotent - skipping DataStore write")
             return
         }
         if (BuildConfig.DEBUG && current != null) {
-            Timber.d("SettingsRepo: updateSettings diff detected — proceeding with DataStore write")
+            Timber.d("SettingsRepo: updateSettings diff detected - proceeding with DataStore write")
         }
 
         // NOTE: Language is NOT synced to SharedPreferences here.
@@ -559,7 +530,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
             preferences.setOrRemove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID, settings.videoSnapshotResourceId)
 
-            // Video frame snapshot format — always present with "PNG" default
+            // Video frame snapshot format - always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
 
             // Link auto-download (S0003)
@@ -571,18 +542,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] = settings.linkDownloadAudioOnly
             preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] = settings.linkDownloadLoginWallHeuristicEnabled
 
-            // VR settings (spec §5.7 / Phase 8 split). Remove the deprecated shared
-            // auto-detect key so existing installs converge after the first successful save.
-            preferences.remove(KEY_VR_AUTO_DETECT_FORMAT)
-            preferences[KEY_VR_FORCED_PLAT_FORMAT] = settings.vrForcedPlatFormat
-            preferences[KEY_VR_FORCED_SPHERICAL_FORMAT] = settings.vrForcedSphericalFormat
-            preferences.remove(KEY_VR_FORCED_FORMAT)
-            preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
-            preferences[KEY_VR_REMEMBER_FILE_FORMAT] = settings.vrRememberFileFormat
-            preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
-            preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
+            // S0241: legacy VR/immersive write keys removed. Only the panel single-eye crop
+            // and the player FPS overlay survive.
             preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
-            preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
             preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
 
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
@@ -685,23 +647,4 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun readVrForcedPlatFormat(preferences: Preferences): String {
-        preferences[KEY_VR_FORCED_PLAT_FORMAT]
-            ?.uppercase()
-            ?.takeIf { it in VR_FORCED_PLAT_VALUES }
-            ?.let { return it }
-
-        val legacy = preferences[KEY_VR_FORCED_FORMAT]?.uppercase() ?: return "AUTO"
-        return legacy.takeIf { it in VR_FORCED_PLAT_VALUES } ?: "AUTO"
-    }
-
-    private fun readVrForcedSphericalFormat(preferences: Preferences): String {
-        preferences[KEY_VR_FORCED_SPHERICAL_FORMAT]
-            ?.uppercase()
-            ?.takeIf { it in VR_FORCED_SPHERICAL_VALUES }
-            ?.let { return it }
-
-        val legacy = preferences[KEY_VR_FORCED_FORMAT]?.uppercase() ?: return "AUTO"
-        return legacy.takeIf { it in VR_FORCED_SPHERICAL_VALUES } ?: "AUTO"
-    }
 }

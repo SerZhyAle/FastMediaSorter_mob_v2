@@ -72,7 +72,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_source_language"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
+                    android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/spinnerTranslationSourceLanguage"
@@ -106,7 +106,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_target_language"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
+                    android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/spinnerTranslationTargetLanguage"
@@ -246,7 +246,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_size"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/spinnerOcrFontSize"
@@ -272,7 +272,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_family"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/spinnerOcrFontFamily"

@@ -96,7 +96,7 @@ class FileOperationsHandler(
         val currentFile = callback.getCurrentFile() ?: return
 
         // Runs on appScope so the copy survives PlayerActivity destruction.
-        // UI callbacks (Toast, navigation) are gated by isActivityGone() — when
+        // UI callbacks (Toast, navigation) are gated by isActivityGone() - when
         // the Activity is gone the user already moved on, so suppress the noise.
         appScope.launch {
             val destinationReachabilityError = checkSmbDestinationReachability(destination)
@@ -136,7 +136,7 @@ class FileOperationsHandler(
 
                 withContext(Dispatchers.Main) {
                     if (isActivityGone()) {
-                        Timber.i("FileOperationsHandler: copy completed after Activity destroyed — skipping UI callbacks (result=${result::class.simpleName})")
+                        Timber.i("FileOperationsHandler: copy completed after Activity destroyed - skipping UI callbacks (result=${result::class.simpleName})")
                         return@withContext
                     }
                     when (result) {

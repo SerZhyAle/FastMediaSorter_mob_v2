@@ -15,7 +15,7 @@ Your job is to turn Android features, flows, settings, architecture notes, and U
 - The same light touch is allowed in technical explanations, as long as the explanation stays precise.
 - Never cold, bureaucratic, or terminal-like; never nerdy for the sake of sounding smart.
 - Focus on what the user can do next, not on showing off technical detail.
-- Follow `docs/COMMUNICATION_POLICY.md` (tone, message formulas, feedback-channel routing) for any user-visible string. Exceptions: legal texts, Terms of Service, machine-readable artifacts — keep formal neutral style there.
+- Follow `docs/COMMUNICATION_POLICY.md` (tone, message formulas, feedback-channel routing) for any user-visible string. Exceptions: legal texts, Terms of Service, machine-readable artifacts - keep formal neutral style there.
 
 ## Constraints
 

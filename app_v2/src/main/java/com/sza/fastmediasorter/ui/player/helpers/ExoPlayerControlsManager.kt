@@ -118,6 +118,6 @@ class ExoPlayerControlsManager(
     fun updateTrackButtonsVisibility(isPlaybackControlSupported: Boolean) {
         binding.playerView.findViewById<ImageButton>(R.id.btnPlaybackControl)?.visibility =
             if (isPlaybackControlSupported) android.view.View.VISIBLE else android.view.View.GONE
-        Timber.d("ExoPlayerControlsManager: Control button visibility updated — supported=$isPlaybackControlSupported")
+        Timber.d("ExoPlayerControlsManager: Control button visibility updated - supported=$isPlaybackControlSupported")
     }
 }

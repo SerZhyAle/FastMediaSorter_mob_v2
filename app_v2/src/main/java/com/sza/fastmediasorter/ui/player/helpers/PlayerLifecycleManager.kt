@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,6 +16,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.mutation.Mutation
+import com.sza.fastmediasorter.domain.mutation.MutationJournal
+import com.sza.fastmediasorter.domain.path.PathNormalizer
+import java.util.UUID
 import com.sza.fastmediasorter.domain.playback.PlaybackCompletionDetector
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -29,24 +32,26 @@ import timber.log.Timber
 
 /**
  * Manages PlayerActivity lifecycle coordination.
- * 
+ *
  * Responsibilities:
  * - Initialize all managers in correct order
- * - Handle onResume/onPause state transitions  
+ * - Handle onResume/onPause state transitions
  * - Coordinate resource cleanup on onDestroy
- * - Track modified files for result intent
+ * - Journal successful mutations to [MutationJournal] (S0242 Phase 02 - Browse Reconciler reads it on its next onResume)
  * - Manage first-resume logic
- * 
+ *
  * This consolidates logic previously scattered across onCreate, onResume, onPause, onDestroy.
  */
 class PlayerLifecycleManager(
     private val activity: PlayerActivity,
     private val viewModel: PlayerViewModel,
-    private val lifecycle: Lifecycle
+    private val lifecycle: Lifecycle,
+    // S0242 Phase 02: real-time mutation journal - Reconciler reads from it on Browse onResume.
+    private val mutationJournal: MutationJournal,
+    private val pathNormalizer: PathNormalizer,
 ) {
     // Lifecycle state tracking
     private var isFirstResume = true
-    private val modifiedFiles = mutableSetOf<String>()
     private var slideshowModeRequested = false
     // Holds the path of the file that triggered the batch delete permission dialog.
     // Must be set before navigating away (optimistic advance) so that when the dialog
@@ -158,11 +163,15 @@ class PlayerLifecycleManager(
     /**
      * Called from PlayerActivity.onDestroy()
      * Centralizes all resource cleanup to prevent memory leaks.
+     *
+     * S0242 Phase 02: Player no longer ships a modified-files intent payload back to
+     * Browse. The Browse Reconciler reads the [MutationJournal] independently on its next
+     * onResume. The note save-and-close flow keeps its own `setResult(RESULT_OK)` in
+     * [com.sza.fastmediasorter.ui.player.PlayerViewerFactory] - handled there, not here.
      */
     fun onDestroy() {
         Timber.d("PlayerLifecycleManager.onDestroy: Starting cleanup")
         releaseResources()
-        returnModifiedFilesResult()
     }
     
     /**
@@ -261,32 +270,40 @@ class PlayerLifecycleManager(
     }
     
     /**
-     * Return modified files list to BrowseActivity.
-     * Notifies parent activity which files were deleted/moved/renamed.
+     * Append a single [Mutation] to the shared [MutationJournal] (S0242 Phase 02).
+     *
+     * The Browse Reconciler (Phase 03) reads the per-resource journal on `onResume`, applies
+     * the entries to its cached file list, and marks them as consumed. Callers obtain the
+     * canonical paths via [pathNormalizer] before constructing the [Mutation] variant.
      */
-    private fun returnModifiedFilesResult() {
-        if (modifiedFiles.isNotEmpty()) {
-            val resultIntent = Intent().apply {
-                putStringArrayListExtra(PlayerActivity.EXTRA_MODIFIED_FILES, ArrayList(modifiedFiles))
-            }
-            activity.setResult(android.app.Activity.RESULT_OK, resultIntent)
-            Timber.d("PlayerLifecycleManager: Returning ${modifiedFiles.size} modified files")
-        }
+    fun recordMutation(mutation: Mutation) {
+        Timber.d("S0242: Player records ${mutation::class.simpleName} into MutationJournal")
+        mutationJournal.record(mutation)
     }
-    
+
     /**
-     * Track a file that was modified (deleted, moved, renamed).
-     * Will be reported back to BrowseActivity on destroy.
+     * Returns the [PathNormalizer] used to canonicalize paths before journaling.
+     * Exposed for callers that need to build [Mutation] variants outside this manager.
      */
-    fun trackModifiedFile(path: String) {
-        modifiedFiles.add(path)
-        Timber.d("PlayerLifecycleManager: Tracked modified file: $path")
-    }
+    fun pathNormalizer(): PathNormalizer = pathNormalizer
+
+    /**
+     * Returns the resource id of the currently loaded resource, or `null` if no resource
+     * is bound to the player. Used by callers when building [Mutation] variants.
+     */
+    fun currentResourceId(): Long? = viewModel.state.value.resource?.id
+
+    /**
+     * Returns the [com.sza.fastmediasorter.domain.model.ResourceType] of the currently loaded
+     * resource, or `null` if no resource is bound. Used by callers when normalizing paths.
+     */
+    fun currentResourceType(): com.sza.fastmediasorter.domain.model.ResourceType? =
+        viewModel.state.value.resource?.type
 
     /**
      * Store the path of the file whose deletion requires a system permission dialog.
      * Called before the dialog is launched so that when the result arrives the correct
-     * file is attributed — [handleBatchDeleteResult] reads this field, not currentFile,
+     * file is attributed - [handleBatchDeleteResult] reads this field, not currentFile,
      * because currentFile may have already advanced via optimistic navigation.
      */
     fun storePendingBatchDeleteFilePath(path: String) {
@@ -467,12 +484,12 @@ class PlayerLifecycleManager(
                     1 -> { // Keep Playing (this time only)
                         doFinish(withTransition)
                     }
-                    2 -> { // Always Stop — save preference then stop
+                    2 -> { // Always Stop - save preference then stop
                         viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
                         activity.audioServiceController?.player?.stop()
                         doFinish(withTransition)
                     }
-                    3 -> { // Always Continue — save preference then continue
+                    3 -> { // Always Continue - save preference then continue
                         viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_CONTINUE)
                         doFinish(withTransition)
                     }
@@ -515,10 +532,12 @@ class PlayerLifecycleManager(
 
     /**
      * Handle successful file deletion from any permission callback path.
-     * Tracks the file, removes it from cache, and navigates away or finishes.
+     * S0242 Phase 02: emits a [Mutation.Delete] to the [MutationJournal] so the Browse
+     * Reconciler picks it up on its next onResume, then removes the file from cache and
+     * advances the playlist (or finishes if the list is empty).
      */
     fun handleDeleteSuccess(deletedFilePath: String) {
-        trackModifiedFile(deletedFilePath)
+        recordDeleteMutation(deletedFilePath)
         viewModel.state.value.resource?.let { resource ->
             MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
         }
@@ -527,12 +546,29 @@ class PlayerLifecycleManager(
     }
 
     /**
+     * Build and journal a [Mutation.Delete] for [path] using the currently bound resource.
+     * No-op when no resource is bound - without a resource id, the entry would be unroutable.
+     */
+    private fun recordDeleteMutation(path: String) {
+        val resourceId = currentResourceId() ?: return
+        val resourceType = currentResourceType() ?: return
+        recordMutation(
+            Mutation.Delete(
+                resourceId = resourceId,
+                canonicalPath = pathNormalizer.canonical(path, resourceType),
+                opId = UUID.randomUUID().toString(),
+                timestampMs = System.currentTimeMillis(),
+            )
+        )
+    }
+
+    /**
      * Handle Android 11+ batch delete permission result (createDeleteRequest).
      * Called from the batchDeletePermissionLauncher result callback.
      *
      * Uses [pendingBatchDeleteFilePath] rather than the current file because the player
      * may have already performed an optimistic advance to the next file before the dialog
-     * was shown — reading currentFile here would attribute the deletion to the wrong file.
+     * was shown - reading currentFile here would attribute the deletion to the wrong file.
      */
     fun handleBatchDeleteResult(resultCode: Int) {
         val filePath = pendingBatchDeleteFilePath
@@ -542,7 +578,7 @@ class PlayerLifecycleManager(
             if (filePath != null) {
                 handleDeleteSuccess(filePath)
             } else {
-                Timber.e("PlayerLifecycleManager: Batch delete granted but pendingBatchDeleteFilePath was null — no file attributed")
+                Timber.e("PlayerLifecycleManager: Batch delete granted but pendingBatchDeleteFilePath was null - no file attributed")
             }
         } else {
             Timber.w("PlayerLifecycleManager: Batch delete permission denied")

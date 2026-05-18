@@ -1,6 +1,6 @@
 # Files excluded from Android Studio AI (Gemini) context
 
-# AI instruction files — contain project prompts, not source code
+# AI instruction files - contain project prompts, not source code
 
 AGENTS.md
 CLAUDE.md

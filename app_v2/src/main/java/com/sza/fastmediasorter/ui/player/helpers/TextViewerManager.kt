@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
@@ -114,12 +113,6 @@ class TextViewerManager(
     private lateinit var textGestureDetector: GestureDetector
     private lateinit var translationGestureDetector: GestureDetector
 
-    // Track which view was active before OCR (to restore after close)
-    private var previousActiveView: View? = null
-
-    // Track EPUB WebView visibility state (to restore after translation close)
-    private var wasEpubWebViewVisible = false
-
     // S0189: when true, enterEditMode() is called automatically after text content loads
     private var autoOpenEditMode = false
 
@@ -183,6 +176,16 @@ class TextViewerManager(
                 updateTranslateButtonTint(enabled)
         }
     )
+    private val ocrDisplayManager = TextOcrDisplayManager(
+        binding = binding,
+        safeViews = safeViews,
+        getTextFontSizeSp = { textFontSizeSp },
+        getTypeface = { currentTypeface },
+        getTextGestureDetector = { textGestureDetector },
+        resetTranslationState = { translationOverlayManager.resetState() },
+        setTouchZonesEnabled = callback::setTouchZonesEnabled,
+    )
+    private val searchManager = TextViewerSearchManager(safeViews)
 
     fun setupControls() {
         // Setup gesture detectors for font size adjustment
@@ -279,7 +282,7 @@ class TextViewerManager(
             enterEditMode()
         }
 
-        // S0189: 5-action panel — replaces the former 2-button row
+        // S0189: 5-action panel - replaces the former 2-button row
         actionPanelManager.setup(com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks(
             onSave = {
                 val flow = saveFlow
@@ -292,7 +295,7 @@ class TextViewerManager(
                         currentContent = capturedContent,
                         afterSave = { outcome ->
                             cacheNewlySavedNote(outcome, capturedContent)
-                            // S0189: reset dirty-state — Save & Close on a clean buffer must skip
+                            // S0189: reset dirty-state - Save & Close on a clean buffer must skip
                             // the redundant re-save (which would orphan a file in the staging dir).
                             dirtyTracker.rebaseline(capturedContent)
                         }
@@ -399,7 +402,7 @@ class TextViewerManager(
             },
         ))
 
-        // Editor toolbar buttons — delegated
+        // Editor toolbar buttons - delegated
         findReplaceManager.setupEditorToolbar()
 
         binding.btnTranslateTextCmd.setOnClickListener {
@@ -750,7 +753,7 @@ class TextViewerManager(
                     BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
             }
             try {
-                // S0189: a new note may be registered as deferred — the file is created on first
+                // S0189: a new note may be registered as deferred - the file is created on first
                 // Save, not when the editor opens. Skip the not-found error in that case and
                 // render an empty buffer; auto-open edit mode is the next step.
                 val deferredStaged = textNoteStagingRegistry?.lookup(java.io.File(mediaFile.path))
@@ -777,7 +780,7 @@ class TextViewerManager(
                 }
 
                 if (!file.exists()) {
-                    // Deferred new note — render an empty buffer without the pager (no bytes to page).
+                    // Deferred new note - render an empty buffer without the pager (no bytes to page).
                     currentLocalFile = file
                     originalTextWithoutNumbers = ""
                     val settings = settingsRepository.getSettings().first()
@@ -1231,7 +1234,7 @@ class TextViewerManager(
         safeViews.etTextContent.addTextChangedListener(dirtyTextWatcher)
         actionPanelManager.onEnterEditMode()
 
-        // S0189 Phase 07: auto-fit font — uses max of persistent setting; locks on manual swipe
+        // S0189 Phase 07: auto-fit font - uses max of persistent setting; locks on manual swipe
         val maxFontSp = DEFAULT_TEXT_FONT_SIZE_SP *
             com.sza.fastmediasorter.domain.models.TranslationFontSize.HUGE.multiplier
         autoFitFontManager?.detach()
@@ -1257,7 +1260,7 @@ class TextViewerManager(
 
         autoSaveManager?.startAutoSave(safeViews.etTextContent, filePath)
 
-        // Cursor position tracking — delegated
+        // Cursor position tracking - delegated
         findReplaceManager.setupCursorPositionTracking()
 
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -1267,7 +1270,9 @@ class TextViewerManager(
     /**
      * S0189: after a successful Save of a new note, append the resulting file directly to
      * [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] for its resource. Browse's
-     * onResume → syncWithCache picks it up without triggering a full network rescan.
+     * `onResume` Reconciler (S0242 Phase 03) sees no pending journal entry for the new
+     * note, so the cache append is the canonical signal - the new entry appears in the
+     * Browse list on next resume without triggering a full network rescan.
      *
      * Skipped for non-staged edits (the file already exists in the resource list).
      */
@@ -1275,7 +1280,7 @@ class TextViewerManager(
         val resourceId = currentFile?.resourceId ?: return
         val previousLocalFile = currentLocalFile ?: return
         // Only act for a deferred-staged note. For arbitrary text-file edits the cache list
-        // already contains this file — adding again would create a duplicate.
+        // already contains this file - adding again would create a duplicate.
         textNoteStagingRegistry?.lookup(previousLocalFile) ?: return
         val newFile = com.sza.fastmediasorter.domain.model.MediaFile(
             name = outcome.finalName,
@@ -1319,7 +1324,7 @@ class TextViewerManager(
         autoFitFontManager?.detach()
         autoFitFontManager = null
 
-        // Close find panel if open — delegated
+        // Close find panel if open - delegated
         findReplaceManager.closeFindPanel()
 
         safeViews.textEditContainer.isVisible = false
@@ -1413,7 +1418,7 @@ class TextViewerManager(
         safeViews.textScrollView.smoothScrollBy(0, (verticalScroll * -100).toInt())
     }
 
-    // ===== Translation public API — delegated =====
+    // ===== Translation public API - delegated =====
 
     /**
      * Force enable translation and translate current text.
@@ -1435,7 +1440,7 @@ class TextViewerManager(
     }
 
     fun updateTranslationButtonIcon(sourceLang: String, targetLang: String) {
-        // Clear XML tint first — otherwise selector_player_button_tint (white)
+        // Clear XML tint first - otherwise selector_player_button_tint (white)
         // colours the entire drawable and makes the badge text invisible.
         binding.btnTranslateTextCmd.imageTintList = null
         val drawable = LanguageBadgeDrawable(context, sourceLang, targetLang)
@@ -1446,222 +1451,31 @@ class TextViewerManager(
 
     // ===== OCR / translated text display =====
 
-    /**
-     * Display OCR result text (from image or PDF) in text viewer.
-     */
     fun displayOcrText(text: String) {
-        currentFile = null // Mark as OCR result (not a file)
-        translationOverlayManager.resetState()
-
-        previousActiveView = when {
-            binding.photoView.isVisible -> binding.photoView
-            binding.imageView.isVisible -> binding.imageView
-            binding.playerView.isVisible -> binding.playerView
-            safeViews.pdfControlsLayout.isVisible -> safeViews.pdfControlsLayout
-            else -> null
-        }
-
-        binding.playerView.isVisible = false
-        binding.photoView.isVisible = false
-        binding.imageView.isVisible = false
-        safeViews.pdfControlsLayout.isVisible = false
-        safeViews.translationOverlay.isVisible = false
-        binding.translationLensOverlay.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
-
-        callback.setTouchZonesEnabled(false)
-        safeViews.textViewerContainer.isVisible = true
-        safeViews.textScrollView.isVisible = true
-        safeViews.textEditContainer.isVisible = false
-        binding.progressBar.isVisible = false
-        safeViews.btnCloseTextViewer.isVisible = true
-
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
-        binding.btnCopyTextCmd.isVisible = true
-
-        safeViews.tvTextContent.apply {
-            setText(text)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
-            typeface = currentTypeface
-            setTextColor(0xFF424242.toInt()) // Material Gray 800
-            setBackgroundColor(0xFFFFFFFF.toInt())
-            setTextIsSelectable(true)
-        }
-
-        safeViews.textScrollView.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP) v.performClick()
-            textGestureDetector.onTouchEvent(event)
-            false
-        }
-
-        safeViews.textViewerContainer.setOnClickListener(null)
-        Timber.d("OCR text displayed (${text.length} chars)")
+        currentFile = null
+        ocrDisplayManager.displayOcrText(text)
     }
 
     fun hideOcrText() {
-        safeViews.textViewerContainer.isVisible = false
-        safeViews.textScrollView.isVisible = false
-        safeViews.tvTextContent.text = ""
-        safeViews.translationOverlay.isVisible = false
-        safeViews.translationOverlayBackground.isVisible = false
         currentFile = null
-        translationOverlayManager.resetState()
-
-        previousActiveView?.isVisible = true
-        previousActiveView = null
-
-        if (wasEpubWebViewVisible) {
-            binding.epubWebView.isVisible = true
-            wasEpubWebViewVisible = false
-            Timber.d("OCR text hidden, EPUB WebView restored")
-        }
-
-        callback.setTouchZonesEnabled(true)
-        Timber.d("OCR text hidden, previous view restored")
+        ocrDisplayManager.hideOcrText()
     }
 
-    /**
-     * Display translated text in text viewer (for non-lens mode translations).
-     */
     fun displayTranslatedText(text: String) {
         currentFile = null
-        translationOverlayManager.resetState()
-
-        val isPdfActive = safeViews.pdfControlsLayout.isVisible
-        val isEpubActive = safeViews.epubControlsLayout.isVisible
-
-        wasEpubWebViewVisible = binding.epubWebView.isVisible
-
-        previousActiveView = when {
-            binding.photoView.isVisible -> binding.photoView
-            binding.imageView.isVisible -> binding.imageView
-            binding.playerView.isVisible -> binding.playerView
-            isPdfActive -> safeViews.pdfControlsLayout
-            isEpubActive -> safeViews.epubControlsLayout
-            else -> null
-        }
-
-        binding.playerView.isVisible = false
-        binding.photoView.isVisible = false
-        binding.imageView.isVisible = false
-        if (!isPdfActive) safeViews.pdfControlsLayout.isVisible = false
-        if (!isEpubActive) safeViews.epubControlsLayout.isVisible = false
-        binding.epubWebView.isVisible = false
-        safeViews.translationOverlay.isVisible = false
-        binding.translationLensOverlay.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
-
-        callback.setTouchZonesEnabled(false)
-
-        safeViews.textViewerContainer.isVisible = true
-        safeViews.textScrollView.isVisible = true
-        safeViews.textEditContainer.isVisible = false
-        binding.progressBar.isVisible = false
-        safeViews.btnCloseTextViewer.isVisible = true
-
-        // Add bottom padding if PDF/EPUB controls are visible so they're not covered
-        val bottomPadding = if (isPdfActive || isEpubActive) {
-            (60 * binding.root.context.resources.displayMetrics.density).toInt()
-        } else 0
-        safeViews.textScrollView.setPadding(
-            safeViews.textScrollView.paddingLeft,
-            safeViews.textScrollView.paddingTop,
-            safeViews.textScrollView.paddingRight,
-            bottomPadding
-        )
-
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
-        binding.btnCopyTextCmd.isVisible = true
-
-        safeViews.tvTextContent.apply {
-            setText(text)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
-            typeface = currentTypeface
-            setTextColor(0xFF1A237E.toInt()) // Material Indigo 900
-            setBackgroundColor(0xFFE3F2FD.toInt()) // Material Blue 50
-            setTextIsSelectable(true)
-        }
-
-        safeViews.textScrollView.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP) v.performClick()
-            textGestureDetector.onTouchEvent(event)
-            false
-        }
-
-        safeViews.textViewerContainer.setOnClickListener(null)
-        Timber.d("Translated text displayed (${text.length} chars)")
+        ocrDisplayManager.displayTranslatedText(text)
     }
 
-    // ===== Search public API (viewer read-only search, distinct from editor find) =====
+    fun searchText(query: String): Int = searchManager.searchText(query)
 
-    /**
-     * Search for text in current document.
-     * Returns number of matches found.
-     */
-    fun searchText(query: String): Int {
-        if (query.isBlank()) {
-            clearSearch()
-            return 0
-        }
+    fun highlightSearchMatch(query: String, matchIndex: Int) =
+        searchManager.highlightSearchMatch(query, matchIndex)
 
-        val fullText = safeViews.tvTextContent.text.toString()
-        if (fullText.isBlank()) return 0
+    fun clearSearch() = searchManager.clearSearch()
 
-        val matchCount =
-            Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(fullText).count()
-        Timber.d("Search for '$query' found $matchCount matches")
-        return matchCount
-    }
+    fun scrollToTop() = searchManager.scrollToTop()
 
-    /**
-     * Highlight current search match in TextView.
-     */
-    fun highlightSearchMatch(query: String, matchIndex: Int) {
-        if (query.isBlank()) return
-
-        val fullText = safeViews.tvTextContent.text.toString()
-        val matches =
-            Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(fullText).toList()
-
-        if (matchIndex >= 0 && matchIndex < matches.size) {
-            val match = matches[matchIndex]
-            val start = match.range.first
-
-            val layout = safeViews.tvTextContent.layout
-            if (layout != null) {
-                val line = layout.getLineForOffset(start)
-                val y = layout.getLineTop(line)
-                safeViews.textScrollView.smoothScrollTo(0, y - 100)
-            }
-            Timber.d("Highlighted match $matchIndex at position $start-${match.range.last + 1}")
-        }
-    }
-
-    fun clearSearch() {
-        Timber.d("Search cleared")
-    }
-
-    fun scrollToTop() {
-        safeViews.textScrollView.post {
-            safeViews.textScrollView.fullScroll(android.view.View.FOCUS_UP)
-        }
-        UserActionLogger.logNavigation("Top", "TextViewerManager")
-    }
-
-    fun scrollToBottom() {
-        safeViews.textScrollView.post {
-            safeViews.textScrollView.fullScroll(android.view.View.FOCUS_DOWN)
-        }
-        UserActionLogger.logNavigation("Bottom", "TextViewerManager")
-    }
+    fun scrollToBottom() = searchManager.scrollToBottom()
 
     // ===== Private helpers =====
 

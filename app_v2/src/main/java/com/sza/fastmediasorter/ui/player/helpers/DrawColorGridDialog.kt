@@ -11,7 +11,7 @@ import timber.log.Timber
 /**
  * 16-color custom palette picker (S0192 Phase 05, strategic §2.3.1).
  *
- * Tap-to-pick — no OK/Cancel buttons; selecting a colour fires [onPicked] and
+ * Tap-to-pick - no OK/Cancel buttons; selecting a colour fires [onPicked] and
  * dismisses the dialog immediately.
  */
 class DrawColorGridDialog(
@@ -60,7 +60,7 @@ class DrawColorGridDialog(
         (value * activity.resources.displayMetrics.density).toInt()
 
     companion object {
-        // Strategic §2.3.1 — exact palette in row-major order
+        // Strategic §2.3.1 - exact palette in row-major order
         private val PALETTE = intArrayOf(
             0xFF000000.toInt(), 0xFF424242.toInt(), 0xFF757575.toInt(), 0xFFBDBDBD.toInt(),
             0xFFFFFFFF.toInt(), 0xFFFF1744.toInt(), 0xFFE53935.toInt(), 0xFFFF7043.toInt(),

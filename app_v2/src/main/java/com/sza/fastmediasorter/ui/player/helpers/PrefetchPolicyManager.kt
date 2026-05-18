@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * user multiplier, protocol) and delegates arithmetic to [PrefetchFormula].
  *
  * Ownership split:
- * - [PrefetchFormula] is a pure function — no side effects, easily tested.
+ * - [PrefetchFormula] is a pure function - no side effects, easily tested.
  * - [PrefetchPolicyManager] is a Hilt-injected `@Singleton` that sources the
  *   runtime context: settings flow, speed cache, device probe. It exists so
  *   callers (PlayerViewModel, *PlaybackHelper) do not need to know how to
@@ -37,7 +37,7 @@ class PrefetchPolicyManager @Inject constructor(
      *
      * @param resourceKey protocol-normalized key used to look up the last speed
      *   measurement. Must match the key used by [ConnectionThrottleManager.setLastSpeedMbps].
-     * @param uri media URI — protocol is detected from its scheme.
+     * @param uri media URI - protocol is detected from its scheme.
      * @param bitrateKbps measured bitrate from ExoPlayer's `onTracksChanged`, or
      *   `null` if metadata has not loaded yet.
      * @param fileDurationSec total file duration or `null` when unknown.

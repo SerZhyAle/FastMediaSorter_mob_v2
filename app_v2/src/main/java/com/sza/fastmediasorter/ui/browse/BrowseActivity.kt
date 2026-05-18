@@ -103,6 +103,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+    // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
+    @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
     // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
     @Inject lateinit var memoryProbe: MemoryProbe
@@ -127,7 +129,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
         // S0183: ActivityResultLaunchers MUST be registered before the lifecycle progresses past
-        // CREATED — registerForActivityResult throws IllegalStateException once STARTED.
+        // CREATED - registerForActivityResult throws IllegalStateException once STARTED.
         // BaseActivity defers setupViews() via binding.root.post, which fires after RESUMED, so we
         // cannot register from there.
         binaryFileMenuActions.forEach { it.registerLaunchers(this) }
@@ -136,8 +138,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             ?: intent.getStringExtra(EXTRA_WINDOW_ID)
             ?: ResumeStateRepository.WINDOW_ID_MAIN
         launcherManager = BrowseLauncherManager(this, object : BrowseLauncherCallbacks {
-            override fun onPlayerActivityReturned(modifiedPaths: ArrayList<String>) {
-                viewModel.removeFilesFromList(modifiedPaths)
+            override fun onPlayerActivityReturned() {
+                // S0242 Phase 02: Player no longer ships a modified-paths payload. The Browse
+                // Reconciler (Phase 03) reads the MutationJournal on onResume and applies the
+                // structural diff against the cached file list. The note save-and-close flow
+                // (PlayerViewerFactory.finishActivity) is the remaining producer of RESULT_OK.
+                Timber.d("BrowseActivity: PlayerActivity returned RESULT_OK; Reconciler will run on next onResume")
             }
             override fun onEditResourceReturned() {
                 Timber.i("Resource updated, reloading files")
@@ -218,7 +224,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         )
 
-        // S0207 Phase 01: BROWSE_OPENED probe — fired at the end of onCreate so the measurement
+        // S0207 Phase 01: BROWSE_OPENED probe - fired at the end of onCreate so the measurement
         // captures the cost of inflating the browse UI plus initial dependency wiring.
         memoryProbe.record(MemoryCheckpoint.BROWSE_OPENED)
     }
@@ -227,7 +233,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         return ActivityBrowseBinding.inflate(layoutInflater)
     }
 
-    // S0230 Phase 02 — TV initial focus on the file list so the first D-pad press lands on a row.
+    // S0230 Phase 02 - TV initial focus on the file list so the first D-pad press lands on a row.
     override fun getInitialFocusView(): android.view.View = binding.rvMediaFiles
 
     override fun setupViews() {
@@ -430,6 +436,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (isFirstResume) {
             isFirstResume = false
         } else {
+            // S0242 Phase 03 - Reconciler runs unconditionally before any structural diff
+            // path. Reads pending MutationJournal entries (Player writes) and folds them
+            // into the cached/visible file list. Single adapter rebind only when the
+            // visible set actually changed (no flicker on no-op).
+            runReconciler()
             viewModel.checkAndReloadIfResourceChanged()
             initializer.lifecycleHelper.restoreScrollOnResume(viewModel.state.value)
         }
@@ -438,6 +449,25 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             initializer.mediaStoreObserver.start(viewModel.state.value.resource?.type)
         }
         memoryProfileCoordinator.enter(MemoryScenario.BROWSE_LIST)
+    }
+
+    /**
+     * S0242 Phase 03 - apply pending journal mutations to the visible list before the
+     * resource-settings check fires. Synchronous because the Reconciler does no IO; the
+     * adapter rebind is the standard `state` collector path so DiffUtil still runs on the
+     * background thread chosen by `AsyncListDiffer`.
+     */
+    private fun runReconciler() {
+        val resource = viewModel.state.value.resource ?: return
+        val current = viewModel.state.value.mediaFiles
+        val result = browseReconcilerManager.reconcile(resource.id, resource.type, current)
+        if (result.visibleChanged) {
+            viewModel.replaceMediaFiles(result.updatedList)
+        }
+        // S0242 Phase 04 - fire-and-forget background probe of the first N visible files.
+        // Findings flow back through the journal as `Mutation.Delete` and are picked up by
+        // the next `reconcile()` call; no immediate UI update this resume.
+        browseReconcilerManager.scheduleQuickVerify(resource.id, resource.type, result.updatedList)
     }
 
     override fun onPause() {
@@ -497,7 +527,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             resource?.let { "{id=${it.id}, type=${it.type}, name=${it.name}}" } ?: "NULL",
         )
         if (resource == null) {
-            Timber.w("S0022-CAM: BrowseActivity.onCameraCaptureClicked ABORT — viewModel resource is null")
+            Timber.w("S0022-CAM: BrowseActivity.onCameraCaptureClicked ABORT - viewModel resource is null")
             return
         }
         val passthrough = passthroughCaptureProvider.orElse(null)
@@ -539,7 +569,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         const val EXTRA_INITIAL_FOLDER_PATH = "initialFolderPath"
         const val EXTRA_INITIAL_FILE_PATH = "initialFilePath"
         const val EXTRA_RESUME_IS_PLAYING = "resumeIsPlaying"
-        // S0028: multi-window — window identity and tear-off state
+        // S0028: multi-window - window identity and tear-off state
         const val EXTRA_WINDOW_ID = "extra_window_id"
         const val EXTRA_SCROLL_POSITION = "extra_scroll_position"
 

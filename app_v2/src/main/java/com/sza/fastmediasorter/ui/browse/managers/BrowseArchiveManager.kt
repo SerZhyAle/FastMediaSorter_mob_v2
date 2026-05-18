@@ -33,7 +33,7 @@ import java.io.File
  * - Cancel in-progress archive/extraction jobs ([cancelArchive], [cancelExtraction]).
  * - Report progress and results via [sendEvent] callbacks.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseArchiveManager(
     private val context: Context,
@@ -48,10 +48,10 @@ class BrowseArchiveManager(
     private val clearSelection: () -> Unit,
     private val reloadFiles: (clearList: Boolean) -> Unit
 ) {
-    /** Active archive job — allows cancellation from UI. */
+    /** Active archive job - allows cancellation from UI. */
     private var archiveJob: Job? = null
 
-    /** Active extraction job — allows cancellation from UI. */
+    /** Active extraction job - allows cancellation from UI. */
     private var extractionJob: Job? = null
 
     @Volatile
@@ -97,7 +97,7 @@ class BrowseArchiveManager(
                             Timber.w("archiveSelectedFiles: warning for ${progress.fileName}: ${progress.reason}")
                         }
                         is ArchiveProgress.Success -> {
-                            Timber.i("archiveSelectedFiles: success — ${progress.archivePath}")
+                            Timber.i("archiveSelectedFiles: success - ${progress.archivePath}")
                             clearSelection()
                             // Refresh file list if archive landed in the current directory
                             val currentDir = stateFlow.value.currentPath ?: stateFlow.value.resource?.path
@@ -107,14 +107,14 @@ class BrowseArchiveManager(
                             sendEvent(BrowseEvent.ArchiveSuccess(progress.archivePath, progress.archivedCount))
                         }
                         is ArchiveProgress.Error -> {
-                            Timber.e(progress.exception, "archiveSelectedFiles: error — ${progress.message}")
+                            Timber.e(progress.exception, "archiveSelectedFiles: error - ${progress.message}")
                             sendEvent(BrowseEvent.ArchiveError(progress.message, progress.exception))
                         }
                     }
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 Timber.i("archiveSelectedFiles: cancelled")
-                // No event — UI dismisses the dialog itself
+                // No event - UI dismisses the dialog itself
             }
         }
     }

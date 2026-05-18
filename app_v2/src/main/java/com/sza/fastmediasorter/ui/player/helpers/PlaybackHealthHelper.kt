@@ -12,7 +12,7 @@ import timber.log.Timber
 /**
  * Playback-health monitor and MediaPlayer fallback.
  *
- * Extension functions on [VideoPlayerManager] — extracted to a separate file to reduce
+ * Extension functions on [VideoPlayerManager] - extracted to a separate file to reduce
  * per-file CFG complexity for the Kotlin compiler (avoids GC overhead during parallel
  * flavor compilation of the original 1 700-line VideoPlayerManager.kt).
  *
@@ -87,7 +87,7 @@ internal fun VideoPlayerManager.checkPlaybackHealth() {
         lastCheckedPosition = currentPosition
         retryHandler.postDelayed(playbackHealthCheckRunnable!!, VideoPlayerManager.PLAYBACK_HEALTH_CHECK_DELAY_MS)
     } else {
-        // Playback is healthy — stop polling
+        // Playback is healthy - stop polling
         playbackStuckCount = 0
         Timber.d("VideoPlayerManager: Playback is healthy")
         cancelPlaybackHealthCheck()
@@ -110,7 +110,7 @@ internal fun VideoPlayerManager.cancelPlaybackHealthCheck() {
 
 /**
  * Fall back to Android [MediaPlayer] when ExoPlayer cannot decode the format.
- * Only used for LOCAL files — MediaPlayer cannot handle smb://, sftp://, ftp://, cloud://.
+ * Only used for LOCAL files - MediaPlayer cannot handle smb://, sftp://, ftp://, cloud://.
  */
 internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
     try {

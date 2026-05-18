@@ -31,7 +31,7 @@ class PlayerPlaybackCallbackImplTest {
 
     @Test
     fun `generic playback error path is distinct from VOB route error path`() {
-        // Route error hint is DVD_PS_VOB; a plain mkv maps to OTHER — different branch.
+        // Route error hint is DVD_PS_VOB; a plain mkv maps to OTHER - different branch.
         val vobHint = NetworkPlaybackContainerHint.fromPath("smb://nas/VIDEO_TS/VTS_01_1.vob")
         val mkvHint = NetworkPlaybackContainerHint.fromPath("smb://nas/movies/film.mkv")
         assertEquals(NetworkPlaybackContainerHint.DVD_PS_VOB, vobHint)

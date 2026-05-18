@@ -25,7 +25,7 @@ import timber.log.Timber
  * Implements edge-pixel line extension for letterbox/pillarbox areas.
  *
  * The entire bitmap (including software blur) is built on Dispatchers.Default.
- * The main thread only atomically swaps the bitmap and makes the view visible —
+ * The main thread only atomically swaps the bitmap and makes the view visible -
  * no progressive GPU rendering artifacts.
  */
 class DynamicBackgroundProcessor(
@@ -55,7 +55,7 @@ class DynamicBackgroundProcessor(
      * [screenWidth]/[screenHeight] are the dimensions of the ImageView that displays the media
      * (NOT the full screen). Pass the view's laid-out pixel size so that pillarbox/letterbox
      * offsets are computed against the actual display area.
-     * Call from any thread — all heavy work runs on Dispatchers.Default.
+     * Call from any thread - all heavy work runs on Dispatchers.Default.
      */
     fun process(
         drawable: Drawable,
@@ -82,7 +82,7 @@ class DynamicBackgroundProcessor(
                     return@launch
                 }
 
-                // Build line-extension bitmap fully off-screen — all on Default.
+                // Build line-extension bitmap fully off-screen - all on Default.
                 val bgBitmap = buildBackgroundBitmap(sourceBitmap, resolvedW, resolvedH)
 
                 withContext(Dispatchers.Main) {
@@ -167,7 +167,7 @@ class DynamicBackgroundProcessor(
         val topEdge = smoothColorArray(rawTopEdge, radiusW)
         val bottomEdge = smoothColorArray(rawBottomEdge, radiusW)
 
-        // Pillarbox bars (space left/right of image) — one horizontal line per row,
+        // Pillarbox bars (space left/right of image) - one horizontal line per row,
         // colour taken from the nearest left/right edge pixel of the source.
         if (imgLeft > 0) {
             for (vpY in 0 until sh) {
@@ -180,9 +180,9 @@ class DynamicBackgroundProcessor(
             }
         }
 
-        // Letterbox bars (space above/below image) — one vertical line per column,
+        // Letterbox bars (space above/below image) - one vertical line per column,
         // colour taken from the top/bottom edge pixel of that source column.
-        // This produces horizontal colour variation that matches the image edge —
+        // This produces horizontal colour variation that matches the image edge -
         // the bar looks like a natural extension of the top/bottom row of the photo.
         if (imgTop > 0) {
             val imgBottom = imgTop + displayedH
@@ -238,7 +238,7 @@ class DynamicBackgroundProcessor(
 
     private fun applyBackground(bgBitmap: Bitmap) {
         val previousBitmap = (backgroundView.drawable as? BitmapDrawable)?.bitmap
-        // Apply bitmap and make visible atomically — no GPU effect applied after the fact.
+        // Apply bitmap and make visible atomically - no GPU effect applied after the fact.
         backgroundView.isVisible = false
         backgroundView.setImageBitmap(bgBitmap)
         previousBitmap?.takeIf { !it.isRecycled }?.recycle()

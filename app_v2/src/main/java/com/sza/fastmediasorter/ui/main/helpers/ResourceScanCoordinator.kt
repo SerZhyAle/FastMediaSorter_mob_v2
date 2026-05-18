@@ -155,7 +155,7 @@ class ResourceScanCoordinator(
      * Scan single resource. Returns write status if available, null if unavailable.
      */
     private suspend fun scanSingleResource(resource: MediaResource): Boolean? {
-        // Virtual resources are always available and never writable — skip testConnection/isWritable
+        // Virtual resources are always available and never writable - skip testConnection/isWritable
         if (VirtualPathUtils.isVirtualPath(resource.path)) {
             return processVirtualResource(resource)
         }

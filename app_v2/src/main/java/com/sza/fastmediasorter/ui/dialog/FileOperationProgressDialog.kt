@@ -173,7 +173,7 @@ class FileOperationProgressDialog(
         tvCurrentFile.text = progress.currentFile
         tvOverallPercent.text = if (overallPercent != null) "$overallPercent%" else ""
         tvEta.text = if (etaSeconds > 0L && overallPercent != null) formatEta(etaSeconds) else ""
-        tvOverallPercent.contentDescription = "${overallPercent ?: "—"}%"
+        tvOverallPercent.contentDescription = "${overallPercent ?: "-"}%"
 
         if (progress.speedBytesPerSecond > 0) {
             tvSpeed.text = formatSpeed(progress.speedBytesPerSecond)
@@ -192,7 +192,7 @@ class FileOperationProgressDialog(
 
     override fun onStart() {
         super.onStart()
-        // Set dialog width to 90% of screen width — default Dialog window is too narrow
+        // Set dialog width to 90% of screen width - default Dialog window is too narrow
         window?.setLayout(
             (context.resources.displayMetrics.widthPixels * 0.90).toInt(),
             android.view.WindowManager.LayoutParams.WRAP_CONTENT

@@ -19,7 +19,7 @@ class DeleteResourceUseCase @Inject constructor(
             StructuredLogger.d("START delete resource", "resourceId" to resourceId)
 
             // Cancel WorkManager tasks for any scheduled operations that use this resource
-            // before deleting — Room FK CASCADE will remove the DB rows automatically.
+            // before deleting - Room FK CASCADE will remove the DB rows automatically.
             val affectedOps = scheduledOperationRepository.getAllEnabled()
                 .filter { it.sourceResourceId == resourceId || it.targetResourceId == resourceId }
             affectedOps.forEach { op ->

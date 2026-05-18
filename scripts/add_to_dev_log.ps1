@@ -42,14 +42,14 @@ $ErrorActionPreference = "Stop"
 if ([string]::IsNullOrEmpty($Branch)) {
     $detectedBranch = (git branch --show-current 2>$null).Trim()
     if ([string]::IsNullOrEmpty($detectedBranch)) {
-        # Detached HEAD — use short SHA
+        # Detached HEAD - use short SHA
         $shortSha = (git rev-parse --short HEAD 2>$null).Trim()
         $detectedBranch = if ($shortSha) { "detached/$shortSha" } else { "unknown" }
     }
     $Branch = $detectedBranch
 }
 
-# Resolve paths — script is at <repo>/scripts/add_to_dev_log.ps1
+# Resolve paths - script is at <repo>/scripts/add_to_dev_log.ps1
 $scriptDir = $PSScriptRoot
 if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $repoRoot = Split-Path -Parent $scriptDir

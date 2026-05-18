@@ -438,7 +438,7 @@ class ImportSettingsUseCase @Inject constructor(
                     val srcKey = "${data["sourceResourcePath"]}|${data["sourceResourceType"]}"
                     val srcResource = resourceLookup[srcKey]
                     if (srcResource == null) {
-                        Timber.w("ImportSettings: ScheduledOp skipped — source not found: $srcKey")
+                        Timber.w("ImportSettings: ScheduledOp skipped - source not found: $srcKey")
                         return@forEach
                     }
 
@@ -451,7 +451,7 @@ class ImportSettingsUseCase @Inject constructor(
                     val opType = runCatching { ScheduledOpType.valueOf(data["operationType"] ?: "") }
                         .getOrElse { ScheduledOpType.COPY }
                     if (opType != ScheduledOpType.DELETE && dstResource == null) {
-                        Timber.w("ImportSettings: ScheduledOp skipped — target not found for $opType")
+                        Timber.w("ImportSettings: ScheduledOp skipped - target not found for $opType")
                         return@forEach
                     }
 

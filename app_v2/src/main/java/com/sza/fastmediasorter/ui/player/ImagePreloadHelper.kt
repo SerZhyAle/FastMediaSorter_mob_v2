@@ -78,7 +78,7 @@ class ImagePreloadHelper(
         val minimumRequiredMb = relativeFloorMb.coerceAtLeast(MIN_NATIVE_HEAP_FREE_MB)
         if (nativeHeapFree < minimumRequiredMb) {
             Timber.d(
-                "ImagePreloadHelper: Preload skipped — native heap low (${nativeHeapFree}MB free, needs ${minimumRequiredMb}MB, ${freePercent}% of ${nativeHeapTotal}MB)"
+                "ImagePreloadHelper: Preload skipped - native heap low (${nativeHeapFree}MB free, needs ${minimumRequiredMb}MB, ${freePercent}% of ${nativeHeapTotal}MB)"
             )
             return
         }

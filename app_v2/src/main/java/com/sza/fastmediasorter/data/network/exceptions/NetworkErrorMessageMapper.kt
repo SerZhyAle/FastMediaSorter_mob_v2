@@ -22,7 +22,7 @@ object NetworkErrorMessageMapper {
         is NetworkTimeoutException -> R.string.error_network_timeout
         is NetworkAccessDeniedException -> R.string.error_network_access_denied
         is NetworkFileNotFoundException -> R.string.error_network_not_found
-        // WifiRequiredException is a NetworkConnectionLostException subclass — must come first
+        // WifiRequiredException is a NetworkConnectionLostException subclass - must come first
         // so the more specific branch wins before the generic connection-lost branch.
         is WifiRequiredException -> R.string.error_wifi_required_smb
         is NetworkConnectionLostException -> R.string.error_network_connection_lost

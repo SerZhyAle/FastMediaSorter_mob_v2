@@ -34,7 +34,7 @@ import java.io.File
  * Manages Chromecast media output from the player.
  *
  * Supported media types: IMAGE, GIF, AUDIO, VIDEO (local or small network/cloud files).
- * Placement: tapped via overflow menu item — same UX as "Search in YouTube Music".
+ * Placement: tapped via overflow menu item - same UX as "Search in YouTube Music".
  *
  * Architecture:
  * - [showCastDialog] opens the MediaRoute chooser so the user picks a device.
@@ -118,11 +118,11 @@ class CastMediaManager(
      */
     fun init() {
         if (!BuildConfig.SUPPORT_CAST) {
-            Timber.i("CastMediaManager: cast not supported on this platform — init skipped")
+            Timber.i("CastMediaManager: cast not supported on this platform - init skipped")
             return
         }
         if (!PermissionHelper.hasLocalNetworkPermission(context)) {
-            Timber.i("CastMediaManager: local network permission not granted — Cast init deferred")
+            Timber.i("CastMediaManager: local network permission not granted - Cast init deferred")
             return
         }
         try {
@@ -140,7 +140,7 @@ class CastMediaManager(
             castAvailableState.value = true
             Timber.d("CastMediaManager: initialized, isCasting=$_isCasting")
         } catch (e: Exception) {
-            Timber.w("CastMediaManager: Cast SDK not available — ${e.message}")
+            Timber.w("CastMediaManager: Cast SDK not available - ${e.message}")
             castContext = null
             castAvailableState.value = false
         }
@@ -156,7 +156,7 @@ class CastMediaManager(
                 CastSession::class.java
             )
         } catch (e: Exception) {
-            Timber.w("CastMediaManager: error removing listener — ${e.message}")
+            Timber.w("CastMediaManager: error removing listener - ${e.message}")
         }
         proxyServer.stop()
         _isCasting = false
@@ -183,7 +183,7 @@ class CastMediaManager(
             }
             return
         }
-        // Lazy recovery: permission just granted but init() was deferred — re-initialize now
+        // Lazy recovery: permission just granted but init() was deferred - re-initialize now
         if (castContext == null && BuildConfig.SUPPORT_CAST) {
             init()
         }
@@ -219,7 +219,7 @@ class CastMediaManager(
      */
     fun sendCurrentMedia(file: MediaFile) {
         if (!_isCasting || currentSession == null) {
-            Timber.d("CastMediaManager: sendCurrentMedia called but not casting — ignoring")
+            Timber.d("CastMediaManager: sendCurrentMedia called but not casting - ignoring")
             return
         }
         downloadJob?.cancel()
@@ -306,7 +306,7 @@ class CastMediaManager(
         remoteClient.load(request)
             .setResultCallback { result ->
                 if (!result.status.isSuccess) {
-                    Timber.w("CastMediaManager: load failed — ${result.status.statusMessage}")
+                    Timber.w("CastMediaManager: load failed - ${result.status.statusMessage}")
                     Toast.makeText(context, R.string.cast_error_load, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -317,7 +317,7 @@ class CastMediaManager(
      * Returns null on failure.
      *
      * Delegates to [NetworkFileManager.prepareFileForRead], which routes through
-     * UnifiedFileCache and shares cached files with the player — re-casting the
+     * UnifiedFileCache and shares cached files with the player - re-casting the
      * same file in a session is therefore instant.
      */
     private suspend fun downloadToTemp(file: MediaFile): File? = withContext(Dispatchers.IO) {

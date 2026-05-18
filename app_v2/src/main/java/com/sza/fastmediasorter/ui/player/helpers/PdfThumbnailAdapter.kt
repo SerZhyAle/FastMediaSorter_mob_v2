@@ -128,7 +128,7 @@ class PdfThumbnailAdapter(
     }
 
     companion object {
-        const val THUMBNAIL_WIDTH = 300  // ~100dp on xxhdpi — fills 3-column grid cell
+        const val THUMBNAIL_WIDTH = 300  // ~100dp on xxhdpi - fills 3-column grid cell
         const val THUMBNAIL_MAX_DIM = 500
         const val MAX_CACHED_THUMBNAILS = 30  // reduced: larger bitmaps (~480KB each)
     }

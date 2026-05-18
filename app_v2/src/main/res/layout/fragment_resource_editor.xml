@@ -109,7 +109,7 @@
 
                             </LinearLayout>
 
-                            <!-- Test Connection placed here: after credentials, before share/path — per spec F5.2 / F5.3 -->
+                            <!-- Test Connection placed here: after credentials, before share/path - per spec F5.2 / F5.3 -->
                             <LinearLayout android:id="@+id/groupConnectionResult" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:orientation="vertical" android:visibility="gone" tools:visibility="visible">
 
                                 <TextView android:id="@+id/tvConnectionStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" tools:text="Connection successful" tools:textColor="@color/success_green" />

@@ -4,8 +4,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -18,34 +16,24 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
-/**
- * Manages Draw Mode for the image player (S0107).
- *
- * Responsibilities:
- * - Draw Mode state machine (enter / exit).
- * - Transparent canvas overlay (DrawCanvasView) with brush, rectangle, eraser tools.
- * - ViewPager swipe blocking during Draw Mode.
- * - Screen orientation lock (ADR-4).
- * - Back-press interception.
- * - Save callback interface consumed by Phase 04.
- */
+/** Manages image-player Draw Mode, including canvas overlay, toolbar binding, orientation lock, back handling, and save callbacks. */
 class ImageDrawOverlayManager(
     private val activity: Activity,
     private val imageContainer: ViewGroup,
     // S0162 ADR-4: restore rotation manager state on draw-mode exit (not unconditional UNSPECIFIED)
     private val screenRotationManager: ScreenRotationManager? = null,
     private val hasAccelerometer: Boolean = false,
-    // S0192 Phase 05 — Keep export dependency, used by the overflow menu.
+    // S0192 Phase 05 - Keep export dependency, used by the overflow menu.
     private val keepExportHelper: DrawKeepExportHelper
 ) {
 
     enum class DrawTool { BRUSH, RECTANGLE, OVAL, ERASER, TEXT }
 
-    // S0192 Phase 05 — DrawColor enum dropped (old toolbar bindings removed).
+    // S0192 Phase 05 - DrawColor enum dropped (old toolbar bindings removed).
     // Live state is the ARGB Int `selectedColorArgb`.
 
     /**
-     * S0192 Phase 01 — per-action drawing primitives.
+     * S0192 Phase 01 - per-action drawing primitives.
      *
      * Replay model: the canvas is rebuilt on every onDraw by iterating this list.
      * Eraser is encoded as a Stroke whose color == Color.TRANSPARENT; the replay
@@ -72,7 +60,7 @@ class ImageDrawOverlayManager(
             val width: Float
         ) : DrawAction()
 
-        // S0192 Phase 03 — Oval and Text variants.
+        // S0192 Phase 03 - Oval and Text variants.
         data class ShapeOval(
             val left: Float,
             val top: Float,
@@ -96,7 +84,7 @@ class ImageDrawOverlayManager(
     }
 
     /**
-     * S0192 Phase 06 — in-place save callback. Fired by the `[Save]` button to
+     * S0192 Phase 06 - in-place save callback. Fired by the `[Save]` button to
      * overwrite the current file. The activity-side implementation decides on
      * the read-only / non-local silent fallback per ADR-4.
      */
@@ -109,9 +97,7 @@ class ImageDrawOverlayManager(
 
     var selectedTool: DrawTool = DrawTool.BRUSH
 
-    // S0192 Phase 02 — live state is now an ARGB Int (sourced from prefs at
-    // enterDrawMode). The DrawColor enum is preserved for the legacy toolbar
-    // binding until Phase 05 replaces it.
+    // S0192 Phase 02 - live state is an ARGB Int sourced from prefs at enterDrawMode.
     var selectedColorArgb: Int = 0xFFE53935.toInt() // Red default
 
     var saveCallback: DrawOverlaySaveCallback? = null
@@ -119,7 +105,7 @@ class ImageDrawOverlayManager(
     var editModeCallback: ((com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit)? = null
 
     /**
-     * S0192 Phase 05 — supplied by the host activity. Returns the bitmap of the
+     * S0192 Phase 05 - supplied by the host activity. Returns the bitmap of the
      * currently displayed image (used by the Keep export pipeline and, in
      * Phase 06, by the in-place save flow).
      */
@@ -136,11 +122,10 @@ class ImageDrawOverlayManager(
     fun enterDrawMode() {
         if (isDrawModeActive) return
         isDrawModeActive = true
-        // S0192 Phase 02 — restore last used color from persistent prefs
+        // S0192 Phase 02 - restore last used color from persistent prefs
         selectedColorArgb = DrawEditorPrefs.getLastColor(activity)
         editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.DRAW)
 
-        // Inflate canvas and add to image container
         val canvas = DrawCanvasView(activity)
         drawCanvasView = canvas
         imageContainer.addView(canvas, ViewGroup.LayoutParams(
@@ -148,13 +133,11 @@ class ImageDrawOverlayManager(
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
-        // Block parent ViewPager from stealing touch events
         imageContainer.requestDisallowInterceptTouchEvent(true)
 
-        // Lock screen orientation (ADR-4: no rotation inside Draw Mode)
+        // ADR-4: no rotation inside Draw Mode.
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
 
-        // Show toolbar if already bound
         toolbarRoot?.visibility = View.VISIBLE
     }
 
@@ -181,7 +164,6 @@ class ImageDrawOverlayManager(
         val dotIndex = originalName.lastIndexOf('.')
         val baseName = if (dotIndex > 0) originalName.substring(0, dotIndex) else originalName
         val ext = if (dotIndex > 0) originalName.substring(dotIndex) else ""
-        // ext contains a leading dot (e.g. ".jpg") — strip it before passing to buildName
         val extNoDot = ext.trimStart('.')
         val defaultFilename = ImageEditorFileNamer.buildName(baseName, extNoDot, ImageEditorFileNamer.DRAW)
 
@@ -233,14 +215,14 @@ class ImageDrawOverlayManager(
     // ── Toolbar binding (Phase 05) ─────────────────────────────────────────
 
     /**
-     * S0192 Phase 05 — toolbar v2 wiring.
+     * S0192 Phase 05 - toolbar v2 wiring.
      *
      * Layout contract (portrait + landscape mirror each other):
-     *   btn_draw_tool_selector — opens R.menu.menu_draw_tool_selector
-     *   color_black / color_white / color_red / color_custom — 4 swatches
-     *   btn_draw_overflow — opens R.menu.menu_draw_overflow (Save / Save as.. /
+     *   btn_draw_tool_selector - opens R.menu.menu_draw_tool_selector
+     *   color_black / color_white / color_red / color_custom - 4 swatches
+     *   btn_draw_overflow - opens R.menu.menu_draw_overflow (Save / Save as.. /
      *       Undo last / Undo all / Settings / Send to Google Keep)
-     *   btn_draw_close — exit Draw Mode without saving
+     *   btn_draw_close - exit Draw Mode without saving
      *
      * Phase 06 revision: the standalone in-place save button was removed; both
      * save modes now live inside the overflow popup. This eliminates the visual
@@ -323,7 +305,7 @@ class ImageDrawOverlayManager(
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         com.sza.fastmediasorter.R.id.draw_overflow_save_inplace -> {
-                            // Phase 06 — in-place overwrite. The activity-side
+                            // Phase 06 - in-place overwrite. The activity-side
                             // callback writes back to the current file and shows
                             // a success/failure toast; no filename prompt under
                             // any circumstances.
@@ -363,7 +345,7 @@ class ImageDrawOverlayManager(
     }
 
     /**
-     * S0192 Phase 05 — fires the Keep export pipeline. Needs the base bitmap
+     * S0192 Phase 05 - fires the Keep export pipeline. Needs the base bitmap
      * (the currently displayed photo) which the activity supplies via
      * [baseBitmapProvider]. Failures show the existing save-failed toast.
      */
@@ -423,7 +405,7 @@ class ImageDrawOverlayManager(
     }
 
     /**
-     * S0192 Phase 02 — single entry point for any "user picked a color" event.
+     * S0192 Phase 02 - single entry point for any "user picked a color" event.
      * Persists the choice and refreshes the toolbar selection ring.
      */
     private fun setActiveColor(argb: Int) {
@@ -437,7 +419,7 @@ class ImageDrawOverlayManager(
     private inner class DrawCanvasView(context: android.content.Context) :
         View(context) {
 
-        // S0192 Phase 01 — action-list replay model. The single accumulator bitmap
+        // S0192 Phase 01 - action-list replay model. The single accumulator bitmap
         // is gone: every stroke/shape lives in `actions` and is replayed on each
         // onDraw. Off-screen rendering is needed only at export time (getBitmap).
         private val actions = mutableListOf<DrawAction>()
@@ -570,7 +552,7 @@ class ImageDrawOverlayManager(
                         val color = if (selectedTool == DrawTool.ERASER) {
                             android.graphics.Color.TRANSPARENT
                         } else {
-                            // S0192 Phase 02 — bake opacity into ARGB at action creation (ADR-6)
+                            // S0192 Phase 02 - bake opacity into ARGB at action creation (ADR-6)
                             (selectedColorArgb and 0x00FFFFFF) or (DrawEditorPrefs.opacityAlpha(context) shl 24)
                         }
                         val width = if (selectedTool == DrawTool.ERASER) {
@@ -658,8 +640,8 @@ class ImageDrawOverlayManager(
         fun hasActions(): Boolean = actions.isNotEmpty()
 
         /**
-         * S0192 Phase 03 — Text tool entry point. Opens an AlertDialog with a
-         * single-line EditText (Antigravity §9.3 — multiline deferred). Empty
+         * S0192 Phase 03 - Text tool entry point. Opens an AlertDialog with a
+         * single-line EditText (Antigravity §9.3 - multiline deferred). Empty
          * input is silently ignored; non-empty input becomes a TextEntry action
          * at the tap coordinates with current color + opacity-baked alpha + the
          * paint-ready text size from prefs.

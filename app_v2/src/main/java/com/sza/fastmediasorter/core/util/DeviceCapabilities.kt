@@ -16,10 +16,10 @@ import timber.log.Timber
  *
  * - [DeviceCapabilities] classifies whether an optional feature can run at all
  *   on this device. The signal here is physical hardware (total RAM, API level,
- *   isLowRamDevice) — **not** the per-process heap limit.
+ *   isLowRamDevice) - **not** the per-process heap limit.
  *
  * Mixing the two led to a regression: Quest 3 (7 GB RAM, 512 MB heap) is classified
- * as [MemoryTier.LOW] for image sizing — which is correct — but the same tier was also
+ * as [MemoryTier.LOW] for image sizing - which is correct - but the same tier was also
  * gating OCR, even though ML Kit text recognition needs only ~50-100 MB and runs largely
  * on native code. As a result OCR was forced off on capable hardware. Feature-availability
  * checks must use this object; heap-bound subsystem tuning must keep using [MemoryTier].

@@ -49,7 +49,7 @@ class ResourceItemTouchCallback(
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        // Swipe disabled — nothing to do
+        // Swipe disabled - nothing to do
     }
 
     override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {

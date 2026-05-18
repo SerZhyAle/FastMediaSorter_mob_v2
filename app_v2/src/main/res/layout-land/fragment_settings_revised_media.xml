@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Keep the same hosted Media group order in landscape so S0125 preserves orientation
+         parity before Browse exposure. -->
+    <FrameLayout
+        android:id="@+id/revisedMediaContentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

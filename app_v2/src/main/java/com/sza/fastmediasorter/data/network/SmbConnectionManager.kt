@@ -77,15 +77,15 @@ class SmbConnectionManager @Inject constructor(
         // can be N × transactionTimeout before SMBRuntimeException(TimeoutException) is thrown.
         //
         // Tier selection is driven by NetworkSpeedTestUseCase results (readSpeedMbps):
-        //   FAST  (> 100 Mbps): 5 s — fast network, slow QUERY_DIRECTORY means broken NAS
-        //   MEDIUM (10–100 Mbps): 10 s — average home NAS / WiFi
-        //   SLOW  (< 10 Mbps or no data): 20 s — conservative; also used when isDegraded
+        //   FAST  (> 100 Mbps): 5 s - fast network, slow QUERY_DIRECTORY means broken NAS
+        //   MEDIUM (10–100 Mbps): 10 s - average home NAS / WiFi
+        //   SLOW  (< 10 Mbps or no data): 20 s - conservative; also used when isDegraded
         private const val TRANSACTION_TIMEOUT_FAST_MS = 5_000L   // > 100 Mbps
         private const val TRANSACTION_TIMEOUT_MEDIUM_MS = 10_000L // 10–100 Mbps
         private const val TRANSACTION_TIMEOUT_SLOW_MS = 20_000L   // < 10 Mbps or unknown
 
         // Socket SO_TIMEOUT (controls streaming reads, e.g. file downloads).
-        // Independent of transaction timeout — kept generous for large files.
+        // Independent of transaction timeout - kept generous for large files.
         private const val READ_TIMEOUT_MS = 90_000L  // normal connections
         private const val READ_TIMEOUT_DEGRADED_MS = 120_000L // degraded connections
         private const val WRITE_TIMEOUT_MS = 60_000L
@@ -96,7 +96,7 @@ class SmbConnectionManager @Inject constructor(
         private const val CONNECTION_TIMEOUT_DEGRADED_MS = TRANSACTION_TIMEOUT_SLOW_MS
         
         // Fast TCP pre-check before full SMBJ connect attempt
-        private const val CONNECTIVITY_CHECK_TIMEOUT_MS = 3000 // 3 seconds — 2× observed worst-case RTT (~1071ms)
+        private const val CONNECTIVITY_CHECK_TIMEOUT_MS = 3000 // 3 seconds - 2× observed worst-case RTT (~1071ms)
         
         // Timeout for no-response detection (connection appears dead)
         private const val NO_RESPONSE_TIMEOUT_MS = 15000L // 15 seconds
@@ -148,15 +148,17 @@ class SmbConnectionManager @Inject constructor(
     @Volatile
     private var resetCallback: SmbResetCallback? = null
     
-    // Lazy initialization of SMB clients — one per transaction-timeout tier.
+    // Lazy initialization of SMB clients - one per transaction-timeout tier.
     // Configs are immutable once built; tier selection happens in getClient().
     private val fastConfig by lazy {
         SmbConfig.builder()
             .withTimeout(TRANSACTION_TIMEOUT_FAST_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            .withReadBufferSize(65536)
-            .withWriteBufferSize(65536)
+            // S0247 spike: revert after measurement (was 65536)
+            .withReadBufferSize(1_048_576)
+            // S0247 spike: revert after measurement (was 65536)
+            .withWriteBufferSize(1_048_576)
             .withTransactBufferSize(4280)
             .build()
     }
@@ -166,8 +168,10 @@ class SmbConnectionManager @Inject constructor(
             .withTimeout(TRANSACTION_TIMEOUT_MEDIUM_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            .withReadBufferSize(65536)
-            .withWriteBufferSize(65536)
+            // S0247 spike: revert after measurement (was 65536)
+            .withReadBufferSize(1_048_576)
+            // S0247 spike: revert after measurement (was 65536)
+            .withWriteBufferSize(1_048_576)
             .withTransactBufferSize(4280)
             .build()
     }
@@ -180,8 +184,10 @@ class SmbConnectionManager @Inject constructor(
             .withTimeout(TRANSACTION_TIMEOUT_SLOW_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_DEGRADED_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            .withReadBufferSize(32768) // smaller buffer for degraded connections
-            .withWriteBufferSize(32768)
+            // S0247 spike: revert after measurement (was 32768 - smaller buffer for degraded connections)
+            .withReadBufferSize(1_048_576)
+            // S0247 spike: revert after measurement (was 32768)
+            .withWriteBufferSize(1_048_576)
             .withTransactBufferSize(4280)
             .build()
     }
@@ -238,7 +244,7 @@ class SmbConnectionManager @Inject constructor(
      */
     fun getClient(server: String, port: Int): SMBClient {
         val resourceKey = "smb://$server:$port"
-        // Runtime degradation always wins — server is already struggling.
+        // Runtime degradation always wins - server is already struggling.
         if (ConnectionThrottleManager.isDegraded(ConnectionThrottleManager.ProtocolLimits.SMB, resourceKey)) {
             return getDegradedClient()
         }
@@ -262,7 +268,7 @@ class SmbConnectionManager @Inject constructor(
     ): SmbResult<T> = connectionSemaphore.withPermit {
         lifecycleBootstrapper.get().ensureInitialized()
         // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
-        // Throws NetworkConnectionLostException — no socket attempt is made.
+        // Throws NetworkConnectionLostException - no socket attempt is made.
         reachabilityGate.requireWifi("SMB")
         val key = ConnectionKey(
             server = connectionInfo.server,
@@ -297,16 +303,16 @@ class SmbConnectionManager @Inject constructor(
         // Attempt 1: Try pooled connection
         val pooled = pool.get(key)
         // S0061 Phase 02: pre-acquire health probe. If the entry looks dead (local state check
-        // only — no I/O), drop it before opening session/share on top of a stale socket.
+        // only - no I/O), drop it before opening session/share on top of a stale socket.
         if (pooled != null && !healthProbe.isAlive(pooled)) {
             pool.removeAndCloseAsync(key)
-            Timber.i("SMB pool entry dead — removing, key=${key.server}:${key.port}/${key.shareName}")
+            Timber.i("SMB pool entry dead - removing, key=${key.server}:${key.port}/${key.shareName}")
             // Fall through to fresh-connect path below.
         } else if (pooled != null && timeSinceLastSuccess > IDLE_HEALTH_RECHECK_MS && !healthProbe.isAlive(pooled)) {
             // Secondary idle-path check: if the app was idle long enough, run the probe
             // even if the entry passed the first guard above (harmless double-check).
             pool.removeAndCloseAsync(key)
-            Timber.i("SMB pool entry dead after idle ${timeSinceLastSuccess}ms — removing, key=${key.server}:${key.port}")
+            Timber.i("SMB pool entry dead after idle ${timeSinceLastSuccess}ms - removing, key=${key.server}:${key.port}")
         } else if (pooled != null && isConnectionValid(pooled)) {
             pooled.lastUsed = System.currentTimeMillis()
             
@@ -340,9 +346,9 @@ class SmbConnectionManager @Inject constructor(
         }
         
         // Smart retry: TCP precheck once. If host is unreachable at the TCP layer, skip the
-        // degraded retry — the server is dead, prolonging the wait will not help.
+        // degraded retry - the server is dead, prolonging the wait will not help.
         // Skip the precheck entirely when the pool already holds a live connection to this
-        // server:port (any share) — the server is clearly reachable.
+        // server:port (any share) - the server is clearly reachable.
         val serverKnown = pool.hasActiveConnectionForServer(connectionInfo.server, connectionInfo.port)
         val tcpReachable = if (serverKnown) {
             Timber.d("SMB TCP precheck skipped: live pool entry for ${connectionInfo.server}:${connectionInfo.port}")
@@ -351,7 +357,7 @@ class SmbConnectionManager @Inject constructor(
             checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
         }
         if (!tcpReachable) {
-            Timber.w("SMB TCP precheck failed: ${connectionInfo.server}:${connectionInfo.port} — fast-fail without retry")
+            Timber.w("SMB TCP precheck failed: ${connectionInfo.server}:${connectionInfo.port} - fast-fail without retry")
             return@withPermit handleFreshConnectionFailure(
                 key, connectionInfo,
                 IOException("Server unreachable (${connectionInfo.server}:${connectionInfo.port})")
@@ -367,7 +373,7 @@ class SmbConnectionManager @Inject constructor(
             freshConnectionAttempts++
             try {
                 // First attempt: always use normal timeouts (fast failure).
-                // Degraded client (extended timeouts) only on retry — server proved reachable but slow.
+                // Degraded client (extended timeouts) only on retry - server proved reachable but slow.
                 val newPooled = createFreshConnection(
                     connectionInfo,
                     useDegradedTimeout = freshConnectionAttempts > 1 && allowRetry
@@ -402,7 +408,7 @@ class SmbConnectionManager @Inject constructor(
                 }
                 if (freshConnectionAttempts < maxAttempts) {
                     // S0061: log the actual reason instead of misleading "longer timeout" message.
-                    Timber.i("SMB fresh-connect attempt $freshConnectionAttempts failed (reason=${healthProbe.classify(e)}) — retrying")
+                    Timber.i("SMB fresh-connect attempt $freshConnectionAttempts failed (reason=${healthProbe.classify(e)}) - retrying")
                     delay(RETRY_DELAY_MS)
                 }
             }
@@ -413,7 +419,7 @@ class SmbConnectionManager @Inject constructor(
     
     /**
      * Create a new SMB connection and add to pool. TCP precheck is performed by the caller in
-     * `withConnection` — kept out of here so the retry decision can consult its outcome.
+     * `withConnection` - kept out of here so the retry decision can consult its outcome.
      * @param useDegradedTimeout if true, use extended timeouts for recovery scenarios
      */
     private suspend fun createFreshConnection(
@@ -715,14 +721,14 @@ class SmbConnectionManager @Inject constructor(
     }
     
     /**
-     * Close connection asynchronously — delegated to [SmbConnectionPool].
+     * Close connection asynchronously - delegated to [SmbConnectionPool].
      */
     private fun closeConnectionAsync(pooled: PooledConnection) {
         pool.closeConnectionAsync(pooled)
     }
     
     /**
-     * Close all pooled connections asynchronously — delegated to [SmbConnectionPool].
+     * Close all pooled connections asynchronously - delegated to [SmbConnectionPool].
      */
     private fun closeAllConnections() {
         // WHY: when the pool is force-closed or reset, stale idle callbacks must not race later
@@ -740,7 +746,7 @@ class SmbConnectionManager @Inject constructor(
     /**
      * Invalidate and close the pooled ExoPlayer connection for [connectionInfo].
      * Call this from SmbDataSource.open when a share operation fails with a transport error
-     * on a connection that previously passed isConnectionValid() — SMBJ's isConnected flag
+     * on a connection that previously passed isConnectionValid() - SMBJ's isConnected flag
      * does not detect TCP-level silent drops until an actual write attempt is made.
      */
     fun invalidateExoPlayerConnection(connectionInfo: SmbConnectionInfo) {
@@ -857,13 +863,13 @@ class SmbConnectionManager @Inject constructor(
      * operation path. Forces the next [client.connect()] to open a real new TCP socket instead
      * of reusing the stale one that SMBJ keeps in its connection table.
      *
-     * Safe to call concurrently — pool operations are atomic; client nullification is done
+     * Safe to call concurrently - pool operations are atomic; client nullification is done
      * under [resetClients] which is synchronised on `this`.
      */
     private fun purgeClientForHost(host: String, port: Int) {
         // Remove every pool entry for this host:port (async close so we don't block the caller).
         val removed = pool.removeMatchingAndCloseAsync { key -> key.server == host && key.port == port }
-        Timber.i("SMB purge: host=$host:$port — connection cache cleared ($removed entries)")
+        Timber.i("SMB purge: host=$host:$port - connection cache cleared ($removed entries)")
         // Reset all SMBClient instances so their internal Connection tables are discarded.
         // The next getClient() lazy-init produces a fresh SMBClient with an empty table.
         resetClients()
@@ -908,7 +914,7 @@ class SmbConnectionManager @Inject constructor(
         idleDisconnectPolicy.touch(idleTransportKey)
         
         // Try pooled connection first.
-        // Only reuse if the pool entry was created on the PLAYER path — scanner-sourced
+        // Only reuse if the pool entry was created on the PLAYER path - scanner-sourced
         // connections have been observed hanging on the first SMB2 CREATE for ExoPlayer
         // (TCP socket silently dropped while idle between scan end and playback start).
         // S0061: also gate on healthProbe.isAlive to catch server-side FIN before session-setup.
@@ -921,7 +927,7 @@ class SmbConnectionManager @Inject constructor(
             return pooled
         }
         if (pooled != null && pooled.consumer != ConnectionConsumer.PLAYER) {
-            Timber.d("SmbConnectionManager: Pool entry tagged ${pooled.consumer} — forcing fresh PLAYER connection")
+            Timber.d("SmbConnectionManager: Pool entry tagged ${pooled.consumer} - forcing fresh PLAYER connection")
         }
 
         // Stale or absent pool entry: close it before fresh connect.
@@ -980,7 +986,7 @@ class SmbConnectionManager @Inject constructor(
                 // S0061 Phase 02: on transport/socket error, purge SMBJ's internal Connection
                 // cache so attempt 2 opens a real new TCP socket instead of reusing the stale one.
                 if (isTransportOrBrokenPipe(e) && attempt == 1) {
-                    Timber.i("SMB connect dead, reason=${healthProbe.classify(e)} — purging cache and retrying once")
+                    Timber.i("SMB connect dead, reason=${healthProbe.classify(e)} - purging cache and retrying once")
                     try { candidateConnection?.close() } catch (_: Exception) {}
                     purgeClientForHost(connectionInfo.server, connectionInfo.port)
                     continue

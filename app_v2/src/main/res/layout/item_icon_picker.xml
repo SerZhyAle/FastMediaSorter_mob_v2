@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- item_icon_picker.xml — single icon cell in the picker grid (S0034 Phase 06).
+<!-- item_icon_picker.xml - single icon cell in the picker grid (S0034 Phase 06).
      56dp square frame: centred icon ImageView + selection-ring overlay (gone by default). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/icon_picker_item_size"
@@ -15,7 +15,7 @@
         android:scaleType="fitCenter"
         android:contentDescription="@null" />
 
-    <!-- Selection highlight ring — visible only for the currently-selected icon -->
+    <!-- Selection highlight ring - visible only for the currently-selected icon -->
     <View
         android:id="@+id/vSelected"
         android:layout_width="match_parent"

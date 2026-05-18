@@ -62,7 +62,7 @@ class SmbDataSource(
         // a 64 KB chunk comfortably while still surfacing a silent-drop hang promptly.
         private const val READ_WATCHDOG_TIMEOUT_MS = 15_000L
 
-        // Daemon executor shared across SmbDataSource instances — cheap to keep alive
+        // Daemon executor shared across SmbDataSource instances - cheap to keep alive
         // and avoids spawning a thread per DataSource construction. Used for both open()
         // and read() watchdog wrappers; a cached pool reuses idle threads for each read.
         private val smbWatchdogExecutor = Executors.newCachedThreadPool { r ->
@@ -119,13 +119,13 @@ class SmbDataSource(
         }
         val key = connectionKey()
         val tracker = smbClient.playbackConnectionTracker
-        // S0148: fail-fast is attempt-scoped — a recent watchdog blocks only a retry of the
+        // S0148: fail-fast is attempt-scoped - a recent watchdog blocks only a retry of the
         // *same* file (same media-item URI), or any file once the server-escalation threshold
         // is hit. Advancing to a different file on the same server gets an honest attempt.
         val requestUri = dataSpec.uri.toString()
         val failFast = tracker.isRecentWatchdog(key, requestUri)
         if (failFast) {
-            Timber.e("[SMB-PLAY] fail-fast: recent watchdog for ${connectionInfo.server} — aborting retry")
+            Timber.e("[SMB-PLAY] fail-fast: recent watchdog for ${connectionInfo.server} - aborting retry")
             throw IOException("SMB playback fail-fast: watchdog timeout on previous attempt")
         }
         tracker.onConnectionCreated(key)
@@ -141,7 +141,7 @@ class SmbDataSource(
         } catch (te: TimeoutException) {
             tracker.recordWatchdog(key, requestUri)
             Timber.e(
-                "[SMB-PLAY] open watchdog after ${OPEN_WATCHDOG_TIMEOUT_MS}ms — " +
+                "[SMB-PLAY] open watchdog after ${OPEN_WATCHDOG_TIMEOUT_MS}ms - " +
                 "state=${tracker.getStateName(key)}, server=${connectionInfo.server}"
             )
             try {
@@ -182,7 +182,7 @@ class SmbDataSource(
             // Store references
             share = pooledConnection.share
             
-            // Open file — retry once if the pooled connection is stale.
+            // Open file - retry once if the pooled connection is stale.
             // isConnectionValid() cannot detect a TCP-level silent drop (the server closed the socket
             // without sending FIN/RST), so the pool may return a connection that looks valid but whose
             // DiskShare.openFile() will fail with a SocketException / TransportException ("Broken pipe").
@@ -198,7 +198,7 @@ class SmbDataSource(
                 )
             } catch (e: Exception) {
                 if (SmbErrorClassifier.isTransportOrBrokenPipe(e)) {
-                    Timber.w("SmbDataSource.open: Stale share detected on openFile (${e.javaClass.simpleName}: ${e.message}) — invalidating and retrying")
+                    Timber.w("SmbDataSource.open: Stale share detected on openFile (${e.javaClass.simpleName}: ${e.message}) - invalidating and retrying")
                     smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
                     pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
                     share = pooledConnection.share
@@ -282,7 +282,7 @@ class SmbDataSource(
             }
         } catch (e: Exception) {
             if (isInterruptionOrTimeout(e)) {
-                // Normal during rapid file switching or player release — not an error
+                // Normal during rapid file switching or player release - not an error
                 Timber.d("SmbDataSource.open: Interrupted/timeout during open (player released?) - ${e.message}")
                 // Restore interrupt flag consumed by Thread.interrupted() earlier
                 if (e is InterruptedException) Thread.currentThread().interrupt()
@@ -295,7 +295,7 @@ class SmbDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        // Fast-path: empty / EOF checks don't need the watchdog — they never touch SMB.
+        // Fast-path: empty / EOF checks don't need the watchdog - they never touch SMB.
         if (length == 0) return 0
         if (bytesRemaining == 0L) return C.RESULT_END_OF_INPUT
 
@@ -312,7 +312,7 @@ class SmbDataSource(
             smbClient.playbackConnectionTracker.recordWatchdog(key, uri?.toString().orEmpty())
             Timber.e(
                 "[SMB-PLAY] read watchdog after ${READ_WATCHDOG_TIMEOUT_MS}ms at position=$currentPosition " +
-                "— state=${smbClient.playbackConnectionTracker.getStateName(key)}, server=${connectionInfo.server}"
+                "- state=${smbClient.playbackConnectionTracker.getStateName(key)}, server=${connectionInfo.server}"
             )
             try {
                 smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
@@ -416,10 +416,10 @@ class SmbDataSource(
                 lastException = e
                 
                 // Check if this is a normal interruption (user closed player).
-                // Use isInterruptionOrTimeout() to walk the full cause chain — this correctly
+                // Use isInterruptionOrTimeout() to walk the full cause chain - this correctly
                 // handles SMBRuntimeException wrapping InterruptedException (SMBJ SequenceWindow).
                 if (isInterruptionOrTimeout(e)) {
-                    Timber.d("SmbDataSource: Read operation interrupted (player closed) — ${e.javaClass.simpleName}: ${e.message}")
+                    Timber.d("SmbDataSource: Read operation interrupted (player closed) - ${e.javaClass.simpleName}: ${e.message}")
                     throw IOException("Read interrupted", e)
                 }
 
@@ -514,7 +514,7 @@ class SmbDataSource(
         Timber.i("[SMB-PLAY] reopenConnection: file=${uri?.lastPathSegment}, position=$currentPosition")
         try { file?.close() } catch (_: Exception) {}
         file = null
-        // share is pool-managed — do not close it here.
+        // share is pool-managed - do not close it here.
         // Invalidate via the manager so it evicts and purges SMBJ's internal cache.
         share = null
 
@@ -564,7 +564,7 @@ class SmbDataSource(
         try { file?.close() } catch (_: Exception) {}
         file = null
         
-        // share is managed by SmbConnectionManager pool — only clear the reference
+        // share is managed by SmbConnectionManager pool - only clear the reference
         share = null
     }
 
@@ -586,7 +586,7 @@ class SmbDataSource(
             file = null
         }
 
-        // share is managed by SmbConnectionManager pool — only clear the reference
+        // share is managed by SmbConnectionManager pool - only clear the reference
         share = null
 
         if (opened) {

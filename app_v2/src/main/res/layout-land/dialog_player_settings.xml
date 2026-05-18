@@ -228,7 +228,7 @@
         android:background="@drawable/spinner_background"
         android:padding="@dimen/padding_small" />
 
-    <!-- 3D Video Section — mirrors portrait layout; must stay in sync with layout/dialog_player_settings.xml -->
+    <!-- 3D Video Section - mirrors portrait layout; must stay in sync with layout/dialog_player_settings.xml -->
     <TextView
         android:id="@+id/tv3DVideoLabel"
         android:layout_width="match_parent"

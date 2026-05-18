@@ -9,21 +9,21 @@
 
     <path android:fillColor="#F5F5F5" android:pathData="M0,0H220V160H0Z" />
 
-    <!-- Row 1 — LOCAL -->
+    <!-- Row 1 - LOCAL -->
     <path android:fillColor="#E8F5E9" android:pathData="M12,12H208V52H12Z" />
     <path android:fillColor="#43A047" android:pathData="M22,32 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 Z" />
     <path android:fillColor="#FFFFFF" android:pathData="M28,28H40V36H28Z" />
     <path android:fillColor="#1B5E20" android:fillAlpha="0.18" android:pathData="M56,24H164V30H56Z" />
     <path android:fillColor="#1B5E20" android:fillAlpha="0.14" android:pathData="M56,36H124V42H56Z" />
 
-    <!-- Row 2 — NETWORK -->
+    <!-- Row 2 - NETWORK -->
     <path android:fillColor="#E3F2FD" android:pathData="M12,60H208V100H12Z" />
     <path android:fillColor="#1E88E5" android:pathData="M22,80 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 Z" />
     <path android:fillColor="#FFFFFF" android:pathData="M28,75H40V79H28Z M28,81H40V85H28Z" />
     <path android:fillColor="#0D47A1" android:fillAlpha="0.18" android:pathData="M56,72H172V78H56Z" />
     <path android:fillColor="#0D47A1" android:fillAlpha="0.14" android:pathData="M56,84H132V90H56Z" />
 
-    <!-- Row 3 — CLOUD -->
+    <!-- Row 3 - CLOUD -->
     <path android:fillColor="#F3E5F5" android:pathData="M12,108H208V148H12Z" />
     <path android:fillColor="#8E24AA" android:pathData="M22,128 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 Z" />
     <path android:fillColor="#FFFFFF" android:pathData="M27,126 a4,4 0 0,1 8,-2 a5,5 0 0,1 6,4 a3,3 0 0,1 -1,6 H30 a4,4 0 0,1 -3,-8 Z" />

@@ -41,8 +41,20 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         onAuthRetryRequested: suspend (originalUrl: String) -> Unit = {},
     ) {
         val openInPlayer = settings.getSettings().first().linkAutoDownloadOpenInPlayer
+        // S0223: a single-asset video saved through the Downloads fallback path (typical for
+        // Instagram `/p/` single-video posts that ig-api sniffs as a 1-asset result with mp4
+        // candidates) is functionally complete from the user's perspective. The legacy
+        // "FellBackToDownloads" label suggests the download partially failed, which it did
+        // not - relabel that sub-case as "SingleVideoSaved" for analytics and trace logs.
+        // No behaviour change; this only renames the log line emitted on line below.
+        val outcomeLabel = when (result) {
+            is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ->
+                if (result.fileName.looksLikeSingleVideoArtifact()) "SingleVideoSaved"
+                else result::class.java.simpleName
+            else -> result::class.java.simpleName
+        }
         LinkDownloadTrace.tag(
-            "post-download UX, openInPlayer=$openInPlayer, outcome=${result::class.java.simpleName}",
+            "post-download UX, openInPlayer=$openInPlayer, outcome=$outcomeLabel",
         )
 
         when (result) {
@@ -109,26 +121,26 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             return
         }
 
-        // If we already had a session and the auth-retry round also failed — the extractor
+        // If we already had a session and the auth-retry round also failed - the extractor
         // cannot parse media from this page regardless of credentials.
         // Do NOT show the re-auth dialog again; that creates an infinite loop where the user
         // keeps seeing the already-logged-in WebView and pressing Save, to no avail.
         if (isAuthRetry && result.hadExistingSession) {
             Timber.i(
-                "[S0166] retry+session still preview-only — extractor limitation, not an auth issue: host=%s",
+                "[S0166] retry+session still preview-only - extractor limitation, not an auth issue: host=%s",
                 result.host,
             )
             toast(R.string.s0151_toast_content_unavailable)
             return
         }
 
-        // When a session already exists but extraction still failed — toast and stop.
+        // When a session already exists but extraction still failed - toast and stop.
         // The invisible WebView (InvisibleWebViewExtractionStrategy) already ran with the
         // stored cookies. If it returned social-preview-only it means the page structure
         // is not yet supported. Opening a visible browser here would confuse the user.
         if (result.hadExistingSession) {
             Timber.i(
-                "[S0166] existing session, extraction still failed — toast only: host=%s",
+                "[S0166] existing session, extraction still failed - toast only: host=%s",
                 result.host,
             )
             toast(R.string.s0151_toast_content_unavailable)
@@ -272,7 +284,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
     }
 
     /**
-     * S0200 — host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
+     * S0200 - host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
      * keeps the legacy WebView flow. CCT-unavailable triggers the refusal dialog on [hostActivity].
      */
     private fun openAuthFlow(hostActivity: AppCompatActivity, url: String, tag: String) {
@@ -300,5 +312,18 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
 
     private companion object {
         const val MAX_DIALOG_FAILURES = 5
+
+        // S0223: file-name shape that indicates the FellBackToDownloads result holds a
+        // single-asset video - typical for IG `/p/` single-video posts harvested via ig-api.
+        // Keep the list narrow: only extensions the writer is allowed to produce for video
+        // (.mp4 dominant, .webm/.mkv/.mov as long tail). Anything else stays under the
+        // original "FellBackToDownloads" outcome label so non-video fallbacks still surface
+        // as fallbacks in trace logs.
+        private val VIDEO_FALLBACK_EXTENSIONS = setOf(".mp4", ".webm", ".mkv", ".mov", ".m4v")
+
+        fun String.looksLikeSingleVideoArtifact(): Boolean {
+            val lower = lowercase()
+            return VIDEO_FALLBACK_EXTENSIONS.any { lower.endsWith(it) }
+        }
     }
 }

@@ -6,7 +6,7 @@ import android.widget.ImageView
 
 /**
  * Animates the inline-play button in MediaFileAdapter list items.
- * One instance per ListViewHolder — holds the running ObjectAnimator references so they
+ * One instance per ListViewHolder - holds the running ObjectAnimator references so they
  * can be cancelled on recycle / state change.
  */
 class InlinePlaybackAnimator(private val target: ImageView) {

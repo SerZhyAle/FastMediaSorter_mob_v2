@@ -39,7 +39,7 @@ class AudioInfoDisplayHelper(
 
         binding.audioInfoOverlay.isVisible = true
 
-        // audioFileName view is never used now — full filename is in top-left tvFileNameOverlay
+        // audioFileName view is never used now - full filename is in top-left tvFileNameOverlay
         safeViews.audioFileName.visibility = View.GONE
 
         val effectiveArtist = file.artist?.takeIf { it.isNotBlank() }

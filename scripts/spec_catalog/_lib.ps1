@@ -69,21 +69,21 @@ function Assert-Record {
         }
     }
     if ($Record.id -notmatch $script:IdPattern) {
-        throw "Invalid id '$($Record.id)' — must match $script:IdPattern."
+        throw "Invalid id '$($Record.id)' - must match $script:IdPattern."
     }
     if ($script:StatusEnum -notcontains $Record.status) {
         throw "Invalid status '$($Record.status)'. Allowed: $($script:StatusEnum -join ', ')."
     }
     $pri = [int]$Record.priority
     if ($pri -lt $script:PriorityMin -or $pri -gt $script:PriorityMax) {
-        throw "Invalid priority '$($Record.priority)' — must be in $script:PriorityMin..$script:PriorityMax."
+        throw "Invalid priority '$($Record.priority)' - must be in $script:PriorityMin..$script:PriorityMax."
     }
     $fileNorm = ($Record.file -replace '\\', '/')
     if ($fileNorm -notmatch $script:FilePattern) {
-        throw "Invalid file path '$($Record.file)' — must match $script:FilePattern (no '_spec_' segment)."
+        throw "Invalid file path '$($Record.file)' - must match $script:FilePattern (no '_spec_' segment)."
     }
     if ($fileNorm -match '\.\.') {
-        throw "Invalid file path '$($Record.file)' — must not contain '..' segments."
+        throw "Invalid file path '$($Record.file)' - must not contain '..' segments."
     }
 }
 

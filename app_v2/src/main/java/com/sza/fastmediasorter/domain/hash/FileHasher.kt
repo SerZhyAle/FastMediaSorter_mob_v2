@@ -13,7 +13,7 @@ interface FileHasher {
      * Pass [maxBytes] = -1L to hash the entire file (full hash / Phase 2).
      * Pass [maxBytes] = QUICK_HASH_BYTES (4096) for Phase 1 quick hash.
      *
-     * @throws Exception on IO failure — caller must handle and skip the file.
+     * @throws Exception on IO failure - caller must handle and skip the file.
      */
     suspend fun computeHash(
         file: MediaFile,

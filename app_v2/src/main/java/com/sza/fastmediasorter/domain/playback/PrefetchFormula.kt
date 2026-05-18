@@ -48,9 +48,9 @@ object PrefetchFormula {
      * Computes a plan from the given inputs.
      *
      * @param speedMbps measured read speed for the resource, or `null` if no speed
-     *   test has been run yet — in which case [protocol]'s baseline speed is assumed.
+     *   test has been run yet - in which case [protocol]'s baseline speed is assumed.
      * @param bitrateKbps file video bitrate in Kbps, or `null` before `onTracksChanged`
-     *   — in which case [protocol]'s baseline ratio is assumed.
+     *   - in which case [protocol]'s baseline ratio is assumed.
      * @param cacheBudgetBytes device byte budget from
      *   [com.sza.fastmediasorter.core.util.DeviceCapabilityProbe.currentBudget].
      * @param fileDurationSec total file duration in seconds, or `null` if unknown
@@ -97,7 +97,7 @@ object PrefetchFormula {
             Int.MAX_VALUE
         }
 
-        // Step 3: base target from physics — only meaningful for VIABLE/MARGINAL.
+        // Step 3: base target from physics - only meaningful for VIABLE/MARGINAL.
         // For NOT_VIABLE we still compute a safe floor so callers that ignore
         // viability get a defensible number.
         val safetyMargin = protocolSafetyMargin(protocol)
@@ -171,7 +171,7 @@ object PrefetchFormula {
 
     private fun bytesToSeconds(bytes: Long, bitrateKbps: Int): Int {
         if (bitrateKbps <= 0) return MAX_TARGET_SEC
-        // bytes / (kbps * 125) — 125 = 1000/8, converting kilobits to bytes.
+        // bytes / (kbps * 125) - 125 = 1000/8, converting kilobits to bytes.
         val sec = bytes.toDouble() / (bitrateKbps * 125.0)
         return sec.roundToInt().coerceAtLeast(MIN_TARGET_SEC)
     }

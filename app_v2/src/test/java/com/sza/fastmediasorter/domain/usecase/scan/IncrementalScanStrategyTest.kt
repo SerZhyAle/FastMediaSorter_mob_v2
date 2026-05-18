@@ -6,7 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * Tests for [IncrementalScanStrategy] — specifically the virtual-path guard
+ * Tests for [IncrementalScanStrategy] - specifically the virtual-path guard
  * in [IncrementalScanStrategy.currentFolderMtime].
  */
 class IncrementalScanStrategyTest {

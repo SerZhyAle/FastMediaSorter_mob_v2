@@ -27,7 +27,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0003 — strategic §5.1 pillar E: writes a downloaded stream into the configured
+ * S0003 - strategic §5.1 pillar E: writes a downloaded stream into the configured
  * destination resource (Local/SMB/SFTP/FTP/Cloud) via [FileOperationUseCase], or
  * falls back to MediaStore Downloads when the resource is missing/unavailable.
  *
@@ -86,10 +86,10 @@ class LinkDownloadWriter @Inject constructor(
 
             // S0170 BUG-2: validate the downloaded bytes before declaring success. A signed CDN
             // URL re-fetched without the WebView request context (Referer/UA) often yields a
-            // 403-HTML page, a JSON error, or a truncated chunk — none of which are playable.
+            // 403-HTML page, a JSON error, or a truncated chunk - none of which are playable.
             val sniff = sniffMedia(tempFile)
             if (sniff != null) {
-                Timber.w("LinkDownloadWriter: rejected corrupted download — kind=%s bytes=%d name=%s", sniff, totalBytes, fileName)
+                Timber.w("LinkDownloadWriter: rejected corrupted download - kind=%s bytes=%d name=%s", sniff, totalBytes, fileName)
                 return@withContext WriteResult.Corrupted(bytesWritten = totalBytes, sniffedKind = sniff)
             }
 
@@ -142,7 +142,7 @@ class LinkDownloadWriter @Inject constructor(
     }
 
     /**
-     * Duplicated logic from `SaveVideoFrameManager.saveToDownloads` — see S0003 phase 05.
+     * Duplicated logic from `SaveVideoFrameManager.saveToDownloads` - see S0003 phase 05.
      */
     private fun saveToDownloads(tempFile: File, fileName: String, mime: String): Uri? {
         return try {
@@ -193,7 +193,7 @@ class LinkDownloadWriter @Inject constructor(
     /**
      * S0170 BUG-2: lightweight content sniff. Returns `null` when the file looks like a usable
      * media container; otherwise a short reason string ("empty", "too-small", "html", "json").
-     * Deliberately lenient — only rejects clearly-wrong content (error pages, truncated stubs),
+     * Deliberately lenient - only rejects clearly-wrong content (error pages, truncated stubs),
      * never a real binary just because we don't enumerate its magic bytes.
      */
     private fun sniffMedia(file: File): String? {
@@ -228,7 +228,7 @@ class LinkDownloadWriter @Inject constructor(
 
         // Obvious error-page / metadata content → reject.
         when (head[0].toInt() and 0xFF) {
-            0x3C -> return "html"   // '<'  — HTML / XML
+            0x3C -> return "html"   // '<'  - HTML / XML
             0x7B, 0x5B -> return "json"  // '{' or '['
         }
         // Too small to be the media the user asked for (signed CDN error stubs are tiny).

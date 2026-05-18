@@ -1,4 +1,4 @@
-﻿# fix-yo.ps1 — Replace E with Yo where required in Russian text. \b works for Cyrillic.
+﻿# fix-yo.ps1 - Replace E with Yo where required in Russian text. \b works for Cyrillic.
 # Usage: .\scripts\utils\fix-yo.ps1 [-Apply] [-Verbose] [-File "path"]
 param([string]$File="",[switch]$Apply,[switch]$Verbose)
 $root = Split-Path $PSScriptRoot -Parent | Split-Path -Parent

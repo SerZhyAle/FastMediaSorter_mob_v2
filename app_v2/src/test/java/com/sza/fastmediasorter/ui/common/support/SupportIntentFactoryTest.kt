@@ -15,7 +15,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * S0118 — unit tests for [SupportIntentFactory].
+ * S0118 - unit tests for [SupportIntentFactory].
  *
  * Coverage:
  * - Localized help URL path (EN, RU, UK).

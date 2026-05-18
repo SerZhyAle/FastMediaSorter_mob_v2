@@ -32,7 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- Wearable Data Layer — receives resource push from the phone companion -->
+        <!-- Wearable Data Layer - receives resource push from the phone companion -->
         <service
             android:name=".data.wear.WatchWearListenerService"
             android:exported="true">

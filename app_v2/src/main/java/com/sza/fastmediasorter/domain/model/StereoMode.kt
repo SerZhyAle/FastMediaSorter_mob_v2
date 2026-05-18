@@ -8,17 +8,17 @@ package com.sza.fastmediasorter.domain.model
  * in PlaybackControlDialogFragment.
  *
  * Two families of modes:
- *  - **Plat (flat)**: [SBS_FULL], [SBS_HALF], [OU], [MONO] — rendered via per-eye UV crop
+ *  - **Plat (flat)**: [SBS_FULL], [SBS_HALF], [OU], [MONO] - rendered via per-eye UV crop
  *    into an OpenXR projection layer (or 2D passthrough in non-VR flavors).
  *  - **Spherical / panoramic**: [EQUIRECT_360_MONO], [EQUIRECT_360_SBS], [EQUIRECT_360_OU],
- *    [EQUIRECT_180_MONO], [EQUIRECT_180_SBS], [VR180_FISHEYE_SBS], [CYLINDER_180] —
+ *    [EQUIRECT_180_MONO], [EQUIRECT_180_SBS], [VR180_FISHEYE_SBS], [CYLINDER_180] -
  *    rendered via Equirect2 / Cylinder composition layers in the vr flavor; the standard
  *    flavor surfaces a "VR edition" install CTA instead.
  */
 enum class StereoMode {
     /**
      * Let the app decide: run StereoDetector on each video.
-     * Stored preference value — runtime detection result is one of the concrete modes below.
+     * Stored preference value - runtime detection result is one of the concrete modes below.
      */
     AUTO,
 
@@ -109,7 +109,7 @@ enum class StereoMode {
     UNKNOWN;
 
     /**
-     * True for [EQUIRECT_*], [VR180_FISHEYE_SBS], and [CYLINDER_180] modes —
+     * True for [EQUIRECT_*], [VR180_FISHEYE_SBS], and [CYLINDER_180] modes -
      * anything that needs a curved composition layer.
      */
     fun isSpherical(): Boolean = when (this) {

@@ -34,7 +34,7 @@ class TestCredentialsLoader @Inject constructor(
     /**
      * Load test credentials - HARDCODED for reliable testing.
      * Credentials are loaded from test_credentials.json (external storage or assets).
-     * No hardcoded secrets — see test_credentials.json.template for format.
+     * No hardcoded secrets - see test_credentials.json.template for format.
      */
     suspend fun loadCredentials(): List<TestCredential> = withContext(Dispatchers.IO) {
         try {

@@ -11,12 +11,12 @@ import timber.log.Timber
  *
  * Detection strategy (highest-confidence first):
  *  1. MP4 Spatial Media boxes (`st3d` + `sv3d/proj/mshp`) when a readable local MP4 path exists.
- *  2. Filename tokens (see [detectFromFilename]) — explicit creator markers for both flat
+ *  2. Filename tokens (see [detectFromFilename]) - explicit creator markers for both flat
  *     (SBS/OU/MONO) and spherical (360°/VR180/Cylinder) formats.
  *  3. GPano / Photo Sphere XMP metadata for local still images.
  *  4. Matroska StereoMode tag embedded in format extras (100% accurate when present;
  *     ~60% of real-world 3D MKV files carry this tag).
- *  5. Aspect ratio heuristic — reliable for SBS 3D content and for 360°/VR180 at
+ *  5. Aspect ratio heuristic - reliable for SBS 3D content and for 360°/VR180 at
  *     characteristic AR values (2:1, 4:1, 1:1) with a resolution floor to reject
  *     low-res anamorphic false positives.
  *
@@ -46,7 +46,7 @@ class StereoDetector @javax.inject.Inject constructor() {
         private const val EQUIRECT_360_SBS_AR = 4.0f
         private const val EQUIRECT_360_OU_AR = 1.0f
 
-        // Resolution floors for AR heuristic — prevents 320×160 anamorphic noise from being
+        // Resolution floors for AR heuristic - prevents 320×160 anamorphic noise from being
         // auto-detected as 360° content.
         private const val SPHERICAL_MIN_WIDTH = 2048
         private const val SPHERICAL_SBS_MIN_WIDTH = 4096
@@ -79,7 +79,7 @@ class StereoDetector @javax.inject.Inject constructor() {
      *
      * Filename conventions recognised (case-insensitive, token-boundary aware):
      *
-     * **Spherical / panoramic** (checked first — wins over flat markers when present):
+     * **Spherical / panoramic** (checked first - wins over flat markers when present):
      *  - `cylinder`, `cylinder180`  → [StereoMode.CYLINDER_180]
      *  - `vr180`, `180x180`         → [StereoMode.VR180_FISHEYE_SBS]
      *  - `180` + `stereo`            → [StereoMode.EQUIRECT_180_SBS]
@@ -96,11 +96,11 @@ class StereoDetector @javax.inject.Inject constructor() {
      *  - `_3dv`, `_ou`, `_tb`, `_hou`, `_tab`    → [StereoMode.OU]
      *  - `_hsbs`, `_halfsbs`, `Half-SBS`, `half sbs` → [StereoMode.SBS_HALF]
      *
-     * Should be called BEFORE [detectFromFormat] — explicit filename markers from the
+     * Should be called BEFORE [detectFromFormat] - explicit filename markers from the
      * content creator are more reliable than heuristics on MP4 track metadata.
      * Most commercial VR content is distributed as MP4 without Matroska StereoMode tags.
      *
-     * @param filename Bare filename, URI, or full path — only the last segment and stem are used.
+     * @param filename Bare filename, URI, or full path - only the last segment and stem are used.
      * @return Detected [StereoMode]; [StereoMode.UNKNOWN] when no pattern matches.
      */
     fun detectFromFilename(filename: String): StereoMode {
@@ -119,13 +119,13 @@ class StereoDetector @javax.inject.Inject constructor() {
         val hasVr180 = containsToken(stem, "vr180") || stem.contains("180x180")
         val has180 = containsToken(stem, "180") || stem.contains("equirect180") || hasVr180
         val has360 = containsToken(stem, "360") || stem.contains("equirect360") || containsToken(stem, "equirect")
-        // `fullsbs` uses contains() — token boundary fails when digit follows (e.g. "FullSBS3D")
+        // `fullsbs` uses contains() - token boundary fails when digit follows (e.g. "FullSBS3D")
         val hasSbs = containsToken(stem, "sbs") || containsToken(stem, "3dh") || containsToken(stem, "lr")
                   || containsToken(stem, "rl") || stem.contains("fullsbs")
-        // `hou` requires explicit token — `containsToken("hou","ou")` fails because "h" is alphanumeric boundary
+        // `hou` requires explicit token - `containsToken("hou","ou")` fails because "h" is alphanumeric boundary
         val hasOu = containsToken(stem, "ou") || containsToken(stem, "tb") || containsToken(stem, "3dv")
                  || containsToken(stem, "hou") || containsToken(stem, "tab")
-        // `half-sbs` (with separator) is not caught by `halfsbs` — add compound check
+        // `half-sbs` (with separator) is not caught by `halfsbs` - add compound check
         val hasHalfSbs = containsToken(stem, "hsbs") || stem.contains("halfsbs")
                       || (containsToken(stem, "half") && containsToken(stem, "sbs"))
         val hasCubemap = containsToken(stem, "cubemap")
@@ -134,7 +134,7 @@ class StereoDetector @javax.inject.Inject constructor() {
 
         return when {
             hasStereo && hasMono -> {
-                Timber.w("$TAG: filename conflict stereo+mono — mono wins for stem='$stem'")
+                Timber.w("$TAG: filename conflict stereo+mono - mono wins for stem='$stem'")
                 logMatch("MONO", StereoMode.MONO)
             }
             // ─── Spherical / panoramic (priority over flat) ───
@@ -150,7 +150,7 @@ class StereoDetector @javax.inject.Inject constructor() {
             has360 && hasOu  -> logMatch("EQUIRECT_360_OU",  StereoMode.EQUIRECT_360_OU)
             has360 -> logMatch("EQUIRECT_360_MONO", StereoMode.EQUIRECT_360_MONO)
             hasCubemap -> {
-                Timber.d("$TAG: cubemap marker detected — unsupported projection, UNKNOWN")
+                Timber.d("$TAG: cubemap marker detected - unsupported projection, UNKNOWN")
                 StereoMode.UNKNOWN
             }
             // ─── Flat stereo patterns ───
@@ -210,7 +210,7 @@ class StereoDetector @javax.inject.Inject constructor() {
      * @param userInitiated When `true`, the caller explicitly signalled stereo intent (e.g. the
      *  user tapped the VR-toolbar icon on an image). If the conservative cascade returns
      *  `UNKNOWN`/`MONO`, an aggressive aspect-ratio heuristic biases toward `SBS_FULL` / `OU`
-     *  (see [aggressiveDimensionGuess]). When `false` (default) behaviour is unchanged — the
+     *  (see [aggressiveDimensionGuess]). When `false` (default) behaviour is unchanged - the
      *  passive `displayImage()` path must never falsely classify ordinary photos as stereo.
      */
     fun detectForImage(
@@ -295,7 +295,7 @@ class StereoDetector @javax.inject.Inject constructor() {
      */
     fun detectFromFormat(format: Format): StereoMode {
         if (format.width <= 0 || format.height <= 0) {
-            Timber.w("$TAG: Invalid format dimensions (${format.width}×${format.height}) — returning UNKNOWN")
+            Timber.w("$TAG: Invalid format dimensions (${format.width}×${format.height}) - returning UNKNOWN")
             return StereoMode.UNKNOWN
         }
 
@@ -387,14 +387,14 @@ class StereoDetector @javax.inject.Inject constructor() {
      *  - AR ≈ 2.0 + width ≥ 2048 → [StereoMode.EQUIRECT_360_MONO] (classic 360° mono)
     *  - AR ≈ 1.0 + width ≥ 3840 → [StereoMode.EQUIRECT_360_OU] (top-bottom stereo spheres)
      *
-     * OU flat detection via AR is intentionally disabled — portrait video (9:16 = 0.5625)
+     * OU flat detection via AR is intentionally disabled - portrait video (9:16 = 0.5625)
      * and flat OU (0.889) are not reliably distinguishable without metadata. Rely on
      * [detectFromFilename] or Matroska tag for flat OU.
      */
     private fun detectFromAspectRatio(width: Int, height: Int): StereoMode {
         val ar = width.toFloat() / height.toFloat()
         return when {
-            // Spherical — narrow windows + resolution floor
+            // Spherical - narrow windows + resolution floor
             isNear(ar, EQUIRECT_360_SBS_AR, EQUIRECT_AR_TOL) && width >= SPHERICAL_SBS_MIN_WIDTH ->
                 StereoMode.EQUIRECT_360_SBS
             isNear(ar, EQUIRECT_360_MONO_AR, EQUIRECT_AR_TOL) && width >= SPHERICAL_MIN_WIDTH ->
@@ -404,7 +404,7 @@ class StereoDetector @javax.inject.Inject constructor() {
                 StereoMode.EQUIRECT_360_OU
             // Flat SBS (existing behaviour)
             ar in SBS_AR_MIN..SBS_AR_MAX -> StereoMode.SBS_FULL
-            // Everything else — mono. Flat OU not detected by AR alone.
+            // Everything else - mono. Flat OU not detected by AR alone.
             else -> StereoMode.MONO
         }
     }

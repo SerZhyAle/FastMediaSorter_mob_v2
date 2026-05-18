@@ -23,7 +23,7 @@ import timber.log.Timber
 /**
  * Manages error display, undo snackbar, and non-critical error filtering for BrowseActivity.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseErrorDisplayManager(
     private val activity: Activity,

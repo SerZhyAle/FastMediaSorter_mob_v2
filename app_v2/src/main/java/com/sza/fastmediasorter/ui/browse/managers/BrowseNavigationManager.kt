@@ -36,7 +36,7 @@ internal data class DirectoryCacheEntry(
  * - Provide breadcrumb helpers (getCurrentBreadcrumb, getBreadcrumbPath, etc.).
  * - Enable / disable subfolder navigation mode.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseNavigationManager(
     private val context: Context,
@@ -61,7 +61,7 @@ class BrowseNavigationManager(
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
-     * Navigate into [folderPath] (string overload — used by resume logic and internal callers).
+     * Navigate into [folderPath] (string overload - used by resume logic and internal callers).
      */
     fun navigateToFolder(folderPath: String) {
         val currentPath = stateFlow.value.currentPath ?: stateFlow.value.resource?.path
@@ -85,7 +85,7 @@ class BrowseNavigationManager(
     }
 
     /**
-     * Navigate into [folder] (MediaFile overload — used by UI item click).
+     * Navigate into [folder] (MediaFile overload - used by UI item click).
      */
     fun navigateToFolder(folder: MediaFile) {
         if (!folder.isDirectory) {
@@ -187,7 +187,7 @@ class BrowseNavigationManager(
     }
 
     /**
-     * Switch into subfolder-navigation mode — loads the resource root directory listing.
+     * Switch into subfolder-navigation mode - loads the resource root directory listing.
      */
     fun enableSubfolderMode() {
         Timber.d("BrowseNavigationManager.enableSubfolderMode")
@@ -207,7 +207,7 @@ class BrowseNavigationManager(
     }
 
     /**
-     * Switch out of subfolder-navigation mode — triggers a full recursive scan.
+     * Switch out of subfolder-navigation mode - triggers a full recursive scan.
      */
     fun disableSubfolderMode() {
         Timber.d("BrowseNavigationManager.disableSubfolderMode")
@@ -359,7 +359,13 @@ class BrowseNavigationManager(
 
     /**
      * Reload current subfolder from cache/disk.
-     * Used by `syncWithCache()` when returning from the player in subfolder mode.
+     * S0242 Phase 03: previously invoked by the removed structural-equality cache-sync
+     * fast-path in `BrowseStateSyncManager`. Subfolder-mode resume reconciliation is
+     * currently NOT covered by `BrowseReconcilerManager` - the journal records mutations
+     * against the root resource id and the Reconciler folds them into the visible root
+     * list, but the subfolder filter in `BrowseState.currentPath` is applied at view
+     * level. If a Phase 04 issue surfaces, this hook becomes the Reconciler's subfolder
+     * fallback.
      */
     fun reloadCurrentSubfolder(path: String) {
         scope.launch(ioDispatcher) { loadDirectoryContents(path) }
@@ -384,7 +390,7 @@ class BrowseNavigationManager(
                 }
                 return
             } else {
-                Timber.d("BrowseNavigationManager.loadDirectoryContents: cache invalid — rescanning")
+                Timber.d("BrowseNavigationManager.loadDirectoryContents: cache invalid - rescanning")
                 directoryCache.remove(path)
             }
         }
@@ -426,7 +432,7 @@ class BrowseNavigationManager(
                 sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.empty_folder)))
             }
         } catch (e: CancellationException) {
-            // Throttle or cooperative cancellation — propagate cleanly; no error shown to user.
+            // Throttle or cooperative cancellation - propagate cleanly; no error shown to user.
             Timber.d("BrowseNavigationManager.loadDirectoryContents: cancelled for '$path' (${e.message})")
             throw e
         } catch (e: Exception) {
@@ -453,7 +459,7 @@ class BrowseNavigationManager(
             )
             computeContentHash(contents)
         } catch (e: CancellationException) {
-            // Throttle or cooperative cancellation — propagate cleanly; do not mark cache invalid.
+            // Throttle or cooperative cancellation - propagate cleanly; do not mark cache invalid.
             throw e
         } catch (e: Exception) {
             Timber.w(e, "BrowseNavigationManager: failed to compute directory hash for '$path'")

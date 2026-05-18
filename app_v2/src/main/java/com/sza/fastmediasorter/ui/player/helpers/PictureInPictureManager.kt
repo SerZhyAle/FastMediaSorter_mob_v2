@@ -41,7 +41,7 @@ class PictureInPictureManager(
     /** Whether PiP is supported on this device (API 31+) */
     val isSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-    /** Current enabled state — updated by [setupPipButton]. */
+    /** Current enabled state - updated by [setupPipButton]. */
     var isEnabled: Boolean = false
         private set
 
@@ -94,7 +94,7 @@ class PictureInPictureManager(
     }
 
     /**
-     * Handle PiP mode change — update UI visibility.
+     * Handle PiP mode change - update UI visibility.
      */
     fun onPictureInPictureModeChanged(isInPipMode: Boolean) {
         Timber.d("PiPManager: mode changed, isInPip=$isInPipMode")
@@ -110,7 +110,7 @@ class PictureInPictureManager(
             binding.playerView.useController = false
             registerPipReceiver()
         } else {
-            // Re-enable and explicitly show the controller — useController=true only
+            // Re-enable and explicitly show the controller - useController=true only
             // *permits* showing but does NOT auto-show after being hidden in PiP.
             binding.playerView.useController = true
             binding.playerView.showController()

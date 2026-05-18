@@ -42,7 +42,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
     ) {
         val items = mutableListOf<MenuItem>()
 
-        // Basic ops — same gates as the direct buttons
+        // Basic ops - same gates as the direct buttons
         if (hasDestinations && appSettings.enableCopying)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.copy)) { onCopy(file) }
         if (isWritable && appSettings.enableMoving)
@@ -52,13 +52,13 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         if (isWritable && appSettings.allowDelete)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.delete)) { onDelete(file) }
 
-        // Grid move-up/move-down — only in grid mode with manual order callbacks
+        // Grid move-up/move-down - only in grid mode with manual order callbacks
         if (isGridMode && onMoveUp != null)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.move_up)) { onMoveUp(file) }
         if (isGridMode && onMoveDown != null)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.move_down)) { onMoveDown(file) }
 
-        // Dynamic extended commands — full player-panel matrix for this file type,
+        // Dynamic extended commands - full player-panel matrix for this file type,
         // minus player-only and basic-group commands (see buildExtendedCommands).
         val extendedCommands = buildExtendedCommands(file, appSettings, isWritable)
         for (cmd in extendedCommands) {
@@ -111,7 +111,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
     * Excluded (player-only, meaningless without an open player session):
     * FULLSCREEN, RANDOM, BLACK_SCREEN, UNDO, CAST, SLEEP_TIMER,
      * ROTATION_TOGGLE, OPEN_IN_SEPARATE_WINDOW, SLIDESHOW.
-     * Also excluded: DELETE and RENAME — already in the basic group above.
+     * Also excluded: DELETE and RENAME - already in the basic group above.
      *
      * Non-player actions (FAVORITE, SHARE, INFO, GOOGLE_LENS_IMAGE, DRAW_OVERLAY,
      * SEARCH_YOUTUBE_MUSIC) are routed to their own callbacks;
@@ -133,7 +133,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         val isStaticBitmap = isImage && !nameLower.endsWith(".gif") && !nameLower.endsWith(".apng")
 
         return buildList {
-            // Universal — available for every file type
+            // Universal - available for every file type
             add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
             add(PlayerCommand.INFO)
@@ -150,7 +150,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             if (isPdf && appSettings.enableTranslation) add(PlayerCommand.TRANSLATE_PDF)
             if (isPdf) add(PlayerCommand.PDF_TEXT_SETTINGS)
             if (isPdf && appSettings.enableOcr) add(PlayerCommand.OCR_PDF)
-            // GOOGLE_LENS_PDF omitted: requires a rendered page bitmap from the player — not usable from Browse.
+            // GOOGLE_LENS_PDF omitted: requires a rendered page bitmap from the player - not usable from Browse.
 
             // Text commands
             if (isText) add(PlayerCommand.SEARCH_TEXT)

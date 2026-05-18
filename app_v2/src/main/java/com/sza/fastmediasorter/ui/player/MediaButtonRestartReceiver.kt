@@ -18,7 +18,7 @@ import javax.inject.Inject
  *
  * When AudioPlaybackService is alive, MediaSession handles button events directly.
  * This receiver handles the case where the app was killed (car/headphone scenario)
- * and the user presses Play on an external media controller — restarting the service
+ * and the user presses Play on an external media controller - restarting the service
  * quietly without requiring user to return to the app.
  *
  * Enabled/disabled via PackageManager.setComponentEnabledSetting() controlled by
@@ -26,7 +26,7 @@ import javax.inject.Inject
  *
  * R1 migration: instead of a hardcoded KEYCODE_MEDIA_* whitelist, the receiver
  * resolves the key event through [KeyBindingManager]. Any command in the
- * playback or navigation group triggers a service restart — user remapped media
+ * playback or navigation group triggers a service restart - user remapped media
  * buttons are respected automatically.
  */
 @AndroidEntryPoint
@@ -49,7 +49,7 @@ class MediaButtonRestartReceiver : BroadcastReceiver() {
         val trigger = InputTrigger.fromKeyEvent(keyEvent)
         val commandId = keyBindingManager.resolve(trigger, InputSurface.PLAYER)
 
-        // Restart on any command that implies the user expects active playback —
+        // Restart on any command that implies the user expects active playback -
         // playback.* covers play/pause/stop and navigation.* covers next/prev/seek.
         val isPlaybackOrNavigation = commandId != null && (
             commandId.startsWith("playback.") || commandId.startsWith("navigation.")
@@ -61,9 +61,9 @@ class MediaButtonRestartReceiver : BroadcastReceiver() {
             return
         }
 
-        Timber.d("MediaButtonRestartReceiver: command=%s while service dead — restarting AudioPlaybackService", commandId)
+        Timber.d("MediaButtonRestartReceiver: command=%s while service dead - restarting AudioPlaybackService", commandId)
         // Android 8+ requires a foreground service to post a notification within 5 s.
-        // The "quiet restart" guarantee: no Activity launched, no toast — standard media notification only.
+        // The "quiet restart" guarantee: no Activity launched, no toast - standard media notification only.
         val serviceIntent = Intent(context, AudioPlaybackService::class.java)
         try {
             ContextCompat.startForegroundService(context, serviceIntent)

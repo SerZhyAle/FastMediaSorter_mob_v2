@@ -22,7 +22,7 @@
 .\scripts\builders\build-vr-aab.ps1                     # AAB for Meta Horizon Store
 .\scripts\builders\install-vr-debug-to-device.ps1       # install, NO launch | alias: .\a.ps1 ivrd
 .\scripts\builders\install-vr-release-to-device.ps1     # install, NO launch | alias: .\a.ps1 ivr
-.\scripts\builders\build-vr-device.ps1                  # build+install+launch — smoke only, bypasses HorizonOS shell
+.\scripts\builders\build-vr-device.ps1                  # build+install+launch - smoke only, bypasses HorizonOS shell
 
 # RELEASE AAB (standard, for Google Play)
 .\scripts\builders\build-aab-release.ps1                # alias: .\a.ps1 r
@@ -72,7 +72,7 @@
 
 Symptom: `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugKotlin` hangs with no output for several minutes while running a targeted validation command such as `:app_v2:compileStandardDebugKotlin` or `:app_v2:testStandardDebugUnitTest`. The build does not fail, so `build-debug.PS1`'s failure-driven auto-retry does not engage.
 
-Fallback path — abort the stalled invocation, then:
+Fallback path - abort the stalled invocation, then:
 
 ```powershell
 # 1. Clean only volatile kapt/kotlin/executionHistory dirs and retry once with --no-daemon.
@@ -82,7 +82,7 @@ pwsh -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebug
 pwsh -File scripts/utils/recover-kapt-stall.ps1
 .\gradlew.bat :app_v2:testStandardDebugUnitTest --no-daemon
 
-# 3. Last resort if the targeted retry stalls again — full wipe (forces a cold rebuild).
+# 3. Last resort if the targeted retry stalls again - full wipe (forces a cold rebuild).
 .\scripts\builders\clean-gradle-caches.ps1
 ```
 
@@ -110,9 +110,9 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 
 | Type | minify | shrink | debuggable | appId suffix | notes |
 |:-----|:------:|:------:|:----------:|:------------:|:------|
-| `debug`   | — | — | ✓ | `.debug` | Custom keystore via `debug.keystore.properties`; `LOG_NETWORK_THUMBNAILS=true`; dedicated Dropbox key |
-| `staging` | — | — | ✓ | `.staging` | `initWith(release)` — release proguard, shrink disabled; `matchingFallbacks=["release"]` |
-| `release` | ✓ | ✓ | — | — | `debugSymbolLevel=FULL`; keystore via `keystore.properties` |
+| `debug`   | - | - | ✓ | `.debug` | Custom keystore via `debug.keystore.properties`; `LOG_NETWORK_THUMBNAILS=true`; dedicated Dropbox key |
+| `staging` | - | - | ✓ | `.staging` | `initWith(release)` - release proguard, shrink disabled; `matchingFallbacks=["release"]` |
+| `release` | ✓ | ✓ | - | - | `debugSymbolLevel=FULL`; keystore via `keystore.properties` |
 
 ## FEATURE FLAGS (BuildConfig)
 
@@ -139,9 +139,9 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 | `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [-] |
 | `ENABLE_DTS_DECODER`               | [+] | [-] | [-] | [+] | [+] | [+] |
 | `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [-] |
-| `VR_UI_COMPOSITION_LAYER_ENABLED`  | —   | —   | —   | —   | [+] | [+] |
+| `VR_UI_COMPOSITION_LAYER_ENABLED`  | -   | -   | -   | -   | [+] | [+] |
 
-`vrU` = `vrUnlicensed`. Cast is disabled in VR flavors: Horizon OS lacks the Google Play Services Cast module. `vrUnlicensed` always ships DTS — no store-review restrictions.
+`vrU` = `vrUnlicensed`. Cast is disabled in VR flavors: Horizon OS lacks the Google Play Services Cast module. `vrUnlicensed` always ships DTS - no store-review restrictions.
 
 ### Build-type flags (all flavors)
 
@@ -150,7 +150,7 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 | `LOG_SMB_IO`                  | [-] | [-] | [-] |
 | `LOG_NETWORK_THUMBNAILS`      | [+] | [-] | [-] |
 | `LOG_LINK_DOWNLOAD`           | [+] | [-] | [-] |
-| `ENABLE_LEAKCANARY`           | [-] | —   | —   |
+| `ENABLE_LEAKCANARY`           | [-] | -   | -   |
 | `ENABLE_SCHEDULED_OPERATIONS` | [+] | [+] | [+] |
 | `ENABLE_BACKGROUND_AUDIO`     | [+] | [+] | [+] |
 
@@ -165,9 +165,9 @@ Migrations: `AppDatabase.kt`.
 
 ## NDK & ABI
 
-NDK r27c (`27.2.12479018`) — first NDK release with 16 KB page-size aligned `libc++_shared.so` (Google Play requirement since 2025-11-01 for apps targeting Android 15+).
+NDK r27c (`27.2.12479018`) - first NDK release with 16 KB page-size aligned `libc++_shared.so` (Google Play requirement since 2025-11-01 for apps targeting Android 15+).
 
-ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `abiFilters` as UNION, not intersection — a buildType-level list would leak non-VR ABIs into VR AABs):
+ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `abiFilters` as UNION, not intersection - a buildType-level list would leak non-VR ABIs into VR AABs):
 - Non-VR flavors: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`
 - `vr` + `vrUnlicensed`: `arm64-v8a` only (Meta Quest 2/3/Pro)
 
@@ -178,14 +178,14 @@ These entry points bypass the HorizonOS VR shell, so the panel activity is stack
 inside the same Android task as `VrPlayerActivity`. Because the panel activity
 carries `com.oculus.intent.category.2D`, the compositor keeps rendering the task
 root as the foreground window and the XR session stops at `VISIBLE` instead of
-reaching `FOCUSED` — no true immersive VR.
+reaching `FOCUSED` - no true immersive VR.
 
 ### Why FOCUSED requires the hybrid-app task split
 
 HorizonOS follows Meta's [Hybrid App Model](https://developers.meta.com/horizon/documentation/spatial-sdk/hybrid-apps-overview/):
-an app declares two distinct Activities — a panel Activity with
+an app declares two distinct Activities - a panel Activity with
 `com.oculus.intent.category.2D` (our `MainActivity`) and an immersive Activity
-with `com.oculus.intent.category.VR` (our `VrPlayerActivity`) — and switches
+with `com.oculus.intent.category.VR` (our `VrPlayerActivity`) - and switches
 between them via an explicit task swap.
 
 Two co-requisites make the VR category safe:
@@ -217,7 +217,7 @@ contract.
 .\scripts\builders\install-vr-release-to-device.ps1      # install release, NO launch | .\a.ps1 ivr
 ```
 
-`build-vr-device.ps1` DOES auto-launch via ADB — use it only for fast smoke checks where you don't care about FOCUSED state.
+`build-vr-device.ps1` DOES auto-launch via ADB - use it only for fast smoke checks where you don't care about FOCUSED state.
 
 #### 2. Launch from the headset
 
@@ -225,7 +225,7 @@ Menu → Library → *Unknown Sources* → `FastMediaSorter (VR debug)` → tap.
 
 #### 3. Attach debugger (optional)
 
-Android Studio → `Run → Attach Debugger to Android Process` → select `com.sza.fastmediasorter.vr.debug`. Breakpoints, variable inspection, evaluate expression — all work against the shell-launched process.
+Android Studio → `Run → Attach Debugger to Android Process` → select `com.sza.fastmediasorter.vr.debug`. Breakpoints, variable inspection, evaluate expression - all work against the shell-launched process.
 
 #### 4. Live logcat (optional, run before the tap on headset)
 
@@ -250,7 +250,7 @@ XR_SESSION_STATE_SYNCHRONIZED -> XR_SESSION_STATE_VISIBLE
 XR_SESSION_STATE_VISIBLE -> XR_SESSION_STATE_FOCUSED
 ```
 
-If you only see `... -> XR_SESSION_STATE_VISIBLE` and a later `VrRuntimeClient: Client has lost focus.`, the panel task was not destroyed — either you launched via ADB/Studio/MQDH, or a panel Activity was recreated inside the VR task. Dump activities with:
+If you only see `... -> XR_SESSION_STATE_VISIBLE` and a later `VrRuntimeClient: Client has lost focus.`, the panel task was not destroyed - either you launched via ADB/Studio/MQDH, or a panel Activity was recreated inside the VR task. Dump activities with:
 
 ```powershell
 adb shell dumpsys activity activities
@@ -264,13 +264,13 @@ Earlier revisions of this app attempted to add `com.oculus.intent.category.VR` t
 `VrPlayerActivity` without splitting the task affinity. That produced an immediate
 black screen because HorizonOS disabled passthrough before the XR session was
 ready. The task split is the decisive co-requisite that makes the category safe.
-An even earlier theory — that FOCUSED requires forwarding a
-`com.oculus.vrshell.launch_id` extra — was disproved by intent dumps (the key was
+An even earlier theory - that FOCUSED requires forwarding a
+`com.oculus.vrshell.launch_id` extra - was disproved by intent dumps (the key was
 never present) and has been removed from the codebase; do not re-introduce it.
 
 ## Release Signing Fingerprint (GitHub Store)
 
-Spec S0214 — github-store-publication. Once the project ships its first
+Spec S0214 - github-store-publication. Once the project ships its first
 release through GitHub Store, every subsequent release must be signed with
 the same key. If the SHA-256 fingerprint of the new APK does not match the
 fingerprint GitHub Store recorded on first install, every user with the
@@ -286,7 +286,7 @@ fingerprint staying constant. Any deviation breaks updates en masse.
 
 ### Where the pin lives
 
-`scripts/release/expected-signing-fingerprint.txt` — single uppercase
+`scripts/release/expected-signing-fingerprint.txt` - single uppercase
 colon-separated SHA-256 line (32 bytes). Comments above explain capture
 time, source APK, and keystore alias.
 
@@ -295,14 +295,14 @@ time, source APK, and keystore alias.
 `scripts/release/publish-github-release.ps1` extracts the SHA-256
 fingerprint from each staged APK via `apksigner verify --print-certs`
 between the staging and release-create steps. A mismatch is a hard abort
-with `expected: …` / `actual: …` in the error message — the publisher
+with `expected: …` / `actual: …` in the error message - the publisher
 exits non-zero before any GitHub-side mutation. The check runs regardless
 of `-DryRun`.
 
 ### Rotation procedure (only when legitimately required)
 
 Legitimate rotation reasons: keystore lost, mandated key change, compromise.
-Aesthetic re-keying is **not** legitimate — never rotate just to "freshen
+Aesthetic re-keying is **not** legitimate - never rotate just to "freshen
 up" the signing config.
 
 User-facing consequence is non-negotiable: **every existing GitHub Store
@@ -332,4 +332,4 @@ Steps:
 
 ### ADR log
 
-_(no rotations have happened yet — first entry will land here.)_
+_(no rotations have happened yet - first entry will land here.)_

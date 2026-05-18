@@ -60,7 +60,7 @@ class RecordSortSuccessUseCase @Inject constructor(
 
     /**
      * Increments the session counter. Call once per app launch that includes a sort activity.
-     * Safe to call multiple times — [ReviewEligibilityDataStore.incrementSessions] is idempotent
+     * Safe to call multiple times - [ReviewEligibilityDataStore.incrementSessions] is idempotent
      * relative to session semantics only when the caller gates it per process lifetime.
      */
     suspend fun recordSession() {
@@ -69,7 +69,7 @@ class RecordSortSuccessUseCase @Inject constructor(
     }
 
     /**
-     * Delegator — records that the review dialog was shown. Used by `ReviewRequestManager`
+     * Delegator - records that the review dialog was shown. Used by `ReviewRequestManager`
      * to reset the cooldown without holding a direct reference to the data store.
      */
     suspend fun markReviewShown() = store.markReviewShown()

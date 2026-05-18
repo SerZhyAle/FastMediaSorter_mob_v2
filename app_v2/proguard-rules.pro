@@ -95,7 +95,7 @@
 -keep class * extends com.google.api.client.http.HttpTransport { *; }
 
 # Dropbox SDK - targeted keep rules (we only use files/users/auth APIs, NOT team/teamcommon).
-# DO NOT use a blanket -keep class com.dropbox.core.** — it prevents R8 from stripping unused
+# DO NOT use a blanket -keep class com.dropbox.core.** - it prevents R8 from stripping unused
 # team management classes (GroupSummary, GroupManagementType, etc.) that cause dex2oat
 # "Method processed more than once" warnings at install time.
 -keep class com.dropbox.core.DbxRequestConfig { *; }
@@ -115,7 +115,7 @@
 -keep class com.dropbox.core.http.** { *; }
 -keep class com.dropbox.core.DbxApiException { *; }
 -keep class com.dropbox.core.InvalidAccessTokenException { *; }
-# team/teamcommon are intentionally NOT kept — R8 will strip them.
+# team/teamcommon are intentionally NOT kept - R8 will strip them.
 # This eliminates GroupSummary$Builder and related classes from the APK.
 -dontwarn com.dropbox.core.**
 -dontwarn okhttp3.**
@@ -179,7 +179,7 @@
 -keep class com.sza.fastmediasorter.data.remote.** { *; }
 
 # Remove verbose/debug logging in release (v, d only).
-# WARNING: Do NOT add w() or e() here — -assumenosideeffects removes the call
+# WARNING: Do NOT add w() or e() here - -assumenosideeffects removes the call
 # entirely from bytecode, which would suppress error/warning reporting
 # (e.g. Crashlytics Timber tree, exception chaining side-effects).
 -assumenosideeffects class timber.log.Timber* {
@@ -303,7 +303,7 @@
 
 # ===== OpenXR native bridge (VR flavor) =====
 # Native C++ looks up XrRenderCallback.onRenderEye(IIII)V by string name via
-# GetMethodID — R8 must not rename the interface or its method.
+# GetMethodID - R8 must not rename the interface or its method.
 # Also keep OpenXrNative: its `external` methods are resolved by JNI class name.
 -keep class com.sza.fastmediasorter.vr.openxr.XrRenderCallback { *; }
 -keep interface com.sza.fastmediasorter.vr.openxr.XrRenderCallback { *; }

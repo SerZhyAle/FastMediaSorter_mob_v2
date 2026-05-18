@@ -151,7 +151,7 @@ class ResourceEditorFragment : Fragment() {
 
     /**
      * Builds a SharedPreferences key scoped by screen (editor), resource type, orientation,
-     * and section ID — so portrait/landscape and different resource types have independent
+     * and section ID - so portrait/landscape and different resource types have independent
      * collapsed/expanded states, per spec F2.2.
      */
     private fun sectionStateKey(sectionId: String): String {
@@ -1009,7 +1009,7 @@ class ResourceEditorFragment : Fragment() {
         private const val ARG_RESOURCE_ID = "resource_id"
         private const val ARG_RESOURCE_TYPE = "resource_type"
         private const val PREFS_RESOURCE_EDITOR_UI = "resource_editor_ui_state"
-        // Section ID constants — combined with type+orientation in sectionStateKey() at runtime
+        // Section ID constants - combined with type+orientation in sectionStateKey() at runtime
         private const val SECTION_CONNECTION = "connection"
         private const val SECTION_MEDIA_TYPES = "media_types"
         private const val SECTION_SCANNING = "scanning"

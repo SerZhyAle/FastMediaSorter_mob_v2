@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
 /**
- * Screen type for resume state — where the user was when playback was active.
+ * Screen type for resume state - where the user was when playback was active.
  */
 enum class ScreenType {
     BROWSER,

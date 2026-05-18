@@ -18,7 +18,7 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : WearableDataLayerRepository {
 
-    // Gson is instantiated locally — no project-wide @Provides binding exists for it
+    // Gson is instantiated locally - no project-wide @Provides binding exists for it
     private val gson = Gson()
 
     override suspend fun getConnectedNodes(): List<Node> = try {

@@ -42,7 +42,7 @@ class SettingsViewModel @Inject constructor(
     private fun observeSettingsErrors() {
         viewModelScope.launch {
             WatchSyncEvents.settingsErrorFlow.collect { error ->
-                Timber.e("SettingsViewModel: remote settings apply error — $error")
+                Timber.e("SettingsViewModel: remote settings apply error - $error")
             }
         }
     }

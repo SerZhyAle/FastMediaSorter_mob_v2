@@ -79,7 +79,7 @@
     <!-- Audio size limit -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
-        <TextView android:id="@+id/tvAudioSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_size_limit" android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:id="@+id/tvAudioSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_size_limit" android:textSize="@dimen/toggler_title_text_size" />
 
         <ImageButton android:id="@+id/iconHelpAudioSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_audio_size_limits_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
     </LinearLayout>
@@ -113,11 +113,11 @@
     <!-- Background photos source selector -->
     <LinearLayout android:id="@+id/layoutPhotosSourceSelector" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_background_photos_source_label" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_primary" android:layout_marginBottom="@dimen/margin_small" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_background_photos_source_label" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_primary" android:layout_marginBottom="@dimen/margin_small" />
 
-        <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_photos_source_selected" android:textSize="@dimen/resource_name_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
+        <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_photos_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-        <Button android:id="@+id/btnSelectPhotosSource" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
+        <Button android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <!-- Audio empty state animation mode -->
@@ -133,7 +133,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/audio_empty_state_label"
-            android:textSize="@dimen/resource_card_desc_text_size"
+            android:textSize="@dimen/toggler_title_text_size"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -191,7 +191,7 @@
 
     <Button
         android:id="@+id/btnNotificationPermission"
-        style="@style/Widget.Material3.Button.TextButton"
+        style="@style/Widget.FastMediaSorter.SettingsButton.TextM3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/manage_notifications_permission"
@@ -294,7 +294,7 @@
 
     <Button
         android:id="@+id/btnSetDefaultAudioPlayer"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
@@ -309,7 +309,7 @@
         android:background="?attr/colorSurfaceVariant"
         android:padding="@dimen/settings_padding_vertical"
         android:text="@string/settings_mic_recording_section_title"
-        android:textSize="@dimen/settings_group_header_text_size"
+        android:textSize="@dimen/toggler_title_text_size"
         android:textStyle="bold" />
 
     <LinearLayout

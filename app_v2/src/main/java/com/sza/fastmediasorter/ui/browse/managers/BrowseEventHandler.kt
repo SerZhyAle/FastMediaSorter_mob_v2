@@ -27,7 +27,7 @@ import timber.log.Timber
 /**
  * Handles BrowseEvent dispatch from ViewModel events flow.
  *
- * Extracted from BrowseActivity.observeData() (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity.observeData() (Wave 1.5 decomposition - IV.1).
  */
 class BrowseEventHandler(
     private val activity: Activity,
@@ -96,11 +96,8 @@ class BrowseEventHandler(
                 }
             }
             is BrowseEvent.NavigateToTextEditor -> {
-                // S0189: open text file in edit mode — bypasses normal file-index resolution.
-                // Use createPanelIntent to target the 2D PlayerActivity directly: TEXT is never a
-                // VR-eligible surface, so we must not route through the per-flavor
-                // BuildConfig.PLAYER_ACTIVITY_CLASS override (which on noLegal/vr resolves to
-                // VrPlayerActivity and triggers the «VR Headset Required» fallback on phones).
+                // S0189: open text file in edit mode - bypasses normal file-index resolution.
+                // Use createPanelIntent to target PlayerActivity directly.
                 val activityHost = activity as? ComponentActivity ?: run {
                     Timber.e("BrowseEventHandler: activity is not ComponentActivity, cannot launch text editor")
                     return

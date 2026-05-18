@@ -31,7 +31,7 @@ object LocaleHelper {
     /** Languages the app fully supports beyond English. */
     private val SUPPORTED_NON_DEFAULT_LANGUAGES = setOf("ru", "uk")
 
-    /** In-memory cache — avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
+    /** In-memory cache - avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
     @Volatile private var cachedLanguageCode: String? = null
 
     /**
@@ -49,7 +49,7 @@ object LocaleHelper {
      * Priority:
      *  1. Android 13+ LocaleManager (per-app language, set by user in System Settings or in-app).
      *  2. SharedPreferences (persisted by [saveLanguage] when user picks a language in-app).
-     *  3. System OS language — if the OS is set to Russian or Ukrainian, use that automatically
+     *  3. System OS language - if the OS is set to Russian or Ukrainian, use that automatically
      *     (first-launch experience; no explicit preference saved yet).
      *  4. English as final fallback.
      */
@@ -75,7 +75,7 @@ object LocaleHelper {
             }
         }
 
-        // SharedPreferences — present only after user explicitly chose a language
+        // SharedPreferences - present only after user explicitly chose a language
         val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         if (prefs.contains(PREF_SELECTED_LANGUAGE)) {
             val languageCode = prefs.getString(PREF_SELECTED_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
@@ -84,7 +84,7 @@ object LocaleHelper {
             return@allowDiskReads languageCode
         }
 
-        // No explicit preference yet — use system OS language (ru/uk) or fall back to en
+        // No explicit preference yet - use system OS language (ru/uk) or fall back to en
         val systemLanguage = detectSystemLanguage()
         Timber.d("LocaleHelper: No saved language preference; using system language: $systemLanguage")
         cachedLanguageCode = systemLanguage

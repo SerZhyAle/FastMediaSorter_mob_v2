@@ -53,7 +53,7 @@ import javax.inject.Singleton
  * the feature auto-disables for the session to avoid wasting network/resources.
  *
  * Designed to be triggered from the scroll-idle listener in BrowseActivity,
- * loading metadata only for visible items — analogous to the existing
+ * loading metadata only for visible items - analogous to the existing
  * thumbnail viewport-loading pattern.
  */
 @Singleton
@@ -69,7 +69,7 @@ class AudioMetadataLoader @Inject constructor(
 ) {
 
     companion object {
-        private const val MAX_PARTIAL_READ_BYTES = 65536 // 64 KB — enough for ID3v2 + Vorbis headers
+        private const val MAX_PARTIAL_READ_BYTES = 65536 // 64 KB - enough for ID3v2 + Vorbis headers
         private const val FAILED_CACHE_MAX_SIZE = 5000
         /** After this many consecutive failures, disable the feature for the session. */
         private const val KILL_SWITCH_THRESHOLD = 15
@@ -86,7 +86,7 @@ class AudioMetadataLoader @Inject constructor(
     /** In-memory cache: path → parsed metadata. Survives across scroll events. */
     private val memoryCache = ConcurrentHashMap<String, AudioMetadata>()
 
-    /** Paths currently being loaded — prevents duplicate parallel requests. */
+    /** Paths currently being loaded - prevents duplicate parallel requests. */
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
     /** Consecutive extraction failure counter for kill-switch. Reset on any success. */
@@ -96,7 +96,7 @@ class AudioMetadataLoader @Inject constructor(
     @Volatile
     private var disabled = false
 
-    /** Paths that failed extraction — FIFO eviction at [FAILED_CACHE_MAX_SIZE]. */
+    /** Paths that failed extraction - FIFO eviction at [FAILED_CACHE_MAX_SIZE]. */
     private val failedCache: MutableMap<String, Boolean> = Collections.synchronizedMap(
         object : LinkedHashMap<String, Boolean>(128, 0.75f, false) {
             override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>): Boolean {
@@ -174,14 +174,14 @@ class AudioMetadataLoader @Inject constructor(
 
                     val metadata = extractMetadataFromBytes(bytes, file.path)
                     if (metadata == null || !metadata.hasAnyData()) {
-                        // No embedded tags is a per-file outcome, not a system failure — skip kill-switch counter
+                        // No embedded tags is a per-file outcome, not a system failure - skip kill-switch counter
                         Timber.d("AudioMetadataLoader: No metadata extracted for ${file.name}")
                         failedCache[file.path] = true
                         inFlight.remove(file.path)
                         return@withPermit
                     }
 
-                    // Success — reset consecutive failure counter
+                    // Success - reset consecutive failure counter
                     recordSuccess()
 
                     // 3. Cache in memory
@@ -214,7 +214,7 @@ class AudioMetadataLoader @Inject constructor(
      * [getCachedMetadata] returns data immediately and [resolveAudioMetadata] in the
      * adapter can enrich items without waiting for an async DB round-trip.
      *
-     * Safe to call multiple times — already-cached paths are skipped.
+     * Safe to call multiple times - already-cached paths are skipped.
      */
     suspend fun warmMemoryCacheForResource(resourceId: Long) {
         if (disabled) return
@@ -290,7 +290,7 @@ class AudioMetadataLoader @Inject constructor(
         Timber.d("S0229: shouldLogMetadataRetrieverFailureAsDebug path=$filePath cause=${throwable.javaClass.simpleName}")
         if (!isPartialNetworkMetadataPath(filePath)) return false
         // S0229: EOFException and IOException are expected outcomes when parsing a 64 KB partial
-        // header — the truncated buffer makes a complete parse impossible by design. Treat them
+        // header - the truncated buffer makes a complete parse impossible by design. Treat them
         // as debug-level noise alongside UnrecognizedInputFormatException.
         return throwableCauseChain(throwable).any {
             it.javaClass.simpleName == "UnrecognizedInputFormatException" ||
@@ -401,7 +401,7 @@ class AudioMetadataLoader @Inject constructor(
 
             val usernameToUse = credentials.username
 
-            // FTP client is stateful — ensure connected
+            // FTP client is stateful - ensure connected
             val connectResult = ftpClient.connect(
                 host = pathInfo.host,
                 port = pathInfo.port,
@@ -426,7 +426,7 @@ class AudioMetadataLoader @Inject constructor(
         }
     }
 
-    // ── Metadata extraction (Media3 — safe Java-based parsing, no native SIGSEGV) ──
+    // ── Metadata extraction (Media3 - safe Java-based parsing, no native SIGSEGV) ──
 
     /**
      * Parses metadata from a byte array using Media3's [MetadataRetriever].
@@ -655,7 +655,11 @@ class AudioMetadataLoader @Inject constructor(
                 exifJson = null,
                 artist = metadata.artist,
                 album = metadata.album,
-                title = metadata.title
+                title = metadata.title,
+                // S0248 Phase 3: audio loader only writes successful extractions, so the
+                // persisted state is always COMPLETE. PARTIAL/BROKEN are produced by
+                // scanners that have a per-file timeout - see SmbMediaScanner.
+                metadataState = "COMPLETE"
             )
             fileMetadataCacheDao.upsert(entity)
         } catch (e: Exception) {
@@ -672,7 +676,7 @@ class AudioMetadataLoader @Inject constructor(
      * accepts the result only when ≥50% of letters are Cyrillic.
      */
     private fun fixCp1251Encoding(value: String): String {
-        // Already valid Unicode Cyrillic — nothing to fix
+        // Already valid Unicode Cyrillic - nothing to fix
         if (value.any { it.code in 0x0400..0x04FF }) return value
         // No Latin-1 extended range → plain ASCII, no re-encoding needed
         if (value.none { it.code in 0x00C0..0x00FF }) return value
@@ -738,7 +742,7 @@ class AudioMetadataLoader @Inject constructor(
         }
     }
 
-    /** First 16 bytes of SHA-256(path) as a hex string — stable, unique cache key. */
+    /** First 16 bytes of SHA-256(path) as a hex string - stable, unique cache key. */
     private fun coverCacheKey(path: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
         val hash = digest.digest(path.toByteArray(Charsets.UTF_8))

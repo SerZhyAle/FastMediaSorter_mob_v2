@@ -9,8 +9,8 @@ import java.io.File
 
 /**
  * Fallback for [DocumentPrintManager]: when the system print dialog cannot be opened on a device
- * — Samsung One UI / Android 13+ reject [android.print.PrintManager.print] / [androidx.print.PrintHelper]
- * even with an Activity-backed context (S0145) — hand the already-prepared local file to the system
+ * - Samsung One UI / Android 13+ reject [android.print.PrintManager.print] / [androidx.print.PrintHelper]
+ * even with an Activity-backed context (S0145) - hand the already-prepared local file to the system
  * "Send to…" chooser so the user can still route it to a print target. The file is always local by
  * the time this is called (DocumentPrintManager materialises network/cloud sources first).
  */
@@ -21,7 +21,7 @@ class PlayerPrintFallbackManager(
     /**
      * Launches a system share chooser for [file] (display [displayName], MIME [mimeType]).
      * Returns true if the chooser was started; false if even that failed (no handler,
-     * FileProvider misconfiguration, security restriction) — caller then shows the plain
+     * FileProvider misconfiguration, security restriction) - caller then shows the plain
      * "print unavailable" notice.
      */
     fun shareForPrint(file: File, displayName: String, mimeType: String): Boolean {

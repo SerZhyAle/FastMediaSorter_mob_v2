@@ -108,7 +108,7 @@ class MediaFileAdapter(
         }
     }
 
-    /** Called by ItemTouchHelper.onMove — reorders the shadow list and notifies RecyclerView. */
+    /** Called by ItemTouchHelper.onMove - reorders the shadow list and notifies RecyclerView. */
     fun moveItem(from: Int, to: Int) {
         if (dragController.moveItem(from, to)) notifyItemMoved(from, to)
     }
@@ -187,7 +187,7 @@ class MediaFileAdapter(
                 enriched.resourceId?.let { resId ->
                     MediaFilesCacheManager.updateFile(resId, enriched.path, enriched)
                 }
-                // Callback on main thread — tell RecyclerView to rebind text only
+                // Callback on main thread - tell RecyclerView to rebind text only
                 if (position in 0 until itemCount && getItem(position).path == file.path) {
                     notifyItemChanged(position, PAYLOAD_AUDIO_METADATA)
                 }
@@ -302,7 +302,7 @@ class MediaFileAdapter(
 
     /**
      * Returns [file] enriched with AudioMetadataLoader's in-memory cache, if available.
-     * This is a fast ConcurrentHashMap lookup — safe to call on every bind.
+     * This is a fast ConcurrentHashMap lookup - safe to call on every bind.
      */
     private fun resolveAudioMetadata(file: MediaFile): MediaFile {
         if (file.type != MediaType.AUDIO || file.isDirectory) return file
@@ -670,7 +670,7 @@ class MediaFileAdapter(
 
         /**
          * Update only text labels when audio metadata (artist/album/title/duration) is enriched.
-         * Called via PAYLOAD_AUDIO_METADATA partial rebind — avoids thumbnail reload.
+         * Called via PAYLOAD_AUDIO_METADATA partial rebind - avoids thumbnail reload.
          */
         fun updateAudioMetadataText(file: MediaFile) {
             val audioOnlyFile = isAudioOnlyMode && !file.isDirectory
@@ -694,7 +694,7 @@ class MediaFileAdapter(
         }
 
         fun loadThumbnailOnly(file: MediaFile) {
-            // In audio-only mode, ivThumbnail is GONE — skip entirely
+            // In audio-only mode, ivThumbnail is GONE - skip entirely
             if (isAudioOnlyMode && !file.isDirectory) return
 
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
@@ -747,7 +747,7 @@ class MediaFileAdapter(
                 }
 
                 // Scale action buttons: compact = 24dp (0.75× normal), normal = 32dp
-                // 16dp was too small — icon area was only ~4dp with 6dp XML padding
+                // 16dp was too small - icon area was only ~4dp with 6dp XML padding
                 val btnSizePx = if (useCompactElements) {
                     (24 * root.resources.displayMetrics.density).toInt()
                 } else {
@@ -818,7 +818,7 @@ class MediaFileAdapter(
                 val useOverflow = fileOpsInOverflowMenu && !isFolder
                 // Overflow button
                 binding.btnOverflowMenu.isVisible = useOverflow
-                // Direct op buttons — hide when overflow mode OR standard shouldHideActions rule applies
+                // Direct op buttons - hide when overflow mode OR standard shouldHideActions rule applies
                 btnCopyItem.isVisible = !shouldHideActions && !useOverflow
                 btnMoveItem.isVisible = isWritable && !shouldHideActions && !useOverflow
                 btnRenameItem.isVisible = isWritable && !shouldHideActions && !useOverflow

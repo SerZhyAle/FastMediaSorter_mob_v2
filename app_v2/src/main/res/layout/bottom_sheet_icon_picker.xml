@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- bottom_sheet_icon_picker.xml — icon picker bottom sheet (S0034 Phase 06).
+<!-- bottom_sheet_icon_picker.xml - icon picker bottom sheet (S0034 Phase 06).
      Contains: header title, TabLayout for 5 icon sets, RecyclerView grid. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

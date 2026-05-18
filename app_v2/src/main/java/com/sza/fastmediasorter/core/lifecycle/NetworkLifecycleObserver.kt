@@ -76,7 +76,7 @@ class NetworkLifecycleObserver @Inject constructor(
             "[scope=lifecycle protocol=${warning.protocol} resource=${warning.resourceKey} " +
                 "recreates=${warning.recreateCount}] surfacing instability warning"
         )
-        // UI surface is left to the consuming module — intentionally no Toast here so this
+        // UI surface is left to the consuming module - intentionally no Toast here so this
         // observer stays free of Android UI dependencies. Phase 06 publishes the warning
         // log; FastMediaSorterApp or a UI bridge may subscribe to diagnostics.events
         // separately to render a snackbar on the active activity.

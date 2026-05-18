@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- openKeybindingRemap and the rest of the mapped playback management rows stay in the
+         hosted legacy Playback content until S0125 reaches row-level revised parity. -->
+    <FrameLayout
+        android:id="@+id/revisedPlaybackContentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

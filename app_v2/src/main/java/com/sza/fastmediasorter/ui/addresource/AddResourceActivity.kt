@@ -82,7 +82,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
 
-    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager handles sign-in
+    // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager handles sign-in
     // through GoogleIdentityRepository.signInPrimary (via UnifiedCloudAuthManager).
 
     private val sshKeyFilePickerLauncher = registerForActivityResult(
@@ -421,7 +421,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     Toast.makeText(this, getString(R.string.folder_selection_limitations), Toast.LENGTH_LONG).show()
                 }
             }
-            // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed — Credential
+            // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed - Credential
             // Manager owns the handshake (no Intent round-trip).
         }
     }

@@ -25,7 +25,7 @@ internal class VideoPlaybackControlsHelper(
         val resolved = when (mode) {
             StereoMode.AUTO, StereoMode.UNKNOWN -> {
                 Timber.w(
-                    "VideoPlayerManager: applyStereoEffect sentinel input=%s — defensive fallback to MONO " +
+                    "VideoPlayerManager: applyStereoEffect sentinel input=%s - defensive fallback to MONO " +
                         "(upstream coordinator should have suppressed; see PlayerStereoModeCoordinator)",
                     mode,
                 )

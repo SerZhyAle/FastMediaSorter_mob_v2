@@ -10,7 +10,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * S0118 — unit tests for [FileOperationErrorFormatter].
+ * S0118 - unit tests for [FileOperationErrorFormatter].
  *
  * The formatter pulls user-visible reason strings from Android resources, so the
  * tests stub `Context.getString()` to return the resource id back as a literal.

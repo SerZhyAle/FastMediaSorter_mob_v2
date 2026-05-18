@@ -39,6 +39,7 @@ class KeyboardNavigationManager(
         fun showCreateTextNoteDialog()
         fun showHelp()
         fun showContextMenu()
+        fun openBrowseSettings(): Boolean
         fun extendSelectionUp()
         fun extendSelectionDown()
         fun undoLastOperation()
@@ -94,6 +95,7 @@ class KeyboardNavigationManager(
                 callbacks.toggleCurrentItemSelection(pos); true
             }
             InputAction.ShowContextMenu -> { callbacks.showContextMenu(); true }
+            InputAction.OpenBrowseSettings -> callbacks.openBrowseSettings()
             InputAction.RangeExtendUp -> { callbacks.extendSelectionUp(); true }
             InputAction.RangeExtendDown -> { callbacks.extendSelectionDown(); true }
             InputAction.UndoRequested -> { callbacks.undoLastOperation(); true }

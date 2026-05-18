@@ -197,7 +197,7 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(hideSystemUiInFullscreen = isChecked))
         }
 
-        // S0162: Screen rotation control — hide entire row on non-sensor devices
+        // S0162: Screen rotation control - hide entire row on non-sensor devices
         val hasAccelerometer = requireContext().packageManager
             .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
         binding.layoutFollowSystemRotation.isVisible = hasAccelerometer
@@ -278,7 +278,7 @@ class PlaybackSettingsFragment : Fragment() {
             }
         }
 
-        // S0003: Link auto-download — master toggle + open-in-player toggle.
+        // S0003: Link auto-download - master toggle + open-in-player toggle.
         // Resource picker (row_link_autodownload_resource) is wired in Phase 05;
         // for Phase 01 the row stays informational and reflects the persisted id.
         binding.switchLinkAutodownloadEnabled.setOnCheckedChangeListener { _, isChecked ->
@@ -370,7 +370,7 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(panelStereoSingleEye = isChecked))
         }
 
-        // S0158: Big Buttons Mode — stored in PlayerLayoutModePrefs (SharedPreferences, not DataStore).
+        // S0158: Big Buttons Mode - stored in PlayerLayoutModePrefs (SharedPreferences, not DataStore).
         // ADR-2: change takes effect on next player open; no restart required.
         isUpdatingFromSettings = true
         binding.switchBigButtonsMode.isChecked = PlayerLayoutModePrefs.isBigButtonsMode(requireContext())

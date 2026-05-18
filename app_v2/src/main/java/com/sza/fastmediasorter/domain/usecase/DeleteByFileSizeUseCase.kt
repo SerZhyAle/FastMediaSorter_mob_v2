@@ -11,8 +11,8 @@ import javax.inject.Inject
  * Exactly one of [maxSizeMb] or [minSizeMb] must be non-null.
  *
  * Workflow:
- *   1. [scan]    — find matching files, returns count + total bytes (no deletion).
- *   2. [execute] — delete the previously scanned [matching] list.
+ *   1. [scan]    - find matching files, returns count + total bytes (no deletion).
+ *   2. [execute] - delete the previously scanned [matching] list.
  */
 class DeleteByFileSizeUseCase @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,

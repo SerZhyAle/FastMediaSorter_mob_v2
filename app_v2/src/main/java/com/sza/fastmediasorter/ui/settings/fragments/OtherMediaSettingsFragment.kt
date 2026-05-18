@@ -41,7 +41,7 @@ class OtherMediaSettingsFragment : Fragment() {
     /**
      * Hide UI elements that are not supported by the current device hardware / Android version.
      * OCR availability is decided by [com.sza.fastmediasorter.core.util.DeviceCapabilities],
-     * which uses physical RAM + API level — never the per-process heap limit. This is the
+     * which uses physical RAM + API level - never the per-process heap limit. This is the
      * correct signal for a feature like ML Kit text recognition; using [MemoryTier] here
      * incorrectly disabled OCR on Quest 3 / canonical emulator (7 GB RAM, 512 MB heap).
      */

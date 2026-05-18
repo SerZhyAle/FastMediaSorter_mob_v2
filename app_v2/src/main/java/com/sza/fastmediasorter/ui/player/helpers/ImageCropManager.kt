@@ -106,7 +106,7 @@ class ImageCropManager(
                 0
             }
         } else {
-            0 // Network path — no EXIF access
+            0 // Network path - no EXIF access
         }
 
         // Step 2: read original dimensions without decoding pixels
@@ -178,7 +178,7 @@ class ImageCropManager(
             val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, srcFile.path)
 
             val bitmap = withContext(Dispatchers.IO) {
-                // BitmapRegionDecoder returns raw (unrotated) pixels — rotate to match display orientation.
+                // BitmapRegionDecoder returns raw (unrotated) pixels - rotate to match display orientation.
                 val raw = decodeRegion(srcFile.path, mappedRect)
                 rotateBitmapIfNeeded(raw, readExifDegrees(srcFile.path))
             }
@@ -228,7 +228,7 @@ class ImageCropManager(
             val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, srcFile.path)
 
             val bitmap = withContext(Dispatchers.IO) {
-                // BitmapRegionDecoder returns raw (unrotated) pixels — rotate to match display orientation.
+                // BitmapRegionDecoder returns raw (unrotated) pixels - rotate to match display orientation.
                 val raw = decodeRegion(srcFile.path, mappedRect)
                 rotateBitmapIfNeeded(raw, readExifDegrees(srcFile.path))
             }
@@ -277,7 +277,7 @@ class ImageCropManager(
                 val opts = BitmapFactory.Options().apply { inSampleSize = computeSampleSize(longSide, 1024) }
                 val raw = BitmapFactory.decodeFile(srcFile.path, opts)
                     ?: throw IllegalStateException("Failed to decode source image")
-                // BitmapFactory does not apply EXIF orientation — rotate to match display orientation.
+                // BitmapFactory does not apply EXIF orientation - rotate to match display orientation.
                 rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
             }
 
@@ -412,7 +412,7 @@ class ImageCropManager(
             val safeBottom = rect.bottom.coerceIn(0, ih)
             if (safeLeft >= safeRight || safeTop >= safeBottom) {
                 decoder.recycle()
-                // Log technical details before throwing — performCrop catches and logs the exception.
+                // Log technical details before throwing - performCrop catches and logs the exception.
                 Timber.w("S0106: crop rect collapsed to empty region after clamping: input=$rect image=${iw}x${ih}")
                 throw IllegalArgumentException(context.getString(R.string.crop_error_outside_image))
             }
@@ -469,7 +469,7 @@ class ImageCropManager(
         // FileOperation.Copy treats `destination` as a directory and appends source.name,
         // so passing a full file path would cause Kotlin's copyTo to create a directory
         // at that path (EISDIR). For local destinations, write directly and notify MediaScanner.
-        // Network detection follows FileOperationUseCase.isNetworkPath canonical forms —
+        // Network detection follows FileOperationUseCase.isNetworkPath canonical forms -
         // `contains("://")` alone misses our canonical `smb:/host:port/share/..` (single slash).
         val isNetworkPath = isNetworkUri(destPath)
         if (!isNetworkPath) {
@@ -481,7 +481,7 @@ class ImageCropManager(
         }
 
         // Network destination: FileOperation.Copy uses destination as a directory and appends
-        // source.name — rename source to target filename first so the remote path is correct.
+        // source.name - rename source to target filename first so the remote path is correct.
         val destFile = File(destPath)
         val destDir = destFile.parentFile ?: throw IllegalStateException("No parent dir for $destPath")
         val renamedSource = File(sourceFile.parent, destFile.name)
@@ -503,14 +503,14 @@ class ImageCropManager(
     }
 
     private fun resolveDestinationPath(saveTo: MediaResource?, fileName: String): String {
-        // Virtual paths (virtual://...) have no real filesystem location — fall back to Downloads.
+        // Virtual paths (virtual://...) have no real filesystem location - fall back to Downloads.
         if (saveTo == null || saveTo.isReadOnly || saveTo.path.startsWith("virtual://")) {
             val downloads = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOWNLOADS
             )
             return File(downloads, fileName).absolutePath
         }
-        // Network URIs (smb:/, sftp://, etc.) must not pass through File() — its constructor
+        // Network URIs (smb:/, sftp://, etc.) must not pass through File() - its constructor
         // collapses `scheme://` to `scheme:/`, then absolutePath prepends `/`, producing
         // `/smb:/host/..` which downstream isNetworkPath checks fail to recognise canonically.
         if (isNetworkUri(saveTo.path)) {

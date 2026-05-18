@@ -54,7 +54,7 @@ class AudioSettingsFragment : Fragment() {
         private const val MODE_GIF_LOOP = "GIF_LOOP"
     }
 
-    // Ordered list of mode keys — index-aligned with dropdown labels
+    // Ordered list of mode keys - index-aligned with dropdown labels
     private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
 
     private val recordAudioPermissionLauncher = registerForActivityResult(

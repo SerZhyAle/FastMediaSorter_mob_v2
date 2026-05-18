@@ -5,7 +5,7 @@ import androidx.room.*
 /**
  * Stores a cached file list for a single resource as ONE row.
  *
- * [compressedData] — GZIP-compressed JSON array of all MediaFile objects.
+ * [compressedData] - GZIP-compressed JSON array of all MediaFile objects.
  * Typical compression ratio for repetitive path/name text: 8–12×
  * (e.g. 10 000 files × ~400 B raw = 4 MB → ~350 KB compressed).
  *
@@ -15,7 +15,7 @@ import androidx.room.*
  * Schema change (migration 12→13, A5-T1): Added scan state fields:
  * - [lastScanTimestamp]: when the most recent scan completed (epoch ms).
  * - [lastModifiedFolder]: mtime of the source folder at scan time (epoch ms).
- *   Used for quick change detection — if folder mtime unchanged, skip full rescan.
+ *   Used for quick change detection - if folder mtime unchanged, skip full rescan.
  */
 @Entity(
     tableName = "cached_file_lists",

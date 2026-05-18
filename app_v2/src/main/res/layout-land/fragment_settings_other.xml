@@ -25,7 +25,7 @@
 
             <LinearLayout android:id="@+id/layoutTranslationSource" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/translation_source_language" android:textSize="@dimen/resource_card_desc_text_size" />
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/translation_source_language" android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerTranslationSourceLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
             </LinearLayout>
@@ -34,7 +34,7 @@
 
             <LinearLayout android:id="@+id/layoutTranslationTarget" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/translation_target_language" android:textSize="@dimen/resource_card_desc_text_size" />
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/translation_target_language" android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerTranslationTargetLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
             </LinearLayout>
@@ -81,7 +81,7 @@
         <!-- OCR Font Size -->
         <LinearLayout android:id="@+id/layoutOcrFontSize" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:visibility="gone">
 
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ocr_font_size" android:textSize="@dimen/resource_card_desc_text_size" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ocr_font_size" android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerOcrFontSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
         </LinearLayout>
@@ -89,7 +89,7 @@
         <!-- OCR Font Family -->
         <LinearLayout android:id="@+id/layoutOcrFontFamily" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:visibility="gone">
 
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ocr_font_family" android:textSize="@dimen/resource_card_desc_text_size" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ocr_font_family" android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerOcrFontFamily" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
         </LinearLayout>

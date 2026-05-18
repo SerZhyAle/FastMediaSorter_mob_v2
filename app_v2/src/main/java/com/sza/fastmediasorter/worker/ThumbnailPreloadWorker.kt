@@ -50,7 +50,7 @@ class ThumbnailPreloadWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val resourceId = inputData.getLong(KEY_RESOURCE_ID, -1L)
         if (resourceId < 0) {
-            Timber.w("ThumbnailPreloadWorker: invalid resourceId=$resourceId — skipping")
+            Timber.w("ThumbnailPreloadWorker: invalid resourceId=$resourceId - skipping")
             return Result.success()
         }
         val maxItems = inputData.getInt(KEY_MAX_ITEMS, DEFAULT_MAX_ITEMS)
@@ -58,21 +58,21 @@ class ThumbnailPreloadWorker @AssistedInject constructor(
         // Step 1: Abort if feature disabled
         val settings = settingsRepository.getSettings().first()
         if (!settings.enableThumbnailPreload) {
-            Timber.d("ThumbnailPreloadWorker: feature disabled — skipping resource $resourceId")
+            Timber.d("ThumbnailPreloadWorker: feature disabled - skipping resource $resourceId")
             return Result.success()
         }
 
         // Step 2: Verify resource still exists
         val resource = resourceRepository.getResourceById(resourceId)
         if (resource == null) {
-            Timber.d("ThumbnailPreloadWorker: resource $resourceId deleted — skipping")
+            Timber.d("ThumbnailPreloadWorker: resource $resourceId deleted - skipping")
             return Result.success()
         }
 
         // Step 3: Load cached file list
         val allFiles = cachedFileListRepository.getCachedFiles(resourceId)
         if (allFiles.isNullOrEmpty()) {
-            Timber.d("ThumbnailPreloadWorker: no cached file list for resource $resourceId — skipping")
+            Timber.d("ThumbnailPreloadWorker: no cached file list for resource $resourceId - skipping")
             return Result.success()
         }
 
@@ -137,7 +137,7 @@ class ThumbnailPreloadWorker @AssistedInject constructor(
             Timber.w(e, "ThumbnailPreloadWorker: enforceSizeLimit failed (non-fatal)")
         }
 
-        Timber.i("ThumbnailPreloadWorker: completed — $processedCount new thumbnails cached for resource ${resource.name}")
+        Timber.i("ThumbnailPreloadWorker: completed - $processedCount new thumbnails cached for resource ${resource.name}")
         return Result.success()
     }
 }

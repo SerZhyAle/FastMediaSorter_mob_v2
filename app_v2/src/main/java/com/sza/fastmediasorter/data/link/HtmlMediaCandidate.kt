@@ -11,7 +11,7 @@ data class HtmlMediaCandidate(
     val manifest: StreamingManifest? = null,
     /**
      * S0171: scheme+host of the page that produced this candidate (e.g. `https://www.instagram.com`).
-     * Used to build the `Referer` header when re-fetching a signed CDN URL — Instagram's CDN edge
+     * Used to build the `Referer` header when re-fetching a signed CDN URL - Instagram's CDN edge
      * rejects the request without it. `null` for candidates whose origin couldn't be determined.
      */
     val pageOrigin: String? = null,

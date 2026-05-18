@@ -18,11 +18,11 @@ import kotlin.random.Random
  * Controls the lifecycle of audio empty-state animations when no cover art is available.
  *
  * Supported modes (values stored in [AppSettings.audioEmptyStateMode]):
- *  - [MODE_NONE]           — black background; shows static music-note icon
- *  - [MODE_AVD_PULSE]      — AudioBreathingBarsView with pulsing music-note icon
- *  - [MODE_CANVAS_BARS]    — AudioBreathingBarsView with 9 sine-animated bars
- *  - [MODE_CANVAS_WAVES]   — AudioWaveParticleView: procedural wave + particle animation
- *  - [MODE_VISUALIZATION]  — looping MP4 video via MediaPlayer + TextureView (API 16+)
+ *  - [MODE_NONE]           - black background; shows static music-note icon
+ *  - [MODE_AVD_PULSE]      - AudioBreathingBarsView with pulsing music-note icon
+ *  - [MODE_CANVAS_BARS]    - AudioBreathingBarsView with 9 sine-animated bars
+ *  - [MODE_CANVAS_WAVES]   - AudioWaveParticleView: procedural wave + particle animation
+ *  - [MODE_VISUALIZATION]  - looping MP4 video via MediaPlayer + TextureView (API 16+)
  *
  * [MODE_GIF_LOOP] is kept as a legacy alias for [MODE_VISUALIZATION] (DataStore compat).
  *
@@ -47,7 +47,7 @@ class AudioEmptyStateController(
         const val MODE_CANVAS_BARS = "CANVAS_BARS"
         const val MODE_CANVAS_WAVES = "CANVAS_WAVES"
         const val MODE_VISUALIZATION = "VISUALIZATION"
-        /** Legacy DataStore value — treated identically to [MODE_VISUALIZATION]. */
+        /** Legacy DataStore value - treated identically to [MODE_VISUALIZATION]. */
         const val MODE_GIF_LOOP = "GIF_LOOP"
     }
 
@@ -188,10 +188,10 @@ class AudioEmptyStateController(
         videoView.isVisible = true
 
         if (videoView.isAvailable) {
-            Timber.d("AudioEmptyStateController: surface already available — starting immediately")
+            Timber.d("AudioEmptyStateController: surface already available - starting immediately")
             startMediaPlayer(Surface(videoView.surfaceTexture!!), pendingResId)
         } else {
-            Timber.d("AudioEmptyStateController: surface NOT available — waiting for callback")
+            Timber.d("AudioEmptyStateController: surface NOT available - waiting for callback")
             videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, w: Int, h: Int) {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureAvailable ${w}x${h}")
@@ -256,7 +256,7 @@ class AudioEmptyStateController(
                         MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "TIMED_OUT($extra)"
                         else -> "EXTRA_$extra"
                     }
-                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr resId=$resId — fallback to CANVAS_BARS")
+                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr resId=$resId - fallback to CANVAS_BARS")
                     videoView.isVisible = false
                     showBars()
                     true
@@ -270,7 +270,7 @@ class AudioEmptyStateController(
             }
         } catch (e: Exception) {
             surface.release()
-            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION — fallback to CANVAS_BARS, resId=$resId")
+            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - fallback to CANVAS_BARS, resId=$resId")
             videoView.isVisible = false
             showBars()
         }

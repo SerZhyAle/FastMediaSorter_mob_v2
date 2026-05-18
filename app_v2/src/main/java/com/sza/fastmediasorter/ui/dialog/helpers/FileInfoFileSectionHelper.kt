@@ -58,7 +58,7 @@ class FileInfoFileSectionHelper(
             val mime = MimeTypeResolver.resolve(decomposition.extension, headBytesProvider = null)
             binding.tvFileExtensionMime.text = context.getString(
                 R.string.file_info_extension_mime_label,
-                decomposition.extension?.uppercase() ?: "—",
+                decomposition.extension?.uppercase() ?: "-",
                 mime
             )
             binding.tvFileExtensionMime.isVisible = true

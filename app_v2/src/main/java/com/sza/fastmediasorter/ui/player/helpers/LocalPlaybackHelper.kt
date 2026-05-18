@@ -25,7 +25,7 @@ import java.io.FileInputStream
 /**
  * Local-file playback helpers and MIME-type / MediaItem utilities.
  *
- * Extension functions on [VideoPlayerManager] — extracted to reduce per-file CFG complexity
+ * Extension functions on [VideoPlayerManager] - extracted to reduce per-file CFG complexity
  * (Kotlin daemon ControlFlowGraph OOM during parallel flavor compilation).
  */
 
@@ -61,7 +61,7 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             return
         }
         if (!fileCheck.second) {
-            // File exists but not readable — try content URI fallback (Android 11+ scoped storage)
+            // File exists but not readable - try content URI fallback (Android 11+ scoped storage)
             val contentUri = resolveContentUriForPath(normalizedPath)
             if (contentUri != null) {
                 Timber.i("VideoPlayerManager: File not readable via path, using content URI fallback: $contentUri")
@@ -179,9 +179,9 @@ internal fun VideoPlayerManager.normalizeLocalPath(path: String): String {
  * Returns null for cloud:// URIs and unknown extensions so ExoPlayer can auto-detect.
  */
 internal fun VideoPlayerManager.getMimeTypeFromPath(path: String): String? {
-    // Cloud URIs (cloud://provider/fileId) have no extension — skip detection
+    // Cloud URIs (cloud://provider/fileId) have no extension - skip detection
     if (path.startsWith("cloud://")) return null
-    // content:// URIs have no file extension — use ContentResolver for accurate MIME type
+    // content:// URIs have no file extension - use ContentResolver for accurate MIME type
     if (path.startsWith("content://")) {
         return try {
             context.contentResolver.getType(android.net.Uri.parse(path))

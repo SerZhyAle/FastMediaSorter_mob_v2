@@ -5,7 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0190 — Rewrites well-known equivalent URLs to a canonical form that both
+ * S0190 - Rewrites well-known equivalent URLs to a canonical form that both
  * yt-dlp and NewPipe's `YoutubeStreamLinkHandlerFactory` recognise reliably.
  *
  * Currently covers YouTube:
@@ -21,7 +21,7 @@ import javax.inject.Singleton
  *    `PoTokenProvider` (S0198 will provide one for the remaining cases).
  *
  * The `audioOnly` flag on the returned [CanonicalizedUrl] is set only for
- * `music.youtube.com` inputs — the canonical `www.youtube.com` host loses the
+ * `music.youtube.com` inputs - the canonical `www.youtube.com` host loses the
  * audio-only hint that the original host carried.
  *
  * Returns the URL unchanged when no rule applies or when parsing fails.

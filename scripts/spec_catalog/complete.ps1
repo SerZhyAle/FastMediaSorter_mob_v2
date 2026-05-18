@@ -32,7 +32,7 @@ if (-not $SkipValidate) {
     & (Join-Path $PSScriptRoot 'validate.ps1')
     $validateExit = $LASTEXITCODE
     if ($validateExit -ne 0) {
-        Write-Warning "validate.ps1 exited $validateExit — check output above. Continue anyway (pre-existing failures are common). Use -SkipValidate to suppress this step."
+        Write-Warning "validate.ps1 exited $validateExit - check output above. Continue anyway (pre-existing failures are common). Use -SkipValidate to suppress this step."
     } else {
         Write-Host "      OK" -ForegroundColor Green
     }
@@ -52,7 +52,7 @@ if (Test-Path $changelogPath) {
         Write-Host ("      {0} entr{1} found" -f $hits, $(if ($hits -eq 1) {'y'} else {'ies'})) -ForegroundColor Green
     }
 } else {
-    Write-Warning "dev/CHANGELOG.md not found — skipping dev-log check."
+    Write-Warning "dev/CHANGELOG.md not found - skipping dev-log check."
 }
 
 # 3. Close

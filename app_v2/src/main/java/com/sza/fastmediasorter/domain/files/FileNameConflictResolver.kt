@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
  * Resolves filename collisions inside a target directory by appending the current
  * seconds component (`-ss`) to the base name (before the extension).
  *
- * Shared module owned by S0189 (Phase 09). Content-type agnostic — no extension or
+ * Shared module owned by S0189 (Phase 09). Content-type agnostic - no extension or
  * filename pattern assumptions. Consumed by text notes (S0189) and drawings (S0191).
  */
 object FileNameConflictResolver {

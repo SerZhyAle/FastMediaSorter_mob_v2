@@ -7,13 +7,13 @@ import timber.log.Timber
  * Aggregates metrics from all recorders into a unified export payload (C2-T3).
  *
  * Collects data from:
- * - [ScanMetricsRecorder] — scan timing statistics
- * - [OperationMetricsRecorder] — connection-test and resource-save counters
+ * - [ScanMetricsRecorder] - scan timing statistics
+ * - [OperationMetricsRecorder] - connection-test and resource-save counters
  *
  * ### Export formats
  *
- * - [toJsonString]   — simple JSON string suitable for file export or HTTP POST
- * - [exportToLogcat] — structured Timber log for debugging
+ * - [toJsonString]   - simple JSON string suitable for file export or HTTP POST
+ * - [exportToLogcat] - structured Timber log for debugging
  *
  * ### Future integration
  *

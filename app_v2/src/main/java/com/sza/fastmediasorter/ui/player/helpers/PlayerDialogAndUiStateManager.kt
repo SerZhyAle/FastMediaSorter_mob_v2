@@ -69,12 +69,12 @@ class PlayerDialogAndUiStateManager(
     var audioSlideshowPhotoModeManager: AudioSlideshowPhotoModeManager? = null
 
     // ========================================
-    // S0213 Pillar A / Pillar C — Snackbars
+    // S0213 Pillar A / Pillar C - Snackbars
     // ========================================
 
     /**
      * S0213 Pillar A: show a snackbar telling the user the just-played file is in decoder cooldown.
-     * Manual single-file context only — the slideshow / playlist path auto-skips before getting here.
+     * Manual single-file context only - the slideshow / playlist path auto-skips before getting here.
      * The action button delegates to the supplied [onSkip] (typically `viewModel.nextFile`).
      */
     fun showDecoderCooldownSnackbar(remainingSec: Int, onSkip: () -> Unit) {
@@ -306,7 +306,7 @@ class PlayerDialogAndUiStateManager(
         val forceShowPanel = showCommandPanel || (isAudioFile && !isAudioSlideshowPhotoMode)
 
         // Hide panel only for photo slideshows (IMAGE/GIF). VIDEO/AUDIO use isSlideShowActive
-        // for auto-advance only — their command panel must stay visible (gesture zones rely on it).
+        // for auto-advance only - their command panel must stay visible (gesture zones rely on it).
         val shouldHideForSlideshow = state.isPhotoSlideshowActive
         
         Timber.d("PlayerDialogAndUiStateManager: updatePanelVisibility(showCommandPanel=$showCommandPanel, isAudio=$isAudioFile, photoSlideshow=${state.isPhotoSlideshowActive}, RESULT=${forceShowPanel && !shouldHideForSlideshow})")

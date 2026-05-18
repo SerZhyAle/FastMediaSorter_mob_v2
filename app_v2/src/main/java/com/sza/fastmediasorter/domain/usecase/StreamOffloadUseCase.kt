@@ -30,7 +30,7 @@ import javax.inject.Singleton
  * partial download is removed and no DB row is created.
  *
  * Destination: `<externalFilesDir>/streaming_cache/<resourceHash>/<filename>`.
- * This is app-scoped external storage — no runtime permission needed and the
+ * This is app-scoped external storage - no runtime permission needed and the
  * path is stable across API levels, which dodges the scoped-storage MediaStore
  * overhead described in the spec while still satisfying cleanup semantics.
  */
@@ -173,7 +173,7 @@ class StreamOffloadUseCase @Inject constructor(
         )
         SourceProtocol.CLOUD -> {
             val cloud = directoryStrategies["cloud"]
-                ?: error("Cloud strategy not registered — FEATURE_CLOUD flavor required")
+                ?: error("Cloud strategy not registered - FEATURE_CLOUD flavor required")
             val result = cloud.copyFile(
                 source = request.originalUri,
                 destination = destFile.absolutePath,

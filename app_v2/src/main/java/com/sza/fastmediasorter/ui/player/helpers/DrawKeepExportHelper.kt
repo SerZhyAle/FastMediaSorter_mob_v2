@@ -19,7 +19,7 @@ import javax.inject.Inject
  * FileProvider URI, and fires `ACTION_SEND` targeted at Google Keep. Falls back
  * to the generic share chooser when Keep is not installed (ADR-8).
  *
- * Editor stays open after the intent is fired — the user continues editing or
+ * Editor stays open after the intent is fired - the user continues editing or
  * closes the editor manually.
  */
 class DrawKeepExportHelper @Inject constructor(
@@ -30,7 +30,7 @@ class DrawKeepExportHelper @Inject constructor(
      * Composites the overlay onto the base and shares the result.
      *
      * @return [Result.success] once the share intent has been started.
-     *         [Result.failure] if merge or temp-file write fails — caller
+     *         [Result.failure] if merge or temp-file write fails - caller
      *         decides whether to toast.
      */
     suspend fun export(
@@ -43,7 +43,7 @@ class DrawKeepExportHelper @Inject constructor(
             .execute(baseBitmap, overlayBitmap, Bitmap.CompressFormat.JPEG, quality = 95)
             .getOrElse { throw it }
 
-        // 2. Stage to cacheDir (Android trims this automatically — no manual cleanup)
+        // 2. Stage to cacheDir (Android trims this automatically - no manual cleanup)
         val cacheFile = withContext(Dispatchers.IO) {
             val file = File(activity.cacheDir, "draw_keep_export_${System.currentTimeMillis()}.jpg")
             FileOutputStream(file).use { it.write(bytes) }
@@ -54,7 +54,7 @@ class DrawKeepExportHelper @Inject constructor(
         val authority = "${activity.packageName}.fileprovider"
         val uri = FileProvider.getUriForFile(activity, authority, cacheFile)
 
-        // 4. Build the share intent — addFlags + clipData together so Android 11+
+        // 4. Build the share intent - addFlags + clipData together so Android 11+
         //    consistently grants read access to the receiving app (Antigravity §9.2).
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"

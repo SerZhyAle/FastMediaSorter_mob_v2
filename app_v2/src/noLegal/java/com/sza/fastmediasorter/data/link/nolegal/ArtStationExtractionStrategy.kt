@@ -19,7 +19,7 @@ import javax.inject.Singleton
 /**
  * S0177: Native extractor for artstation.com.
  *
- * Uses the internal ArtStation projects JSON API — no WebView needed.
+ * Uses the internal ArtStation projects JSON API - no WebView needed.
  * Public artwork does not require authentication.
  */
 @Singleton

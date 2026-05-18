@@ -18,7 +18,7 @@ import timber.log.Timber
 
 /**
  * Keyboard and mouse-wheel handler for [PlayerActivity] and [StandalonePlayerActivity].
- * Single host-agnostic parser — each host supplies its own [PlayerKeyboardCallback].
+ * Single host-agnostic parser - each host supplies its own [PlayerKeyboardCallback].
  *
  * Flow: raw [KeyEvent] → [KeyBindingManager] resolver → [CommandId] →
  * [handleCommand] (media-type-aware) → [PlayerKeyboardCallback] → ViewModel call.
@@ -70,9 +70,9 @@ class PlayerKeyboardHandler(
         fun onTextScrollUp()
         fun onTextHome()
         fun onTextEnd()
-        /** Mouse-wheel scroll on EPUB — positive = scroll up, negative = scroll down. */
+        /** Mouse-wheel scroll on EPUB - positive = scroll up, negative = scroll down. */
         fun onEpubScrollDelta(verticalScroll: Float)
-        /** Mouse-wheel scroll on non-document media — delegate to navigation manager. */
+        /** Mouse-wheel scroll on non-document media - delegate to navigation manager. */
         fun onNavigationScroll(verticalScroll: Float)
         // ── Phase 2 additions ────────────────────────────────────────────────
         fun onToggleMute() {}
@@ -88,7 +88,7 @@ class PlayerKeyboardHandler(
         fun canCopyCurrent(): Boolean = false
         fun canMoveCurrent(): Boolean = false
         fun onToggleBlackScreen() {}
-        // S0162: toggle player-level rotation sensor (no-op when followSystemRotation=true — guard in ViewModel)
+        // S0162: toggle player-level rotation sensor (no-op when followSystemRotation=true - guard in ViewModel)
         fun onToggleRotationSensor() {}
     }
 

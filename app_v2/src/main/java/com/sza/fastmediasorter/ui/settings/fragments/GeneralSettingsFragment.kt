@@ -99,7 +99,7 @@ class GeneralSettingsFragment : Fragment() {
 
     private val calculateOptimalCacheSizeUseCase by lazy { CalculateOptimalCacheSizeUseCase() }
 
-    // All helpers are lazy — binding is only valid after onCreateView, and helpers are first
+    // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
     // accessed from onViewCreated, so initialization is always safe.
     private val sectionsHelper by lazy { GeneralSettingsSectionsHelper(binding, this) }
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }

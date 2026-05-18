@@ -52,7 +52,7 @@
             android:textColor="?attr/colorError"
             android:visibility="gone" />
 
-        <!-- Operation type (no label — value is self-explanatory) -->
+        <!-- Operation type (no label - value is self-explanatory) -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -134,7 +134,7 @@
 
                 </LinearLayout>
 
-                <!-- Collapsible content — hidden by default -->
+                <!-- Collapsible content - hidden by default -->
                 <LinearLayout
                     android:id="@+id/containerConditionsContent"
                     android:layout_width="match_parent"
@@ -145,7 +145,7 @@
                     android:paddingBottom="8dp"
                     android:visibility="gone">
 
-                    <!-- File type checkboxes — compact, 2-column grid -->
+                    <!-- File type checkboxes - compact, 2-column grid -->
                     <GridLayout
                         android:id="@+id/containerFileTypeMask"
                         android:layout_width="match_parent"
@@ -219,7 +219,7 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Overwrite existing files (hidden for DELETE) — grouped with conditions -->
+                    <!-- Overwrite existing files (hidden for DELETE) - grouped with conditions -->
                     <LinearLayout
                         android:id="@+id/containerOverwrite"
                         android:layout_width="match_parent"

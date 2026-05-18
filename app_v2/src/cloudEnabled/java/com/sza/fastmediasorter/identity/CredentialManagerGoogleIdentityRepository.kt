@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.identity
 
+import android.app.Activity
 import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -8,6 +9,7 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.GetCredentialProviderConfigurationException
 import androidx.credentials.exceptions.NoCredentialException
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.sza.fastmediasorter.core.di.ApplicationScope
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 /**
@@ -43,7 +46,7 @@ import timber.log.Timber
  * [PrimaryGoogleAccountStore]. This class owns only the observable state, the Credential Manager
  * call surface, and the exception → reason mapping.
  *
- * Lives in the `cloudEnabled` source set — mounted into every cloud-enabled flavor.
+ * Lives in the `cloudEnabled` source set - mounted into every cloud-enabled flavor.
  */
 @Singleton
 class CredentialManagerGoogleIdentityRepository @Inject constructor(
@@ -63,16 +66,27 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         }
     }
 
-    // region — interactive sign-in
+    // region - interactive sign-in
 
     override suspend fun signInPrimary(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult {
         // Pre-check Google Play Services availability before invoking Credential Manager.
         // Without this guard, an outdated / missing GMS produces a generic GetCredentialException
         // subtype that mapException() funnels into IdentityFailureReason.UnknownError, hiding the
         // actionable "update Play Services" CTA from the user (see GmsAvailabilityChecker).
+        //
+        // S0233 Front A: if the guard reports PlayServicesOutdated AND the caller passed a real
+        // Activity, offer the user the standard Play Services repair flow. On success we re-check
+        // the guard once and proceed with Credential Manager as if the sign-in had been tapped
+        // afresh; the user does not need a second click. On user-decline or device-unfixable
+        // we fall through to the legacy Failed path so existing UX remains intact.
         gmsGuard()?.let { reason ->
-            _state.value = PrimaryGoogleAccountState.Error(reason)
-            return IdentitySignInResult.Failed(reason)
+            val repaired = maybeRepairPlayServices(activityContext, reason)
+            if (repaired && gmsGuard() == null) {
+                Timber.d("S0233: gmsGuard now clean after repair; continuing sign-in")
+            } else {
+                _state.value = PrimaryGoogleAccountState.Error(reason)
+                return IdentitySignInResult.Failed(reason)
+            }
         }
         val previous = _state.value
         _state.value = PrimaryGoogleAccountState.Authenticating
@@ -129,7 +143,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         val union = current.grantedScopes + scopes
         val result = signInPrimary(activityContext, union)
         if (result is IdentitySignInResult.Success && result.account.email != current.email) {
-            // User picked a different account at the prompt — revert to the original primary.
+            // User picked a different account at the prompt - revert to the original primary.
             store.save(current)
             _state.value = PrimaryGoogleAccountState.Bound(current)
             return IdentitySignInResult.Cancelled
@@ -140,7 +154,14 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     override suspend fun requestSecondaryAccount(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult {
         // Secondary path does NOT mutate _state nor the primary store. Still pre-check GMS to
         // surface PlayServicesOutdated explicitly instead of letting it bubble up as UnknownError.
-        gmsGuard()?.let { reason -> return IdentitySignInResult.Failed(reason) }
+        // S0233 Front A: the same auto-repair attempt is offered for secondary accounts; on success
+        // we re-check the guard and continue, otherwise we fall through to the existing Failed path.
+        gmsGuard()?.let { reason ->
+            val repaired = maybeRepairPlayServices(activityContext, reason)
+            if (!(repaired && gmsGuard() == null)) {
+                return IdentitySignInResult.Failed(reason)
+            }
+        }
         return runCatching {
             val request = buildGetCredentialRequest(filterByAuthorizedAccounts = false)
             val response = CredentialManager.create(appContext).getCredential(activityContext, request)
@@ -164,7 +185,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
 
     // endregion
 
-    // region — sign-out & token
+    // region - sign-out & token
 
     override suspend fun signOutPrimary() {
         tokenIssuer.invalidate()
@@ -191,7 +212,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
 
     // endregion
 
-    // region — private helpers
+    // region - private helpers
 
     private suspend fun restoreFromStore(): PrimaryGoogleAccountState {
         return runCatching { store.load() }
@@ -214,7 +235,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
 
     private fun mapException(t: Throwable): IdentitySignInResult {
         // Diagnostic breadcrumb: without this line, the only signal in logcat for a failed sign-in
-        // is the downstream "ShowSignInError reason=UnknownError" — the actual exception type and
+        // is the downstream "ShowSignInError reason=UnknownError" - the actual exception type and
         // message are lost. Cancellation is not noisy and is filtered out at info level.
         if (t !is GetCredentialCancellationException) {
             Timber.w(t, "Credential Manager sign-in failed: %s: %s", t::class.simpleName, t.message)
@@ -268,6 +289,49 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 IdentityFailureReason.UnknownError
             }
             else -> null
+        }
+    }
+
+    /**
+     * S0233 Front A: attempt to launch the standard Play Services repair flow.
+     *
+     * Returns `true` when the Play Services Task suspended-await completed without throwing,
+     * which Google's contract documents as "Play Services is now available at the required
+     * version (or higher) in the current process scope". A `false` return covers every other
+     * outcome - user cancelled the dialog, device cannot satisfy the requirement, or the
+     * caller did not supply an Activity-typed context.
+     *
+     * Only reacts to [IdentityFailureReason.PlayServicesOutdated]; for [UnknownError] (typically
+     * GMS absent / disabled) Play Services itself cannot be coaxed into self-repair through this
+     * call and we leave the legacy fail-fast path in place.
+     *
+     * The call site re-runs [gmsGuard] after this returns `true`; we intentionally do NOT trust
+     * the GMS-availability cache here because `makeGooglePlayServicesAvailable` updates GMS
+     * out-of-process and the previously cached status may stay stale until the next live recheck.
+     */
+    private suspend fun maybeRepairPlayServices(
+        activityContext: Context,
+        reason: IdentityFailureReason
+    ): Boolean {
+        if (reason != IdentityFailureReason.PlayServicesOutdated) {
+            Timber.d("S0233: Front A skipped reason=$reason (only PlayServicesOutdated is auto-repairable)")
+            return false
+        }
+        val activity = activityContext as? Activity
+        if (activity == null) {
+            Timber.d("S0233: Front A skipped - caller passed non-Activity Context (cannot host repair dialog)")
+            return false
+        }
+        Timber.d("S0233: Front A repair attempt start gmsStatus=${GmsAvailabilityChecker.status}")
+        return runCatching {
+            GoogleApiAvailability.getInstance()
+                .makeGooglePlayServicesAvailable(activity)
+                .await()
+            Timber.d("S0233: Front A repair succeeded; re-running gmsGuard")
+            true
+        }.getOrElse { error ->
+            Timber.d("S0233: Front A repair declined or failed cause=${error.message}")
+            false
         }
     }
 

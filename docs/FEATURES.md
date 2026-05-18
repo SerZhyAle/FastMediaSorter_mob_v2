@@ -1,4 +1,4 @@
-# FastMediaSorter v2 — Complete Feature List
+# FastMediaSorter v2 - Complete Feature List
 
 *Last updated: 2026-05-11*
 
@@ -31,7 +31,7 @@ This document is the canonical inventory of all user-facing features implemented
 - [21. Wear OS Companion App](#21-wear-os-companion-app)
 - [22. Background & System Services](#22-background--system-services)
 - [23. Scheduled File Operations](#23-scheduled-file-operations)
-- [24. Apps FMS Can Replace — Competitor Comparison](#24-apps-fms-can-replace--competitor-comparison)
+- [24. Apps FMS Can Replace - Competitor Comparison](#24-apps-fms-can-replace--competitor-comparison)
 
 ---
 
@@ -62,7 +62,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Multi-select**: Select multiple files to batch copy, move, delete, or share.
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into the file list, or uncheck to flatten the view (recursive scan).
 - **Subfolder operations**: Select, copy, move, rename, delete, and create subfolders directly in Browse for local, network, and cloud resources.
-- **Create Folder button** in Browse toolbar — visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
+- **Create Folder button** in Browse toolbar - visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
 - **Show hidden/all files**: Toggle visibility of system-hidden files, or bypass media filters to view all binary files and archives.
 - **Intelligent thumbnail loading**: Previews for photos and video frames; can be disabled per resource for large network directories.
 - **Fast placeholder for unsupported network video**: Containers that cannot be decoded over a network stream show an icon immediately instead of waiting for a timeout.
@@ -145,7 +145,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Black Screen mode**: Collapses the screen to solid black while playback continues uninterrupted.
 - **Network DVD VOB routing fix**: Correctly routes `.vob` files and handles stream errors clearly.
 - **In-player rotation toggle**: Lock or unlock screen rotation mid-session without leaving the player.
-- **Big Buttons Mode**: Scales player controls and the top toolbar to full screen width with 2× height — designed for car head units and one-handed use while driving.
+- **Big Buttons Mode**: Scales player controls and the top toolbar to full screen width with 2× height - designed for car head units and one-handed use while driving.
 
 ## 8. VR Edition
 
@@ -202,7 +202,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Editing**: In-place text editing with auto-save and undo history for local and remote files.
 - **Create new text note from Browse**: tap the "New Note" button in the Browse toolbar to create a `.txt` file in the current folder (local, SMB, SFTP, FTP, or cloud) and open it immediately in the editor. Network notes are staged locally in Downloads/FastMediaSorter/notes/ until saved.
 - **Save-with-rename dialog**: on Save / Save & Close / Save & Send the editor shows a dialog to confirm or rename the file; filename collisions are resolved automatically with a seconds suffix.
-- **5-button action panel**: Save, Save & Close, Save & Send, Send to Keep, Cancel — with a dirty-state indicator that tints the panel when unsaved edits are present.
+- **5-button action panel**: Save, Save & Close, Save & Send, Send to Keep, Cancel - with a dirty-state indicator that tints the panel when unsaved edits are present.
 - **Auto-fit font**: editor font starts at the maximum configured size and shrinks automatically to fit the viewport as content grows; a swipe gesture locks the manual size.
 - **Inline search panel**: Tap-to-search works in both the internal file browser and standalone "Open with" mode.
 
@@ -291,7 +291,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Remote support**: Full support for Local, SMB, SFTP, FTP, and Cloud targets. Validates reachability before running.
 - **Logging**: Per-file execution log with success/error status and UI error badges.
 
-## 24. Apps FMS Can Replace — Competitor Comparison
+## 24. Apps FMS Can Replace - Competitor Comparison
 
 FastMediaSorter consolidates functionality that typically requires multiple separate apps into a single tool:
 

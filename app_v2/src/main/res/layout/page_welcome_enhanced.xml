@@ -2,7 +2,7 @@
 <!-- Enhanced welcome page: compact header (hero icon + title + short summary) pinned at the top,
      then a scrollable body holding the optional language picker, an adaptive grid of feature blocks
      (column count from @integer/welcome_feature_grid_columns), and the multi-paragraph details block.
-     The page itself never scrolls — only the body ScrollView does. Content capped at
+     The page itself never scrolls - only the body ScrollView does. Content capped at
      welcome_content_max_width and centred for wide / TV screens.
      All ids must stay in sync with the landscape variant (layout-land/page_welcome_enhanced.xml). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"

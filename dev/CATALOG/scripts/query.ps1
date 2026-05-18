@@ -91,7 +91,7 @@ $result |
         @{N='loc';E={$_.loc}}, `
         @{N='last';E={$_.lastTouched}}, `
         @{N='status';E={$_.status}}, `
-        @{N='role';E={if ($_.role) { $_.role } else { '—' }}} |
+        @{N='role';E={if ($_.role) { $_.role } else { '-' }}} |
     Format-Table -AutoSize -Wrap
 
 Write-Host "`n$($result.Count) records matched" -ForegroundColor Cyan

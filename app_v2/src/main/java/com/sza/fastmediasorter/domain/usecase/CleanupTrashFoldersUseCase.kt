@@ -147,7 +147,7 @@ class CleanupTrashFoldersUseCase @Inject constructor() {
             }
         }
 
-        // Remove the container itself once it is empty — keeps the parent tidy.
+        // Remove the container itself once it is empty - keeps the parent tidy.
         val remaining = container.listFiles()
         if (remaining != null && remaining.isEmpty()) {
             if (container.delete()) {

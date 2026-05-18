@@ -69,7 +69,7 @@ class SmbConnectionManagerTest {
         every { anyConstructed<Socket>().close() } just Runs
 
         // Create manager instance
-        // S0018: out-of-scope inline fix — added playbackTracker mock to satisfy updated constructor
+        // S0018: out-of-scope inline fix - added playbackTracker mock to satisfy updated constructor
         connectionManager = SmbConnectionManager(
             mockNetworkStateMonitor,
             mockk<SmbPlaybackConnectionTracker>(relaxed = true),
@@ -328,7 +328,7 @@ class SmbConnectionManagerTest {
             // Clear pool
             connectionManager.clearConnectionPool()
 
-            // closeAllConnections runs async via CoroutineScope — wait for IO dispatcher
+            // closeAllConnections runs async via CoroutineScope - wait for IO dispatcher
             delay(500)
 
             // Verify resources were closed
@@ -430,7 +430,7 @@ class SmbConnectionManagerTest {
     // ── S0025: Wi-Fi gate + smart retry ─────────────────────────────────────
 
     @Test
-    fun `withConnection throws synchronously when Wi-Fi gate denies — no socket attempt`() = runBlocking {
+    fun `withConnection throws synchronously when Wi-Fi gate denies - no socket attempt`() = runBlocking {
         val connectionInfo = SmbConnectionInfo(
             server = "testserver",
             shareName = "testshare",
@@ -454,7 +454,7 @@ class SmbConnectionManagerTest {
     }
 
     @Test
-    fun `withConnection skips degraded retry when TCP precheck fails — tcpReachable false branch`() = runBlocking {
+    fun `withConnection skips degraded retry when TCP precheck fails - tcpReachable false branch`() = runBlocking {
         val connectionInfo = SmbConnectionInfo(
             server = "deadhost",
             shareName = "share",

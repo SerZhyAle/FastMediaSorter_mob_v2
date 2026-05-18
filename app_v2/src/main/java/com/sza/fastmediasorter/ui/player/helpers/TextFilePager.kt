@@ -59,7 +59,7 @@ class TextFilePager(
 
     /**
      * Read the page at the given index.
-     * Pages are lazily indexed — reading page N will index all pages up to N.
+     * Pages are lazily indexed - reading page N will index all pages up to N.
      * Returns page text as String (may be empty for pages beyond EOF).
      */
     fun readPage(pageIndex: Int): String {
@@ -210,7 +210,7 @@ class TextFilePager(
             }
         }
 
-        // No newline found — use charset boundary correction
+        // No newline found - use charset boundary correction
         return adjustForCharsetBoundary(tentativeEnd)
     }
 
@@ -224,7 +224,7 @@ class TextFilePager(
         if (charsetName.startsWith("iso-8859") || charsetName.startsWith("windows-") ||
             charsetName == "us-ascii" || charsetName.startsWith("koi8")
         ) {
-            return offset // Single-byte charset — safe at any boundary
+            return offset // Single-byte charset - safe at any boundary
         }
 
         // UTF-8 / multi-byte boundary correction
@@ -237,7 +237,7 @@ class TextFilePager(
                 r.seek(pos)
                 val b = r.read()
                 if (b and 0xC0 != 0x80) {
-                    // Not a continuation byte — safe boundary
+                    // Not a continuation byte - safe boundary
                     return pos
                 }
                 pos--

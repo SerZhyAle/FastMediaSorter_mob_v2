@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0192 Phase 05 — Tool selector popup menu (Brush / Rectangle / Oval / Eraser / Text) -->
+<!-- S0192 Phase 05 - Tool selector popup menu (Brush / Rectangle / Oval / Eraser / Text) -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/draw_tool_brush"

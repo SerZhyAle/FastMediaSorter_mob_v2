@@ -21,7 +21,7 @@ import java.io.File
  * Owns [pendingFolderPickerOp] state and bridges between [BrowseFileOperationsManager]
  * callbacks and the Activity's OpenDocumentTree launcher.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseFolderPickerHandler(
     private val activity: Activity,

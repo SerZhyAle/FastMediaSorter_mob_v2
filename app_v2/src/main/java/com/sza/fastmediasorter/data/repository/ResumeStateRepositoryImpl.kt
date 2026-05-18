@@ -38,7 +38,7 @@ class ResumeStateRepositoryImpl @Inject constructor(
         context.getSharedPreferences("resume_state_prefs_$windowId", Context.MODE_PRIVATE)
 
     override suspend fun saveState(windowId: String, state: ResumeState) = withContext(Dispatchers.IO) {
-        Timber.d("ResumeStateRepository[$windowId]: saveState — file=${state.filePath}, resource=${state.resourceId}, screen=${state.screenType}, playing=${state.isPlaying}")
+        Timber.d("ResumeStateRepository[$windowId]: saveState - file=${state.filePath}, resource=${state.resourceId}, screen=${state.screenType}, playing=${state.isPlaying}")
         prefs(windowId).edit()
             .putString(KEY_FILE_PATH, state.filePath)
             .putLong(KEY_RESOURCE_ID, state.resourceId)
@@ -70,10 +70,10 @@ class ResumeStateRepositoryImpl @Inject constructor(
                 mediaType = MediaType.valueOf(p.getString(KEY_MEDIA_TYPE, null) ?: return@withContext null),
                 savedAt = p.getLong(KEY_SAVED_AT, 0L)
             ).also {
-                Timber.d("ResumeStateRepository[$windowId]: getState — loaded state for file=${it.filePath}, savedAt=${it.savedAt}")
+                Timber.d("ResumeStateRepository[$windowId]: getState - loaded state for file=${it.filePath}, savedAt=${it.savedAt}")
             }
         } catch (e: IllegalArgumentException) {
-            Timber.w(e, "ResumeStateRepository[$windowId]: getState — invalid enum value in prefs, clearing")
+            Timber.w(e, "ResumeStateRepository[$windowId]: getState - invalid enum value in prefs, clearing")
             prefs(windowId).edit().clear().apply()
             null
         }

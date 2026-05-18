@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Permissions page — landscape variant.
+<!-- Permissions page - landscape variant.
      Left column: icon + title. Right column: scrollable description + grant button. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

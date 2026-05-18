@@ -51,7 +51,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     abstract fun observeData()
 
     // True once setupViews()/observeData() finished. Required because BaseActivity defers
-    // setupViews() to binding.root.post { } so the first frame renders fast — meaning
+    // setupViews() to binding.root.post { } so the first frame renders fast - meaning
     // Activity.onResume() can fire BEFORE lateinit managers from setupViews() are initialised.
     private var viewsReady = false
     private var resumePending = false
@@ -128,7 +128,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         if (viewsReady) {
             onResumeWithViews()
         } else {
-            // setupViews() not run yet — defer until the post{} block finishes.
+            // setupViews() not run yet - defer until the post{} block finishes.
             resumePending = true
         }
     }
@@ -236,13 +236,13 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      *
      * Routing order:
      * 1. Route through [TvKeyRouter]; if it produces a [TvNavAction], offer to
-     *    [onTvNavigation] — if consumed, return true.
+     *    [onTvNavigation] - if consumed, return true.
      * 2. Fall through to [super.dispatchKeyEvent] (Android focus traversal,
      *    gamepad via [GamepadInputManager] in subclasses, etc.).
      *
      * Subclasses that need to intercept key events BEFORE this (e.g. PlayerActivity)
      * override [dispatchKeyEvent] themselves and call super only when they have not
-     * consumed the event — the subclass override naturally shadows this implementation.
+     * consumed the event - the subclass override naturally shadows this implementation.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = tvKeyRouter.route(event)
@@ -266,7 +266,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * Called after [setupViews] completes, only on TV devices ([isTvDevice]).
      * Default: null (rely on Android's automatic focus on first focusable view).
      *
-     * RecyclerView-based screens typically do not need to override this —
+     * RecyclerView-based screens typically do not need to override this -
      * Android's focus traversal picks the first item automatically.
      * Non-list screens with a clear primary action button should return that button.
      */
@@ -276,8 +276,8 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * True when the app is running on a TV device (Android TV / Google TV / Fire TV).
      *
      * Uses the dual-check recommended by `developer.android.com/training/tv/get-started/hardware`:
-     * - Primary: `PackageManager.FEATURE_LEANBACK` — system feature declared by genuine TV ROMs.
-     * - Secondary: `Configuration.UI_MODE_TYPE_TELEVISION` — covers older / non-Leanback TV systems.
+     * - Primary: `PackageManager.FEATURE_LEANBACK` - system feature declared by genuine TV ROMs.
+     * - Secondary: `Configuration.UI_MODE_TYPE_TELEVISION` - covers older / non-Leanback TV systems.
      *
      * Why both: `FEATURE_LEANBACK` is more resistant to "fake TV" boxes and phones with HDMI-out
      * that mis-report UI mode; `UI_MODE_TYPE_TELEVISION` catches stripped-down TV systems that omit

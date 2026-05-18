@@ -288,10 +288,10 @@ Then use **command panel buttons** instead.
 3. Tap **Playback Settings** (gear icon) in the player controls.
 4. Scroll to the **3D Video** section.
 5. Choose a stereo mode:
-   - **Auto-detect** — app analyses the aspect ratio and embedded metadata to detect SBS automatically.
-   - **Side-by-Side (SBS)** — manually enable side-by-side stereo rendering regardless of detection.
-   - **Mono (Disabled)** — disable stereo (standard viewing).
-6. Tap **Apply** — the player switches to the selected mode instantly.
+   - **Auto-detect** - app analyses the aspect ratio and embedded metadata to detect SBS automatically.
+   - **Side-by-Side (SBS)** - manually enable side-by-side stereo rendering regardless of detection.
+   - **Mono (Disabled)** - disable stereo (standard viewing).
+6. Tap **Apply** - the player switches to the selected mode instantly.
 7. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D.
 
 **Tips:**
@@ -665,7 +665,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 ## How to Use FMS on Android TV Box
 
-FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required — the app is fully operable via TV remote or Bluetooth keyboard.
+FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
 
 **What you need:**
 
@@ -693,7 +693,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 2. On the main screen, press **OK** on the (+) button to add a resource.
 3. Choose **Local Folder** for USB/SD storage, or **Network folder** to connect to a NAS via SMB.
 4. After adding the resource, navigate into it with D-pad + OK to browse files.
-5. Open any video, image, or audio file — the player works fully via remote.
+5. Open any video, image, or audio file - the player works fully via remote.
 6. To start a slideshow, open an image folder and navigate to the **Slideshow** button in the command bar.
 7. To add background music to the slideshow, go to **Settings → Audio → Slideshow Background Music** and select your music resource.
 

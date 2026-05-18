@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
 
-    <!-- S0166 §4: explanatory block — describes dismissal records and multi-account use -->
+    <!-- S0166 §4: explanatory block - describes dismissal records and multi-account use -->
     <TextView android:id="@+id/tvAuthSessionsInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingHorizontal="@dimen/margin_normal" android:paddingTop="@dimen/margin_normal" android:paddingBottom="@dimen/margin_small" android:text="@string/auth_sessions_info_text" android:textAppearance="?attr/textAppearanceCaption" />
 
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">

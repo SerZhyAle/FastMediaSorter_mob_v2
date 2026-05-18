@@ -41,14 +41,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // accountId selection is deterministic so the dynamic WebView flow cannot rely on the
     // shared HTTP cookie bridge to mask misses.
     private fun resolveSessionHost(host: String, accountId: String?): String? {
-        // Exact match — fastest path, backward compatible.
+        // Exact match - fastest path, backward compatible.
         val exactCookies = when {
             accountId != null -> cookieStore.loadForAccount(host, accountId)
             else -> @Suppress("DEPRECATION") cookieStore.loadFor(host)
         }
         if (exactCookies.isNotEmpty()) return host
 
-        // eTLD+1 fallback — scan all accounts for a matching registrable domain.
+        // eTLD+1 fallback - scan all accounts for a matching registrable domain.
         val reg = registrableDomainOrNull(host) ?: return null
         val match = if (accountId != null) {
             cookieStore.listAllAccounts()
@@ -68,7 +68,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // S0182: also loads the pinned User-Agent captured at login time and pushes it
     // into LinkDownloadSessionContext so every downstream stack (yt-dlp, OkHttp)
     // sends the same UA Meta/anti-bot first saw with these cookies.
-    // S0190: optional audioOnly hint is propagated from canonicalize() — true for
+    // S0190: optional audioOnly hint is propagated from canonicalize() - true for
     // YouTube Music share URLs so the downstream extractor picks an audio-only format.
     private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
         val resolvedHost = resolveSessionHost(host, accountId) ?: return null
@@ -118,7 +118,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // youtube.com/shorts/<id>) to a canonical form recognised by both yt-dlp and
         // NewPipe upstream. Cookie host resolution below also benefits because the
         // canonical host (youtube.com) is what EncryptedCookieStore is keyed by.
-        // The audioOnly hint is set only when the original host was music.youtube.com —
+        // The audioOnly hint is set only when the original host was music.youtube.com -
         // propagated into LinkDownloadSessionContext so downstream extractors can pick
         // an audio-only format.
         val canonical = urlCanonicalizer.canonicalize(url)
@@ -143,6 +143,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     }
 
     suspend fun handleBatch(urls: List<String>, callbacks: Callbacks): Result {
+        Timber.d("S0140: pillar-Q + pillar-U handleBatch() entry urls=${urls.size}")
         val settings = settingsRepository.getSettings().first()
         if (!settings.linkAutoDownloadEnabled) {
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))

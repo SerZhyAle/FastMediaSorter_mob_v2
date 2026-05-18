@@ -105,13 +105,13 @@ object NetworkErrorClassifier {
             throwable.messageContains("unsupported", "not implemented") ->
                 NetworkUnsupportedOperationException(throwable.message ?: "Unsupported operation", throwable)
 
-            // Recurse into cause chain — handles wrapped exceptions where a generic Exception
+            // Recurse into cause chain - handles wrapped exceptions where a generic Exception
             // hides a typed one (e.g. IOException("Server unreachable", SocketTimeoutException))
             // so that the caller gets a specific subtype instead of the default fallback.
             throwable.cause.let { c -> c != null && c !== throwable } -> {
                 val causeResult = classify(throwable.cause!!)
                 if (causeResult !is NetworkConnectionLostException) {
-                    // Cause yielded a more specific classification — use it
+                    // Cause yielded a more specific classification - use it
                     causeResult
                 } else {
                     Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")

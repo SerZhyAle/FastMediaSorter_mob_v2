@@ -10,7 +10,7 @@ import java.util.Locale
 
 /**
  * Manages Text-to-Speech (TTS) "Read Aloud" feature for text viewer.
- * Uses system TextToSpeech engine — no additional dependencies required.
+ * Uses system TextToSpeech engine - no additional dependencies required.
  */
 class TtsReadAloudManager(
     private val context: Context,

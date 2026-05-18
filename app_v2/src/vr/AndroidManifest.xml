@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- S0245 Stage 0: device feature declarations only. No XR runtime, no immersive
+         activity. The `com.oculus.intent.category.VR` filter and OpenXR loader landing
+         come in Stage 1 with the real XR host. All features are required="false" so the
+         single-APK strategy (R-10) keeps phone-Play visibility. -->
+
+    <!-- Quest -->
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="false"
+        android:version="1" />
+
+    <!-- Android XR -->
+    <uses-feature
+        android:name="android.software.xr.api.openxr"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.xr.input.controller"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.xr.input.hand_tracking"
+        android:required="false" />
+
+    <application>
+        <meta-data
+            android:name="com.oculus.supportedDevices"
+            android:value="quest3|quest3s" />
+    </application>
+</manifest>

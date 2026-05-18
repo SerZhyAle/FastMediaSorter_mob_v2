@@ -30,13 +30,13 @@ Examples:
 
 When invoked with `$ARGUMENTS`:
 
-**Step 1 — Determine topic, module, and optional flavor.**
+**Step 1 - Determine topic, module, and optional flavor.**
 
 - Use the explicit user target when given.
 - Infer `Module` as `app_v2`, `wear`, or `all` from the request and current file.
 - Preserve any explicit flavor constraints (`standard`, `lite`, `photos`, `legacy`, `vr`, etc.) for the dossier metadata.
 
-**Step 2 — Build the dossier first.**
+**Step 2 - Build the dossier first.**
 
 Run the helper script before broad reading:
 
@@ -52,7 +52,7 @@ The script writes a Markdown dossier to `temp/` by default with:
 - matching `docs/` and `dev/` files
 - suggested next reads
 
-**Step 3 — Follow the routing stack in this order unless the dossier shows a tighter first read.**
+**Step 3 - Follow the routing stack in this order unless the dossier shows a tighter first read.**
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md`
 2. `docs/ARCHITECTURE.md`
@@ -63,7 +63,7 @@ The script writes a Markdown dossier to `temp/` by default with:
 
 Use `/catalog` after the dossier when you need class-level lookup, DI consumers, or post-change catalog maintenance.
 
-**Step 4 — Only then drill into implementation files.**
+**Step 4 - Only then drill into implementation files.**
 
 - Prefer the smallest set of follow-up reads that answer the question.
 - Use the dossier to avoid repeated global greps.

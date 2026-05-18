@@ -68,7 +68,7 @@ class GeneralSettingsLogHelper(
         if (canSave) {
             saveLogsLauncher.launch("fastmediasorter_logs.zip")
         } else {
-            Timber.d("LogExport: CREATE_DOCUMENT not supported on this device — using share fallback")
+            Timber.d("LogExport: CREATE_DOCUMENT not supported on this device - using share fallback")
             showSaveLogsNotSupportedDialog()
         }
     }

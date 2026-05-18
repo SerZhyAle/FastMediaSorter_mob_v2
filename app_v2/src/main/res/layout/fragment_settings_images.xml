@@ -77,7 +77,7 @@
 
 
     <!-- Image size limit (for both static and GIF) -->
-    <TextView android:id="@+id/tvImageSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/image_and_animation_size_limit" android:textSize="@dimen/resource_card_desc_text_size" android:layout_marginStart="0dp" android:layout_marginBottom="@dimen/margin_small" />
+    <TextView android:id="@+id/tvImageSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/image_and_animation_size_limit" android:textSize="@dimen/toggler_title_text_size" android:layout_marginStart="0dp" android:layout_marginBottom="@dimen/margin_small" />
 
     <LinearLayout android:id="@+id/layoutImageSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
 
@@ -111,16 +111,16 @@
     <!-- Select Music Source Resource -->
     <LinearLayout android:id="@+id/layoutMusicSourceSelector" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/music_resource_label" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_primary" android:layout_marginBottom="@dimen/margin_small" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/music_resource_label" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_primary" android:layout_marginBottom="@dimen/margin_small" />
 
-        <TextView android:id="@+id/tvSelectedMusicSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_music_source_selected" android:textSize="@dimen/resource_name_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
+        <TextView android:id="@+id/tvSelectedMusicSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_music_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-        <Button android:id="@+id/btnSelectMusicSource" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
+        <Button android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <Button
         android:id="@+id/btnSetDefaultImageViewer"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"

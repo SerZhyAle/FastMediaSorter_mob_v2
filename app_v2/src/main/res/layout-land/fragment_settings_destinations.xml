@@ -37,7 +37,7 @@
                         android:focusable="true"
                         android:padding="@dimen/settings_padding_vertical"
                         android:text="@string/settings_category_safety"
-                        android:textSize="@dimen/text_size_normal"
+                        android:textSize="@dimen/toggler_title_text_size"
                         android:textStyle="bold" />
 
                     <LinearLayout
@@ -277,7 +277,7 @@
                         android:focusable="true"
                         android:padding="@dimen/settings_padding_vertical"
                         android:text="@string/settings_category_copy_move"
-                        android:textSize="@dimen/text_size_normal"
+                        android:textSize="@dimen/toggler_title_text_size"
                         android:textStyle="bold" />
 
                     <LinearLayout
@@ -541,7 +541,7 @@
                         android:focusable="true"
                         android:padding="@dimen/settings_padding_vertical"
                         android:text="@string/destinations_list_header"
-                        android:textSize="@dimen/text_size_normal"
+                        android:textSize="@dimen/toggler_title_text_size"
                         android:textStyle="bold" />
 
                     <LinearLayout
@@ -594,14 +594,14 @@
                         <!-- Add Destination Button -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnAddDestination"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
                             android:paddingHorizontal="@dimen/settings_padding_horizontal_large"
                             android:paddingVertical="@dimen/settings_padding_vertical"
                             android:text="@string/add_destination"
-                            android:textSize="@dimen/resource_card_title_text_size"
+                            android:textSize="@dimen/toggler_title_text_size"
                             android:visibility="gone" />
 
                         <!-- Message when no resources available -->
@@ -614,7 +614,7 @@
                             android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
                             android:text="@string/add_resources_first_message"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="@dimen/resource_card_desc_text_size"
+                            android:textSize="@dimen/toggler_title_text_size"
                             android:visibility="gone" />
 
                         <!-- Destinations List -->
@@ -652,7 +652,7 @@
                         android:focusable="true"
                         android:padding="@dimen/settings_padding_vertical"
                         android:text="@string/scheduled_ops_section_title"
-                        android:textSize="@dimen/text_size_normal"
+                        android:textSize="@dimen/toggler_title_text_size"
                         android:textStyle="bold" />
 
                     <LinearLayout
@@ -705,12 +705,12 @@
                         <!-- Notification permission button (Android 13+) -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnScheduledNotificationPermission"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_tiny"
                             android:text="@string/grant_notifications_permission"
-                            android:textSize="12sp"
+                            android:textSize="@dimen/toggler_title_text_size"
                             android:visibility="gone" />
 
                         <!-- Operations list and toolbar -->
@@ -731,28 +731,28 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnAddScheduledOp"
-                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/scheduled_ops_btn_add"
-                                    android:textSize="12sp" />
+                                    android:textSize="@dimen/toggler_title_text_size" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnScheduledLog"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Text"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/scheduled_ops_btn_log"
-                                    android:textSize="12sp" />
+                                    android:textSize="@dimen/toggler_title_text_size" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnClearAllScheduled"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Text"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/scheduled_ops_btn_clear_all"
                                     android:textColor="?attr/colorError"
-                                    android:textSize="12sp" />
+                                    android:textSize="@dimen/toggler_title_text_size" />
 
                             </LinearLayout>
 
@@ -765,7 +765,7 @@
                                 android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
                                 android:text="@string/scheduled_ops_no_destinations"
                                 android:textColor="?attr/colorError"
-                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textSize="@dimen/toggler_title_text_size"
                                 android:visibility="gone" />
 
                             <!-- Scheduled operations list -->

@@ -15,7 +15,7 @@ import javax.inject.Singleton
  * Pre-flights an HLS / DASH manifest to detect DRM markers before the streaming
  * pipeline starts downloading segments. Best-effort: any network or parse failure
  * returns `false` so the pipeline can proceed and surface a more specific error
- * downstream — DRM detection is an upfront optimization, not a security boundary.
+ * downstream - DRM detection is an upfront optimization, not a security boundary.
  *
  * - HLS: `#EXT-X-KEY:METHOD=` other than `NONE`.
  * - DASH: presence of any `<ContentProtection` element in the MPD.

@@ -9,7 +9,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0202 — application-scoped bus that lets [com.sza.fastmediasorter.worker.LinkDownloadWorker]
+ * S0202 - application-scoped bus that lets [com.sza.fastmediasorter.worker.LinkDownloadWorker]
  * push a terminal share-download result to whichever Activity is foreground at that moment
  * (typically [com.sza.fastmediasorter.ui.main.MainActivity] when the user returns to the app
  * from the source app like Instagram/Threads).
@@ -19,7 +19,7 @@ import javax.inject.Singleton
  * double-feedback. Consumers may still react to specific result kinds (e.g. open the player
  * for a successful save when `linkAutoDownloadOpenInPlayer` is enabled).
  *
- * `replay = 1` means a single most-recent terminal result is retained — Activity recreation
+ * `replay = 1` means a single most-recent terminal result is retained - Activity recreation
  * (rotation) consumes the same emission once; clearing the cache is the consumer's job after
  * acting on the value, so a stale outcome is not re-shown after navigation.
  */

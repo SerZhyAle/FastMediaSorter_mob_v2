@@ -86,7 +86,7 @@ class PlayerDialogHelper(
      */
     private fun safeShow(dialog: Dialog) {
         if (activity.isFinishing || activity.isDestroyed) {
-            Timber.w("PlayerDialogHelper: cannot show dialog — activity is finishing/destroyed")
+            Timber.w("PlayerDialogHelper: cannot show dialog - activity is finishing/destroyed")
             return
         }
         try {
@@ -95,7 +95,7 @@ class PlayerDialogHelper(
             dialog.show()
             com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
         } catch (e: WindowManager.BadTokenException) {
-            Timber.e(e, "PlayerDialogHelper: dialog show failed — bad window token")
+            Timber.e(e, "PlayerDialogHelper: dialog show failed - bad window token")
             activeDialogs.remove(dialog)
         }
     }
@@ -116,7 +116,7 @@ class PlayerDialogHelper(
 
     fun showPlaybackControlDialog() {
         if (activity.isFinishing || activity.isDestroyed) {
-            Timber.w("PlayerDialogHelper: cannot show PlaybackControlDialogFragment — activity is finishing/destroyed")
+            Timber.w("PlayerDialogHelper: cannot show PlaybackControlDialogFragment - activity is finishing/destroyed")
             return
         }
 
@@ -128,7 +128,7 @@ class PlayerDialogHelper(
 
         val fragmentManager = activity.supportFragmentManager
         if (fragmentManager.isStateSaved) {
-            Timber.w("PlayerDialogHelper: cannot show PlaybackControlDialogFragment — fragment state already saved")
+            Timber.w("PlayerDialogHelper: cannot show PlaybackControlDialogFragment - fragment state already saved")
             return
         }
 

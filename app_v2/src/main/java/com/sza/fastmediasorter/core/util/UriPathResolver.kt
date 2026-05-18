@@ -41,7 +41,7 @@ object UriPathResolver {
         val docId = try {
             DocumentsContract.getTreeDocumentId(uri)
         } catch (e: Exception) {
-            // Not a tree URI — try direct document
+            // Not a tree URI - try direct document
             try { DocumentsContract.getDocumentId(uri) } catch (e2: Exception) { null }
         } ?: return null
 
@@ -64,7 +64,7 @@ object UriPathResolver {
             val base = Environment.getExternalStorageDirectory().absolutePath
             if (subPath.isEmpty()) base else "$base/$subPath"
         } else {
-            // SD card / removable storage — look up the mount point from StorageManager
+            // SD card / removable storage - look up the mount point from StorageManager
             val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
             val mountPath = storageManager.storageVolumes
                 .firstOrNull { it.uuid?.equals(volume, ignoreCase = true) == true }

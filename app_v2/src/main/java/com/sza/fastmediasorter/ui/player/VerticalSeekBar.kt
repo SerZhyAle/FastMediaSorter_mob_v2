@@ -9,7 +9,7 @@ import androidx.appcompat.widget.AppCompatSeekBar
 
 /**
  * A SeekBar that is vertical in portrait and falls back to the standard horizontal behaviour
- * in landscape — so a single layout resource works across orientations.
+ * in landscape - so a single layout resource works across orientations.
  *
  * Vertical mode: progress increases bottom→top (swipe UP = more).
  * onMeasure swaps w/h so the view occupies height rather than width.

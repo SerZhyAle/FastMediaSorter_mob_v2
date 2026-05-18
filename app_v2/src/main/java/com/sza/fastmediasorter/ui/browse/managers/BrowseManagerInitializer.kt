@@ -92,10 +92,10 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
     // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
     private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
-    // S0135 — Google Play In-App Review request after successful Move/Copy.
+    // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
 ) {
-    // Cached settings and destinations — populated via collectors in initialize().
+    // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
     private var latestSettings: AppSettings? = null
     private var latestHasDestinations: Boolean = false
@@ -206,7 +206,7 @@ class BrowseManagerInitializer(
             },
             onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
             onOverflowMenuClick = overflowClick@{ file, anchor ->
-                // Use cached values — populated by collectors started in initialize().
+                // Use cached values - populated by collectors started in initialize().
                 // First-frame edge case (cache not yet populated): silently skip tap.
                 val settings = latestSettings ?: return@overflowClick
                 val currentState = viewModel.state.value
@@ -324,7 +324,15 @@ class BrowseManagerInitializer(
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
                         ?.itemView ?: binding.rvMediaFiles
-                    resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel)
+                    showBrowseResourceOpsMenu(anchor)
+                }
+                override fun openBrowseSettings(): Boolean {
+                    if (!isBrowseAutomationSettingsEnabled()) return false
+                    val resourceId = viewModel.state.value.resource?.id ?: return false
+                    // Keep the Browse keyboard/help route on the stable legacy host until the
+                    // redesigned settings surface stops mirroring legacy content.
+                    openLegacyBrowseSettings(resourceId)
+                    return true
                 }
                 override fun extendSelectionUp() {
                     val pos = (stateManager.getCurrentFocusPosition() - 1).coerceAtLeast(0)
@@ -554,32 +562,7 @@ class BrowseManagerInitializer(
             override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
             override fun onMicRecordSingleTap() = activity.onMicRecordSingleTap()
             override fun onResourceOpsClicked(anchor: android.view.View) {
-                val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
-                lifecycleScope.launch {
-                    val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
-                        .onFailure { Timber.w(it, "onResourceOpsClicked: isDestinationsFull failed") }.getOrDefault(false)
-                    val settings = settingsRepository.getSettings().first()
-                    val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
-                        viewModel.state.value.resource?.let { res ->
-                            passthroughProvider?.isAvailable(activity) == true ||
-                                BrowseCameraCaptureManager.hasCameraHandler(activity, res)
-                        } ?: false
-                    resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel,
-                        isScheduleEnabled = isScheduleEnabled,
-                        onAutomateSource = if (isScheduleEnabled) { {
-                            val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
-                            activity.startActivity(Intent(activity, SettingsActivity::class.java)
-                                .apply { putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId) })
-                        } } else null,
-                        onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
-                        onArchive = { showArchiveDestinationPicker() },
-                        isDestinationsFull = isDestinationsFull,
-                        onCameraCapture = { activity.onCameraCaptureClicked() },
-                        isCameraVisible = isCameraVisible,
-                        isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
-                        onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
-                    )
-                }
+                showBrowseResourceOpsMenu(anchor)
             }
         })
         
@@ -597,6 +580,49 @@ class BrowseManagerInitializer(
         viewModel.setOpenNoteCallback { createdPath ->
             viewModel.openTextNoteInEditor(createdPath)
         }
+    }
+
+    // S0125 keeps touch, mouse, keyboard, and remote Browse settings routes on the same popup
+    // configuration so the current fallback and the revised primary path cannot drift apart.
+    private fun showBrowseResourceOpsMenu(anchor: android.view.View) {
+        val isScheduleEnabled = isBrowseAutomationSettingsEnabled()
+        lifecycleScope.launch {
+            val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
+                .onFailure { Timber.w(it, "showBrowseResourceOpsMenu: isDestinationsFull failed") }
+                .getOrDefault(false)
+            val settings = settingsRepository.getSettings().first()
+            val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
+                viewModel.state.value.resource?.let { res ->
+                    passthroughProvider?.isAvailable(activity) == true ||
+                        BrowseCameraCaptureManager.hasCameraHandler(activity, res)
+                } ?: false
+            val resourceId = viewModel.state.value.resource?.id
+            resourceOpsMenuManager.showMenu(
+                anchor = anchor,
+                viewModel = viewModel,
+                isScheduleEnabled = isScheduleEnabled,
+                onAutomateSourceCurrent = if (isScheduleEnabled && resourceId != null) {
+                    { openLegacyBrowseSettings(resourceId) }
+                } else null,
+                onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
+                onArchive = { showArchiveDestinationPicker() },
+                isDestinationsFull = isDestinationsFull,
+                onCameraCapture = { activity.onCameraCaptureClicked() },
+                isCameraVisible = isCameraVisible,
+                isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
+                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
+            )
+        }
+    }
+
+    private fun isBrowseAutomationSettingsEnabled(): Boolean {
+        return BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
+    }
+
+    private fun openLegacyBrowseSettings(resourceId: Long) {
+        activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
+            putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
+        })
     }
 
     private fun setupDragToReorder() {
@@ -732,7 +758,7 @@ class BrowseManagerInitializer(
         val actualIndex = maxOf(0, startIndex)
         val file = state.mediaFiles[actualIndex]
         val isDoc = file.type == MediaType.TEXT || file.type == MediaType.PDF || file.type == MediaType.EPUB
-        // S0241: VR stack removed — every flavor now routes to the flat PlayerActivity directly
+        // S0241: VR stack removed - every flavor now routes to the flat PlayerActivity directly
         // via createPanelIntent. The doc branch stays so non-doc media can still pick up the
         // slideshow_mode extra; both branches share the same target activity.
         val intent = if (isDoc) {
@@ -772,7 +798,7 @@ class BrowseManagerInitializer(
 
     /**
      * S0159: Search YouTube Music directly from Browse using the filename (without extension)
-     * as the query — same fallback the player uses when iTunes metadata cache is empty.
+     * as the query - same fallback the player uses when iTunes metadata cache is empty.
      */
     private fun searchYoutubeMusicForFile(file: MediaFile) {
         val query = file.name.substringBeforeLast(".")
@@ -787,7 +813,7 @@ class BrowseManagerInitializer(
 
     /**
      * S0159: Launch Google Lens directly for a local image file from the Browse overflow menu.
-     * Mirrors PlayerShareManager.shareFileToGoogleLens() — uses FileProvider + ACTION_SEND.
+     * Mirrors PlayerShareManager.shareFileToGoogleLens() - uses FileProvider + ACTION_SEND.
      */
     private fun launchGoogleLensForFile(file: MediaFile) {
         try {

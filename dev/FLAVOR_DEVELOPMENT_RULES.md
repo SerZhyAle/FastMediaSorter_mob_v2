@@ -37,6 +37,17 @@ Use Dependency Injection (Hilt) to provide the correct implementation at compile
 - Create an overriding or mutually exclusive Dagger `@Module` in `src/vr/java` that binds the `Real` implementation. *(Note: Android source sets allow overriding files with the exact same package and name if they don't exist in `main`, or you can use flavor-specific components).*
 - **Preferred approach for Android:** Place the abstract DI Module in the flavor folders (e.g., `src/standard/java/di/FlavorModule.kt` vs `src/vr/java/di/FlavorModule.kt`) so Hilt resolves the correct one at compile-time.
 
+### RULE 6: CLOUD-ENABLED FLAVOR `applicationId` POLICY (origin: S0232)
+For flavors that talk to cloud OAuth providers (OneDrive / MSAL, Google Drive, Dropbox):
+
+- **Non-Store-published cloud-enabled flavors** (`noLegal`, future `vrUnlicensed`) MUST NOT carry an `applicationIdSuffix`. They share `applicationId = com.sza.fastmediasorter` with `standard` and reuse the same OAuth registrations (one Azure App / one Google OAuth client per build type / one Dropbox app). They are alternate builds of the same product, not separately distributed apps.
+- **Store-published flavors** (`photos`, `legacy`, and a future Meta Horizon Store `vr`) keep their `applicationIdSuffix` because the Store binds listing identity to it. Each Store-published flavor must register its own OAuth client per provider.
+- **`lite`** has no cloud surface - its `applicationIdSuffix` is unaffected by this rule.
+- **Adding a new signing keystore** additionally requires both of the following - neither alone is sufficient:
+  - A new `<data android:path="…"/>` line under `BrowserTabActivity` in `src/main/AndroidManifest.xml` carrying the new signing-hash.
+  - A matching redirect URI registered in the Azure App / Google Cloud OAuth / Dropbox consoles.
+- Source of truth for the active matrix: `app_v2/build.gradle.kts` § `productFlavors` (S0232 policy comment).
+
 ## 3. AGENT BEHAVIOR & SKILLS
 
 When an AI Agent is tasked with creating a feature for a non-STANDARD build:

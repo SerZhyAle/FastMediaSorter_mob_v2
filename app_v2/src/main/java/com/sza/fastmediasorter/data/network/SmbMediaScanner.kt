@@ -22,16 +22,16 @@ import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.data.network.config.MetadataBudgetConfig
-import com.sza.fastmediasorter.domain.model.MetadataState
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,13 +62,40 @@ class SmbMediaScanner @Inject constructor(
         val rotation: Int?
     )
 
+    /**
+     * Per-file enrichment outcome (S0248 Phase 2/3). Wraps the optional metadata
+     * payload with the lifecycle state that should be persisted in
+     * `file_metadata_cache.metadataState`.
+     */
+    private sealed interface EnrichmentResult<out T> {
+        /** Extraction succeeded within the per-file budget. */
+        data class Complete<T>(val payload: T?) : EnrichmentResult<T>
+        /**
+         * Per-file timeout elapsed. Payload is whatever the extractor managed to
+         * read before the budget cut it off (often null = listing-only fallback).
+         */
+        data class Partial<T>(val payload: T?) : EnrichmentResult<T>
+        /** Extractor raised a hard error (not timeout). */
+        data class Broken<T>(val payload: T?) : EnrichmentResult<T>
+    }
+
     private val exifCache = LruCache<String, ExifMetadata>(100)
     private val videoMetadataCache = LruCache<String, VideoMetadata>(100)
+    private val _metadataErrorCount = AtomicInteger(0)
+    /** S0248 Phase 2: count of files that fell back due to per-file timeout in current scan. */
+    private val _metadataTimeoutCount = AtomicInteger(0)
 
     companion object {
         // Extensions moved to MediaTypeUtils
         /** Skip per-file EXIF/video metadata extraction when folder exceeds this count */
         private const val METADATA_SKIP_THRESHOLD = 500
+
+        /** S0248 Phase 2: per-file EXIF/ID3 budget. */
+        private const val EXIF_TIMEOUT_MS = 1500L
+        /** S0248 Phase 2: first-tier quick-probe budget for video (head 1 MiB → MediaMetadataRetriever). */
+        private const val VIDEO_QUICK_TIMEOUT_MS = 500L
+        /** S0248 Phase 2: second-tier escalation budget for slow-path video (moov-at-tail signature). */
+        private const val VIDEO_SLOW_TIMEOUT_MS = 2000L
     }
 
     override suspend fun scanFolder(
@@ -129,14 +156,10 @@ class SmbMediaScanner @Inject constructor(
                     // tens of minutes of individual SMB reads (EXIF / video probes).
                     val skipMetadataExtraction = result.data.size > METADATA_SKIP_THRESHOLD
                     if (skipMetadataExtraction) {
-                        Timber.d("Large folder (${result.data.size} files) — skipping per-file EXIF/video metadata extraction")
+                        Timber.d("Large folder (${result.data.size} files) - skipping per-file EXIF/video metadata extraction")
                     }
-                    // S0237: bound each per-file metadata read with a short timeout so a
-                    // single misbehaving file does not stall the rest of the scan. Aggregate
-                    // timeouts across the scan and emit one diagnostic line — never per file.
-                    val budget = MetadataBudgetConfig.perFileTimeoutMs()
-                    val metadataTimeoutCount = java.util.concurrent.atomic.AtomicInteger(0)
-                    Timber.d("S0237: SMB metadata-pass entry path=$path files=${result.data.size} budget=${budget}ms skip=$skipMetadataExtraction")
+                    _metadataErrorCount.set(0)
+                    _metadataTimeoutCount.set(0)
                     val files = result.data.mapNotNull { fileInfo ->
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
                         // Skip directories in flat scan (recursive or not) - we only want files
@@ -145,41 +168,27 @@ class SmbMediaScanner @Inject constructor(
                         if (mediaType != null && supportedTypes.contains(mediaType)) {
                             if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
 
-                            var exifTimedOut = false
-                            val exifMetadata = if (!skipMetadataExtraction && (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF)) {
-                                val tStart = System.currentTimeMillis()
-                                val r = withTimeoutOrNull(budget) {
-                                    extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
-                                }
-                                if (r == null && System.currentTimeMillis() - tStart >= budget - 50) {
-                                    exifTimedOut = true
-                                    metadataTimeoutCount.incrementAndGet()
-                                }
-                                r
+                            val exifResult = if (!skipMetadataExtraction && (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF)) {
+                                extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
                             } else {
                                 null
                             }
 
-                            var videoTimedOut = false
-                            val videoMetadata = if (!skipMetadataExtraction && mediaType == MediaType.VIDEO) {
-                                val tStart = System.currentTimeMillis()
-                                val r = withTimeoutOrNull(budget) {
-                                    extractVideoMetadata(connectionInfo.connectionInfo, fileInfo.path)
-                                }
-                                if (r == null && System.currentTimeMillis() - tStart >= budget - 50) {
-                                    videoTimedOut = true
-                                    metadataTimeoutCount.incrementAndGet()
-                                }
-                                r
+                            val videoResult = if (!skipMetadataExtraction && mediaType == MediaType.VIDEO) {
+                                extractVideoMetadata(connectionInfo.connectionInfo, fileInfo.path)
                             } else {
                                 null
                             }
 
-                            val state = when {
-                                skipMetadataExtraction -> MetadataState.PENDING
-                                exifTimedOut || videoTimedOut -> MetadataState.PARTIAL
-                                else -> MetadataState.COMPLETE
-                            }
+                            // Keep the concrete payload type when folding success/timeout/error
+                            // variants; star-projected casts widen the payload to Any? and break
+                            // downstream field access under newer Kotlin compiler checks.
+                            val exifMetadata = payloadOf(exifResult)
+                            val videoMetadata = payloadOf(videoResult)
+
+                            // S0248 Phase 3: derive per-file enrichment state from the strongest
+                            // negative result (Broken trumps Partial, which trumps Complete).
+                            val state = combineState(exifResult, videoResult)
 
                             MediaFile(
                                 name = fileInfo.name,
@@ -202,10 +211,20 @@ class SmbMediaScanner @Inject constructor(
                             )
                         } else null
                     }
-                    val timeoutTotal = metadataTimeoutCount.get()
-                    if (timeoutTotal > 0) {
-                        Timber.d("S0237: metadata_timeout_aggregate path=$path count=$timeoutTotal budget=${budget}ms files=${files.size}")
+                    val errCount = _metadataErrorCount.get()
+                    if (errCount > 0) progressCallback?.onMetadataErrors(errCount)
+                    // S0248 Phase 2: single aggregated metric line per scan. Skipped when zero
+                    // to keep release-build noise low; never escalated to Timber.w (avoids S0169 regression).
+                    val timeoutCount = _metadataTimeoutCount.get()
+                    if (timeoutCount > 0) {
+                        Timber.d(
+                            "SmbMediaScanner: timeout-fallback count=%d totalFiles=%d path=%s",
+                            timeoutCount,
+                            files.size,
+                            path
+                        )
                     }
+                    Timber.d("S0248: SmbMediaScanner scan complete totalFiles=${files.size} timeoutFallback=$timeoutCount path=$path")
                     files
                 }
                 is SmbResult.Error -> {
@@ -570,120 +589,230 @@ class SmbMediaScanner @Inject constructor(
         return "smb://${connectionInfo.connectionInfo.server}:${connectionInfo.connectionInfo.port}/${connectionInfo.connectionInfo.shareName}/$filePath"
     }
 
+    /**
+     * S0248 Phase 2: per-file EXIF extraction with hard [EXIF_TIMEOUT_MS] budget.
+     * - timeout → [EnrichmentResult.Partial] (silent - only the per-scan aggregated metric logs)
+     * - non-timeout exception → [EnrichmentResult.Broken]
+     * - empty / no EXIF tags → [EnrichmentResult.Complete] with null payload
+     *
+     * S0248 Phase 5: throttled through [ConnectionThrottleManager.ProtocolLimits.SMB_HEADER]
+     * (header-only tier, base concurrency 8) - independent of bulk-transfer SMB limit.
+     */
     private suspend fun extractExifMetadata(
         connectionInfo: SmbConnectionInfo,
         remotePath: String
-    ): ExifMetadata? {
-        exifCache.get(remotePath)?.let { return it }
+    ): EnrichmentResult<ExifMetadata> {
+        exifCache.get(remotePath)?.let { return EnrichmentResult.Complete(it) }
 
-        return try {
-            when (val result = smbClient.readPartialFile(connectionInfo, remotePath, 0L, 64 * 1024)) {
-                is SmbResult.Success -> {
-                    val bytes = result.data
-                    if (bytes.isEmpty()) return null
+        val resourceKey = "smb://${connectionInfo.server}:${connectionInfo.port}"
+        val parsed: ExifMetadata? = try {
+            ConnectionThrottleManager.withThrottle(
+                protocol = ConnectionThrottleManager.ProtocolLimits.SMB_HEADER,
+                resourceKey = resourceKey,
+                highPriority = false
+            ) {
+                withTimeoutOrNull(EXIF_TIMEOUT_MS) {
+                    when (val result = smbClient.readPartialFile(connectionInfo, remotePath, 0L, 64 * 1024)) {
+                    is SmbResult.Success -> {
+                        val bytes = result.data
+                        if (bytes.isEmpty()) return@withTimeoutOrNull null
 
-                    val exif = ExifInterface(ByteArrayInputStream(bytes))
-                    val width = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0).takeIf { it > 0 }
-                        ?: exif.getAttributeInt(ExifInterface.TAG_PIXEL_X_DIMENSION, 0).takeIf { it > 0 }
-                    val height = exif.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0).takeIf { it > 0 }
-                        ?: exif.getAttributeInt(ExifInterface.TAG_PIXEL_Y_DIMENSION, 0).takeIf { it > 0 }
-                    val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
-                        .takeIf { it != ExifInterface.ORIENTATION_UNDEFINED }
+                        val exif = ExifInterface(ByteArrayInputStream(bytes))
+                        val width = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0).takeIf { it > 0 }
+                            ?: exif.getAttributeInt(ExifInterface.TAG_PIXEL_X_DIMENSION, 0).takeIf { it > 0 }
+                        val height = exif.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0).takeIf { it > 0 }
+                            ?: exif.getAttributeInt(ExifInterface.TAG_PIXEL_Y_DIMENSION, 0).takeIf { it > 0 }
+                        val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
+                            .takeIf { it != ExifInterface.ORIENTATION_UNDEFINED }
 
-                    val dateTimeMillis = parseExifDateTimeMillis(
-                        exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
-                            ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
-                    )
+                        val dateTimeMillis = parseExifDateTimeMillis(
+                            exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                                ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
+                        )
 
-                    val latLong = exif.latLong
-                    val metadata = ExifMetadata(
-                        width = width,
-                        height = height,
-                        orientation = orientation,
-                        dateTimeMillis = dateTimeMillis,
-                        latitude = latLong?.getOrNull(0),
-                        longitude = latLong?.getOrNull(1)
-                    )
+                        val latLong = exif.latLong
+                        val metadata = ExifMetadata(
+                            width = width,
+                            height = height,
+                            orientation = orientation,
+                            dateTimeMillis = dateTimeMillis,
+                            latitude = latLong?.getOrNull(0),
+                            longitude = latLong?.getOrNull(1)
+                        )
 
-                    if (
-                        metadata.width != null || metadata.height != null || metadata.orientation != null ||
-                        metadata.dateTimeMillis != null || metadata.latitude != null || metadata.longitude != null
-                    ) {
-                        exifCache.put(remotePath, metadata)
-                        metadata
-                    } else {
+                        if (
+                            metadata.width != null || metadata.height != null || metadata.orientation != null ||
+                            metadata.dateTimeMillis != null || metadata.latitude != null || metadata.longitude != null
+                        ) {
+                            exifCache.put(remotePath, metadata)
+                            metadata
+                        } else {
+                            null
+                        }
+                    }
+                    is SmbResult.Error -> {
+                        Timber.v("SMB EXIF extraction skipped for $remotePath: ${result.message}")
                         null
                     }
                 }
-                is SmbResult.Error -> {
-                    Timber.v("SMB EXIF extraction skipped for $remotePath: ${result.message}")
-                    null
                 }
+            } ?: run {
+                // withTimeoutOrNull returned null → budget elapsed before completion.
+                _metadataTimeoutCount.incrementAndGet()
+                return EnrichmentResult.Partial(null)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.v(e, "SMB EXIF extraction failed for $remotePath")
-            null
+            return EnrichmentResult.Broken(null)
         }
+
+        return EnrichmentResult.Complete(parsed)
     }
 
+    /**
+     * S0248 Phase 2: video metadata with two-tier timeout.
+     *  - Tier 1 (`VIDEO_QUICK_TIMEOUT_MS`): probe the head 1 MiB. If the resulting
+     *    metadata exposes both `duration` and a frame dimension, the moov atom is
+     *    at the head - fast path complete.
+     *  - Tier 2 (`VIDEO_SLOW_TIMEOUT_MS`): tier-1 returned nothing useful (slow-path
+     *    signature - moov-at-tail or unreadable header). Retry the same probe with
+     *    a longer budget; on a second timeout, fall back to PARTIAL.
+     *
+     * Hard exceptions (corrupt header, MediaMetadataRetriever crash) → BROKEN.
+     */
     private suspend fun extractVideoMetadata(
         connectionInfo: SmbConnectionInfo,
         remotePath: String
-    ): VideoMetadata? {
-        videoMetadataCache.get(remotePath)?.let { return it }
+    ): EnrichmentResult<VideoMetadata> {
+        videoMetadataCache.get(remotePath)?.let { return EnrichmentResult.Complete(it) }
 
+        // ── Tier 1: quick probe ──────────────────────────────────────────────
+        val quickAttempt: EnrichmentResult<VideoMetadata> = runVideoProbe(connectionInfo, remotePath, VIDEO_QUICK_TIMEOUT_MS)
+        if (quickAttempt is EnrichmentResult.Complete) {
+            val payload = quickAttempt.payload
+            // Fast path: moov-at-head - we have both duration and dimensions.
+            val hasFastPathSignature = payload != null &&
+                payload.duration != null &&
+                (payload.width != null || payload.height != null)
+            if (hasFastPathSignature) {
+                return quickAttempt
+            }
+            // Slow-path signature detected - fall through to tier 2.
+        } else if (quickAttempt is EnrichmentResult.Broken) {
+            return quickAttempt
+        }
+
+        // ── Tier 2: escalate on slow-path signature ──────────────────────────
+        return runVideoProbe(connectionInfo, remotePath, VIDEO_SLOW_TIMEOUT_MS)
+    }
+
+    /**
+     * S0248 Phase 5: throttled through [ConnectionThrottleManager.ProtocolLimits.SMB_FULL_METADATA]
+     * (RAM-bound tier, base concurrency 3) - protects against `MediaMetadataRetriever`
+     * OOMs on devices with limited heap when multiple video probes overlap.
+     */
+    private suspend fun runVideoProbe(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String,
+        timeoutMs: Long
+    ): EnrichmentResult<VideoMetadata> {
         var tempFile: File? = null
-        return try {
-            when (val result = smbClient.readPartialFile(connectionInfo, remotePath, 0L, 1024 * 1024)) {
-                is SmbResult.Success -> {
-                    val bytes = result.data
-                    if (bytes.isEmpty()) return null
+        val resourceKey = "smb://${connectionInfo.server}:${connectionInfo.port}"
+        val parsed: VideoMetadata? = try {
+            ConnectionThrottleManager.withThrottle(
+                protocol = ConnectionThrottleManager.ProtocolLimits.SMB_FULL_METADATA,
+                resourceKey = resourceKey,
+                highPriority = false
+            ) {
+                withTimeoutOrNull(timeoutMs) {
+                    when (val result = smbClient.readPartialFile(connectionInfo, remotePath, 0L, 1024 * 1024)) {
+                    is SmbResult.Success -> {
+                        val bytes = result.data
+                        if (bytes.isEmpty()) return@withTimeoutOrNull null
 
-                    tempFile = File.createTempFile("smb_video_header_", ".tmp")
-                    tempFile.writeBytes(bytes)
+                        tempFile = File.createTempFile("smb_video_header_", ".tmp")
+                        tempFile?.writeBytes(bytes)
 
-                    val retriever = MediaMetadataRetriever()
-                    val metadata = try {
-                        retriever.setDataSource(tempFile.absolutePath)
-                        VideoMetadata(
-                            duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull(),
-                            width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull(),
-                            height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull(),
-                            codec = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE),
-                            bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull(),
-                            frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)?.toFloatOrNull(),
-                            rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()
-                        )
-                    } finally {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            retriever.close()
+                        val retriever = MediaMetadataRetriever()
+                        val metadata = try {
+                            retriever.setDataSource(tempFile?.absolutePath)
+                            VideoMetadata(
+                                duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull(),
+                                width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull(),
+                                height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull(),
+                                codec = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE),
+                                bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull(),
+                                frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)?.toFloatOrNull(),
+                                rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()
+                            )
+                        } finally {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                retriever.close()
+                            } else {
+                                retriever.release()
+                            }
+                        }
+
+                        if (
+                            metadata.duration != null || metadata.width != null || metadata.height != null ||
+                            metadata.codec != null || metadata.bitrate != null || metadata.frameRate != null || metadata.rotation != null
+                        ) {
+                            videoMetadataCache.put(remotePath, metadata)
+                            metadata
                         } else {
-                            retriever.release()
+                            null
                         }
                     }
-
-                    if (
-                        metadata.duration != null || metadata.width != null || metadata.height != null ||
-                        metadata.codec != null || metadata.bitrate != null || metadata.frameRate != null || metadata.rotation != null
-                    ) {
-                        videoMetadataCache.put(remotePath, metadata)
-                        metadata
-                    } else {
+                    is SmbResult.Error -> {
+                        Timber.v("SMB video metadata extraction skipped for $remotePath: ${result.message}")
                         null
                     }
                 }
-                is SmbResult.Error -> {
-                    Timber.v("SMB video metadata extraction skipped for $remotePath: ${result.message}")
-                    null
                 }
+            } ?: run {
+                _metadataTimeoutCount.incrementAndGet()
+                return EnrichmentResult.Partial(null)
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: TimeoutCancellationException) {
+            _metadataTimeoutCount.incrementAndGet()
+            return EnrichmentResult.Partial(null)
         } catch (e: Exception) {
-            // S0237: downgrade per-file warn to verbose; aggregate is reported once per scan.
+            _metadataErrorCount.incrementAndGet()
             Timber.v(e, "SMB video metadata extraction failed for $remotePath")
-            null
+            return EnrichmentResult.Broken(null)
         } finally {
             runCatching { tempFile?.delete() }
         }
+
+        return EnrichmentResult.Complete(parsed)
+    }
+
+    /**
+     * S0248 Phase 3: derive overall enrichment state for a file from the per-extractor
+     * results. Severity ladder: Broken > Partial > Complete. If both extractors are
+     * skipped (large folder mode), the file is treated as COMPLETE because no
+     * extraction was attempted - the row is listing-only by design.
+     */
+    private fun combineState(
+        exifResult: EnrichmentResult<*>?,
+        videoResult: EnrichmentResult<*>?
+    ): com.sza.fastmediasorter.domain.model.MetadataState {
+        val outcomes = listOfNotNull(exifResult, videoResult)
+        if (outcomes.isEmpty()) return com.sza.fastmediasorter.domain.model.MetadataState.COMPLETE
+        if (outcomes.any { it is EnrichmentResult.Broken<*> }) return com.sza.fastmediasorter.domain.model.MetadataState.BROKEN
+        if (outcomes.any { it is EnrichmentResult.Partial<*> }) return com.sza.fastmediasorter.domain.model.MetadataState.PARTIAL
+        return com.sza.fastmediasorter.domain.model.MetadataState.COMPLETE
+    }
+
+    private fun <T> payloadOf(result: EnrichmentResult<T>?): T? = when (result) {
+        is EnrichmentResult.Complete -> result.payload
+        is EnrichmentResult.Partial -> result.payload
+        is EnrichmentResult.Broken -> result.payload
+        null -> null
     }
 
     private fun parseExifDateTimeMillis(value: String?): Long? {

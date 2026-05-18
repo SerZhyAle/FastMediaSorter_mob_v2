@@ -2,14 +2,14 @@ https://alternativeto.net/
 
 PLATFORM: AlternativeTo
 URL: https://alternativeto.net/
-FORMAT: Plain text — product description for listing page
+FORMAT: Plain text - product description for listing page
 NOTE: AlternativeTo description is plain text, ~300-500 words. You also need to fill in:
   - Name
   - Website URL
   - Platform tags (Android)
   - License (Freeware / Proprietary / Open Source)
   - Categories (see below)
-  - "Alternatives to" field — list apps FMS is an alternative to
+  - "Alternatives to" field - list apps FMS is an alternative to
 
 ---
 NAME:
@@ -36,7 +36,7 @@ CATEGORIES (select all that apply on AlternativeTo):
 - PDF Reader
 - NAS Client
 
-"ALTERNATIVES TO" — list these apps so your listing appears as an alternative:
+"ALTERNATIVES TO" - list these apps so your listing appears as an alternative:
 - VLC for Android
 - Solid Explorer File Manager
 - MiXplorer

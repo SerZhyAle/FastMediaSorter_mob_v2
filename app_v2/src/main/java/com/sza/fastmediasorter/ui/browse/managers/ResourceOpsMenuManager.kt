@@ -36,17 +36,18 @@ class ResourceOpsMenuManager @Inject constructor(
         anchor: android.view.View,
         viewModel: BrowseViewModel,
         isScheduleEnabled: Boolean = false,
-        onAutomateSource: (() -> Unit)? = null,
+        onAutomateSourceCurrent: (() -> Unit)? = null,
+        onAutomateSourceRevised: (() -> Unit)? = null,
         onAddToDestinations: (() -> Unit)? = null,
         onArchive: (() -> Unit)? = null,
         isDestinationsFull: Boolean = false,
         onCameraCapture: (() -> Unit)? = null,
         isCameraVisible: Boolean = false,
-        // S0028: multi-window entry point — VR-only, permanently disabled after S0241 VR removal.
+        // S0028: multi-window entry point - VR-only, permanently disabled after S0241 VR removal.
         // Parameters kept for source compatibility with existing call sites.
         @Suppress("UNUSED_PARAMETER") allowSeparateWindow: Boolean = false,
         @Suppress("UNUSED_PARAMETER") openBrowseInNewWindow: ((Long) -> Unit)? = null,
-        // S0096: black screen for audio — shown only for audio-only libraries
+        // S0096: black screen for audio - shown only for audio-only libraries
         isAudioOnly: Boolean = false,
         onBlackScreenClicked: (() -> Unit)? = null
     ) {
@@ -80,8 +81,12 @@ class ResourceOpsMenuManager @Inject constructor(
             isEnabled = hasSelection
         }
 
-        popup.menu.findItem(R.id.action_automate_resource)?.isVisible =
-            isScheduleEnabled && onAutomateSource != null
+        // S0125 keeps the current Browse automation route visible while the revised settings
+        // host incubates in parallel, so non-touch users always have an explicit fallback.
+        popup.menu.findItem(R.id.action_automate_resource_current)?.isVisible =
+            isScheduleEnabled && onAutomateSourceCurrent != null
+        popup.menu.findItem(R.id.action_automate_resource_revised)?.isVisible =
+            isScheduleEnabled && onAutomateSourceRevised != null
 
         // Show "Add to Sort List" only when:
         // 1. Resource is not read-only
@@ -134,8 +139,12 @@ class ResourceOpsMenuManager @Inject constructor(
                     showCreateTextNoteDialog(viewModel)
                     true
                 }
-                R.id.action_automate_resource -> {
-                    onAutomateSource?.invoke()
+                R.id.action_automate_resource_current -> {
+                    onAutomateSourceCurrent?.invoke()
+                    true
+                }
+                R.id.action_automate_resource_revised -> {
+                    onAutomateSourceRevised?.invoke()
                     true
                 }
                 R.id.action_add_to_receivers -> {
@@ -157,7 +166,7 @@ class ResourceOpsMenuManager @Inject constructor(
     }
 
     // -------------------------------------------------------------------------
-    // Delete by size — Phase 1: settings dialog
+    // Delete by size - Phase 1: settings dialog
     // -------------------------------------------------------------------------
 
     private fun showDeleteBySizeDialog(viewModel: BrowseViewModel) {
@@ -246,7 +255,7 @@ class ResourceOpsMenuManager @Inject constructor(
     }
 
     // -------------------------------------------------------------------------
-    // Delete by size — Phase 2: confirmation dialog (called from BrowseActivity)
+    // Delete by size - Phase 2: confirmation dialog (called from BrowseActivity)
     // -------------------------------------------------------------------------
 
     fun showDeleteBySizeConfirm(
@@ -328,7 +337,7 @@ class ResourceOpsMenuManager @Inject constructor(
         val inputEdit = TextInputEditText(tilWrapper.context).apply {
             inputType = InputType.TYPE_CLASS_TEXT
             // Suppress system autofill prompts (e.g. "Sign in with Google" on devices without an account).
-            // This is a file-name field — credential autofill is meaningless here.
+            // This is a file-name field - credential autofill is meaningless here.
             if (android.os.Build.VERSION.SDK_INT >= 26) {
                 importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO
             }

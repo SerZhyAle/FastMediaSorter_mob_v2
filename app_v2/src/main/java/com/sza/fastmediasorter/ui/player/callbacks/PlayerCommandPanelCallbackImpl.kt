@@ -262,8 +262,7 @@ class PlayerCommandPanelCallbackImpl(
             return
         }
 
-        // PlayerActivity decides the correct capture backend: TextureView on phone/tablet,
-        // OpenXR swapchain in VrPlayerActivity.
+        // PlayerActivity decides the correct capture backend (TextureView on phone/tablet).
         activity.saveCurrentFrame()
     }
 

@@ -281,11 +281,11 @@ internal class AddResourceVirtualCoordinator(
     /**
      * Derives a display name for a SAF folder URI.
      *
-     * Uses the last two path segments when the parent segment is short (< 15 chars) —
+     * Uses the last two path segments when the parent segment is short (< 15 chars) -
      * prevents collisions like "Pictures/Telegram" vs "Movies/Telegram" without
      * producing unwieldy names for deeply nested paths.
      *
-     * SAF content URIs encode the path as "primary:Pictures/Telegram" — strip the
+     * SAF content URIs encode the path as "primary:Pictures/Telegram" - strip the
      * volume prefix before splitting.
      */
     private fun suggestLocalResourceName(uri: Uri): String {

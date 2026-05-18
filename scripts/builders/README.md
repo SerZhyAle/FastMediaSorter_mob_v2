@@ -42,7 +42,7 @@ Optimized builds with ProGuard (requires keystore):
 .\scripts\builders\build-vr-debug.ps1                    # VR debug (Quest / Android XR)    | .\a.ps1 vrd
 .\scripts\builders\build-vr-release.ps1                  # VR release APK (Meta Horizon Store) | .\a.ps1 vr
 .\scripts\builders\build-vr-aab.ps1                      # VR release AAB + APK (Google Play / Android XR)
-.\scripts\builders\build-vr-device.ps1                   # VR debug + ADB install + auto-launch (smoke tests only — no FOCUSED)
+.\scripts\builders\build-vr-device.ps1                   # VR debug + ADB install + auto-launch (smoke tests only - no FOCUSED)
 .\scripts\builders\install-vr-debug-to-device.ps1        # Install VR debug APK, NO launch   | .\a.ps1 ivrd
 .\scripts\builders\install-vr-release-to-device.ps1      # Install VR release APK, NO launch | .\a.ps1 ivr
 ```
@@ -108,7 +108,7 @@ Last release build notes: 260302034 (2.60.3020.341)
 • Профили ресурсов: адаптивная производительность
 • Сортировка по метаданным: исполнитель, альбом, дата съёмки
 • Организация фото, видео, аудио из любых источников
-• Исправлено: OneDrive — «Добавить аккаунт» не реагировал на нажатие
+• Исправлено: OneDrive - «Добавить аккаунт» не реагировал на нажатие
 • Долгое нажатие на версию в Настройках → отправка диагностических логов
 </ru-RU>
 <uk>
@@ -117,6 +117,6 @@ Last release build notes: 260302034 (2.60.3020.341)
 • Профілі ресурсів: адаптивна продуктивність
 • Сортування за метаданими: виконавець, альбом, дата зйомки
 • Організація фото, відео, аудіо з будь-яких джерел
-• Виправлено: OneDrive — «Додати акаунт» не реагував на натискання
+• Виправлено: OneDrive - «Додати акаунт» не реагував на натискання
 • Довге натискання на версію в Налаштуваннях → надсилання діагностичних логів
 </uk>

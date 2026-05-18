@@ -161,30 +161,8 @@ class BrowseFileListManager(
         return sortedDirectories + sortedFiles
     }
     
-    /**
-     * Synchronize list with cache (used when cache updates externally).
-     * 
-     * @param currentList Current file list
-     * @param cacheList List from cache
-     * @return Cache list if different, current list otherwise
-     */
-    fun syncWithCache(currentList: List<MediaFile>, cacheList: List<MediaFile>?): List<MediaFile> {
-        if (cacheList == null) return currentList
-        
-        // Check if lists are different by comparing sizes and first/last items
-        if (cacheList.size != currentList.size) {
-            Timber.d("syncWithCache: Size mismatch (cache=${cacheList.size}, current=${currentList.size}), using cache")
-            return cacheList
-        }
-        
-        if (cacheList.isNotEmpty() && currentList.isNotEmpty()) {
-            if (cacheList.first().path != currentList.first().path || 
-                cacheList.last().path != currentList.last().path) {
-                Timber.d("syncWithCache: Content mismatch, using cache")
-                return cacheList
-            }
-        }
-        
-        return currentList // Lists are the same
-    }
+    // S0242 Phase 03 - the structural-equality cache-comparison helper was removed (dead;
+    // no callers). Cache→visible reconciliation is owned by `BrowseReconcilerManager`,
+    // which folds journal-recorded mutations into the cache and visible list on every
+    // Browse `onResume`.
 }

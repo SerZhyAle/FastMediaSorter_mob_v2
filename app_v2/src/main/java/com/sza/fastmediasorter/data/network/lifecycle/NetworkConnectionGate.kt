@@ -73,7 +73,7 @@ interface NetworkConnectionGate<C : Any> {
     }
 
     /**
-     * Close every connection tagged with a [ConsumerType] satisfying [consumer]'s class —
+     * Close every connection tagged with a [ConsumerType] satisfying [consumer]'s class -
      * UI types close on `onStop`; [ConsumerType.BACKGROUND_WORKER] is never closed by the
      * lifecycle hook.
      */
@@ -114,7 +114,7 @@ object TransientFailure {
     }
 
     private fun classifyOne(t: Throwable): Reason? {
-        // Class-level checks first — message-based checks are heuristic backups.
+        // Class-level checks first - message-based checks are heuristic backups.
         if (t is SocketTimeoutException) return Reason.TIMEOUT
         if (t is SocketException) return Reason.TRANSPORT
 

@@ -378,7 +378,7 @@ class PlayerGestureSetupManager(
             override fun onDoubleTapEvent(e: MotionEvent): Boolean = false
         })
 
-        // Handle fling (swipe) gestures — ONLY for PDF (vertical swipes for page navigation)
+        // Handle fling (swipe) gestures - ONLY for PDF (vertical swipes for page navigation)
         // For IMAGES: fling is DISABLED to avoid conflict with onSingleTapConfirmed
         // (GestureDetector cannot reliably distinguish between quick tap and slow swipe)
         photoView.setOnSingleFlingListener(
@@ -396,7 +396,7 @@ class PlayerGestureSetupManager(
             }
         )
 
-        // Handle long press — route to PDF fullscreen or image zoom
+        // Handle long press - route to PDF fullscreen or image zoom
         photoView.setOnLongClickListener {
             if (isOverlayBlocking()) return@setOnLongClickListener false
             

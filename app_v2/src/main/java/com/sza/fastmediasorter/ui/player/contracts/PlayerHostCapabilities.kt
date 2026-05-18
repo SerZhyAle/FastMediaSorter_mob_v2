@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * Why: spec_standalone-vs-inapp-player-parity §5.2 collapses the three player surfaces onto
  * one shared pipeline. The shared dialog, ViewModel and coordinators consume only this
- * capability-contract — never branch on "is this standalone?". Capability flags are the only
+ * capability-contract - never branch on "is this standalone?". Capability flags are the only
  * allowed fork point.
  *
  * How to apply: both activities implement this interface directly. Standalone reports every

@@ -1,5 +1,5 @@
 """
-ytdlp_utils.py — noLegal yt-dlp helper functions.
+ytdlp_utils.py - noLegal yt-dlp helper functions.
 Called from YtDlpExtractionStrategy.kt via Chaquopy.
 """
 
@@ -37,7 +37,7 @@ def _is_probe_excluded(url):
 def probe_url(url):
     """
     Check whether yt-dlp has a non-generic extractor for the given URL.
-    Uses only URL pattern matching — no network calls, no downloads.
+    Uses only URL pattern matching - no network calls, no downloads.
 
     Returns True if a specific extractor matches, None otherwise.
     Caller checks: result != null  →  Applicable.
@@ -74,7 +74,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
     """
     Download media via yt-dlp to out_dir/<file_stem>.<ext>.
     Returns a dict {'path': str, 'title': str, 'ext': str} on success.
-    Raises on failure — caller catches via Chaquopy runCatching.
+    Raises on failure - caller catches via Chaquopy runCatching.
 
     user_agent (S0182): UA pinned to the session at login time. Replays the same UA
     the server first saw with these cookies, avoiding fingerprint flags.
@@ -132,11 +132,11 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         ),
         'outtmpl': out_template,
         'socket_timeout': 60,
-        # S0190: explicit pin — protects against upstream default changes.
+        # S0190: explicit pin - protects against upstream default changes.
         'http_chunk_size': 10485760,
         'retries': 3,
         'fragment_retries': 5,
-        # S0190 Phase D: single-stream pacing — parallel chunks can re-trigger CDN throttling.
+        # S0190 Phase D: single-stream pacing - parallel chunks can re-trigger CDN throttling.
         'concurrent_fragment_downloads': 1,
         # Don't try to merge separate video+audio streams (we have no ffmpeg).
         # Forces selector to pick single-stream formats only.
@@ -161,7 +161,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         title = info.get('title', 'download')
         out_path = os.path.join(out_dir, file_stem + '.' + ext)
         if not os.path.exists(out_path):
-            # yt-dlp may have picked a different extension — scan the dir for the file.
+            # yt-dlp may have picked a different extension - scan the dir for the file.
             try:
                 for f in os.listdir(out_dir):
                     if f.startswith(file_stem + '.'):

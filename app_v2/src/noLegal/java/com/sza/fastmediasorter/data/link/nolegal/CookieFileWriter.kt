@@ -47,7 +47,7 @@ class CookieFileWriter @Inject constructor(
                 store.loadForAccount(storedHost, entry.accountId)
             }
             .forEach { cookie ->
-                // Deduplicate by name — first occurrence wins.
+                // Deduplicate by name - first occurrence wins.
                 if (seenNames.add(cookie.name)) {
                     merged += cookie
                 }
@@ -78,14 +78,14 @@ class CookieFileWriter @Inject constructor(
 
     /**
      * Deletes the cookie file. Call in `finally` after yt-dlp has read it.
-     * Swallows exceptions — the file will also be deleted by the JVM on exit via [deleteOnExit].
+     * Swallows exceptions - the file will also be deleted by the JVM on exit via [deleteOnExit].
      */
     fun deleteCookieFile(file: File) {
         runCatching { file.delete() }
     }
 
     /**
-     * Naive eTLD+1 extraction — same algorithm as `LinkDownloadCookieJar.registrableDomain()`.
+     * Naive eTLD+1 extraction - same algorithm as `LinkDownloadCookieJar.registrableDomain()`.
      * For `www.instagram.com` → `instagram.com`. Single-label or IP addresses → returned as-is.
      */
     private fun registrableDomain(host: String): String {

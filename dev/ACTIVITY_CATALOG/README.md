@@ -1,4 +1,4 @@
-# ACTIVITY_CATALOG — Activity entry-point database
+# ACTIVITY_CATALOG - Activity entry-point database
 
 Focused catalog of all Android Activity classes in the project.
 For the general class catalog (all ~700+ Kotlin classes) see `dev/CATALOG/`.

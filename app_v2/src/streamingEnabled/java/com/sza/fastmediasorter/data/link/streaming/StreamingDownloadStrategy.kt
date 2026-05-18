@@ -16,7 +16,7 @@ import javax.inject.Singleton
  *
  * Real `streamingEnabled/` implementation of [StreamingPipeline]. The flow:
  *
- * 1. DRM pre-flight via [ManifestDrmDetector] — abort early if marker present.
+ * 1. DRM pre-flight via [ManifestDrmDetector] - abort early if marker present.
  * 2. Generate session id + ensure cache space via [StreamingCacheCleaner].
  * 3. Download segments through Media3 ([Media3SegmentDownloader]) into the session dir.
  * 4. Remux segments → standard MP4 via [MediaMuxerRemuxer] (sample-copy).
@@ -55,7 +55,7 @@ class StreamingDownloadStrategy @Inject constructor(
             }
 
             // 2. Pre-flight cache space (best-effort; we do not know exact size yet).
-            //    Use a coarse 64 MiB lower bound — short clips fit; longer ones will hit
+            //    Use a coarse 64 MiB lower bound - short clips fit; longer ones will hit
             //    a real out-of-space error during download which is also surfaced cleanly.
             val ok = cacheCleaner.preflightCheck(context.cacheDir, requiredBytes = PRE_FLIGHT_RESERVE)
             if (!ok) {

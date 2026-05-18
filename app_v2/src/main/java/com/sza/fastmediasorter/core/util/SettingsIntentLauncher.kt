@@ -20,7 +20,7 @@ object SettingsIntentLauncher {
      * display height. Returned `Rect` is in absolute display coordinates suitable for
      * `ActivityOptions.setLaunchBounds(..)`.
      *
-     * Returns `null` if the display metrics cannot be read — in that case the system picks the
+     * Returns `null` if the display metrics cannot be read - in that case the system picks the
      * default size for the launched activity.
      */
     private fun computeCenteredLaunchBounds(activity: Activity): Rect? {

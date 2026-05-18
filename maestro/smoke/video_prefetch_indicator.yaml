@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Video Pre-cache Indicator
-# Description: Smoke test — verify the prefetch overlay pill appears and auto-dismisses during network video playback
+# Description: Smoke test - verify the prefetch overlay pill appears and auto-dismisses during network video playback
 # Duration: ~30 seconds
 # Prerequisite: at least one network source (SMB/SFTP/FTP) configured with a video file
 

@@ -84,7 +84,7 @@ class ResourceToAddAdapter(
                 }
                 
                 etName.removeTextChangedListener(nameWatcher)
-                // Skip setText when field has focus — user is actively editing,
+                // Skip setText when field has focus - user is actively editing,
                 // resetting text would jump the cursor to position 0.
                 if (!etName.hasFocus() && etName.text.toString() != resource.name) {
                     etName.setText(resource.name)

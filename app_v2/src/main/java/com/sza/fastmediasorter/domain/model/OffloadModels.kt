@@ -6,7 +6,7 @@ import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase.OffloadReques
 /**
  * One-shot event emitted by `PlayerViewModel.offloadOffer` when a media session is
  * classified [StreamViabilityState.NOT_VIABLE] on open or becomes non-viable via
- * escalation mid-session. The dialog consumes this verbatim — all values are
+ * escalation mid-session. The dialog consumes this verbatim - all values are
  * already formatted-ready (VM owns the numbers, dialog owns presentation).
  *
  * See spec: PLAN/spec_adaptive-playback-strategy.md §5.6.

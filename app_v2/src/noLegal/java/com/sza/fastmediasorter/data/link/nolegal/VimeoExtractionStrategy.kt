@@ -21,7 +21,7 @@ import javax.inject.Singleton
  * S0177: Native extractor for vimeo.com.
  *
  * Fetches the Vimeo player config JSON to extract a direct MP4 stream or HLS manifest.
- * Password-protected videos return NotFound — WebView-dynamic handles them as fallback.
+ * Password-protected videos return NotFound - WebView-dynamic handles them as fallback.
  * Requires Referer: https://vimeo.com/ for player.vimeo.com config requests.
  */
 @Singleton
@@ -58,7 +58,7 @@ class VimeoExtractionStrategy @Inject constructor(
         val configJson = try {
             httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    // 403 indicates password-protected or private — fallback to WebView-dynamic.
+                    // 403 indicates password-protected or private - fallback to WebView-dynamic.
                     return@withContext OpenResult.NotFound("vimeo_config_failed")
                 }
                 response.body?.string()

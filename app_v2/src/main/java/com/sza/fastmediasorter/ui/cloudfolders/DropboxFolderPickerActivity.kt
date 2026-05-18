@@ -43,7 +43,7 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
         return ActivityDropboxFolderPickerBinding.inflate(layoutInflater)
     }
 
-    // S0230 Phase 02 — TV initial focus on the folder list.
+    // S0230 Phase 02 - TV initial focus on the folder list.
     override fun getInitialFocusView(): android.view.View = binding.rvFolders
 
     override fun setupViews() {
@@ -103,7 +103,7 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
             (view as? android.view.ViewGroup)?.clipToPadding = false
             insets
         }
-        // setupViews() runs inside post{} — initial insets dispatch was already missed.
+        // setupViews() runs inside post{} - initial insets dispatch was already missed.
         androidx.core.view.ViewCompat.requestApplyInsets(binding.rvFolders)
     }
 

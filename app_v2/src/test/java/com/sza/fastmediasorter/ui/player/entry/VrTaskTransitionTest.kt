@@ -19,7 +19,7 @@ class VrTaskTransitionTest {
 
     @Test
     fun `exitImmersiveToFlatPlayer calls finishAndRemoveTask on source activity`() {
-        // S0132 P03.1 (ex-S0038): regression guard — exitImmersiveToFlatPlayer must call
+        // S0132 P03.1 (ex-S0038): regression guard - exitImmersiveToFlatPlayer must call
         // finishAndRemoveTask() on the source VR activity so HorizonOS removes the task
         // record from its task switcher. Without this call, repeated enter/exit cycles
         // accumulate one window per cycle in the switcher.

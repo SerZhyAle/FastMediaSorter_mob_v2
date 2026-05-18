@@ -66,8 +66,7 @@ import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
-// Open: VrPlayerActivity in vr flavor extends this to add OpenXR rendering layer
-open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
@@ -201,7 +200,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
     internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 
-    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager replaces the
+    // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager replaces the
     // activity-result handshake. Drive sign-in goes through GoogleIdentityRepository.signInPrimary.
 
     // Android 11+ batch delete permission (createDeleteRequest)
@@ -215,7 +214,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                 op = queuedOperation,
             )
         } else {
-            // Do NOT pass currentFile here — the player may have already advanced to the next
+            // Do NOT pass currentFile here - the player may have already advanced to the next
             // file via optimistic navigation before the dialog was shown. The correct source
             // path was stored in lifecycleManager.storePendingBatchDeleteFilePath() at the
             // moment the dialog was launched.
@@ -382,6 +381,14 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     @Inject
     lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 
+    // S0242 Phase 02: passed to PlayerLifecycleManager so successful file ops are journaled
+    // for the Browse Reconciler instead of returned via an Intent extra.
+    @Inject
+    lateinit var mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal
+
+    @Inject
+    lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
+
     @Inject
     lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 
@@ -432,7 +439,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         lifecycleManager = com.sza.fastmediasorter.ui.player.helpers.PlayerLifecycleManager(
             activity = this,
             viewModel = viewModel,
-            lifecycle = lifecycle
+            lifecycle = lifecycle,
+            mutationJournal = mutationJournal,
+            pathNormalizer = pathNormalizer,
         )
         lifecycleManager.onCreate(savedInstanceState)
         slideshowModeRequested = lifecycleManager.isSlideshowModeRequested()
@@ -463,7 +472,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         }
     }
 
-    /** Initialize all helper managers — delegates to PlayerManagerInitializer. */
+    /** Initialize all helper managers - delegates to PlayerManagerInitializer. */
     private fun initializeManagers() {
         PlayerManagerInitializer(this).initialize()
     }
@@ -528,9 +537,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         }
     }
 
-    // Open so VrPlayerActivity can route exit through VrTaskTransition instead of a plain finish(),
-    // keeping gamepad B / keyboard Escape paths consistent in VR immersive mode.
-    internal open fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
+    internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
         lifecycleManager.exitPlayerWithAudioCheck(withTransition)
 
     private fun setupGestureDetector() = gestureSetupManager.setupGestureDetector()
@@ -706,15 +713,15 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     // S0189: registry for deferred new-note creations (consulted by TextViewerManager on load/cancel)
     @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 
-    // S0192 Phase 05 — Google Keep export, invoked from the draw editor overflow menu.
+    // S0192 Phase 05 - Google Keep export, invoked from the draw editor overflow menu.
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
 
     /**
-     * S0192 Phase 06 — in-place overwrite callback for the `[Save]` button.
+     * S0192 Phase 06 - in-place overwrite callback for the `[Save]` button.
      *
      * Pipeline: merge overlay onto base bitmap → if resource is local + writable,
      * overwrite `currentFile.path`; otherwise silently fall through to the
-     * legacy "save as new" pipeline (ADR-4 — no error shown to user).
+     * legacy "save as new" pipeline (ADR-4 - no error shown to user).
      */
     internal fun setupDrawOverlayInPlaceSaveCallback() {
         imageDrawOverlayManager.inPlaceSaveCallback =
@@ -736,7 +743,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                     }
 
                     // "Save" always attempts in-place overwrite of currentFile.
-                    // No filename dialog under any circumstances — the prompt-based
+                    // No filename dialog under any circumstances - the prompt-based
                     // "Save as.." flow is a separate command (draw_overflow_save_new).
                     // If the write fails (read-only resource, cloud/SMB write denied,
                     // permission revoked), we surface a single failure toast and stay
@@ -823,7 +830,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                         filename + if (outputFormat == android.graphics.Bitmap.CompressFormat.JPEG) ".jpg" else ".png"
                     } else filename
 
-                    // Read image rect on main thread — PhotoView shifts up when toolbar is visible;
+                    // Read image rect on main thread - PhotoView shifts up when toolbar is visible;
                     // crop must reflect actual image position at draw time, not full canvas size
                     val displayRect = activityBinding.photoView.displayRect
 
@@ -1094,7 +1101,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             wasToggledPausedByLifecycle = false
             viewModel.togglePause()
         }
-        // S0162: re-apply orientation on resume (re-reads OS auto-rotate state — ADR-1)
+        // S0162: re-apply orientation on resume (re-reads OS auto-rotate state - ADR-1)
         val rs = viewModel.state.value
         screenRotationManager.apply(this, rs.followSystemRotation, rs.playerRotationSensorEnabled, hasAccelerometer)
         audioEmptyStateController?.onResume()
@@ -1251,7 +1258,13 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     override val videoPlayerHandle: VideoPlayerHandle get() = playerActivityVideoHandle
 
-    private val playerActivityVideoHandle: VideoPlayerHandle by lazy { PlayerActivityVideoHandle() }
+    private val playerActivityVideoHandle: VideoPlayerHandle by lazy {
+        PlayerActivityVideoHandle(
+            videoPlayerManagerProvider = { _videoPlayerManager },
+            audioPlayerProvider = { audioServiceController?.player },
+            isAudioServiceActive = { isAudioServiceActive },
+        )
+    }
 
     override val isAudioServiceActive: Boolean
         get() = isMediaLoaderManagerInitialized && mediaLoaderManager.isServiceAudioActive
@@ -1260,56 +1273,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     // Handled internally: PlayerDeleteUndoCoordinator advances the file list or emits FinishActivity.
     override fun requestFinishAfterDelete() = Unit
-
-    private inner class PlayerActivityVideoHandle : VideoPlayerHandle {
-        override fun getAvailableAudioTracks(): List<VideoTrackSelectionManager.TrackInfo> =
-            _videoPlayerManager?.getAvailableAudioTracks()
-                ?.map { VideoTrackSelectionManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
-                ?: emptyList()
-
-        override fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
-            _videoPlayerManager?.selectAudioTrack(groupIndex, trackIndex) ?: Unit
-
-        override fun getAvailableSubtitleTracks(): List<VideoTrackSelectionManager.TrackInfo> =
-            _videoPlayerManager?.getAvailableSubtitleTracks()
-                ?.map { VideoTrackSelectionManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
-                ?: emptyList()
-
-        override fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) =
-            _videoPlayerManager?.selectSubtitleTrack(groupIndex, trackIndex) ?: Unit
-
-        override fun getHueAdjustmentDegrees(): Float =
-            _videoPlayerManager?.getHueAdjustmentDegrees() ?: 0f
-
-        override fun setHueAdjustmentDegrees(degrees: Float) {
-            _videoPlayerManager?.setHueAdjustmentDegrees(degrees)
-        }
-
-        override fun getBrightnessProgress(): Int =
-            _videoPlayerManager?.getBrightnessProgress() ?: 50
-
-        override fun setBrightnessProgress(progress: Int) {
-            _videoPlayerManager?.setBrightnessProgress(progress)
-        }
-
-        override fun getBrightnessPercentOffset(): Int =
-            _videoPlayerManager?.getBrightnessPercentOffset() ?: 0
-
-        override fun getPlaybackSpeed(): Float =
-            if (isAudioServiceActive) {
-                audioServiceController?.player?.playbackParameters?.speed ?: 1.0f
-            } else {
-                _videoPlayerManager?.getPlayer()?.playbackParameters?.speed ?: 1.0f
-            }
-
-        override fun setPlaybackSpeed(speed: Float) {
-            if (isAudioServiceActive) {
-                audioServiceController?.player?.setPlaybackSpeed(speed)
-            } else {
-                _videoPlayerManager?.setPlaybackSpeed(speed)
-            }
-        }
-    }
 
     private fun applyPlaybackOrderModeToActivePlayer(mode: PlaybackOrderMode) {
         when (viewModel.state.value.currentFile?.type) {
@@ -1342,7 +1305,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
-        const val EXTRA_MODIFIED_FILES = "modified_files"
+        // S0242 Phase 02: the legacy "modified files" intent extra was removed - the
+        // Browse Reconciler reads the MutationJournal independently on its onResume.
         // S0028: per-window resume state isolation
         const val EXTRA_WINDOW_ID = "extra_window_id"
         // S0159: pre-activate draw overlay mode when launched from Browse overflow menu
@@ -1350,9 +1314,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         // S0189: open text file directly in edit mode (create-text-note flow)
         const val EXTRA_TEXT_EDIT_MODE_ON_OPEN = "s0189_edit_mode_on_open"
 
-        // S0026: detected stereo mode hint. Browse fills this when launching VR; VrPlayerActivity
-        // primes PlayerStereoModeCoordinator with this value before applying user-settings, so the
-        // route decision sees the actual file format instead of the default MONO.
+        // S0026: detected stereo mode hint. Browse fills this when opening media; the flat
+        // player primes PlayerStereoModeCoordinator with this value before applying user-settings,
+        // so the route decision sees the actual file format instead of the default MONO.
         const val EXTRA_DETECTED_STEREO_MODE = "extra_detected_stereo_mode"
 
         fun createIntent(
@@ -1366,9 +1330,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
         ): Intent {
-            // S0241 Phase 03: VR runtime detached from main player entry-point — every flavor now
-            // routes to the flat PlayerActivity directly. Previously this resolved
-            // BuildConfig.PLAYER_ACTIVITY_CLASS reflectively to support the VrPlayerActivity override.
+            // S0241 Phase 03: VR runtime detached from main player entry-point - every flavor now
+            // routes to the flat PlayerActivity directly.
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra("resourceId", resourceId)
                 putExtra("initialIndex", initialIndex)

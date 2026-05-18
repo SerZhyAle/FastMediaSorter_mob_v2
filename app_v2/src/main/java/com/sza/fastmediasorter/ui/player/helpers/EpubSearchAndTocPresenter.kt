@@ -19,12 +19,12 @@ import timber.log.Timber
  * Extracted from EpubViewerManager (S0002 Wave 42) to keep that class under 1500 LOC.
  *
  * Requires:
- * - [webViewProvider] — current WebView instance (nullable; searches silently no-op when null)
- * - [bookProvider] — current loaded Book (nullable)
- * - [currentChapterIndexProvider] — current chapter index
- * - [chapterCountProvider] — total chapter count
- * - [coroutineScope] — scope for background search jobs
- * - [onNavigateToChapter] — called when user selects a TOC/search result
+ * - [webViewProvider] - current WebView instance (nullable; searches silently no-op when null)
+ * - [bookProvider] - current loaded Book (nullable)
+ * - [currentChapterIndexProvider] - current chapter index
+ * - [chapterCountProvider] - total chapter count
+ * - [coroutineScope] - scope for background search jobs
+ * - [onNavigateToChapter] - called when user selects a TOC/search result
  */
 class EpubSearchAndTocPresenter(
     private val binding: ActivityPlayerUnifiedBinding,
@@ -331,7 +331,7 @@ class EpubSearchAndTocPresenter(
 
     /**
      * Find spine index for a given resource (compare by href to handle different
-     * Resource object instances for same file — M-5 fix).
+     * Resource object instances for same file - M-5 fix).
      */
     private fun findSpineIndexForResource(book: Book, resource: io.documentnode.epub4j.domain.Resource?): Int {
         if (resource == null) return -1

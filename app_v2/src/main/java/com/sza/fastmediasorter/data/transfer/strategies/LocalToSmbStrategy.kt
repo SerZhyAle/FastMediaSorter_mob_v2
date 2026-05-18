@@ -36,7 +36,7 @@ class LocalToSmbStrategy @Inject constructor(
         sourceCredentialsId: String?,
         progressCallback: ByteProgressCallback?
     ): Boolean = withContext(Dispatchers.IO) {
-        // Always dispatch to IO — SmbConnectionManager does not switch dispatchers internally,
+        // Always dispatch to IO - SmbConnectionManager does not switch dispatchers internally,
         // so calling from Main causes NetworkOnMainThreadException (seen in CAP_ upload flow).
         val sourcePath = source.toString()
         val destPath = destination.toString()
@@ -45,7 +45,7 @@ class LocalToSmbStrategy @Inject constructor(
         val smbPathInfo = SmbPathUtils.parseSmbPath(destPath)
             ?: return@withContext false
 
-        // Resolve credentials from repository — same logic as SmbOperationStrategy.
+        // Resolve credentials from repository - same logic as SmbOperationStrategy.
         // parseSmbPath returns empty username/password; we must fill them here or auth fails.
         val smbConnectionInfo = resolveConnectionInfo(smbPathInfo)
 
@@ -123,7 +123,7 @@ class LocalToSmbStrategy @Inject constructor(
             }
         }
 
-        // Fallback: host-level credentials (shareName='' — user saved without specifying share).
+        // Fallback: host-level credentials (shareName='' - user saved without specifying share).
         // SmbOperationStrategy uses the same fallback; without it auth fails for such configs.
         val hostCreds = credentialsRepository.getCredentialsByHost(server)
         if (hostCreds != null && hostCreds.type.equals("SMB", ignoreCase = true)) {
@@ -135,7 +135,7 @@ class LocalToSmbStrategy @Inject constructor(
             )
         }
 
-        Timber.w("LocalToSmbStrategy: No credentials found for $server/$share — uploading as guest")
+        Timber.w("LocalToSmbStrategy: No credentials found for $server/$share - uploading as guest")
         return pathInfo.connectionInfo
     }
 }

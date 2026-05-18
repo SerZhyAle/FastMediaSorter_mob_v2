@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
  *
  * On the first invocation it remembers the toolbar's original `background` drawable so the
  * clean state restores the *original* style (the toolbar's background is normally an attr
- * reference, not a solid colour — setting `Color.TRANSPARENT` would lose it).
+ * reference, not a solid colour - setting `Color.TRANSPARENT` would lose it).
  */
 class DirtyToolbarTinter(
     private val toolbar: View,

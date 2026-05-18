@@ -104,7 +104,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 )
             }
             if (payload.version < BackupPayload.CURRENT_VERSION) {
-                Timber.w("Restoring older backup format v${payload.version} (current v${BackupPayload.CURRENT_VERSION}) — unknown fields will use defaults")
+                Timber.w("Restoring older backup format v${payload.version} (current v${BackupPayload.CURRENT_VERSION}) - unknown fields will use defaults")
             }
 
             // 1. Restore settings (full replace, keep credentials)
@@ -135,7 +135,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.w(e, "Skipping resource '%s' — incompatible with current version", backupRes.name)
+                    Timber.w(e, "Skipping resource '%s' - incompatible with current version", backupRes.name)
                     skipped++
                 }
             }
@@ -182,7 +182,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                     try {
                         val op = BackupMapper.toScheduledOperation(backupOp, resourcesByPath)
                             ?: run {
-                                Timber.w("RestoreGDrive: Skipping scheduled op — resource not found")
+                                Timber.w("RestoreGDrive: Skipping scheduled op - resource not found")
                                 continue
                             }
                         val newId = scheduledOperationRepository.upsert(op)
@@ -192,7 +192,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                         }
                         scheduledOpsAdded++
                     } catch (e: Exception) {
-                        Timber.w(e, "RestoreGDrive: Skipping scheduled op — ${e.message}")
+                        Timber.w(e, "RestoreGDrive: Skipping scheduled op - ${e.message}")
                     }
                 }
                 Timber.i("RestoreGDrive: $scheduledOpsAdded scheduled operations restored")

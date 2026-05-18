@@ -216,7 +216,7 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Show Subfolders Separately (option parity fix — was missing in create flow) -->
+                        <!-- Show Subfolders Separately (option parity fix - was missing in create flow) -->
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
                             <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/show_subfolders_as_items" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/show_subfolders_as_items_hint" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
@@ -296,7 +296,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) — destination, read-only, comment, pin, domain, port === -->
+            <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) - destination, read-only, comment, pin, domain, port === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                     <LinearLayout android:id="@+id/headerSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
@@ -440,7 +440,7 @@
 
             </LinearLayout>
 
-            <!-- Test Connection placed after auth block and before path — per spec F5.3 -->
+            <!-- Test Connection placed after auth block and before path - per spec F5.3 -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- Remote Path and Resource Name in one row -->
@@ -481,7 +481,7 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Show Subfolders Separately (option parity fix — was missing in create flow) -->
+                        <!-- Show Subfolders Separately (option parity fix - was missing in create flow) -->
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
                             <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/show_subfolders_as_items" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/show_subfolders_as_items_hint" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />

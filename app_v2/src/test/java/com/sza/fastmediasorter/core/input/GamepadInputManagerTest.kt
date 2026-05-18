@@ -16,7 +16,7 @@ import org.junit.Test
 
 /**
  * Unit tests for [GamepadInputManager] resolver path (Phase 04).
- * All Android framework objects are mocked via MockK — no Robolectric needed.
+ * All Android framework objects are mocked via MockK - no Robolectric needed.
  */
 class GamepadInputManagerTest {
 
@@ -88,7 +88,7 @@ class GamepadInputManagerTest {
             joystickMoveEvent(mapOf(MotionEvent.AXIS_Y to 0.1f)), // 0.1 < DEADZONE 0.15
             GamepadInputManager.Surface.PLAYER,
         )
-        assertNull("AXIS_Y = 0.1 is below deadzone — no action expected", result)
+        assertNull("AXIS_Y = 0.1 is below deadzone - no action expected", result)
     }
 
     // ── test 4: button seek rate-limiting ─────────────────────────────────────
@@ -118,7 +118,7 @@ class GamepadInputManagerTest {
     @Test
     fun `BROWSER surface dispatches BrowserAction without calling resolver`() {
         val mockManager = mockk<KeyBindingManager>()
-        // Resolver must NOT be called for BROWSER surface — an invocation would be an error.
+        // Resolver must NOT be called for BROWSER surface - an invocation would be an error.
         every { mockManager.resolve(any(), any()) } throws AssertionError("resolver called for BROWSER surface")
 
         val result = GamepadInputManager(mockManager).handleKeyEvent(

@@ -117,7 +117,7 @@ class BackgroundMusicManager @Inject constructor(
                         val isIoError = error.errorCode in 2000..2999 ||
                             generateSequence<Throwable>(error) { it.cause }.any { it is java.io.IOException }
                         if (isIoError) {
-                            Timber.w("BackgroundMusic: IO error on '$currentTrackPath' — silent skip (file moved/unavailable)")
+                            Timber.w("BackgroundMusic: IO error on '$currentTrackPath' - silent skip (file moved/unavailable)")
                             currentTrackPath?.let { failedFiles.add(it) }
                             scope.launch { skipToNextRandomTrack() }
                             return

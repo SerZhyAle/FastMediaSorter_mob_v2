@@ -10,15 +10,15 @@ import timber.log.Timber
 /**
  * Phase 5 + 6 + 7: Manages enabling/disabling of default player components at runtime.
  *
- * Phase 5 — Primary Player toggle ("Use as primary media player"):
+ * Phase 5 - Primary Player toggle ("Use as primary media player"):
  *   Controls ACTION_VIEW aliases + MediaButtonRestartReceiver.
  *   When ON: this app appears in the system file chooser and handles hardware media buttons.
  *
- * Phase 6 — Share Receiver toggle ("Accept shared media files"):
+ * Phase 6 - Share Receiver toggle ("Accept shared media files"):
  *   Controls ACTION_SEND aliases.
  *   When ON: this app appears in the system Share sheet for media files.
  *
- * Phase 7 — Flavor-aware alias filtering:
+ * Phase 7 - Flavor-aware alias filtering:
  *   Only the aliases whose media type is supported by the current flavor are touched.
  *   e.g. the photos flavor (SUPPORT_AUDIO=false, SUPPORT_VIDEO=false) will never enable
  *   the audio/video aliases even when the primary player toggle is ON.
@@ -39,7 +39,7 @@ object DefaultPlayerManager {
     /**
      * Phase 7: Returns only the ACTION_VIEW alias suffixes that are valid for this flavor.
      * Aliases for unsupported media types are intentionally left in their manifest-default
-     * (disabled) state — they are never activated at runtime.
+     * (disabled) state - they are never activated at runtime.
      */
     private fun viewAliasesForFlavor(): List<String> = buildList {
         if (BuildConfig.SUPPORT_AUDIO)     add(".StandaloneAudioPlayer")
@@ -50,7 +50,7 @@ object DefaultPlayerManager {
 
     /**
      * Phase 7: Returns only the ACTION_SEND alias suffixes that are valid for this flavor.
-     * StandaloneTextSender is included unconditionally — plain text is tiny and universally useful.
+     * StandaloneTextSender is included unconditionally - plain text is tiny and universally useful.
      */
     private fun sendAliasesForFlavor(): List<String> = buildList {
         if (BuildConfig.SUPPORT_AUDIO)  add(".StandaloneAudioSender")

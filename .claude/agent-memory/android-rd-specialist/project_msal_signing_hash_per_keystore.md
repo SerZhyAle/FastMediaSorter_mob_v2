@@ -1,6 +1,6 @@
 ---
 name: msal-signing-hash-per-keystore
-description: Each signing config (debug/release/debugCustom/etc) produces a distinct MSAL BrowserTabActivity signature hash — manifest must register all of them
+description: Each signing config (debug/release/debugCustom/etc) produces a distinct MSAL BrowserTabActivity signature hash - manifest must register all of them
 metadata:
   type: project
 ---
@@ -12,6 +12,6 @@ MSAL BrowserTabActivity intent-filter requires one `<data android:path="/<Base64
 **How to apply:** When adding any new `signingConfigs { create("xxx") { ... } }` block in `app_v2/build.gradle.kts`, immediately also:
 1. Compute the new hash: `keytool -exportcert -keystore <file> -alias <alias> -storepass <pass> | openssl sha1 -binary | openssl base64`.
 2. Add a new `<intent-filter>` to `BrowserTabActivity` in `src/main/AndroidManifest.xml` with the computed hash as `android:path="/<hash>"`.
-3. Register the new redirect URI in the OneDrive Azure App Registration (Microsoft Entra portal) — manifest alone is not sufficient; Azure must accept the callback too.
+3. Register the new redirect URI in the OneDrive Azure App Registration (Microsoft Entra portal) - manifest alone is not sufficient; Azure must accept the callback too.
 
 Related: [[s0232]] tracks the active fix; the same pattern must be considered for any future signing config addition.

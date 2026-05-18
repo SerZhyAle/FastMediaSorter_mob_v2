@@ -19,7 +19,7 @@ import timber.log.Timber
  *   2. Persist the scanned values back into the DB.
  *   3. Trigger a background speed test for accessible resources.
  *
- * The SMB/SFTP/SFTP-key coordinators all share this pattern — duplicating it
+ * The SMB/SFTP/SFTP-key coordinators all share this pattern - duplicating it
  * across five call sites masked subtle drift (write-test skip, thumbnail
  * auto-disable threshold, error messaging). This helper keeps it in one place.
  */
@@ -35,7 +35,7 @@ internal class AddResourceFinalizer(
      * for accessible resources. Returns true if the scan succeeded.
      *
      * @param resource        the in-memory resource that was just inserted (id may be 0).
-     * @param credentialsId   credentials id attached on insert — used to locate the real row.
+     * @param credentialsId   credentials id attached on insert - used to locate the real row.
      * @param skipWriteTest   when true, skips isWritable probe (read-only resources).
      * @param onlyTestIfWritable when true, speed test is triggered only if isWritable=true
      *                        (SMB manual-add path: read-only can't create .speedtest_*.tmp).
@@ -105,7 +105,7 @@ internal class AddResourceFinalizer(
     }
 
     /**
-     * Bulk variant used by SMB share scan — inserts already happened, this walks each
+     * Bulk variant used by SMB share scan - inserts already happened, this walks each
      * in-memory resource and updates its DB row. Returns unavailable count.
      */
     suspend fun scanInsertedResources(

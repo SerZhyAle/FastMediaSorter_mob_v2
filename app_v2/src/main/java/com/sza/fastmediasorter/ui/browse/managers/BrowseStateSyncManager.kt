@@ -2,11 +2,9 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaFile
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
-import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -15,19 +13,22 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * Manages favorites loading and cache-to-state synchronization for the Browse screen.
+ * Browse-side state synchroniser. Two responsibilities only:
+ * - Load the virtual Favorites resource into [BrowseState].
+ * - Detect resource setting changes from the database on `onResume` and trigger a reload
+ *   when the user has edited supportedMediaTypes / scanSubdirectories in
+ *   `ResourceEditorActivity` while Browse was paused.
  *
- * Responsibilities:
- * - Load the virtual Favorites resource into BrowseState.
- * - Sync in-memory UI state from MediaFilesCacheManager when returning from PlayerActivity.
- * - Detect resource setting changes from the database and trigger a reload when needed.
- *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * S0242 Phase 03 - the structural-equality cache-comparison fast-path was removed.
+ * Browse list synchronisation against player-side mutations is owned exclusively by
+ * `BrowseReconcilerManager`, which `BrowseActivity.onResumeWithViews()` runs before
+ * calling [checkAndReloadIfResourceChanged]. Cache and visible list stay coherent through
+ * the journal; the resource-settings check below only watches for resource-level option
+ * changes the journal cannot represent.
  */
 class BrowseStateSyncManager(
     private val favoritesUseCase: FavoritesUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
-    private val cachedFileListRepository: CachedFileListRepository,
     private val resourceId: Long,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
@@ -35,8 +36,6 @@ class BrowseStateSyncManager(
     private val updateState: ((BrowseState) -> BrowseState) -> Unit,
     private val setLoading: (Boolean) -> Unit,
     private val scheduleWarmupIfEligible: suspend (List<MediaFile>) -> Unit,
-    private val applyFilterToList: (List<MediaFile>, com.sza.fastmediasorter.domain.model.FileFilter) -> List<MediaFile>,
-    private val reloadCurrentSubfolder: (String) -> Unit,
     private val reloadFiles: (Boolean) -> Unit
 ) {
     fun loadFavorites() {
@@ -79,55 +78,14 @@ class BrowseStateSyncManager(
         }
     }
 
-    fun syncWithCache() {
-        val currentSubPath = stateFlow.value.currentPath
-        if (stateFlow.value.isSubfolderMode && currentSubPath != null) {
-            Timber.d("BrowseStateSyncManager.syncWithCache: subfolder mode at '$currentSubPath', reloading subfolder")
-            reloadCurrentSubfolder(currentSubPath)
-            return
-        }
-
-        val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId) ?: return
-        val currentFiles = stateFlow.value.mediaFiles
-        val resource = stateFlow.value.resource
-
-        var filteredFiles = if (resource != null && !resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
-            cachedFiles.filter { file ->
-                file.isDirectory || resource.supportedMediaTypes.contains(file.type)
-            }
-        } else {
-            cachedFiles
-        }
-
-        val filter = stateFlow.value.filter
-        filteredFiles = if (filter != null) applyFilterToList(filteredFiles, filter) else filteredFiles
-
-        Timber.d("BrowseStateSyncManager.syncWithCache: ${cachedFiles.size} cached -> ${filteredFiles.size} visible")
-
-        if (filteredFiles != currentFiles) {
-            updateState { it.copy(mediaFiles = filteredFiles, totalFileCount = filteredFiles.size) }
-            Timber.d("BrowseStateSyncManager.syncWithCache: state updated")
-
-            if (resource?.rememberFileList == true) {
-                scope.launch(ioDispatcher) {
-                    try {
-                        cachedFileListRepository.saveCachedFiles(resource.id, filteredFiles)
-                    } catch (e: Exception) {
-                        Timber.e(e, "BrowseStateSyncManager.syncWithCache: failed to persist DB cache for resource ${resource.id}")
-                    }
-                }
-            }
-        } else {
-            Timber.d("BrowseStateSyncManager.syncWithCache: state already up to date")
-        }
-    }
-
     fun checkAndReloadIfResourceChanged() {
         Timber.d("BrowseStateSyncManager.checkAndReloadIfResourceChanged: START - resourceId=$resourceId")
         val currentResource = stateFlow.value.resource ?: return
 
         if (currentResource.id == FAVORITES_RESOURCE_ID) {
-            syncWithCache()
+            // Favorites are journal-irrelevant (synthesized from the favorites table on
+            // every load). The Reconciler is a no-op for the virtual id; nothing to do here.
+            Timber.d("BrowseStateSyncManager.checkAndReloadIfResourceChanged: favorites resource, no settings to reload")
             return
         }
 
@@ -150,8 +108,9 @@ class BrowseStateSyncManager(
                 updateState { it.copy(resource = updatedResource) }
                 reloadFiles(true)
             } else {
-                Timber.d("BrowseStateSyncManager.checkAndReloadIfResourceChanged: no changes, syncing cache")
-                syncWithCache()
+                // S0242 Phase 03 - Reconciler already ran before this check fires; no
+                // structural-equality fall-back needed.
+                Timber.d("BrowseStateSyncManager.checkAndReloadIfResourceChanged: no settings change; Reconciler owns cache sync")
             }
         }
     }

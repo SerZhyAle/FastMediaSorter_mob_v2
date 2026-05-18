@@ -34,11 +34,11 @@
 - **Strategy Pattern**: File operations (`FileOperationStrategy`).
 - **Connection Pooling**: Network clients (`SmbConnectionManager`).
 
-## UI Patterns — Trigger Row (MANDATORY)
+## UI Patterns - Trigger Row (MANDATORY)
 
 Every toggle/switch or checkbox control that carries a description **must** follow one of the two canonical row patterns below. Mixing the patterns or using ad-hoc sizes is prohibited.
 
-### Pattern A — Switch/Toggle row (settings fragments)
+### Pattern A - Switch/Toggle row (settings fragments)
 
 ```xml
 <LinearLayout
@@ -80,7 +80,7 @@ Every toggle/switch or checkbox control that carries a description **must** foll
 - Help icon (`ic_help_outline_24`) → **always the rightmost child** of the row, after the text group.
 - `layout_weight="1"` on the text group is mandatory so the icon is pinned right.
 
-### Pattern B — Checkbox row (add-resource, cloud folder pickers)
+### Pattern B - Checkbox row (add-resource, cloud folder pickers)
 
 ```xml
 <LinearLayout android:orientation="vertical">
@@ -109,7 +109,7 @@ Every toggle/switch or checkbox control that carries a description **must** foll
 | `toggler_title_text_size` | 14sp | Switch row main label |
 | `toggler_desc_text_size` | 12sp | Switch row help text (title − 2sp) |
 | `text_size_small` | 14sp | Checkbox row help text (checkbox − 2sp) |
-| `settings_switch_margin_end` | — | Gap between switch and text group |
-| `settings_help_icon_size` | — | Help icon button size |
-| `settings_help_icon_margin` | — | Gap between text group and help icon |
-| `checkbox_subtitle_margin_start` | — | Help text indent under checkbox |
+| `settings_switch_margin_end` | - | Gap between switch and text group |
+| `settings_help_icon_size` | - | Help icon button size |
+| `settings_help_icon_margin` | - | Gap between text group and help icon |
+| `checkbox_subtitle_margin_start` | - | Help text indent under checkbox |

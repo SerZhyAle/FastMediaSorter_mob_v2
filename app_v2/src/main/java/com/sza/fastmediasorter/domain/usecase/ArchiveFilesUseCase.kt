@@ -23,7 +23,7 @@ import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
 
 sealed class ArchiveProgress {
-    /** Archiving started — total number of files is known. */
+    /** Archiving started - total number of files is known. */
     data class Started(val totalFiles: Int) : ArchiveProgress()
     /** One file has been added to the archive. */
     data class FileDone(val current: Int, val total: Int, val fileName: String) : ArchiveProgress()
@@ -31,7 +31,7 @@ sealed class ArchiveProgress {
     data class Success(val archivePath: String, val archivedCount: Int) : ArchiveProgress()
     /** A non-fatal warning for one file (skipped). */
     data class FileWarning(val fileName: String, val reason: String) : ArchiveProgress()
-    /** Fatal failure — archive could not be created. */
+    /** Fatal failure - archive could not be created. */
     data class Error(val message: String, val exception: Throwable? = null) : ArchiveProgress()
 }
 
@@ -134,7 +134,7 @@ class ArchiveFilesUseCase @Inject constructor(
             zipOutputStream.close()
             zipOutputStream = null
 
-            Timber.i("ArchiveFilesUseCase: done — $archivedCount files → ${outputFile.absolutePath}")
+            Timber.i("ArchiveFilesUseCase: done - $archivedCount files → ${outputFile.absolutePath}")
             emit(ArchiveProgress.Success(outputFile.absolutePath, archivedCount))
 
         } catch (e: CancellationException) {
@@ -173,7 +173,7 @@ class ArchiveFilesUseCase @Inject constructor(
             || pathStr.startsWith("cloud://")
             || pathStr.startsWith("gdrive://")
             || pathStr.startsWith("onedrive://")
-            || pathStr.startsWith("dropbox://") -> null // Remote — not supported
+            || pathStr.startsWith("dropbox://") -> null // Remote - not supported
 
             pathStr.startsWith("content://") -> {
                 val uri = Uri.parse(pathStr)
@@ -215,7 +215,7 @@ class ArchiveFilesUseCase @Inject constructor(
         // ZipOutputStream does not expose existing entries directly; track via a Set internally.
         // This is handled by re-using a simple counter suffix approach.
         return baseName // ZipOutputStream allows duplicate entries; viewer shows last one.
-        // For strict deduplication, track names outside — see note in class KDoc.
+        // For strict deduplication, track names outside - see note in class KDoc.
     }
 
     /**

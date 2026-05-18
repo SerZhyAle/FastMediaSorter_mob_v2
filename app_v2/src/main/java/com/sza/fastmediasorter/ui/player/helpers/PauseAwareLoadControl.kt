@@ -13,7 +13,7 @@ import timber.log.Timber
 /**
  * Wraps [DefaultLoadControl] and returns false from [shouldContinueLoading] while the player
  * is paused. Prevents network DataSources (SFTP/SMB/FTP/Cloud) from continuing to fill the
- * ExoPlayer buffer — and holding open connections — while playback is stopped by the user.
+ * ExoPlayer buffer - and holding open connections - while playback is stopped by the user.
  * On resume, ExoPlayer calls shouldContinueLoading with playWhenReady restored and buffering restarts.
  *
  * Register this instance as a Player.Listener after ExoPlayer is built so the flag is kept

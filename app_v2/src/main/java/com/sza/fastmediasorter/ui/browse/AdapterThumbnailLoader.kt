@@ -37,7 +37,7 @@ import java.io.File
  * Handles all thumbnail loading for [MediaFileAdapter] ViewHolders.
  * Encapsulates Glide requests for local, network, and cloud files across all media types.
  *
- * Extracted from MediaFileAdapter.ListViewHolder and GridViewHolder (Wave 3 — IV.1).
+ * Extracted from MediaFileAdapter.ListViewHolder and GridViewHolder (Wave 3 - IV.1).
  * Both ViewHolders share this single implementation parameterised by [isListMode].
  */
 class AdapterThumbnailLoader(
@@ -75,9 +75,9 @@ class AdapterThumbnailLoader(
      * Returns new cache key when a Glide request was started; null if skipped.
      * Caller stores the returned key: `lastKey = load(...) ?: lastKey`
      *
-     * [binaryGeneratorSizePx] — pixel size passed to [BinaryFileThumbnailGenerator]; null uses [CACHED_THUMBNAIL_SIZE].
+     * [binaryGeneratorSizePx] - pixel size passed to [BinaryFileThumbnailGenerator]; null uses [CACHED_THUMBNAIL_SIZE].
      *   Glide image/video overrides always use [CACHED_THUMBNAIL_SIZE] regardless of this value.
-     * [isListMode] — true for ListViewHolder: checks SAF URI existence, adds PDF/EPUB load listeners.
+     * [isListMode] - true for ListViewHolder: checks SAF URI existence, adds PDF/EPUB load listeners.
      */
     fun load(
         imageView: ImageView,
@@ -129,7 +129,7 @@ class AdapterThumbnailLoader(
         val generatedPlaceholder = createPlaceholderDrawable(file, context.resources)
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
 
-        // During scroll assign correct placeholder immediately — prevents stale extension
+        // During scroll assign correct placeholder immediately - prevents stale extension
         // from previous ViewHolder occupant; Glide will then attempt a synchronous cache-only hit.
         if (isScrolling) {
             showGeneratedPlaceholder(imageView, file)
@@ -294,7 +294,7 @@ class AdapterThumbnailLoader(
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
-                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
@@ -386,7 +386,7 @@ class AdapterThumbnailLoader(
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
-                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
@@ -428,7 +428,7 @@ class AdapterThumbnailLoader(
     ) {
         val fileExt = file.name.substringAfterLast('.', "").lowercase()
         if (!HeifSupportUtils.isSupported(fileExt)) {
-            Timber.w("loadThumbnail: ${fileExt.uppercase()} not supported on this device — showing placeholder for ${file.name}")
+            Timber.w("loadThumbnail: ${fileExt.uppercase()} not supported on this device - showing placeholder for ${file.name}")
             showGeneratedPlaceholder(imageView, file)
             return
         }
@@ -475,7 +475,7 @@ class AdapterThumbnailLoader(
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
-                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (!isScrolling) {
                     imageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
@@ -516,7 +516,7 @@ class AdapterThumbnailLoader(
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
-                // S0110: no error/stats listener during scroll — cache miss triggers .error() placeholder naturally
+                // S0110: no error/stats listener during scroll - cache miss triggers .error() placeholder naturally
                 if (!isScrolling) {
                     localImageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
@@ -574,7 +574,7 @@ class AdapterThumbnailLoader(
                 val ext = file.name.substringAfterLast('.', "").lowercase()
                 if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
                         .shouldSkipNetworkExtraction(ext)) {
-                    Timber.d("[scope=thumbnail S0063] Blocked network format '$ext' — showing placeholder: ${file.name}")
+                    Timber.d("[scope=thumbnail S0063] Blocked network format '$ext' - showing placeholder: ${file.name}")
                     showGeneratedPlaceholder(imageView, file)
                     imageView.contentDescription = context.getString(
                         R.string.thumbnail_unavailable_network_format,
@@ -604,7 +604,7 @@ class AdapterThumbnailLoader(
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
-                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (!isScrolling) {
                     videoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
@@ -651,7 +651,7 @@ class AdapterThumbnailLoader(
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
-                // S0110: no failure-marking listener during scroll — cache miss triggers .error() placeholder naturally
+                // S0110: no failure-marking listener during scroll - cache miss triggers .error() placeholder naturally
                 if (!isScrolling) {
                     localVideoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {

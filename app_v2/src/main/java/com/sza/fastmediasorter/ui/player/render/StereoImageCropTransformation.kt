@@ -43,7 +43,7 @@ class StereoImageCropTransformation(
                 if (halfH <= 0) toTransform
                 else Bitmap.createBitmap(toTransform, 0, h - halfH, w, halfH)
             }
-            else -> toTransform // MONO / AUTO / UNKNOWN — no crop
+            else -> toTransform // MONO / AUTO / UNKNOWN - no crop
         }
     }
 
@@ -58,7 +58,7 @@ class StereoImageCropTransformation(
 
     companion object {
         // ID bumped to .v2 when crop direction flipped from left/top to right/bottom
-        // (spec_panel-stereo-single-eye) — invalidates old cached bitmaps.
+        // (spec_panel-stereo-single-eye) - invalidates old cached bitmaps.
         private const val ID = "com.sza.fastmediasorter.StereoImageCropTransformation.v2"
         private val CHARSET = Charsets.UTF_8
     }

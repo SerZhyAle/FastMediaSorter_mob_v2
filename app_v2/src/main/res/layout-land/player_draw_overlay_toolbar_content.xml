@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 06 — Draw overlay toolbar v2 (landscape), single vertical strip.
+    S0192 Phase 06 - Draw overlay toolbar v2 (landscape), single vertical strip.
 
     Layout (top → bottom):
       [tool selector] [B][W][R][C] ......(weighted spacer)...... [⋮] [X]

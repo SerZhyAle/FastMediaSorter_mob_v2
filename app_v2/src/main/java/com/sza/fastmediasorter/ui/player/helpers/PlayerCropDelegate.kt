@@ -135,7 +135,7 @@ class PlayerCropDelegate(
         override fun onSuccess(savedPath: String, mode: ImageCropManager.CropMode) {
             hideCropOverlay()
             if (mode == ImageCropManager.CropMode.CROP) {
-                // Original file was overwritten in-place — clear Glide cache and redisplay.
+                // Original file was overwritten in-place - clear Glide cache and redisplay.
                 // jumpToIndex with the same index aborts, so use reloadCurrentImage() directly.
                 if (activity.isMediaLoaderManagerInitialized) {
                     activity.mediaLoaderManager.reloadCurrentImage()

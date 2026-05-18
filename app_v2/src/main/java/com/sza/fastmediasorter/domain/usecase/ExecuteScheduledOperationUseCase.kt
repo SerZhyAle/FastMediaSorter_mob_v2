@@ -62,7 +62,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         val sourceResource = resourceRepository.getResourceById(operation.sourceResourceId)
         if (sourceResource == null) {
             val msg = "Source resource not found (id=${operation.sourceResourceId})"
-            logOp(ts, opName, "—", "—", msg)
+            logOp(ts, opName, "-", "-", msg)
             Timber.w("ScheduledOp[$operationId] $msg")
             return ScheduledExecutionResult(operationId, 0, listOf(msg))
         }
@@ -71,7 +71,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             val t = resourceRepository.getResourceById(operation.targetResourceId!!)
             if (t == null) {
                 val msg = "Target resource not found (id=${operation.targetResourceId})"
-                logOp(ts, opName, sourceResource.name, "—", msg)
+                logOp(ts, opName, sourceResource.name, "-", msg)
                 Timber.w("ScheduledOp[$operationId] $msg")
                 return ScheduledExecutionResult(operationId, 0, listOf(msg))
             }
@@ -79,7 +79,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         } else null
 
         val srcLabel = "${sourceResource.name} [${sourceResource.type.name}]"
-        val dstLabel = targetResource?.let { "${it.name} [${it.type.name}]" } ?: "—"
+        val dstLabel = targetResource?.let { "${it.name} [${it.type.name}]" } ?: "-"
 
         return try {
             // Step 1: Load and filter source files.
@@ -98,7 +98,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 return ScheduledExecutionResult(operationId, 0, emptyList())
             }
 
-            // Step 2: For COPY/MOVE — verify target is reachable before doing any work.
+            // Step 2: For COPY/MOVE - verify target is reachable before doing any work.
             if (targetResource != null) {
                 val reachabilityError = checkTargetReachability(targetResource)
                 if (reachabilityError != null) {
@@ -310,7 +310,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private fun applyFilters(files: List<MediaFile>, op: ScheduledOperation): List<MediaFile> {
         val now = System.currentTimeMillis()
         return files
-            // When ALL_FILES — type filtering was already applied at the scanner level via buildEffectiveResource
+            // When ALL_FILES - type filtering was already applied at the scanner level via buildEffectiveResource
             .filter { if (FileTypeFlags.isAllFiles(op.fileTypeMask)) true else matchesTypeMask(it, op.fileTypeMask) }
             .filter { matchesTimeFilter(it, op.timeFilter, op.lastRunAt, now) }
     }

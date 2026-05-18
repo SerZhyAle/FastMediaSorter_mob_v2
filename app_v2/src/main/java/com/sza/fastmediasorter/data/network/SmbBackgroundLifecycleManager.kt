@@ -12,7 +12,7 @@ import javax.inject.Singleton
  * When the app transitions from foreground to background ([onStop]) all SCANNER and PLAYER
  * pool entries are closed. This matches the pattern that SMBJ keeps TCP connections alive
  * until the OS reclaims them, but the server-side idle timer often fires before the user
- * returns — leading to a Broken-pipe on the next operation. Proactively closing them on
+ * returns - leading to a Broken-pipe on the next operation. Proactively closing them on
  * background removes stale entries from the pool so the next [withConnection] call always
  * starts fresh.
  *
@@ -29,7 +29,7 @@ class SmbBackgroundLifecycleManager @Inject constructor(
 ) : DefaultLifecycleObserver {
 
     override fun onStop(owner: LifecycleOwner) {
-        Timber.i("App moved to background — releasing SMB UI connections")
+        Timber.i("App moved to background - releasing SMB UI connections")
         smbConnectionManager.closeUiConnections()
     }
 }

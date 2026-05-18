@@ -18,11 +18,11 @@ sealed class PlaybackCommand {
     // S0031 (П3): switch from immersive mode to the VR panel (2D view within the headset)
     // without fully exiting VR. Distinct from Exit which closes VR entirely.
     data object ExitTo2D : PlaybackCommand()
-    // File operations — available in standard; VR exposes these through the immersive file-ops panel.
+    // File operations - available in standard; VR exposes these through the immersive file-ops panel.
     data object MoveFile : PlaybackCommand()
     data object CopyFile : PlaybackCommand()
     data object DeleteFile : PlaybackCommand()
-    // VR-specific commands — immersive controls (keyboard/mouse/OpenXR controllers).
+    // VR-specific commands - immersive controls (keyboard/mouse/OpenXR controllers).
     data object TogglePausePlay : PlaybackCommand()
     data class VolumeStep(val delta: Int) : PlaybackCommand()
     data class ZoomStep(val increase: Boolean) : PlaybackCommand()
@@ -88,7 +88,7 @@ data class PlaybackCommandSet(
             )
         )
 
-        /** Standard player command set — full set including file operations. */
+        /** Standard player command set - full set including file operations. */
         fun forStandardPlayback() = PlaybackCommandSet(
             available = setOf(
                 PlaybackCommand.Play,

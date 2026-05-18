@@ -1,5 +1,5 @@
 ﻿# Updates manual fields on a catalogue record (role, status, noFlavors, function description).
-# Auto-fields (loc, injected, flags, etc.) are NOT editable here — they come from scan.ps1.
+# Auto-fields (loc, injected, flags, etc.) are NOT editable here - they come from scan.ps1.
 #
 # Usage:
 #   pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "com/sza/.../Foo.kt" -Role "Loads cached SMB resources on start"
@@ -34,7 +34,7 @@ foreach ($line in (Get-Content -Path $InFile -Encoding UTF8)) {
 $exact = @($records | Where-Object { $_.path -eq $Path })
 if ($exact.Count -ge 1) {
     # Multiple classes share one .kt file (interface + impl + data class). Apply update to ALL
-    # records that match the exact path — manual fields are file-scoped, not class-scoped.
+    # records that match the exact path - manual fields are file-scoped, not class-scoped.
     $targets = $exact
     if ($targets.Count -gt 1) {
         Write-Host "Applying to $($targets.Count) records sharing path: $Path" -ForegroundColor DarkGray

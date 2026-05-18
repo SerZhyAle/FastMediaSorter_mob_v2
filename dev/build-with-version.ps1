@@ -15,7 +15,7 @@ Write-Host "Working directory: $projectRoot" -ForegroundColor Gray
 $currentBranch = (git branch --show-current 2>$null).Trim()
 if ($currentBranch -eq "main") {
     Write-Host ""
-    Write-Host "!! BUILDING FROM 'main' — this is a release-caliber build !!" -ForegroundColor Yellow
+    Write-Host "!! BUILDING FROM 'main' - this is a release-caliber build !!" -ForegroundColor Yellow
     Write-Host "   If this is intentional (release or hotfix), continue." -ForegroundColor Yellow
     Write-Host "   If you meant to build from a DEBUG branch, switch first." -ForegroundColor Yellow
     Write-Host ""

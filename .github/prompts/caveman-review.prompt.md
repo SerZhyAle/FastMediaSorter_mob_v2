@@ -7,7 +7,7 @@ description: "Use when: user asks for caveman review, terse code review comments
 
 > **LOCAL EXECUTION DIRECTIVES:**
 > 1. Keep the review in the current chat language unless the user explicitly asks for English or paste-ready English PR comments.
-> 2. Use `..` (two dots) — never `...`.
+> 2. Use `..` (two dots) - never `...`.
 > 3. Findings first. No throat-clearing, no praise padding.
 > 4. Repo safety rules win. Use fuller prose when a one-line comment would hide important security, architectural, or destructive-risk context.
 
@@ -20,8 +20,8 @@ Produce terse, actionable code review findings.
 ```
 
 Examples:
-- `/caveman-review` — review the current diff or provided context
-- `/caveman-review BrowseRoutingDecisionTest` — focus on one file or symbol
+- `/caveman-review` - review the current diff or provided context
+- `/caveman-review BrowseRoutingDecisionTest` - focus on one file or symbol
 
 ## Process
 

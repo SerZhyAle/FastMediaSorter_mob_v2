@@ -17,13 +17,13 @@ import javax.inject.Inject
 
 /**
  * Handles the interactive sign-in flow for Google Drive via the identity domain
- * (Credential Manager — S0200 Phase 04b).
+ * (Credential Manager - S0200 Phase 04b).
  *
  * The `InteractiveCloudAuthenticator` contract still surfaces `startInteractiveSignIn(activity)`
  * as a synchronous void call (Dropbox / OneDrive plugins keep using it). This plugin bridges
  * that contract to the suspending `identityRepository.signInPrimary(..)` by launching a
  * background coroutine on a `SupervisorJob` scope. The result observable to the UI is the
- * identity repository's `state` Flow (consumed by Phase 06's Settings card) — there is no
+ * identity repository's `state` Flow (consumed by Phase 06's Settings card) - there is no
  * Intent or `processIntentResult` round-trip anymore.
  */
 class GoogleDriveAuthPlugin @Inject constructor(
@@ -39,7 +39,7 @@ class GoogleDriveAuthPlugin @Inject constructor(
 
     /**
      * Hot-fix async result channel. Credential Manager flows (Phase 04b) complete after several
-     * seconds of interactive UI — long after [UnifiedCloudAuthManager]'s `consumeImmediateResult`
+     * seconds of interactive UI - long after [UnifiedCloudAuthManager]'s `consumeImmediateResult`
      * poll (immediate + 1s delay) has finished. Without this channel, [AuthResult.Success] never
      * reaches the unified manager and `AddResourceConnectionManager` never navigates to the folder
      * picker, leaving the user stuck on `AddResourceActivity` after a successful Google sign-in.
@@ -86,7 +86,7 @@ class GoogleDriveAuthPlugin @Inject constructor(
     }
 
     /**
-     * S0200 Phase 04b: Credential Manager does not produce an Intent result. Returns null —
+     * S0200 Phase 04b: Credential Manager does not produce an Intent result. Returns null -
      * the contract default for plugins that do not use the activity-result channel.
      * The contract method itself stays on the interface so Dropbox / OneDrive plugins
      * still satisfy it.
@@ -103,7 +103,7 @@ class GoogleDriveAuthPlugin @Inject constructor(
     }
 
     companion object {
-        // Initial Drive scope set per strategic §3.1 — DRIVE + readonly + identity for the
+        // Initial Drive scope set per strategic §3.1 - DRIVE + readonly + identity for the
         // Settings card email / avatar surface.
         val DRIVE_SIGN_IN_SCOPES: Set<GoogleScope> = setOf(
             GoogleScope.DRIVE,

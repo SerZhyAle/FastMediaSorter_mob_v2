@@ -12,14 +12,14 @@ import timber.log.Timber
  * without DataStore async overhead.
  *
  * Keys:
- * - `draw_editor_last_color` — ARGB Int of the last active color (default Red).
- * - `draw_brush_size` — Brush width 1..36 (default 12). Eraser is always 2× this.
- * - `draw_text_size` — Ordinal: 0=Small, 1=Medium, 2=Large (default Medium).
- * - `draw_opacity_pct` — One of 0/25/50/75/100 (default 100).
+ * - `draw_editor_last_color` - ARGB Int of the last active color (default Red).
+ * - `draw_brush_size` - Brush width 1..36 (default 12). Eraser is always 2× this.
+ * - `draw_text_size` - Ordinal: 0=Small, 1=Medium, 2=Large (default Medium).
+ * - `draw_opacity_pct` - One of 0/25/50/75/100 (default 100).
  *
  * Derived helpers:
- * - [textSizePx] — converts the text-size ordinal to a paint-ready px value.
- * - [opacityAlpha] — converts the opacity percentage to a 0..255 alpha byte.
+ * - [textSizePx] - converts the text-size ordinal to a paint-ready px value.
+ * - [opacityAlpha] - converts the opacity percentage to a 0..255 alpha byte.
  */
 object DrawEditorPrefs {
 
@@ -105,7 +105,7 @@ object DrawEditorPrefs {
             else -> 20f
         }
         // S0218: replace deprecated DisplayMetrics.scaledDensity (deprecated since API 34)
-        // with TypedValue.applyDimension(COMPLEX_UNIT_SP, sp, metrics) — same formula
+        // with TypedValue.applyDimension(COMPLEX_UNIT_SP, sp, metrics) - same formula
         // sp * scaledDensity is computed internally, just without direct field access.
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_SP,

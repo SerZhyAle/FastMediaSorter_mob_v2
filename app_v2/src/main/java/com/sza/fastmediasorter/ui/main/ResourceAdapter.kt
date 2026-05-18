@@ -331,7 +331,7 @@ class ResourceAdapter(
                     root.setBackgroundColor(bgColor)
                 }
                 
-                // Writable/Lock indicator — not shown for virtual aggregate paths
+                // Writable/Lock indicator - not shown for virtual aggregate paths
                 val isVirtualResource = resource.path.startsWith("virtual://")
                 tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable && !isVirtualResource && resource.id != -100L) {
                     android.view.View.VISIBLE
@@ -367,7 +367,7 @@ class ResourceAdapter(
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
 
-                // Drag handle — visible for real resources when drag is wired up
+                // Drag handle - visible for real resources when drag is wired up
                 val isDraggable = dragStartListener != null && resource.id != -100L
                 ivDragHandle.visibility = if (isDraggable) android.view.View.VISIBLE else android.view.View.GONE
                 ivDragHandle.setOnTouchListener { _, event ->
@@ -725,7 +725,7 @@ class ResourceAdapter(
                         }
                     }
 
-                    // Drag handle — visible for real resources when drag is wired up
+                    // Drag handle - visible for real resources when drag is wired up
                     val isDraggable = dragStartListener != null
                     ivDragHandle.visibility = if (isDraggable) android.view.View.VISIBLE else android.view.View.GONE
                     ivDragHandle.setOnTouchListener { _, event ->

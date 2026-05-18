@@ -11,7 +11,7 @@
     <string name="s0155_reauth_title">Sign in again as %1$s?</string>
     <string name="s0155_reauth_message">The saved sign-in for %1$s may have expired. Signing in again lets the app fetch the actual content.</string>
     <string name="s0155_reauth_positive">Sign in again</string>
-    <!-- S0155: Settings — per-account operations -->
+    <!-- S0155: Settings - per-account operations -->
     <string name="s0155_add_account_label">Add another account</string>
     <string name="s0155_rename_account_title">Rename account</string>
     <string name="s0155_delete_account_confirm">Delete sign-in for %1$s?</string>

@@ -40,7 +40,7 @@ class CachedFileListRepository @Inject constructor(
         lastModifiedFolder: Long? = null
     ) {
         if (files.size > 1_000_000) {
-            Timber.w("CachedFileList: file count ${files.size} exceeds limit for resource $resourceId — skipping")
+            Timber.w("CachedFileList: file count ${files.size} exceeds limit for resource $resourceId - skipping")
             return
         }
         try {
@@ -105,7 +105,7 @@ class CachedFileListRepository @Inject constructor(
                 gson.fromJson(decompress(entity.compressedData), mediaFileListType)
             val idx = files.indexOfFirst { it.path == oldPath }
             if (idx < 0) {
-                Timber.w("CachedFileList: updateFile — $oldPath not found in resource $resourceId")
+                Timber.w("CachedFileList: updateFile - $oldPath not found in resource $resourceId")
                 return
             }
             files[idx] = newFile
@@ -130,7 +130,7 @@ class CachedFileListRepository @Inject constructor(
                 gson.fromJson(decompress(entity.compressedData), mediaFileListType)
             val removed = files.removeIf { it.path == filePath }
             if (!removed) {
-                Timber.w("CachedFileList: deleteFile — $filePath not found in resource $resourceId")
+                Timber.w("CachedFileList: deleteFile - $filePath not found in resource $resourceId")
                 return
             }
             val compressed = compress(gson.toJson(files))

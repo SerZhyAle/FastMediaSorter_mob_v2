@@ -31,7 +31,7 @@ class SftpDataSource(
     private val context: Context
 ) : BaseDataSource(true) {
 
-    // Connection from pool — DO NOT close; lifecycle managed by SftpClient pool
+    // Connection from pool - DO NOT close; lifecycle managed by SftpClient pool
     private var session: Session? = null
     private var channel: ChannelSftp? = null
 
@@ -77,7 +77,7 @@ class SftpDataSource(
         } catch (e: Exception) {
             val isJSchEx = generateSequence<Throwable>(e) { it.cause }.any { it is JSchException }
             if (isJSchEx && connectionAcquired) {
-                Timber.d("SftpDataSource: retrying open() after JSchException — ${e.cause?.message}")
+                Timber.d("SftpDataSource: retrying open() after JSchException - ${e.cause?.message}")
                 // Release broken connection before retry
                 val brokenCh = channel
                 channel = null; session = null
@@ -93,7 +93,7 @@ class SftpDataSource(
                     val encodedPath = uri?.encodedPath ?: throw IOException("SFTP retry: URI unavailable")
                     return attemptOpen(channel!!, Uri.decode(encodedPath), dataSpec)
                 } catch (retryEx: Exception) {
-                    // Retry failed — rethrow original exception to preserve ExoPlayer's error code
+                    // Retry failed - rethrow original exception to preserve ExoPlayer's error code
                     if (connectionAcquired) channelBroken = true
                     Timber.e(e, "SftpDataSource: Error opening SFTP file (retry also failed)")
                     close()
@@ -146,15 +146,15 @@ class SftpDataSource(
         } catch (e: InterruptedIOException) {
             // ExoPlayer's Loader interrupts its worker thread on cancel/seek; JSch's
             // PipedInputStream.read() then throws InterruptedIOException. Reconnecting here is
-            // futile (acquire would also throw) — restore the interrupt flag, mark the channel
+            // futile (acquire would also throw) - restore the interrupt flag, mark the channel
             // broken so the pool evicts it, propagate without noise.
             Thread.currentThread().interrupt()
             channelBroken = true
             throw e
         } catch (e: Exception) {
-            // One transparent reconnect — same strategy as SftpClientFirstResult on SftpException 4.
+            // One transparent reconnect - same strategy as SftpClientFirstResult on SftpException 4.
             // If the reconnect also fails, propagate so ExoPlayer handles it.
-            Timber.w("SftpDataSource: transient read error, reconnecting — ${e.message}")
+            Timber.w("SftpDataSource: transient read error, reconnecting - ${e.message}")
             try {
                 reconnectStream(openPosition + totalBytesRead)
                 inputStream!!.read(buffer, offset, bytesToRead)
@@ -183,14 +183,14 @@ class SftpDataSource(
     override fun close() {
         uri = null
 
-        // Only close the InputStream — session and channel are managed by the pool
+        // Only close the InputStream - session and channel are managed by the pool
         val wasAlreadyBroken = channelBroken
         try {
             inputStream?.close()
         } catch (e: InterruptedIOException) {
             // ExoPlayer's Loader interrupts its worker thread on cancel/seek; JSch's
             // PipedInputStream.read() inside _sendCLOSE then throws this. Channel state
-            // is undefined after a half-finished CLOSE — return it to the pool as broken.
+            // is undefined after a half-finished CLOSE - return it to the pool as broken.
             channelBroken = true
             Thread.currentThread().interrupt()
             Timber.d("SftpDataSource: InputStream close interrupted by ExoPlayer cancel")
@@ -203,7 +203,7 @@ class SftpDataSource(
             inputStream = null
         }
 
-        // DO NOT close session or channel — they are pooled!
+        // DO NOT close session or channel - they are pooled!
         val released = channel
         channel = null
         session = null
@@ -220,7 +220,7 @@ class SftpDataSource(
 
         val elapsedMs = System.currentTimeMillis() - openTimeMs
         Timber.d(
-            "SftpDataSource: Closed — totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
+            "SftpDataSource: Closed - totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )
     }
 

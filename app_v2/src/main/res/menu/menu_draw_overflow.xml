@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 06 — Draw overlay overflow menu.
+    S0192 Phase 06 - Draw overlay overflow menu.
 
     Order: Save (primary, in-place) → Save as.. (picker) → Undo last → Undo all
     → Settings → Send to Google Keep.

@@ -62,7 +62,7 @@ object ImageLoadingDiagnostics {
      * Call before/after image loading to track memory consumption patterns.
      */
     fun logMemoryStats(context: String, activePreloadJobs: Int) {
-        // S0207 Phase 01: gate behind DEBUG — not yet routed through MemoryProbe; gating
+        // S0207 Phase 01: gate behind DEBUG - not yet routed through MemoryProbe; gating
         // prevents release-build computation overhead and keeps parity with MemoryProbeImpl.
         if (!BuildConfig.DEBUG) return
         try {

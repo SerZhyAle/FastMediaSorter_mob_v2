@@ -19,7 +19,7 @@ import timber.log.Timber
  * Issues OAuth 2.0 access tokens for the currently bound primary Google account (strategic S0200).
  *
  * Implementation note: Credential Manager (`androidx.credentials`) handles the consent / sign-in
- * dialog, but token issuance for OAuth scopes still goes through `GoogleAuthUtil.getToken` — Google
+ * dialog, but token issuance for OAuth scopes still goes through `GoogleAuthUtil.getToken` - Google
  * has not yet shipped a Credential Manager equivalent for arbitrary-scope access tokens. This is
  * the documented migration path (see the Credential Manager developer guide section "Authorize
  * access for additional scopes"). The file-level deprecation suppress at the top is intentionally
@@ -42,7 +42,7 @@ class GoogleTokenIssuer @Inject constructor(
      * Returns a fresh-enough access token for the [email] account covering [scopes].
      * Returns null when `GoogleAuthUtil.getToken` fails (network, revoked grant, etc.).
      */
-    @Suppress("DEPRECATION") // GoogleAuthUtil.getToken — Credential Manager has no token-issuance equivalent yet; see KDoc.
+    @Suppress("DEPRECATION") // GoogleAuthUtil.getToken - Credential Manager has no token-issuance equivalent yet; see KDoc.
     suspend fun issue(email: String, scopes: Set<GoogleScope>): GoogleAccessToken? = mutex.withLock {
         val cached = cache[scopes]
         if (cached != null && cached.expiresAt.isAfter(Instant.now().plusSeconds(REFRESH_THRESHOLD_SECONDS))) {
@@ -64,7 +64,7 @@ class GoogleTokenIssuer @Inject constructor(
     }
 
     /** Invalidates every cached token and revokes them locally via `GoogleAuthUtil.clearToken`. */
-    @Suppress("DEPRECATION") // GoogleAuthUtil.clearToken — same Credential Manager gap as [issue]; see KDoc.
+    @Suppress("DEPRECATION") // GoogleAuthUtil.clearToken - same Credential Manager gap as [issue]; see KDoc.
     suspend fun invalidate(): Unit = mutex.withLock {
         cache.values.forEach { runCatching { GoogleAuthUtil.clearToken(context, it.token) } }
         cache.clear()

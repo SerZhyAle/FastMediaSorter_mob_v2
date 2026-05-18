@@ -14,9 +14,9 @@ import javax.inject.Singleton
  * the entry stays registered so the user can retry.
  *
  * Two orthogonal dimensions discriminate entries:
- * - [Location] — *where* the bytes physically land (network-staged scratch dir vs
+ * - [Location] - *where* the bytes physically land (network-staged scratch dir vs
  *   local deferred final path).
- * - [StagedKind] — *what kind of content* (text note vs drawing); drives viewer routing
+ * - [StagedKind] - *what kind of content* (text note vs drawing); drives viewer routing
  *   in the deferred-bypass loader.
  *
  * Thread-safe via [ConcurrentHashMap].

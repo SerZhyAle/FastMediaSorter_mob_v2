@@ -40,7 +40,7 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Select folder button — shown when no destinations are configured or to pick a custom path -->
+    <!-- Select folder button - shown when no destinations are configured or to pick a custom path -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSelectFolder"
         android:layout_width="match_parent"

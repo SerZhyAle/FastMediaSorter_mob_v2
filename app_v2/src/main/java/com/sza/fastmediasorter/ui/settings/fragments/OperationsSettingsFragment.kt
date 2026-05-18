@@ -340,7 +340,7 @@ class OperationsSettingsFragment : Fragment() {
                         adapter.submitList(destinations)
                         // Update visibility based on current destinations list
                         updateAddDestinationVisibility(destinations.isNotEmpty())
-                        // "Add destinations first" hint — only when no destinations exist
+                        // "Add destinations first" hint - only when no destinations exist
                         binding.tvNoScheduledOps.isVisible = destinations.isEmpty()
                     }
                 }

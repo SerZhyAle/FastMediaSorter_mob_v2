@@ -143,7 +143,7 @@ class CloudResourceStrategyContractTest : ResourceEditorContractTestBase() {
     @Test
     fun `validate - null provider and blank name should not be saveable`() {
         val result = strategy.validate(cloudForm(name = "", cloudProvider = null))
-        assertFalse("Both NAME and CLOUD_PROVIDER missing — save must be disabled", result.isValid)
+        assertFalse("Both NAME and CLOUD_PROVIDER missing - save must be disabled", result.isValid)
         assertTrue(result.fieldErrors.containsKey(ResourceFieldKey.NAME))
         assertTrue(result.fieldErrors.containsKey(ResourceFieldKey.CLOUD_PROVIDER))
     }

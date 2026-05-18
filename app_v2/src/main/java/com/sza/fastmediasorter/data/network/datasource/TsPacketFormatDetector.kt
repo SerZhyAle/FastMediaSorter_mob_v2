@@ -4,7 +4,7 @@ import timber.log.Timber
 
 object TsPacketFormatDetector {
 
-    const val PROBE_BYTES = 576 // 192 × 3 — enough to check 3 consecutive BD-TS or standard-TS packets
+    const val PROBE_BYTES = 576 // 192 × 3 - enough to check 3 consecutive BD-TS or standard-TS packets
 
     fun detect(probe: ByteArray): TsPacketFormat {
         val result = detectInternal(probe)

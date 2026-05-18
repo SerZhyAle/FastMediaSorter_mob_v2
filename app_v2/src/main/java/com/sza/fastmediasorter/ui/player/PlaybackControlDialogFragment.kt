@@ -383,7 +383,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
         // Bind UI to the user's choice, not the resolved effective renderer mode.
         // When AUTO is selected, effectiveStereoMode is already resolved to the detected
-        // value — using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
+        // value - using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
         bindStereoMode(mode)
 
         if (mode != StereoMode.AUTO) {

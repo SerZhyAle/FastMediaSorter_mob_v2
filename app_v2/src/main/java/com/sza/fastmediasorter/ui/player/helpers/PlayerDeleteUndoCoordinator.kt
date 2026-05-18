@@ -23,12 +23,12 @@ import java.io.IOException
 
 /**
  * Owns PlayerViewModel's destructive-operation flow:
- *   - [deleteCurrentFile] — soft-delete to `.trash` for local files, hard-delete for network,
+ *   - [deleteCurrentFile] - soft-delete to `.trash` for local files, hard-delete for network,
  *     saving an [UndoOperation] when the setting is enabled and the delete was soft.
- *   - [saveUndoOperation] / [clearExpiredUndoOperation] — undo lifecycle timestamp book-keeping
+ *   - [saveUndoOperation] / [clearExpiredUndoOperation] - undo lifecycle timestamp book-keeping
  *     (5-minute TTL).
- *   - [undoLastOperation] — restores the file via rename (local) or Move use-case (network).
- *   - [reloadAfterRename] — re-queries the current resource's file list and repoints the index.
+ *   - [undoLastOperation] - restores the file via rename (local) or Move use-case (network).
+ *   - [reloadAfterRename] - re-queries the current resource's file list and repoints the index.
  *
  * The coordinator mutates [PlayerViewModel.PlayerState] via the supplied `updateState`, emits
  * user-visible events via `sendEvent`, and calls the parent VM back through the `parentCallbacks`

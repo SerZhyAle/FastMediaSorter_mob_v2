@@ -12,13 +12,13 @@ import timber.log.Timber
  * Two-level hierarchy (S0162 §5.3):
  *  - followSystem=true  → SCREEN_ORIENTATION_UNSPECIFIED: full OS delegation; no manual
  *                         ACCELEROMETER_ROTATION read. The OS applies its own auto-rotate
- *                         preference directly — works correctly on all devices including
+ *                         preference directly - works correctly on all devices including
  *                         Samsung One UI (ADR-5: reading ACCELEROMETER_ROTATION was
  *                         unreliable on some OEMs and did not react to runtime changes).
  *  - followSystem=false → own control; sensorEnabled drives requestedOrientation
  *
  * All callers must use [apply] or [reapply]; never set [Activity.requestedOrientation]
- * directly in player code (except transient locks in Draw Mode — those must call
+ * directly in player code (except transient locks in Draw Mode - those must call
  * [reapply] on exit per ADR-4).
  */
 class ScreenRotationManager {

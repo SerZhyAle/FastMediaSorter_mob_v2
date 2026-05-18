@@ -27,7 +27,7 @@ import timber.log.Timber
  * - Merge a freshly resolved file back into the in-memory and DB cache.
  * - Persist [MediaResource.lastViewedFile] on each open.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseFileOpenManager(
     private val context: Context,

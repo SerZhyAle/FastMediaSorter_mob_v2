@@ -53,13 +53,13 @@ class SmbClient @Inject constructor(
     // Directory scanner helper
     private val directoryScanner = SmbDirectoryScanner(smbDispatcher)
 
-    // Share discovery (SMBJ has no enumeration API — trial-connect common share names)
+    // Share discovery (SMBJ has no enumeration API - trial-connect common share names)
     private val shareDiscovery = SmbShareDiscoveryHelper(connectionManager)
 
-    // Media scan + count (S0002 Wave 47 — extracted from SmbClient)
+    // Media scan + count (S0002 Wave 47 - extracted from SmbClient)
     private val mediaScan = SmbMediaScanCoordinator(connectionManager, directoryScanner)
 
-    // Rename / move / mkdir-p (S0002 Wave 47 — extracted from SmbClient)
+    // Rename / move / mkdir-p (S0002 Wave 47 - extracted from SmbClient)
     private val mutations = SmbFileMutationCoordinator(connectionManager)
 
 
@@ -85,7 +85,7 @@ class SmbClient @Inject constructor(
                 return performTestConnection(connectionInfo, path)
             } catch (e: Exception) {
                 // CancellationException means an outer withTimeout/coroutine cancel fired.
-                // Retrying is pointless (the scope is already cancelled) — always re-throw.
+                // Retrying is pointless (the scope is already cancelled) - always re-throw.
                 if (e is CancellationException) throw e
 
                 lastException = e
@@ -416,7 +416,7 @@ class SmbClient @Inject constructor(
 
     /**
      * Create directory on SMB share (recursively).
-     * Race-tolerant mkdir-p — delegates to SmbFileMutationCoordinator.
+     * Race-tolerant mkdir-p - delegates to SmbFileMutationCoordinator.
      */
     suspend fun createDirectory(
         connectionInfo: SmbConnectionInfo,

@@ -20,7 +20,7 @@
     <string name="error_queued_operation_move">Couldn\'t move "%1$s". Try again.</string>
     <string name="error_queued_operation_delete">Couldn\'t delete "%1$s". Try again.</string>
     <string name="error_queued_operation_rename">Couldn\'t rename "%1$s". Try again.</string>
-    <string name="error_queued_move_permission_denied">"%1$s" was copied to the destination, but the local copy couldn\'t be deleted — permission was denied.</string>
+    <string name="error_queued_move_permission_denied">"%1$s" was copied to the destination, but the local copy couldn\'t be deleted - permission was denied.</string>
     <string name="file_info">File Info</string>
     <string name="control">Control</string>
     <string name="save">Save</string>
@@ -283,9 +283,9 @@
     <string name="settings_tab_backup">Backup</string>
     <string name="backup_to_google_drive">Backup to Google Drive</string>
     <string name="restore_from_google_drive">Restore from Google Drive</string>
-    <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="tooltip_backup_info_title">Backup Information</string>
-    <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources, %2$d favorites and all settings to %3$s</string>
     <string name="backup_failed">Couldn\'t back up your settings and resources. Try again.</string>
     <string name="backup_in_progress">Backing up settings and resources…</string>
@@ -725,7 +725,7 @@ Close the player and try again.</string>
     <string name="welcome_default_player_btn_images">Images</string>
     <string name="welcome_default_player_btn_video">Video</string>
     <string name="welcome_default_player_description">Set FastMediaSorter as your default media player</string>
-    <string name="welcome_default_player_hint">Tap a button below — a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.
+    <string name="welcome_default_player_hint">Tap a button below - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.
     </string>
     <string name="welcome_default_player_title">Default Player</string>
     <string name="widget_camera_photos_label">Camera Photos</string>
@@ -834,12 +834,12 @@ Close the player and try again.</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
     <!-- Print -->
     <string name="menu_print">Print</string>
-    <string name="error_print_unavailable">Couldn\'t print — no print service found. Share the file or install a print app.</string>
+    <string name="error_print_unavailable">Couldn\'t print - no print service found. Share the file or install a print app.</string>
     <string name="print_job_label">Printing: %s</string>
     <string name="error_print_file_too_large">File too large to print (max 30 MB)</string>
     <string name="error_print_download_failed">Could not download file for printing</string>
     <string name="print_share_chooser_title">Send to print</string>
-    <string name="print_fallback_to_share">Print dialog couldn\'t open — the share menu is now open. Pick a print app.</string>
+    <string name="print_fallback_to_share">Print dialog couldn\'t open - the share menu is now open. Pick a print app.</string>
 
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Cast to…</string>
@@ -893,20 +893,20 @@ Close the player and try again.</string>
     <string name="random_file_description">Random Jump</string>
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
-    <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage — all with intuitive touch gestures.</string>
+    <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage - all with intuitive touch gestures.</string>
     <string name="welcome_title_2">Resource Types</string>
-    <string name="welcome_description_2">Connect to any storage:\n\n📱 LOCAL — Device folders, SD cards\n\n🌐 NETWORK — SMB/CIFS, SFTP, FTP\n\n☁️ CLOUD — Google Drive, OneDrive, Dropbox\n\nAdd resources in Settings anytime.</string>
+    <string name="welcome_description_2">Connect to any storage:\n\n📱 LOCAL - Device folders, SD cards\n\n🌐 NETWORK - SMB/CIFS, SFTP, FTP\n\n☁️ CLOUD - Google Drive, OneDrive, Dropbox\n\nAdd resources in Settings anytime.</string>
     <string name="welcome_title_3">Touch Zones (Images/Video)\nuse in full screen view mode</string>
     <string name="welcome_description_3" formatted="false">Player uses 9 touch zones (3×3 grid) for quick actions. Tap zones to navigate, copy, move, delete files, or access the command panel. See the scheme above for details.</string>
     <string name="welcome_title_4">Resources and Destinations</string>
-    <string name="welcome_description_4">RESOURCES — Folders from any storage type.\n\nQUICK SORT — Up to 30 color-coded destination folders for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
+    <string name="welcome_description_4">RESOURCES - Folders from any storage type.\n\nQUICK SORT - Up to 30 color-coded destination folders for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
     <string name="welcome_title_5">Powerful Extras</string>
-    <string name="welcome_description_5">Go beyond simple media viewing — FastMediaSorter packs professional tools for text, documents, and audio.</string>
-    <string name="welcome_description_1_details">FastMediaSorter brings every kind of media into one place. Open photos, videos, GIFs and music from your device, from a network share, or from cloud storage — and sort them with quick taps instead of long-press menus.\n\nEverything you set up here can be changed later in Settings, so there is no wrong choice on this screen — just tap Next to keep going.</string>
-    <string name="welcome_description_2_details">Local sources are folders on the device and SD cards. Network sources connect over SMB/CIFS, SFTP and FTP. Cloud sources link Google Drive, OneDrive and Dropbox.\n\nMix as many as you like — each source shows up as its own entry on the main screen. Add or remove sources any time from Settings → Resources.</string>
+    <string name="welcome_description_5">Go beyond simple media viewing - FastMediaSorter packs professional tools for text, documents, and audio.</string>
+    <string name="welcome_description_1_details">FastMediaSorter brings every kind of media into one place. Open photos, videos, GIFs and music from your device, from a network share, or from cloud storage - and sort them with quick taps instead of long-press menus.\n\nEverything you set up here can be changed later in Settings, so there is no wrong choice on this screen - just tap Next to keep going.</string>
+    <string name="welcome_description_2_details">Local sources are folders on the device and SD cards. Network sources connect over SMB/CIFS, SFTP and FTP. Cloud sources link Google Drive, OneDrive and Dropbox.\n\nMix as many as you like - each source shows up as its own entry on the main screen. Add or remove sources any time from Settings → Resources.</string>
     <string name="welcome_description_3_details" formatted="false">In full-screen image and video view the screen is split into a 3×3 grid. The corner zones jump between files, the edge zones run copy, move and delete on the current file, and the centre zone opens the command panel.\n\nThe small map above shows what each zone does. You can remap these actions later in Settings.</string>
-    <string name="welcome_description_4_details">A resource is a folder you browse — from any storage type. A quick-sort destination is a folder you send files to with a single tap; you can define up to 30, each with its own colour and label.\n\nTap a colour while viewing a file to copy or move it there instantly. Set both up in Settings → Resources whenever you need.</string>
-    <string name="welcome_description_5_details">Beyond viewing, FastMediaSorter is also a player and a workshop: an audio player for your music libraries, a video library with playback controls, a PDF and EPUB reader, a text viewer and editor, on-image OCR and translation, a slideshow, home-screen widgets, scheduled file operations, favourites, and one-tap colour sorting.\n\nWhich of these are available depends on the app edition you installed — the cards below show what is included in yours.</string>
+    <string name="welcome_description_4_details">A resource is a folder you browse - from any storage type. A quick-sort destination is a folder you send files to with a single tap; you can define up to 30, each with its own colour and label.\n\nTap a colour while viewing a file to copy or move it there instantly. Set both up in Settings → Resources whenever you need.</string>
+    <string name="welcome_description_5_details">Beyond viewing, FastMediaSorter is also a player and a workshop: an audio player for your music libraries, a video library with playback controls, a PDF and EPUB reader, a text viewer and editor, on-image OCR and translation, a slideshow, home-screen widgets, scheduled file operations, favourites, and one-tap colour sorting.\n\nWhich of these are available depends on the app edition you installed - the cards below show what is included in yours.</string>
     <string name="welcome_language_picker_hint">Select app language</string>
     <string name="welcome_permissions_title">Media Files Access</string>
     <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
@@ -937,7 +937,7 @@ Close the player and try again.</string>
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set; kept here for compilation) -->
     <string name="welcome_vr_title">3D &amp; VR Experience</string>
-    <string name="welcome_vr_description">Immerse yourself in your media.\nFastMediaSorter VR detects stereoscopic 3D content and renders it directly in your headset — no extra apps needed.</string>
+    <string name="welcome_vr_description">Immerse yourself in your media.\nFastMediaSorter VR detects stereoscopic 3D content and renders it directly in your headset - no extra apps needed.</string>
     <string name="welcome_vr_feature_stereo">3D Stereo Detection</string>
     <string name="welcome_vr_feature_headset">Quest Headset Playback</string>
     <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
@@ -956,7 +956,7 @@ Close the player and try again.</string>
     <string name="action_open_in_separate_window">In separate window</string>
     <string name="setting_allow_separate_window">Allow opening in a separate window</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
-    <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen — comfortable to watch without 3D glasses. Default: ON for non-VR builds, OFF for VR.</string>
+    <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON for non-VR builds, OFF for VR.</string>
     <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
     <string name="settings_vr_help_title">VR Settings</string>
     <string name="settings_vr_help_message">These settings control how stereoscopic 3D and spherical content is detected and rendered in the VR headset.\n\nAuto-detect analyzes media metadata and aspect ratio to determine the stereo layout family.\n\nForced flat format applies only to SBS, Over-Under, and mono cinema playback. Forced spherical format applies only to 360°, VR180, and cylinder playback.\n\nRendering mode chooses between a flat cinema screen in VR space or full per-eye stereoscopic rendering.</string>
@@ -1034,7 +1034,7 @@ Close the player and try again.</string>
     <string name="gms_unavailable">Google Play Services is unavailable. Some features may not work correctly.</string>
     <string name="gms_update_action">Update</string>
     <string name="gms_settings_link">Google Play Services needs updating for full functionality. Tap to update.</string>
-    <string name="network_unstable_snackbar">Network unstable — check Wi-Fi</string>
+    <string name="network_unstable_snackbar">Network unstable - check Wi-Fi</string>
     <string name="cache_size_calculating">Calculating…</string>
     <string name="cache_size_format">Cache: %s</string>
     <string name="cache_cleared">Cache cleared successfully</string>
@@ -1067,7 +1067,7 @@ Close the player and try again.</string>
     <string name="tooltip_destinations_message">Quick sort targets for fast file organization. Maximum 30 destinations. Each has a number and color for easy identification.</string>
     <string name="tooltip_touch_zones_title">Touch Zones</string>
     <string name="touch_zones_help">Show touch zones</string>
-    <string name="hint_touch_zone_3zone">Command Panel Mode\n\nLeft 20%% — Previous file\nCenter 60%% — Select / Actions\nRight 20%% — Next file\n\nTap anywhere to dismiss</string>
+    <string name="hint_touch_zone_3zone">Command Panel Mode\n\nLeft 20%% - Previous file\nCenter 60%% - Select / Actions\nRight 20%% - Next file\n\nTap anywhere to dismiss</string>
     <string name="hint_touch_zone_media">Media Playback Mode\n\nTouch zones active in upper area only.\nBottom part is reserved for player controls.\n\nTap anywhere to dismiss</string>
     <string name="tooltip_touch_zones_message">9 invisible zones (3×3 grid) for gesture control in fullscreen mode. Left/Center/Right and Top/Middle/Bottom combinations trigger different actions like navigation, file operations, and panel control.</string>
     <string name="tooltip_safe_mode_title">Safe Mode</string>
@@ -1081,7 +1081,7 @@ Close the player and try again.</string>
     <string name="tooltip_compact_elements_title">Compact Elements Mode</string>
     <string name="tooltip_compact_elements_message">This mode scales UI elements (lists, buttons, text) by 0.5x to increase the amount of information visible on the screen. Note: touch targets will also become smaller.</string>
     <string name="big_buttons_mode_title">Big Buttons Mode</string>
-    <string name="big_buttons_mode_summary">Enlarges player buttons and expands controls to full width — ideal for car head units</string>
+    <string name="big_buttons_mode_summary">Enlarges player buttons and expands controls to full width - ideal for car head units</string>
     <string name="tooltip_big_buttons_mode_title">Big Buttons Mode</string>
     <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 10 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
     <string name="big_btn_short_playback_order">Order</string>
@@ -1154,7 +1154,7 @@ Close the player and try again.</string>
     <string name="menu_crop_to_file">Crop to file</string>
     <string name="menu_compress_copy">Compressed copy</string>
     <string name="dialog_crop_filename_hint">File name</string>
-    <string name="crop_save_to_downloads_note">Read-only source — file will be saved to Downloads</string>
+    <string name="crop_save_to_downloads_note">Read-only source - file will be saved to Downloads</string>
     <string name="crop_file_created">File %s created</string>
     <string name="crop_error_outside_image">Crop selection is outside the image area. Please adjust and try again.</string>
     <string name="crop_failed">Couldn\'t crop the image. Try again.</string>
@@ -1184,12 +1184,12 @@ Close the player and try again.</string>
     <string name="link_autodownload_cancel">Cancel</string>
     <string name="link_autodownload_done_resource">Saved to %s</string>
     <string name="link_autodownload_done_downloads">Saved to Downloads</string>
-    <string name="link_autodownload_fallback_downloads">Destination unavailable — saved to Downloads</string>
+    <string name="link_autodownload_fallback_downloads">Destination unavailable - saved to Downloads</string>
     <string name="link_autodownload_error_no_network">No network connection</string>
     <string name="link_autodownload_error_resource_unavailable">Selected resource is unavailable</string>
     <string name="link_autodownload_error_no_media">No downloadable media at this link</string>
     <string name="link_autodownload_error_youtube_community_post">YouTube community posts can\'t be downloaded</string>
-    <string name="link_autodownload_error_corrupted">Couldn\'t download a usable file — the server returned an error page or an incomplete file</string>
+    <string name="link_autodownload_error_corrupted">Couldn\'t download a usable file - the server returned an error page or an incomplete file</string>
     <string name="link_autodownload_error_timeout">Download timed out</string>
     <string name="link_autodownload_error_mime_blocked">This file type is not supported</string>
     <string name="vr_fullscreen_already_active">Already fullscreen in VR</string>
@@ -1202,9 +1202,9 @@ Close the player and try again.</string>
     <string name="passthrough_capture_saved">Passthrough snapshot saved to %s</string>
     <string name="passthrough_capture_unavailable">Passthrough camera unavailable on this device</string>
     <string name="passthrough_capture_error">Failed to open passthrough camera</string>
-    <string name="passthrough_capture_timeout">Passthrough capture timed out — try again</string>
+    <string name="passthrough_capture_timeout">Passthrough capture timed out - try again</string>
     <string name="passthrough_capture_error_save">Failed to save passthrough snapshot</string>
-    <string name="passthrough_capture_permission_denied">Camera access required — open app settings to grant permission</string>
+    <string name="passthrough_capture_permission_denied">Camera access required - open app settings to grant permission</string>
     <string name="passthrough_capture_permission_needed">Camera permission is needed to capture passthrough snapshots</string>
     <string name="snapshot_format_label">Frame file type:</string>
     <string name="snapshot_format_png">PNG</string>
@@ -1451,7 +1451,7 @@ Close the player and try again.</string>
     <string name="loading_indicator">Loading</string>
     <string name="connecting">Connecting to resource…</string>
     <string name="connecting_to_resource">Connecting to %1$s…</string>
-    <string name="resume_unavailable">Cannot resume playback — resource unavailable or session expired</string>
+    <string name="resume_unavailable">Cannot resume playback - resource unavailable or session expired</string>
     <string name="resume_checking">Restoring playback…</string>
     <string name="scan_progress_indicator">Scanning files</string>
     <string name="operation_progress_indicator">Operation in progress</string>
@@ -1555,7 +1555,7 @@ Close the player and try again.</string>
     <!-- Prefetch overlay pill -->
     <string name="prefetch_overlay_format">%1$ds / %2$ds · %3$s</string>
     <string name="prefetch_overlay_local_copy_format">Local copy · %1$s</string>
-    <string name="prefetch_margin_hint">Speed marginal — may stall</string>
+    <string name="prefetch_margin_hint">Speed marginal - may stall</string>
     <string name="prefetch_a11y_format">Pre-cache: %1$ds of %2$ds from %3$s</string>
 
     <!-- Offload offer dialog -->
@@ -1845,10 +1845,10 @@ Close the player and try again.</string>
     <string name="error_loading_media">Error loading file, skipping</string>
     <string name="video_playback_failed_with_name">Could not play: %1$s</string>
     <string name="video_playback_failed_session_warning">This file could not be played earlier in this session.</string>
-    <string name="warning_audio_format_unsupported">Audio format not supported — playing without sound</string>
+    <string name="warning_audio_format_unsupported">Audio format not supported - playing without sound</string>
 
-    <!-- S0213: video playback OOM hardening — cooldown after decoder error, low-memory alert -->
-    <string name="s0213_decoder_cooldown_skip">Skipping the previous file — the decoder couldn’t handle it.</string>
+    <!-- S0213: video playback OOM hardening - cooldown after decoder error, low-memory alert -->
+    <string name="s0213_decoder_cooldown_skip">Skipping the previous file - the decoder couldn’t handle it.</string>
     <string name="s0213_decoder_cooldown_manual">This file just failed to decode. Try again in %1$d s, or skip.</string>
     <string name="s0213_action_skip">Skip</string>
     <string name="s0213_memory_alert_message">Memory is running low. Closing the player will free resources.</string>
@@ -2421,6 +2421,7 @@ Close the player and try again.</string>
     <string name="settings_search_hint">Search settings</string>
     <string name="settings_search_no_results">No settings found</string>
     <string name="settings_search_section_format">Section: %1$s</string>
+    <string name="main_settings_new">New settings</string>
     <string name="reset_general_section">Reset General section</string>
     <string name="reset_media_section">Reset Media section</string>
     <string name="reset_playback_section">Reset Playback section</string>
@@ -2546,10 +2547,10 @@ Close the player and try again.</string>
     <string name="background_audio_exit_message">Music is playing in the background. What would you like to do?</string>
     <string name="background_audio_exit_stop">Stop</string>
     <string name="background_audio_exit_continue">Keep Playing</string>
-    <!-- Background audio exit behavior — additional dialog items -->
+    <!-- Background audio exit behavior - additional dialog items -->
     <string name="background_audio_exit_always_stop">Always Stop</string>
     <string name="background_audio_exit_always_continue">Always Continue</string>
-    <!-- Background audio exit behavior — Settings sub-row -->
+    <!-- Background audio exit behavior - Settings sub-row -->
     <string name="background_audio_exit_behavior_title">When leaving player</string>
     <string name="background_audio_exit_behavior_summary">Choose what happens to background audio when you navigate back</string>
     <string name="background_audio_exit_behavior_ask">Ask every time (default)</string>
@@ -2580,7 +2581,7 @@ Close the player and try again.</string>
     <!-- Missing file -->
     <string name="file_not_found_title">File Not Found</string>
     <string name="file_not_found_message">The file "%1$s" no longer exists. It may have been deleted or moved outside the app. Refresh this resource?</string>
-    <string name="file_not_found_playing_from_start">File \u201c%1$s\u201d not found — playing from start</string>
+    <string name="file_not_found_playing_from_start">File \u201c%1$s\u201d not found - playing from start</string>
     <string name="refresh_resource">Refresh Resource</string>
     <string name="player_file_not_found_message">The file \u201c%1$s\u201d can no longer be played \u2014 it has been deleted or moved.</string>
 
@@ -2671,7 +2672,7 @@ Close the player and try again.</string>
     <string name="scheduled_ops_save">Save operation</string>
     <string name="scheduled_ops_readonly_source">Source is read-only</string>
     <string name="scheduled_ops_interval_corrected_15">Minimum interval is 15 minutes</string>
-    <string name="scheduled_ops_interval_corrected_1h">Cannot set 0 hours and 0 minutes — set to 1 hour</string>
+    <string name="scheduled_ops_interval_corrected_1h">Cannot set 0 hours and 0 minutes - set to 1 hour</string>
     <string name="scheduled_ops_no_destinations">Add destinations first in the Destinations section</string>
     <string name="scheduled_ops_confirm_delete">Delete this scheduled operation?</string>
     <string name="scheduled_ops_confirm_clear">Clear all scheduled operations?</string>
@@ -2776,7 +2777,7 @@ Close the player and try again.</string>
     <string name="now_playing_previous_desc">Previous track</string>
     <string name="now_playing_next_desc">Next track</string>
     <string name="now_playing_seek_bar_desc">Seek bar</string>
-    <string name="now_playing_mini_bar_desc">Now Playing — tap to open player controls</string>
+    <string name="now_playing_mini_bar_desc">Now Playing - tap to open player controls</string>
 
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Find Duplicates</string>
@@ -2805,7 +2806,7 @@ Close the player and try again.</string>
     <string name="camera_capture_error_no_camera_app">No camera app available on this device</string>
     <string name="camera_capture_error_permission_denied">Camera permission denied</string>
     <string name="camera_capture_error_io">Failed to read captured file</string>
-    <string name="camera_capture_error_session_expired">Capture session expired — please try again</string>
+    <string name="camera_capture_error_session_expired">Capture session expired - please try again</string>
     <string name="duplicate_detection_title">Duplicates</string>
     <string name="duplicate_scan_start">Start Scan</string>
     <string name="duplicate_scan_failed">Couldn\'t finish the duplicate scan. Try again.</string>
@@ -2840,7 +2841,7 @@ Close the player and try again.</string>
     <string name="text_note_save_dialog_hint">File name</string>
     <string name="text_note_save_dialog_ok">Save</string>
     <string name="text_note_save_renamed_suffix">Saved as %1$s (name was taken)</string>
-    <string name="text_note_save_error_network">Couldn\'t reach the folder. Your note stayed on the device — try again when you\'re back online.</string>
+    <string name="text_note_save_error_network">Couldn\'t reach the folder. Your note stayed on the device - try again when you\'re back online.</string>
     <string name="text_note_save_success_local">Saved.</string>
     <string name="text_note_save_success_remote">Saved to %1$s.</string>
     <string name="msg_folder_created">Folder "%1$s" created</string>
@@ -2852,7 +2853,8 @@ Close the player and try again.</string>
     <string name="error_cross_protocol_dir_not_supported">Folder copy/move between different storage types is not supported.</string>
     <string name="operation_completed">Operation completed</string>
     <string name="error_some_operations_failed">%1$d of %2$d operations failed</string>
-    <string name="menu_automate_source">Automation..</string>
+    <string name="menu_automate_source_current">Automation: current settings..</string>
+    <string name="menu_automate_source_revised">Automation: new settings..</string>
     <string name="menu_add_receiver">Add to Sort List</string>
     <string name="msg_added_as_receiver">Resource added to Sort List</string>
     <string name="btn_edit_receiver">Configure</string>
@@ -2910,7 +2912,7 @@ Close the player and try again.</string>
     <string name="duplicate_fab_delete">Delete Selected (%1$d items, %2$s)</string>
     <string name="scan_files_progress">%1$d / %2$d files</string>
 
-    <!-- Settings — SZA resources import -->
+    <!-- Settings - SZA resources import -->
     <string name="import_resources_title">Import Resources</string>
     <string name="import_resources_message">Add SZA resources?</string>
     <string name="sza_resources_imported">SZA resources imported</string>
@@ -2924,7 +2926,7 @@ Close the player and try again.</string>
     <!-- Permissions / generic errors -->
     <string name="permission_denied">Permission denied</string>
     <string name="failed_to_request_permission">Failed to request permission</string>
-    <string name="permission_error_retry">Permission error — please try again</string>
+    <string name="permission_error_retry">Permission error - please try again</string>
     <string name="operation_failed">Operation failed: %1$s</string>
     <string name="error_with_message">Error: %1$s</string>
     <string name="error_init_settings">Couldn\'t open these settings. Try again.</string>
@@ -2996,7 +2998,7 @@ Close the player and try again.</string>
 
     <string name="vr_immersive_start_failed">Immersive mode failed to start. Playback was stopped to avoid background audio.</string>
     <string name="vr_immersive_unsupported_media">Immersive mode is only available for stereo videos and supported 3D images. Opening this file in the standard player.</string>
-    <string name="vr_xr_fallback_flat_mode">Immersive mode unavailable — playing in flat mode. You can change the 3D format in player settings.</string>
+    <string name="vr_xr_fallback_flat_mode">Immersive mode unavailable - playing in flat mode. You can change the 3D format in player settings.</string>
 
     <!-- VR install CTA (shown in standard flavor when 3D content is detected) -->
     <string name="vr_install_cta_title">This is a 3D video</string>
@@ -3034,6 +3036,8 @@ Close the player and try again.</string>
 
     <string name="kbm_help_browse_open">Open folder or file</string>
     <string name="kbm_help_browse_back">Go to parent folder</string>
+    <string name="kbm_help_browse_settings_current">Open current settings menu</string>
+    <string name="kbm_help_browse_settings_revised">Open new settings</string>
 
     <string name="kbm_help_sel_toggle">Toggle selection</string>
     <string name="kbm_help_sel_all">Select all</string>
@@ -3074,7 +3078,7 @@ Close the player and try again.</string>
     <string name="kbm_help_dialog_arrows">Navigate rows</string>
     <string name="kbm_help_dialog_toggle">Toggle option</string>
 
-    <!-- VR immersive controls — HUD indicators (spec_vr-immersive-controls-tech) -->
+    <!-- VR immersive controls - HUD indicators (spec_vr-immersive-controls-tech) -->
     <string name="vr_hud_paused">Paused</string>
     <string name="vr_hud_playing">Playing</string>
     <string name="vr_hud_volume_percent">Volume %1$d%%</string>
@@ -3091,12 +3095,12 @@ Close the player and try again.</string>
     <string name="vr_hud_immersive_on">3D VR</string>
     <string name="vr_hud_immersive_off">Flat screen</string>
 
-    <!-- Transitional HUD banners — shown while immersive panels are still backed by Android views (spec_vr-immersive-hud-gl). -->
+    <!-- Transitional HUD banners - shown while immersive panels are still backed by Android views (spec_vr-immersive-hud-gl). -->
     <string name="vr_hud_guard_file_ops">File panel unavailable in immersive. Exit immersive to use it.</string>
     <string name="vr_hud_guard_controls">Control dialog unavailable in immersive. Exit immersive to open it.</string>
     <string name="vr_hud_first_run_cheat">A pause/play · L stick seek · R stick file/volume · grip zoom · Menu settings</string>
 
-    <!-- VR immersive controls — file operations panel -->
+    <!-- VR immersive controls - file operations panel -->
     <string name="vr_fops_title">File operations</string>
     <string name="vr_fops_copy_to">Copy to..</string>
     <string name="vr_fops_move_to">Move to..</string>
@@ -3112,7 +3116,7 @@ Close the player and try again.</string>
     <string name="vr_fops_not_implemented_move">VR move to folder lands in a follow-up iteration</string>
     <string name="vr_fops_not_implemented_rename">VR rename lands in a follow-up iteration</string>
 
-    <!-- VR immersive controls — confirmation dialogs and file info -->
+    <!-- VR immersive controls - confirmation dialogs and file info -->
     <string name="vr_delete_confirm_title">Delete file?</string>
     <string name="vr_delete_confirm_msg">\"%1$s\"  %2$s</string>
     <string name="vr_rename_hint">New name</string>
@@ -3125,7 +3129,7 @@ Close the player and try again.</string>
     <string name="vr_info_video">Video codec:</string>
     <string name="vr_info_bitrate">Bitrate: %1$d kbit/s</string>
 
-    <!-- VR immersive controls — overlay quick buttons -->
+    <!-- VR immersive controls - overlay quick buttons -->
     <string name="vr_overlay_btn_prev">Prev</string>
     <string name="vr_overlay_btn_next">Next</string>
     <string name="vr_overlay_btn_seek_back">−10s</string>
@@ -3144,29 +3148,29 @@ Close the player and try again.</string>
     <string name="vr_overlay_speed_label">Speed: %sx</string>
     <string name="vr_overlay_format_label">%s</string>
 
-    <!-- VR immersive controls — cheatsheet content -->
+    <!-- VR immersive controls - cheatsheet content -->
     <string name="vr_cheatsheet_title">VR controls</string>
     <string name="vr_cheatsheet_section_controllers">Touch controllers (Quest 2 / 3 / Pro):</string>
-    <string name="vr_cheatsheet_ctrl_a">A (right) — Pause / Play</string>
-    <string name="vr_cheatsheet_ctrl_b">B (right) — Exit to 2D panel</string>
-    <string name="vr_cheatsheet_ctrl_x">X (left) — Exit (duplicate)</string>
-    <string name="vr_cheatsheet_ctrl_y">Y (left) — File ops (short press) / this cheatsheet (long press)</string>
-    <string name="vr_cheatsheet_ctrl_menu">≡ (left) — Playback control dialog</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">L stick — ↑↓ volume · ←→ seek ±10s · click: immersive ↔ flat</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">R stick — ↑↓ volume · ←→ prev/next file · click: recenter</string>
-    <string name="vr_cheatsheet_ctrl_grip">Grip — hold + move hand = zoom · both grips ≥ 1s = reset zoom</string>
+    <string name="vr_cheatsheet_ctrl_a">A (right) - Pause / Play</string>
+    <string name="vr_cheatsheet_ctrl_b">B (right) - Exit to 2D panel</string>
+    <string name="vr_cheatsheet_ctrl_x">X (left) - Exit (duplicate)</string>
+    <string name="vr_cheatsheet_ctrl_y">Y (left) - File ops (short press) / this cheatsheet (long press)</string>
+    <string name="vr_cheatsheet_ctrl_menu">≡ (left) - Playback control dialog</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">L stick - ↑↓ volume · ←→ seek ±10s · click: immersive ↔ flat</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">R stick - ↑↓ volume · ←→ prev/next file · click: recenter</string>
+    <string name="vr_cheatsheet_ctrl_grip">Grip - hold + move hand = zoom · both grips ≥ 1s = reset zoom</string>
     <string name="vr_cheatsheet_section_keyboard">Bluetooth keyboard:</string>
-    <string name="vr_cheatsheet_kb_space">Space / K — Pause / Play · J / L — ±10s · N / P — prev/next · M — mute</string>
-    <string name="vr_cheatsheet_kb_arrows">← → — seek ±10s · Shift+←→ — ±3s · Ctrl+←→ — ±60s · ↑↓ — volume</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 — this cheatsheet · F2 — rename · F3 — about · F4 — settings · F5 — copy · F6 — move · F7 — file ops · F8 — delete · F10 — exit</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R — rename · Ctrl+C — copy · Ctrl+X — move · Ctrl+I — info · Ctrl+Y — file ops</string>
+    <string name="vr_cheatsheet_kb_space">Space / K - Pause / Play · J / L - ±10s · N / P - prev/next · M - mute</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - seek ±10s · Shift+←→ - ±3s · Ctrl+←→ - ±60s · ↑↓ - volume</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - this cheatsheet · F2 - rename · F3 - about · F4 - settings · F5 - copy · F6 - move · F7 - file ops · F8 - delete · F10 - exit</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - rename · Ctrl+C - copy · Ctrl+X - move · Ctrl+I - info · Ctrl+Y - file ops</string>
     <string name="vr_cheatsheet_section_mouse">Bluetooth mouse:</string>
-    <string name="vr_cheatsheet_mouse_buttons">LMB — pause / play · RMB — settings · MMB — recenter · button 4/5 — prev/next file</string>
-    <string name="vr_cheatsheet_mouse_wheel">Wheel — volume · Shift+wheel — seek ±10s</string>
+    <string name="vr_cheatsheet_mouse_buttons">LMB - pause / play · RMB - settings · MMB - recenter · button 4/5 - prev/next file</string>
+    <string name="vr_cheatsheet_mouse_wheel">Wheel - volume · Shift+wheel - seek ±10s</string>
     <string name="vr_cheatsheet_section_hands">Hand tracking (controllers set aside):</string>
-    <string name="vr_cheatsheet_hands_ray">Point hand — aim ray · pinch — click UI</string>
-    <string name="vr_cheatsheet_hands_swipe">Thumb swipe ←→ — seek ±10s · ↑↓ — volume</string>
-    <string name="vr_cheatsheet_hands_double_pinch">Double pinch — Pause / Play</string>
+    <string name="vr_cheatsheet_hands_ray">Point hand - aim ray · pinch - click UI</string>
+    <string name="vr_cheatsheet_hands_swipe">Thumb swipe ←→ - seek ±10s · ↑↓ - volume</string>
+    <string name="vr_cheatsheet_hands_double_pinch">Double pinch - Pause / Play</string>
     <string name="vr_cheatsheet_footer">Tap anywhere to close · long-press Y or F1 to re-open</string>
 
     <!-- S0100 Microphone recording -->
@@ -3200,13 +3204,13 @@ Close the player and try again.</string>
     <string name="settings_controls_keybindings_desc">Remap keys and buttons for media controls</string>
     <string name="keybinding_remap_search_hint">Search commands..</string>
     <string name="keybinding_remap_reset_all">Reset All</string>
-    <string name="keybinding_remap_not_impl">Reset All — coming soon</string>
+    <string name="keybinding_remap_not_impl">Reset All - coming soon</string>
     <string name="keybinding_capture_title">Press a key or button..</string>
     <string name="keybinding_capture_commit">Set</string>
     <string name="keybinding_capture_cancel">Cancel</string>
     <string name="keybinding_capture_countdown">%d s</string>
     <string name="keybinding_capture_current">Captured: %s</string>
-    <string name="keybinding_row_no_binding">—</string>
+    <string name="keybinding_row_no_binding">-</string>
     <string name="keybinding_row_remap">Remap</string>
     <string name="keybinding_row_reset">Reset to default</string>
     <!-- Modifier keys -->
@@ -3362,7 +3366,7 @@ Close the player and try again.</string>
     <string name="icon_set_other">Other</string>
 
     <!-- S0061: SMB unstable-network notification -->
-    <string name="smb_network_unstable">Network unstable — please check Wi-Fi.</string>
+    <string name="smb_network_unstable">Network unstable - please check Wi-Fi.</string>
 
     <!-- S0070: Device storage info in General Settings -->
     <string name="device_storage_available">Device storage available:</string>
@@ -3388,16 +3392,16 @@ Close the player and try again.</string>
     <string name="s0116_toast_saved_to_resource">Saved: %1$s</string>
     <string name="s0116_toast_saved_to_downloads">Saved to Downloads: %1$s</string>
     <string name="s0116_toast_streaming_started">Downloading stream..</string>
-    <string name="s0116_toast_drm_blocked">Protected content — download not possible</string>
+    <string name="s0116_toast_drm_blocked">Protected content - download not possible</string>
     <string name="s0116_toast_mux_failed">Could not assemble MP4 (codec: %1$s)</string>
     <string name="s0116_toast_streaming_disabled">Streams not available in this build</string>
-    <string name="s0116_toast_auth_required">Sign-in required for %1$s — open Settings</string>
+    <string name="s0116_toast_auth_required">Sign-in required for %1$s - open Settings</string>
 
     <!-- S0151: Instagram/Threads social preview-only UX strings -->
     <string name="s0151_toast_content_unavailable">Couldn\'t get the content at this link</string>
     <string name="s0151_dialog_auth_title">Sign in to %1$s?</string>
     <string name="s0151_dialog_reauth_title">Refresh sign-in for %1$s?</string>
-    <string name="s0151_dialog_message">The real content from this link needs a sign-in — the preview image was skipped.</string>
+    <string name="s0151_dialog_message">The real content from this link needs a sign-in - the preview image was skipped.</string>
     <string name="s0151_dialog_reauth_message">We applied your saved sign-in for %1$s, but the page returned only a preview. The session may have expired, or this post needs a different account. Sign in again?</string>
     <string name="s0151_dialog_reauth_positive">Sign in again</string>
 
@@ -3425,7 +3429,7 @@ Close the player and try again.</string>
     <string name="webview_auth_save_button">Save authorization</string>
     <string name="webview_auth_cancel_button">Cancel</string>
     <string name="webview_auth_url_prompt">Enter URL (https://..)</string>
-    <string name="webview_auth_invalid_url">Invalid URL — must start with http:// or https://</string>
+    <string name="webview_auth_invalid_url">Invalid URL - must start with http:// or https://</string>
     <!-- S0144: resource picker for "Add authorization" -->
     <string name="auth_add_picker_title">Choose a resource</string>
     <string name="auth_add_enter_manually">Enter address manually</string>
@@ -3455,13 +3459,13 @@ Close the player and try again.</string>
     <string name="error_details_stack_trace">Stack trace</string>
 
     <!-- S0118: MediaPlayer fallback diagnostics (PlaybackHealthHelper) -->
-    <string name="player_health_switching_to_fallback">Audio playback is having trouble — switching to the backup player..</string>
+    <string name="player_health_switching_to_fallback">Audio playback is having trouble - switching to the backup player..</string>
     <string name="player_health_fallback_failed">Couldn\'t play this file with the backup player. %1$s</string>
     <string name="player_health_dialog_header">The backup player couldn\'t play this file</string>
     <string name="player_health_error_type_unknown">Error type: unknown</string>
     <string name="player_health_error_type_server_died">Error type: media server stopped</string>
     <string name="player_health_error_type_code">Error type: code %1$d</string>
-    <string name="player_health_io_block">What happened: I/O error — the file may be corrupted, incomplete, or unreachable.\n\nWhat you can try:\n• Make sure the file is fully downloaded\n• Check whether the file is corrupted\n• For network files, check the connection</string>
+    <string name="player_health_io_block">What happened: I/O error - the file may be corrupted, incomplete, or unreachable.\n\nWhat you can try:\n• Make sure the file is fully downloaded\n• Check whether the file is corrupted\n• For network files, check the connection</string>
     <string name="player_health_malformed_block">What happened: the file format is malformed or damaged.\n\nThe file structure doesn\'t match the media specification.\n\nWhat you can try:\n• The file may be damaged or incomplete\n• Re-download or re-encode the file\n• Make sure the file was transferred properly</string>
     <string name="player_health_unsupported_block">What happened: this format isn\'t supported.\n\nThe backup player can\'t handle this format or codec.\n\nWhat you can try:\n• Open the file in an external media player\n• Convert it to a standard format (MP4, H.264)</string>
     <string name="player_health_timeout_block">What happened: the operation timed out.\n\nWhat you can try:\n• Check the network connection\n• Make sure the server is responding\n• Try again later</string>
@@ -3470,7 +3474,7 @@ Close the player and try again.</string>
 
     <!-- S0118 Phase 04: settings copy revisions -->
     <string name="settings_cache_size_range_error">Cache size needs to be between 512 and 16384 MB.</string>
-    <string name="settings_network_permissions_already_granted">Network access is already on — nothing to do here.</string>
+    <string name="settings_network_permissions_already_granted">Network access is already on - nothing to do here.</string>
     <string name="settings_credentials_picker_failed">Couldn\'t open the file picker. Try again.</string>
     <string name="settings_credentials_file_empty">That file looks empty or unreadable.</string>
     <string name="settings_credentials_import_failed">Couldn\'t import that file. Try again.</string>
@@ -3486,7 +3490,7 @@ Close the player and try again.</string>
     <!-- S0118 Phase 05: feature surface sweep -->
     <string name="duplicates_deleted_short">Selected files are gone.</string>
     <string name="duplicates_deleted_count">Removed %1$d files.</string>
-    <string name="addresource_validation_generic">Looks like something\'s missing — check the form and try again.</string>
+    <string name="addresource_validation_generic">Looks like something\'s missing - check the form and try again.</string>
     <string name="addresource_signed_out">Signed out.</string>
     <string name="addresource_permission_needed">We need that permission to scan your folders.</string>
     <string name="addresource_scan_failed_short">Scan didn\'t complete. Try again.</string>
@@ -3513,7 +3517,7 @@ Close the player and try again.</string>
     <string name="favorites_slideshow_open_first">Open Favorites first, then start the slideshow there.</string>
     <string name="google_drive_sign_in_unavailable">Google Drive sign-in isn\'t available right now. Try again later.</string>
 
-    <!-- S0161: link download background queue — notification channel and messages -->
+    <!-- S0161: link download background queue - notification channel and messages -->
     <string name="link_download_notif_channel_name">Link downloads</string>
     <string name="link_download_notif_channel_description">Progress and results for link downloads</string>
     <string name="link_download_notif_title_downloading">Downloading..</string>
@@ -3529,7 +3533,7 @@ Close the player and try again.</string>
     <string name="link_download_notif_text_analyzing">Analyzing page..</string>
     <string name="link_download_notif_text_downloading_pct">Downloading %1$d%%</string>
     <string name="link_download_notif_action_cancel">Cancel</string>
-    <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \&quot;Sign-in declined\&quot; were created when you chose \&quot;Do not ask\&quot; — they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \&quot;Add authorization\&quot; in the top menu.</string>
+    <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \&quot;Sign-in declined\&quot; were created when you chose \&quot;Do not ask\&quot; - they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \&quot;Add authorization\&quot; in the top menu.</string>
     <string name="link_download_ytdlp_extracting">Extracting media link…</string>
     <string name="link_download_ytdlp_downloading">Downloading via universal extractor…</string>
     <string name="link_download_ytdlp_error_extract">Could not extract media from this link.</string>
@@ -3540,7 +3544,7 @@ Close the player and try again.</string>
     <string name="rotation_toggle_sensor_on_desc">Screen rotation: unlocked</string>
     <string name="rotation_toggle_sensor_off_desc">Screen rotation: locked</string>
     <string name="keybinding_label_view_rotation_toggle">Screen Rotation</string>
-    <string name="delete_trash_unavailable_fallback_to_hard_delete">Trash is unavailable for some files — they were deleted permanently.</string>
+    <string name="delete_trash_unavailable_fallback_to_hard_delete">Trash is unavailable for some files - they were deleted permanently.</string>
     <string name="link_download_notif_text_preview_only_signed_in">Couldn\'t extract page content. No sign-in needed.</string>
     <string name="draw_settings_title">Draw settings</string>
     <string name="draw_settings_brush_size">Brush size</string>
@@ -3563,7 +3567,7 @@ Close the player and try again.</string>
     <string name="draw_color_custom_cd">Custom color</string>
     <string name="draw_save_ok_toast">Saved</string>
     <string name="draw_save_failed_toast">Failed to save</string>
-    <string name="error_reason_local_destination_permission_denied">Couldn\'t save here — Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
+    <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
 </resources>
 
 

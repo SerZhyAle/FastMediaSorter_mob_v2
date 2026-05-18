@@ -10,11 +10,11 @@ import timber.log.Timber
  * Categories for SMB playback-path failures. Used to enrich log output so
  * post-mortem analysis can distinguish failure types without device access.
  *
- * STALE_POOL_CONNECTION  — watchdog fired on a VALIDATED connection (TCP was silently dropped)
- * NEW_CONNECTION_TIMEOUT — watchdog fired on a FRESH connection (network loss or very slow NAS)
- * TRANSPORT_FAILURE      — broken-pipe / socket error on openFile (stale SMBJ cache entry)
- * AUTH_CONFIG            — authentication, access-denied, or share-not-found error
- * UNKNOWN                — unclassified
+ * STALE_POOL_CONNECTION  - watchdog fired on a VALIDATED connection (TCP was silently dropped)
+ * NEW_CONNECTION_TIMEOUT - watchdog fired on a FRESH connection (network loss or very slow NAS)
+ * TRANSPORT_FAILURE      - broken-pipe / socket error on openFile (stale SMBJ cache entry)
+ * AUTH_CONFIG            - authentication, access-denied, or share-not-found error
+ * UNKNOWN                - unclassified
  */
 enum class SmbPlaybackErrorCategory {
     STALE_POOL_CONNECTION,
@@ -33,7 +33,7 @@ enum class SmbPlaybackErrorCategory {
 object SmbErrorClassifier {
 
     /**
-     * True when the exception identifies an unrecoverable error — auth, access-denied, share-not-found,
+     * True when the exception identifies an unrecoverable error - auth, access-denied, share-not-found,
      * unknown host or refused connection. Transient socket timeouts are treated as retriable.
      */
     fun isNonRetriableConnectionError(e: Exception): Boolean {
@@ -54,7 +54,7 @@ object SmbErrorClassifier {
         val isAccessError = message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
             message.contains("Access denied", ignoreCase = true)
 
-        // Share/path doesn't exist on server — retrying will never help
+        // Share/path doesn't exist on server - retrying will never help
         val isShareNotFound = message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
             message.contains("STATUS_BAD_NETWORK_PATH", ignoreCase = true) ||
             message.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true)
@@ -63,7 +63,7 @@ object SmbErrorClassifier {
             message.contains("Connection refused", ignoreCase = true) ||
             message.contains("No such host", ignoreCase = true)
 
-        // TCP pre-check timeouts (SocketTimeoutException / "Server unreachable") are transient —
+        // TCP pre-check timeouts (SocketTimeoutException / "Server unreachable") are transient -
         // brief latency spikes (ARP, NIC wake-up, NAT) can cause them even when the server is reachable.
         // Only hard config/auth/share errors are truly non-retriable.
 
@@ -71,7 +71,7 @@ object SmbErrorClassifier {
     }
 
     /**
-     * True when [e] is a broken-pipe or transport-level socket failure — used to detect a stale
+     * True when [e] is a broken-pipe or transport-level socket failure - used to detect a stale
      * SMBJ-cached Connection that must be evicted before a retry. SMBJ's isConnected flag does
      * not detect TCP-level silent drops, so we have to look at the exception chain.
      */
@@ -118,7 +118,7 @@ object SmbErrorClassifier {
             // within the configured per-request window (CONNECTION_TIMEOUT_DEGRADED_MS).
             e.toString().contains("TimeoutException", ignoreCase = true) ||
                 e.cause?.toString()?.contains("TimeoutException", ignoreCase = true) == true ->
-                "Server is responding slowly. Directory listing timed out — try again or check server load."
+                "Server is responding slowly. Directory listing timed out - try again or check server load."
             else -> e.message ?: "Unknown error"
         }
     }

@@ -10,7 +10,7 @@ import javax.inject.Inject
 /**
  * Merges a transparent draw overlay bitmap onto a base image bitmap (S0107).
  *
- * Pure in-memory transformation — no file I/O.
+ * Pure in-memory transformation - no file I/O.
  * The caller is responsible for writing the returned bytes to the appropriate DataSource.
  */
 class MergeDrawOverlayUseCase @Inject constructor() {

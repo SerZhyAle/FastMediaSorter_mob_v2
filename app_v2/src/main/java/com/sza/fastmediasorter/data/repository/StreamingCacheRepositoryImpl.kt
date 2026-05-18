@@ -34,7 +34,7 @@ class StreamingCacheRepositoryImpl @Inject constructor(
 
     override fun resolveHash(originalUri: String): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(originalUri.toByteArray())
-        // 16 hex chars = 64 bits — ample for the ~hundreds of entries a user will keep.
+        // 16 hex chars = 64 bits - ample for the ~hundreds of entries a user will keep.
         return digest.take(8).joinToString(separator = "") { byte ->
             "%02x".format(byte.toInt() and 0xFF)
         }

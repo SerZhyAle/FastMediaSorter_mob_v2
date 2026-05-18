@@ -59,7 +59,7 @@ sealed class AddResourceEvent {
         val providerName: String,
         val accounts: List<String>
     ) : AddResourceEvent()
-    /** Missing ACCESS_LOCAL_NETWORK permission — UI must show rationale dialog before retrying. */
+    /** Missing ACCESS_LOCAL_NETWORK permission - UI must show rationale dialog before retrying. */
     data object ShowLocalNetworkPermission : AddResourceEvent()
     /** Emitted after a successful share scan; UI should show a picker and fill the share name field. */
     data class ShowSharePicker(
@@ -76,11 +76,11 @@ sealed class AddResourceEvent {
  *
  * State/event plumbing lives here; protocol- and feature-specific logic is delegated
  * to coordinator classes via the [AddResourceBridge] interface:
- * - [AddResourceVirtualCoordinator]   — local/virtual folders, SAF picker handoff
- * - [AddResourceNetworkScanCoordinator] — host discovery + SMB share listing
- * - [AddResourceSmbCoordinator]       — SMB test/scan/add (scanned + manual)
- * - [AddResourceSftpFtpCoordinator]   — SFTP (password) + FTP test/add
- * - [AddResourceSftpKeyCoordinator]   — SFTP with SSH private key
+ * - [AddResourceVirtualCoordinator]   - local/virtual folders, SAF picker handoff
+ * - [AddResourceNetworkScanCoordinator] - host discovery + SMB share listing
+ * - [AddResourceSmbCoordinator]       - SMB test/scan/add (scanned + manual)
+ * - [AddResourceSftpFtpCoordinator]   - SFTP (password) + FTP test/add
+ * - [AddResourceSftpKeyCoordinator]   - SFTP with SSH private key
  */
 @HiltViewModel
 class AddResourceViewModel @Inject constructor(
@@ -131,7 +131,7 @@ class AddResourceViewModel @Inject constructor(
     // ==================== Media type / settings helpers ====================
 
     /**
-     * Supported media types from current settings. `allFiles` shortcuts to the full set —
+     * Supported media types from current settings. `allFiles` shortcuts to the full set -
      * individual toggles are ignored when the global switch is on.
      */
     suspend fun getSupportedMediaTypes(): Set<MediaType> {
@@ -169,7 +169,7 @@ class AddResourceViewModel @Inject constructor(
                 Timber.d("Loaded resource for copy: ${resource.name}")
                 updateState { it.copy(copyFromResource = resource) }
 
-                // Credential hydration runs only when an id is attached — local/virtual
+                // Credential hydration runs only when an id is attached - local/virtual
                 // resources lack credentials entirely so we skip the repo round-trip.
                 var username: String? = null
                 var password: String? = null
@@ -317,7 +317,7 @@ class AddResourceViewModel @Inject constructor(
         updateState { state ->
             val updated = state.resourcesToAdd.map { r ->
                 if (r.path == resource.path) {
-                    // read-only and destination are mutually exclusive — clear destination when flipping on
+                    // read-only and destination are mutually exclusive - clear destination when flipping on
                     r.copy(
                         isReadOnly = isReadOnly,
                         isDestination = if (isReadOnly) false else r.isDestination
@@ -539,11 +539,11 @@ class AddResourceViewModel @Inject constructor(
                         Timber.d("Speed test complete for ${resource.name}: Read=${status.result.readSpeedMbps} Mbps")
                     }
                     is NetworkSpeedTestUseCase.SpeedTestStatus.MeasurementUnavailable -> {
-                        // Normal: no usable data returned (e.g. empty server response) — logged at DEBUG only
+                        // Normal: no usable data returned (e.g. empty server response) - logged at DEBUG only
                         Timber.d("Speed test: measurement unavailable for ${resource.name}: ${status.reason}")
                     }
                     is NetworkSpeedTestUseCase.SpeedTestStatus.Error -> {
-                        // Unexpected error — WARNING only, not ERROR, to keep ERROR channel clean
+                        // Unexpected error - WARNING only, not ERROR, to keep ERROR channel clean
                         Timber.w("Speed test error for ${resource.name}: ${status.message}")
                     }
                     is NetworkSpeedTestUseCase.SpeedTestStatus.Progress -> Unit
@@ -556,7 +556,7 @@ class AddResourceViewModel @Inject constructor(
 
     // ==================== Bridge to coordinators ====================
 
-    // The copy-mode credential hydration needs SmbOperationsUseCase too — exposing it via
+    // The copy-mode credential hydration needs SmbOperationsUseCase too - exposing it via
     // constructor field would break Hilt constructor wiring cleanliness, so re-reference
     // through the coordinator's own dependency chain instead.
     private val smbOperationsUseCaseLazy = smbOperationsUseCase

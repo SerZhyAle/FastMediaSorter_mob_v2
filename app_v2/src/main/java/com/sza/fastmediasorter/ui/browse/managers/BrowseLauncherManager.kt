@@ -7,11 +7,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import com.sza.fastmediasorter.ui.player.PlayerActivity
 import timber.log.Timber
 
 interface BrowseLauncherCallbacks {
-    fun onPlayerActivityReturned(modifiedPaths: ArrayList<String>)
+    /**
+     * Invoked when PlayerActivity returns RESULT_OK. No payload is passed - the Browse
+     * Reconciler reads the [com.sza.fastmediasorter.domain.mutation.MutationJournal]
+     * independently on its own onResume (S0242 Phase 02 → Phase 03). This callback is kept
+     * so the note save-and-close flow (`PlayerViewerFactory.finishActivity()`) and any
+     * future "Player returned successfully" hook still has a single entry point.
+     */
+    fun onPlayerActivityReturned()
     fun onEditResourceReturned()
     fun onDeletePermissionGranted()
     fun onPermissionDenied()
@@ -23,16 +29,16 @@ class BrowseLauncherManager(
     activity: ComponentActivity,
     private val callbacks: BrowseLauncherCallbacks
 ) {
-    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager replaces the
+    // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager replaces the
     // activity-result handshake. Drive sign-in now goes through GoogleIdentityRepository.signInPrimary.
 
     val playerActivityLauncher: ActivityResultLauncher<Intent> = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        // S0242 Phase 02: no Intent payload is read anymore - the Browse Reconciler will
+        // read the MutationJournal on its own onResume cycle (wired in Phase 03).
         if (result.resultCode == RESULT_OK) {
-            result.data?.getStringArrayListExtra(PlayerActivity.EXTRA_MODIFIED_FILES)?.let { modifiedPaths ->
-                callbacks.onPlayerActivityReturned(modifiedPaths)
-            }
+            callbacks.onPlayerActivityReturned()
         }
     }
 

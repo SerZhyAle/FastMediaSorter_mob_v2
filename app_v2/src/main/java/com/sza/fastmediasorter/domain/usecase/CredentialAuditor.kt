@@ -17,7 +17,7 @@ import javax.inject.Singleton
  * Implements B5-T4 (CredentialAuditor), B5-T5 (UI signal via [auditAsFlow]),
  * and B5-T6 (unused credential policy via [UnusedCredentialPolicy]).
  *
- * This class does NOT modify any data — it is read-only and side-effect free.
+ * This class does NOT modify any data - it is read-only and side-effect free.
  *
  * ### Usage
  * - One-shot check: `val report = credentialAuditor.audit()`
@@ -96,7 +96,7 @@ class CredentialAuditor @Inject constructor(
                     "credentials are ORPHANED (no associated resources). IDs: $ids"
             )
         } else {
-            Timber.d("CredentialAuditor: ${report.totalCount} credentials audited — all ACTIVE")
+            Timber.d("CredentialAuditor: ${report.totalCount} credentials audited - all ACTIVE")
         }
         if (report.eligibleForCleanupCount > 0) {
             Timber.w(

@@ -1,6 +1,6 @@
 ﻿# fix-ellipsis-strings.ps1
 # Replaces "..." with ".." in Android strings.xml UI string values.
-# Only modifies content inside <string ...>...</string> tags — skips code, comments, attributes.
+# Only modifies content inside <string ...>...</string> tags - skips code, comments, attributes.
 
 param(
     [string[]]$Files = @(
@@ -20,7 +20,7 @@ foreach ($rel in $Files) {
     }
 
     $content = Get-Content $path -Raw -Encoding UTF8
-    # Replace "..." inside string tag bodies only — uses regex that captures tag content
+    # Replace "..." inside string tag bodies only - uses regex that captures tag content
     $updated = $content -replace '(?<=<string[^>]*>(?:[^<]|\n)*?)\.\.\.', '..'
 
     if ($content -eq $updated) {
@@ -30,10 +30,10 @@ foreach ($rel in $Files) {
 
     if ($DryRun) {
         $count = ([regex]::Matches($content, '(?<=<string[^>]*>(?:[^<]|\n)*?)\.\.\.') ).Count
-        Write-Host "[dry-run]   $rel — would replace $count occurrence(s)"
+        Write-Host "[dry-run]   $rel - would replace $count occurrence(s)"
     } else {
         [System.IO.File]::WriteAllText($path, $updated, [System.Text.UTF8Encoding]::new($false))
         $count = ([regex]::Matches($content, '(?<=<string[^>]*>(?:[^<]|\n)*?)\.\.\.') ).Count
-        Write-Host "[done]      $rel — replaced $count occurrence(s)"
+        Write-Host "[done]      $rel - replaced $count occurrence(s)"
     }
 }

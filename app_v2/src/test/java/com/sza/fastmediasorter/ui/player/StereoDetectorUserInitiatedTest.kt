@@ -89,7 +89,7 @@ class StereoDetectorUserInitiatedTest {
         val detector = StereoDetector(FakePhotoSphereReader(null))
 
         // Same dimensions as case 1 but with default userInitiated = false. The passive cascade
-        // must NOT classify this as SBS — that would falsely 3D-claim ordinary panoramas.
+        // must NOT classify this as SBS - that would falsely 3D-claim ordinary panoramas.
         val detected = detector.detectForImage(
             path = "/storage/renamed_panorama.jpg",
             width = 2400,

@@ -91,7 +91,7 @@ For exact feature-by-flavor availability, use the canonical documentation:
   <img src="https://raw.githubusercontent.com/OpenHub-Store/GitHub-Store/main/media-resources/ghs_download_badge.png" alt="Get it on GitHub Store" height="80" />
 </a>
 
-Available on GitHub Store — install, update, and discover apps directly from GitHub releases.
+Available on GitHub Store - install, update, and discover apps directly from GitHub releases.
 
 **Compiled APK files are NOT stored in this GitHub repository.** All builds are available on **Google Drive**:
 
@@ -130,12 +130,12 @@ Full-size images:
 - ⭐ **Favorites System:** Mark important files as favorites and access them quickly from a dedicated tab that aggregates favorites across all sources.
 - 🔒 **PIN Protection:** Secure individual resources with access PIN codes to prevent unauthorized browsing and editing.
 - ⚙️ **Per-Resource Configuration:** Customize slideshow interval, scan depth (subdirectories), and thumbnail generation for each folder individually.
-- 📋 **Predefined Smart Resources:** Built-in virtual resources — **All Music**, **All Videos**, **All Photos** — that aggregate media from your entire device with zero configuration. Instantly access your full media library without manually adding individual folders.
+- 📋 **Predefined Smart Resources:** Built-in virtual resources - **All Music**, **All Videos**, **All Photos** - that aggregate media from your entire device with zero configuration. Instantly access your full media library without manually adding individual folders.
 - 🖥️ **Network and Cloud Support:** Work with files on your network drives (SMB with automatic network scanning), SFTP servers, FTP, and in cloud storage (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Flexible Viewing:** Display files as a customizable grid or detailed list with pagination support for large collections (1000+ files).
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
-- 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service — no screen interaction required.
+- 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service - no screen interaction required.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -152,10 +152,10 @@ Full-size images:
 - 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
-- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource — local or network. Output format and destination folder are set in Video Settings.
+- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination folder are set in Video Settings.
 - 🖨️ **Print:** Send documents (PDF, TXT) and images to a printer directly from the built-in player. Network and cloud files are cached locally before printing.
 - ⬇️ **Stream Offload:** Download a network file to local cache with a real-time progress dialog before or during playback. An optional cleanup prompt reclaims storage afterward.
-- 🔊 **DTS/DTS-HD Audio:** DTS and DTS-HD audio tracks are decoded in software via a custom FFmpeg build — no special hardware required.
+- 🔊 **DTS/DTS-HD Audio:** DTS and DTS-HD audio tracks are decoded in software via a custom FFmpeg build - no special hardware required.
 - 🎨 **Video Color & Brightness:** Adjust Hue and Brightness in real time using Media3 GPU effects. Settings persist across video files during the session.
 - 📤 **Share to FastMediaSorter:** Receive files from any app via the standard Android Share sheet and copy them to a selected resource with a single tap.
 
@@ -199,17 +199,17 @@ Add your music collection as a resource. In Settings → Audio, enable "Slidesho
 
 ### 7. 🖼️ Digital Photo Frame on a Tablet
 
-Turn any Android **tablet** into a beautiful always-on digital photo frame. Place it on a stand, connect to your home PC (SMB) or cloud storage — photos stream directly without occupying any local storage. Adjust the slide interval, keep the screen always on, add background music, and enjoy your memories. Even old, slow budget tablets work perfectly for this purpose — the app is optimized for low-resource continuous playback.
+Turn any Android **tablet** into a beautiful always-on digital photo frame. Place it on a stand, connect to your home PC (SMB) or cloud storage - photos stream directly without occupying any local storage. Adjust the slide interval, keep the screen always on, add background music, and enjoy your memories. Even old, slow budget tablets work perfectly for this purpose - the app is optimized for low-resource continuous playback.
 
 ### 8. 🍿 Home Cinema & VR
 
 Watch your favorite series stored on your PC or cloud directly on your phone or VR headset. No need to wait for copying or worry about free space. Just press play, and the next episode will start automatically.
 
-**VR Headset Use Cases** — FastMediaSorter runs natively on Android-based VR headsets (Meta Quest, Pico, and similar) without any modifications:
+**VR Headset Use Cases** - FastMediaSorter runs natively on Android-based VR headsets (Meta Quest, Pico, and similar) without any modifications:
 
-- **🎬 Giant Virtual Cinema**: Open a video from your home NAS or cloud storage and watch it on a virtual screen the size of an entire wall. No need to copy gigabyte files to the headset — the app streams directly over your home network. When one episode ends, the next starts automatically.
+- **🎬 Giant Virtual Cinema**: Open a video from your home NAS or cloud storage and watch it on a virtual screen the size of an entire wall. No need to copy gigabyte files to the headset - the app streams directly over your home network. When one episode ends, the next starts automatically.
 - **🎵 Immersive Music Player**: Launch your music collection in the VR environment. The background audio service keeps music playing even when you switch between apps or open the VR home screen. Hardware headset buttons (play/pause, next track) work without touching the controller.
-- **🖼️ Wall-Sized VR Photo Frame**: Turn your VR headset into an immersive photo experience — start a slideshow and your photos fill an enormous virtual wall around you. Pair it with background music for a cinematic, room-filling memories experience. Stream photos directly from your home PC or cloud so the headset storage stays free.
+- **🖼️ Wall-Sized VR Photo Frame**: Turn your VR headset into an immersive photo experience - start a slideshow and your photos fill an enormous virtual wall around you. Pair it with background music for a cinematic, room-filling memories experience. Stream photos directly from your home PC or cloud so the headset storage stays free.
 
 ### 9. 🧹 Download Organizer
 
@@ -217,11 +217,11 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 
 ### 10. 🚗 In-Car Music with Android Head Unit
 
-Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders — or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
+Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
 ### 11. 📺 Media Centre on an Android TV Box
 
-Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android set-top box). Connect to your home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive — all from the same app. Navigate entirely with a TV remote or Bluetooth keyboard: D-pad moves focus, **OK** opens items, **Back** goes up one level, **Backspace** jumps one folder up in Browse. Color keys map to the most common file operations (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a slideshow with background music and run it full-screen, or play an audio queue while the screen shows cover art and lyrics. No touchscreen needed at any step.
+Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android set-top box). Connect to your home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive - all from the same app. Navigate entirely with a TV remote or Bluetooth keyboard: D-pad moves focus, **OK** opens items, **Back** goes up one level, **Backspace** jumps one folder up in Browse. Color keys map to the most common file operations (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a slideshow with background music and run it full-screen, or play an audio queue while the screen shows cover art and lyrics. No touchscreen needed at any step.
 
 ## Documentation 📚
 

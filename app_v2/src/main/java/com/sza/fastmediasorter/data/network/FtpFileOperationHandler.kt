@@ -113,7 +113,7 @@ class FtpFileOperationHandler @Inject constructor(
                             val deleteSuccess = if (sourcePath.startsWith("content:/")) deleteWithSaf(sourcePath)
                             else try { deleteFile(sourcePath).isSuccess }
                             catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
-                                // File already uploaded — collect for batch delete
+                                // File already uploaded - collect for batch delete
                                 pendingDeletePaths.add(sourcePath); movedPaths.add(uploadedPath); successCount++; true
                             }
                             if (deleteSuccess && !pendingDeletePaths.contains(sourcePath)) { movedPaths.add(uploadedPath); successCount++ }

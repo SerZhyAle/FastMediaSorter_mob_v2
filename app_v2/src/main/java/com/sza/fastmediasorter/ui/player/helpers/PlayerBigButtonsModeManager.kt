@@ -17,7 +17,7 @@ import com.sza.fastmediasorter.R
 /**
  * Applies Big Buttons Mode layout transforms to the player's top command panel and bottom
  * playback button row. All methods are designed to be called from the UI thread after views
- * have been measured. Stateless with respect to layout XML — all changes are applied and
+ * have been measured. Stateless with respect to layout XML - all changes are applied and
  * restored in memory via stored LayoutParams snapshots.
  *
  * Usage: call apply* before showing the player; call restore* on orientation change before
@@ -45,7 +45,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
     private val topPanelSeparatorViews = mutableListOf<View>()
     private var topPanelOriginalHeight: Int? = null
 
-    // Bottom row state — keyed by child view id
+    // Bottom row state - keyed by child view id
     private val bottomRowSavedStates = mutableMapOf<Int, SavedButtonState>()
 
     // ── Top command panel ─────────────────────────────────────────────────────────────────────
@@ -257,7 +257,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         for (child in visibleChildren) {
             child.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
             when (child) {
-                // S0208: bottom row stays icon-only — no text labels added. MaterialButtons here
+                // S0208: bottom row stays icon-only - no text labels added. MaterialButtons here
                 // already render glyph-style "text" (▶ / ‖ / skip arrows); bumped to 22sp so they
                 // scale with the new 100dp row height.
                 is MaterialButton -> child.textSize = 22f

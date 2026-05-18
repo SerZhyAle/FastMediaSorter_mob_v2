@@ -72,14 +72,14 @@ class Media3OomSafeLogger @Inject constructor() : androidx.media3.common.util.Lo
                 throwable
             }
         } catch (oom: OutOfMemoryError) {
-            // Even stringifying for the length check ran out of memory — substitute immediately.
+            // Even stringifying for the length check ran out of memory - substitute immediately.
             Throwable("<truncated due to OOM: ${throwable.javaClass.simpleName}>")
         }
     }
 
     /**
      * Last-resort short Timber.w line emitted when the normal logging path threw an OutOfMemoryError.
-     * Bounded allocations only — no collections, no large StringBuilder. Wrapped in another
+     * Bounded allocations only - no collections, no large StringBuilder. Wrapped in another
      * try/catch so a secondary OOM inside the fallback itself is swallowed.
      */
     private fun emitOomFallback(tag: String?, throwable: Throwable?) {
@@ -87,10 +87,10 @@ class Media3OomSafeLogger @Inject constructor() : androidx.media3.common.util.Lo
             val safeTag = tag ?: "?"
             val safeCls = throwable?.javaClass?.simpleName ?: "?"
             val message = "media3 log dropped due to OOM: tag=$safeTag throwable=$safeCls"
-            Timber.d("S0213: Pillar B OOM fallback — tag=$safeTag throwable=$safeCls")
+            Timber.d("S0213: Pillar B OOM fallback - tag=$safeTag throwable=$safeCls")
             Timber.w(message.take(FALLBACK_MAX_LEN))
         } catch (oom: OutOfMemoryError) {
-            // Genuinely terminal — swallow. The whole point of this class is "do not crash here".
+            // Genuinely terminal - swallow. The whole point of this class is "do not crash here".
         }
     }
 

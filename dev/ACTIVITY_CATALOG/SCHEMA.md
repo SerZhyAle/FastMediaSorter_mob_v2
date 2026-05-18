@@ -1,4 +1,4 @@
-# ACTIVITY_CATALOG — JSONL Schema
+# ACTIVITY_CATALOG - JSONL Schema
 
 Merge key: `module + class` (unique combination per record).
 

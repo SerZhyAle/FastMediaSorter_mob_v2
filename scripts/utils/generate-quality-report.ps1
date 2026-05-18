@@ -36,7 +36,7 @@ if (-not $OutputFile) {
 # ── Baseline thresholds (sourced from dev/QUALITY_BASELINE.md) ────────────────
 # Update these when QUALITY_BASELINE.md changes.
 $Baseline = @{
-    UnitTestTotal      = 143          # baseline count — warn if less
+    UnitTestTotal      = 143          # baseline count - warn if less
     UnitTestPassRate   = 1.0          # 100% required
     LintErrors         = 0            # alert threshold: > 0
     LintWarningsAlert  = 0            # alert threshold: > 0 new warnings
@@ -201,10 +201,10 @@ $cmpRows = ($comparison | ForEach-Object {
 
 # Overall gate status
 $gatePass = -not ($comparison | Where-Object { $_['Status'] -like "*FAIL*" })
-$gateStatus = if ($gatePass) { "✅ ALL GATES PASS" } else { "❌ GATE FAILURE — review table below" }
+$gateStatus = if ($gatePass) { "✅ ALL GATES PASS" } else { "❌ GATE FAILURE - review table below" }
 
 $report = @"
-# Quality Report — FastMediaSorter v2
+# Quality Report - FastMediaSorter v2
 
 **Date**: $Date  
 **Flavor**: $Flavor  
@@ -250,7 +250,7 @@ $cmpRows
 
 ## Runtime KPIs
 
-*Requires production Crashlytics data — see ``QUALITY_BASELINE.md`` for thresholds.*
+*Requires production Crashlytics data - see ``QUALITY_BASELINE.md`` for thresholds.*
 
 | KPI | Value | Target | Status |
 |-----|-------|--------|--------|

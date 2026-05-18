@@ -30,7 +30,7 @@ import timber.log.Timber
  * - Refresh resource metadata (name/sort/display) without file reload ([refreshResourceMetadata]).
  * - Register current resource as a Quick Sort destination ([addCurrentResourceAsDestination]).
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseResourceStateManager(
     private val context: Context,
@@ -123,7 +123,7 @@ class BrowseResourceStateManager(
 
     /**
      * Reload resource record from DB and update state (name, sortMode, displayMode).
-     * Does NOT reload the file list — only updates the resource metadata.
+     * Does NOT reload the file list - only updates the resource metadata.
      */
     fun refreshResourceMetadata() {
         scope.launch(ioDispatcher) {

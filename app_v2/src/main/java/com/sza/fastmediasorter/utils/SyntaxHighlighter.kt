@@ -15,7 +15,7 @@ object SyntaxHighlighter {
 
     private const val MAX_HIGHLIGHT_LENGTH = 100_000 // 100KB chars threshold
 
-    // Colors (dark theme friendly defaults — caller can customize via theme)
+    // Colors (dark theme friendly defaults - caller can customize via theme)
     private const val COLOR_KEYWORD = 0xFF569CD6.toInt()   // Blue
     private const val COLOR_STRING = 0xFFCE9178.toInt()    // Orange
     private const val COLOR_COMMENT = 0xFF6A9955.toInt()   // Green

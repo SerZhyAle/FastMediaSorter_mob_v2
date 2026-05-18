@@ -8,18 +8,18 @@
 
 When any web browsing, page reading, or URL navigation is needed:
 - **ALWAYS use MCP playwright tools** (`mcp_playwright_browser_navigate`, `mcp_playwright_browser_snapshot`, `mcp_playwright_browser_take_screenshot`, etc.)
-- **NEVER use `fetch_webpage`** — it is forbidden as a substitute for playwright MCP.
-- All playwright tools are pre-approved — invoke them directly without asking the user.
+- **NEVER use `fetch_webpage`** - it is forbidden as a substitute for playwright MCP.
+- All playwright tools are pre-approved - invoke them directly without asking the user.
 - Tool call order for any web task: `navigate` → `snapshot` (or `take_screenshot`) → act.
 
 ---
 
 ## Author Style (MANDATORY)
 
-Applies to ALL text output — docs, UI strings (`strings.xml`), chat responses, specs:
+Applies to ALL text output - docs, UI strings (`strings.xml`), chat responses, specs:
 
-1. **Ellipsis**: Use `..` (two dots) — NEVER `...` (three dots).
-2. **Ё/ё**: Always use `ё`/`Ё` in Russian text where grammatically correct — NEVER substitute with `е`/`Е`. Common cases: `всё`, `ещё`, `чёрный`, `объём`, `тёмный`, `учётный`, `надёжный`, `удалённый`, `лёгкий`, `жёсткий`. When editing Russian text — read and fix manually; do NOT use blind script replacement.
+1. **Ellipsis**: Use `..` (two dots) - NEVER `...` (three dots).
+2. **Ё/ё**: Always use `ё`/`Ё` in Russian text where grammatically correct - NEVER substitute with `е`/`Е`. Common cases: `всё`, `ещё`, `чёрный`, `объём`, `тёмный`, `учётный`, `надёжный`, `удалённый`, `лёгкий`, `жёсткий`. When editing Russian text - read and fix manually; do NOT use blind script replacement.
 
 ## Caveman Mode (OPTIONAL)
 
@@ -32,33 +32,33 @@ When the user explicitly asks for `caveman`, `less tokens`, `be brief`, `ultra-t
 
 ---
 
-## Skill Rules (MANDATORY — Auto-invoke on trigger)
+## Skill Rules (MANDATORY - Auto-invoke on trigger)
 
-These prompt files MUST be used automatically — load them via the `/` slash command before proceeding:
+These prompt files MUST be used automatically - load them via the `/` slash command before proceeding:
 
 | Trigger | Prompt | Rule |
 |---------|--------|------|
-| Creating or updating any `PLAN/Sxxxx_*.md` strategic spec | `/spec` | **Mandatory** — enforces the strategic spec template, `Sxxxx` ticket allocation, spec-catalog sync, and architecture/research/ADR coverage |
-| Full spec pipeline from idea to verified implementation, unattended | `/spec-all` | **Mandatory** — chains spec → spec-update → spec-tech → spec-dev → spec-check → spec-fix in a single automated run; hard-stops only when human action is truly required |
-| Breaking an approved strategic spec into a tactical phase plan | `/spec-tech` | **Mandatory** — creates `PLAN/Sxxxx_<name>/INDEX.md` + phase files with atomic steps and verification predicates |
-| Reviewing and refining an existing spec file (strategic or tactical) | `/spec-update` | **Mandatory** — structured review pass with ACCEPT/REVIEW/DISCUSS classification; never modifies Status fields |
-| Executing a tactical spec step by step, implementing phases | `/spec-dev` | **Mandatory** — agentic implementation executor; verifies each step before marking done; hard-stops on ambiguity |
-| Auditing a spec against the actual codebase state | `/spec-check` | **Mandatory** — machine-verifiable audit; writes inline `## Last Audit` into `PLAN/Sxxxx_<name>.md`; sets Status to Verified/Partial/Broken |
-| Applying mechanical fixes after a spec-check audit | `/spec-fix` | **Mandatory** — consumes the latest inline `## Last Audit` block; applies trivial fixes (dev log, trilingual gaps, catalog, Log.d → Timber, INDEX drift) |
-| Archiving a spec — move `PLAN/Sxxxx_*` files to `temp/done/` and mark the journal record `Archived` | `/spec-arc` | **Mandatory** — uses `scripts/spec_catalog/archive.ps1`; never hand-edits the journal; removes any leftover debug tags |
-| End-to-end on-device verification of a spec (build → install → drive UI via mobile-mcp → harvest logcat → patch the spec's `## Last Audit` Manual block) | `/spec-test-device` | **Mandatory for on-device test runs** — never edits the codebase, never flips strategic `Status:` (that is `/spec-check`'s job) |
-| Locating a Kotlin class or feature before grepping, planning a refactor/decomposition, auditing who injects a type, or refreshing class-catalog metadata after code changes | `/catalog` | **Mandatory** — query `dev/CATALOG/scripts/query.ps1` before any global Search/grep for Kotlin classes; run `scan.ps1` + `render.ps1` after every `.kt` change |
-| Making a very minor change — design tweak, typo, single color/padding/string fix, one-localization rename, small XML/dimens/colors edit | `/quick` | **Optional** — fast path: no spec, no docs, no build check, only `dev/CHANGELOG.md`; refuses anything touching business logic, navigation, schema, UI behavior, or multi-file refactors |
-| User asks for user-facing UI/UX changes, or task touches layouts, command bars, menus, settings screens, button placement, portrait/landscape behavior, overflow rules, visibility conditions, empty/error states, or confirmation UX | `/ui-clarify` | **Mandatory** — before design or implementation, enumerate and resolve all UI ambiguities; implementation is blocked until placement, visibility, interaction, and fallback behavior are explicit or approved |
-| Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature/help docs) | `/doc-update` | **Mandatory** — ensures EN/RU/UK mirrors stay in sync and all doc categories are checked |
-| User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis with the search-log.ps1 scripts |
-| User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** — routes to the correct flavor/variant build command |
-| User asks about git commits, staging, pushing, diffs, old file versions, or "what should I commit" | `/git` | **Mandatory** — provides project-aware git workflow guidance |
-| User asks for caveman mode, fewer tokens, ultra-terse replies, or `/caveman` | `/caveman` | **Optional** — switches the current chat to terse caveman mode while preserving Russian chat, English code/docs/logs, and existing safety/workflow constraints |
-| User asks for a terse commit message, caveman commit message, or `/caveman-commit` | `/caveman-commit` | **Optional** — generates a compressed Conventional Commit message while preserving English commit format and critical why-context |
-| User asks for terse code review comments, caveman review, or `/caveman-review` | `/caveman-review` | **Optional** — produces compressed review findings with exact file/line anchors, severity, and fix direction |
+| Creating or updating any `PLAN/Sxxxx_*.md` strategic spec | `/spec` | **Mandatory** - enforces the strategic spec template, `Sxxxx` ticket allocation, spec-catalog sync, and architecture/research/ADR coverage |
+| Full spec pipeline from idea to verified implementation, unattended | `/spec-all` | **Mandatory** - chains spec → spec-update → spec-tech → spec-dev → spec-check → spec-fix in a single automated run; hard-stops only when human action is truly required |
+| Breaking an approved strategic spec into a tactical phase plan | `/spec-tech` | **Mandatory** - creates `PLAN/Sxxxx_<name>/INDEX.md` + phase files with atomic steps and verification predicates |
+| Reviewing and refining an existing spec file (strategic or tactical) | `/spec-update` | **Mandatory** - structured review pass with ACCEPT/REVIEW/DISCUSS classification; never modifies Status fields |
+| Executing a tactical spec step by step, implementing phases | `/spec-dev` | **Mandatory** - agentic implementation executor; verifies each step before marking done; hard-stops on ambiguity |
+| Auditing a spec against the actual codebase state | `/spec-check` | **Mandatory** - machine-verifiable audit; writes inline `## Last Audit` into `PLAN/Sxxxx_<name>.md`; sets Status to Verified/Partial/Broken |
+| Applying mechanical fixes after a spec-check audit | `/spec-fix` | **Mandatory** - consumes the latest inline `## Last Audit` block; applies trivial fixes (dev log, trilingual gaps, catalog, Log.d → Timber, INDEX drift) |
+| Archiving a spec - move `PLAN/Sxxxx_*` files to `temp/done/` and mark the journal record `Archived` | `/spec-arc` | **Mandatory** - uses `scripts/spec_catalog/archive.ps1`; never hand-edits the journal; removes any leftover debug tags |
+| End-to-end on-device verification of a spec (build → install → drive UI via mobile-mcp → harvest logcat → patch the spec's `## Last Audit` Manual block) | `/spec-test-device` | **Mandatory for on-device test runs** - never edits the codebase, never flips strategic `Status:` (that is `/spec-check`'s job) |
+| Locating a Kotlin class or feature before grepping, planning a refactor/decomposition, auditing who injects a type, or refreshing class-catalog metadata after code changes | `/catalog` | **Mandatory** - query `dev/CATALOG/scripts/query.ps1` before any global Search/grep for Kotlin classes; run `scan.ps1` + `render.ps1` after every `.kt` change |
+| Making a very minor change - design tweak, typo, single color/padding/string fix, one-localization rename, small XML/dimens/colors edit | `/quick` | **Optional** - fast path: no spec, no docs, no build check, only `dev/CHANGELOG.md`; refuses anything touching business logic, navigation, schema, UI behavior, or multi-file refactors |
+| User asks for user-facing UI/UX changes, or task touches layouts, command bars, menus, settings screens, button placement, portrait/landscape behavior, overflow rules, visibility conditions, empty/error states, or confirmation UX | `/ui-clarify` | **Mandatory** - before design or implementation, enumerate and resolve all UI ambiguities; implementation is blocked until placement, visibility, interaction, and fallback behavior are explicit or approved |
+| Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature/help docs) | `/doc-update` | **Mandatory** - ensures EN/RU/UK mirrors stay in sync and all doc categories are checked |
+| User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** - provides structured Android logcat analysis with the search-log.ps1 scripts |
+| User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** - routes to the correct flavor/variant build command |
+| User asks about git commits, staging, pushing, diffs, old file versions, or "what should I commit" | `/git` | **Mandatory** - provides project-aware git workflow guidance |
+| User asks for caveman mode, fewer tokens, ultra-terse replies, or `/caveman` | `/caveman` | **Optional** - switches the current chat to terse caveman mode while preserving Russian chat, English code/docs/logs, and existing safety/workflow constraints |
+| User asks for a terse commit message, caveman commit message, or `/caveman-commit` | `/caveman-commit` | **Optional** - generates a compressed Conventional Commit message while preserving English commit format and critical why-context |
+| User asks for terse code review comments, caveman review, or `/caveman-review` | `/caveman-review` | **Optional** - produces compressed review findings with exact file/line anchors, severity, and fix direction |
 
-Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc — always route through the corresponding prompt.
+Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc - always route through the corresponding prompt.
 
 ---
 
@@ -129,11 +129,11 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
     <constraint>COMMON_PITFALLS: NO player code in `PlayerActivity.kt`. Use `Dispatchers.IO` for Coroutines. FTP MUST handle timeouts. NO file saves in root.</constraint>
     <constraint>DEV_CHANGELOG: MANDATORY. After EVERY code/config modification, run `.\scripts\add_to_dev_log.ps1 "path" "target" "description"` to log the change to `dev/CHANGELOG.md`. Execute AFTER each modification step, BEFORE moving to next task. Applies to ALL agents.</constraint>
     <constraint>FEATURES_DOCS_UPDATE: MANDATORY. After implementing ANY new user-facing feature, add a bullet entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this at end of Step 4, BEFORE marking task complete. Match the bullet style of existing entries. Applies to ALL agents. NO exceptions.</constraint>
-    <constraint>COMMENTS_READ_FIRST: MANDATORY. Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Treat them as requirements — they encode intent, constraints, and non-obvious decisions. DO NOT ignore or overwrite comments without understanding them first.</constraint>
+    <constraint>COMMENTS_READ_FIRST: MANDATORY. Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Treat them as requirements - they encode intent, constraints, and non-obvious decisions. DO NOT ignore or overwrite comments without understanding them first.</constraint>
     <constraint>COMMENTS_WRITE_ON_MODIFY: MANDATORY. When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious from the code. Remove or update stale comments that no longer reflect reality. Applies to ALL agents.</constraint>
     <constraint>SCRIPT_OWNERSHIP: MANDATORY. Do not work around broken, incomplete, or outdated internal project scripts when the current task depends on them. If a repo script has bugs, does not satisfy the request, or can be materially improved to complete the task safely, modify the script itself and then use the improved version. Applies to ALL agents.</constraint>
     <constraint>STRING_RESOURCE_TOOLING: MANDATORY. When updating an existing Android `<string>` value in `values*/strings.xml`, prefer `scripts/utils/set-android-string.ps1` instead of manual XML editing. Use manual edits only for structural resource changes (`plurals`, `string-array`, comments, regrouping, or bulk rewrites).</constraint>
-    <constraint>UI_TRIGGER_ROW: MANDATORY. All toggle/switch and checkbox rows MUST follow the canonical patterns defined in `docs/ARCHITECTURE.md` § "UI Patterns — Trigger Row". SWITCH rows: title=`toggler_title_text_size` (14sp), help-text=`toggler_desc_text_size` (12sp), help-icon `ic_help_outline_24` always rightmost child. CHECKBOX rows: help-text=`text_size_small` (14sp), indent=`checkbox_subtitle_margin_start`. Help text is ALWAYS 2sp smaller than the trigger label. NEVER hardcode sp values. Applies to ALL agents.</constraint>
+    <constraint>UI_TRIGGER_ROW: MANDATORY. All toggle/switch and checkbox rows MUST follow the canonical patterns defined in `docs/ARCHITECTURE.md` § "UI Patterns - Trigger Row". SWITCH rows: title=`toggler_title_text_size` (14sp), help-text=`toggler_desc_text_size` (12sp), help-icon `ic_help_outline_24` always rightmost child. CHECKBOX rows: help-text=`text_size_small` (14sp), indent=`checkbox_subtitle_margin_start`. Help text is ALWAYS 2sp smaller than the trigger label. NEVER hardcode sp values. Applies to ALL agents.</constraint>
     <constraint>UI_AMBIGUITY_GATE: MANDATORY. For ANY user-facing change touching layout, command placement, settings UI, menus, button visibility, portrait/landscape behavior, overflow rules, labels, icons, help text, confirmation/fallback UX, or empty/error states, DO NOT start implementation until all ambiguous UI decisions are explicitly resolved. Minimum checklist: exact placement per orientation, direct button vs overflow vs top menu, visibility predicates by file/media type, priority relative to existing actions, icon/text/tooltip, disabled/hidden behavior, empty/error/loading states, confirmation/overwrite/fallback behavior, and accessibility implications. If the request, spec, or current code leaves any item unclear, stop in Step 0 or Step 2, ask targeted questions, and wait for alignment or explicit delegated assumptions.</constraint>
     <constraint>LAYOUT_ORIENTATION: MANDATORY. Any edit to `res/layout/*.xml` MUST be paired with a check of `res/layout-land/*.xml`. If the landscape variant exists → apply the equivalent change in the same step. If it does not exist but the screen supports landscape → add a separate step to create it or add an explicit blocker note. Never close a step that modifies a portrait layout without verifying the landscape counterpart. Applies to ALL agents. NO exceptions.</constraint>
   </strict_constraints>

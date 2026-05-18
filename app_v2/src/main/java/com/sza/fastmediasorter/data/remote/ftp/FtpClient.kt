@@ -94,7 +94,7 @@ class FtpClient @Inject constructor(
             client.defaultTimeout = SOCKET_TIMEOUT
             client.setDataTimeout(SOCKET_TIMEOUT)
             client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-            // S0212: encoding MUST be set before connect — Apache Commons Net
+            // S0212: encoding MUST be set before connect - Apache Commons Net
             // captures the control-channel encoding inside _connectAction_().
             client.applyUtf8Encoding()
             client.connect(host, port)
@@ -150,7 +150,7 @@ class FtpClient @Inject constructor(
                         try {
                             client.soTimeout = originalTimeout
                         } catch (e: Exception) {
-                            // Socket may be null/closed — ignore
+                            // Socket may be null/closed - ignore
                         }
                     }
                     client.disconnect()

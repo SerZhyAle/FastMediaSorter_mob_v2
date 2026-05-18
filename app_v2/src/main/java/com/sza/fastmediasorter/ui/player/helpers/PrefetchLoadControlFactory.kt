@@ -68,7 +68,7 @@ internal object PrefetchLoadControlFactory {
                     Timber.d("PrefetchLoadControl[%s]: fallback cloud defaults", tag)
                 else ->
                     // WHY S0168 §5.4: fallback to standard defaults means no PrefetchPlan was
-                    // delivered before createPlayer() — elevate to W for visibility in log analysis.
+                    // delivered before createPlayer() - elevate to W for visibility in log analysis.
                     Timber.w("PrefetchLoadControl[%s]: fallback standard defaults", tag)
             }
         }

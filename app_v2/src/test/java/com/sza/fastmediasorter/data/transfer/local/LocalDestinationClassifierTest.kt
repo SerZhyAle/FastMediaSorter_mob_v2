@@ -11,7 +11,7 @@ import org.robolectric.annotation.Config
 /**
  * Unit tests for [LocalDestinationClassifier].
  *
- * Pure path arithmetic + `MimeTypeMap` — Robolectric is sufficient to back
+ * Pure path arithmetic + `MimeTypeMap` - Robolectric is sufficient to back
  * `Environment.getExternalStorageDirectory()` and the MIME map.
  *
  * See spec S0231 §6.1 (public collection boundary) and §6.3 (MIME).

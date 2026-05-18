@@ -38,7 +38,7 @@ import javax.inject.Singleton
  * remote-flow entry boundary (S0195 ADR-1). [AtomicBoolean] guarantees the four
  * registrations execute exactly once across all callers; subsequent invocations
  * are cheap no-ops. Each registration is wrapped in try/catch so a partial failure
- * cannot throw out of [ensureInitialized] — failed registrations are logged via
+ * cannot throw out of [ensureInitialized] - failed registrations are logged via
  * Timber and the process continues with degraded lifecycle semantics.
  *
  * No public API beyond [ensureInitialized]; the registry / observer / manager
@@ -61,7 +61,7 @@ class NetworkLifecycleBootstrapper @Inject constructor(
      *
      * Safe to call from any thread. When invoked from a background thread the method
      * dispatches the [LifecycleRegistry.addObserver] calls to the main thread and
-     * blocks the calling thread until they complete (required by AndroidX — addObserver
+     * blocks the calling thread until they complete (required by AndroidX - addObserver
      * must be called on the main thread). The [AtomicBoolean] guard collapses concurrent
      * first calls to a single execution. Subsequent calls return immediately without
      * blocking.
@@ -86,12 +86,12 @@ class NetworkLifecycleBootstrapper @Inject constructor(
     }
 
     private fun doRegistrations() {
-        // (1) SMB background lifecycle observer — closes UI SMB connections on app stop.
+        // (1) SMB background lifecycle observer - closes UI SMB connections on app stop.
         runCatching {
             ProcessLifecycleOwner.get().lifecycle.addObserver(smbBackgroundLifecycleManager.get())
         }.onFailure { Timber.e(it, "S0195: SmbBackgroundLifecycleManager attach failed") }
 
-        // (2) Protocol-neutral lifecycle observer — closes UI gates on app stop.
+        // (2) Protocol-neutral lifecycle observer - closes UI gates on app stop.
         runCatching {
             networkLifecycleObserver.get().attach()
         }.onFailure { Timber.e(it, "S0195: NetworkLifecycleObserver.attach failed") }
@@ -102,7 +102,7 @@ class NetworkLifecycleBootstrapper @Inject constructor(
         }.onFailure { Timber.e(it, "S0195: NetworkStateMonitor.start failed") }
 
         // (4) SMB auto-reset UI notification callback. Moved verbatim from
-        // FastMediaSorterApp.setupSmbAutoReset() — same Toast throttling semantics.
+        // FastMediaSorterApp.setupSmbAutoReset() - same Toast throttling semantics.
         runCatching {
             smbConnectionManager.get().setResetCallback(object : SmbResetCallback {
                 override fun onAutoReset(reason: String) {

@@ -1,4 +1,4 @@
-# CATALOG — File/class database
+# CATALOG - File/class database
 
 Machine-readable catalogue of all Kotlin classes in the project. Lets agents
 answer "where does X happen?" questions without scanning the whole codebase.
@@ -14,7 +14,7 @@ answer "where does X happen?" questions without scanning the whole codebase.
 | `scripts/render.ps1` | JSONL → Markdown. |
 | `scripts/set.ps1` | Update manual fields on a record. |
 | `scripts/query.ps1` | Filter records by layer / status / side effects / LOC / etc. |
-| `scripts/remove.ps1` | Delete a record (rare — scan auto-removes stale entries). |
+| `scripts/remove.ps1` | Delete a record (rare - scan auto-removes stale entries). |
 
 ## Record fields
 
@@ -36,12 +36,12 @@ answer "where does X happen?" questions without scanning the whole codebase.
 | `role` | **manual** | 1-line description of the class's role. |
 | `functions[]` | auto name/sig, **manual description** | Top-level functions. |
 
-Manual fields survive re-runs of `scan.ps1` — merge key is `path + class` for
+Manual fields survive re-runs of `scan.ps1` - merge key is `path + class` for
 records, and `name` for function descriptions.
 
-## Scripts — CRUD reference
+## Scripts - CRUD reference
 
-### scan.ps1 — structural refresh (create/update auto-fields, auto-remove deleted)
+### scan.ps1 - structural refresh (create/update auto-fields, auto-remove deleted)
 
 ```powershell
 pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
@@ -53,10 +53,10 @@ For `app_v2`, the scanner covers both `src/main/java` and `src/vr/java`.
 **Manual fields (`role`, `status`, `noFlavors`, function descriptions) are
 preserved** by merging on `path + class` and function `name`.
 
-### set.ps1 — edit manual fields
+### set.ps1 - edit manual fields
 
 ```powershell
-# Set role + status in one call (fuzzy path match — substring must be unique)
+# Set role + status in one call (fuzzy path match - substring must be unique)
 pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "AppShortcutsManager.kt" `
     -Role "Refreshes recent-resource app shortcuts on Android launcher" `
     -Status tested
@@ -70,7 +70,7 @@ pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "MediaFilesCacheMana
     -Function "updateFile" `
     -Description "Replaces cache entry for a renamed/moved file within a resource"
 
-# Skip auto-re-render (rare — when batching many edits)
+# Skip auto-re-render (rare - when batching many edits)
 pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "..." -Role "..." -NoRender
 ```
 
@@ -78,7 +78,7 @@ Re-renders Markdown after each successful edit unless `-NoRender` is passed.
 Validates `-Status` and `-NoFlavors` against allowed values. Fails hard on
 ambiguous fuzzy paths (shows all matches).
 
-### query.ps1 — filter records
+### query.ps1 - filter records
 
 ```powershell
 # Big data-layer classes that touch disk
@@ -105,13 +105,13 @@ All filters are AND'd. Supported: `-Layer`, `-Status`, `-SideEffect`,
 `-Injected`, `-Missing role|description`, `-Coroutines`, `-UserFeedback`,
 `-Tests` / `-NoTests`, `-TouchedSince`, `-TouchedBefore`, `-Json`.
 
-### remove.ps1 — drop a record manually
+### remove.ps1 - drop a record manually
 
 ```powershell
 pwsh -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
 ```
 
-Rare — `scan.ps1` already removes records for deleted files. Use this only
+Rare - `scan.ps1` already removes records for deleted files. Use this only
 for cleaning up wrongly-added manual entries.
 
 ## When to use the catalogue

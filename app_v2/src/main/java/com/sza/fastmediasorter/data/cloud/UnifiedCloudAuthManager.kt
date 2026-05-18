@@ -85,7 +85,7 @@ class UnifiedCloudAuthManager @Inject constructor(
                     }
                 }
                 // Hot-fix: Google Drive's Credential Manager flow (Phase 04b) completes after
-                // several seconds of interactive UI — well past the 1-second poll above. The
+                // several seconds of interactive UI - well past the 1-second poll above. The
                 // plugin pushes the final AuthResult through its [asyncResults] flow; collect
                 // the next emission and route it through processPluginResult so AddResourceActivity
                 // observes AuthEvent.Success and navigates to the folder picker.
@@ -111,7 +111,7 @@ class UnifiedCloudAuthManager @Inject constructor(
     suspend fun processIntentResult(data: Intent?) {
         val provider = activeProvider
         if (provider == null) {
-            StructuredLogger.w("processIntentResult called but activeProvider is null — result dropped")
+            StructuredLogger.w("processIntentResult called but activeProvider is null - result dropped")
             return
         }
         StructuredLogger.d("Handling unified intent result", "provider" to provider.name)

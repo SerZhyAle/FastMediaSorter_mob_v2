@@ -14,7 +14,7 @@ class DocumentMetadataExtractor(private val context: Context) {
      * Extract PDF metadata from local file.
      *
      * Page count comes from the Android PdfRenderer; all /Info-dict fields come from
-     * PdfInfoParser. The two reads are independent — a failure in one does not kill the other.
+     * PdfInfoParser. The two reads are independent - a failure in one does not kill the other.
      */
     fun extractPdfInfo(file: File): DetailedMediaInfo {
         val pageCount: Int? = try {

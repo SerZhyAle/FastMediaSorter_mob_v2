@@ -131,10 +131,10 @@ class GoogleDriveThumbnailDataFetcher(
                         connection?.disconnect()
                         val freshUrl = fetchFreshThumbnailUrl(model.fileId, "Bearer $accessToken")
                         if (freshUrl != null) {
-                            Timber.w("GoogleDriveThumbnailDataFetcher: thumbnailLink expired (404) — retrying with fresh URL for ${model.fileId}")
+                            Timber.w("GoogleDriveThumbnailDataFetcher: thumbnailLink expired (404) - retrying with fresh URL for ${model.fileId}")
                             downloadWithFreshUrl(freshUrl, "Bearer $accessToken", callback)
                         } else {
-                            Timber.e("Google Drive thumbnail failed: $responseCode — no fresh thumbnailLink for ${model.fileId}")
+                            Timber.e("Google Drive thumbnail failed: $responseCode - no fresh thumbnailLink for ${model.fileId}")
                             callback.onLoadFailed(Exception("HTTP $responseCode"))
                         }
                     } else {
@@ -210,12 +210,12 @@ class GoogleDriveThumbnailDataFetcher(
      * S0200 Phase 04b: fetch a Drive read-only access token from the identity domain via the
      * `ThumbnailIdentityEntryPoint` Hilt accessor. The fetcher is created by Glide's
      * `ModelLoaderFactory` and is NOT Hilt-managed, so it cannot inject `GoogleIdentityRepository`
-     * via the constructor — `EntryPointAccessors.fromApplication(..)` reaches into the singleton
+     * via the constructor - `EntryPointAccessors.fromApplication(..)` reaches into the singleton
      * graph instead.
      *
      * Cold-start race: if Glide triggers `loadData` before `Application.onCreate` has finalised
      * the Hilt singleton component, `EntryPointAccessors.fromApplication(..)` may throw
-     * `IllegalStateException`. The catch block treats that as "no token now" — Glide reports
+     * `IllegalStateException`. The catch block treats that as "no token now" - Glide reports
      * onLoadFailed and the next thumbnail attempt (after Hilt is ready) succeeds.
      */
     private fun getAccessToken(): String? {
@@ -263,7 +263,7 @@ class GoogleDriveThumbnailDataFetcher(
     override fun getDataSource(): DataSource = DataSource.REMOTE
 
     /**
-     * S0200 Phase 04a — EntryPoint scaffold for Hilt access from the non-managed Glide
+     * S0200 Phase 04a - EntryPoint scaffold for Hilt access from the non-managed Glide
      * `DataFetcher` instance. Phase 04b activates this accessor inside
      * [getAccessToken] to source tokens from the identity domain instead of GoogleSignIn.
      */

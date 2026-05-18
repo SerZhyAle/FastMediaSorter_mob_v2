@@ -18,14 +18,14 @@ import timber.log.Timber
  *   infrastructure for an evolving feature.
  * - [truncateUrl] strips query string, fragment, and any path segment beyond index 2
  *   to keep short-lived signed-tokens and tracking parameters out of logcat.
- * - [truncateCookies] formats a cookie list as `count=N names=[a,b,c]` — never logs
+ * - [truncateCookies] formats a cookie list as `count=N names=[a,b,c]` - never logs
  *   cookie values.
  */
 object LinkDownloadTrace {
 
     @Suppress("UNUSED_PARAMETER")
     fun tag(message: String) {
-        // Retired on /spec-check transition to Verified — see kdoc.
+        // Retired on /spec-check transition to Verified - see kdoc.
     }
 
     fun verbose(message: String) {

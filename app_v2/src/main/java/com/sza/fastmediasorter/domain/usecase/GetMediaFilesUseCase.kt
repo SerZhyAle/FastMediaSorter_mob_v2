@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.MetadataState
 import com.sza.fastmediasorter.domain.model.SortMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -152,7 +151,7 @@ class GetMediaFilesUseCase @Inject constructor(
         // If forced, evict any cached data for this resource before scanning.
         if (forceFullScan) {
             MediaFilesCacheManager.clearCache(resource.id)
-            StructuredLogger.i("forceFullScan=true — cleared in-memory cache")
+            StructuredLogger.i("forceFullScan=true - cleared in-memory cache")
         }
         
         // Handle virtual Favorites resource
@@ -258,6 +257,15 @@ class GetMediaFilesUseCase @Inject constructor(
             // Progressive loading: emit a fast partial batch for large SMB folders
             // before the full (metadata-heavy) scan starts. This gives the UI files
             // within seconds while the complete scan continues in the background.
+            //
+            // S0248: this is the documented two-phase listing pattern. The chunked early-emit
+            // (`scanFolderChunked` with PROGRESSIVE_BATCH_SIZE) and the full follow-up scan
+            // (`scanFolder` below) issue DIFFERENT coalesce keys at SmbMediaScanCoordinator
+            // because they carry different `maxFiles` budgets - so the defensive in-flight
+            // coalescer does not merge them. The redundant root-listing observed in S0246
+            // §4.2 traces back to this intentional split. Future regressions where the SAME
+            // listing parameters are emitted twice will be folded by the coalescer in
+            // SmbMediaScanCoordinator and logged as `dedup hit` at DEBUG level.
             if (progressiveLoading && !isSubfolderMode && !useChunkedLoading
                 && scanner is com.sza.fastmediasorter.data.network.SmbMediaScanner
             ) {
@@ -271,15 +279,21 @@ class GetMediaFilesUseCase @Inject constructor(
                         scanSubdirectories = resource.scanSubdirectories,
                         showHiddenFiles = showHiddenFiles
                     )
+                    // S0248 Phase 5: emit the listing-only PENDING batch unconditionally -
+                    // do not gate on size. Even a small SMB folder benefits from the UI
+                    // seeing names/sizes/types immediately while the full enrichment pass
+                    // continues in the background. Each row carries `metadataState = PARTIAL`
+                    // so consumers know enrichment-derived fields may still be missing.
                     if (quickFiles.isNotEmpty()) {
-                        // S0237 §5.2: emit the listing-only batch as PENDING so UI renders
-                        // names/sizes/types immediately while the full metadata-pass continues
-                        // in the background. The cache layer ignores PENDING/PARTIAL rows.
                         val tagged = quickFiles.map {
-                            it.copy(resourceId = resource.id, metadataState = MetadataState.PENDING)
+                            it.copy(
+                                resourceId = resource.id,
+                                metadataState = com.sza.fastmediasorter.domain.model.MetadataState.PARTIAL
+                            )
                         }
-                        StructuredLogger.d("S0237: emitting listing-only batch", "count" to tagged.size)
-                        Timber.d("S0237: PENDING listing-only emit count=${tagged.size} resource='${resource.name}'")
+                        StructuredLogger.d("Progressive: emitting listing-only PENDING batch", "count" to tagged.size)
+                        StructuredLogger.i("listing_complete", "resource" to resource.id, "count" to tagged.size)
+                        Timber.d("S0248: PENDING batch emit count=${tagged.size} resource=${resource.id}")
                         emit(tagged)
                     } else {
                         StructuredLogger.d("Progressive: folder empty, skipping early emit")
@@ -373,7 +387,10 @@ class GetMediaFilesUseCase @Inject constructor(
                 resourceId = resource.id,
                 resourceType = resource.type,
                 credentialsId = resource.credentialsId,
-                files = filesWithFavorites
+                files = filesWithFavorites,
+                // S0248 Phase 3: a user-triggered refresh (forceFullScan == true) also asks
+                // the cache to retry rows previously marked BROKEN. PARTIAL is always retried.
+                forceRefresh = forceFullScan
             ).also { metadataExtractor.logSessionDiagnostics("scan resource=${resource.id}") }
         } else {
             filesWithFavorites

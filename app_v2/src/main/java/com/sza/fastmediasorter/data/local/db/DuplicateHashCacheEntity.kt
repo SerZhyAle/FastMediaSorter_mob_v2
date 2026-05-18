@@ -20,5 +20,5 @@ data class DuplicateHashCacheEntity(
     val fileSize: Long,
     val quickHash: String?,  // MD5 of first 4 KB; null if not yet computed
     val fullHash: String?,   // MD5 of full file; null if not yet computed
-    val cachedAt: Long       // epoch ms — for future TTL cleanup
+    val cachedAt: Long       // epoch ms - for future TTL cleanup
 )

@@ -19,7 +19,7 @@ enum class DeadReason {
 /**
  * Pure inspector for pooled SMB connection liveness.
  *
- * No network I/O is performed — all checks are local state inspections on the SMBJ
+ * No network I/O is performed - all checks are local state inspections on the SMBJ
  * object graph. This makes the hot path (isAlive on a healthy connection) essentially free.
  * The [classify] helper maps an exception to a [DeadReason] by traversing the cause chain
  * so callers can emit a single structured log line instead of a full stack trace.
@@ -32,9 +32,9 @@ class SmbConnectionHealthProbe {
      * Returns `true` when the pooled connection looks alive based on local state only.
      *
      * Checks (in order):
-     * 1. Pool-level pending-close flag — if set, the connection is already being torn down.
-     * 2. SMBJ `Connection.isConnected` — backed by the internal transport channel state.
-     * 3. SMBJ `DiskShare.isConnected` — share-level connected flag.
+     * 1. Pool-level pending-close flag - if set, the connection is already being torn down.
+     * 2. SMBJ `Connection.isConnected` - backed by the internal transport channel state.
+     * 3. SMBJ `DiskShare.isConnected` - share-level connected flag.
      *
      * Limitations: SMBJ's `isConnected` is backed by `Socket.isClosed()`, which returns
      * `false` even after a server-side FIN (half-open state). The check here is therefore
@@ -58,13 +58,13 @@ class SmbConnectionHealthProbe {
      * [DeadReason] that matches.
      *
      * Priority (first match wins):
-     * - AUTH_FAILED  — `STATUS_LOGON_FAILURE` anywhere in message chain
-     * - BROKEN_PIPE  — `SocketException` with "broken pipe" message
-     * - SERVER_RESET — `SocketException` with "connection reset" / "connection abort"
-     * - SOCKET_CLOSED — `IOException` with "socket closed" message, or `TransportException`
+     * - AUTH_FAILED  - `STATUS_LOGON_FAILURE` anywhere in message chain
+     * - BROKEN_PIPE  - `SocketException` with "broken pipe" message
+     * - SERVER_RESET - `SocketException` with "connection reset" / "connection abort"
+     * - SOCKET_CLOSED - `IOException` with "socket closed" message, or `TransportException`
      *                   wrapping a socket-closed cause
-     * - TIMEOUT      — `TimeoutException` / `TimeoutCancellationException`
-     * - UNKNOWN      — anything else
+     * - TIMEOUT      - `TimeoutException` / `TimeoutCancellationException`
+     * - UNKNOWN      - anything else
      */
     fun classify(throwable: Throwable): DeadReason {
         var current: Throwable? = throwable
@@ -72,7 +72,7 @@ class SmbConnectionHealthProbe {
         while (current != null && depth < 8) {
             val msg = current.message?.lowercase() ?: ""
 
-            // Auth failure — don't retry, surface immediately.
+            // Auth failure - don't retry, surface immediately.
             if (msg.contains("status_logon_failure") ||
                 msg.contains("authentication failed") ||
                 msg.contains("logon failure")) {

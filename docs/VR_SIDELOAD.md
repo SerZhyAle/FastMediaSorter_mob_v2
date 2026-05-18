@@ -4,10 +4,10 @@ How to install the FastMediaSorter VR APK on Meta Quest without using a store.
 
 ## Prerequisites
 
-1. **Meta Quest headset** — Quest 3, Quest Pro, or Quest 2
-2. **USB-C cable** — to connect the headset to your PC
+1. **Meta Quest headset** - Quest 3, Quest Pro, or Quest 2
+2. **USB-C cable** - to connect the headset to your PC
 3. **Developer Mode enabled** on your Quest
-4. **ADB** — Android Debug Bridge (included in Android SDK Platform Tools)
+4. **ADB** - Android Debug Bridge (included in Android SDK Platform Tools)
 
 ## Step 1: Enable Developer Mode
 
@@ -31,7 +31,7 @@ Otherwise, download Platform Tools from [developer.android.com/tools/releases/pl
 ## Step 3: Connect Quest to PC
 
 1. Connect your Quest to the PC via USB-C
-2. Put on the headset — you should see a dialog asking **"Allow USB debugging?"**
+2. Put on the headset - you should see a dialog asking **"Allow USB debugging?"**
 3. Check **"Always allow from this computer"** and tap **Allow**
 4. Verify connection in terminal:
 
@@ -111,5 +111,5 @@ Find the Quest IP address in **Settings → Wi-Fi → Connected Network → Deta
 
 ## Related Documentation
 
-- [VR Edition Overview](VR_EDITION.md) — what the VR edition does and how it differs from standard
-- [Build Scripts](../scripts/builders/README.md) — all available build commands
+- [VR Edition Overview](VR_EDITION.md) - what the VR edition does and how it differs from standard
+- [Build Scripts](../scripts/builders/README.md) - all available build commands

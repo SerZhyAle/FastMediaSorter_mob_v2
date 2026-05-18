@@ -10,9 +10,9 @@
 - **UI/UX Gate**: For any user-facing change, explicitly enumerate all ambiguous UI decisions before continuing. Minimum checklist: placement per orientation, direct button vs overflow vs top menu, visibility predicates by media/file type, action priority, hidden vs disabled behavior, labels/icons/tooltips/help text, empty/error/loading states, confirmation/overwrite/fallback behavior, and accessibility. If any item is unresolved, implementation is blocked.
 
 ### 8.1 RESEARCH PHASE (Исследование)
-- **Action**: Analyze current "AS-IS" state. Launch multiple sub-agents in parallel for independent lookups — always prefer concurrent over sequential.
+- **Action**: Analyze current "AS-IS" state. Launch multiple sub-agents in parallel for independent lookups - always prefer concurrent over sequential.
 - **Parallel pattern**: local catalog/grep agents + `WebSearch`/`WebFetch` agents for the same question run simultaneously in one message; do not wait for one before starting the other.
-- **Web search is default ON**: use `WebSearch`/`WebFetch` freely for Android API behaviour, library docs, best practices, open bugs — no permission needed, no need to announce it.
+- **Web search is default ON**: use `WebSearch`/`WebFetch` freely for Android API behaviour, library docs, best practices, open bugs - no permission needed, no need to announce it.
 - **Focus**: Collect files, classes, current solutions, exact line numbers, and relevant external references (docs, changelogs, known issues).
 - **Output**: A comprehensive temporary file in `temp/` with the full context.
 
@@ -39,7 +39,7 @@
   - Mark progress directly in the planning files (`[x]`).
   - **FLAVOR RULES**: If the task involves a specific flavor (e.g., `noLegal`, `vr`), strictly follow the isolation rules in `dev/FLAVOR_DEVELOPMENT_RULES.md`. DO NOT use `BuildConfig` checks in `src/main`.
   - **FEATURES UPDATE (MANDATORY)**: After implementing any new user-facing feature, add a description entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this before marking the step complete. Use consistent bullet style matching existing entries.
-- **Validation ladder (mandatory):** Every implementation step closes with the level of evidence appropriate to its change type — see CLAUDE.md `## Validation Requirements` table. Grep-only is sufficient only for doc-only steps. Code, config, or script changes must close with the corresponding build/test/run gate. A step is NOT done until evidence passes.
+- **Validation ladder (mandatory):** Every implementation step closes with the level of evidence appropriate to its change type - see CLAUDE.md `## Validation Requirements` table. Grep-only is sufficient only for doc-only steps. Code, config, or script changes must close with the corresponding build/test/run gate. A step is NOT done until evidence passes.
 
 ### 9. PROGRESS JOURNAL
 
@@ -69,7 +69,7 @@ next: <next step id or "phase done">
 ```
 
 - `validation` must name the actual command or predicate, not just "verified" or "checked".
-- `FAIL` on any line means the step is NOT done — add `blocker:` and stop.
+- `FAIL` on any line means the step is NOT done - add `blocker:` and stop.
 - `SKIP` is allowed only for doc-only steps where a grep-only preflight is the correct closure level.
 
 #### 9.3 Raw evidence separation
@@ -80,4 +80,4 @@ Full build logs, grep dumps, and verbose command output are NOT written into the
 
 At the start of every new session, rename the current `logs/dev_progress.log` to `logs/dev_progress_<YYYYMMDD_HHMMSS>.log` (timestamp = session start time), then create a fresh `logs/dev_progress.log` with the new session-start marker. This keeps each session independently readable and the active file short.
 
-Rotated files are kept in `logs/` alongside timestamped logcat files. No automatic purge — manual cleanup only.
+Rotated files are kept in `logs/` alongside timestamped logcat files. No automatic purge - manual cleanup only.
