@@ -32,6 +32,8 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class RevisedSettingsActivity : BaseActivity<ActivitySettingsRevisedBinding>() {
 
+    private var pendingHostState: Bundle? = null
+
     private val searchAdapter = RevisedSettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
     private val keyboardManager = RevisedSettingsKeyboardNavigationManager(
@@ -96,6 +98,12 @@ class RevisedSettingsActivity : BaseActivity<ActivitySettingsRevisedBinding>() {
     companion object {
         const val EXTRA_INITIAL_TAB = "extra_revised_initial_tab"
 
+        private const val STATE_HOST = "revised_settings_host"
+        private const val STATE_SELECTED_TAB = "selected_tab"
+        private const val STATE_SEARCH_VISIBLE = "search_visible"
+        private const val STATE_SEARCH_QUERY = "search_query"
+        private const val STATE_PAGE_STATES = "page_states"
+
         fun createIntent(context: Context, initialTab: Int = 0): Intent {
             return Intent(context, RevisedSettingsActivity::class.java)
                 .putExtra(EXTRA_INITIAL_TAB, initialTab)
@@ -103,8 +111,14 @@ class RevisedSettingsActivity : BaseActivity<ActivitySettingsRevisedBinding>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        pendingHostState = savedInstanceState?.getBundle(STATE_HOST)
         super.onCreate(savedInstanceState)
         applyEdgeToEdgeInsets()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBundle(STATE_HOST, capturePageState())
+        super.onSaveInstanceState(outState)
     }
 
     override fun getViewBinding(): ActivitySettingsRevisedBinding {
@@ -128,19 +142,27 @@ class RevisedSettingsActivity : BaseActivity<ActivitySettingsRevisedBinding>() {
             tab.text = getString(adapter.getTabTitleResId(position))
         }.attach()
 
-        val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, 0)
+        val restoredTab = pendingHostState?.getInt(STATE_SELECTED_TAB, -1) ?: -1
+        val initialTab = if (restoredTab in 0 until adapter.itemCount) {
+            restoredTab
+        } else {
+            intent.getIntExtra(EXTRA_INITIAL_TAB, 0)
+        }
         if (initialTab in 0 until adapter.itemCount) {
             binding.viewPager.post { binding.viewPager.setCurrentItem(initialTab, false) }
         }
 
         setupGlobalSearch()
+        restoreHostState()
     }
 
     override fun observeData() = Unit
 
     override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {
         if (binding.searchOverlay.isVisible) {
-            closeSearchOverlay()
+            val query = binding.searchInput.text?.toString().orEmpty()
+            updateSearchResults(searchResultsForQuery(query))
+            binding.searchInput.requestFocus()
         }
     }
 
@@ -213,12 +235,13 @@ class RevisedSettingsActivity : BaseActivity<ActivitySettingsRevisedBinding>() {
         updateSearchResults(RevisedSettingsSearchRegistry.entries)
     }
 
-    private fun openSearchOverlay() {
+    private fun openSearchOverlay(initialQuery: String = "") {
         binding.searchOverlay.isVisible = true
-        if (binding.searchInput.text?.isNotEmpty() == true) {
-            binding.searchInput.setText("")
+        if (binding.searchInput.text?.toString() != initialQuery) {
+            binding.searchInput.setText(initialQuery)
+            binding.searchInput.setSelection(initialQuery.length)
         }
-        updateSearchResults(RevisedSettingsSearchRegistry.entries)
+        updateSearchResults(searchResultsForQuery(initialQuery))
         binding.searchInput.requestFocus()
     }
 
@@ -231,6 +254,47 @@ class RevisedSettingsActivity : BaseActivity<ActivitySettingsRevisedBinding>() {
     private fun updateSearchResults(results: List<RevisedSettingsSearchIndex>) {
         searchAdapter.submitList(results)
         binding.searchEmptyText.isVisible = results.isEmpty()
+    }
+
+    private fun capturePageState(): Bundle {
+        val hostState = Bundle().apply {
+            putInt(STATE_SELECTED_TAB, binding.viewPager.currentItem)
+            putBoolean(STATE_SEARCH_VISIBLE, binding.searchOverlay.isVisible)
+            putString(STATE_SEARCH_QUERY, binding.searchInput.text?.toString().orEmpty())
+        }
+
+        val pageStates = Bundle()
+        repeat(binding.viewPager.adapter?.itemCount ?: 0) { position ->
+            val pageState = (getRevisedSettingsFragment(position) as? RevisedSettingsPageContract)
+                ?.capturePageState()
+            if (pageState != null) {
+                pageStates.putBundle(position.toString(), pageState)
+            }
+        }
+        if (pageStates.keySet().isNotEmpty()) {
+            hostState.putBundle(STATE_PAGE_STATES, pageStates)
+        }
+        return hostState
+    }
+
+    private fun restoreHostState() {
+        val restoredState = pendingHostState ?: return
+        pendingHostState = null
+
+        if (restoredState.getBoolean(STATE_SEARCH_VISIBLE, false)) {
+            val query = restoredState.getString(STATE_SEARCH_QUERY).orEmpty()
+            binding.viewPager.post {
+                openSearchOverlay(query)
+            }
+        }
+    }
+
+    private fun searchResultsForQuery(query: String): List<RevisedSettingsSearchIndex> {
+        return if (query.isBlank()) {
+            RevisedSettingsSearchRegistry.entries
+        } else {
+            RevisedSettingsSearchRegistry.search(query)
+        }
     }
 
     private fun onSearchResultSelected(item: RevisedSettingsSearchIndex) {

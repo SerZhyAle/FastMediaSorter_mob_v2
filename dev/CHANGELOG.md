@@ -11369,3 +11369,68 @@ Format: | datetime | file | target | description |
 | 2026-05-19 02:21:15 | `PLAN/S0125_settings-activity-revision.md` | `S0125 status` | Status -> In Progress [branch: DEBUG-v004] |
 | 2026-05-19 02:21:15 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125 INDEX` | Mark Phase 01 in progress and advance Step 01.1 to 1/4 [branch: DEBUG-v004] |
 | 2026-05-19 02:21:15 | `PLAN/S0125_settings-activity-revision/PHASE_01__inventory-shell-foundation.md` | `S0125 01.1` | Complete Step 01.1 baseline inventory and migration map [branch: DEBUG-v004] |
+| 2026-05-19 02:23:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/revised/RevisedSettingsActivity.kt` | `S0125 01.2` | Save and restore revised host tab and search shell state [branch: DEBUG-v004] |
+| 2026-05-19 02:23:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/revised/RevisedSettingsPageContract.kt` | `S0125 01.2` | Add revised page state contract for future section and scroll restoration [branch: DEBUG-v004] |
+| 2026-05-19 02:23:09 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125 INDEX` | Advance Phase 01 to 2/4 after Step 01.2 [branch: DEBUG-v004] |
+| 2026-05-19 02:23:09 | `PLAN/S0125_settings-activity-revision/PHASE_01__inventory-shell-foundation.md` | `S0125 01.2` | Complete Step 01.2 revised host state contract [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `app_v2/build.gradle.kts` | `spec-all` | S0250 Phase 1+2+4+5: flip noLegal VR flags, wire vrStub into standard/lite/photos/legacy, archive vrUnlicensed flavor [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `dev/CATALOG/scripts/set.ps1` | `spec-all` | S0250 Phase 5: drop vrUnlicensed from valid flavors enum [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `scripts/builders/build-ffmpeg-dts.sh` | `spec-all` | S0250 Phase 5: drop vrUnlicensedImplementation from AAR-declaration template [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/VR_EDITION.md` | `spec-all` | S0250 Phase 6: rewrite Distribution Channels (vrUnlicensed -> noLegal) [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/VR_EDITION_RU.md` | `spec-all` | S0250 Phase 6: mirror RU distribution rewrite [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/VR_EDITION_UK.md` | `spec-all` | S0250 Phase 6: mirror UK distribution rewrite [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/LIMITATIONS.md` | `spec-all` | S0250 Phase 6: rewrite VR Distribution channel description [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/LIMITATIONS_RU.md` | `spec-all` | S0250 Phase 6: mirror RU limitations [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/LIMITATIONS_UK.md` | `spec-all` | S0250 Phase 6: mirror UK limitations [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/DEV_OPS.md` | `spec-all` | S0250 Phase 6: update flavor matrix and ABI strategy [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `dev/FLAVOR_DEVELOPMENT_RULES.md` | `spec-all` | S0250 Phase 6: drop future vrUnlicensed mention from RULE 6 [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `dev/CATALOG/README.md` | `spec-all` | S0250 Phase 6: drop vrUnlicensed from valid noFlavors enum [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `CLAUDE.md` | `spec-all` | S0250 Phase 7: drop vrUnlicensed from flavor list and Rule 15 [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/streaming/StreamingPipeline.kt` | `spec-all` | S0250: KDoc cleanup (vrUnlicensed -> noLegal in flavor list) [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `spec-all` | S0250: KDoc cleanup (S0232 historical note now references noLegal) [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/di/StreamingModule.kt` | `spec-all` | S0250: KDoc cleanup (vrUnlicensed -> noLegal in flavor list) [branch: DEBUG-v004] |
+| 2026-05-19 02:25:45 | `app_v2/src/main/res/values/strings.xml` | `S0249` | Phase 04: add 6 EN strings for VR controls block (title, advisory, button label, toasts) [branch: DEBUG-v004] |
+| 2026-05-19 02:25:46 | `app_v2/src/main/res/values-ru/strings.xml` | `S0249` | Phase 04: add 6 RU strings for VR controls block [branch: DEBUG-v004] |
+| 2026-05-19 02:25:46 | `app_v2/src/main/res/values-uk/strings.xml` | `S0249` | Phase 04: add 6 UK strings for VR controls block [branch: DEBUG-v004] |
+| 2026-05-19 02:25:46 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrMediaSectionContract.kt` | `S0249` | Phase 04: contract that decides whether Media Settings exposes VR section [branch: DEBUG-v004] |
+| 2026-05-19 02:25:47 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/core/xr/NoOpVrMediaSectionContract.kt` | `S0249` | Phase 04: no-op contract for phone-only flavors (isAvailable=false) [branch: DEBUG-v004] |
+| 2026-05-19 02:25:47 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/core/xr/di/NoOpXrModule.kt` | `S0249` | Phase 04: bind NoOpVrMediaSectionContract [branch: DEBUG-v004] |
+| 2026-05-19 02:25:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/VrMediaSectionContractImpl.kt` | `S0249` | Phase 04: real contract for vr/noLegal (isAvailable=true, supplies VrSettingsBlockFragment) [branch: DEBUG-v004] |
+| 2026-05-19 02:25:48 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/di/XrModule.kt` | `S0249` | Phase 04: bind VrMediaSectionContractImpl [branch: DEBUG-v004] |
+| 2026-05-19 02:25:48 | `app_v2/src/vr/res/layout/fragment_vr_settings_block.xml` | `S0249` | Phase 04: new VR block layout - advisory + master toggle + Test Immersive button [branch: DEBUG-v004] |
+| 2026-05-19 02:25:48 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `S0249` | Phase 04: block fragment - observe XrDetectionFacade+master, gate UI, route Test Immersive to XrEntryGateway [branch: DEBUG-v004] |
+| 2026-05-19 02:25:49 | `app_v2/src/main/res/layout/fragment_settings_media_container.xml` | `S0249` | Phase 04: add 6th VR section card (headerVr+containerVr) after Video block [branch: DEBUG-v004] |
+| 2026-05-19 02:25:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/MediaSettingsFragment.kt` | `S0249` | Phase 04: @AndroidEntryPoint + inject VrMediaSectionContract; attach VR fragment to containerVr; expandable VR section with default expanded [branch: DEBUG-v004] |
+| 2026-05-19 02:25:49 | `app_v2/src/vr/res/values/strings.xml` | `S0249` | Phase 04: remove settings_tab_vr + placeholder_summary (5th tab obsoleted) [branch: DEBUG-v004] |
+| 2026-05-19 02:25:50 | `app_v2/src/vr/res/values-ru/strings.xml` | `S0249` | Phase 04: remove obsoleted RU strings [branch: DEBUG-v004] |
+| 2026-05-19 02:25:50 | `app_v2/src/vr/res/values-uk/strings.xml` | `S0249` | Phase 04: remove obsoleted UK strings [branch: DEBUG-v004] |
+| 2026-05-19 02:25:50 | `THIRD_PARTY_LICENSES.md` | `S0249` | Phase 04: noop touch [branch: DEBUG-v004] |
+| 2026-05-19 02:25:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsFragment.kt` | `S0249` | Phase 04: DELETED - replaced by VrSettingsBlockFragment (block now lives in Media tab) [branch: DEBUG-v004] |
+| 2026-05-19 02:25:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsTabExtension.kt` | `S0249` | Phase 04: DELETED - 5th VR tab removed; VR is now a Media section [branch: DEBUG-v004] |
+| 2026-05-19 02:25:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/di/VrSettingsExtensionModule.kt` | `S0249` | Phase 04: DELETED - tab binding obsolete [branch: DEBUG-v004] |
+| 2026-05-19 02:25:52 | `app_v2/src/vr/res/layout/fragment_vr_settings.xml` | `S0249` | Phase 04: DELETED - replaced by fragment_vr_settings_block.xml [branch: DEBUG-v004] |
+| 2026-05-19 02:28:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/revised/RevisedSettingsSearchIndex.kt` | `S0125 01.3` | Normalize revised search registry to blueprint section ids via visible header and entry anchors [branch: DEBUG-v004] |
+| 2026-05-19 02:29:15 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125 INDEX` | Advance Phase 01 to 3/4 after Step 01.3 [branch: DEBUG-v004] |
+| 2026-05-19 02:29:15 | `PLAN/S0125_settings-activity-revision/PHASE_01__inventory-shell-foundation.md` | `S0125 01.3` | Complete Step 01.3 blueprint section id normalization bridge [branch: DEBUG-v004] |
+| 2026-05-19 02:29:15 | `dev/CATALOG/app_v2.jsonl` | `S0125 catalog` | Refresh app_v2 catalog after revised settings host and search registry changes [branch: DEBUG-v004] |
+| 2026-05-19 02:29:15 | `dev/CATALOG/app_v2.md` | `S0125 catalog` | Refresh app_v2 catalog after revised settings host and search registry changes [branch: DEBUG-v004] |
+| 2026-05-19 02:29:31 | `PLAN/S0125_settings-activity-revision/PHASE_01__inventory-shell-foundation.md` | `S0125 01.3` | Complete Step 01.3 blueprint section id normalization bridge [branch: DEBUG-v004] |
+| 2026-05-19 02:29:31 | `dev/CATALOG/app_v2.jsonl` | `S0125 catalog` | Refresh app_v2 catalog after revised settings host and search registry changes [branch: DEBUG-v004] |
+| 2026-05-19 02:29:31 | `dev/CATALOG/app_v2.md` | `S0125 catalog` | Refresh app_v2 catalog after revised settings host and search registry changes [branch: DEBUG-v004] |
+| 2026-05-19 02:31:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `spec-all` | S0250: Timber debug tag at VR-UI activation point (BlockNeedUserTest gate) [branch: DEBUG-v004] |
+| 2026-05-19 02:31:57 | `PLAN/S0250_nolegal-vr-unification.md` | `spec-all` | S0250: Last Audit + BlockNeedUserTest status [branch: DEBUG-v004] |
+| 2026-05-19 02:32:46 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/input/DiagnosticXrInputExitHandler.kt` | `S0249` | Phase 05: Android-side input exit handler with grace period; KeyEvent/MotionEvent/NativeAction -> exitRequested flow [branch: DEBUG-v004] |
+| 2026-05-19 02:32:47 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `S0249` | Phase 05: action set scaffolding (xrCreateActionSet, anyButton/anyTrigger boolean actions, xrSyncActions+xrGetActionStateBoolean polling, JNI nativePollExitTriggered, full teardown chain) [branch: DEBUG-v004] |
+| 2026-05-19 02:32:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0249` | Phase 05: pollExitTriggered() Kotlin wrapper around nativePollExitTriggered JNI [branch: DEBUG-v004] |
+| 2026-05-19 02:39:47 | `PLAN/S0240_vr-stack-rewrite-epic.md` | `S0249` | Phase 06: update S0240 section 10 - introduce Stage 1A (S0249) before Stage 1B (video immerse) [branch: DEBUG-v004] |
+| 2026-05-19 02:39:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `S0249` | Phase 06 Step 06.6: insert Timber.d(S0249:..) tag at flow entry for BlockNeedUserTest gate [branch: DEBUG-v004] |
+| 2026-05-19 02:39:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `S0249` | Phase 06 Step 06.6: insert Timber.d(S0249:..) tag at gateway entry [branch: DEBUG-v004] |
+| 2026-05-19 02:39:48 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0249` | Phase 06 Step 06.6: insert Timber.d(S0249:..) tag at native startSession entry [branch: DEBUG-v004] |
+| 2026-05-19 02:56:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `xr-runtime` | Demote NativeDiagnosticXrRuntime loadLibrary failure from Timber.e to Timber.i: missing libfms_diagnostic_xr.so on non-arm64 ABI is an expected device-capability mismatch per S0156 ADR-8 (noLegal flavor ships arm64-v8a slice only), not a program error. Added nativeAvailable short-circuit so every runtime method returns LoaderUnavailable/false cleanly without triggering UnsatisfiedLinkError storms from downstream native call sites. SecurityException catch kept at Timber.e (genuine misconfiguration). [branch: DEBUG-v004] |
+| 2026-05-19 03:22:44 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `S0251` | Phase 01.1: remove dead layoutVrSettings block (3 forced-format controls + 2 live switches; live switches re-added in 01.3) [branch: DEBUG-v004] |
+| 2026-05-19 03:23:44 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `S0251` | Phase 01.2: landscape parity - remove dead layoutVrSettings block [branch: DEBUG-v004] |
+| 2026-05-19 03:25:47 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `S0251` | Phase 01.3: re-add switchPlayerShowFps + switchAllowSeparateWindow as root-level siblings after snapshot block (portrait) [branch: DEBUG-v004] |
+| 2026-05-19 03:25:47 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `S0251` | Phase 01.3: re-add switchPlayerShowFps + switchAllowSeparateWindow as root-level siblings after snapshot block (landscape) [branch: DEBUG-v004] |
+| 2026-05-19 03:28:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `S0251` | Phase 01.4: drop setupVrSettings (63 LOC) + SUPPORT_VR_PLAYER gates; extract setupPlayerExtras helper for switchPlayerShowFps + switchAllowSeparateWindow [branch: DEBUG-v004] |
+| 2026-05-19 03:31:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0251` | Phase 02.1: drop dead VR forced-format fields (vrForcedPlatFormat, vrForcedSphericalFormat, vrRememberFileFormat) [branch: DEBUG-v004] |
+| 2026-05-19 03:32:51 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0251` | Phase 02.2: drop 3 DataStore keys + read/write + 2 helper functions + 2 value-validator constants; also drop legacy KEY_VR_FORCED_FORMAT and KEY_VR_AUTO_DETECT_FORMAT cleanup [branch: DEBUG-v004] |

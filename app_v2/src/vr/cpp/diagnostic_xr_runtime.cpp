@@ -66,6 +66,12 @@ struct RuntimeState {
     XrInstance instance{XR_NULL_HANDLE};
     XrSession session{XR_NULL_HANDLE};
     XrSystemId systemId{XR_NULL_SYSTEM_ID};
+    // S0249 Phase 05: input action set scaffolding. Real action handles are created in
+    // [createInputActionSetLocked] once an instance exists. Polling
+    // happens on the render thread via [pollInputAnyTriggeredLocked].
+    XrActionSet actionSet{XR_NULL_HANDLE};
+    XrAction anyButtonAction{XR_NULL_HANDLE};
+    XrAction anyTriggerAction{XR_NULL_HANDLE};
     std::atomic<bool> running{false};
     std::atomic<bool> exitRequested{false};
     bool equirect2Supported{false};
@@ -158,7 +164,91 @@ NativeResult createInstanceLocked(RuntimeState& s, JavaVM* vm, jobject contextOr
     return NativeResult::Ok;
 }
 
+// S0249 Phase 05: minimal "any controller input" action set. Two boolean actions wired to
+// every interaction profile we care about (Khronos Simple, Oculus Touch, etc.). The render
+// loop polls them and treats any change to "active=true" as exit-request.
+//
+// At Phase 05 the session is not yet bound (deferred from Phase 02), so action creation runs
+// on the bare instance. xrCreateAction requires only the actionSet which only requires the
+// instance, so this is safe. Suggested-bindings + xrAttachSessionActionSets land when the
+// session is finally created (open work from Phase 02).
+NativeResult createInputActionSetLocked(RuntimeState& s) {
+    if (s.instance == XR_NULL_HANDLE) return NativeResult::InstanceCreationFailed;
+    if (s.actionSet != XR_NULL_HANDLE) return NativeResult::Ok;
+
+    XrActionSetCreateInfo asInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
+    std::snprintf(asInfo.actionSetName, sizeof(asInfo.actionSetName), "%s", "diagnostic_exit");
+    std::snprintf(asInfo.localizedActionSetName,
+                  sizeof(asInfo.localizedActionSetName),
+                  "%s",
+                  "Diagnostic exit");
+    asInfo.priority = 0;
+    XrResult r = xrCreateActionSet(s.instance, &asInfo, &s.actionSet);
+    if (XR_FAILED(r)) {
+        LOGE("xrCreateActionSet failed: %d", (int)r);
+        return NativeResult::UnexpectedRuntimeError;
+    }
+
+    auto makeBoolAction = [&](const char* name, const char* localized, XrAction* out) -> XrResult {
+        XrActionCreateInfo ai{XR_TYPE_ACTION_CREATE_INFO};
+        std::snprintf(ai.actionName, sizeof(ai.actionName), "%s", name);
+        std::snprintf(ai.localizedActionName, sizeof(ai.localizedActionName), "%s", localized);
+        ai.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+        ai.countSubactionPaths = 0;
+        return xrCreateAction(s.actionSet, &ai, out);
+    };
+    r = makeBoolAction("any_button", "Any button", &s.anyButtonAction);
+    if (XR_FAILED(r)) { LOGE("xrCreateAction(any_button) failed: %d", (int)r); return NativeResult::UnexpectedRuntimeError; }
+    r = makeBoolAction("any_trigger", "Any trigger", &s.anyTriggerAction);
+    if (XR_FAILED(r)) { LOGE("xrCreateAction(any_trigger) failed: %d", (int)r); return NativeResult::UnexpectedRuntimeError; }
+
+    LOGD("S0249 Phase 05: input action set created (anyButton + anyTrigger)");
+    return NativeResult::Ok;
+}
+
+// S0249 Phase 05: per-frame poll. Returns true when any tracked action transitioned to
+// 'true' since the last poll. The full render loop will call this after [xrSyncActions]
+// and propagate `true` to the Kotlin layer via JNI to set [exitRequested].
+bool pollInputAnyTriggeredLocked(RuntimeState& s) {
+    if (s.session == XR_NULL_HANDLE || s.actionSet == XR_NULL_HANDLE) return false;
+
+    XrActiveActionSet active{s.actionSet, XR_NULL_PATH};
+    XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
+    syncInfo.countActiveActionSets = 1;
+    syncInfo.activeActionSets = &active;
+    XrResult r = xrSyncActions(s.session, &syncInfo);
+    if (XR_FAILED(r)) {
+        LOGW("xrSyncActions failed: %d", (int)r);
+        return false;
+    }
+
+    auto stateChanged = [&](XrAction action) -> bool {
+        XrActionStateGetInfo info{XR_TYPE_ACTION_STATE_GET_INFO};
+        info.action = action;
+        XrActionStateBoolean st{XR_TYPE_ACTION_STATE_BOOLEAN};
+        XrResult get = xrGetActionStateBoolean(s.session, &info, &st);
+        if (XR_FAILED(get)) {
+            LOGW("xrGetActionStateBoolean failed: %d", (int)get);
+            return false;
+        }
+        return st.changedSinceLastSync == XR_TRUE && st.currentState == XR_TRUE;
+    };
+    return stateChanged(s.anyButtonAction) || stateChanged(s.anyTriggerAction);
+}
+
 void destroyEverythingLocked(RuntimeState& s) {
+    if (s.anyButtonAction != XR_NULL_HANDLE) {
+        xrDestroyAction(s.anyButtonAction);
+        s.anyButtonAction = XR_NULL_HANDLE;
+    }
+    if (s.anyTriggerAction != XR_NULL_HANDLE) {
+        xrDestroyAction(s.anyTriggerAction);
+        s.anyTriggerAction = XR_NULL_HANDLE;
+    }
+    if (s.actionSet != XR_NULL_HANDLE) {
+        xrDestroyActionSet(s.actionSet);
+        s.actionSet = XR_NULL_HANDLE;
+    }
     if (s.session != XR_NULL_HANDLE) {
         xrDestroySession(s.session);
         s.session = XR_NULL_HANDLE;
@@ -214,11 +304,19 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSta
         destroyEverythingLocked(g_state);
         return static_cast<jint>(inst);
     }
-    // Session + swapchain creation lands when Phase 03 wires the GLES context and asset.
-    // For Phase 02 we acknowledge the instance came up and stop — the gateway layer maps
-    // this intermediate state to XrEntryResult.InitializationFailed.
+    // S0249 Phase 05: build the input action set on the bare instance. The session attach
+    // step (`xrAttachSessionActionSets`) is part of the not-yet-implemented session lifecycle.
+    NativeResult actions = createInputActionSetLocked(g_state);
+    if (actions != NativeResult::Ok) {
+        LOGW("S0249 Phase 05: action set creation failed (%d); session bring-up continues",
+             (int)actions);
+    }
+    // Session + swapchain creation lands in a follow-on ticket (requires EGL context +
+    // GLES texture upload from the bundled asset). For now we acknowledge the instance
+    // came up and stop — the gateway layer maps this intermediate state to
+    // XrEntryResult.InitializationFailed.
     g_state.running.store(true);
-    LOGD("Phase 02: instance ready, session deferred to Phase 03");
+    LOGD("S0249: instance + action set ready; session bring-up still TODO");
     return static_cast<jint>(NativeResult::SessionCreationFailed);
 }
 
@@ -247,6 +345,19 @@ JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsRunning(
     JNIEnv* env, jobject /*thisObj*/) {
     return g_state.running.load() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativePollExitTriggered(
+    JNIEnv* env, jobject /*thisObj*/) {
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    if (g_state.exitRequested.load()) return JNI_TRUE;
+    bool triggered = pollInputAnyTriggeredLocked(g_state);
+    if (triggered) {
+        g_state.exitRequested.store(true);
+        LOGD("S0249: native action triggered exit");
+    }
+    return triggered ? JNI_TRUE : JNI_FALSE;
 }
 
 } // extern "C"

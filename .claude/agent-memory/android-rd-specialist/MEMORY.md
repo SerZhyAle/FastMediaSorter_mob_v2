@@ -15,3 +15,8 @@
 - [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if flavor hierarchy/contracts/inheritance already mechanically determines the answer, don't fabricate a "choice" question
 - [Verify sub-agent build failures yourself](feedback_verify_subagent_build_failures.md) - agent's incremental kapt cache may be stale; re-run `.\a.ps1 dq` before treating reported build failures as hard stops
 - [PowerShell efficiency: -NoProfile + batching + wrappers](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; chain related scripts in one process; use scripts/catalog_sync.ps1 for the scan+render ritual
+- [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep usage before treating as gate; PLAYER_ACTIVITY_CLASS is a dead field
+- [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never use tail -N to investigate gradle failures; FAILURE block sits in the middle
+- [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - S0240 architecture; noLegal is all-inclusive sideload-VR; vrUnlicensed archived in S0250
+- [Reserve Timber.e for real errors only](feedback_log_levels.md) - expected device-capability fallbacks (e.g. native lib missing on non-arm64) log at Timber.i, never Timber.e; ERROR is for things the dev must act on
+- [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if the headline behavior isn't actually working, don't mark phases Done or invite device-test; scaffolding is a milestone, not a deliverable

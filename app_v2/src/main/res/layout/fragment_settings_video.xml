@@ -104,7 +104,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/video_snapshot_resource_not_set"
-                android:textSize="@dimen/text_size_small"
+                android:textSize="@dimen/toggler_desc_text_size"
                 android:textColor="@color/text_color_secondary" />
 
             <Button
@@ -114,8 +114,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_small"
                 android:text="@string/select_snapshot_destination"
-                android:textAllCaps="false"
-                android:textSize="@dimen/text_size_small" />
+                android:textAllCaps="false" />
 
             <Button
                 android:id="@+id/btnClearSnapshotResource"
@@ -124,7 +123,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/clear_selection"
                 android:textAllCaps="false"
-                android:textSize="@dimen/text_size_small"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -142,8 +140,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_small"
                 android:text="@string/snapshot_format_label"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/text_color_secondary" />
+                android:textSize="@dimen/toggler_title_text_size" />
 
             <RadioGroup
                 android:id="@+id/rgSnapshotFormat"
@@ -156,7 +153,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/snapshot_format_png"
-                    android:textSize="@dimen/text_size_small"
+                    android:textSize="@dimen/toggler_title_text_size"
                     android:checked="true" />
 
                 <RadioButton
@@ -164,204 +161,75 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/snapshot_format_jpg"
-                    android:textSize="@dimen/text_size_small" />
+                    android:textSize="@dimen/toggler_title_text_size" />
 
             </RadioGroup>
 
         </LinearLayout>
     </LinearLayout>
 
-    <!-- VR Settings section (visible only when SUPPORT_VR_PLAYER == true) -->
+    <!-- S0021: Show FPS over flat (non-immersive) player -->
     <LinearLayout
-        android:id="@+id/layoutVrSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_medium"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/settings_item_min_height"
+        android:orientation="horizontal">
 
-        <!-- VR section header with help icon -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchPlayerShowFps"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_marginEnd="@dimen/settings_switch_margin_end"
+            android:checked="false"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_vr_section_title"
-                android:textSize="@dimen/settings_group_header_text_size"
-                android:textStyle="bold" />
-
-            <ImageButton
-                android:id="@+id/iconHelpVrSettings"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/settings_vr_help_title"
-                android:src="@drawable/ic_help_outline_24"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <!-- Forced flat format spinner -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
-                android:text="@string/settings_vr_forced_flat_format"
+                android:text="@string/settings_player_show_fps"
                 android:textSize="@dimen/toggler_title_text_size" />
 
-            <Spinner
-                android:id="@+id/spinnerVrForcedFormat"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:entries="@array/vr_forced_format_entries" />
+                android:text="@string/settings_player_show_fps_desc"
+                android:textColor="@color/text_color_secondary"
+                android:textSize="@dimen/toggler_desc_text_size" />
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- S0028: Multi-window mode — allow opening in a separate window -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/settings_item_min_height"
+        android:orientation="horizontal">
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchAllowSeparateWindow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/settings_switch_margin_end"
+            android:checked="false"
+            android:focusable="true"
+            android:clickable="true" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:text="@string/settings_vr_forced_flat_format_desc"
-            android:textColor="@color/text_color_secondary"
-            android:textSize="@dimen/toggler_desc_text_size" />
+            android:text="@string/setting_allow_separate_window"
+            android:textSize="@dimen/toggler_title_text_size" />
 
-        <!-- Forced spherical format spinner -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
-                android:text="@string/settings_vr_forced_spherical_format"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <Spinner
-                android:id="@+id/spinnerVrForcedSphericalFormat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:entries="@array/vr_forced_spherical_format_entries" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:text="@string/settings_vr_forced_spherical_format_desc"
-            android:textColor="@color/text_color_secondary"
-            android:textSize="@dimen/toggler_desc_text_size" />
-
-        <!-- Remember file format switch -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchVrRememberFormat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="true" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_remember_format"
-                    android:textSize="@dimen/toggler_title_text_size" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_vr_remember_format_desc"
-                    android:textColor="@color/text_color_secondary"
-                    android:textSize="@dimen/toggler_desc_text_size" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- S0021: Show FPS over flat (non-immersive) player -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchPlayerShowFps"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_player_show_fps"
-                    android:textSize="@dimen/toggler_title_text_size" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_player_show_fps_desc"
-                    android:textColor="@color/text_color_secondary"
-                    android:textSize="@dimen/toggler_desc_text_size" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- S0028: Multi-window mode — allow opening in a separate window -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchAllowSeparateWindow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_allow_separate_window"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
