@@ -35,6 +35,26 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- S0249 Stage 1A: VR controls section. Visible only on vr/noLegal flavors (gated by
+             VrMediaSectionContract.isAvailable in MediaSettingsFragment). On non-XR devices
+             the block still shows but with disabled toggle + advisory. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardVr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="2dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <TextView android:id="@+id/headerVr" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+
+                <FrameLayout android:id="@+id/containerVr" android:layout_width="match_parent" android:layout_height="wrap_content" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">

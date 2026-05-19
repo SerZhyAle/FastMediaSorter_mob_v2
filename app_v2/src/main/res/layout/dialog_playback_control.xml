@@ -235,7 +235,7 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:visibility="gone" />
 
-                    <!-- B2: canonical switch+label row - switch left (wrap_content), label right (weight=1).
+                    <!-- B2: canonical switch+label row — switch left (wrap_content), label right (weight=1).
                          Previous `match_parent` on the switch caused a wide text-to-thumb gap. -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -260,7 +260,7 @@
 
                     </LinearLayout>
 
-                    <!-- Two columns: Flat (left) | Spherical (right) - same structure as landscape for consistency -->
+                    <!-- Two columns: Flat (left) | Spherical (right) — same structure as landscape for consistency -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

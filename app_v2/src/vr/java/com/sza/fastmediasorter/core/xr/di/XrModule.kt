@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.core.xr.di
 
+import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
+import com.sza.fastmediasorter.core.xr.VrMediaSectionContractImpl
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionFacadeImpl
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
@@ -51,4 +53,14 @@ abstract class XrModule {
     abstract fun bindDiagnosticXrRuntime(
         impl: NativeDiagnosticXrRuntime
     ): DiagnosticXrRuntime
+
+    /**
+     * S0249 Phase 04: VR media-section contract is unconditionally available in vr / noLegal
+     * flavors. The fragment itself observes [XrDetectionFacade] and adapts UI state.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindVrMediaSectionContract(
+        impl: VrMediaSectionContractImpl
+    ): VrMediaSectionContract
 }

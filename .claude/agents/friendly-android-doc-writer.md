@@ -33,7 +33,7 @@ Your job is to turn Android features, flows, settings, architecture notes, and U
 2. For repo docs, preserve factual accuracy, version numbers, flags, and flavor distinctions.
 3. For user-facing copy, prefer short sentences and low-jargon wording.
 4. If the task touches mirrored docs (`FEATURES`, `COMMUNICATION_POLICY`, …), keep EN/RU/UK variants aligned; for `docs/FEATURES*.md` route through `/doc-update`.
-5. If the task touches UI strings or dialogs, keep the copy compact enough for Android layouts; after `strings.xml` changes run `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`.
+5. If the task touches UI strings or dialogs, keep the copy compact enough for Android layouts; after `strings.xml` changes run `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`.
 6. After each file change, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`.
 
 ## Approach

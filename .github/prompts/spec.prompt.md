@@ -75,7 +75,7 @@ After reading context, score the task against the primitive checklist:
    - `## Done criteria` - one observable check per changed file.
 3. Implement the changes directly in the source files.
 4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
-5. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
+5. Run post-change mandatory steps: `add_to_dev_log.ps1`, catalog sync via `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render), strings audit if applicable.
 6. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-4 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
 7. Chat output: `<Sxxxx> - Primitive. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
@@ -98,8 +98,8 @@ For ad-hoc: evaluate the scope by affected modules and user impact, assign the c
 **4 - Allocate ticket id.** Before any file write:
 
 ```powershell
-$ticketId = (& pwsh -File scripts/spec_catalog/next-id.ps1).Trim()
-& pwsh -File scripts/spec_catalog/insert.ps1 `
+$ticketId = (& pwsh -NoProfile -File scripts/spec_catalog/next-id.ps1).Trim()
+& pwsh -NoProfile -File scripts/spec_catalog/insert.ps1 `
   -Name "<short-name>" `
   -File "PLAN/${ticketId}_<short-name>.md" `
   -Status Draft `
@@ -115,7 +115,7 @@ The `name` field in the journal is the **bare slug** - no `spec_` prefix. Curren
 > **Communication policy note:** If the spec scope touches user-visible strings (toasts, errors, dialogs, empty states, CTAs), include a constraint in §3.2 requiring compliance with `docs/COMMUNICATION_POLICY.md`. Reference the tone checklist (§6 of the policy) as a mandatory gate before string integration.
 
 ```powershell
-& pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
+& pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
 
 **6 - Auto-approve and run dev log.**
@@ -128,7 +128,7 @@ Immediately after writing the file, advance `Status: Draft` → `Status: Approve
     Set-Content "PLAN/${ticketId}_<short-name>.md"
 
 # patch journal
-pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
+pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
 ```
 
 Then record the dev log:
@@ -292,7 +292,7 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as a short-name slug and allocate a new id (Process step 4).
+- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as a short-name slug and allocate a new id (Process step 4).
 - **Mutations performed by this skill:**
   - On new spec: `insert.ps1 -Status Draft -Tier <N> -Priority <P>` (Process step 4). `insert.ps1` allocates the next id internally; use `next-id.ps1` when only the id token is needed (outputs `S####` only, no journal write).
   - After file is on disk: `update.ps1 -Id <Sxxxx> -File "PLAN/<Sxxxx>_<short-name>.md"` (Process step 5).

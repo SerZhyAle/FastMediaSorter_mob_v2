@@ -23,9 +23,17 @@
 #include <vector>
 #include <atomic>
 #include <mutex>
+#include <cstdio>
 
+// Platform + graphics binding selectors for OpenXR. The GLES headers must be visible
+// BEFORE `openxr_platform.h` because the latter references `EGLenum` and `GLenum` in its
+// `XrSwapchainImageOpenGLESKHR` family of structs.
 #define XR_USE_PLATFORM_ANDROID
 #define XR_USE_GRAPHICS_API_OPENGL_ES
+
+#include <EGL/egl.h>
+#include <GLES3/gl3.h>
+
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 

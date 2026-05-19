@@ -60,7 +60,7 @@ This document outlines the current technical constraints, functional limitations
 ### VR Edition
 
 - **Hardware:** Runs only on Meta Quest 2/3/Pro and Android XR headsets (`arm64-v8a` + OpenXR runtime). On a phone without an XR runtime, the app shows a fallback screen and does not start playback.
-- **Distribution:** Two channels - Meta Horizon Store / Google Play (`vr` flavor) and ADB sideload (`vrUnlicensed` flavor). They share the same package ID, so only one can be installed at a time.
+- **Distribution:** Two channels - Meta Horizon Store / Google Play (`vr` flavor, Store-clean: no GPL extractors / no yt-dlp) and ADB sideload (`noLegal` flavor, all-inclusive: VR + Python + yt-dlp + GPL extractors, runtime-gated on non-XR devices).
 - **No Wear OS Companion:** headsets have no paired watch.
 - See [VR Edition](VR_EDITION.md) for the full constraint list.
 

@@ -211,8 +211,9 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
      * Show VR install CTA dialog when 3D content is detected in standard flavor.
      *
      * S0232 - Play Store launch is intentionally disabled. The previous target package
-     * `com.sza.fastmediasorter.vr` no longer exists (after S0232 the `vr`/`vrUnlicensed`
-     * flavors share `applicationId = com.sza.fastmediasorter` with standard), and the VR
+     * `com.sza.fastmediasorter.vr` no longer exists (after S0232 the `vr` flavor and
+     * `noLegal` share `applicationId = com.sza.fastmediasorter` with standard; S0250
+     * 2026-05-19 archived the former `vrUnlicensed` flavor entirely), and the VR
      * edition is not published yet anyway. Quest VR builds, when published, will land on
      * Meta Horizon Store rather than Play Store - Play Store is not the correct target.
      *

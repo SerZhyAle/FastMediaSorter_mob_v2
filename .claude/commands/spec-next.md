@@ -42,7 +42,7 @@ A spec is **eligible** if its catalog `status` is one of:
 ### Stage 1 - Query the catalog
 
 ```powershell
-pwsh -File scripts/spec_catalog/search.ps1 -Format json
+pwsh -NoProfile -File scripts/spec_catalog/search.ps1 -Format json
 ```
 
 Parse the JSON. For each record:
@@ -61,7 +61,7 @@ Sort the eligible set by:
 **Persistent skip-cache.** Before picking the top candidate, load `temp/spec-next-skip-cache.json`:
 
 ```powershell
-pwsh -File scripts/spec_catalog/skip-cache.ps1 -Action list
+pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action list
 ```
 
 Each entry has shape `{ "Sxxxx": { "reason": "...", "expires": "<iso>" } }`. Entries with `expires` in the past are auto-pruned by the script on every call. **Treat every active entry as already in `processed`** for the current session - exclude from the ranked list, log one line `[skip-cache] Sxxxx - <reason>` for transparency. TTL is 7 days by default; a manual `/spec-next --reset-skips` clears the cache.
@@ -75,7 +75,7 @@ If the eligible set is empty → final report (see Stage 6) and stop.
 Replace the previous 4-command bash boilerplate (head/grep/ls/grep) with a single `preview.ps1` call:
 
 ```powershell
-pwsh -File scripts/spec_catalog/preview.ps1 -Id <Sxxxx> -Format json
+pwsh -NoProfile -File scripts/spec_catalog/preview.ps1 -Id <Sxxxx> -Format json
 ```
 
 The JSON gives:
@@ -88,7 +88,7 @@ The JSON gives:
 **3a - Auto-skip predicates (no user prompt).** If `auto_skip` is non-null → record the skip in the persistent cache and drop the candidate:
 
 ```powershell
-pwsh -File scripts/spec_catalog/skip-cache.ps1 -Action add -Id <Sxxxx> -Reason "<auto_skip>"
+pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action add -Id <Sxxxx> -Reason "<auto_skip>"
 ```
 
 Return to Stage 2 with the next ranked candidate. These predicates close the deterministic skip cases (Tier 5 epic-containers, explicit §12 owner-gate, unverified blocker chains, ≥3 unresolved §6 research items on Draft/Approved specs) without spending a turn on `AskUserQuestion`.
@@ -97,7 +97,7 @@ Return to Stage 2 with the next ranked candidate. These predicates close the det
 
 - Default: trust the file. Sync catalog:
   ```powershell
-  pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <file-status>
+  pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <file-status>
   ```
 - Log a one-line note in chat: `Sync: <Sxxxx> catalog <old> → <file-status> (file authoritative).`
 - If the new status is no longer eligible → drop this candidate, return to Stage 2 (do NOT re-query the catalog).
@@ -105,7 +105,7 @@ Return to Stage 2 with the next ranked candidate. These predicates close the det
 **3c - Drift detection (`Sxxxx` already in code).** For specs in `Draft`, `Approved`, `Tactical`, or `Broken` status:
 
 ```powershell
-pwsh -File scripts/spec_catalog/drift-check.ps1 -Id <Sxxxx>
+pwsh -NoProfile -File scripts/spec_catalog/drift-check.ps1 -Id <Sxxxx>
 ```
 
 Exit code 1 (`DRIFT`) means git commits with the spec id marker exist AND/OR inline `// Sxxxx:` markers are present in `app_v2/src/`. In that case the spec is likely already (partially) implemented and `/spec-all` would re-discover this expensively. Mark as **drift candidate**: insert a one-line note in the round verdict, then either:
@@ -130,7 +130,7 @@ While `/spec-all` runs, do not start another spec. One spec per delegation.
 When `/spec-all` returns, re-read the chosen spec's catalog row:
 
 ```powershell
-pwsh -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
+pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
 ```
 
 Record the final status. Possible terminations for one round:

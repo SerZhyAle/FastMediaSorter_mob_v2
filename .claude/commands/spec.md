@@ -128,7 +128,7 @@ For ad-hoc: evaluate the scope by affected modules and user impact, assign the c
 **4 - Allocate ticket id.** Before any file write:
 
 ```powershell
-$ticketId = (& pwsh -File scripts/spec_catalog/insert.ps1 `
+$ticketId = (& pwsh -NoProfile -File scripts/spec_catalog/insert.ps1 `
     -Name "<short-name>" `
     -File "PLAN/<placeholder>" `
     -Status Draft `
@@ -144,7 +144,7 @@ The `name` field in the journal is the **bare slug** - no `spec_` prefix. The pl
 > **Communication policy note:** If the spec scope touches user-visible strings (toasts, errors, dialogs, empty states, CTAs), include a constraint in §3.2 requiring compliance with `docs/COMMUNICATION_POLICY.md`. Reference the tone checklist (§6 of the policy) as a mandatory gate before string integration.
 
 ```powershell
-& pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
+& pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
 
 **6 - Auto-approve and run dev log.**
@@ -157,7 +157,7 @@ Immediately after writing the file, advance `Status: Draft` → `Status: Approve
     Set-Content "PLAN/${ticketId}_<short-name>.md"
 
 # patch journal
-pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
+pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
 ```
 
 Then record the dev log:
@@ -321,7 +321,7 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as a short-name slug and allocate a new id (Process step 4).
+- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as a short-name slug and allocate a new id (Process step 4).
 - **Mutations performed by this skill:**
   - On new spec: `insert.ps1 -Status Draft -Tier <N> -Priority <P>` (Process step 4). `insert.ps1` allocates the next id internally; use `next-id.ps1` when only the id token is needed (outputs `S####` only, no journal write).
   - After file is on disk: `update.ps1 -Id <Sxxxx> -File "PLAN/<Sxxxx>_<short-name>.md"` (Process step 5).

@@ -80,7 +80,7 @@ Mirror the B1 change. Identical section numbers and bullet layout.
 
 #### C1. `app_v2/src/main/res/values/strings.xml` (English)
 
-For single-key updates, prefer `pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
+For single-key updates, prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
 
 #### C2. `values-ru/strings.xml` (Russian) · C3. `values-uk/strings.xml` (Ukrainian)
 

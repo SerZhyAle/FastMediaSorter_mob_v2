@@ -38,7 +38,7 @@ When files disagree, prefer the stricter rule. For agent-specific execution, `AG
 ## 4. Research Order
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md`.
-2. For `Sxxxx` tasks: `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`.
+2. For `Sxxxx` tasks: `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`.
 3. For Kotlin class/file lookup: `dev/CATALOG/scripts/query.ps1` before global grep.
 4. Domain docs as needed:
    - Architecture: `docs/ARCHITECTURE.md`.
@@ -117,11 +117,22 @@ Use the narrowest fitting agent profile.
 - Confirm branch before edits.
 - For tasks larger than a single-file fix, read `dev/AGENT_WORKFLOW.md` and follow the 5-step process.
 - No coding before required clarification/design gates.
-- For `.kt` changes, run catalog scan/render after implementation.
+- For `.kt` changes, run catalog sync via `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render in a single process).
 - After code/config changes, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`.
 - For user-visible behavior changes, evaluate feature docs and functionality log requirements from `CLAUDE.md`.
 
-## 9. Validation
+## 9. PowerShell Efficiency
+
+Every `pwsh` invocation is a fresh process - shell state never persists. Cold start on Windows is 200..500 ms; with 100+ calls per turn, startup overhead dominates real work. Rules below are mandatory for all skills, agents, and ad-hoc shell calls.
+
+- **Always pass `-NoProfile`.** No project script depends on the user's `$PROFILE`; profile load adds ~200 ms with zero benefit. Wrong: `pwsh -File foo.ps1`. Right: `pwsh -NoProfile -File foo.ps1`.
+- **Batch related calls** into one tool invocation via `pwsh -NoProfile -Command "& { ./a.ps1; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; ./b.ps1 }"`.
+- **Use the wrapper** for hot rituals - `scripts/catalog_sync.ps1` for catalogue sync (scan + render in one process). If a frequently-chained ritual lacks a wrapper, create one in `scripts/` (single-purpose, fail-fast on `$LASTEXITCODE`) and document it in `CLAUDE.md` → PowerShell Efficiency table.
+- **Do not invent** background-daemon or long-running-shell workarounds. If overhead remains painful after these rules, raise an MCP-server proposal instead.
+
+Full reference: `CLAUDE.md` → "PowerShell Efficiency" section.
+
+## 10. Validation
 
 Use the validation ladder from `CLAUDE.md`:
 

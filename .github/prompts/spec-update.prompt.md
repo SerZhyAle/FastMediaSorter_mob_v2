@@ -93,7 +93,7 @@ Flag `--force-locked` overrides - record override reason in Revision History.
 **1b - Re-open `BlockNeedUserTest`.** If the journal status is `BlockNeedUserTest` and this is **not** `--review-only`, refining the spec implies re-opening it for changes - perform this before the review pass:
 
 - `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line. The debug-tag invariant (CLAUDE.md "Debug Verification Tags") holds: tags exist iff status is `BlockNeedUserTest`, so leaving the status requires removing them. Run a dev log line per `.kt` file that lost a tag.
-- Flip status to the prior working stage: `Tactical` if `PLAN/Sxxxx_<slug>/INDEX.md` exists, else `Approved` if the strategic spec exists, else `Draft`. Patch the `**Status:**` line in the spec file and run `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <new>`.
+- Flip status to the prior working stage: `Tactical` if `PLAN/Sxxxx_<slug>/INDEX.md` exists, else `Approved` if the strategic spec exists, else `Draft`. Patch the `**Status:**` line in the spec file and run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <new>`.
 - Append a Revision History line: `Re-opened from BlockNeedUserTest → <new>; debug tags removed: N.`
 - This is the **only** status change `/spec-update` performs. With `--review-only`, skip 1b entirely (no writes).
 
@@ -189,5 +189,5 @@ If strategic target and tactical folder both exist: run `consistency` focus betw
 ## Spec Catalog hooks
 
 - **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug.
-- **Status transition.** After refinement is applied, touch the journal `updated` timestamp without changing status: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`. On `--review-only` skip the update. With `--priority N` also pass `-Priority N`. **Exception:** the `BlockNeedUserTest` re-open (step 1b) does change the status - to `Tactical` / `Approved` / `Draft` - and deletes the spec's debug tags from `.kt`.
+- **Status transition.** After refinement is applied, touch the journal `updated` timestamp without changing status: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`. On `--review-only` skip the update. With `--priority N` also pass `-Priority N`. **Exception:** the `BlockNeedUserTest` re-open (step 1b) does change the status - to `Tactical` / `Approved` / `Draft` - and deletes the spec's debug tags from `.kt`.
 - **Forbidden:** never set the journal status from this skill except the step-1b re-open. Never write to `PLAN/spec-catalog.jsonl` directly.

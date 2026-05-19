@@ -110,6 +110,6 @@ Skip (тихий пропуск), если:
 ## Spec Catalog hooks
 
 - **Trigger:** `/quick` касается каталога только если правка задевает файл, путь которого начинается с `PLAN/S\d{4}_` (любой spec-артефакт). Иначе - пропустить.
-- **Действие:** одно `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>` без других флагов - только обновить `updated`. Статус не трогать.
+- **Действие:** одно `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>` без других флагов - только обновить `updated`. Статус не трогать.
 - **ID:** взять из имени файла (префикс `Sxxxx_`).
 - **Запрещено:** менять статус из `/quick`, писать в `PLAN/spec-catalog.jsonl` напрямую.

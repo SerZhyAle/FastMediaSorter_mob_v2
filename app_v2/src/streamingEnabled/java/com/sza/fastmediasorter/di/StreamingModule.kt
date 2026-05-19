@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 /**
  * S0116 §5.1 pillar I: real `StreamingPipeline` binding for video-supporting flavors
- * (standard, legacy, vr, vrUnlicensed). Compiled only when the `streamingEnabled`
+ * (standard, legacy, vr, noLegal). Compiled only when the `streamingEnabled`
  * shared source-set is active for the current build variant.
  */
 @Module

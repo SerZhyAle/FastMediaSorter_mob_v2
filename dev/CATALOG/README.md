@@ -25,7 +25,7 @@ answer "where does X happen?" questions without scanning the whole codebase.
 | `layer` | auto | `ui` / `domain` / `data` / `di` / `core` / `utils` / `worker` / `widget` / `service` / `vr` / `other`. |
 | `loc` | auto | Line count. |
 | `lastTouched` | auto | Date of last git commit touching the file. |
-| `noFlavors` | **manual** | Flavors where the class is irrelevant. Empty = used everywhere. Valid: `standard`, `lite`, `photos`, `legacy`, `vr`, `vrUnlicensed`, `noLegal`. Source-set placement (`src/<flavor>/java/`) governs physical isolation; `noFlavors` is the declarative hint for consumers and audits. |
+| `noFlavors` | **manual** | Flavors where the class is irrelevant. Empty = used everywhere. Valid: `standard`, `lite`, `photos`, `legacy`, `vr`, `noLegal`. Source-set placement (`src/<flavor>/java/`) governs physical isolation; `noFlavors` is the declarative hint for consumers and audits. |
 | `injected` | auto | Types from `@Inject constructor(..)`. |
 | `hasTests` | auto | Matching `*Test.kt` exists in `src/test` or `src/androidTest`. |
 | `coroutines` | auto | Uses `suspend` / `Flow` / `launch` / `CoroutineScope`. |

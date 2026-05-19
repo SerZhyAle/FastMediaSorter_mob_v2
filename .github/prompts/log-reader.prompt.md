@@ -311,7 +311,7 @@ Find them:
 What to do with them:
 
 - Group by id. For each `Sxxxx` report: hit count, first/last occurrence time, and the message text (it usually names the exercised flow, e.g. `S0054: TsPacketFormatDetector.detect probeSize=576 -> BD_192`).
-- Resolve each id to confirm it really is awaiting on-device test: `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Expected status `BlockNeedUserTest`. If the journal says anything else, flag the tag as **stale** (it should have been removed when the spec left `BlockNeedUserTest`) - note it so the next `/spec-check` / `/spec-fix` strips it.
+- Resolve each id to confirm it really is awaiting on-device test: `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Expected status `BlockNeedUserTest`. If the journal says anything else, flag the tag as **stale** (it should have been removed when the spec left `BlockNeedUserTest`) - note it so the next `/spec-check` / `/spec-fix` strips it.
 - In the verdict line, state which `Sxxxx` probes fired this session - that is the signal the user needs before running `/spec-check Sxxxx` (which, on `Verified`, also deletes the tags).
 - If the user is testing a specific spec and its `Sxxxx:` probe is **absent** from the log, say so: the scenario did not reach that code path → on-device verification is incomplete, not failed.
 - Never treat a `Sxxxx:` line as an error or warning regardless of its level - it is an instrumentation probe.

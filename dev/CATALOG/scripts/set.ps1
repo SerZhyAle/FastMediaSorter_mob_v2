@@ -67,7 +67,7 @@ foreach ($target in $targets) {
     }
     if ($PSBoundParameters.ContainsKey('NoFlavors')) {
         $flavors = if ($NoFlavors) { @($NoFlavors -split '\s*,\s*' | Where-Object { $_ }) } else { @() }
-        $valid = @('standard','lite','photos','legacy','vr','vrUnlicensed','noLegal')
+        $valid = @('standard','lite','photos','legacy','vr','noLegal')
         $bad = $flavors | Where-Object { $_ -notin $valid }
         if ($bad) { throw "Invalid flavors: $($bad -join ', '). Must be subset of: $($valid -join ', ')" }
         $target.noFlavors = $flavors

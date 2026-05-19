@@ -56,7 +56,7 @@ For each step in plan order:
 6. **Flip step to `[~] in progress`** in phase file.
 7. **Apply the edit** - `Edit` or `Write` per the Prompt. Scope strictly to what the prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 7a. **Communication policy check.** If the edit adds or changes user-visible strings, verify them against `docs/COMMUNICATION_POLICY.md` §2 and §6 before marking the step done.
-7b. **Android string edit shortcut.** If the step only updates existing `<string>` values in `values*/strings.xml`, prefer `pwsh -File scripts/utils/set-android-string.ps1 -Module <module> -Locale en|ru|uk -Key <key> -Value <text>` instead of manual XML editing. Use manual edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
+7b. **Android string edit shortcut.** If the step only updates existing `<string>` values in `values*/strings.xml`, prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module <module> -Locale en|ru|uk -Key <key> -Value <text>` instead of manual XML editing. Use manual edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
 8. **Run `Verification:` predicates** (Glob/Grep/value equality/size checks).
 9. **Outcome:**
    - All predicates PASS → flip to `[x] done`. Append Step Log entry.
@@ -79,7 +79,7 @@ After all phases done:
 - **Finalization (batched).** Use `close-and-log.ps1` to perform the journal flip + dev log batch + functionality log + catalog scan/render in one pwsh process:
 
   ```powershell
-  pwsh -File scripts/spec_catalog/close-and-log.ps1 `
+  pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
       -Id <Sxxxx> `
       -Status <Implemented|BlockNeedUserTest> `
       -DevLogs @(
@@ -170,10 +170,10 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id. Read current status the same way before the first phase touches code.
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id. Read current status the same way before the first phase touches code.
 - **Status transitions.**
-  - Before the first non-done step is started: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if status is already `In Progress` or later).
-  - After every phase has all steps `[x] done` and final dev log is written: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
+  - Before the first non-done step is started: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if status is already `In Progress` or later).
+  - After every phase has all steps `[x] done` and final dev log is written: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
   - When flipping to `BlockNeedUserTest` (on-device acceptance): insert the `Timber.d("Sxxxx: …")` debug tags first (see Process / Constraints), then `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
   - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions | BlockExternal | BlockByOtherTask` per the stop reason.
 - **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never set the journal status to `Verified` from this skill - that is `/spec-check`'s job.

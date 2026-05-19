@@ -79,15 +79,17 @@ Package name: `com.sza.fastmediasorter.vr`
 - **XR runtime:** OpenXR 1.1.48+ required at launch. Without an XR runtime the app shows a fallback screen and does not start playback.
 - **Native code:** ships the OpenXR loader AAR plus `openxr_native.so` (C++ bridge built by CMake). Adds ~8 MB of native payload over the standard build.
 - **No Wear OS companion:** headsets have no paired watch, so `SUPPORT_WEAR_COMPANION = false`.
-- **Package ID:** `com.sza.fastmediasorter.vr` is shared by both `vr` and `vrUnlicensed` flavors - installing one replaces the other on the device.
+- **Package ID:** `com.sza.fastmediasorter.vr` belongs to the `vr` (Store) flavor. The sideload-VR build ships as the `noLegal` flavor and uses `com.sza.fastmediasorter` - it can coexist with `vr` on the same device.
 - **DTS / extended codecs:** always bundled via `fms-ffmpeg-dts.aar`. Quest hardware is uniformly arm64, so the single-ABI AAR is sufficient for every VR user.
 
 ### Distribution Channels
 
-Two flavors produce the same `applicationId` on device, so only one can be installed at a time:
+Two flavors carry the VR feature surface, distributed through different channels:
 
-- **`vr`** - Meta Horizon Store / Google Play. Reviewed distribution. If a store rejects the DTS decoder, the `vr` build can ship without it and sideload users are routed to `vrUnlicensed`.
-- **`vrUnlicensed`** - ADB sideload via Developer Mode. Direct distribution for power users; always ships DTS regardless of store policy.
+- **`vr`** - Meta Horizon Store / Google Play AAB. Store-reviewed. Stays Store-clean: no GPL extractors, no Python runtime, no yt-dlp. If a store rejects the DTS decoder, the `vr` build can ship without it and sideload users are routed to `noLegal`.
+- **`noLegal`** - ADB sideload via Developer Mode. The all-inclusive sideload build covers phones, tablets, Quest, and Android XR in a single APK. Always ships DTS, Python+yt-dlp+NewPipeExtractor, and the full VR runtime regardless of store policy. The VR feature surface is runtime-gated: on devices without an OpenXR runtime the VR controls show as disabled with an advisory notice.
+
+> **Historical note.** Prior to 2026-05-19 a separate `vrUnlicensed` flavor existed for VR-only sideload. It was merged into `noLegal` under S0250 because `noLegal` already carried every dependency needed for VR plus the broader sideload surface. See [PLAN/S0250_nolegal-vr-unification.md](../PLAN/S0250_nolegal-vr-unification.md).
 
 ### Phone Fallback
 

@@ -43,7 +43,7 @@ Test-Path P:/ANDROID/FastMediaSorter_release
 ### Step 2 - Resolve spec
 
 ```powershell
-pwsh -File scripts/spec_catalog/select.ps1 -Id $SPEC_ID -Format json
+pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id $SPEC_ID -Format json
 ```
 
 Parse the JSON result. Extract:

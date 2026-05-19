@@ -48,7 +48,7 @@ If `Status: Draft` → auto-promote to `Approved`:
 ```powershell
 (Get-Content "PLAN/${ticketId}_<short-name>.md") -replace '^(\*\*Status:\*\*\s*)Draft', '${1}Approved' |
     Set-Content "PLAN/${ticketId}_<short-name>.md"
-pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
+pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
 ```
 
 Note in chat: `Status was Draft - auto-promoted to Approved.`
@@ -79,7 +79,7 @@ Score the task against the primitive checklist:
 
 1. Implement the changes directly in the source files identified in step 2.
 2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
-3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
+3. Run post-change mandatory steps: `add_to_dev_log.ps1`, catalog sync via `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render), strings audit if applicable.
 4. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-2 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
 5. Chat output: `<Sxxxx> - Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
@@ -293,7 +293,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - [ ] Project compiles - run `/build` (do not invoke gradle directly).
 - [ ] `Grep` for `TODO(phase-<NN>)` returns zero hits.
 - [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] If public API changed: `dev/CATALOG/<module>.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>`.
+- [ ] If public API changed: `dev/CATALOG/<module>.jsonl` regenerated via `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render).
 
 ---
 
@@ -330,7 +330,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
 - **File / folder names.** Strategic spec is at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder is `PLAN/<Sxxxx>_<slug>/`. Phase files inside follow the existing `PHASE_NN__<topic>.md` convention (no per-phase `Sxxxx` prefix). The `_spec_` segment is forbidden anywhere.
-- **Status transition.** After the tactical folder is fully written, run `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`.
+- **Status transition.** After the tactical folder is fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`.
 - **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.

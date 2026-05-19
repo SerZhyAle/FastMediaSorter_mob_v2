@@ -237,10 +237,10 @@ If `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugK
 
 ```powershell
 # Stop daemons, clear only kapt/kotlin/executionHistory volatile state, retry once with --no-daemon
-pwsh -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
+pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
 
 # Recover without auto-retry, then run any command manually
-pwsh -File scripts/utils/recover-kapt-stall.ps1
+pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1
 .\gradlew.bat :app_v2:testStandardDebugUnitTest --no-daemon
 
 # Cold-start fallback if even the targeted retry stalls again

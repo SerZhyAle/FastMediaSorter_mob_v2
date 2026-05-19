@@ -40,9 +40,9 @@ Parse `$ARGUMENTS`. If blank → abort: "No idea provided."
 If argument looks like a ticket id or slug, resolve via:
 
 ```powershell
-pwsh -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
+pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
 # or
-pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json
+pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json
 ```
 
 If resolved → read strategic spec file, read current `Status:` → **jump to the appropriate resume stage** per the Resume Map below. Do NOT re-create or re-validate what is already done.
@@ -52,7 +52,7 @@ If resolved → read strategic spec file, read current `Status:` → **jump to t
 Before delegating to F1 or F2 for a `Draft` / `Approved` / `Tactical` / `Broken` spec, run:
 
 ```powershell
-pwsh -File scripts/spec_catalog/drift-check.ps1 -Id <Sxxxx>
+pwsh -NoProfile -File scripts/spec_catalog/drift-check.ps1 -Id <Sxxxx>
 ```
 
 Exit code 1 (`DRIFT` verdict) means git commits with the spec id marker and/or inline `// Sxxxx:` markers already exist in `app_v2/src/`. Action:
@@ -220,7 +220,7 @@ Manual / unresolved:
 **Finalization shortcut.** When the pipeline closes a ticket (`Verified` / final `BlockNeedUserTest` / `BlockExternal`) and code was touched, prefer `close-and-log.ps1` for the finalization sequence - one pwsh process instead of 6-7 separate launches:
 
 ```powershell
-pwsh -File scripts/spec_catalog/close-and-log.ps1 `
+pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status <Verified|BlockNeedUserTest|...> `
     -DevLogs @(
@@ -278,7 +278,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** Accept `Sxxxx`, a slug, or a path (`PLAN/Sxxxx_<slug>.md`). For `Sxxxx`, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` and skip Stage 0 short-name derivation.
+- **Argument resolution.** Accept `Sxxxx`, a slug, or a path (`PLAN/Sxxxx_<slug>.md`). For `Sxxxx`, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` and skip Stage 0 short-name derivation.
 - **Stage transitions** (orchestrator does not duplicate sub-skill updates - these fire from the underlying skills as documented in their own "Spec Catalog hooks" sections):
   - F1 (Strategic Spec): `/spec` performs `insert.ps1` (Status `Draft`); `/spec-all` then auto-flips `Draft → Approved` via `update.ps1 -Status Approved`.
   - F2 (Tactical): `/spec-tech` flips to `Tactical`.

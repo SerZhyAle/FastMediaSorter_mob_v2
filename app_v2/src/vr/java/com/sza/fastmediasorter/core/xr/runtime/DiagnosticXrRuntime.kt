@@ -29,6 +29,14 @@ interface DiagnosticXrRuntime {
 
     suspend fun presentStaticImage(imageBytes: ByteArray, width: Int, height: Int): DiagnosticXrNativeResult
 
+    /**
+     * Convenience wrapper that loads the bundled diagnostic asset (S0249 Phase 03) and forwards
+     * it to [presentStaticImage]. The native side currently leaves real swapchain upload to
+     * Phase 03 follow-on work — calling this method validates the JNI wiring and asset-provider
+     * binding end-to-end without forcing the caller to handle asset I/O.
+     */
+    suspend fun presentBundledDiagnosticImage(): DiagnosticXrNativeResult
+
     fun requestExit()
 
     fun isRunning(): Boolean

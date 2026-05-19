@@ -68,7 +68,7 @@ Timber.d("Sxxxx: <short description of exercised path>")
 Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded). The id never changes, never gets reused, and is the canonical reference token in chat / commits / `dev/CHANGELOG.md`.
 
 - **Token rule:** any reference of the form `S\d{4}` is a ticket id. Resolve via:
-  `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
+  `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
 - **Filenames:** every spec artefact is `PLAN/Sxxxx_<slug>.md` (no `_spec_` segment - the id already identifies the artefact). Tactical folder: `PLAN/Sxxxx_<slug>/`. **No audit / fix files are written** - `/spec-check` and `/spec-fix` record findings inside the ticket file's `## Last Audit` block (overwritten on each run) and in the journal `updated` timestamp.
 - **Journal:** `PLAN/spec-catalog.jsonl` is the source of truth. Schema: `scripts/spec_catalog/SCHEMA.md`.
 - **Required fields:** `id`, `name`, `status`, `priority` (0..100), `file`, `created`, `updated`. Optional: `tier`.
@@ -83,7 +83,7 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
 ## Research Order (before changes)
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md` - workspace routing + **Feature-to-Path Map** (use before any global search).
-2. For any `Sxxxx`-tagged question - run `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` first to get current status / file path; do not infer from filename alone.
+2. For any `Sxxxx`-tagged question - run `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` first to get current status / file path; do not infer from filename alone.
 3. **`dev/CATALOG/<module>.md` (or `query.ps1`) - MANDATORY first stop for any class/file lookup.**
    - Run `query.ps1` before any `Grep`, `Glob`, or shell `find`. These are fallbacks only when the catalogue yields nothing.
    - Locating a `.kt` file by name? → `-ClassMatches "*Name*"`. Finding what touches a feature? → `-PathMatches` or `-Role`. Who injects a type? → `-Injected <Type>`.
@@ -119,6 +119,52 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
 - If a better alternative to what was asked is visible, name it first: _"You asked for X - Y is cleaner here because Z. Proceeding with Y unless corrected."_
 - Surface blockers at the **start** of the task: missing class, undefined interface, unresolved spec decision → flag before writing any code.
 - Note adjacent debt spotted during a task (stale Timber tags, missing landscape layout, lint warning, tech-debt guard) as a one-bullet suggestion - no pressure to act immediately.
+
+## PowerShell Efficiency (mandatory for skills and agents)
+
+Every `pwsh` invocation in the `Bash`/`PowerShell` tool is a **fresh process** - shell state, imported modules, variables, and the prompt cache of the OS do not persist between calls. PowerShell 7 cold start on Windows is 200..500 ms per invocation. Multiply by 100+ calls per turn and the overhead dominates the actual work. These rules cut that cost.
+
+### Rule A - Always `-NoProfile`
+
+Every project script invocation uses `pwsh -NoProfile -File <path>` (or `pwsh -NoProfile -Command "..."`). Profile loading and module auto-import add ~200 ms with **no benefit** for our scripts - none of them depend on the user's `$PROFILE`.
+
+Wrong: `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`
+Right: `pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`
+
+Exception: only when the script explicitly documents a dependency on a profile-loaded module (none currently do).
+
+### Rule B - Batch related calls into one process
+
+Two or more PowerShell scripts that always run together must be chained inside one `pwsh -NoProfile -Command "& { ... }"` invocation, not split across separate tool calls.
+
+Wrong (two tool calls, two cold starts):
+```
+pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1   -Module app_v2
+pwsh -NoProfile -File dev/CATALOG/scripts/render.ps1 -Module app_v2
+```
+
+Right (one tool call, one cold start):
+```
+pwsh -NoProfile -Command "& { ./dev/CATALOG/scripts/scan.ps1 -Module app_v2; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; ./dev/CATALOG/scripts/render.ps1 -Module app_v2 }"
+```
+
+Or, when a wrapper exists, use it (see Rule C).
+
+### Rule C - Use the project wrapper for hot ritual chains
+
+| Ritual | Wrapper | Replaces |
+|--------|---------|----------|
+| Catalogue sync after `.kt` change | `scripts/catalog_sync.ps1 -Module <app_v2\|wear>` | `scan.ps1` + `render.ps1` |
+
+Always prefer the wrapper. If a frequently-chained ritual lacks a wrapper, **create one** in `scripts/` (single-purpose, `-NoProfile`-safe, fail-fast on `$LASTEXITCODE`) and add a row to the table above. Internal script ownership rule (Strict Rules §14) applies: fix or extend project tooling rather than work around it.
+
+### Rule D - Independent commands in the same tool call
+
+When two operations are truly independent (no data dependency, no shared error path), use `;` not `&&`. Compound chains in PowerShell 7 are fine, but keep them short - readability beats squeezing 5 unrelated commands into one line.
+
+### Rule E - Don't reach for a long-running shell
+
+PowerShell-as-REPL via background processes and named pipes is **not** supported in this harness as a first-class option. Do not invent ad-hoc daemon patterns. If the overhead is still painful after Rules A..C are applied, raise it as a tooling task (MCP-server proposal) instead of working around it locally.
 
 ## Modules
 
@@ -214,15 +260,14 @@ Every step closes with the minimum validation that is actually discriminating fo
    `.\scripts\add_to_functionality_log.ps1 -Id Sxxxx -Op <ADD|CHANGE|DELETE|FIX> -Description "<english summary>"`
    (omit `-Id` for entries without a spec ticket). Skip for pure refactors, internal optimisations, or any change a user cannot perceive. Skills `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-all`, `/quick`, `/skill-fix-release` invoke this automatically - call the CLI manually only when no skill is in flight.
 4. **String locale audit** after adding/removing any `strings.xml` keys - run
-   `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`
+   `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`
    to verify EN/RU/UK parity. Exit code 1 = missing keys, must fix before commit.
 5. **Catalogue sync** - run after **every** `.kt` file change (not only API changes):
-   - `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>` - refreshes auto-fields; manual fields are preserved.
-   - `pwsh -File dev/CATALOG/scripts/render.ps1 -Module <app_v2|wear>` - regenerates the human-readable `.md`.
+   - Single command (preferred): `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` - chains scan + render in one PowerShell process.
    - For new classes, fill `role` + `status` via `set.ps1` (see `dev/CATALOG/README.md`).
    - Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
 6. **Spec catalog sync** - run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
-   - `pwsh -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes).
+   - `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes).
    - Skills `/spec`, `/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-update`, `/spec-all`, `/quick` perform this automatically - invoke the CLI yourself only when no skill is in flight.
    - Direct edits to `PLAN/spec-catalog.jsonl` are forbidden.
 7. **Branch context** - the `add_to_dev_log.ps1` script records the current branch automatically in every changelog entry. No manual action needed; verify with `git branch --show-current` if unsure.

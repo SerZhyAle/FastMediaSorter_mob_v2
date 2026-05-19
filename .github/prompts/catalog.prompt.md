@@ -29,7 +29,7 @@ Examples:
 - `/catalog find classes that touch SMB` - run a query on the catalogue.
 - `/catalog who depends on ResourceDao?` - DI-graph query.
 - `/catalog decomposition candidates` - big files needing a split.
-- `/catalog refresh app_v2` - run `scan.ps1` after code changes.
+- `/catalog refresh app_v2` - run the `catalog_sync.ps1` wrapper after code changes.
 - `/catalog describe <class>` - fill in `role` / function descriptions.
 
 ---
@@ -63,7 +63,8 @@ And **after** any of these:
 | Changed `@Inject constructor` params | `scan.ps1` refreshes `injected`. |
 | Moved between layers (`ui` → `domain`, etc.) | `scan.ps1` updates `layer`. |
 
-Always run `render.ps1` after bulk edits and commit `.jsonl` + `.md`
+After bulk edits use the one-shot wrapper `scripts/catalog_sync.ps1 -Module <m>`
+(runs scan + render in a single PowerShell process). Commit `.jsonl` + `.md`
 together with the code change.
 
 ---
@@ -76,7 +77,7 @@ When invoked with `$ARGUMENTS`:
 
 - Empty `$ARGUMENTS` → output this reference.
 - Research intent ("find", "where", "who uses", "what touches") → run `query.ps1` with matching filters.
-- Maintenance intent ("refresh", "update", "rescan") → run `scan.ps1` then `render.ps1`.
+- Maintenance intent ("refresh", "update", "rescan") → run `scripts/catalog_sync.ps1 -Module <m>` (one-shot wrapper for scan + render).
 - Annotation intent ("describe", "mark as legacy", "set role") → run `set.ps1`.
 
 **Step 2 - For research queries:**
@@ -91,7 +92,7 @@ When invoked with `$ARGUMENTS`:
 **Step 3 - For maintenance:**
 
 1. Identify the module (`app_v2` or `wear`) from user context.
-2. Run `scan.ps1 -Module <m>`; report how many records were added / updated / dropped (by diffing line counts before/after).
+2. Run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <m>`; report how many records were added / updated / dropped (by diffing line counts before/after).
 3. For every **new** record, prompt the user for `role` and `status`, or
    propose sensible values from the class body.
 4. Re-render and report the updated file paths.
@@ -134,38 +135,46 @@ root via the PowerShell tool.
 ### Query
 
 ```powershell
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -SideEffect network
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -MinLoc 800 -Json
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -SideEffect network
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -MinLoc 800 -Json
 ```
 
 ### Refresh (after code changes)
 
+Preferred - one-shot wrapper (single PowerShell process, scan + render chained):
+
 ```powershell
-pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
-pwsh -File dev/CATALOG/scripts/render.ps1 -Module app_v2
+pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2
+```
+
+Fallback - separate calls (use only when you need scan without render, e.g. before `set.ps1` to fill role/status manually):
+
+```powershell
+pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1   -Module app_v2
+pwsh -NoProfile -File dev/CATALOG/scripts/render.ps1 -Module app_v2
 ```
 
 ### Set / edit a record
 
 ```powershell
 # Class-level role + status (fuzzy path; use filename if unique)
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -Role "Orchestrates SMB scan and caches results" -Status tested
 
 # Flavor exclusions
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -NoFlavors "lite,photos"
 
 # Function description
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -Function "refresh" -Description "Re-scans and replaces the cached listing for the given resource"
 ```
 
 ### Remove a record (rare)
 
 ```powershell
-pwsh -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
+pwsh -NoProfile -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
 ```
 
 Scan auto-removes records whose source is gone - only use `remove.ps1` for

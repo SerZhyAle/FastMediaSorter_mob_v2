@@ -21,6 +21,13 @@
     <string name="add">Додати</string>
     <string name="settings">Налаштування</string>
     <string name="settings_saved">Налаштування збережено</string>
+    <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
+    <string name="vr_settings_block_title">Керування 3D-VR</string>
+    <string name="vr_settings_xr_unavailable_advisory">Доступно на пристроях типу Meta Quest 3, Android XR.</string>
+    <string name="vr_settings_test_immersive_label">Перевірити імерс</string>
+    <string name="vr_settings_test_immersive_content_description">Відкрити пробне 360°-зображення в immerse-режимі.</string>
+    <string name="vr_settings_test_immersive_init_failure_toast">Не вдалося запустити VR. Перевір, що гарнітура під\'єднана.</string>
+    <string name="vr_settings_test_immersive_runtime_loss_toast">VR-сесія завершилась несподівано.</string>
     <string name="copy">Копіювати</string>
     <string name="move">Перемістити</string>
     <string name="move_up">Перемістити вгору</string>

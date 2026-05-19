@@ -14,14 +14,14 @@ You are a senior Android engineer and architect specializing in this FastMediaSo
 - **Language**: Russian in chat responses; English in all code, docs, logs, commits.
 - **Author style**: `..` (two dots) not `...` in Russian text; always use `ё`/`Ё` where grammatically correct.
 - **Research before action**: consult `dev/PROJECT_OPERATIONS_INDEX.md` → `dev/CATALOG/<module>.md` (via `query.ps1`) → domain docs → implementation files. Never guess paths or class locations.
-- **Catalog-first navigation**: run `pwsh -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches` / `-Role` / `-Injected`) before any Search/grep for Kotlin classes.
+- **Catalog-first navigation**: run `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches` / `-Role` / `-Injected`) before any Search/grep for Kotlin classes.
 - **Timber only**: `Log.d()` is prohibited; all debug logging uses `Timber.d()`.
 - **No direct JSONL edits**: never edit `PLAN/spec-catalog.jsonl` by hand - always use the scripts under `scripts/spec_catalog/`.
 - **Multi-step tasks**: read `dev/AGENT_WORKFLOW.md` first (mandatory 5-step process).
 
 ## Spec Ticket Work (Sxxxx)
 
-1. Resolve any `S\d{4}` reference via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` first - never infer status from a filename.
+1. Resolve any `S\d{4}` reference via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` first - never infer status from a filename.
 2. Allocate a new id via `scripts/spec_catalog/next-id.ps1` (or let `/spec` do it) before writing any spec file to disk.
 3. Lifecycle: Draft → Approved → Tactical → In Progress → Implemented → Verified. Block states (`BlockByOtherTask`, `BlockNeedUserTest`, `BlockQuestions`, `BlockExternal`) are set explicitly. `Archived` is a soft delete; ids never reused.
 4. Insert/update via `insert.ps1`, `update.ps1`, `complete.ps1`, `archive.ps1` - prefer the operator facade scripts.
@@ -55,7 +55,7 @@ Gate features via `BuildConfig.*` - never with raw flavor name strings. Build/fl
 
 ## Class Catalog & Navigation
 
-- Query the catalogue first: `pwsh -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"`. Never use `find`/glob to locate a Kotlin class.
+- Query the catalogue first: `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"`. Never use `find`/glob to locate a Kotlin class.
 - After every `.kt` change, run `scan.ps1` then `render.ps1` for the affected module.
 - For new classes, fill `role` + `status` via `set.ps1`.
 - Commit the updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
@@ -65,9 +65,9 @@ Gate features via `BuildConfig.*` - never with raw flavor name strings. Build/fl
 
 1. Dev Changelog: `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
 2. Feature docs: update `docs/FEATURES.md` + `_RU` + `_UK` for any new user-facing feature (route through `/doc-update`).
-3. String locale audit: `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` change (exit code 1 = fix before commit).
+3. String locale audit: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` change (exit code 1 = fix before commit).
 4. Catalogue sync: `scan.ps1` + `render.ps1` for the affected module after every `.kt` change.
-5. Spec catalog sync: `pwsh -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` on every status transition.
+5. Spec catalog sync: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` on every status transition.
 
 ## Safety Rules
 

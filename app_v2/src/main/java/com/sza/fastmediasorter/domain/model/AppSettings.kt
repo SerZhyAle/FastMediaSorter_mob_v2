@@ -138,7 +138,7 @@ data class AppSettings(
     val isPrimaryMediaPlayer: Boolean = false,
 
     // Phase 6: Accept shared media files (enables ACTION_SEND aliases in Share sheet)
-    // S0133: default ON - fresh installs register in OS share-sheet on first app launch (via bootstrap).
+    // S0133: default ON — fresh installs register in OS share-sheet on first app launch (via bootstrap).
     val acceptSharedFiles: Boolean = true,
 
     // X.11: Background thumbnail pre-generation
@@ -176,11 +176,17 @@ data class AppSettings(
     val linkDownloadAudioOnly: Boolean = false,
     val linkDownloadLoginWallHeuristicEnabled: Boolean = true,
 
-    // S0241: VR/immersive runtime removed. The single-eye panel crop is the only stereo-related
-    // setting that survived. The rest (vrForcedPlatFormat / vrForcedSphericalFormat /
-    // vrRenderingMode / vrRememberFileFormat / vrAutoImmersive / disable3dVr / vrShowFps) was
-    // deleted with the immersive code path.
-    val panelStereoSingleEye: Boolean = true,
+    // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true)
+    val vrForcedPlatFormat: String = "AUTO",        // Forced flat-family override: AUTO, SBS, OU, MONO
+    val vrForcedSphericalFormat: String = "AUTO",   // Forced spherical-family override: AUTO or spherical StereoMode enum name
+    val vrRenderingMode: String = "CINEMA",         // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
+    val vrRememberFileFormat: Boolean = true,        // Remember manual VR format per file in the local Room override cache
+    val vrAutoImmersive: Boolean = true,             // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
+    // Global VR kill-switch: when true, bypasses all 3D/VR classification; all content plays as plain 2D
+    val disable3dVr: Boolean = false,
+    // Panel-mode crop of SBS/OU stereo content to a single eye; default ON for non-VR builds, OFF for VR.
+    val panelStereoSingleEye: Boolean = !com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER,
+    val vrShowFps: Boolean = false,                  // Display diagnostic FPS counter in immersive HUD
     val playerShowFps: Boolean = false,              // S0021: Display diagnostic FPS counter over the flat (non-immersive) player
 
     // Playback resume on next launch: if true, app reopens last played file on cold start
@@ -191,10 +197,10 @@ data class AppSettings(
     val streamingCacheCleanupMode: StreamingCacheCleanupMode = StreamingCacheCleanupMode.ASK,
     val streamingCacheTtlDays: Int = 7,          // 0 = off, 1, 3, 7, 30
 
-    // S0050: Black Screen mode - show/hide the black-screen toolbar button in audio/video players
+    // S0050: Black Screen mode — show/hide the black-screen toolbar button in audio/video players
     val showBlackScreenButton: Boolean = false,
 
-    // S0028: Multi-window mode - allow opening Browse/Player in a separate window
+    // S0028: Multi-window mode — allow opening Browse/Player in a separate window
     val allowSeparateWindow: Boolean = false,
 
     // S0162: Screen rotation control

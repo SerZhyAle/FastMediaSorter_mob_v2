@@ -40,8 +40,9 @@ MEDIA3_REPO="https://github.com/androidx/media.git"
 #   x86_64      - Chromebooks, modern x86 emulators
 #   x86         - legacy Chromebooks / API 27 AVDs
 # AAB splits per-device ABI at Play distribution - one user receives one slice only.
-# VR/vrUnlicensed flavors force arm64-v8a at flavor level, so non-arm64 slices are stripped
-# from VR AABs automatically. See PLAN/spec_ffmpeg-dts-multi-abi.md.
+# VR flavor forces arm64-v8a at flavor level (Quest target), so non-arm64 slices are
+# stripped from VR AABs automatically. noLegal carries arm64-v8a + x86_64 (sideload
+# universal). See PLAN/spec_ffmpeg-dts-multi-abi.md.
 ABIS=("arm64-v8a" "armeabi-v7a" "x86" "x86_64")
 
 # ── Dependency check ──────────────────────────────────────────────────────────
@@ -469,9 +470,9 @@ PYEOF
     echo "   1. Copy rebuilt AAR to app_v2/libs/ (already done if OUT_DIR is the project)."
     echo "   2. Confirm app_v2/build.gradle.kts already has:"
     echo "        standardImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
+    echo "        noLegalImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
     echo "        legacyImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
     echo "        vrImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
-    echo "        vrUnlicensedImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
     echo "   3. Rebuild: ./gradlew.bat assembleStandardDebug"
     echo "   4. Inspect APK: python -m zipfile -l <apk> | grep ffmpeg"
     echo "   5. Verify DTS track plays on Quest 3 (DTS-only MKV)."

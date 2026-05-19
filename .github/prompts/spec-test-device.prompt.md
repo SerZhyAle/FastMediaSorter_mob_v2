@@ -48,7 +48,7 @@ If the gate refuses, abort with one line stating the current status and the next
 ### 1 - Parse arguments, resolve spec
 
 ```powershell
-pwsh -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
+pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
 ```
 
 Locate strategic spec at `PLAN/Sxxxx_<slug>.md`. Record presence of `PLAN/Sxxxx_<slug>/INDEX.md`. Apply status gate.
@@ -171,7 +171,7 @@ For every `<Sxxxx>:` line found in the log, mark the corresponding criterion / c
 Additionally grep for tags belonging to spec classes. Resolve class names from the catalog:
 
 ```powershell
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -PathMatches "*<spec slug fragment>*" -Format json
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -PathMatches "*<spec slug fragment>*" -Format json
 ```
 
 For each class returned, run:
@@ -212,7 +212,7 @@ Append a one-line entry to the spec's `## Revision History` (create the section 
 Touch the journal `updated` timestamp **without changing status**:
 
 ```powershell
-pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>
+pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>
 ```
 
 ### 11 - Dev log
@@ -267,7 +267,7 @@ Then a one-line follow-up offer if `/spec-fix` or a fresh `/spec` is the obvious
 ## Spec Catalog hooks
 
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug.
-- **Status transition.** Never. Only `updated` is touched (`pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`).
+- **Status transition.** Never. Only `updated` is touched (`pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`).
 - **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; deleting screenshots from previous runs (they accumulate in `temp/<Sxxxx>_screens/` and may be useful for diff).
 
 ---

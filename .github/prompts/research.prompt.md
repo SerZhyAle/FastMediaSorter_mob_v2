@@ -41,7 +41,7 @@ When invoked with `$ARGUMENTS`:
 Run the helper script before broad reading:
 
 ```powershell
-pwsh -File scripts/utils/build-research-dossier.ps1 -Topic "<topic>" -Module <app_v2|wear|all> [-Flavor <flavor>]
+pwsh -NoProfile -File scripts/utils/build-research-dossier.ps1 -Topic "<topic>" -Module <app_v2|wear|all> [-Flavor <flavor>]
 ```
 
 The script writes a Markdown dossier to `temp/` by default with:

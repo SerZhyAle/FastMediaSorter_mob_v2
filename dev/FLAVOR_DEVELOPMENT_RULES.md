@@ -40,7 +40,7 @@ Use Dependency Injection (Hilt) to provide the correct implementation at compile
 ### RULE 6: CLOUD-ENABLED FLAVOR `applicationId` POLICY (origin: S0232)
 For flavors that talk to cloud OAuth providers (OneDrive / MSAL, Google Drive, Dropbox):
 
-- **Non-Store-published cloud-enabled flavors** (`noLegal`, future `vrUnlicensed`) MUST NOT carry an `applicationIdSuffix`. They share `applicationId = com.sza.fastmediasorter` with `standard` and reuse the same OAuth registrations (one Azure App / one Google OAuth client per build type / one Dropbox app). They are alternate builds of the same product, not separately distributed apps.
+- **Non-Store-published cloud-enabled flavors** (`noLegal`) MUST NOT carry an `applicationIdSuffix`. They share `applicationId = com.sza.fastmediasorter` with `standard` and reuse the same OAuth registrations (one Azure App / one Google OAuth client per build type / one Dropbox app). They are alternate builds of the same product, not separately distributed apps. (S0250: a former `vrUnlicensed` flavor followed this same rule; it was archived 2026-05-19 and merged into `noLegal`.)
 - **Store-published flavors** (`photos`, `legacy`, and a future Meta Horizon Store `vr`) keep their `applicationIdSuffix` because the Store binds listing identity to it. Each Store-published flavor must register its own OAuth client per provider.
 - **`lite`** has no cloud surface - its `applicationIdSuffix` is unaffected by this rule.
 - **Adding a new signing keystore** additionally requires both of the following - neither alone is sufficient:

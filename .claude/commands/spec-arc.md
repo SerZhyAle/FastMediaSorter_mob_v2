@@ -21,12 +21,12 @@ Move a spec's files to `temp/done/` (git-ignored) and mark the journal record as
 
 **1 - Resolve id.**
 
-Run `pwsh -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`. Abort if record not found or status is already `Archived`.
+Run `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`. Abort if record not found or status is already `Archived`.
 
 **2 - Run archive script.**
 
 ```powershell
-pwsh -File scripts/spec_catalog/archive.ps1 -Id <Sxxxx>
+pwsh -NoProfile -File scripts/spec_catalog/archive.ps1 -Id <Sxxxx>
 ```
 
 The script:
@@ -44,7 +44,7 @@ The script:
 `archive.ps1` already set status to `Archived` and moved files in Step 2. To bookkeep the rest (functionality log on `--removes-functionality`, dev log entry, debug-tag removal log lines, catalog touch) in one pwsh process, use `close-and-log.ps1` with `-StatusOnly` (status is already `Archived`, just touch `updated`):
 
 ```powershell
-pwsh -File scripts/spec_catalog/close-and-log.ps1 `
+pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status Archived `
     -StatusOnly `

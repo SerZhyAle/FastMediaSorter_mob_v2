@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -60,12 +61,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 add(ControlSection.VOLUME)
                 add(ControlSection.AUDIO)
                 add(ControlSection.SUBTITLES)
-                // Stereo tab appears only when the current file exposes a stereo layout.
+                // Phase 02: the main-side kill-switch is gone, so keep the stereo tab whenever
+                // the current file still exposes a stereo layout or the VR flavor is active.
                 val currentStereo = host().stereoMode.value
                 val isStereoContent = currentStereo != StereoMode.AUTO &&
                     currentStereo != StereoMode.MONO &&
                     currentStereo != StereoMode.UNKNOWN
-                if (isStereoContent) {
+                if (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent) {
                     add(ControlSection.STEREO)
                 }
                 add(ControlSection.HUE)
@@ -383,7 +385,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
         // Bind UI to the user's choice, not the resolved effective renderer mode.
         // When AUTO is selected, effectiveStereoMode is already resolved to the detected
-        // value - using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
+        // value — using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
         bindStereoMode(mode)
 
         if (mode != StereoMode.AUTO) {

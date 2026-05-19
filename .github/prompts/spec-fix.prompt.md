@@ -32,7 +32,7 @@ A fix is auto-applicable iff purely mechanical - no logic, design, or naming dec
 | --- | --- |
 | Missing dev log entry | Run `.\scripts\add_to_dev_log.ps1` using the step's intent as description. |
 | Trilingual string gap | Add key with `<!-- TODO translate: <EN text> -->` placeholder. If this is stored as an XML comment rather than a `<string>` body, manual XML edit is allowed because `set-android-string.ps1` only writes string values. Never invent translation. |
-| Stale catalog entry | Run `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2\|wear>`. Note manual `role`/`status` still need `set.ps1`. |
+| Stale catalog entry | Run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2\|wear>` (one-shot scan + render). Note manual `role`/`status` still need `set.ps1`. |
 | `Log.d()` on executable line (1–3 hits) | Replace with `Timber.d(`, add `import timber.log.Timber` if missing. |
 | Missing `import timber.log.Timber` | Add import in canonical position. |
 | Stale `Timber.d("S\d{4}:` debug tag | Delete the line if the tag's spec is not currently `BlockNeedUserTest` (resolve via `select.ps1 -Id <Sxxxx> -Format json`). Applies to the audited spec's own tags and to any such tag found in a `.kt` file already being edited for another fix. Never delete a tag whose spec is `BlockNeedUserTest`. See CLAUDE.md "Debug Verification Tags". |
@@ -59,7 +59,7 @@ Classify each as `auto` (maps to category table), `manual` (requires dev attenti
 
 Deterministic order:
 
-1. Catalog regeneration (`scan.ps1`) - first, so subsequent checks see fresh state.
+1. Catalog regeneration (`catalog_sync.ps1`) - first, so subsequent checks see fresh state.
 2. Trilingual string mirrors.
 3. FEATURES trilingual bullets.
 4. `Log.d` → `Timber.d` rewrites + imports.
@@ -109,5 +109,5 @@ After at least one fix was applied - immediately invoke `/spec-check <Sxxxx>` to
 ## Spec Catalog hooks
 
 - **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug.
-- **Status transition.** After at least one fix is applied, touch the journal `updated` timestamp without changing status: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>` (no other flags). On `--dry-run` skip the update.
+- **Status transition.** After at least one fix is applied, touch the journal `updated` timestamp without changing status: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>` (no other flags). On `--dry-run` skip the update.
 - **Forbidden:** never set the journal status from this skill - verdict belongs to `/spec-check`. Never write to `PLAN/spec-catalog.jsonl` directly.

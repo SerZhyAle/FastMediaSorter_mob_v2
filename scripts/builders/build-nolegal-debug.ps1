@@ -5,7 +5,7 @@
 
 Write-Host "Building NoLegal Debug APK (auto-versioned)..." -ForegroundColor Cyan
 Write-Host "Features: Standard runtime + sideload-only extras (NewPipe, etc.)" -ForegroundColor Yellow
-Write-Host "Distribution: ADB sideload only - not for any public store." -ForegroundColor Magenta
+Write-Host "Distribution: ADB sideload only — not for any public store." -ForegroundColor Magenta
 
 # Generate version
 $now = Get-Date
@@ -15,7 +15,7 @@ $dd  = $now.ToString("dd")
 $HH  = $now.ToString("HH")
 $mm  = $now.ToString("mm")
 
-# versionCode: YYMMDDHHm (9 digits, first digit of minutes - avoids Int32 overflow)
+# versionCode: YYMMDDHHm (9 digits, first digit of minutes — avoids Int32 overflow)
 $versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
 # versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4260.457
 $versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"

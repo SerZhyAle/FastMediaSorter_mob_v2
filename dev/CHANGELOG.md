@@ -11325,3 +11325,47 @@ Format: | datetime | file | target | description |
 | 2026-05-19 01:13:40 | `PLAN/S0125_settings-activity-revision.md` | `S0125-spec` | Replace early public dual-run language with hidden incubation and gated re-exposure [branch: DEBUG-v004] |
 | 2026-05-19 01:13:40 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Refresh app_v2 catalog after Kotlin changes [branch: DEBUG-v004] |
 | 2026-05-19 01:13:40 | `dev/CATALOG/app_v2.md` | `catalog` | Render app_v2 catalog after Kotlin changes [branch: DEBUG-v004] |
+| 2026-05-19 01:22:48 | `app_v2/build.gradle.kts` | `S0249` | Phase 02: enable prefab + scoped externalNativeBuild for src/vr/cpp; add OpenXR loader 1.1.57 to vr/noLegal; FMS_BUILD_XR_RUNTIME=ON flag gates fms_diagnostic_xr target [branch: DEBUG-v004] |
+| 2026-05-19 01:22:48 | `app_v2/src/vr/cpp/CMakeLists.txt` | `S0249` | Phase 02: restore CMakeLists.txt with fms_diagnostic_xr SHARED target gated by FMS_BUILD_XR_RUNTIME; link OpenXR::openxr_loader + android/log/EGL/GLESv3 [branch: DEBUG-v004] |
+| 2026-05-19 01:22:48 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `S0249` | Phase 02: native OpenXR bridge - extension probing, instance/system acquisition, JNI surface (probeExtensions/startSession/presentStaticImage/requestExit/isRunning/hasEquirect2). Session creation deferred to Phase 03 [branch: DEBUG-v004] |
+| 2026-05-19 01:22:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/DiagnosticXrRuntime.kt` | `S0249` | Phase 02: DiagnosticXrRuntime interface + DiagnosticXrNativeResult enum mirroring native ordinals [branch: DEBUG-v004] |
+| 2026-05-19 01:22:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0249` | Phase 02: NativeDiagnosticXrRuntime JNI wrapper loading libfms_diagnostic_xr.so; Timber-logged native faults [branch: DEBUG-v004] |
+| 2026-05-19 01:22:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/di/XrModule.kt` | `S0249` | Phase 02: Hilt binding for DiagnosticXrRuntime to NativeDiagnosticXrRuntime in vr/noLegal flavors [branch: DEBUG-v004] |
+| 2026-05-19 01:22:50 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `S0249` | Phase 02: inject DiagnosticXrRuntime + ApplicationContext; enterDiagnosticImage delegates probe + startSession + maps results to XrEntryResult [branch: DEBUG-v004] |
+| 2026-05-19 01:24:16 | `PLAN/S0125_settings-activity-revision.md` | `spec-update` | Refinement (manual owner clarification: new-object migration isolation) [branch: DEBUG-v004] |
+| 2026-05-19 01:25:18 | `CLAUDE.md` | `rules` | Add PowerShell Efficiency section: mandatory -NoProfile, batch related script calls into one pwsh process, prefer wrappers; update all in-doc pwsh examples to -NoProfile [branch: DEBUG-v004] |
+| 2026-05-19 01:25:18 | `scripts/catalog_sync.ps1` | `tooling` | New wrapper: one-shot Catalogue sync (scan + render) in a single pwsh process, eliminates double cold-start [branch: DEBUG-v004] |
+| 2026-05-19 01:27:39 | `PLAN/S0125_settings-activity-revision.md` | `S0125 tactical reset` | Remove active tactical-plan link and mark S0125 tactical track deleted by owner request [branch: DEBUG-v004] |
+| 2026-05-19 01:27:39 | `PLAN/S0125_settings-activity-revision/` | `S0125 tactical reset` | Delete all S0125 tactical plan and parity artefacts before rebuild from scratch [branch: DEBUG-v004] |
+| 2026-05-19 01:27:39 | `dev/S0125_*` | `S0125 tactical reset` | Delete S0125 phase0 and redesign reboot planning artefacts by owner request [branch: DEBUG-v004] |
+| 2026-05-19 01:37:52 | `AGENTS.md` | `rules` | Add Section 9 PowerShell Efficiency for Codex/OpenAI agents; update Section 4 Research Order and Section 8 Workflow to use pwsh -NoProfile and catalog_sync.ps1 wrapper [branch: DEBUG-v004] |
+| 2026-05-19 01:37:52 | `.github/copilot-instructions.md` | `rules` | Add PWSH_EFFICIENCY constraint and catalog_sync.ps1 reference for GitHub Copilot [branch: DEBUG-v004] |
+| 2026-05-19 01:37:52 | `.github/prompts/*.prompt.md` | `rules` | Bulk replace pwsh -File with pwsh -NoProfile -File across all Copilot prompts; route catalog scan+render chains through catalog_sync.ps1 wrapper [branch: DEBUG-v004] |
+| 2026-05-19 01:37:52 | `.github/agents/*.agent.md` | `rules` | Sync Copilot agent definitions with PowerShell -NoProfile rule and catalog_sync.ps1 wrapper [branch: DEBUG-v004] |
+| 2026-05-19 01:37:52 | `.claude/commands/*.md` | `rules` | Bulk replace pwsh -File with pwsh -NoProfile -File across all Claude slash commands; route catalog scan+render chains through catalog_sync.ps1 wrapper [branch: DEBUG-v004] |
+| 2026-05-19 01:37:52 | `.claude/agents/*.md` | `rules` | Sync Claude agent definitions with PowerShell -NoProfile rule and catalog_sync.ps1 wrapper [branch: DEBUG-v004] |
+| 2026-05-19 01:39:06 | `dev/S0125_settings_redesign_blueprint_2026-05-19.md` | `S0125 blueprint` | Add pre-implementation blueprint for revised settings window owner review [branch: DEBUG-v004] |
+| 2026-05-19 01:45:41 | `app_v2/src/vr/res/drawable-nodpi/vr_diagnostic_stereo_tb.jpg` | `S0249` | Phase 03: bundle Navier8 MIT stereo TB equirect 4096x4096 JPEG (651KB) as VR-flavor diagnostic asset [branch: DEBUG-v004] |
+| 2026-05-19 01:45:41 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/assets/DiagnosticXrAssetProvider.kt` | `S0249` | Phase 03: DiagnosticXrAssetProvider loads bundled diagnostic asset into ByteArray + StereoLayout.TopBottom metadata [branch: DEBUG-v004] |
+| 2026-05-19 01:45:41 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/DiagnosticXrRuntime.kt` | `S0249` | Phase 03: add presentBundledDiagnosticImage() to interface [branch: DEBUG-v004] |
+| 2026-05-19 01:45:41 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0249` | Phase 03: inject DiagnosticXrAssetProvider; presentBundledDiagnosticImage delegates to presentStaticImage with loaded asset [branch: DEBUG-v004] |
+| 2026-05-19 01:45:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `S0249` | Phase 03: chain probe -> startSession -> presentBundledDiagnosticImage; map all branches to XrEntryResult [branch: DEBUG-v004] |
+| 2026-05-19 01:45:42 | `THIRD_PARTY_LICENSES.md` | `S0249` | Phase 03: create third-party licenses doc with Navier8 MIT attribution for bundled diagnostic image [branch: DEBUG-v004] |
+| 2026-05-19 01:52:32 | `PLAN/S0125_settings-activity-revision/BLUEPRINT_2026-05-19.md` | `S0125 blueprint` | Move revised settings blueprint from dev/ into the S0125 plan folder [branch: DEBUG-v004] |
+| 2026-05-19 01:52:32 | `dev/S0125_settings_redesign_blueprint_2026-05-19.md` | `S0125 blueprint` | Remove dev copy after moving the blueprint into PLAN/S0125_settings-activity-revision [branch: DEBUG-v004] |
+| 2026-05-19 01:57:44 | `PLAN/S0250_nolegal-vr-unification.md` | `spec-all` | S0250: Strategic spec — noLegal VR unification + vrUnlicensed archive [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `spec-tech` | Create tactical plan for S0125 [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_01__inventory-shell-foundation.md` | `spec-tech` | Phase 01: inventory-shell-foundation [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_02__general-native-page.md` | `spec-tech` | Phase 02: general-native-page [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_03__operations-native-page.md` | `spec-tech` | Phase 03: operations-native-page [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_04__media-native-page.md` | `spec-tech` | Phase 04: media-native-page [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_05__playback-native-page.md` | `spec-tech` | Phase 05: playback-native-page [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_06__search-reexposure-gate.md` | `spec-tech` | Phase 06: search-reexposure-gate [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup [branch: DEBUG-v004] |
+| 2026-05-19 02:11:08 | `PLAN/S0125_settings-activity-revision.md` | `spec-tech` | Status -> Tactical and rebuild tactical plan for S0125 [branch: DEBUG-v004] |
+| 2026-05-19 02:21:15 | `temp/S0125_inventory_portrait.md` | `S0125 01.1` | Capture portrait settings baseline inventory [branch: DEBUG-v004] |
+| 2026-05-19 02:21:15 | `temp/S0125_inventory_landscape.md` | `S0125 01.1` | Capture landscape settings baseline inventory [branch: DEBUG-v004] |
+| 2026-05-19 02:21:15 | `temp/S0125_migration_map.md` | `S0125 01.1` | Capture settings migration map baseline [branch: DEBUG-v004] |
+| 2026-05-19 02:21:15 | `PLAN/S0125_settings-activity-revision.md` | `S0125 status` | Status -> In Progress [branch: DEBUG-v004] |
+| 2026-05-19 02:21:15 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125 INDEX` | Mark Phase 01 in progress and advance Step 01.1 to 1/4 [branch: DEBUG-v004] |
+| 2026-05-19 02:21:15 | `PLAN/S0125_settings-activity-revision/PHASE_01__inventory-shell-foundation.md` | `S0125 01.1` | Complete Step 01.1 baseline inventory and migration map [branch: DEBUG-v004] |

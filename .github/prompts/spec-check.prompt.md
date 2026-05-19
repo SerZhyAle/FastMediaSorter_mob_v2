@@ -146,11 +146,11 @@ The block replaces the previous `## Last Audit` block in full. The rest of the s
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
 - **Status transition** (after the audit verdict is final):
-  - Verdict `Verified` → `pwsh -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on the record.)
-  - Verdict `Partial`  → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
-  - Verdict `Broken`   → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
+  - Verdict `Verified` → `pwsh -NoProfile -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on the record.)
+  - Verdict `Partial`  → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
+  - Verdict `Broken`   → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
 - **Debug tags.** Every verdict that flips the journal status away from `BlockNeedUserTest` (Verified / Partial / Broken - and trivially also from `Implemented`, where there are none) requires the grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). This holds in `--quick` mode too.
 - **Read-only mode (`--quick`):** still emits the status transition and the debug-tag removal above; the difference is in scope of audit checks, not in journal effect.
 - **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change the verdict. Never create audit files in `PLAN/`.

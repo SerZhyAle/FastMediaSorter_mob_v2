@@ -14,3 +14,4 @@
 - [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - each signingConfig produces a distinct BrowserTabActivity hash; manifest + Azure app registration must declare every variant
 - [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if flavor hierarchy/contracts/inheritance already mechanically determines the answer, don't fabricate a "choice" question
 - [Verify sub-agent build failures yourself](feedback_verify_subagent_build_failures.md) - agent's incremental kapt cache may be stale; re-run `.\a.ps1 dq` before treating reported build failures as hard stops
+- [PowerShell efficiency: -NoProfile + batching + wrappers](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; chain related scripts in one process; use scripts/catalog_sync.ps1 for the scan+render ritual

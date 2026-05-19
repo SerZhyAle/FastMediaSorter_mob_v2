@@ -125,23 +125,25 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 | **photos**       | [-]   | [-]   | [+]    | [+]   | [-]  | [+]  | [-] |
 | **legacy**       | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [-] |
 | **vr**           | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
-| **vrUnlicensed** | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
+| **noLegal**      | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
 
 ### Extended per-flavor flags
 
-| Flag | std | lite | photos | legacy | vr | vrU |
+| Flag | std | lite | photos | legacy | vr | noL |
 |:-----|:---:|:----:|:------:|:------:|:--:|:---:|
 | `SUPPORT_MIC_RECORDING`            | [+] | [-] | [-] | [+] | [+] | [+] |
 | `ENABLE_EPUB`                      | [+] | [-] | [-] | [+] | [+] | [+] |
 | `ENABLE_TRANSLATION`               | [+] | [-] | [-] | [+] | [+] | [+] |
 | `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [-] | [-] | [+] | [+] | [+] |
 | `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] |
-| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [-] |
+| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [+] |
 | `ENABLE_DTS_DECODER`               | [+] | [-] | [-] | [+] | [+] | [+] |
-| `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [-] |
+| `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [+] |
+| `SUPPORT_VR_PLAYER`                | -   | -   | -   | -   | [+] | [+] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED`  | -   | -   | -   | -   | [+] | [+] |
+| `IS_NO_LEGAL_FLAVOR`               | -   | -   | -   | -   | -   | [+] |
 
-`vrU` = `vrUnlicensed`. Cast is disabled in VR flavors: Horizon OS lacks the Google Play Services Cast module. `vrUnlicensed` always ships DTS - no store-review restrictions.
+`noL` = `noLegal`. Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module); `noLegal` keeps it because it also targets phones/tablets. `SUPPORT_WEAR_COMPANION = true` in `noLegal` is harmless on Quest (no paired watch exists) and meaningful on phones/tablets — runtime decides. VR feature surface in `noLegal` is gated at runtime by `XrDetectionFacade` — VR controls show disabled on devices without an OpenXR runtime. S0250 (2026-05-19) archived the former `vrUnlicensed` flavor; `noLegal` now covers both phone-sideload and Quest-sideload through one APK.
 
 ### Build-type flags (all flavors)
 
@@ -168,8 +170,9 @@ Migrations: `AppDatabase.kt`.
 NDK r27c (`27.2.12479018`) - first NDK release with 16 KB page-size aligned `libc++_shared.so` (Google Play requirement since 2025-11-01 for apps targeting Android 15+).
 
 ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `abiFilters` as UNION, not intersection - a buildType-level list would leak non-VR ABIs into VR AABs):
-- Non-VR flavors: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`
-- `vr` + `vrUnlicensed`: `arm64-v8a` only (Meta Quest 2/3/Pro)
+- `standard`, `lite`, `photos`, `legacy`: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`
+- `vr`: `arm64-v8a` only (Meta Quest 2/3/Pro)
+- `noLegal`: `arm64-v8a` + `x86_64` (Chaquopy Python wheels are arm64/x86_64 only; covers Quest + modern phones + emulators)
 
 ## QUEST DEBUGGING (VR flavor)
 

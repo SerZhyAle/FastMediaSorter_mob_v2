@@ -35,7 +35,7 @@ Parse the user's argument. Identify:
 
 Read in this order; stop as soon as a source answers the question:
 1. `dev/PROJECT_OPERATIONS_INDEX.md` - workspace routing and Feature-to-Path map.
-2. `pwsh -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches` / `-Role` / `-Injected`) - locate relevant classes without a global grep. Use this before any Grep/Glob.
+2. `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches` / `-Role` / `-Injected`) - locate relevant classes without a global grep. Use this before any Grep/Glob.
 3. Domain doc for the task type:
    - Architecture / data flow → `docs/ARCHITECTURE.md`
    - Build / flags / flavors → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`

@@ -39,12 +39,21 @@ class XrEntryGatewayImpl @Inject constructor(
             return XrEntryResult.InitializationFailed
         }
         val startResult = runtime.startSession(appContext)
-        return when (startResult) {
-            DiagnosticXrNativeResult.Ok -> XrEntryResult.Started
-            DiagnosticXrNativeResult.LoaderUnavailable -> XrEntryResult.UnavailableNoRuntime
-            DiagnosticXrNativeResult.SystemNotFound -> XrEntryResult.UnavailableNoRuntime
+        when (startResult) {
+            DiagnosticXrNativeResult.Ok -> Unit
+            DiagnosticXrNativeResult.LoaderUnavailable -> return XrEntryResult.UnavailableNoRuntime
+            DiagnosticXrNativeResult.SystemNotFound -> return XrEntryResult.UnavailableNoRuntime
             else -> {
                 Timber.w("XrEntryGatewayImpl: startSession returned $startResult")
+                return XrEntryResult.InitializationFailed
+            }
+        }
+        val presentResult = runtime.presentBundledDiagnosticImage()
+        return when (presentResult) {
+            DiagnosticXrNativeResult.Ok -> XrEntryResult.Started
+            else -> {
+                Timber.w("XrEntryGatewayImpl: presentBundledDiagnosticImage returned $presentResult")
+                runtime.requestExit()
                 XrEntryResult.InitializationFailed
             }
         }

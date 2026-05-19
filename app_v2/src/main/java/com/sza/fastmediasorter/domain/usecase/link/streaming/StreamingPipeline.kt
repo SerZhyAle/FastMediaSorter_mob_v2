@@ -11,7 +11,7 @@ import java.io.File
  *
  * Two implementations exist as flavor-scoped source-sets:
  *
- * - `streamingEnabled/` (standard, legacy, vr, vrUnlicensed) - backed by Media3
+ * - `streamingEnabled/` (standard, legacy, vr, noLegal) - backed by Media3
  *   `HlsDownloader`/`DashDownloader` and an Android-native `MediaMuxer` remux step.
  * - `streamingDisabled/` (lite, photos) - `NoOpStreamingPipeline` returning
  *   [PipelineOutcome.Disabled] so the coordinator surfaces a localized

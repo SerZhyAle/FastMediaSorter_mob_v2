@@ -79,15 +79,17 @@ VR-редакция - не отдельное приложение, а тот ж
 - **XR-рантайм:** на запуске требуется OpenXR 1.1.48+. Без XR-рантайма приложение показывает экран-заглушку и не стартует воспроизведение.
 - **Нативный код:** поставляется OpenXR loader AAR плюс `openxr_native.so` (C++ мост, собираемый CMake). Добавляет ~8 МБ нативной нагрузки поверх стандартной сборки.
 - **Нет Wear OS companion:** у шлемов нет парных часов, поэтому `SUPPORT_WEAR_COMPANION = false`.
-- **Package ID:** `com.sza.fastmediasorter.vr` общий для обоих флейворов `vr` и `vrUnlicensed` - установка одного заменяет другой на устройстве.
+- **Package ID:** `com.sza.fastmediasorter.vr` принадлежит флейвору `vr` (Store-канал). Sideload-сборка с VR отдаётся через флейвор `noLegal` и использует `com.sza.fastmediasorter` — на одном устройстве `vr` и `noLegal` могут сосуществовать.
 - **DTS / расширенные кодеки:** всегда вшиты через `fms-ffmpeg-dts.aar`. Hardware Quest везде arm64, поэтому single-ABI AAR достаточно каждому VR-пользователю.
 
 ### Каналы дистрибуции
 
-Оба флейвора дают одинаковый `applicationId`, поэтому одновременно на устройстве может стоять только один:
+Два флейвора несут VR-функциональность и распространяются по разным каналам:
 
-- **`vr`** - Meta Horizon Store / Google Play. Модерируемая дистрибуция. Если магазин отклонит DTS-декодер, сборка `vr` может выйти без него, а пользователей sideload-канала направляют на `vrUnlicensed`.
-- **`vrUnlicensed`** - ADB sideload через Developer Mode. Прямая дистрибуция для продвинутых пользователей; всегда содержит DTS вне зависимости от политики магазинов.
+- **`vr`** — Meta Horizon Store / Google Play AAB. Под Store-ревью. Остаётся Store-clean: без GPL-экстракторов, без Python-рантайма, без yt-dlp. Если магазин отклонит DTS-декодер, сборка `vr` может выйти без него, а пользователей sideload-канала направляют на `noLegal`.
+- **`noLegal`** — ADB sideload через Developer Mode. Универсальная sideload-сборка покрывает телефоны, планшеты, Quest и Android XR одним APK. Всегда содержит DTS, Python+yt-dlp+NewPipeExtractor и полный VR-рантайм вне зависимости от политики магазинов. VR-функциональность gate'ится по runtime: на устройствах без OpenXR-рантайма VR-контролы показываются как disabled с advisory-надписью.
+
+> **Историческая заметка.** До 2026-05-19 для VR-only sideload существовал отдельный флейвор `vrUnlicensed`. Он слит в `noLegal` по тикету S0250, потому что `noLegal` уже нёс все нужные для VR зависимости плюс более широкую sideload-поверхность. См. [PLAN/S0250_nolegal-vr-unification.md](../PLAN/S0250_nolegal-vr-unification.md).
 
 ### Fallback на телефоне
 

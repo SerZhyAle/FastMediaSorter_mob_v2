@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.xr.runtime
 
 import android.content.Context
+import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,9 @@ import timber.log.Timber
  * decides whether to surface the failure to the UI.
  */
 @Singleton
-class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
+class NativeDiagnosticXrRuntime @Inject constructor(
+    private val assetProvider: DiagnosticXrAssetProvider
+) : DiagnosticXrRuntime {
 
     init {
         try {
@@ -64,6 +67,21 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
             DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
         DiagnosticXrNativeResult.fromOrdinal(ordinal)
+    }
+
+    /**
+     * Convenience entry used by [com.sza.fastmediasorter.core.xr.XrEntryGatewayImpl] to push
+     * the bundled diagnostic asset without bothering the caller with raw byte plumbing.
+     * Returns [DiagnosticXrNativeResult.LoaderUnavailable] if the bundled resource cannot be
+     * read (treated as "runtime not viable" at the gateway layer).
+     */
+    override suspend fun presentBundledDiagnosticImage(): DiagnosticXrNativeResult = withContext(Dispatchers.Default) {
+        val asset = assetProvider.load()
+        if (asset == null) {
+            Timber.w("NativeDiagnosticXrRuntime.presentBundledDiagnosticImage: asset load failed")
+            return@withContext DiagnosticXrNativeResult.LoaderUnavailable
+        }
+        presentStaticImage(asset.bytes, asset.widthPx, asset.heightPx)
     }
 
     override fun requestExit() {
