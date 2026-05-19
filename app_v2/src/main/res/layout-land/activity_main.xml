@@ -140,7 +140,7 @@
                 android:text="@string/settings"
                 android:textColor="?attr/colorControlNormal"
                 android:textSize="16sp"
-                app:icon="@drawable/ic_settings"
+                app:icon="@android:drawable/ic_menu_preferences"
                 app:iconGravity="textStart"
                 app:iconPadding="4dp"
                 app:iconSize="@dimen/icon_size_normal"

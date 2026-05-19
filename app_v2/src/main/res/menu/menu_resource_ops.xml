@@ -24,18 +24,18 @@
         android:id="@+id/action_create_text_file"
         android:title="@string/action_create_text_file" />
     <item
-        android:id="@+id/action_automate_resource_current"
-        android:title="@string/menu_automate_source_current" />
+        android:id="@+id/action_create_drawing"
+        android:title="@string/action_create_drawing" />
     <item
-        android:id="@+id/action_automate_resource_revised"
-        android:title="@string/menu_automate_source_revised" />
+        android:id="@+id/action_automate_resource"
+        android:title="@string/menu_automate_source" />
     <item
         android:id="@+id/action_add_to_receivers"
         android:title="@string/menu_add_receiver" />
     <item
         android:id="@+id/action_camera_capture"
         android:title="@string/cmd_camera_capture" />
-    <!-- S0028: multi-window - hidden by default, shown on VR+setting -->
+    <!-- S0184: multi-window - hidden unless the user setting allows a new window. -->
     <item
         android:id="@+id/action_open_in_separate_window"
         android:title="@string/action_open_in_separate_window" />

@@ -1,50 +1,59 @@
 package com.sza.fastmediasorter.core.xr.runtime
 
-import android.content.Context
+import android.app.Activity
+import android.view.Surface
 
 /**
- * Facade over the diagnostic OpenXR runtime (S0249 Stage 1A).
+ * Facade over the diagnostic OpenXR runtime (S0249).
  *
  * Implementations are VR-flavor only ([NativeDiagnosticXrRuntime] talks to JNI / OpenXR).
  * Phone flavors never see this type; the phone-only code path stops at
  * `XrEntryGateway.enterDiagnosticImage()` returning [com.sza.fastmediasorter.core.xr.XrEntryResult.UnavailableNoRuntime].
  *
- * The facade is intentionally narrow:
- * - [probeExtensions] runs once before [startSession] to record which optional features
- *   the device's OpenXR runtime exposes (notably `XR_KHR_composition_layer_equirect2`).
- * - [startSession] performs cold-start of OpenXR instance + session + swapchain. Returns a
- *   structured outcome; never throws.
- * - [presentStaticImage] uploads the bundled stereo top-bottom equirect bytes for one
- *   present cycle. Phase 03 wires the asset stream into this call.
- * - [requestExit] tears down the session in response to any input event from Phase 05.
- * - [isRunning] is read by `XrEntryGatewayImpl` to gate concurrent entry attempts.
+ * Lifecycle (Phase 02 step 02.6 - Activity-driven; every call except [requestExit] runs on the
+ * dedicated render thread the Activity owns):
+ * 1. [initSession] - JavaVM + Activity jobject -> XrInstance + XrSystem + EGL context.
+ * 2. [attachSurface] - Activity's SurfaceView Surface -> EGLSurface bound.
+ * 3. [startSession] - XrSession + per-eye swapchains + reference space + GL assets + actions.
+ * 4. [uploadTexture] - raw RGBA bytes (decoded on Kotlin side) populate the sphere texture.
+ * 5. [runFrameLoop] - blocking; returns when [requestExit] is called or runtime sends EXITING.
+ * 6. [shutdown] - tear everything down.
+ *
+ * [requestExit] is the only method safe to call from any thread; it sets an atomic flag the
+ * render thread observes between frames.
  */
 interface DiagnosticXrRuntime {
 
-    suspend fun probeExtensions(): DiagnosticXrNativeResult
+    /** Returns true if the native library loaded successfully (arm64 device + AAR present). */
+    val isNativeAvailable: Boolean
 
-    fun hasEquirect2Layer(): Boolean
+    /** Returns true if a session is currently active (instance + session handle alive). */
+    fun isRunning(): Boolean
 
-    suspend fun startSession(context: Context): DiagnosticXrNativeResult
+    suspend fun initSession(activity: Activity): DiagnosticXrNativeResult
 
-    suspend fun presentStaticImage(imageBytes: ByteArray, width: Int, height: Int): DiagnosticXrNativeResult
+    suspend fun attachSurface(surface: Surface): DiagnosticXrNativeResult
+
+    suspend fun startSession(): DiagnosticXrNativeResult
+
+    suspend fun uploadTexture(rgba: ByteArray, width: Int, height: Int): DiagnosticXrNativeResult
 
     /**
-     * Convenience wrapper that loads the bundled diagnostic asset (S0249 Phase 03) and forwards
-     * it to [presentStaticImage]. The native side currently leaves real swapchain upload to
-     * Phase 03 follow-on work — calling this method validates the JNI wiring and asset-provider
-     * binding end-to-end without forcing the caller to handle asset I/O.
+     * Blocking frame-loop entry point. Drives `xrWaitFrame` -> render -> `xrEndFrame` until
+     * [requestExit] is called or the OpenXR runtime sends `SESSION_STATE_EXITING`. Caller MUST
+     * be the render thread.
      */
-    suspend fun presentBundledDiagnosticImage(): DiagnosticXrNativeResult
+    fun runFrameLoop(): DiagnosticXrNativeResult
 
+    /** Async, thread-safe: signal the render thread to leave the frame loop. */
     fun requestExit()
 
-    fun isRunning(): Boolean
+    fun shutdown()
 }
 
 /**
- * Result ordinals shared with `diagnostic_xr_runtime.cpp::NativeResult`. The two enums must
- * be kept in lock-step; any added value here needs a matching native ordinal and vice versa.
+ * Result ordinals shared with `xr_session.cpp::NativeResult`. The two enums must be kept in
+ * lock-step; any added value here needs a matching native ordinal and vice versa.
  */
 enum class DiagnosticXrNativeResult(val nativeOrdinal: Int) {
     Ok(0),

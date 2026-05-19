@@ -62,8 +62,8 @@ class CommandPanelController(
         fun onUndoClicked()
         fun onFullscreenClicked()
         fun onSlideshowClicked()
-        fun onCopyPanelHeaderClicked()
-        fun onMovePanelHeaderClicked()
+        fun onCopyPanelExpandedChanged(expanded: Boolean)
+        fun onMovePanelExpandedChanged(expanded: Boolean)
         fun onInfoClicked()
         fun onLyricsClicked()
         fun onSearchYoutubeMusicClicked()
@@ -228,24 +228,20 @@ class CommandPanelController(
         
         // Setup collapsible Copy to panel
         safeViews.copyToPanelHeader.apply {
-            setOnClickListener { _ ->
-                Timber.d("CommandPanelController: copyToPanelHeader clicked - toggling Copy panel")
-                callback.onCopyPanelHeaderClicked()
+            setExpanded(false, notify = false)
+            setOnExpandedChangeListener { expanded ->
+                Timber.d("CommandPanelController: copyToPanelHeader expanded=$expanded")
+                callback.onCopyPanelExpandedChanged(expanded)
             }
-            // Prevent click propagation to underlying PlayerView
-            isClickable = true
-            isFocusable = true
         }
         
         // Setup collapsible Move to panel
         safeViews.moveToPanelHeader.apply {
-            setOnClickListener { _ ->
-                Timber.d("CommandPanelController: moveToPanelHeader clicked - toggling Move panel")
-                callback.onMovePanelHeaderClicked()
+            setExpanded(false, notify = false)
+            setOnExpandedChangeListener { expanded ->
+                Timber.d("CommandPanelController: moveToPanelHeader expanded=$expanded")
+                callback.onMovePanelExpandedChanged(expanded)
             }
-            // Prevent click propagation to underlying PlayerView
-            isClickable = true
-            isFocusable = true
         }
 
         // S0162: Rotation toggle
@@ -345,7 +341,7 @@ class CommandPanelController(
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                val shouldAllowSeparateWindow = false
+                val shouldAllowSeparateWindow = settings.allowSeparateWindow
                 withContext(Dispatchers.Main) {
                     val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
                     val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow

@@ -233,15 +233,6 @@ class KeyboardShortcutHandler(
         if (!ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_DEL) {
             return InputAction.BackOneLevel
         }
-        if (!ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_SETTINGS) {
-            return InputAction.OpenBrowseSettings
-        }
-        if (!ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_MENU) {
-            return InputAction.ShowContextMenu
-        }
-        if (ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_COMMA) {
-            return InputAction.OpenBrowseSettings
-        }
         // Ctrl+P - Play Random (reshuffle + start player); only meaningful when the button is
         // visible (single-type library), but key is registered unconditionally and the handler
         // in BrowseManagerInitializer shows a toast when the action is unavailable.

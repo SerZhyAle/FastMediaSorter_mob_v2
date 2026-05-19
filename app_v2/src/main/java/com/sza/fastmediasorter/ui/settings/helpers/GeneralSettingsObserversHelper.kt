@@ -35,41 +35,41 @@ class GeneralSettingsObserversHelper(
 
             setIsUpdatingSpinner(true)
 
-            if (binding.switchPreventSleep.isChecked != settings.preventSleep)
-                binding.switchPreventSleep.isChecked = settings.preventSleep
-            if (binding.switchEnableFavorites.isChecked != settings.enableFavorites)
-                binding.switchEnableFavorites.isChecked = settings.enableFavorites
-            if (binding.switchSmallControls.isChecked != settings.showSmallControls)
-                binding.switchSmallControls.isChecked = settings.showSmallControls
-            if (binding.switchCompactElements?.isChecked != settings.useCompactElements)
-                binding.switchCompactElements?.isChecked = settings.useCompactElements
+            if (binding.rowPreventSleep.isChecked != settings.preventSleep)
+                binding.rowPreventSleep.setCheckedSilently(settings.preventSleep)
+            if (binding.rowEnableFavorites.isChecked != settings.enableFavorites)
+                binding.rowEnableFavorites.setCheckedSilently(settings.enableFavorites)
+            if (binding.rowSmallControls.isChecked != settings.showSmallControls)
+                binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
+            if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
+                binding.rowCompactElements?.setCheckedSilently(settings.useCompactElements)
             // S0160: resource ops overflow toggle
-            if (binding.switchResourceOpsInOverflowMenu?.isChecked != settings.resourceOpsInOverflowMenu)
-                binding.switchResourceOpsInOverflowMenu?.isChecked = settings.resourceOpsInOverflowMenu
+            if (binding.rowResourceOpsInOverflowMenu?.isChecked != settings.resourceOpsInOverflowMenu)
+                binding.rowResourceOpsInOverflowMenu?.setCheckedSilently(settings.resourceOpsInOverflowMenu)
 
-            if (binding.switchAllFiles.isChecked != settings.allFiles) {
-                Timber.d("GeneralSettings: observeData updating switchAllFiles: ${binding.switchAllFiles.isChecked} -> ${settings.allFiles}")
-                binding.switchAllFiles.isChecked = settings.allFiles
+            if (binding.rowAllFiles.isChecked != settings.allFiles) {
+                Timber.d("GeneralSettings: observeData updating rowAllFiles: ${binding.rowAllFiles.isChecked} -> ${settings.allFiles}")
+                binding.rowAllFiles.setCheckedSilently(settings.allFiles)
             }
 
             binding.layoutShowHiddenFiles.visibility = if (settings.allFiles) View.VISIBLE else View.GONE
-            if (binding.switchShowHiddenFiles.isChecked != settings.showHiddenFiles)
-                binding.switchShowHiddenFiles.isChecked = settings.showHiddenFiles
-            if (binding.switchShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems)
-                binding.switchShowSubfoldersAsItems.isChecked = settings.showSubfoldersAsItems
-            if (binding.switchDefaultRememberFileList.isChecked != settings.defaultRememberFileList)
-                binding.switchDefaultRememberFileList.isChecked = settings.defaultRememberFileList
+            if (binding.rowShowHiddenFiles.isChecked != settings.showHiddenFiles)
+                binding.rowShowHiddenFiles.setCheckedSilently(settings.showHiddenFiles)
+            if (binding.rowShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems)
+                binding.rowShowSubfoldersAsItems.setCheckedSilently(settings.showSubfoldersAsItems)
+            if (binding.rowDefaultRememberFileList.isChecked != settings.defaultRememberFileList)
+                binding.rowDefaultRememberFileList.setCheckedSilently(settings.defaultRememberFileList)
 
-            if (binding.switchEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
-                binding.switchEnableBackgroundSync.isChecked = settings.enableBackgroundSync
+            if (binding.rowEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
+                binding.rowEnableBackgroundSync.setCheckedSilently(settings.enableBackgroundSync)
 
-            binding.switchEnableThumbnailPreload?.let { sw ->
-                if (sw.isChecked != settings.enableThumbnailPreload) sw.isChecked = settings.enableThumbnailPreload
+            binding.rowEnableThumbnailPreload?.let { row ->
+                if (row.isChecked != settings.enableThumbnailPreload) row.setCheckedSilently(settings.enableThumbnailPreload)
             }
             binding.layoutThumbnailPreloadWifiOnly?.visibility =
                 if (settings.enableThumbnailPreload) View.VISIBLE else View.GONE
-            binding.switchThumbnailPreloadWifiOnly?.let { sw ->
-                if (sw.isChecked != settings.thumbnailPreloadWifiOnly) sw.isChecked = settings.thumbnailPreloadWifiOnly
+            binding.rowThumbnailPreloadWifiOnly?.let { row ->
+                if (row.isChecked != settings.thumbnailPreloadWifiOnly) row.setCheckedSilently(settings.thumbnailPreloadWifiOnly)
             }
 
             setIsUpdatingSpinner(false)

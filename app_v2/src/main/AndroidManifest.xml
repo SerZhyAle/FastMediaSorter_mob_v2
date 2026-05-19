@@ -114,8 +114,6 @@
 
         <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
 
-        <activity android:name=".ui.settings.revised.RevisedSettingsActivity" android:exported="false" android:label="@string/main_settings_new" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" android:windowSoftInputMode="adjustPan" />
-
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->

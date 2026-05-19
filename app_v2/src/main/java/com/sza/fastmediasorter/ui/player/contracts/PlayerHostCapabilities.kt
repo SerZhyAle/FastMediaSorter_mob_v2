@@ -55,7 +55,7 @@ interface PlayerHostCapabilities {
     fun setStereoMode(mode: StereoMode)
 
     /** Persist the chosen mode for the current file path if the remember-format setting is on. */
-    fun rememberStereoModeIfEnabled(mode: StereoMode)
+    fun rememberStereoModeForCurrentFile(mode: StereoMode)
 
     // ── Video player operations ───────────────────────────────────────────────
 

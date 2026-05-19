@@ -19,6 +19,7 @@ import timber.log.Timber
 import java.io.FileInputStream
 import java.io.IOException
 import java.net.ConnectException
+import java.net.HttpCookie
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
@@ -71,40 +72,62 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // S0190: optional audioOnly hint is propagated from canonicalize() - true for
     // YouTube Music share URLs so the downstream extractor picks an audio-only format.
     private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
-        val resolvedHost = resolveSessionHost(host, accountId) ?: return null
-        val cookies = when {
-            accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
-            else -> @Suppress("DEPRECATION") cookieStore.loadFor(resolvedHost)
-        }
-        if (cookies.isNotEmpty()) {
-            // S0182: pull UA for the same (resolvedHost, accountId) the cookies came from.
-            // If accountId is null, scan accounts under resolvedHost for any active entry
-            // that recorded a UA (best-effort fallback used by the auto path).
-            val pinnedUa = if (accountId != null) {
-                cookieStore.loadUserAgentForAccount(resolvedHost, accountId)
-            } else {
-                cookieStore.listAccounts(resolvedHost)
-                    .asSequence()
-                    .mapNotNull { e -> cookieStore.loadUserAgentForAccount(resolvedHost, e.accountId) }
-                    .firstOrNull()
+        val resolvedHost = resolveSessionHost(host, accountId)
+        val cookies: List<HttpCookie> = if (resolvedHost != null) {
+            when {
+                accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
+                else -> @Suppress("DEPRECATION") cookieStore.loadFor(resolvedHost)
             }
-            sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly)
-            Timber.i(
-                "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
-                host,
-                resolvedHost,
-                accountId ?: "auto",
-                cookies.size,
-                pinnedUa?.take(60) ?: "(none)",
-            )
-            Timber.d(
-                "LinkAutoDownloadCoordinator: session context applied host=%s resolvedHost=%s accountId=%s cookies=%d",
-                host,
-                resolvedHost,
-                accountId ?: "auto",
-                cookies.size,
-            )
+        } else {
+            emptyList()
         }
+        if (resolvedHost == null || cookies.isEmpty()) {
+            // S0260: shared skip-logger for both early-return paths so a single grep
+            // discovers every case where the session-context (and audioOnly hint) was
+            // not actually applied. The hint propagation chain is critical for YTMusic
+            // audio-share - if this fires with audioOnly=true the hint is being dropped.
+            Timber.i(
+                "S0260: session context skipped host=%s reason=%s audioOnly=%b",
+                host,
+                if (resolvedHost == null) "no_resolved_host" else "no_cookies",
+                audioOnly,
+            )
+            return resolvedHost
+        }
+        // S0182: pull UA for the same (resolvedHost, accountId) the cookies came from.
+        // If accountId is null, scan accounts under resolvedHost for any active entry
+        // that recorded a UA (best-effort fallback used by the auto path).
+        val pinnedUa = if (accountId != null) {
+            cookieStore.loadUserAgentForAccount(resolvedHost, accountId)
+        } else {
+            cookieStore.listAccounts(resolvedHost)
+                .asSequence()
+                .mapNotNull { e -> cookieStore.loadUserAgentForAccount(resolvedHost, e.accountId) }
+                .firstOrNull()
+        }
+        sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly)
+        Timber.i(
+            "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
+            host,
+            resolvedHost,
+            accountId ?: "auto",
+            cookies.size,
+            pinnedUa?.take(60) ?: "(none)",
+        )
+        Timber.d(
+            "LinkAutoDownloadCoordinator: session context applied host=%s resolvedHost=%s accountId=%s cookies=%d",
+            host,
+            resolvedHost,
+            accountId ?: "auto",
+            cookies.size,
+        )
+        Timber.i(
+            "S0260: session context state host=%s resolvedHost=%s cookies=%d audioOnly=%b",
+            host,
+            resolvedHost,
+            cookies.size,
+            audioOnly,
+        )
         return resolvedHost
     }
 
@@ -122,6 +145,12 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // propagated into LinkDownloadSessionContext so downstream extractors can pick
         // an audio-only format.
         val canonical = urlCanonicalizer.canonicalize(url)
+        Timber.i(
+            "S0260: canonical orig=%s canonical=%s audioOnly=%b",
+            url.take(120),
+            canonical.url.take(120),
+            canonical.audioOnly,
+        )
         unsupportedContentFailure(canonical.url)?.let { unsupported ->
             Timber.i("S0225: rejected unsupported YouTube community post before extraction url=%s", canonical.url.take(120))
             return unsupported
@@ -329,7 +358,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             },
         )
 
-        val openInPlayer = settings.linkAutoDownloadOpenInPlayer
+        // S0257: `openInPlayerUri` is unconditionally populated from `destinationUri` so the
+        // download-result notification (LinkDownloadWorker.postResultNotification) can build a
+        // tap-to-open PendingIntent. Whether the player auto-opens in the foreground share path
+        // is still gated by `settings.linkAutoDownloadOpenInPlayer` - that gate now lives in
+        // LinkAutoDownloadResultPresenter, not here.
         return when (writeResult) {
             is LinkDownloadWriter.WriteResult.Saved -> {
                 Timber.i(
@@ -342,7 +375,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     resourceLabel = writeResult.resourceLabel,
                     fileName = writeResult.fileName,
                     mime = stream.mime,
-                    openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                    openInPlayerUri = writeResult.destinationUri,
                 )
             }
             is LinkDownloadWriter.WriteResult.FellBackToDownloads -> {
@@ -358,7 +391,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
                         LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
                     },
-                    openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                    openInPlayerUri = writeResult.destinationUri,
                 )
             }
             is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
@@ -383,6 +416,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
         val failures = mutableListOf<Result.BatchFailure>()
         var successCount = 0
+        // S0257: capture the URI of the first successfully saved item so the batch result
+        // notification can build a tap-to-open PendingIntent on that file.
+        var firstSavedUri: Uri? = null
         batch.items.forEachIndexed { index, item ->
             val itemIndex = index + 1
             callbacks.onProgress(
@@ -426,9 +462,17 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             }
 
             when (val itemResult = handleUrl(item.url, settings, itemCallbacks)) {
-                is Result.Saved,
-                is Result.FellBackToDownloads,
-                -> successCount += 1
+                is Result.Saved -> {
+                    successCount += 1
+                    // S0257: first successful save wins the slot - subsequent saves do not
+                    // overwrite it, preserving "first downloaded" semantics for the notification.
+                    if (firstSavedUri == null) firstSavedUri = itemResult.openInPlayerUri
+                }
+
+                is Result.FellBackToDownloads -> {
+                    successCount += 1
+                    if (firstSavedUri == null) firstSavedUri = itemResult.openInPlayerUri
+                }
 
                 is Result.BatchCompleted -> failures += Result.BatchFailure(
                     title = item.title ?: item.url,
@@ -448,6 +492,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 totalItems = batch.items.size,
                 successCount = successCount,
                 failures = failures,
+                firstSavedUri = firstSavedUri,
             ),
         )
     }
@@ -509,13 +554,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             callbacks.onProgress(ProgressState.Downloading(bytes, outcome.file.length()))
                         },
                     )
-                    val openInPlayer = settings.linkAutoDownloadOpenInPlayer
+                    // S0257: unconditional `openInPlayerUri`, see comment in the non-streaming
+                    // branch above. Foreground-auto-open gate moved into LinkAutoDownloadResultPresenter.
                     when (writeResult) {
                         is LinkDownloadWriter.WriteResult.Saved -> Result.Saved(
                             resourceLabel = writeResult.resourceLabel,
                             fileName = writeResult.fileName,
                             mime = outcome.mime,
-                            openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                            openInPlayerUri = writeResult.destinationUri,
                         )
                         is LinkDownloadWriter.WriteResult.FellBackToDownloads -> Result.FellBackToDownloads(
                             fileName = writeResult.fileName,
@@ -524,7 +570,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
                                 LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
                             },
-                            openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                            openInPlayerUri = writeResult.destinationUri,
                         )
                         is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
                         is LinkDownloadWriter.WriteResult.Corrupted -> {
@@ -576,6 +622,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             val totalItems: Int,
             val successCount: Int,
             val failures: List<BatchFailure>,
+            // S0257: URI of the first successfully saved file in the batch, in the order
+            // items were processed. `null` when nothing was saved. The download-result
+            // notification uses this URI as its content intent so the batch notification
+            // tap opens StandalonePlayerActivity on the first downloaded file.
+            val firstSavedUri: Uri? = null,
         ) {
             val failureCount: Int
                 get() = failures.size

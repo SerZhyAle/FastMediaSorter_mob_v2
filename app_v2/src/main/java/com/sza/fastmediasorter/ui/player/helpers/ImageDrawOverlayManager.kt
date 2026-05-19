@@ -83,6 +83,14 @@ class ImageDrawOverlayManager(
         fun onSaveRequested(overlayBitmap: Bitmap, filename: String)
     }
 
+    interface DrawOverlayActionCallback {
+        fun onSaveRequested(overlayBitmap: Bitmap)
+        fun onSaveAndCloseRequested(overlayBitmap: Bitmap)
+        fun onSaveAndShareRequested(overlayBitmap: Bitmap)
+        fun onShareRequested(overlayBitmap: Bitmap)
+        fun onCancelRequested()
+    }
+
     /**
      * S0192 Phase 06 - in-place save callback. Fired by the `[Save]` button to
      * overwrite the current file. The activity-side implementation decides on
@@ -102,6 +110,7 @@ class ImageDrawOverlayManager(
 
     var saveCallback: DrawOverlaySaveCallback? = null
     var inPlaceSaveCallback: DrawOverlayInPlaceSaveCallback? = null
+    var actionCallback: DrawOverlayActionCallback? = null
     var editModeCallback: ((com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit)? = null
 
     /**
@@ -113,6 +122,9 @@ class ImageDrawOverlayManager(
 
     private var drawCanvasView: DrawCanvasView? = null
     private var toolbarRoot: View? = null
+    private var shareActionsVisible: Boolean = true
+    private val cleanToolbarColor = 0xCC000000.toInt()
+    private val dirtyToolbarColor = 0xCC6B2C00.toInt()
 
     // Reference to current file for filename templating (set before enterDrawMode)
     var currentFile: com.sza.fastmediasorter.domain.model.MediaFile? = null
@@ -139,6 +151,8 @@ class ImageDrawOverlayManager(
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
 
         toolbarRoot?.visibility = View.VISIBLE
+        canvas.markClean()
+        updateToolbarDirtyState()
     }
 
     fun exitDrawMode(save: Boolean) {
@@ -208,7 +222,7 @@ class ImageDrawOverlayManager(
      */
     fun handleBackPress(): Boolean {
         if (!isDrawModeActive) return false
-        exitDrawMode(save = false)
+        actionCallback?.onCancelRequested() ?: exitDrawMode(save = false)
         return true
     }
 
@@ -220,14 +234,10 @@ class ImageDrawOverlayManager(
      * Layout contract (portrait + landscape mirror each other):
      *   btn_draw_tool_selector - opens R.menu.menu_draw_tool_selector
      *   color_black / color_white / color_red / color_custom - 4 swatches
-     *   btn_draw_overflow - opens R.menu.menu_draw_overflow (Save / Save as.. /
-     *       Undo last / Undo all / Settings / Send to Google Keep)
-     *   btn_draw_close - exit Draw Mode without saving
-     *
-     * Phase 06 revision: the standalone in-place save button was removed; both
-     * save modes now live inside the overflow popup. This eliminates the visual
-     * duplicate with "Save to new file" that the user reported on 2026-05-17 and
-     * collapses the toolbar from two rows to one.
+     *   btn_draw_save / btn_draw_save_close / btn_draw_save_share / btn_draw_share /
+     *       btn_draw_close - direct session actions from S0191
+     *   btn_draw_overflow - opens R.menu.menu_draw_overflow (Save as.. / Undo last /
+     *       Undo all / Settings / Send to Google Keep)
      */
     fun bindToolbar(root: View) {
         toolbarRoot = root
@@ -286,9 +296,30 @@ class ImageDrawOverlayManager(
             }
         }
 
+        root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_save)
+            ?.setOnClickListener {
+                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
+                actionCallback?.onSaveRequested(overlay)
+            }
+        root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_save_close)
+            ?.setOnClickListener {
+                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
+                actionCallback?.onSaveAndCloseRequested(overlay)
+            }
+        root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_save_share)
+            ?.setOnClickListener {
+                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
+                actionCallback?.onSaveAndShareRequested(overlay)
+            }
+        root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_share)
+            ?.setOnClickListener {
+                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
+                actionCallback?.onShareRequested(overlay)
+            }
+
         // ── Close button (X) ─────────────────────────────────────────────
         root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_close)
-            ?.setOnClickListener { exitDrawMode(save = false) }
+            ?.setOnClickListener { actionCallback?.onCancelRequested() ?: exitDrawMode(save = false) }
 
         // ── Overflow menu (⋮) ────────────────────────────────────────────
         val overflowBtn = root.findViewById<android.widget.ImageButton>(
@@ -304,16 +335,6 @@ class ImageDrawOverlayManager(
                     ?.isEnabled = hasActions
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
-                        com.sza.fastmediasorter.R.id.draw_overflow_save_inplace -> {
-                            // Phase 06 - in-place overwrite. The activity-side
-                            // callback writes back to the current file and shows
-                            // a success/failure toast; no filename prompt under
-                            // any circumstances.
-                            val overlay = drawCanvasView?.getBitmap()
-                                ?: return@setOnMenuItemClickListener true
-                            inPlaceSaveCallback?.onInPlaceSaveRequested(overlay)
-                            true
-                        }
                         com.sza.fastmediasorter.R.id.draw_overflow_save_new -> {
                             val overlay = drawCanvasView?.getBitmap()
                                 ?: return@setOnMenuItemClickListener true
@@ -342,6 +363,17 @@ class ImageDrawOverlayManager(
         }
 
         updateToolbarSelection(root)
+        updateShareActionVisibility(root)
+        updateToolbarDirtyState()
+    }
+
+    fun setShareActionsVisible(visible: Boolean) {
+        shareActionsVisible = visible
+        toolbarRoot?.let(::updateShareActionVisibility)
+    }
+
+    fun markCurrentStateSaved() {
+        drawCanvasView?.markClean()
     }
 
     /**
@@ -414,6 +446,18 @@ class ImageDrawOverlayManager(
         toolbarRoot?.let { updateToolbarSelection(it) }
     }
 
+    private fun updateShareActionVisibility(root: View) {
+        val visibility = if (shareActionsVisible) View.VISIBLE else View.GONE
+        root.findViewById<View>(com.sza.fastmediasorter.R.id.btn_draw_save_share)?.visibility = visibility
+        root.findViewById<View>(com.sza.fastmediasorter.R.id.btn_draw_share)?.visibility = visibility
+    }
+
+    private fun updateToolbarDirtyState() {
+        toolbarRoot?.setBackgroundColor(
+            if (drawCanvasView?.hasUnsavedChanges() == true) dirtyToolbarColor else cleanToolbarColor
+        )
+    }
+
     // ── Inner canvas view ──────────────────────────────────────────────────
 
     private inner class DrawCanvasView(context: android.content.Context) :
@@ -423,6 +467,8 @@ class ImageDrawOverlayManager(
         // is gone: every stroke/shape lives in `actions` and is replayed on each
         // onDraw. Off-screen rendering is needed only at export time (getBitmap).
         private val actions = mutableListOf<DrawAction>()
+        private var revision: Int = 0
+        private var cleanRevision: Int = 0
 
         // Tracking for rectangle preview during drag
         private var startX: Float = 0f
@@ -567,6 +613,7 @@ class ImageDrawOverlayManager(
                         )
                         actions.add(stroke)
                         currentStroke = stroke
+                        noteMutation()
                     }
                     invalidate()
                 }
@@ -596,6 +643,7 @@ class ImageDrawOverlayManager(
                                     width = DrawEditorPrefs.getBrushSize(context).toFloat()
                                 )
                             )
+                            noteMutation()
                         }
                         DrawTool.OVAL -> {
                             actions.add(
@@ -609,6 +657,7 @@ class ImageDrawOverlayManager(
                                     width = DrawEditorPrefs.getBrushSize(context).toFloat()
                                 )
                             )
+                            noteMutation()
                         }
                         DrawTool.BRUSH, DrawTool.ERASER -> {
                             currentStroke?.let {
@@ -628,16 +677,28 @@ class ImageDrawOverlayManager(
         }
 
         fun undoLast() {
-            actions.removeLastOrNull()
-            invalidate()
+            if (actions.removeLastOrNull() != null) {
+                noteMutation()
+                invalidate()
+            }
         }
 
         fun undoAll() {
-            actions.clear()
-            invalidate()
+            if (actions.isNotEmpty()) {
+                actions.clear()
+                noteMutation()
+                invalidate()
+            }
         }
 
         fun hasActions(): Boolean = actions.isNotEmpty()
+
+        fun hasUnsavedChanges(): Boolean = revision != cleanRevision
+
+        fun markClean() {
+            cleanRevision = revision
+            this@ImageDrawOverlayManager.updateToolbarDirtyState()
+        }
 
         /**
          * S0192 Phase 03 - Text tool entry point. Opens an AlertDialog with a
@@ -669,9 +730,15 @@ class ImageDrawOverlayManager(
                             textSizePx = textSizePx
                         )
                     )
+                    noteMutation()
                     invalidate()
                 }
                 .show()
+        }
+
+        private fun noteMutation() {
+            revision += 1
+            this@ImageDrawOverlayManager.updateToolbarDirtyState()
         }
 
         fun getBitmap(): Bitmap {

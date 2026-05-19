@@ -150,15 +150,12 @@ data class BackupSettings(
     val linkDownloadAudioOnly: Boolean? = null,
     val linkDownloadLoginWallHeuristicEnabled: Boolean? = null,
     // VR settings (spec §5.7 / Phase 8)
-    val vrForcedPlatFormat: String = "AUTO",
-    val vrForcedSphericalFormat: String = "AUTO",
     val vrRenderingMode: String = "CINEMA",
-    val vrRememberFileFormat: Boolean = true,
     // Auto-enter immersive on stereo content; nullable for forward-compat with older backup files
     val vrAutoImmersive: Boolean? = null,
     // Global VR kill-switch (spec §3.0.2); nullable for forward-compat with older backup files
     val disable3dVr: Boolean? = null,
-    // Legacy alias kept nullable so old exports still restore after the split.
+    // Deprecated since S0251 - kept only so old JSON backups still deserialize.
     val vrForcedFormat: String? = null
 )
 

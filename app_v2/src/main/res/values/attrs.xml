@@ -7,4 +7,24 @@
       theme.applyStyle(...) in PlayerActivity.onCreate before super.onCreate (app restart required to flip).
     -->
     <attr name="customPlayerControlsLayout" format="reference" />
+
+    <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
+    <declare-styleable name="CollapsibleSectionHeader">
+        <attr name="csh_title" format="string|reference" />
+        <attr name="csh_expanded" format="boolean" />
+        <attr name="csh_showHelp" format="boolean" />
+        <attr name="csh_helpTitle" format="string|reference" />
+        <attr name="csh_helpMessage" format="string|reference" />
+        <attr name="csh_virtual" format="boolean" />
+    </declare-styleable>
+
+    <!-- Consumed by SettingsToggleRow.kt. All public attrs use the str_ prefix. -->
+    <declare-styleable name="SettingsToggleRow">
+        <attr name="str_title" format="string|reference" />
+        <attr name="str_subtitle" format="string|reference" />
+        <attr name="str_showHelp" format="boolean" />
+        <attr name="str_helpTitle" format="string|reference" />
+        <attr name="str_helpMessage" format="string|reference" />
+        <attr name="str_checked" format="boolean" />
+    </declare-styleable>
 </resources>

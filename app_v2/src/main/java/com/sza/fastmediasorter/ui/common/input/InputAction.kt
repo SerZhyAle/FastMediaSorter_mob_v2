@@ -60,6 +60,7 @@ sealed interface InputAction {
     data object DeleteSelection : InputAction   // F8 / Delete / Ctrl+D
     data object CreateFolder : InputAction      // F7 / Ctrl+Shift+N
     data object CreateTextNote : InputAction    // Ctrl+Alt+N
+    data object CreateDrawing : InputAction     // Ctrl+Alt+Shift+N
     data object ViewCurrent : InputAction       // F3 / Ctrl+Q
     data object EditCurrent : InputAction       // F4 / Ctrl+E
     data object PasteClipboard : InputAction    // Ctrl+V (future file buffer)
@@ -78,8 +79,6 @@ sealed interface InputAction {
     data object StartSlideshow : InputAction    // Ctrl+Enter in Browse (wired via existing onPlayClicked)
     /** Reshuffle and immediately start playback from first reshuffled file (Browse Ctrl+P). */
     data object PlayRandomCurrent : InputAction // Ctrl+P in Browse
-    /** Open the Browse-primary settings route (revised during S0125 dual-run). */
-    data object OpenBrowseSettings : InputAction // Browse Ctrl+, / Settings key
 
     // -------- player specific --------
     data object PlayPause : InputAction          // Space / Enter / media play-pause

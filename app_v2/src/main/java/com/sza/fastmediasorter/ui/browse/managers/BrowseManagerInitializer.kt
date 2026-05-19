@@ -237,7 +237,8 @@ class BrowseManagerInitializer(
                     onGoogleLens = { f -> launchGoogleLensForFile(f) },
                     onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
                     onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
-                    onOpenInPlayer = { f -> viewModel.openFile(f) }
+                    onOpenInPlayer = { f -> viewModel.openFile(f) },
+                    onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) }
                 )
             },
             getShowVideoThumbnails = showVideoThumbnailsGetter,
@@ -320,19 +321,12 @@ class BrowseManagerInitializer(
                 }
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
                 override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
+                override fun showCreateDrawingDialog() = resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
                 override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
                         ?.itemView ?: binding.rvMediaFiles
                     showBrowseResourceOpsMenu(anchor)
-                }
-                override fun openBrowseSettings(): Boolean {
-                    if (!isBrowseAutomationSettingsEnabled()) return false
-                    val resourceId = viewModel.state.value.resource?.id ?: return false
-                    // Keep the Browse keyboard/help route on the stable legacy host until the
-                    // redesigned settings surface stops mirroring legacy content.
-                    openLegacyBrowseSettings(resourceId)
-                    return true
                 }
                 override fun extendSelectionUp() {
                     val pos = (stateManager.getCurrentFocusPosition() - 1).coerceAtLeast(0)
@@ -557,6 +551,9 @@ class BrowseManagerInitializer(
             override fun onCreateTextNoteClicked() {
                 resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
             }
+            override fun onCreateDrawingClicked() {
+                resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
+            }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
             override fun onMicRecordTouchDown() = activity.onMicRecordTouchDown()
             override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
@@ -580,10 +577,11 @@ class BrowseManagerInitializer(
         viewModel.setOpenNoteCallback { createdPath ->
             viewModel.openTextNoteInEditor(createdPath)
         }
+        viewModel.setOpenDrawingCallback { createdPath ->
+            viewModel.openDrawingInEditor(createdPath)
+        }
     }
 
-    // S0125 keeps touch, mouse, keyboard, and remote Browse settings routes on the same popup
-    // configuration so the current fallback and the revised primary path cannot drift apart.
     private fun showBrowseResourceOpsMenu(anchor: android.view.View) {
         val isScheduleEnabled = isBrowseAutomationSettingsEnabled()
         lifecycleScope.launch {
@@ -601,7 +599,7 @@ class BrowseManagerInitializer(
                 anchor = anchor,
                 viewModel = viewModel,
                 isScheduleEnabled = isScheduleEnabled,
-                onAutomateSourceCurrent = if (isScheduleEnabled && resourceId != null) {
+                onAutomateSource = if (isScheduleEnabled && resourceId != null) {
                     { openLegacyBrowseSettings(resourceId) }
                 } else null,
                 onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
@@ -609,6 +607,10 @@ class BrowseManagerInitializer(
                 isDestinationsFull = isDestinationsFull,
                 onCameraCapture = { activity.onCameraCaptureClicked() },
                 isCameraVisible = isCameraVisible,
+                allowSeparateWindow = settings.allowSeparateWindow,
+                openBrowseInNewWindow = if (settings.allowSeparateWindow) {
+                    { id -> eventHandler.openBrowseInNewWindow(id) }
+                } else null,
                 isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
                 onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
             )

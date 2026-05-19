@@ -208,6 +208,17 @@ data class MediaResource(
                 MediaType.PDF in supportedMediaTypes ||
                 MediaType.EPUB in supportedMediaTypes
     }
+
+    /**
+     * True when the resource can surface static image files in Browse.
+     *
+     * S0191 uses the same gate for "Create drawing" so the action only appears in
+     * libraries where the newly-created `.jpg` will actually show up afterwards.
+     */
+    fun supportsImages(): Boolean {
+        if (allFiles) return true
+        return MediaType.IMAGE in supportedMediaTypes
+    }
 }
 
 data class FileAttributes(

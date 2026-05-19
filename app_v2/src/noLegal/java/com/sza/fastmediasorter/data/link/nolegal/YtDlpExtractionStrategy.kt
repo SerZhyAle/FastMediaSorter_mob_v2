@@ -172,12 +172,29 @@ class YtDlpExtractionStrategy @Inject constructor(
                     // is possible) and manifest (HLS/DASH - must go via yt-dlp Python).
                     // yt-dlp returns formats in ASCENDING quality order so we must iterate
                     // all and pick best per-bucket.
+                    //
+                    // S0166 audio-loss fix: progressive picker now prefers COMBINED streams
+                    // (video + audio in one file) over video-only streams of higher resolution.
+                    // Instagram exposes both via yt-dlp:
+                    //   - video_versions[] → progressive mp4 WITH audio, but yt-dlp leaves
+                    //     vcodec/acodec empty (it didn't probe codecs for these)
+                    //   - DASH segments → split video-only (vcodec=vp09, acodec="none") and
+                    //     audio-only (vcodec="none", acodec=mp4a) — needs muxing (ffmpeg-only)
+                    // The old picker filtered out the combined stream because vcodec was empty
+                    // and selected the highest-resolution video-only DASH variant — file saved
+                    // without sound. We now treat empty vcodec/acodec as "unknown but present"
+                    // and rank combined progressive above video-only progressive at any quality.
                     val formats = info.callAttr("get", "formats")
-                    var progressiveUrl: String? = null
-                    var progressiveExt = "mp4"
-                    var progressiveHeaders: PyObject? = null
-                    var progressiveQuality = Long.MIN_VALUE
-                    var progressiveProtocol: String? = null
+                    var combinedUrl: String? = null
+                    var combinedExt = "mp4"
+                    var combinedHeaders: PyObject? = null
+                    var combinedQuality = Long.MIN_VALUE
+                    var combinedProtocol: String? = null
+                    var videoOnlyUrl: String? = null
+                    var videoOnlyExt = "mp4"
+                    var videoOnlyHeaders: PyObject? = null
+                    var videoOnlyQuality = Long.MIN_VALUE
+                    var videoOnlyProtocol: String? = null
                     var manifestSeen = false
                     var manifestBestProtocol: String? = null
                     var manifestBestQuality = Long.MIN_VALUE
@@ -233,14 +250,30 @@ class YtDlpExtractionStrategy @Inject constructor(
                             if (firstUrl == null) {
                                 firstUrl = fmtUrl; firstExt = fmtExt; firstHeaders = fmtHeaders
                             }
-                            val hasVideo = fmtVcodec.isNotEmpty() && fmtVcodec != "none"
+                            // S0166 fix: treat empty vcodec as "video present but codec unknown"
+                            // (Instagram's progressive video_versions land here). Only an explicit
+                            // "none" means the stream truly has no video.
+                            val hasVideo = fmtVcodec != "none"
+                            // Same semantics for audio: "none" = explicitly no audio (DASH video
+                            // stream), empty = unknown but likely present (Instagram progressive).
+                            // We treat empty as having audio so the combined-bucket picker wins.
+                            val hasAudio = fmtAcodec != "none"
+                            val isVideoOnly = hasVideo && !hasAudio
+                            val isCombined = hasVideo && hasAudio
                             when {
-                                isProgressive && hasVideo && quality > progressiveQuality -> {
-                                    progressiveUrl = fmtUrl
-                                    progressiveExt = fmtExt
-                                    progressiveHeaders = fmtHeaders
-                                    progressiveQuality = quality
-                                    progressiveProtocol = fmtProtocol
+                                isProgressive && isCombined && quality > combinedQuality -> {
+                                    combinedUrl = fmtUrl
+                                    combinedExt = fmtExt
+                                    combinedHeaders = fmtHeaders
+                                    combinedQuality = quality
+                                    combinedProtocol = fmtProtocol
+                                }
+                                isProgressive && isVideoOnly && quality > videoOnlyQuality -> {
+                                    videoOnlyUrl = fmtUrl
+                                    videoOnlyExt = fmtExt
+                                    videoOnlyHeaders = fmtHeaders
+                                    videoOnlyQuality = quality
+                                    videoOnlyProtocol = fmtProtocol
                                 }
                                 isManifest && hasVideo -> {
                                     manifestSeen = true
@@ -252,12 +285,41 @@ class YtDlpExtractionStrategy @Inject constructor(
                             }
                         }
                     } else {
-                        // No formats list - try top-level url (single direct media)
-                        progressiveUrl = info.callAttr("get", "url")?.toString()
+                        // No formats list - try top-level url (single direct media).
+                        // Treated as combined: a direct media URL with no format list is
+                        // almost always a self-contained file (mp4/webm with audio inside).
+                        combinedUrl = info.callAttr("get", "url")?.toString()
+                    }
+                    // Pick combined progressive first; only fall back to video-only when no
+                    // combined stream exists. Combined of ANY quality beats video-only of any
+                    // quality - audible 720p is better UX than silent 1080p for the noLegal
+                    // share flow.
+                    val progressiveUrl: String?
+                    val progressiveExt: String
+                    val progressiveHeaders: PyObject?
+                    val progressiveQuality: Long
+                    val progressiveProtocol: String?
+                    val pickedBucket: String
+                    if (combinedUrl != null) {
+                        progressiveUrl = combinedUrl
+                        progressiveExt = combinedExt
+                        progressiveHeaders = combinedHeaders
+                        progressiveQuality = combinedQuality
+                        progressiveProtocol = combinedProtocol
+                        pickedBucket = "combined"
+                    } else {
+                        progressiveUrl = videoOnlyUrl
+                        progressiveExt = videoOnlyExt
+                        progressiveHeaders = videoOnlyHeaders
+                        progressiveQuality = videoOnlyQuality
+                        progressiveProtocol = videoOnlyProtocol
+                        pickedBucket = if (videoOnlyUrl != null) "video-only" else "none"
                     }
                     Timber.d(
-                        "YtDlpExtractionStrategy: pick progressive=%s q=%d proto=%s | manifestSeen=%b bestProto=%s q=%d",
+                        "S0260: ytdlp pick bucket=%s progressive=%s q=%d proto=%s | combinedSeen=%b videoOnlySeen=%b manifestSeen=%b bestProto=%s q=%d",
+                        pickedBucket,
                         progressiveUrl?.take(60) ?: "(none)", progressiveQuality, progressiveProtocol ?: "?",
+                        combinedUrl != null, videoOnlyUrl != null,
                         manifestSeen, manifestBestProtocol ?: "?", manifestBestQuality
                     )
 
@@ -299,7 +361,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                         DelegateParams(progressiveUrl, safeTitle, progressiveExt, extraHeaders)
                     } else if (manifestSeen) {
                         Timber.d(
-                            "YtDlpExtractionStrategy: only manifest formats - Python download url=%s",
+                            "S0260: ytdlp route=python-manifest-only url=%s",
                             url
                         )
                         PythonOnly(safeTitle, "mp4")
@@ -361,22 +423,27 @@ class YtDlpExtractionStrategy @Inject constructor(
                         // S0190 Phase D: googlevideo throttles non-player linear reads → use yt-dlp
                         // internal downloader (range-chunked, retry, throttle-aware).
                         Timber.d(
-                            "YtDlpExtractionStrategy: googlevideo CDN, Python download url=%s audioOnly=%s",
+                            "S0260: ytdlp route=python-googlevideo url=%s audioOnly=%b",
                             url, audioOnly
                         )
                         downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, audioOnly) { bytes -> onProgress(bytes, null) }
                     } else {
                         val delegated = direct.open(result.cdnUrl, onProgress, result.extraHeaders)
                         when {
-                            delegated is OpenResult.Stream ->
+                            delegated is OpenResult.Stream -> {
+                                Timber.d(
+                                    "S0260: ytdlp route=direct-okhttp url=%s ext=%s",
+                                    url, result.ext
+                                )
                                 delegated.copy(fileName = "${result.safeTitle}.${result.ext}")
+                            }
                             delegated is OpenResult.Blocked &&
                                     delegated.reason == BlockedReason.AuthRequired -> {
                                 // CDN URL is session-bound (e.g., TikTok signed URLs): the URL
                                 // was generated by yt-dlp's session and cannot be replayed by
                                 // OkHttp even with the same cookies. Fall back to Python download.
                                 Timber.d(
-                                    "YtDlpExtractionStrategy: CDN auth failed, Python download url=%s",
+                                    "S0260: ytdlp route=python-auth-fallback url=%s",
                                     url
                                 )
                                 downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
@@ -386,7 +453,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                                 // CDN returned non-media MIME (e.g., HLS manifest application/x-mpegURL).
                                 // Fall back to Python download which handles HLS/DASH natively.
                                 Timber.d(
-                                    "YtDlpExtractionStrategy: MIME blocked, Python download url=%s",
+                                    "S0260: ytdlp route=python-mime-fallback url=%s",
                                     url
                                 )
                                 downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
@@ -491,6 +558,10 @@ class YtDlpExtractionStrategy @Inject constructor(
             "gif" -> "image/gif"
             else -> "video/mp4"
         }
+        Timber.i(
+            "S0260: ytdlp python result file=%s ext=%s mime=%s size=%d",
+            file.name, ext, mime, file.length()
+        )
         return OpenResult.Stream(
             body = file.inputStream(),
             contentLength = file.length().takeIf { it > 0 },

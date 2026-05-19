@@ -3,6 +3,7 @@
     <string name="app_name">FastMediaSorter</string>
     <string name="poster_thumbnail_unavailable">Прев\'ю недоступне</string>
     <string name="settings_category_interface">Інтерфейс</string>
+    <string name="settings_category_authorization">Авторизація</string>
     <string name="settings_category_files">Файли та дані</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
     <string name="settings_category_about">Про програму</string>
@@ -12,7 +13,12 @@
     <string name="settings_category_file_operations">Доступ до файлів у плеєрі</string>
     <string name="settings_category_copy_move">Копіювання та переміщення</string>
     <string name="settings_category_safety">Безпека операцій</string>
-    <string name="settings_category_grid_view">Сітка</string>
+    <string name="settings_section_autoplay_resume">Автовідтворення та продовження</string>
+    <string name="settings_section_delete_trash">Видалення та кошик</string>
+    <string name="settings_section_grid_browse">Сітка та перегляд</string>
+    <string name="settings_section_network_cache">Мережа та кеш</string>
+    <string name="settings_section_quick_sort_list">Список швидкого сортування</string>
+    <string name="settings_section_remote_gamepad">Пульт та геймпад</string>
     <string name="settings_category_player_ui">Інтерфейс плеєра</string>
     <string name="settings_category_touch_zones">Сенсорні зони</string>
     <string name="settings_subcategory_incoming_links">Вхідні посилання</string>
@@ -23,6 +29,8 @@
     <string name="settings_saved">Налаштування збережено</string>
     <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
     <string name="vr_settings_block_title">Керування 3D-VR</string>
+    <string name="settings_3d_vr_help_title">Про режим 3D VR</string>
+    <string name="settings_3d_vr_help_message">3D VR — це занурений перегляд відео та фото на гарнітурах типу Meta Quest 3 і Android XR. На пристроях без підтримки XR-середовища перемикач залишається недоступним. Додаток сам визначає формат відео (SBS, OU, 360°, VR180); ручний вибір доступний у діалозі плеера.</string>
     <string name="vr_settings_xr_unavailable_advisory">Доступно на пристроях типу Meta Quest 3, Android XR.</string>
     <string name="vr_settings_test_immersive_label">Перевірити імерс</string>
     <string name="vr_settings_test_immersive_content_description">Відкрити пробне 360°-зображення в immerse-режимі.</string>
@@ -666,8 +674,8 @@
     <string name="settings_player_show_fps">Показувати FPS над плеєром</string>
     <string name="settings_player_show_fps_desc">Відображати діагностичний лічильник FPS над плоским 2D-плеєром</string>
     <!-- S0028: multi-window -->
-    <string name="action_open_in_separate_window">В окремому вікні</string>
-    <string name="setting_allow_separate_window">Дозволити запуск в окремому вікні</string>
+    <string name="action_open_in_separate_window">Відкрити в новому вікні</string>
+    <string name="setting_allow_separate_window">Дозволити нові вікна</string>
     <string name="resource_type_local">Локальні</string>
     <string name="resource_type_smb">Мережева папка SMB</string>
     <string name="resource_type_sftp">SFTP</string>
@@ -685,7 +693,7 @@
     <string name="playback_speed">Швидкість відтворення</string>
     <string name="repeat_mode">Повтор</string>
     <string name="resource_name">Назва ресурсу</string>
-    <string name="resource_name_hint">Залиште порожнім для автогенерації зі шляху</string>
+    <string name="resource_name_hint">Якщо порожньо - автогенерація</string>
     <string name="comment">Коментар</string>
     <string name="access_pin">ПІН-код доступу</string>
     <string name="pin_incorrect">Невірний ПІН-код</string>
@@ -818,51 +826,9 @@
     <string name="welcome_vr_feature_headset">Відтворення в Quest</string>
     <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
 
-    <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
-    <string name="settings_vr_section_title">VR</string>
-    <string name="settings_vr_forced_flat_format">Примусовий плоский формат</string>
-    <string name="settings_vr_forced_flat_format_desc">Перевизначити автовизначення для плоского SBS/OU/mono у поточній сесії</string>
-    <string name="settings_vr_forced_spherical_format">Примусовий сферичний формат</string>
-    <string name="settings_vr_forced_spherical_format_desc">Перевизначити автовизначення для 360°, VR180 і циліндричного відтворення</string>
-    <string name="settings_vr_remember_format">Запам\'ятовувати формат файлу</string>
-    <string name="settings_vr_remember_format_desc">Кешувати визначений формат кожного файлу в локальній базі</string>
     <string name="pref_panel_stereo_single_eye_title">Показувати 3D-контент з одного ока</string>
     <string name="pref_panel_stereo_single_eye_summary">Якщо увімкнено, SBS- та OU-стерео-відео й повноекранні фото обрізаються до одного ока й розтягуються на весь екран - зручно дивитись без 3D-окулярів. Усталено: увімкнено у звичайних збірках, вимкнено у VR-збірці.</string>
     <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрізано до одного ока</string>
-    <string name="settings_vr_help_title">Налаштування VR</string>
-    <string name="settings_vr_help_message">Ці налаштування керують розпізнаванням і відображенням стереоскопічного 3D- та сферичного контенту у VR-шоломі.\n\nАвтовизначення аналізує метадані та співвідношення сторін, щоб визначити сімейство стереоформату.\n\nПримусовий плоский формат застосовується лише до SBS, Over-Under і mono cinema. Примусовий сферичний формат застосовується лише до 360°, VR180 і циліндричного відтворення.\n\nРежим рендерингу обирає між плоским екраном-кінотеатром у VR-просторі або повним стереоскопічним рендерингом для кожного ока.</string>
-    <string-array name="vr_forced_format_entries">
-        <item>Авто</item>
-        <item>SBS (поруч)</item>
-        <item>OU (зверху-знизу)</item>
-        <item>Mono</item>
-    </string-array>
-    <string-array name="vr_forced_format_values">
-        <item>AUTO</item>
-        <item>SBS</item>
-        <item>OU</item>
-        <item>MONO</item>
-    </string-array>
-    <string-array name="vr_forced_spherical_format_entries">
-        <item>Авто</item>
-        <item>360° моно</item>
-        <item>360° SBS</item>
-        <item>360° OU</item>
-        <item>180° моно</item>
-        <item>180° SBS</item>
-        <item>VR180</item>
-        <item>Циліндр 180°</item>
-    </string-array>
-    <string-array name="vr_forced_spherical_format_values">
-        <item>AUTO</item>
-        <item>EQUIRECT_360_MONO</item>
-        <item>EQUIRECT_360_SBS</item>
-        <item>EQUIRECT_360_OU</item>
-        <item>EQUIRECT_180_MONO</item>
-        <item>EQUIRECT_180_SBS</item>
-        <item>VR180_FISHEYE_SBS</item>
-        <item>CYLINDER_180</item>
-    </string-array>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ до сховища</string>
@@ -899,10 +865,10 @@
     <string name="reset_smb_connections_message">Це закриє всі SMB з\'єднання та скине стан помилок. Використовуйте, якщо виникають проблеми з підключенням.</string>
     <string name="reset_smb_success">SMB з\'єднання скинуто успішно</string>
     <string name="smb_auto_reset_notification">SMB з\'єднання скинуто автоматично</string>
-    <string name="gms_update_required">Для повноцінної роботи додатка необхідно оновити Google Play Services. Деякі функції можуть працювати некоректно.</string>
-    <string name="gms_unavailable">Google Play Services недоступні. Деякі функції можуть працювати некоректно.</string>
+    <string name="gms_update_required">Google Play Services застаріли. Майже все в додатку працює і так — оновлення додасть лише пару додаткових функцій. Якщо вони не потрібні, оновлення можна пропустити.</string>
+    <string name="gms_unavailable">Google Play Services недоступні. Майже все в додатку працює й без них; недоступними залишаться лише кілька додаткових функцій.</string>
     <string name="gms_update_action">Оновити</string>
-    <string name="gms_settings_link">Для повноцінної роботи додатка необхідно оновити Google Play Services. Натисніть для оновлення.</string>
+    <string name="gms_settings_link">Можна оновити Google Play Services, щоб увімкнути пару додаткових функцій. Якщо вони не потрібні, оновлення можна пропустити.</string>
     <string name="network_unstable_snackbar">Мережа нестабільна - перевірте Wi-Fi</string>
     <string name="cache_size_limit">Розмір кешу</string>
     <string name="cache_size_limit_mb">%d МБ</string>
@@ -1147,8 +1113,8 @@
     <string name="smb_domain_hint">Залиште порожнім, якщо не потрібно</string>
     <string name="smb_port">Порт</string>
     <string name="smb_port_hint">За замовчуванням: 445</string>
-    <string name="smb_test_connection">Перевірити з\'єднання</string>
-    <string name="smb_scan_shares">Сканувати ресурси</string>
+    <string name="smb_test_connection">Тест з\'єднання</string>
+    <string name="smb_scan_shares">Сканувати хост</string>
     <string name="smb_credentials">Мережева Папка (SMB)</string>
 
     <!-- SFTP / FTP -->
@@ -1863,8 +1829,6 @@
     <string name="activity_player_unified_btnSlideShow_text">Слайдшоу</string>
     <string name="activity_player_unified_btnVolumeDown_text">−</string>
     <string name="activity_player_unified_btnVolumeUp_text">+</string>
-    <string name="activity_player_unified_copyToPanelIndicator_text">▼</string>
-    <string name="activity_player_unified_moveToPanelIndicator_text">▼</string>
     <string name="activity_player_unified_playerView_resize_mode">fit</string>
     <string name="activity_player_unified_touchZone3Gestures_layout_weight">0.60</string>
     <string name="activity_player_unified_touchZone3Next_layout_weight">0.20</string>
@@ -2029,7 +1993,6 @@
     <string name="settings_search_hint">Пошук у налаштуваннях</string>
     <string name="settings_search_no_results">Збігів не знайдено</string>
     <string name="settings_search_section_format">Розділ: %1$s</string>
-    <string name="main_settings_new">Нові налаштування</string>
     <string name="reset_general_section">Скинути розділ Загальні</string>
     <string name="reset_media_section">Скинути розділ Медіа</string>
     <string name="reset_playback_section">Скинути розділ Відтворення</string>
@@ -2113,7 +2076,6 @@
     <string name="layout_gravity_center_vertical">center_vertical</string>
     <string name="layout_gravity_top_end">top|end</string>
     <string name="no_resource_selected">No resource selected</string>
-    <string name="panel_indicator_collapsed">▼</string>
     <string name="pdf_p">PDF (P)</string>
     <string name="pip_pause">Pause</string>
     <string name="player_next_symbol">▶</string>
@@ -2755,9 +2717,11 @@
     <string name="duplicate_scan_notif_channel_name">Сканер дублікатів</string>
     <string name="action_create_folder">Створити папку</string>
     <string name="action_create_text_file">Створити нотатку</string>
+    <string name="action_create_drawing">Створити рисунок</string>
     <string name="create_text_file_title">Нова нотатка</string>
     <string name="create_text_file_hint">Імʼя файлу</string>
     <string name="error_text_note_create_failed">Не вдалося створити нотатку тут. Спробуйте іншу теку.</string>
+    <string name="error_drawing_create_failed">Не вдалося створити рисунок тут. Спробуйте іншу теку.</string>
     <string name="msg_text_note_created">Нотатку створено: %1$s</string>
     <string name="error_invalid_text_note_name">Літери, цифри, дефіс; без / \\ : * ? \" &lt; &gt; |</string>
     <string name="text_editor_action_save">Зберегти</string>
@@ -2773,8 +2737,7 @@
     <string name="text_note_save_error_network">Не вийшло достукатися до теки. Нотатка залишилась на пристрої - повторимо, коли з\'явиться зв\'язок.</string>
     <string name="text_note_save_success_local">Збережено.</string>
     <string name="text_note_save_success_remote">Збережено в %1$s.</string>
-    <string name="menu_automate_source_current">Автоматизація: поточні налаштування..</string>
-    <string name="menu_automate_source_revised">Автоматизація: нові налаштування..</string>
+    <string name="menu_automate_source">Автоматизація..</string>
     <string name="menu_add_receiver">До списку сортування</string>
     <string name="msg_added_as_receiver">Ресурс додано до списку сортування</string>
     <string name="btn_edit_receiver">Налаштувати</string>
@@ -2923,8 +2886,6 @@
 
     <string name="kbm_help_browse_open">Відкрити папку або файл</string>
     <string name="kbm_help_browse_back">У батьківську папку</string>
-    <string name="kbm_help_browse_settings_current">Відкрити меню поточних налаштувань</string>
-    <string name="kbm_help_browse_settings_revised">Відкрити нові налаштування</string>
 
     <string name="kbm_help_sel_toggle">Перемкнути виділення</string>
     <string name="kbm_help_sel_all">Виділити все</string>
@@ -3487,5 +3448,7 @@
     <string name="draw_color_custom_cd">Довільний колір</string>
     <string name="draw_save_ok_toast">Збережено</string>
     <string name="draw_save_failed_toast">Не вдалося зберегти</string>
+    <string name="draw_save_remote_failed">Не вдалося зберегти в цю теку. Рисунок залишився на цьому пристрої - спробуйте ще раз.</string>
     <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти - Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
+    <string name="setting_show_pdf_thumbnails_desc">Створює великі прев\'ю для PDF (повільніше для віддалених джерел)</string>
 </resources>

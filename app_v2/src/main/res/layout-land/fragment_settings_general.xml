@@ -40,7 +40,11 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_interface" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerInterface"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_interface" />
 
                 <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
@@ -56,29 +60,31 @@
                     <!-- Row: All Files | Show Hidden Files -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height">
+                        <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/all_files" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_files" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_all_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageButton android:id="@+id/iconHelpAllFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_all_files_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowAllFiles"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/all_files"
+                                app:str_subtitle="@string/setting_all_files_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_all_files_title"
+                                app:str_helpMessage="@string/tooltip_all_files_message" />
 
                         </LinearLayout>
 
-                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height">
+                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowHiddenFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/show_hidden_files" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hidden_files" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_hidden_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageButton android:id="@+id/iconHelpShowHiddenFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_show_hidden_files" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowShowHiddenFiles"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/show_hidden_files"
+                                app:str_subtitle="@string/setting_show_hidden_files_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_show_hidden_files_title"
+                                app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
 
                         </LinearLayout>
 
@@ -87,57 +93,60 @@
                     <!-- Row: Show Subfolders | Compact Controls -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <LinearLayout android:id="@+id/layoutShowSubfoldersAsItems" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height">
+                        <LinearLayout android:id="@+id/layoutShowSubfoldersAsItems" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/show_subfolders_as_items" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_subfolders_as_items" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_subfolders_as_items_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageButton android:id="@+id/iconHelpShowSubfolders" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/show_subfolders_as_items" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowShowSubfoldersAsItems"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/show_subfolders_as_items"
+                                app:str_subtitle="@string/setting_show_subfolders_as_items_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/show_subfolders_as_items"
+                                app:str_helpMessage="@string/show_subfolders_as_items_hint" />
 
                         </LinearLayout>
 
-                        <LinearLayout android:id="@+id/layoutSmallControls" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height">
+                        <LinearLayout android:id="@+id/layoutSmallControls" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSmallControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/small_controls" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/small_controls" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_small_controls_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageButton android:id="@+id/iconHelpCompactControls" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_controls_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowSmallControls"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/small_controls"
+                                app:str_subtitle="@string/setting_small_controls_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_compact_controls_title"
+                                app:str_helpMessage="@string/tooltip_compact_controls_message" />
 
                         </LinearLayout>
 
                     </LinearLayout>
 
                     <!-- S0160: Resource ops overflow toggle -->
-                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchResourceOpsInOverflowMenu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/resource_ops_in_overflow_menu" />
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_ops_in_overflow_menu" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_resource_ops_in_overflow_menu_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowResourceOpsInOverflowMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/resource_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
 
                     </LinearLayout>
 
                     <!-- Enable Favorites -->
-                    <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableFavorites" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_favorites" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_favorites" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_favorites_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
-
-                        <ImageButton android:id="@+id/iconHelpFavorites" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_favorites_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableFavorites"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/enable_favorites"
+                            app:str_subtitle="@string/setting_enable_favorites_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_favorites_title"
+                            app:str_helpMessage="@string/tooltip_favorites_message" />
 
                     </LinearLayout>
 
@@ -150,21 +159,26 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_app_data" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerAppData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_app_data" />
 
                 <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
                     <!-- Remember File List -->
-                    <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDefaultRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/default_remember_file_list" />
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/default_remember_file_list" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_default_remember_file_list_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
-
-                        <ImageButton android:id="@+id/btnHelpRememberFileList" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowDefaultRememberFileList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/default_remember_file_list"
+                            app:str_subtitle="@string/setting_default_remember_file_list_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/remember_file_list_help_title"
+                            app:str_helpMessage="@string/remember_file_list_help_message" />
 
                     </LinearLayout>
 
@@ -249,21 +263,26 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_system" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSystem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_system" />
 
                 <LinearLayout android:id="@+id/containerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
                     <!-- Prevent Sleep -->
-                    <LinearLayout android:id="@+id/layoutPreventSleep" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutPreventSleep" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPreventSleep" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/prevent_sleep" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/prevent_sleep" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_prevent_sleep_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
-
-                        <ImageButton android:id="@+id/iconHelpPreventSleep" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_prevent_sleep_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowPreventSleep"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/prevent_sleep"
+                            app:str_subtitle="@string/setting_prevent_sleep_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_prevent_sleep_title"
+                            app:str_helpMessage="@string/tooltip_prevent_sleep_message" />
 
                     </LinearLayout>
 
@@ -310,16 +329,17 @@
                     <!-- Network Sync Container -->
                     <LinearLayout android:id="@+id/containerSync" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <LinearLayout android:id="@+id/layoutEnableSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginBottom="@dimen/margin_tiny">
+                        <LinearLayout android:id="@+id/layoutEnableSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableBackgroundSync" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_background_sync" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
-
-                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_background_sync" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageButton android:id="@+id/iconHelpBackgroundSync" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/background_sync_description" android:tooltipText="@string/background_sync_description" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowEnableBackgroundSync"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/enable_background_sync"
+                                app:str_subtitle="@string/setting_background_sync_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/enable_background_sync"
+                                app:str_helpMessage="@string/background_sync_description" />
                         </LinearLayout>
 
                         <LinearLayout android:id="@+id/layoutSyncControls" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false">
@@ -373,7 +393,12 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerDebugSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/debug_settings_title" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" android:visibility="gone" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerDebugSettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:csh_title="@string/debug_settings_title" />
 
                 <LinearLayout android:id="@+id/containerDebugSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard" android:visibility="gone">
 
@@ -413,11 +438,22 @@
             app:iconGravity="start" />
 
         <!-- ABOUT SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginTop="@dimen/margin_tiny" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/settings_margin_standard"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:orientation="vertical">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerAbout" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_about" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerAbout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_category_about"
+                    app:csh_virtual="true" />
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
@@ -444,7 +480,7 @@
 
                 </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
     </LinearLayout>
 

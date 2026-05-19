@@ -36,17 +36,15 @@ class ResourceOpsMenuManager @Inject constructor(
         anchor: android.view.View,
         viewModel: BrowseViewModel,
         isScheduleEnabled: Boolean = false,
-        onAutomateSourceCurrent: (() -> Unit)? = null,
-        onAutomateSourceRevised: (() -> Unit)? = null,
+        onAutomateSource: (() -> Unit)? = null,
         onAddToDestinations: (() -> Unit)? = null,
         onArchive: (() -> Unit)? = null,
         isDestinationsFull: Boolean = false,
         onCameraCapture: (() -> Unit)? = null,
         isCameraVisible: Boolean = false,
-        // S0028: multi-window entry point - VR-only, permanently disabled after S0241 VR removal.
-        // Parameters kept for source compatibility with existing call sites.
-        @Suppress("UNUSED_PARAMETER") allowSeparateWindow: Boolean = false,
-        @Suppress("UNUSED_PARAMETER") openBrowseInNewWindow: ((Long) -> Unit)? = null,
+        // S0184: multi-window entry point, controlled by user setting + device capability default.
+        allowSeparateWindow: Boolean = false,
+        openBrowseInNewWindow: ((Long) -> Unit)? = null,
         // S0096: black screen for audio - shown only for audio-only libraries
         isAudioOnly: Boolean = false,
         onBlackScreenClicked: (() -> Unit)? = null
@@ -72,6 +70,12 @@ class ResourceOpsMenuManager @Inject constructor(
                 && resource.supportsDocuments()
         popup.menu.findItem(R.id.action_create_text_file)?.isVisible = canCreateTextNote
 
+        val canCreateDrawing = resource != null
+            && !resource.isReadOnly
+            && !VirtualPathUtils.isVirtualPath(resource.path)
+            && resource.supportsImages()
+        popup.menu.findItem(R.id.action_create_drawing)?.isVisible = canCreateDrawing
+
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
         val hasSelection = viewModel.state.value.selectedFiles.isNotEmpty()
@@ -81,12 +85,8 @@ class ResourceOpsMenuManager @Inject constructor(
             isEnabled = hasSelection
         }
 
-        // S0125 keeps the current Browse automation route visible while the revised settings
-        // host incubates in parallel, so non-touch users always have an explicit fallback.
-        popup.menu.findItem(R.id.action_automate_resource_current)?.isVisible =
-            isScheduleEnabled && onAutomateSourceCurrent != null
-        popup.menu.findItem(R.id.action_automate_resource_revised)?.isVisible =
-            isScheduleEnabled && onAutomateSourceRevised != null
+        popup.menu.findItem(R.id.action_automate_resource)?.isVisible =
+            isScheduleEnabled && onAutomateSource != null
 
         // Show "Add to Sort List" only when:
         // 1. Resource is not read-only
@@ -98,8 +98,8 @@ class ResourceOpsMenuManager @Inject constructor(
             !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
-        // S0241: "Open in separate window" was VR-only; permanently hidden after VR stack removal.
-        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible = false
+        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
+            allowSeparateWindow && resource != null && openBrowseInNewWindow != null
 
         popup.menu.findItem(R.id.action_black_screen)?.isVisible =
             isAudioOnly && onBlackScreenClicked != null
@@ -139,12 +139,12 @@ class ResourceOpsMenuManager @Inject constructor(
                     showCreateTextNoteDialog(viewModel)
                     true
                 }
-                R.id.action_automate_resource_current -> {
-                    onAutomateSourceCurrent?.invoke()
+                R.id.action_create_drawing -> {
+                    showCreateDrawingDialog(viewModel)
                     true
                 }
-                R.id.action_automate_resource_revised -> {
-                    onAutomateSourceRevised?.invoke()
+                R.id.action_automate_resource -> {
+                    onAutomateSource?.invoke()
                     true
                 }
                 R.id.action_add_to_receivers -> {
@@ -153,6 +153,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_camera_capture -> {
                     onCameraCapture?.invoke()
+                    true
+                }
+                R.id.action_open_in_separate_window -> {
+                    resource?.id?.let { openBrowseInNewWindow?.invoke(it) }
                     true
                 }
                 R.id.action_black_screen -> {
@@ -409,5 +413,21 @@ class ResourceOpsMenuManager @Inject constructor(
         val default = com.sza.fastmediasorter.util.TextNoteFileNameProvider.defaultName()
         viewModel.createTextNote(default)
     }
-}
 
+    fun showCreateDrawingDialog(viewModel: BrowseViewModel) {
+        val resource = viewModel.state.value.resource
+        if (resource == null
+            || resource.isReadOnly
+            || VirtualPathUtils.isVirtualPath(resource.path)
+            || !resource.supportsImages()
+        ) {
+            return
+        }
+
+        // S0191 needs real image bytes before the editor opens, so the "defer everything until
+        // Save" trick from text notes does not apply. We still skip the pre-create rename dialog
+        // to keep the Browse flow one-tap: the user can rename on Save inside the editor.
+        val default = com.sza.fastmediasorter.core.files.FileNameDefaultProvider("jpg").defaultName()
+        viewModel.createDrawing(default)
+    }
+}

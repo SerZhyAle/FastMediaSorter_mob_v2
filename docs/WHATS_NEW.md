@@ -8,6 +8,7 @@
 
 ## What's Changed
 
+- **Unified expandable group headers** - Settings, AddResource, ResourceEditor, Scheduled Operations, Player Copy/Move panels, Duplicates, and Keybinding now share one header style; General Settings > About is now a static divider
 - **Simplified player controls** - stereo content type, rendering mode, and IPD removed on non-VR flavors (S0241)
 - **OCR on high-RAM low-heap devices** - text recognition restored on Quest 3 (7 GB RAM, 512 MB heap)
 - **VR dead code purge** - 16 main-side files cleaned, 2 VR-only permissions removed (S0241 Phase 03)

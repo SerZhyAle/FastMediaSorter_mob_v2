@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideEntity
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.ui.player.VrForcedFormatResolver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +15,7 @@ import timber.log.Timber
 /**
  * Owns the stereo-mode resolution pipeline for the player:
  *   - `stereoMode` - effective mode driving rendering; combines auto-detection, per-file
- *     override, and the global VR forced-format settings.
+ *     override, and the detected mode.
  *   - `detectedStereoMode` - last value reported by the auto-detector; persisted so the
  *     dialog can return to AUTO without re-running detection.
  *
@@ -58,16 +57,6 @@ class PlayerStereoModeCoordinator(
 
     @Volatile
     private var ignoreForcedFormatForCurrentFile = false
-
-    @Volatile
-    private var vrForcedPlatFormat: StereoMode? = null
-
-    @Volatile
-    private var vrForcedSphericalFormat: StereoMode? = null
-
-    @Volatile
-    var vrRememberFileFormatEnabled: Boolean = true
-        private set
 
     @Volatile
     private var currentStereoOverridePath: String? = null
@@ -114,7 +103,7 @@ class PlayerStereoModeCoordinator(
         val resolvedMode = if (ignoreForcedFormatForCurrentFile) {
             mode
         } else {
-            resolveForcedStereoMode(mode)
+            resolveStereoMode(mode)
         }
 
         publishEffective(resolvedMode, "auto-detect", requested = mode)
@@ -122,7 +111,7 @@ class PlayerStereoModeCoordinator(
 
     /**
      * Reset stereo mode when navigating to a new file so auto-detection starts fresh,
-     * while remembered forced format may still seed the initial effective mode.
+     * while per-file override may still seed the initial effective mode.
      */
     fun resetStereoModeForNewFile(filePath: String?) {
         hasManualStereoSelection = false
@@ -130,9 +119,9 @@ class PlayerStereoModeCoordinator(
         _detectedStereoMode.value = StereoMode.UNKNOWN
         currentStereoOverridePath = filePath
         currentStereoOverrideMode = null
-        publishEffective(resolveForcedStereoMode(StereoMode.AUTO), "reset-new-file", requested = StereoMode.AUTO)
+        publishEffective(resolveStereoMode(StereoMode.AUTO), "reset-new-file", requested = StereoMode.AUTO)
 
-        if (!vrRememberFileFormatEnabled || filePath.isNullOrBlank()) return
+        if (filePath.isNullOrBlank()) return
 
         scope.launch(Dispatchers.IO) {
             val rememberedMode = stereoFormatOverrideDao.getEntry(filePath)?.let { entry ->
@@ -144,16 +133,14 @@ class PlayerStereoModeCoordinator(
                 currentStereoOverrideMode = rememberedMode
 
                 if (!hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
-                    val resolvedMode = resolveForcedStereoMode(_detectedStereoMode.value)
+                    val resolvedMode = resolveStereoMode(_detectedStereoMode.value)
                     publishEffective(resolvedMode, "remembered-per-file", requested = StereoMode.AUTO)
                 }
             }
         }
     }
 
-    fun rememberStereoModeIfEnabled(mode: StereoMode) {
-        if (!vrRememberFileFormatEnabled) return
-
+    fun rememberStereoModeForCurrentFile(mode: StereoMode) {
         val filePath = getCurrentFilePath() ?: return
         currentStereoOverridePath = filePath
 
@@ -173,39 +160,6 @@ class PlayerStereoModeCoordinator(
                 )
             )
         }
-    }
-
-    /**
-     * Apply the latest settings snapshot. Returns true if any value relevant to
-     * the effective mode changed - caller should then re-resolve the mode if the user
-     * hasn't picked a manual override.
-     */
-    fun applySettings(
-        forcedPlatFormat: StereoMode?,
-        forcedSphericalFormat: StereoMode?,
-        rememberFileFormat: Boolean
-    ): Boolean {
-        val forcedFormatChanged =
-            vrForcedPlatFormat != forcedPlatFormat ||
-                vrForcedSphericalFormat != forcedSphericalFormat
-        vrForcedPlatFormat = forcedPlatFormat
-        vrForcedSphericalFormat = forcedSphericalFormat
-
-        val rememberFormatChanged = vrRememberFileFormatEnabled != rememberFileFormat
-        vrRememberFileFormatEnabled = rememberFileFormat
-
-        if ((rememberFormatChanged || forcedFormatChanged) &&
-            !hasManualStereoSelection &&
-            !ignoreForcedFormatForCurrentFile
-        ) {
-            publishEffective(
-                resolveForcedStereoMode(_detectedStereoMode.value),
-                "apply-settings",
-                requested = StereoMode.AUTO,
-            )
-            return true
-        }
-        return false
     }
 
     /**
@@ -238,16 +192,9 @@ class PlayerStereoModeCoordinator(
     private fun resolveAutoStereoMode(): StereoMode {
         val detected = _detectedStereoMode.value
         if (detected == StereoMode.UNKNOWN) return StereoMode.AUTO
-        return if (ignoreForcedFormatForCurrentFile) detected else resolveForcedStereoMode(detected)
+        return if (ignoreForcedFormatForCurrentFile) detected else resolveStereoMode(detected)
     }
 
-    private fun resolveForcedStereoMode(detected: StereoMode): StereoMode {
-        val perFileOverride = if (vrRememberFileFormatEnabled) currentStereoOverrideMode else null
-        return VrForcedFormatResolver.resolve(
-            detected = detected,
-            perFileOverride = perFileOverride,
-            forcedPlat = vrForcedPlatFormat,
-            forcedSpherical = vrForcedSphericalFormat,
-        )
-    }
+    private fun resolveStereoMode(detected: StereoMode): StereoMode =
+        currentStereoOverrideMode?.takeUnless { it == StereoMode.AUTO || it == StereoMode.UNKNOWN } ?: detected
 }

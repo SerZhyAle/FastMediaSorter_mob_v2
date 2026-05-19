@@ -40,12 +40,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
@@ -208,13 +210,21 @@ private fun WearSyncScreen(
         Spacer(Modifier.height(16.dp))
 
         // Watch Settings section
-        TextButton(onClick = { settingsExpanded = !settingsExpanded }) {
-            Text(
-                text = stringResource(R.string.wear_settings_section_title) +
-                    if (settingsExpanded) " ▲" else " ▼",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
+        AndroidView(
+            modifier = Modifier.fillMaxWidth(),
+            factory = { context ->
+                CollapsibleSectionHeader(context).apply {
+                    setTitle(context.getString(R.string.wear_settings_section_title))
+                }
+            },
+            update = { header ->
+                header.setTitle(header.context.getString(R.string.wear_settings_section_title))
+                header.setExpanded(settingsExpanded, notify = false)
+                header.setOnExpandedChangeListener { expanded ->
+                    settingsExpanded = expanded
+                }
+            }
+        )
 
         if (settingsExpanded) {
             Spacer(Modifier.height(8.dp))

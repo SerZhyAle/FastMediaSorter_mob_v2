@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -210,6 +211,19 @@ class SettingsRepositoryImpl @Inject constructor(
         context.getSharedPreferences("app_settings_glide", Context.MODE_PRIVATE)
     }
 
+    // S0253: distinguishes a fresh install (firstInstallTime == lastUpdateTime) from an upgraded
+    // existing install. Used only as the fallback default for opt-in settings that should be ON
+    // for new users while keeping every existing user's behavior unchanged after they update
+    // to this build (existing user has lastUpdateTime > firstInstallTime → fallback resolves to false).
+    private val isFreshInstall: Boolean by lazy {
+        runCatching {
+            val info = context.packageManager.getPackageInfo(context.packageName, 0)
+            val fresh = info.firstInstallTime == info.lastUpdateTime
+            Timber.d("S0253: install discriminator firstInstall=${info.firstInstallTime} lastUpdate=${info.lastUpdateTime} fresh=$fresh")
+            fresh
+        }.getOrDefault(false)
+    }
+
     override fun getSettings(): Flow<AppSettings> {
         return dataStore.data
             .catch { exception ->
@@ -248,7 +262,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048,
                     isCacheSizeUserModified = preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] ?: false,
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
-                    resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: false,
+                    resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
                     allFiles = preferences[KEY_ALL_FILES] ?: false,
@@ -313,8 +327,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
-                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: false,
-                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: false,
+                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
+                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: isFreshInstall, // S0253: fresh install suppresses one-time "ops moved to menu" Toast
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
@@ -395,7 +409,8 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?: 7,
 
                     // S0028: Multi-window mode
-                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER,
+                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW]
+                        ?: MultiWindowCapabilityDetector.defaultAllowSeparateWindow(context),
 
                     // S0162: absent key → default true (no behaviour change on upgrade)
                     followSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,

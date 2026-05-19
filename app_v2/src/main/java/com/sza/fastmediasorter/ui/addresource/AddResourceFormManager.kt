@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.utils.NetworkUtils
@@ -133,12 +134,12 @@ internal class AddResourceFormManager(
     // ========== Collapsible Sections ==========
 
     fun setupCollapsibleSections() {
-        setupHeader(binding.headerSmbConditions, binding.contentSmbConditions, binding.ivSmbConditionsExpand, sectionKey("smb", "conditions"))
-        setupHeader(binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, binding.ivSmbMediaTypesExpand, sectionKey("smb", "media_types"))
-        setupHeader(binding.headerSmbAdditional, binding.contentSmbAdditional, binding.ivSmbAdditionalExpand, sectionKey("smb", "additional"))
-        setupHeader(binding.headerSftpConditions, binding.contentSftpConditions, binding.ivSftpConditionsExpand, sectionKey("sftp", "conditions"))
-        setupHeader(binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, binding.ivSftpMediaTypesExpand, sectionKey("sftp", "media_types"))
-        setupHeader(binding.headerSftpAdditional, binding.contentSftpAdditional, binding.ivSftpAdditionalExpand, sectionKey("sftp", "additional"))
+        bindCollapsibleHeader(binding.headerSmbConditions, binding.contentSmbConditions, sectionKey("smb", "conditions"))
+        bindCollapsibleHeader(binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, sectionKey("smb", "media_types"))
+        bindCollapsibleHeader(binding.headerSmbAdditional, binding.contentSmbAdditional, sectionKey("smb", "additional"))
+        bindCollapsibleHeader(binding.headerSftpConditions, binding.contentSftpConditions, sectionKey("sftp", "conditions"))
+        bindCollapsibleHeader(binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, sectionKey("sftp", "media_types"))
+        bindCollapsibleHeader(binding.headerSftpAdditional, binding.contentSftpAdditional, sectionKey("sftp", "additional"))
     }
 
     private fun sectionKey(resourceType: String, sectionId: String): String {
@@ -147,21 +148,18 @@ internal class AddResourceFormManager(
         return "add_${resourceType}_${orientation}_$sectionId"
     }
 
-    private fun setupHeader(
-        header: android.view.View,
+    private fun bindCollapsibleHeader(
+        header: CollapsibleSectionHeader,
         content: android.view.View,
-        icon: android.widget.ImageView,
         key: String,
-        defaultExpanded: Boolean = false
+        defaultExpanded: Boolean = false,
     ) {
         val isExpanded = addResourceUiPrefs.getBoolean(key, defaultExpanded)
+        header.setExpanded(isExpanded, notify = false)
         content.visibility = if (isExpanded) android.view.View.VISIBLE else android.view.View.GONE
-        icon.rotation = if (isExpanded) 180f else 0f
-        header.setOnClickListener {
-            val nowExpanded = content.visibility != android.view.View.VISIBLE
-            content.visibility = if (nowExpanded) android.view.View.VISIBLE else android.view.View.GONE
-            icon.animate().rotation(if (nowExpanded) 180f else 0f).setDuration(200).start()
-            addResourceUiPrefs.edit().putBoolean(key, nowExpanded).apply()
+        header.setOnExpandedChangeListener { expanded ->
+            content.visibility = if (expanded) android.view.View.VISIBLE else android.view.View.GONE
+            addResourceUiPrefs.edit().putBoolean(key, expanded).apply()
         }
     }
 

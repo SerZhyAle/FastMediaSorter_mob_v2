@@ -502,9 +502,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         
         binding.btnSettings.setOnClickListenerDebounced {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            openSettings()
         }
-        
+
         binding.btnFilter.setOnClickListenerDebounced {
             val currentState = viewModel.state.value
             FilterResourceDialog.newInstance(
@@ -780,7 +780,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
                 MainEvent.NavigateToSettings -> {
-                    startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                    openSettings()
                 }
                 is MainEvent.ScanProgress -> {
                     binding.scanProgressLayout.visibility = View.VISIBLE
@@ -818,7 +818,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             layoutChrome.refreshGridSpacing()
         }
     }
-    
+
+    private fun openSettings() {
+        startActivity(Intent(this, SettingsActivity::class.java))
+    }
+
     private fun updateFilterWarning(state: MainState) {
         val hasFilters = state.filterByType != null || 
                          state.filterByMediaType != null || 

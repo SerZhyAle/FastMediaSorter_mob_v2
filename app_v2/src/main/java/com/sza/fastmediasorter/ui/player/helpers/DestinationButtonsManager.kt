@@ -452,6 +452,17 @@ class DestinationButtonsManager(
             updateCopyPanelVisibility(newCollapsedState)
         }
     }
+
+    fun setCopyPanelExpanded(expanded: Boolean) {
+        lifecycleScope.launch {
+            val currentSettings = settingsRepository.getSettings().first()
+            val newCollapsedState = !expanded
+
+            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
+            cachedCopyCollapsed = newCollapsedState
+            updateCopyPanelVisibility(newCollapsedState)
+        }
+    }
     
     /**
      * Toggle Move to panel collapsed/expanded state
@@ -471,22 +482,33 @@ class DestinationButtonsManager(
             updateMovePanelVisibility(newCollapsedState)
         }
     }
+
+    fun setMovePanelExpanded(expanded: Boolean) {
+        lifecycleScope.launch {
+            val currentSettings = settingsRepository.getSettings().first()
+            val newCollapsedState = !expanded
+
+            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
+            cachedMoveCollapsed = newCollapsedState
+            updateMovePanelVisibility(newCollapsedState)
+        }
+    }
     
     /**
-     * Update Copy to panel buttons visibility and indicator
+     * Update Copy to panel buttons visibility and keep the header prefix in sync.
      */
     private fun updateCopyPanelVisibility(collapsed: Boolean) {
         safeViews.copyToButtonsGrid.isVisible = !collapsed
-        safeViews.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        safeViews.copyToPanelHeader.setExpanded(!collapsed, notify = false)
         updateContainerOrientation()
     }
     
     /**
-     * Update Move to panel buttons visibility and indicator
+     * Update Move to panel buttons visibility and keep the header prefix in sync.
      */
     private fun updateMovePanelVisibility(collapsed: Boolean) {
         safeViews.moveToButtonsGrid.isVisible = !collapsed
-        safeViews.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        safeViews.moveToPanelHeader.setExpanded(!collapsed, notify = false)
         updateContainerOrientation()
     }
 

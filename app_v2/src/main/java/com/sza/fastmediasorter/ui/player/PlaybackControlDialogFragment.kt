@@ -380,7 +380,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private fun handleStereoModeSelection(mode: StereoMode) {
         Timber.d("PlaybackControlDialog: Stereo mode selected → $mode")
 
-        host().rememberStereoModeIfEnabled(mode)
+        host().rememberStereoModeForCurrentFile(mode)
         host().setStereoMode(mode)
 
         // Bind UI to the user's choice, not the resolved effective renderer mode.

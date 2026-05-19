@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 
 class GeneralSettingsSectionsHelper(
     private val binding: FragmentSettingsGeneralBinding,
@@ -21,53 +22,34 @@ class GeneralSettingsSectionsHelper(
         const val KEY_DEBUG_EXPANDED = "section_debug_expanded"
     }
 
+    private data class ExpandableSection(
+        val header: CollapsibleSectionHeader,
+        val container: View,
+        val prefKey: String,
+        val defaultExpanded: Boolean,
+    )
+
     fun setup() {
         val savedStates = getSavedSectionStates()
-        bindSectionToggle(
-            binding.headerInterface, binding.containerInterface,
-            fragment.getString(R.string.settings_category_interface),
-            KEY_INTERFACE_EXPANDED, savedStates[KEY_INTERFACE_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerAppData, binding.containerAppData,
-            fragment.getString(R.string.settings_category_app_data),
-            KEY_APP_DATA_EXPANDED, savedStates[KEY_APP_DATA_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerSystem, binding.containerSystem,
-            fragment.getString(R.string.settings_category_system),
-            KEY_SYSTEM_EXPANDED, savedStates[KEY_SYSTEM_EXPANDED] ?: false
+        val sections = mutableListOf(
+            ExpandableSection(binding.headerInterface, binding.containerInterface, KEY_INTERFACE_EXPANDED, false),
+            ExpandableSection(binding.headerAppData, binding.containerAppData, KEY_APP_DATA_EXPANDED, true),
+            ExpandableSection(binding.headerSystem, binding.containerSystem, KEY_SYSTEM_EXPANDED, false),
         )
         if (BuildConfig.DEBUG) {
-            bindSectionToggle(
-                binding.headerDebugSettings, binding.containerDebugSettings,
-                fragment.getString(R.string.debug_settings_title),
-                KEY_DEBUG_EXPANDED, savedStates[KEY_DEBUG_EXPANDED] ?: false
-            )
+            sections += ExpandableSection(binding.headerDebugSettings, binding.containerDebugSettings, KEY_DEBUG_EXPANDED, false)
         }
-    }
 
-    private fun bindSectionToggle(
-        header: android.widget.TextView,
-        content: View,
-        title: String,
-        prefKey: String,
-        initiallyExpanded: Boolean,
-    ) {
-        if (!header.isVisible) return
-        content.isVisible = initiallyExpanded
-        updateHeader(header, title, initiallyExpanded)
-        header.setOnClickListener {
-            val expanded = !content.isVisible
-            content.isVisible = expanded
-            updateHeader(header, title, expanded)
-            saveSectionState(prefKey, expanded)
+        sections.forEach { section ->
+            if (!section.header.isVisible) return@forEach
+            val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
+            section.header.setExpanded(expanded, notify = false)
+            section.container.isVisible = expanded
+            section.header.setOnExpandedChangeListener { isExpanded ->
+                section.container.isVisible = isExpanded
+                saveSectionState(section.prefKey, isExpanded)
+            }
         }
-    }
-
-    private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
-        val prefix = if (expanded) "▼" else "▶"
-        header.text = fragment.getString(R.string.string_format_two_args, prefix, title)
     }
 
     private fun getSavedSectionStates(): Map<String, Boolean> {

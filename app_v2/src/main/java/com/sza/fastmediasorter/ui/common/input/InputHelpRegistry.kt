@@ -80,8 +80,6 @@ object InputHelpRegistry {
                 entry("F6 / Ctrl+X", R.string.kbm_help_op_move),
                 entry("F7 / Ctrl+Shift+N", R.string.kbm_help_op_create_folder),
                 entry("F8 / Del / Ctrl+D", R.string.kbm_help_op_delete),
-                entry("F9 / Ctrl+M / Menu", R.string.kbm_help_browse_settings_current),
-                entry("Ctrl+, / Settings", R.string.kbm_help_browse_settings_revised),
                 entry("Ctrl+Shift+R", R.string.kbm_help_op_refresh),
             ),
         ),

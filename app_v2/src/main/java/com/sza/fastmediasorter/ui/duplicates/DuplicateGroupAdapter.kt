@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.ui.duplicates
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -49,25 +49,23 @@ class DuplicateGroupAdapter(
         }
 
         fun bind(group: DuplicateGroup) {
-            binding.tvGroupSize.text = formatFileSize(group.fileSize)
-            binding.tvGroupCount.text = itemView.context.getString(R.string.duplicate_group_count, group.files.size)
+            val sizeText = formatFileSize(group.fileSize)
+            val countText = itemView.context.getString(R.string.duplicate_group_count, group.files.size)
+            binding.headerGroup.setTitle("$sizeText - $countText")
+            binding.headerGroup.setExpandCollapseContentDescriptions(R.string.cd_expand_group, R.string.cd_collapse_group)
 
             val isExpanded = expandedGroups.contains(group.fullHash)
-            binding.rvFiles.visibility = if (isExpanded) View.VISIBLE else View.GONE
-            binding.ivExpand.rotation = if (isExpanded) 180f else 0f
+            binding.headerGroup.setExpanded(isExpanded, notify = false)
+            binding.rvFiles.isVisible = isExpanded
 
-            val cdStringRes = if (isExpanded) R.string.cd_collapse_group else R.string.cd_expand_group
-            binding.ivExpand.contentDescription = itemView.context.getString(cdStringRes)
-
-            binding.root.setOnClickListener {
-                if (isExpanded) {
-                    expandedGroups.remove(group.fullHash)
-                } else {
+            binding.headerGroup.setOnExpandedChangeListener { expanded ->
+                if (expanded) {
                     expandedGroups.add(group.fullHash)
+                } else {
+                    expandedGroups.remove(group.fullHash)
                 }
-                notifyItemChanged(bindingAdapterPosition)
+                binding.rvFiles.isVisible = expanded
             }
-            binding.ivExpand.setOnClickListener { binding.root.performClick() }
 
             fileAdapter.submitList(group.files)
         }

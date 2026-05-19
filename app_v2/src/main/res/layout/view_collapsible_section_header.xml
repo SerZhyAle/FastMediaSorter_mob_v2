@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:id="@+id/csh_headerRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceVariant"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/settings_padding_vertical">
+
+        <ImageButton
+            android:id="@+id/csh_iconHelp"
+            android:layout_width="@dimen/settings_help_icon_size"
+            android:layout_height="@dimen/settings_help_icon_size"
+            android:layout_marginEnd="@dimen/settings_padding_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription=""
+            android:focusable="true"
+            android:src="@drawable/ic_help_outline_24"
+            android:tint="@color/text_color_secondary"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/csh_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="@dimen/toggler_title_text_size"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:id="@+id/csh_trailingSlot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</merge>

@@ -209,7 +209,7 @@ class PlayerViewModel @Inject constructor(
         stereoCoordinator.setAutoDetectedStereoMode(mode, forFilePath)
     fun resetStereoModeForNewFile(filePath: String? = state.value.currentFile?.path) =
         stereoCoordinator.resetStereoModeForNewFile(filePath)
-    fun rememberStereoModeIfEnabled(mode: StereoMode) = stereoCoordinator.rememberStereoModeIfEnabled(mode)
+    fun rememberStereoModeForCurrentFile(mode: StereoMode) = stereoCoordinator.rememberStereoModeForCurrentFile(mode)
 
     // ── S0107: Draw overlay current-frame bitmap ──────────────────────────────
     /** Bitmap currently displayed in the image viewer; set by ImageLoadingManager on load. Null for video/audio. */
@@ -837,5 +837,4 @@ class PlayerViewModel @Inject constructor(
     }
 
 }
-
 

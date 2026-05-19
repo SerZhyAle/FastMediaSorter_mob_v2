@@ -79,6 +79,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **TV remote key remapping**: Reassign color buttons and Channel Up/Down in Settings.
 - **DPAD hold-to-scroll acceleration**: Holding DPAD Up/Down switches to page-jump for fast navigation.
 - **Extended file-info dialog**: Shows full audio metadata for remote files by streaming only the first ~64 KB.
+- **Multi-window mode**: Open Browse for a selected resource - or the viewer/player for a selected file - in an independent parallel window. Activates wherever the platform reports multi-window capability: ChromeOS / Chromebook (Googlebook), Samsung DeX, Android XR Home Space panels, and VR Quest 3+ panels. Enabled by default in those environments; on phones and tablets the setting stays off by default but can be turned on in Settings.
 
 ## 3. File Operations
 
@@ -120,6 +121,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Send to Google Lens**: Quickly bridge any photo to the external Google Lens app.
 - **Crop & Compressed copy**: Save cropped fragments or 70% compressed JPEG copies natively via the overflow menu.
 - **Draw annotations**: Brush, rectangle, oval, eraser, and text tools with a 16-color custom palette and adjustable brush size, text size, and opacity. Save back to the original file or to a new file, undo the last or all changes, and send the merged drawing to Google Keep.
+- **Create new drawing from Browse**: Start a blank `.jpg` canvas directly from the Browse toolbar in local, SMB, SFTP, FTP, or cloud folders. The editor opens immediately with Save, Save & Close, Save & Send, Share, and Cancel actions; remote drawings stay staged locally until you commit them.
 - **Immersive Draw and Crop**: System bars hide automatically during editing for a full-screen workspace.
 
 ## 6. GIF Viewer
@@ -157,7 +159,6 @@ This document is the canonical inventory of all user-facing features implemented
 - **VR Immersive Controls & HUD**: Full operation using controllers, keyboards, or mice. Features a head-locked HUD with progress, buffer, and control indicators.
 - **Cinema mode**: Displays standard 2D content on a virtual cinema screen within the immersive session.
 - **VR hand tracking**: Switch to OpenXR hand-tracking input automatically when controllers are set aside (aim ray, pinch to click).
-- **Multi-Window Mode**: Tear off Browse or Player into separate independent windows (Quest 3+ / DeX).
 - **Passthrough Snapshot**: Capture a JPEG from front passthrough cameras (Quest 3).
 
 ## 9. Audio Player

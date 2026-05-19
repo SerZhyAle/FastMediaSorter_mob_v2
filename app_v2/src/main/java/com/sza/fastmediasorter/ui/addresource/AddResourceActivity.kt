@@ -373,9 +373,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showSmbFolderOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.isVisible = true
-        binding.tvTitle.text = getString(R.string.add_network_folder)
-        binding.toolbar.title = getString(R.string.add_resource_title)
+        binding.tvTitle.isVisible = false
+        binding.toolbar.title = getString(R.string.add_network_folder)
         binding.layoutSmbFolder.isVisible = true
         binding.layoutSftpFolder.isVisible = false
         formManager.setupIpAddressField()
@@ -384,9 +383,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showSftpFolderOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.isVisible = true
-        binding.tvTitle.text = getString(R.string.add_sftp_ftp_title)
-        binding.toolbar.title = getString(R.string.add_resource_title)
+        binding.tvTitle.isVisible = false
+        binding.toolbar.title = getString(R.string.add_sftp_ftp_title)
         binding.layoutSmbFolder.isVisible = false
         binding.layoutSftpFolder.isVisible = true
         binding.layoutCloudStorage.isVisible = false
@@ -397,9 +395,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showCloudStorageOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.isVisible = true
-        binding.tvTitle.text = getString(R.string.cloud_storage)
-        binding.toolbar.title = getString(R.string.add_resource_title)
+        binding.tvTitle.isVisible = false
+        binding.toolbar.title = getString(R.string.cloud_storage)
         binding.layoutSmbFolder.isVisible = false
         binding.layoutSftpFolder.isVisible = false
         binding.layoutCloudStorage.isVisible = true

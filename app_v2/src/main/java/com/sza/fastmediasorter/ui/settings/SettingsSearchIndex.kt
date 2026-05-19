@@ -49,7 +49,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "general",
             destination = SettingsSearchDestination.GENERAL,
-            viewId = R.id.switchAllFiles
+            viewId = R.id.rowAllFiles
         ),
         SettingsSearchIndex(
             key = "general.hidden_files",
@@ -63,7 +63,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "general",
             destination = SettingsSearchDestination.GENERAL,
-            viewId = R.id.switchShowHiddenFiles
+            viewId = R.id.rowShowHiddenFiles
         ),
         SettingsSearchIndex(
             key = "operations.safe_mode",
@@ -77,7 +77,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "operations",
             destination = SettingsSearchDestination.OPERATIONS,
-            viewId = R.id.switchEnableSafeMode
+            viewId = R.id.rowEnableSafeMode
         ),
         SettingsSearchIndex(
             key = "operations.confirm_delete",
@@ -91,7 +91,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "operations",
             destination = SettingsSearchDestination.OPERATIONS,
-            viewId = R.id.switchConfirmDelete
+            viewId = R.id.rowConfirmDelete
         ),
         SettingsSearchIndex(
             key = "operations.confirm_move",
@@ -105,7 +105,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "operations",
             destination = SettingsSearchDestination.OPERATIONS,
-            viewId = R.id.switchConfirmMove
+            viewId = R.id.rowConfirmMove
         ),
         SettingsSearchIndex(
             key = "general.network_parallelism",
@@ -133,7 +133,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "general",
             destination = SettingsSearchDestination.GENERAL,
-            viewId = R.id.switchEnableBackgroundSync
+            viewId = R.id.rowEnableBackgroundSync
         ),
         SettingsSearchIndex(
             key = "general.sync_interval",
@@ -231,7 +231,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "images",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchSupportImages
+            viewId = R.id.rowSupportImages
         ),
         SettingsSearchIndex(
             key = "media.images_full_size",
@@ -245,7 +245,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "images",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchLoadFullSizeImages
+            viewId = R.id.rowLoadFullSizeImages
         ),
         SettingsSearchIndex(
             key = "media.images_crop_fullscreen",
@@ -259,7 +259,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "images",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchCropImagesToFullscreen
+            viewId = R.id.rowCropImagesToFullscreen
         ),
         SettingsSearchIndex(
             key = "media.images_size_min",
@@ -287,7 +287,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "video",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchSupportVideos
+            viewId = R.id.rowSupportVideos
         ),
         SettingsSearchIndex(
             key = "media.video_thumbnails",
@@ -301,7 +301,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "video",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchShowVideoThumbnails
+            viewId = R.id.rowShowVideoThumbnails
         ),
         SettingsSearchIndex(
             key = "media.audio_support",
@@ -315,7 +315,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "audio",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchSupportAudio
+            viewId = R.id.rowSupportAudio
         ),
         SettingsSearchIndex(
             key = "media.audio_covers_online",
@@ -329,7 +329,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "audio",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchSearchAudioCoversOnline
+            viewId = R.id.rowSearchAudioCoversOnline
         ),
         SettingsSearchIndex(
             key = "media.audio_photos_bg",
@@ -343,7 +343,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "audio",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchEnablePhotosDuringAudio
+            viewId = R.id.rowEnablePhotosDuringAudio
         ),
         SettingsSearchIndex(
             key = "media.documents_text",
@@ -357,7 +357,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "documents",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchSupportText
+            viewId = R.id.rowSupportText
         ),
         SettingsSearchIndex(
             key = "media.documents_pdf",
@@ -371,7 +371,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "documents",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchSupportPdf
+            viewId = R.id.rowSupportPdf
         ),
         SettingsSearchIndex(
             key = "media.other_translation",
@@ -385,7 +385,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "other",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchEnableTranslation
+            viewId = R.id.rowEnableTranslation
         ),
         SettingsSearchIndex(
             key = "media.other_ocr",
@@ -399,7 +399,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "other",
             destination = SettingsSearchDestination.MEDIA,
-            viewId = R.id.switchEnableOcr
+            viewId = R.id.rowEnableOcr
         ),
         SettingsSearchIndex(
             key = "playback.sort_mode",
@@ -441,7 +441,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "playback",
             destination = SettingsSearchDestination.PLAYBACK,
-            viewId = R.id.switchPlayToEnd
+            viewId = R.id.rowPlayToEnd
         ),
         SettingsSearchIndex(
             key = "playback.allow_delete",
@@ -455,35 +455,21 @@ object SettingsSearchRegistry {
             ),
             sectionId = "playback",
             destination = SettingsSearchDestination.PLAYBACK,
-            viewId = R.id.switchAllowDelete
+            viewId = R.id.rowAllowDelete
         ),
         SettingsSearchIndex(
-            key = "playback.grid_mode",
-            title = "Default grid mode",
+            key = "playback.file_ops_overflow_menu",
+            title = "File actions in overflow menu",
             keywords = listOf(
-                "grid", "layout", "default view",
+                "file actions", "overflow menu", "more actions",
                 // RU
-                "сетка", "вид сетки", "по умолчанию",
+                "операции с файлами", "меню", "дополнительно",
                 // UK
-                "сітка", "вигляд сітки", "за замовчуванням"
+                "операції з файлами", "меню", "додатково"
             ),
-            sectionId = "playback",
-            destination = SettingsSearchDestination.PLAYBACK,
-            viewId = R.id.switchGridMode
-        ),
-        SettingsSearchIndex(
-            key = "playback.icon_size",
-            title = "Icon size",
-            keywords = listOf(
-                "icon", "thumbnail", "size",
-                // RU
-                "размер иконки", "миниатюры", "размер значка",
-                // UK
-                "розмір іконки", "мініатюри", "розмір значка"
-            ),
-            sectionId = "playback",
-            destination = SettingsSearchDestination.PLAYBACK,
-            viewId = R.id.etIconSize
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.rowResourceOpsInOverflowMenu
         ),
         SettingsSearchIndex(
             key = "setting_disable_camera_capture",
@@ -497,7 +483,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "playback",
             destination = SettingsSearchDestination.PLAYBACK,
-            viewId = R.id.switchDisableCameraCapture
+            viewId = R.id.rowDisableCameraCapture
         ),
         SettingsSearchIndex(
             key = "setting_skip_camera_filename_dialog",
@@ -511,7 +497,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "playback",
             destination = SettingsSearchDestination.PLAYBACK,
-            viewId = R.id.switchSkipCameraFilenameDialog
+            viewId = R.id.rowSkipCameraFilenameDialog
         ),
         SettingsSearchIndex(
             key = "destinations.enable_copying",
@@ -525,7 +511,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "destinations",
             destination = SettingsSearchDestination.OPERATIONS,
-            viewId = R.id.switchEnableCopying
+            viewId = R.id.rowEnableCopying
         ),
         SettingsSearchIndex(
             key = "destinations.enable_moving",
@@ -539,7 +525,7 @@ object SettingsSearchRegistry {
             ),
             sectionId = "destinations",
             destination = SettingsSearchDestination.OPERATIONS,
-            viewId = R.id.switchEnableMoving
+            viewId = R.id.rowEnableMoving
         ),
         SettingsSearchIndex(
             key = "destinations.max_recipients",

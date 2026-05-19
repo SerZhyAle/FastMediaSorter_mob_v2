@@ -131,10 +131,6 @@ class PlayerMediaLoaderManager(
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
-        // Max time to wait for network audio pre-cache before falling back to direct streaming.
-        // SMBJ can hang for ~40s after Connection reset while closing the dead session -
-        // this cap ensures the user doesn't wait indefinitely.
-        private const val NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 20_000L
     }
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
@@ -451,6 +447,7 @@ class PlayerMediaLoaderManager(
      *   Fallback to server/share string lookup when null.
      */
     private suspend fun preCacheNetworkAudio(path: String, fileSize: Long = 0L, credentialsId: String? = null): File? = withContext(Dispatchers.IO) {
+        val startupPolicy = PrefetchPolicyManager.audioStartupPolicyFor(path, isAudio = true)
 
         // Check cache first
         if (fileSize > 0) {
@@ -466,8 +463,8 @@ class PlayerMediaLoaderManager(
 
         try {
             // Timeout guards against SMBJ hanging during connection cleanup after Connection reset.
-            // Without it the caller blocks ~40s waiting for the dead session to close.
-            withTimeout(NETWORK_AUDIO_PRECACHE_TIMEOUT_MS) {
+            // SFTP audio gets a shorter startup budget so car playback can fall back to direct streaming promptly.
+            withTimeout(startupPolicy.timeoutMs) {
                 when {
                     path.startsWith("smb://") -> downloadSmbFull(path, destFile, credentialsId)
                     path.startsWith("sftp://") -> downloadSftpFull(path, destFile, credentialsId)
@@ -476,7 +473,11 @@ class PlayerMediaLoaderManager(
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Timber.w("preCacheNetworkAudio: timed out after ${NETWORK_AUDIO_PRECACHE_TIMEOUT_MS}ms for $path - falling back to direct streaming")
+            Timber.d("S0252: SFTP audio early direct-stream fallback (source=${startupPolicy.sourceType.logLabel})")
+            Timber.w(
+                "preCacheNetworkAudio: source=${startupPolicy.sourceType.logLabel} reason=${startupPolicy.reason} " +
+                    "timed out after ${startupPolicy.timeoutMs}ms for $path - falling back to direct streaming"
+            )
             destFile.delete()
             null
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -826,7 +827,13 @@ class PlayerMediaLoaderManager(
             if (result != null) {
                 Timber.d("prefetchNextAudio: DONE - ${nextFile.name} cached")
             } else {
-                Timber.w("prefetchNextAudio: FAILED - ${nextFile.name}")
+                val recovery = PrefetchPolicyManager.nextTrackPrefetchRecovery(path)
+                Timber.d("S0252: prefetchNextAudio recoverable-failure branch hit")
+                Timber.w(
+                    "prefetchNextAudio: RECOVERABLE failure - ${nextFile.name}; " +
+                        "source=${recovery.sourceType.logLabel} reason=${recovery.reason} " +
+                        "currentTrackUnaffected=${recovery.currentTrackUnaffected} retryOnDemand=${recovery.retryOnDemand}"
+                )
             }
         }
     }

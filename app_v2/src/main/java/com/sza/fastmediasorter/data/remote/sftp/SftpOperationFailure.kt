@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.remote.sftp
 
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.SftpException
+import java.io.InterruptedIOException
 
 /**
  * Typed classification of an SFTP write-operation failure.
@@ -23,6 +24,9 @@ enum class SftpFailureCategory {
 
     /** Network/IO failure that did not produce an SFTP status code. */
     TRANSIENT,
+
+    /** Expected close/cancel outcome for a Media3-owned SFTP stream lifecycle. */
+    EXPECTED_STREAM_CLOSE,
 }
 
 data class SftpOperationFailure(
@@ -65,6 +69,33 @@ data class SftpOperationFailure(
                 originalMessage = throwable.message,
                 operationKind = operationKind,
                 copyCompleted = copyCompleted,
+            )
+        }
+
+        /**
+         * Classifies close()-time stream failures separately from active read/open failures.
+         *
+         * Media3 may close the DataSource while JSch is cancelling its request queue; in that
+         * lifecycle window "Pipe closed" and interrupted closes are expected cleanup outcomes,
+         * not primary playback failures.
+         */
+        fun fromStreamCloseThrowable(
+            throwable: Throwable,
+            channelAlreadyBroken: Boolean,
+            streamWasOpen: Boolean,
+        ): SftpOperationFailure {
+            val category = when {
+                throwable is InterruptedIOException -> SftpFailureCategory.EXPECTED_STREAM_CLOSE
+                channelAlreadyBroken -> SftpFailureCategory.EXPECTED_STREAM_CLOSE
+                streamWasOpen && throwable.message?.contains("Pipe closed", ignoreCase = true) == true ->
+                    SftpFailureCategory.EXPECTED_STREAM_CLOSE
+                else -> SftpFailureCategory.TRANSIENT
+            }
+
+            return SftpOperationFailure(
+                statusCode = null,
+                category = category,
+                originalMessage = throwable.message,
             )
         }
 

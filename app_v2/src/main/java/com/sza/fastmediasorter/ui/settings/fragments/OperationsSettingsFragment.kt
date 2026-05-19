@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.databinding.ItemDestinationBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScheduledLogDialog
 import com.sza.fastmediasorter.ui.dialog.ScheduledOperationDialog
@@ -39,7 +40,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
-class OperationsSettingsFragment : Fragment() {
+class OperationsSettingsFragment : BaseSettingsFragment() {
     companion object {
         private const val PREFS_NAME = "settings_section_states"
         private const val KEY_SAFETY_EXPANDED = "operations_safety_expanded"
@@ -48,14 +49,19 @@ class OperationsSettingsFragment : Fragment() {
         private const val KEY_SCHEDULED_EXPANDED = "scheduled_ops_expanded"
     }
 
+    private data class ExpandableSection(
+        val header: CollapsibleSectionHeader,
+        val container: View,
+        val prefKey: String,
+        val defaultExpanded: Boolean,
+    )
+
     private var _binding: FragmentSettingsDestinationsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
     private val scheduledViewModel: ScheduledOperationsViewModel by activityViewModels()
     private lateinit var adapter: DestinationsAdapter
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
-    private var isUpdatingFromSettings = false
-
     private val notificationsPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
@@ -111,35 +117,37 @@ class OperationsSettingsFragment : Fragment() {
     }
     
     private fun setupViews() {
+        binding.rowUseTrash.setTrailingControl(binding.btnClearTrash)
+
         // Copying switches
-        binding.switchEnableCopying.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableCopying.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableCopying = isChecked))
             updateCopyOptionsVisibility(isChecked)
         }
         
-        binding.switchGoToNextAfterCopy.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowGoToNextAfterCopy.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(goToNextAfterCopy = isChecked))
         }
         
-        binding.switchOverwriteOnCopy.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowOverwriteOnCopy.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(overwriteOnCopy = isChecked))
         }
         
         // Moving switches
-        binding.switchEnableMoving.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableMoving.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableMoving = isChecked))
             updateMoveOptionsVisibility(isChecked)
         }
         
-        binding.switchOverwriteOnMove.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowOverwriteOnMove.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(overwriteOnMove = isChecked))
@@ -153,51 +161,29 @@ class OperationsSettingsFragment : Fragment() {
             )
         }
 
-        binding.iconHelpGoToNextAfterCopy.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_go_to_next_after_copy_title,
-                R.string.tooltip_go_to_next_after_copy_message
-            )
-        }
-
         // Safety & Confirmation group (moved from General settings)
-        binding.switchEnableSafeMode.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableSafeMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableSafeMode = isChecked))
             binding.layoutConfirmDelete.visibility = if (isChecked) View.VISIBLE else View.GONE
             binding.layoutConfirmMove.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowConfirmDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(confirmDelete = isChecked))
         }
-        binding.switchConfirmMove.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowConfirmMove.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(confirmMove = isChecked))
         }
-        binding.iconHelpSafeMode.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_safe_mode_title,
-                R.string.tooltip_safe_mode_message
-            )
-        }
-        binding.switchUseTrash.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowUseTrash.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(useTrash = isChecked))
             binding.btnClearTrash.isVisible = isChecked
         }
         binding.btnClearTrash.setOnClickListener {
             viewModel.clearAllTrash(requireContext())
-        }
-        binding.iconHelpUseTrash.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_use_trash_title,
-                R.string.tooltip_use_trash_message
-            )
         }
 
         // RecyclerView setup
@@ -303,35 +289,33 @@ class OperationsSettingsFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.settings.collect { settings ->
-                        isUpdatingFromSettings = true
-                        binding.switchEnableScheduledOps.isChecked = settings.enableScheduledOperations
-                        binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
-                        // Update switches
-                        binding.switchEnableCopying.isChecked = settings.enableCopying
-                        binding.switchGoToNextAfterCopy.isChecked = settings.goToNextAfterCopy
-                        binding.switchOverwriteOnCopy.isChecked = settings.overwriteOnCopy
-                        binding.switchEnableMoving.isChecked = settings.enableMoving
-                        binding.switchOverwriteOnMove.isChecked = settings.overwriteOnMove
+                        withSettingsUpdate {
+                            binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
+                            binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
+                            binding.rowEnableCopying.setCheckedSilently(settings.enableCopying)
+                            binding.rowGoToNextAfterCopy.setCheckedSilently(settings.goToNextAfterCopy)
+                            binding.rowOverwriteOnCopy.setCheckedSilently(settings.overwriteOnCopy)
+                            binding.rowEnableMoving.setCheckedSilently(settings.enableMoving)
+                            binding.rowOverwriteOnMove.setCheckedSilently(settings.overwriteOnMove)
 
-                        // Safety & Confirmation switches (moved from General)
-                        binding.switchEnableSafeMode.isChecked = settings.enableSafeMode
-                        binding.switchConfirmDelete.isChecked = settings.confirmDelete
-                        binding.switchConfirmMove.isChecked = settings.confirmMove
-                        binding.switchUseTrash.isChecked = settings.useTrash
-                        binding.btnClearTrash.isVisible = settings.useTrash
-                        binding.layoutConfirmDelete.visibility =
-                            if (settings.enableSafeMode) View.VISIBLE else View.GONE
-                        binding.layoutConfirmMove.visibility =
-                            if (settings.enableSafeMode) View.VISIBLE else View.GONE
-                        
-                        // Update Max Recipients
-                        if (binding.etMaxRecipients.text.toString() != settings.maxRecipients.toString()) {
-                            binding.etMaxRecipients.setText(getString(R.string.number_format, settings.maxRecipients))
+                            // Safety & Confirmation switches (moved from General)
+                            binding.rowEnableSafeMode.setCheckedSilently(settings.enableSafeMode)
+                            binding.rowConfirmDelete.setCheckedSilently(settings.confirmDelete)
+                            binding.rowConfirmMove.setCheckedSilently(settings.confirmMove)
+                            binding.rowUseTrash.setCheckedSilently(settings.useTrash)
+                            binding.btnClearTrash.isVisible = settings.useTrash
+                            binding.layoutConfirmDelete.visibility =
+                                if (settings.enableSafeMode) View.VISIBLE else View.GONE
+                            binding.layoutConfirmMove.visibility =
+                                if (settings.enableSafeMode) View.VISIBLE else View.GONE
+
+                            if (binding.etMaxRecipients.text.toString() != settings.maxRecipients.toString()) {
+                                binding.etMaxRecipients.setText(getString(R.string.number_format, settings.maxRecipients))
+                            }
                         }
-                        
+
                         updateCopyOptionsVisibility(settings.enableCopying)
                         updateMoveOptionsVisibility(settings.enableMoving)
-                        isUpdatingFromSettings = false
                     }
                 }
                 
@@ -376,45 +360,37 @@ class OperationsSettingsFragment : Fragment() {
 
     private fun setupExpandableSections() {
         val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        bindSectionToggle(
-            header = binding.headerSafety,
-            content = binding.containerSafety,
-            title = getString(R.string.settings_category_safety),
-            prefKey = KEY_SAFETY_EXPANDED,
-            initiallyExpanded = prefs.getBoolean(KEY_SAFETY_EXPANDED, false)
-        )
-        bindSectionToggle(
-            header = binding.headerCopyMove,
-            content = binding.containerFileOperations,
-            title = getString(R.string.settings_category_copy_move),
-            prefKey = KEY_FILE_OPS_EXPANDED,
-            initiallyExpanded = prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false)
-        )
-        bindSectionToggle(
-            header = binding.headerDestinations,
-            content = binding.containerDestinations,
-            title = getString(R.string.destinations_list_header),
-            prefKey = KEY_DESTINATIONS_EXPANDED,
-            initiallyExpanded = prefs.getBoolean(KEY_DESTINATIONS_EXPANDED, false)
+        val sections = mutableListOf(
+            ExpandableSection(binding.headerSafety, binding.containerSafety, KEY_SAFETY_EXPANDED, false),
+            ExpandableSection(binding.headerCopyMove, binding.containerFileOperations, KEY_FILE_OPS_EXPANDED, false),
+            ExpandableSection(binding.headerDestinations, binding.containerDestinations, KEY_DESTINATIONS_EXPANDED, false),
         )
         if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS) {
-            bindSectionToggle(
-                header = binding.headerScheduled,
-                content = binding.containerScheduled,
-                title = getString(R.string.scheduled_ops_section_title),
-                prefKey = KEY_SCHEDULED_EXPANDED,
-                initiallyExpanded = prefs.getBoolean(KEY_SCHEDULED_EXPANDED, false)
-            )
+            sections += ExpandableSection(binding.headerScheduled, binding.containerScheduled, KEY_SCHEDULED_EXPANDED, false)
         } else {
             binding.headerScheduled.isVisible = false
             binding.containerScheduled.isVisible = false
+        }
+
+        sections.forEach { section ->
+            val expanded = prefs.getBoolean(section.prefKey, section.defaultExpanded)
+            section.header.setExpanded(expanded, notify = false)
+            section.container.isVisible = expanded
+            section.header.setOnExpandedChangeListener { isExpanded ->
+                section.container.isVisible = isExpanded
+                requireContext()
+                    .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(section.prefKey, isExpanded)
+                    .apply()
+            }
         }
     }
 
     private fun setupScheduledSection() {
         updateScheduledNotificationPermissionButton()
 
-        binding.switchEnableScheduledOps.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableScheduledOps.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableScheduledOperations = isChecked))
@@ -481,33 +457,6 @@ class OperationsSettingsFragment : Fragment() {
             .show()
     }
 
-    private fun bindSectionToggle(
-        header: android.widget.TextView,
-        content: View,
-        title: String,
-        prefKey: String,
-        initiallyExpanded: Boolean
-    ) {
-        content.isVisible = initiallyExpanded
-        updateHeader(header, title, initiallyExpanded)
-
-        header.setOnClickListener {
-            val expanded = !content.isVisible
-            content.isVisible = expanded
-            updateHeader(header, title, expanded)
-            requireContext()
-                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(prefKey, expanded)
-                .apply()
-        }
-    }
-
-    private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
-        val prefix = if (expanded) "▼" else "▶"
-        header.text = getString(R.string.string_format_two_args, prefix, title)
-    }
-    
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         setupDestinationsLayoutManager()

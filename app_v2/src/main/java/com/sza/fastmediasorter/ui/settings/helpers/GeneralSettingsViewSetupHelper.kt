@@ -71,53 +71,55 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupSwitches() {
-        binding.switchPreventSleep.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowPreventSleep.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(preventSleep = isChecked))
         }
-        binding.switchEnableFavorites.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableFavorites = isChecked))
         }
-        binding.switchSmallControls.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showSmallControls = isChecked))
         }
-        binding.switchCompactElements?.setOnCheckedChangeListener { switchView, isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            if (current.useCompactElements == isChecked) return@setOnCheckedChangeListener
-            // Player controls layout is bound to this flag at inflate time (see PlayerLayoutModePrefs);
-            // the switch only takes effect after an app restart, so confirm with the user first.
-            AlertDialog.Builder(fragment.requireContext())
-                .setTitle(R.string.restart_app_title)
-                .setMessage(R.string.restart_app_compact_elements_message)
-                .setCancelable(false)
-                .setPositiveButton(R.string.restart) { _, _ ->
-                    viewModel.updateSettings(current.copy(useCompactElements = isChecked))
-                    com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
-                        .setCompact(fragment.requireContext(), isChecked)
-                    LocaleHelper.markReturnToSettings(fragment.requireContext())
-                    LocaleHelper.restartApp(fragment.requireActivity())
-                }
-                .setNegativeButton(R.string.cancel) { dialog, _ ->
-                    setIsUpdatingSpinner(true)
-                    switchView.isChecked = current.useCompactElements
-                    setIsUpdatingSpinner(false)
-                    dialog.dismiss()
-                }
-                .show()
+        binding.rowCompactElements?.let { row ->
+            row.setOnCheckedChangeListener { isChecked ->
+                if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+                val current = viewModel.settings.value
+                if (current.useCompactElements == isChecked) return@setOnCheckedChangeListener
+                // Player controls layout is bound to this flag at inflate time (see PlayerLayoutModePrefs);
+                // the switch only takes effect after an app restart, so confirm with the user first.
+                AlertDialog.Builder(fragment.requireContext())
+                    .setTitle(R.string.restart_app_title)
+                    .setMessage(R.string.restart_app_compact_elements_message)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.restart) { _, _ ->
+                        viewModel.updateSettings(current.copy(useCompactElements = isChecked))
+                        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
+                            .setCompact(fragment.requireContext(), isChecked)
+                        LocaleHelper.markReturnToSettings(fragment.requireContext())
+                        LocaleHelper.restartApp(fragment.requireActivity())
+                    }
+                    .setNegativeButton(R.string.cancel) { dialog, _ ->
+                        setIsUpdatingSpinner(true)
+                        row.setCheckedSilently(current.useCompactElements)
+                        setIsUpdatingSpinner(false)
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
         }
         // S0160: resource ops overflow toggle
-        binding.switchResourceOpsInOverflowMenu?.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowResourceOpsInOverflowMenu?.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.resourceOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(resourceOpsInOverflowMenu = isChecked))
         }
-        binding.switchAllFiles.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowAllFiles.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) {
-                Timber.d("GeneralSettings: switchAllFiles listener blocked by isUpdatingSpinner")
+                Timber.d("GeneralSettings: rowAllFiles listener blocked by isUpdatingSpinner")
                 return@setOnCheckedChangeListener
             }
             Timber.d("GeneralSettings: User changed All Files to $isChecked")
@@ -129,49 +131,27 @@ class GeneralSettingsViewSetupHelper(
             val updatedSettings = current.copy(allFiles = isChecked)
             viewModel.updateSettings(updatedSettings)
             if (!isChecked) {
-                binding.switchShowHiddenFiles.isChecked = false
+                binding.rowShowHiddenFiles.setCheckedSilently(false)
                 viewModel.updateSettings(updatedSettings.copy(showHiddenFiles = false))
             }
         }
-        binding.switchShowHiddenFiles.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowShowHiddenFiles.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showHiddenFiles = isChecked))
         }
-        binding.switchShowSubfoldersAsItems.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowShowSubfoldersAsItems.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showSubfoldersAsItems = isChecked))
         }
-        binding.switchDefaultRememberFileList.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowDefaultRememberFileList.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(defaultRememberFileList = isChecked))
         }
-        binding.btnHelpRememberFileList.setOnClickListener { resetHelper.showRememberFileListHelpDialog() }
     }
 
     private fun setupTooltips() {
-        binding.iconHelpFavorites.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_favorites_title, R.string.tooltip_favorites_message)
-        }
-        binding.iconHelpPreventSleep.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_prevent_sleep_title, R.string.tooltip_prevent_sleep_message)
-        }
-        binding.iconHelpCompactControls.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_compact_controls_title, R.string.tooltip_compact_controls_message)
-        }
-        binding.iconHelpCompactElements?.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_compact_elements_title, R.string.tooltip_compact_elements_message)
-        }
         binding.iconHelpDefaultCredentials.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_default_credentials_title, R.string.tooltip_default_credentials_message)
-        }
-        binding.iconHelpAllFiles.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_all_files_title, R.string.tooltip_all_files_message)
-        }
-        binding.iconHelpShowHiddenFiles.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_show_hidden_files_title, R.string.tooltip_show_hidden_files_message)
-        }
-        binding.iconHelpShowSubfolders.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.show_subfolders_as_items, R.string.show_subfolders_as_items_hint)
         }
     }
 
@@ -229,16 +209,16 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupSyncSection() {
-        binding.switchEnableBackgroundSync.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableBackgroundSync.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))
         }
-        binding.switchEnableThumbnailPreload?.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnableThumbnailPreload?.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableThumbnailPreload = isChecked))
             binding.layoutThumbnailPreloadWifiOnly?.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        binding.switchThumbnailPreloadWifiOnly?.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowThumbnailPreloadWifiOnly?.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(thumbnailPreloadWifiOnly = isChecked))
         }

@@ -14,7 +14,6 @@ import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -27,17 +26,15 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
-class AudioSettingsFragment : Fragment() {
+class AudioSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsAudioBinding? = null
     private val binding get() = _binding!!
-    
+
     private val viewModel: SettingsViewModel by activityViewModels()
-    private var isUpdatingFromSettings = false
 
     companion object {
         private const val MB_TO_BYTES = 1024L * 1024L
@@ -64,7 +61,7 @@ class AudioSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(micRecordingEnabled = true))
         } else {
-            binding.switchMicRecordingEnabled.isChecked = false
+            binding.rowMicRecordingEnabled.setCheckedSilently(false)
             Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
         }
     }
@@ -77,7 +74,7 @@ class AudioSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = true))
             updateNotificationPermissionButtonVisibility()
         } else {
-            binding.switchEnablePersistentAudioPlayback.isChecked = false
+            binding.rowEnablePersistentAudioPlayback.setCheckedSilently(false)
             Snackbar.make(
                 binding.root,
                 R.string.notification_permission_required_for_background,
@@ -102,47 +99,37 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
-        // Support Audio
-        binding.switchSupportAudio.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportAudio = isChecked))
-            }
+        // Support Audio - help payload folded into the row (str_helpTitle/str_helpMessage)
+        bindSwitch(binding.rowSupportAudio) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportAudio = isChecked))
         }
 
         // Search audio covers online
-        binding.switchSearchAudioCoversOnline.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(searchAudioCoversOnline = isChecked))
-                binding.layoutSearchCoversOnlyWifi.isVisible = isChecked
-                binding.layoutSaveAudioMetadataLocally.isVisible = isChecked
-            }
+        bindSwitch(binding.rowSearchAudioCoversOnline) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(searchAudioCoversOnline = isChecked))
+            binding.rowSearchCoversOnlyWifi.isVisible = isChecked
+            binding.rowSaveAudioMetadataLocally.isVisible = isChecked
         }
 
         // Search covers only on WiFi
-        binding.switchSearchCoversOnlyWifi.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
-            }
+        bindSwitch(binding.rowSearchCoversOnlyWifi) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
         }
 
         // Save audio metadata locally
-        binding.switchSaveAudioMetadataLocally.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))
-            }
+        bindSwitch(binding.rowSaveAudioMetadataLocally) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))
         }
 
-        // Enable photos during audio playback
-        binding.switchEnablePhotosDuringAudio.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(enablePhotosDuringAudio = isChecked))
-                binding.layoutPhotosSourceSelector.isVisible = isChecked
-            }
+        // Enable photos during audio playback - help payload folded into the row
+        bindSwitch(binding.rowEnablePhotosDuringAudio) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enablePhotosDuringAudio = isChecked))
+            binding.layoutPhotosSourceSelector.isVisible = isChecked
         }
 
         // Select photos source button
@@ -160,15 +147,6 @@ class AudioSettingsFragment : Fragment() {
                     viewModel.updateSettings(updated)
                 }
             ).show()
-        }
-
-        // Help icon
-        binding.iconHelpPhotosDuringAudio.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_photos_during_audio_title,
-                com.sza.fastmediasorter.R.string.tooltip_photos_during_audio_message
-            )
         }
 
         // Audio size limits
@@ -196,15 +174,8 @@ class AudioSettingsFragment : Fragment() {
             }
         })
 
-        // Help button click handlers
-        binding.iconHelpSupportAudio.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.support_audio_description,
-                com.sza.fastmediasorter.R.string.supported_audio_formats
-            )
-        }
-
+        // Free-standing help icon next to "Audio size limit" label - not part of a switch row,
+        // kept as standalone ImageButton with TooltipDialog wiring.
         binding.iconHelpAudioSizeLimits.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
@@ -247,96 +218,90 @@ class AudioSettingsFragment : Fragment() {
 
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
-                    isUpdatingFromSettings = true
-                    
-                    val isAllFilesEnabled = settings.allFiles
-                    
-                    // When All Files is enabled, force switch ON and disable it
-                    binding.switchSupportAudio.isChecked = isAllFilesEnabled || settings.supportAudio
-                    binding.switchSupportAudio.isEnabled = !isAllFilesEnabled
-                    
-                    binding.switchSearchAudioCoversOnline.isChecked = settings.searchAudioCoversOnline
-                    binding.switchSearchCoversOnlyWifi.isChecked = settings.searchAudioCoversOnlyOnWifi
-                    binding.layoutSaveAudioMetadataLocally.isVisible = settings.searchAudioCoversOnline
-                    binding.switchSaveAudioMetadataLocally.isChecked = settings.saveAudioMetadataLocally
+            withSettingsUpdate {
+                val isAllFilesEnabled = settings.allFiles
 
-                    binding.layoutSearchCoversOnlyWifi.isVisible = settings.searchAudioCoversOnline
+                // When All Files is enabled, force switch ON and disable it
+                setSwitchChecked(binding.rowSupportAudio, isAllFilesEnabled || settings.supportAudio)
+                binding.rowSupportAudio.isEnabled = !isAllFilesEnabled
 
-                    // Photos during audio playback
-                    binding.switchEnablePhotosDuringAudio.isChecked = settings.enablePhotosDuringAudio
-                    binding.layoutPhotosSourceSelector.isVisible = settings.enablePhotosDuringAudio
+                setSwitchChecked(binding.rowSearchAudioCoversOnline, settings.searchAudioCoversOnline)
+                setSwitchChecked(binding.rowSearchCoversOnlyWifi, settings.searchAudioCoversOnlyOnWifi)
+                binding.rowSaveAudioMetadataLocally.isVisible = settings.searchAudioCoversOnline
+                setSwitchChecked(binding.rowSaveAudioMetadataLocally, settings.saveAudioMetadataLocally)
 
-                    // Update selected photos source text
-                    if (settings.audioBackgroundPhotosResourceId != null) {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val resourceId = settings.audioBackgroundPhotosResourceId.toLongOrNull()
-                            if (resourceId != null) {
-                                val resource = viewModel.resourceRepository.getResourceById(resourceId)
-                                binding.tvSelectedPhotosSource.text = resource?.name
-                                    ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
-                            } else {
-                                binding.tvSelectedPhotosSource.setText(com.sza.fastmediasorter.R.string.no_photos_source_selected)
-                            }
+                binding.rowSearchCoversOnlyWifi.isVisible = settings.searchAudioCoversOnline
+
+                // Photos during audio playback
+                setSwitchChecked(binding.rowEnablePhotosDuringAudio, settings.enablePhotosDuringAudio)
+                binding.layoutPhotosSourceSelector.isVisible = settings.enablePhotosDuringAudio
+
+                // Update selected photos source text
+                if (settings.audioBackgroundPhotosResourceId != null) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val resourceId = settings.audioBackgroundPhotosResourceId.toLongOrNull()
+                        if (resourceId != null) {
+                            val resource = viewModel.resourceRepository.getResourceById(resourceId)
+                            binding.tvSelectedPhotosSource.text = resource?.name
+                                ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
+                        } else {
+                            binding.tvSelectedPhotosSource.setText(com.sza.fastmediasorter.R.string.no_photos_source_selected)
                         }
-                    } else {
-                        binding.tvSelectedPhotosSource.setText(com.sza.fastmediasorter.R.string.no_photos_source_selected)
                     }
-                    
-                    val minMb = settings.audioSizeMin / MB_TO_BYTES
-                    val maxMb = settings.audioSizeMax / MB_TO_BYTES
-                    
-                    if (binding.etAudioSizeMin.text.toString() != minMb.toString()) {
-                        binding.etAudioSizeMin.setText(minMb.toString())
-                    }
-                    if (binding.etAudioSizeMax.text.toString() != maxMb.toString()) {
-                        binding.etAudioSizeMax.setText(maxMb.toString())
-                    }
+                } else {
+                    binding.tvSelectedPhotosSource.setText(com.sza.fastmediasorter.R.string.no_photos_source_selected)
+                }
 
-                    // Audio empty state dropdown
-                    // Normalize legacy "GIF_LOOP" → "VISUALIZATION" for index lookup
-                    val normalizedMode = if (settings.audioEmptyStateMode == MODE_GIF_LOOP) MODE_VISUALIZATION else settings.audioEmptyStateMode
-                    val modeIndex = emptyStateModeKeys.indexOf(normalizedMode).takeIf { it >= 0 } ?: 0
-                    val emptyStateModeLabels = listOf(
-                        getString(R.string.audio_empty_state_none),
-                        getString(R.string.audio_empty_state_avd_pulse),
-                        getString(R.string.audio_empty_state_canvas_bars),
-                        getString(R.string.audio_empty_state_canvas_waves),
-                        getString(R.string.audio_empty_state_visualization)
-                    )
-                    binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)
+                val minMb = settings.audioSizeMin / MB_TO_BYTES
+                val maxMb = settings.audioSizeMax / MB_TO_BYTES
 
-                    // Background audio playback
-                    if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
-                        if (binding.switchEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
-                            binding.switchEnablePersistentAudioPlayback.isChecked = settings.enablePersistentAudioPlayback
-                        }
-                        if (binding.switchShowNowPlayingPanel.isChecked != settings.showNowPlayingPanel) {
-                            binding.switchShowNowPlayingPanel.isChecked = settings.showNowPlayingPanel
-                        }
-                        updateNotificationPermissionButtonVisibility()
-                        // Sync exit behavior radio group
-                        val radioId = when (settings.backgroundAudioExitBehavior) {
-                            com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_STOP ->
-                                R.id.radioExitBehaviorAlwaysStop
-                            com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_CONTINUE ->
-                                R.id.radioExitBehaviorAlwaysContinue
-                            com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK ->
-                                R.id.radioExitBehaviorAsk
-                        }
-                        if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
-                            binding.radioGroupExitBehavior.check(radioId)
-                        }
-                        updateExitBehaviorVisibility()
+                if (binding.etAudioSizeMin.text.toString() != minMb.toString()) {
+                    binding.etAudioSizeMin.setText(minMb.toString())
+                }
+                if (binding.etAudioSizeMax.text.toString() != maxMb.toString()) {
+                    binding.etAudioSizeMax.setText(maxMb.toString())
+                }
+
+                // Audio empty state dropdown
+                // Normalize legacy "GIF_LOOP" → "VISUALIZATION" for index lookup
+                val normalizedMode = if (settings.audioEmptyStateMode == MODE_GIF_LOOP) MODE_VISUALIZATION else settings.audioEmptyStateMode
+                val modeIndex = emptyStateModeKeys.indexOf(normalizedMode).takeIf { it >= 0 } ?: 0
+                val emptyStateModeLabels = listOf(
+                    getString(R.string.audio_empty_state_none),
+                    getString(R.string.audio_empty_state_avd_pulse),
+                    getString(R.string.audio_empty_state_canvas_bars),
+                    getString(R.string.audio_empty_state_canvas_waves),
+                    getString(R.string.audio_empty_state_visualization)
+                )
+                binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)
+
+                // Background audio playback
+                if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+                    setSwitchChecked(binding.rowEnablePersistentAudioPlayback, settings.enablePersistentAudioPlayback)
+                    setSwitchChecked(binding.rowShowNowPlayingPanel, settings.showNowPlayingPanel)
+                    updateNotificationPermissionButtonVisibility()
+                    // Sync exit behavior radio group
+                    val radioId = when (settings.backgroundAudioExitBehavior) {
+                        com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_STOP ->
+                            R.id.radioExitBehaviorAlwaysStop
+                        com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_CONTINUE ->
+                            R.id.radioExitBehaviorAlwaysContinue
+                        com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK ->
+                            R.id.radioExitBehaviorAsk
                     }
-
-                    // Microphone recording
-                    if (BuildConfig.SUPPORT_MIC_RECORDING) {
-                        binding.switchMicRecordingEnabled.isChecked = settings.micRecordingEnabled
-                        binding.switchMicRecordingAskFilename.isChecked = settings.micRecordingAskFilename
-                        binding.layoutMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
+                    if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
+                        binding.radioGroupExitBehavior.check(radioId)
                     }
+                    updateExitBehaviorVisibility()
+                }
 
-                    isUpdatingFromSettings = false
+                // Microphone recording
+                if (BuildConfig.SUPPORT_MIC_RECORDING) {
+                    setSwitchChecked(binding.rowMicRecordingEnabled, settings.micRecordingEnabled)
+                    setSwitchChecked(binding.rowMicRecordingAskFilename, settings.micRecordingAskFilename)
+                    binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
+                }
+            }
         }
     }
 
@@ -344,18 +309,17 @@ class AudioSettingsFragment : Fragment() {
 
     private fun setupBackgroundAudioSection() {
         if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
-            binding.layoutBackgroundAudioRow.visibility = View.GONE
+            binding.rowEnablePersistentAudioPlayback.isVisible = false
             binding.btnNotificationPermission.visibility = View.GONE
             binding.layoutExitBehaviorSection.visibility = View.GONE
             return
         }
 
-        binding.switchEnablePersistentAudioPlayback.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+        bindSwitch(binding.rowEnablePersistentAudioPlayback) { isChecked ->
             if (isChecked) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationPermissionGranted()) {
                     notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    return@setOnCheckedChangeListener
+                    return@bindSwitch
                 }
                 showBatteryOptimizationHintIfNeeded()
             }
@@ -365,8 +329,7 @@ class AudioSettingsFragment : Fragment() {
             updateExitBehaviorVisibility()
         }
 
-        binding.switchShowNowPlayingPanel.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+        bindSwitch(binding.rowShowNowPlayingPanel) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showNowPlayingPanel = isChecked))
         }
@@ -400,7 +363,7 @@ class AudioSettingsFragment : Fragment() {
 
     private fun updateExitBehaviorVisibility() {
         if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
-        val show = binding.switchEnablePersistentAudioPlayback.isChecked
+        val show = binding.rowEnablePersistentAudioPlayback.isChecked
         binding.layoutExitBehaviorSection.visibility = if (show) View.VISIBLE else View.GONE
     }
 
@@ -420,7 +383,7 @@ class AudioSettingsFragment : Fragment() {
         binding.btnNotificationPermission.visibility =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && !isNotificationPermissionGranted()
-                && binding.switchEnablePersistentAudioPlayback.isChecked
+                && binding.rowEnablePersistentAudioPlayback.isChecked
             ) View.VISIBLE else View.GONE
     }
 
@@ -441,19 +404,18 @@ class AudioSettingsFragment : Fragment() {
     private fun setupMicRecordingSection() {
         if (!BuildConfig.SUPPORT_MIC_RECORDING) {
             binding.tvMicRecordingSectionTitle.visibility = View.GONE
-            binding.layoutMicRecordingEnable.visibility = View.GONE
-            binding.layoutMicRecordingAskFilename.visibility = View.GONE
+            binding.rowMicRecordingEnabled.isVisible = false
+            binding.rowMicRecordingAskFilename.isVisible = false
             return
         }
 
-        binding.switchMicRecordingEnabled.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+        bindSwitch(binding.rowMicRecordingEnabled) { isChecked ->
             if (isChecked) {
                 if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
                     != PackageManager.PERMISSION_GRANTED
                 ) {
                     recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    return@setOnCheckedChangeListener
+                    return@bindSwitch
                 }
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(micRecordingEnabled = true))
@@ -461,11 +423,10 @@ class AudioSettingsFragment : Fragment() {
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(micRecordingEnabled = false))
             }
-            binding.layoutMicRecordingAskFilename.isVisible = isChecked
+            binding.rowMicRecordingAskFilename.isVisible = isChecked
         }
 
-        binding.switchMicRecordingAskFilename.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+        bindSwitch(binding.rowMicRecordingAskFilename) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
         }

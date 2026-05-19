@@ -108,15 +108,10 @@ class ScheduledOperationDialog(
     }
 
     private fun setupConditionsCollapse() {
-        b.headerConditions.setOnClickListener {
-            val expanded = b.containerConditionsContent.visibility == View.VISIBLE
-            if (expanded) {
-                b.containerConditionsContent.visibility = View.GONE
-                b.ivConditionsChevron.rotation = 0f
-            } else {
-                b.containerConditionsContent.visibility = View.VISIBLE
-                b.ivConditionsChevron.rotation = 180f
-            }
+        b.headerConditions.setExpanded(false, notify = false)
+        b.containerConditionsContent.visibility = View.GONE
+        b.headerConditions.setOnExpandedChangeListener { expanded ->
+            b.containerConditionsContent.visibility = if (expanded) View.VISIBLE else View.GONE
         }
     }
 

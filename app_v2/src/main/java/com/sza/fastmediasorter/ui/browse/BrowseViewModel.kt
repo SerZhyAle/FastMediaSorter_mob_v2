@@ -79,6 +79,7 @@ class BrowseViewModel @Inject constructor(
     private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
     private val createDirectoryUseCase: com.sza.fastmediasorter.domain.usecase.CreateDirectoryUseCase,
     private val createTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.CreateTextNoteUseCase,
+    private val createDrawingUseCase: com.sza.fastmediasorter.domain.usecase.CreateDrawingUseCase,
     private val archiveFilesUseCase: com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase,
     private val extractArchiveUseCase: com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase,
     private val addResourceAsDestinationUseCase: com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase,
@@ -293,10 +294,17 @@ class BrowseViewModel @Inject constructor(
     // notifyCreatedForOpen lambda is replaced by BrowseManagerInitializer via setOpenNoteCallback().
     private var openNoteCallback: ((String) -> Unit)? = null
     internal fun setOpenNoteCallback(cb: (String) -> Unit) { openNoteCallback = cb }
+    private var openDrawingCallback: ((String) -> Unit)? = null
+    internal fun setOpenDrawingCallback(cb: (String) -> Unit) { openDrawingCallback = cb }
 
     /** S0189: open a freshly created text note in the editor with edit mode pre-activated. */
     internal fun openTextNoteInEditor(path: String) {
         fileOpenManager.openTextNoteInEditor(path, resourceId)
+    }
+
+    /** S0191: open a freshly created blank drawing in PlayerActivity with draw mode pre-activated. */
+    internal fun openDrawingInEditor(path: String) {
+        fileOpenManager.openDrawingInEditor(path, resourceId)
     }
 
     private val textNoteCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseTextNoteCreateManager(
@@ -308,6 +316,16 @@ class BrowseViewModel @Inject constructor(
         sendEvent = { event -> sendEvent(event) },
         reloadResource = { loadResource() },
         notifyCreatedForOpen = { path -> openNoteCallback?.invoke(path) }
+    )
+
+    private val drawingCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDrawingCreateManager(
+        context = context,
+        createDrawingUseCase = createDrawingUseCase,
+        scope = viewModelScope,
+        ioDispatcher = ioDispatcher,
+        stateFlow = state,
+        sendEvent = { event -> sendEvent(event) },
+        notifyCreatedForOpen = { path -> openDrawingCallback?.invoke(path) }
     )
 
     // --- Favorites / settings-changed reload (delegated to BrowseStateSyncManager) ---
@@ -639,6 +657,10 @@ class BrowseViewModel @Inject constructor(
 
     fun createTextNote(name: String) {
         textNoteCreateManager.createTextNote(name)
+    }
+
+    fun createDrawing(name: String) {
+        drawingCreateManager.createDrawing(name)
     }
 
     fun renameDirectory(path: String, newName: String) = directoryOpsManager.renameDirectory(path, newName)

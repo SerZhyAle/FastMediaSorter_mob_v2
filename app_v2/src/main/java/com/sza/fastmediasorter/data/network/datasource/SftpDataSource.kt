@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
+import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
@@ -196,9 +198,19 @@ class SftpDataSource(
             Timber.d("SftpDataSource: InputStream close interrupted by ExoPlayer cancel")
         } catch (e: Exception) {
             channelBroken = true
-            // Pipe closed / similar are expected cascades when the channel already broke in read()
-            if (wasAlreadyBroken) Timber.d("SftpDataSource: InputStream close failed (channel already broken)")
-            else Timber.e(e, "SftpDataSource: Error closing InputStream")
+            val failure = SftpOperationFailure.fromStreamCloseThrowable(
+                throwable = e,
+                channelAlreadyBroken = wasAlreadyBroken,
+                streamWasOpen = opened,
+            )
+            if (failure.category == SftpFailureCategory.EXPECTED_STREAM_CLOSE) {
+                Timber.d("S0252: SftpDataSource expected-close branch hit")
+                Timber.d(
+                    "SftpDataSource: expected InputStream close outcome (${failure.originalMessage})"
+                )
+            } else {
+                Timber.e(e, "SftpDataSource: Error closing InputStream")
+            }
         } finally {
             inputStream = null
         }

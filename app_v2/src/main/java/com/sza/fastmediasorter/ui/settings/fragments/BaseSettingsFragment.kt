@@ -6,6 +6,7 @@ import android.widget.AdapterView
 import android.widget.CompoundButton
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 
 abstract class BaseSettingsFragment : Fragment() {
 
@@ -37,6 +38,28 @@ abstract class BaseSettingsFragment : Fragment() {
     ) {
         if (switch.isChecked != checked) {
             switch.isChecked = checked
+        }
+    }
+
+    /**
+     * Row-level overload for [SettingsToggleRow]. Notifies [onUserChanged] only for
+     * user-initiated changes (suppressed while [withSettingsUpdate] is active).
+     */
+    protected fun bindSwitch(row: SettingsToggleRow, onUserChanged: (Boolean) -> Unit) {
+        row.setOnCheckedChangeListener { isChecked ->
+            if (!isUpdatingFromSettings) {
+                onUserChanged(isChecked)
+            }
+        }
+    }
+
+    /**
+     * Row-level overload for [SettingsToggleRow]. Avoids a redundant assignment and
+     * does not invoke the change listener.
+     */
+    protected fun setSwitchChecked(row: SettingsToggleRow, checked: Boolean) {
+        if (row.isChecked != checked) {
+            row.setCheckedSilently(checked)
         }
     }
 

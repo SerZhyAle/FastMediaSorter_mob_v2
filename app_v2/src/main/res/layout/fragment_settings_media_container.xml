@@ -19,7 +19,11 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerImages" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerImages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_images" />
 
                 <FrameLayout android:id="@+id/containerImages" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
@@ -29,7 +33,11 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerVideo" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerVideo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_video" />
 
                 <FrameLayout android:id="@+id/containerVideo" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
@@ -49,7 +57,14 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerVr" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerVr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_helpMessage="@string/settings_3d_vr_help_message"
+                    app:csh_helpTitle="@string/settings_3d_vr_help_title"
+                    app:csh_showHelp="true"
+                    app:csh_title="@string/vr_settings_block_title" />
 
                 <FrameLayout android:id="@+id/containerVr" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
@@ -59,7 +74,11 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerAudio" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_audio" />
 
                 <FrameLayout android:id="@+id/containerAudio" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
@@ -69,7 +88,11 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerDocuments" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerDocuments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_documents" />
 
                 <FrameLayout android:id="@+id/containerDocuments" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
@@ -79,7 +102,11 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerOther" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerOther"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_other" />
 
                 <FrameLayout android:id="@+id/containerOther" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>

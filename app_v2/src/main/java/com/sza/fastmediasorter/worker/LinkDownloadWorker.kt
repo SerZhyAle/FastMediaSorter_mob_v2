@@ -18,6 +18,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
+import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import dagger.assisted.Assisted
@@ -220,11 +221,22 @@ class LinkDownloadWorker @AssistedInject constructor(
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(context.getString(R.string.link_download_notif_text_saved, result.fileName))
+                // S0257: tap on the notification body opens StandalonePlayerActivity on the
+                // saved file. The URI is now always populated (coordinator no longer nullifies
+                // it when linkAutoDownloadOpenInPlayer == false) - an explicit tap is treated
+                // as a manual choice that overrides the auto-open setting.
+                result.openInPlayerUri?.let {
+                    builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
+                }
             }
             is LinkAutoDownloadCoordinator.Result.FellBackToDownloads -> {
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(context.getString(R.string.link_download_notif_text_saved, result.fileName))
+                // S0257: see Saved branch.
+                result.openInPlayerUri?.let {
+                    builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
+                }
             }
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
                 val s = result.summary
@@ -242,6 +254,12 @@ class LinkDownloadWorker @AssistedInject constructor(
                     .setContentText(
                         context.getString(R.string.link_download_notif_text_batch_done, s.successCount, s.totalItems),
                     )
+                // S0257: for a batched share, the notification tap opens the first successfully
+                // saved file. `firstSavedUri` is null when every batch item failed, in which case
+                // the notification stays informational with no content intent.
+                s.firstSavedUri?.let {
+                    builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
+                }
             }
             LinkAutoDownloadCoordinator.Result.Failed.UnsupportedYouTubeCommunityPost -> {
                 builder
@@ -332,6 +350,33 @@ class LinkDownloadWorker @AssistedInject constructor(
             android.R.drawable.ic_menu_view,
             context.getString(R.string.action_open),
             pi,
+        )
+    }
+
+    /**
+     * S0257: PendingIntent that opens [StandalonePlayerActivity] on a saved file URI.
+     *
+     * Used as the content intent of the success result notifications (Saved /
+     * FellBackToDownloads / BatchCompleted) so a tap on the notification body launches the
+     * player on the freshly downloaded file. Action-button PendingIntents (Sign-in,
+     * Open-URL) keep their own ranges; this helper reserves request-code base `20_000` to
+     * avoid colliding with `buildSignInAction` (base `0`) and `buildOpenUrlAction` (base
+     * `10_000`).
+     *
+     * `FLAG_ACTIVITY_NEW_TASK` is mandatory because PendingIntents from a worker fire in a
+     * non-Activity context. `FLAG_GRANT_READ_URI_PERMISSION` mirrors the in-process player
+     * launch in [com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter.launchPlayer].
+     */
+    private fun buildOpenInPlayerPendingIntent(uri: Uri, originalUrl: String): PendingIntent {
+        Timber.d("S0257: building open-in-player PendingIntent for uri=%s", uri)
+        val intent = Intent(context, StandalonePlayerActivity::class.java)
+            .setData(uri)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        return PendingIntent.getActivity(
+            context,
+            20_000 + Math.floorMod(originalUrl.hashCode(), 10_000),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
 

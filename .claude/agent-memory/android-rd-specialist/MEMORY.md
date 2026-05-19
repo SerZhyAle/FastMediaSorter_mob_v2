@@ -20,3 +20,4 @@
 - [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - S0240 architecture; noLegal is all-inclusive sideload-VR; vrUnlicensed archived in S0250
 - [Reserve Timber.e for real errors only](feedback_log_levels.md) - expected device-capability fallbacks (e.g. native lib missing on non-arm64) log at Timber.i, never Timber.e; ERROR is for things the dev must act on
 - [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if the headline behavior isn't actually working, don't mark phases Done or invite device-test; scaffolding is a milestone, not a deliverable
+- [Check generated binding field types before injecting compat views](feedback_check_generated_binding_types.md) - .bind(root) does unchecked downcasts; Button vs MaterialButton mismatch crashes silently after a clean build

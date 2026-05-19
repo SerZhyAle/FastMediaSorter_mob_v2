@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.google.android.material.button.MaterialButton
 import com.github.chrisbanes.photoview.PhotoView
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 
 class PlayerBindingSafeViews(
     private val binding: ActivityPlayerUnifiedBinding
@@ -187,10 +188,8 @@ class PlayerBindingSafeViews(
     val bottomPanelsContainer: LinearLayout get() = required(R.id.bottomPanelsContainer)
     val copyToPanel: LinearLayout get() = required(R.id.copyToPanel)
     val moveToPanel: LinearLayout get() = required(R.id.moveToPanel)
-    val copyToPanelHeader: LinearLayout get() = required(R.id.copyToPanelHeader)
-    val moveToPanelHeader: LinearLayout get() = required(R.id.moveToPanelHeader)
-    val copyToPanelIndicator: TextView get() = required(R.id.copyToPanelIndicator)
-    val moveToPanelIndicator: TextView get() = required(R.id.moveToPanelIndicator)
+    val copyToPanelHeader: CollapsibleSectionHeader get() = required(R.id.copyToPanelHeader)
+    val moveToPanelHeader: CollapsibleSectionHeader get() = required(R.id.moveToPanelHeader)
     val copyToButtonsGrid: GridLayout get() = required(R.id.copyToButtonsGrid)
     val moveToButtonsGrid: GridLayout get() = required(R.id.moveToButtonsGrid)
     val btnTranslationFontDecrease: ImageButton?

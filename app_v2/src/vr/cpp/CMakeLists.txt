@@ -24,8 +24,12 @@ if(FMS_BUILD_XR_RUNTIME)
     # `OpenXR::openxr_loader`.
     find_package(OpenXR REQUIRED CONFIG)
 
+    # S0249 Phase 02 step 02.6: split into JNI bridge (diagnostic_xr_runtime.cpp) and the
+    # full OpenXR + EGL + GLES session host (xr_session.cpp). The split keeps each TU under
+    # the project's preferred LOC budget and isolates JNI from the heavy OpenXR boilerplate.
     add_library(fms_diagnostic_xr SHARED
         diagnostic_xr_runtime.cpp
+        xr_session.cpp
     )
 
     target_include_directories(fms_diagnostic_xr PRIVATE

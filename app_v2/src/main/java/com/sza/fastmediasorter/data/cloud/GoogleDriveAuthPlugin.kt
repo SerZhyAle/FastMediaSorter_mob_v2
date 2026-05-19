@@ -10,21 +10,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Handles the interactive sign-in flow for Google Drive via the identity domain
- * (Credential Manager - S0200 Phase 04b).
- *
- * The `InteractiveCloudAuthenticator` contract still surfaces `startInteractiveSignIn(activity)`
- * as a synchronous void call (Dropbox / OneDrive plugins keep using it). This plugin bridges
- * that contract to the suspending `identityRepository.signInPrimary(..)` by launching a
- * background coroutine on a `SupervisorJob` scope. The result observable to the UI is the
- * identity repository's `state` Flow (consumed by Phase 06's Settings card) - there is no
- * Intent or `processIntentResult` round-trip anymore.
+ * Emits the terminal result of a Credential Manager sign-in attempt through [results].
  */
 class GoogleDriveAuthPlugin @Inject constructor(
     @Suppress("unused") private val client: GoogleDriveRestClient,
@@ -35,28 +28,18 @@ class GoogleDriveAuthPlugin @Inject constructor(
 
     private val pluginScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    @Volatile private var lastImmediateFailure: AuthResult.Error? = null
-
-    /**
-     * Hot-fix async result channel. Credential Manager flows (Phase 04b) complete after several
-     * seconds of interactive UI - long after [UnifiedCloudAuthManager]'s `consumeImmediateResult`
-     * poll (immediate + 1s delay) has finished. Without this channel, [AuthResult.Success] never
-     * reaches the unified manager and `AddResourceConnectionManager` never navigates to the folder
-     * picker, leaving the user stuck on `AddResourceActivity` after a successful Google sign-in.
-     * Long-term fix tracked separately as a refactor of [InteractiveCloudAuthenticator].
-     */
-    private val _asyncResults = MutableSharedFlow<AuthResult>(extraBufferCapacity = 1)
-    internal val asyncResults = _asyncResults.asSharedFlow()
+    private val _results = MutableSharedFlow<AuthResult>(extraBufferCapacity = 1)
+    override val results: SharedFlow<AuthResult> = _results.asSharedFlow()
 
     override fun startInteractiveSignIn(activity: Activity) {
-        lastImmediateFailure = null
+        Timber.d("S0243: GoogleDriveAuthPlugin.startInteractiveSignIn")
         pluginScope.launch {
             try {
                 val result = identityRepository.signInPrimary(activity, DRIVE_SIGN_IN_SCOPES)
                 when (result) {
                     is IdentitySignInResult.Success -> {
                         Timber.i("GoogleDriveAuthPlugin: signInPrimary succeeded for email=${result.account.email}")
-                        _asyncResults.tryEmit(
+                        _results.tryEmit(
                             AuthResult.Success(
                                 accountName = result.account.email,
                                 credentialsJson = result.account.email
@@ -65,41 +48,32 @@ class GoogleDriveAuthPlugin @Inject constructor(
                     }
                     IdentitySignInResult.Cancelled -> {
                         Timber.i("GoogleDriveAuthPlugin: signInPrimary cancelled by user")
-                        _asyncResults.tryEmit(AuthResult.Cancelled)
+                        _results.tryEmit(AuthResult.Cancelled)
                     }
                     is IdentitySignInResult.Failed -> {
                         Timber.e(result.cause, "GoogleDriveAuthPlugin: signInPrimary failed: ${result.reason}")
-                        _asyncResults.tryEmit(
+                        _results.tryEmit(
                             AuthResult.Error("Google sign-in failed: ${result.reason}")
                         )
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "GoogleDriveAuthPlugin: signInPrimary threw")
-                val err = AuthResult.Error(
-                    "Google sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
+                _results.tryEmit(
+                    AuthResult.Error(
+                        "Google sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
+                    )
                 )
-                lastImmediateFailure = err
-                _asyncResults.tryEmit(err)
             }
         }
     }
 
-    /**
-     * S0200 Phase 04b: Credential Manager does not produce an Intent result. Returns null -
-     * the contract default for plugins that do not use the activity-result channel.
-     * The contract method itself stays on the interface so Dropbox / OneDrive plugins
-     * still satisfy it.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    override suspend fun processIntentResult(data: Intent?): AuthResult? = null
+    override suspend fun onIntentResult(data: Intent?) {
+        // No-op: Credential Manager does not use Activity result.
+    }
 
-    override suspend fun handleResume(): AuthResult? = null
-
-    override fun consumeImmediateResult(): AuthResult? {
-        val snapshot = lastImmediateFailure
-        lastImmediateFailure = null
-        return snapshot
+    override suspend fun onResume() {
+        // No-op: Credential Manager produces its result inside the launched coroutine.
     }
 
     companion object {

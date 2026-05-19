@@ -1010,8 +1010,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
 
     override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
-    override fun rememberStereoModeIfEnabled(mode: StereoMode) =
-        viewModel.rememberStereoModeIfEnabled(mode)
+    override fun rememberStereoModeForCurrentFile(mode: StereoMode) =
+        viewModel.rememberStereoModeForCurrentFile(mode)
 
     override val videoPlayerHandle: VideoPlayerHandle get() = standaloneVideoPlayerHandle
 

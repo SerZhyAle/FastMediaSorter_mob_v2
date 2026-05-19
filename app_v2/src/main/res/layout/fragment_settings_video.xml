@@ -1,31 +1,35 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/settings_padding">
 
     <!-- Support video -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportVideos" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
-
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_video_description" android:textSize="@dimen/toggler_title_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_videos_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <ImageButton android:id="@+id/iconHelpSupportVideos" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/supported_video_formats" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-    </LinearLayout>
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowSupportVideos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/support_video_description"
+        app:str_subtitle="@string/setting_support_videos_desc"
+        app:str_showHelp="true"
+        app:str_helpTitle="@string/support_video_description"
+        app:str_helpMessage="@string/supported_video_formats"
+        app:str_checked="true" />
 
     <!-- Show video thumbnails -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowVideoThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_video_thumbnails" android:textSize="@dimen/toggler_title_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_video_thumbnails_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <ImageButton android:id="@+id/iconHelpVideoThumbnails" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_video_thumbnails_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-    </LinearLayout>
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowShowVideoThumbnails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/show_video_thumbnails"
+        app:str_subtitle="@string/setting_show_video_thumbnails_desc"
+        app:str_showHelp="true"
+        app:str_helpTitle="@string/tooltip_video_thumbnails_title"
+        app:str_helpMessage="@string/tooltip_video_thumbnails_message" />
 
     <!-- Video size limit -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
@@ -169,67 +173,20 @@
     </LinearLayout>
 
     <!-- S0021: Show FPS over flat (non-immersive) player -->
-    <LinearLayout
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowPlayerShowFps"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/settings_item_min_height"
-        android:orientation="horizontal">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchPlayerShowFps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/settings_switch_margin_end"
-            android:checked="false"
-            android:focusable="true"
-            android:clickable="true" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_player_show_fps"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_player_show_fps_desc"
-                android:textColor="@color/text_color_secondary"
-                android:textSize="@dimen/toggler_desc_text_size" />
-        </LinearLayout>
-    </LinearLayout>
+        app:str_title="@string/settings_player_show_fps"
+        app:str_subtitle="@string/settings_player_show_fps_desc" />
 
     <!-- S0028: Multi-window mode — allow opening in a separate window -->
-    <LinearLayout
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowAllowSeparateWindow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/settings_item_min_height"
-        android:orientation="horizontal">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchAllowSeparateWindow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/settings_switch_margin_end"
-            android:checked="false"
-            android:focusable="true"
-            android:clickable="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/setting_allow_separate_window"
-            android:textSize="@dimen/toggler_title_text_size" />
-
-    </LinearLayout>
+        app:str_title="@string/setting_allow_separate_window" />
 
 </LinearLayout>

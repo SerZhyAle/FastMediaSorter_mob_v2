@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fitsSystemWindows="true" tools:context=".ui.addresource.AddResourceActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:fitsSystemWindows="true" app:layout_constraintTop_toTopOf="parent" app:navigationIcon="@drawable/ic_arrow_back" app:navigationIconTint="?attr/colorOnPrimary" app:title="Add Resource" app:titleTextColor="?attr/colorOnPrimary">
+    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:fitsSystemWindows="true" app:layout_constraintTop_toTopOf="parent" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:navigationIconTint="?attr/colorOnPrimary" app:title="@string/add_resource_title" app:titleTextColor="?attr/colorOnPrimary">
 
         <!-- S0034: icon picker trigger at toolbar right edge -->
         <include android:id="@+id/pickIconAction" layout="@layout/toolbar_icon_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" />
@@ -172,11 +172,15 @@
 
             </LinearLayout>
 
-            <!-- Test Connection button -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <!-- Test Connection + Scan Shares in one row to save vertical space -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-            <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
+
+                <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />
+
+            </LinearLayout>
 
             <!-- Share Name and Resource Name in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
@@ -198,10 +202,13 @@
             <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <LinearLayout android:id="@+id/headerSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_scanning_settings" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
-                        <ImageView android:id="@+id/ivSmbConditionsExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
-                    </LinearLayout>
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SMB scanning settings if product wants inline help here later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSmbConditions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/label_scanning_settings" />
                     <LinearLayout android:id="@+id/contentSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
                         <!-- Scan Subdirectories and All Files in one row -->
@@ -244,10 +251,13 @@
             <!-- === GROUP C: MEDIA TYPES (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <LinearLayout android:id="@+id/headerSmbMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_media_types" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
-                        <ImageView android:id="@+id/ivSmbMediaTypesExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
-                    </LinearLayout>
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SMB media types if product wants inline help here later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSmbMediaTypes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/label_media_types" />
                     <LinearLayout android:id="@+id/contentSmbMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
@@ -299,10 +309,13 @@
             <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) - destination, read-only, comment, pin, domain, port === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <LinearLayout android:id="@+id/headerSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_additional_options" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
-                        <ImageView android:id="@+id/ivSmbAdditionalExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
-                    </LinearLayout>
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SMB additional options if product wants inline help here later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSmbAdditional"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/label_additional_options" />
                     <LinearLayout android:id="@+id/contentSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
                         <!-- Add to Destinations and Read-Only checkboxes -->
@@ -463,10 +476,13 @@
             <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <LinearLayout android:id="@+id/headerSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_scanning_settings" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
-                        <ImageView android:id="@+id/ivSftpConditionsExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
-                    </LinearLayout>
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SFTP scanning settings if product wants inline help here later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSftpConditions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/label_scanning_settings" />
                     <LinearLayout android:id="@+id/contentSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
                         <!-- Scan Subdirectories and All Files in one row -->
@@ -509,10 +525,13 @@
             <!-- === GROUP C: MEDIA TYPES (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <LinearLayout android:id="@+id/headerSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_media_types" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
-                        <ImageView android:id="@+id/ivSftpMediaTypesExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
-                    </LinearLayout>
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SFTP media types if product wants inline help here later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSftpMediaTypes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/label_media_types" />
                     <LinearLayout android:id="@+id/contentSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
@@ -541,10 +560,13 @@
             <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <LinearLayout android:id="@+id/headerSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_additional_options" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
-                        <ImageView android:id="@+id/ivSftpAdditionalExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
-                    </LinearLayout>
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SFTP additional options if product wants inline help here later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSftpAdditional"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/label_additional_options" />
                     <LinearLayout android:id="@+id/contentSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
                         <!-- Destination and Read-Only checkboxes -->

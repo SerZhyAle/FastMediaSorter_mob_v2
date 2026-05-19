@@ -111,6 +111,20 @@ class BrowseEventHandler(
                 @Suppress("DEPRECATION")
                 activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
             }
+            is BrowseEvent.NavigateToDrawingEditor -> {
+                val activityHost = activity as? ComponentActivity ?: run {
+                    Timber.e("BrowseEventHandler: activity is not ComponentActivity, cannot launch drawing editor")
+                    return
+                }
+                val playerIntent = PlayerActivity.createPanelIntent(
+                    activity,
+                    event.resourceId,
+                    initialFilePath = event.filePath,
+                ).putExtra(PlayerActivity.EXTRA_ACTIVATE_DRAW_MODE, true)
+                playerActivityLauncher.launch(playerIntent)
+                @Suppress("DEPRECATION")
+                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
             is BrowseEvent.ShowCloudAuthenticationRequired -> {
                 onShowCloudAuthDialog(event.provider)
             }
@@ -237,6 +251,28 @@ class BrowseEventHandler(
         val intent = Intent(activity, BrowseActivity::class.java).apply {
             putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
             putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        activity.startActivity(intent)
+    }
+
+    // S0184: open the selected file's player in a new multi-window slot from Browse.
+    fun openPlayerInNewWindow(file: MediaFile) {
+        viewModel.inlineStop()
+        val currentState = viewModel.state.value
+        val resourceId = currentState.resource?.id ?: file.resourceId ?: 0L
+        val fileIndex = currentState.mediaFiles.indexOfFirst { it.path == file.path }
+            .takeIf { it >= 0 } ?: 0
+        val detectedStereoMode = detectStereoForLaunch(file)
+            .takeUnless { it == StereoMode.UNKNOWN }
+        val windowId = java.util.UUID.randomUUID().toString()
+        val intent = createStandardPlayerIntent(
+            resourceId = resourceId,
+            fileIndex = fileIndex,
+            filePath = file.path,
+            detectedStereoMode = detectedStereoMode,
+        ).apply {
+            putExtra(PlayerActivity.EXTRA_WINDOW_ID, windowId)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         activity.startActivity(intent)

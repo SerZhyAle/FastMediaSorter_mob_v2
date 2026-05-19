@@ -75,6 +75,11 @@ object SftpOperationMessageResolver {
                 messageResId = R.string.error_sftp_server_rejected,
                 logLabel = "sftp/transient[${failure.statusCode}]",
             )
+
+            SftpFailureCategory.EXPECTED_STREAM_CLOSE -> MessageSpec(
+                messageResId = R.string.error_sftp_server_rejected,
+                logLabel = "sftp/expected-stream-close",
+            )
         }
     }
 }

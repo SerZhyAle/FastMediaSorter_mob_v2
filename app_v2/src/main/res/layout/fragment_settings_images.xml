@@ -1,79 +1,86 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/settings_padding">
 
     <!-- Images + GIF Row Container -->
-    <LinearLayout android:id="@+id/containerImagesGif" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+    <LinearLayout
+        android:id="@+id/containerImagesGif"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <!-- Support static images -->
-        <LinearLayout android:id="@+id/layoutSupportImages" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportImages" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
-
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_images_description" android:textSize="@dimen/toggler_title_text_size" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_images_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-
-            <ImageButton android:id="@+id/iconHelpSupportImages" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/supported_image_formats" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-        </LinearLayout>
+        <!-- Support static images - help payload folded into the row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSupportImages"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/resource_field_margin_end"
+            android:layout_weight="1"
+            app:str_title="@string/support_images_description"
+            app:str_subtitle="@string/setting_support_images_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/support_images_description"
+            app:str_helpMessage="@string/supported_image_formats"
+            app:str_checked="true" />
 
         <!-- Support GIF animation -->
-        <LinearLayout android:id="@+id/layoutSupportGifs" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_help_icon_margin" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportGifs" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_gif_description" android:textSize="@dimen/toggler_title_text_size" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_gifs_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-
-        </LinearLayout>
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSupportGifs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_help_icon_margin"
+            android:layout_weight="1"
+            app:str_title="@string/support_gif_description"
+            app:str_subtitle="@string/setting_support_gifs_desc" />
 
     </LinearLayout>
 
-    <!-- Load full size images -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
+    <!-- Load full size images - help payload folded into the row -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowLoadFullSizeImages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/load_full_size_images"
+        app:str_subtitle="@string/setting_load_full_size_images_desc"
+        app:str_showHelp="true"
+        app:str_helpTitle="@string/load_full_size_images"
+        app:str_helpMessage="@string/load_full_size_images_hint" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchLoadFullSizeImages" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
+    <!-- Crop images to fill screen - help payload folded into the row -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowCropImagesToFullscreen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/pref_crop_images_fullscreen_title"
+        app:str_subtitle="@string/setting_crop_images_to_fullscreen_desc"
+        app:str_showHelp="true"
+        app:str_helpTitle="@string/tooltip_crop_images_fullscreen_title"
+        app:str_helpMessage="@string/tooltip_crop_images_fullscreen_message"
+        app:str_checked="true" />
 
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/load_full_size_images" android:textSize="@dimen/toggler_title_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_load_full_size_images_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <ImageButton android:id="@+id/iconHelpFullSizeImages" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/load_full_size_images_hint" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-    </LinearLayout>
-
-    <!-- Crop images to fill screen -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchCropImagesToFullscreen" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
-
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_crop_images_fullscreen_title" android:textSize="@dimen/toggler_title_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_crop_images_to_fullscreen_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <ImageButton android:id="@+id/iconHelpCropImages" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_crop_images_fullscreen_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-    </LinearLayout>
-
-    <!-- Dynamic Background Extension -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDynamicBackground" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
-
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_dynamic_background_title" android:textSize="@dimen/toggler_title_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_dynamic_background_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <ImageButton android:id="@+id/iconHelpDynamicBackground" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_dynamic_background_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-    </LinearLayout>
+    <!-- Dynamic Background Extension - help payload folded into the row -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowDynamicBackground"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/pref_dynamic_background_title"
+        app:str_subtitle="@string/setting_dynamic_background_desc"
+        app:str_showHelp="true"
+        app:str_helpTitle="@string/tooltip_dynamic_background_title"
+        app:str_helpMessage="@string/tooltip_dynamic_background_message" />
 
 
     <!-- Image size limit (for both static and GIF) -->
@@ -95,18 +102,18 @@
 
     </LinearLayout>
 
-    <!-- Slideshow Background Music -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSlideshowBackgroundMusic" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
-
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_slideshow_background_music" android:textSize="@dimen/toggler_title_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_slideshow_background_music_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-
-        <ImageButton android:id="@+id/iconHelpSlideshowMusic" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_slideshow_music_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-    </LinearLayout>
+    <!-- Slideshow Background Music - help payload folded into the row -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowSlideshowBackgroundMusic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/enable_slideshow_background_music"
+        app:str_subtitle="@string/setting_slideshow_background_music_desc"
+        app:str_showHelp="true"
+        app:str_helpTitle="@string/tooltip_slideshow_music_title"
+        app:str_helpMessage="@string/tooltip_slideshow_music_message" />
 
     <!-- Select Music Source Resource -->
     <LinearLayout android:id="@+id/layoutMusicSourceSelector" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
@@ -128,4 +135,3 @@
         android:textAllCaps="false" />
 
 </LinearLayout>
-

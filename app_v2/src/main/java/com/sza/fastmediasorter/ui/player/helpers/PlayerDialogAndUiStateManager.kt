@@ -421,6 +421,11 @@ class PlayerDialogAndUiStateManager(
         Timber.d("PlayerDialogAndUiStateManager: toggleCopyPanel()")
         destinationButtonsManager.toggleCopyPanel()
     }
+
+    fun setCopyPanelExpanded(expanded: Boolean) {
+        Timber.d("PlayerDialogAndUiStateManager: setCopyPanelExpanded(expanded=$expanded)")
+        destinationButtonsManager.setCopyPanelExpanded(expanded)
+    }
     
     /**
      * Toggle Move to panel collapsed/expanded state with read-only check.
@@ -433,6 +438,16 @@ class PlayerDialogAndUiStateManager(
             return
         }
         destinationButtonsManager.toggleMovePanel()
+    }
+
+    fun setMovePanelExpanded(expanded: Boolean) {
+        Timber.d("PlayerDialogAndUiStateManager: setMovePanelExpanded(expanded=$expanded)")
+
+        val resource = viewModel.state.value.resource
+        if (resource?.isReadOnly == true) {
+            return
+        }
+        destinationButtonsManager.setMovePanelExpanded(expanded)
     }
     
     /**

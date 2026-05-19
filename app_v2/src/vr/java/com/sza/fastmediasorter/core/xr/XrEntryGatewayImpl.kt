@@ -1,8 +1,9 @@
 package com.sza.fastmediasorter.core.xr
 
 import android.content.Context
-import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
+import android.content.Intent
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import com.sza.fastmediasorter.ui.xr.DiagnosticXrActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,16 +12,21 @@ import timber.log.Timber
 /**
  * Real VR entry gateway for `vr` / `noLegal` flavors.
  *
- * S0249 Phase 02: delegates to [DiagnosticXrRuntime] for the diagnostic-image entry. The
- * runtime is currently scaffold-only — it probes extensions and creates an OpenXR instance
- * but does not present the asset yet (lands in Phase 03). Any runtime status that is not
- * [DiagnosticXrNativeResult.Ok] is collapsed to [XrEntryResult.InitializationFailed]; the
- * specific native ordinal is logged via Timber so on-device diagnostics can trace it back.
+ * S0249 Phase 02 step 02.6: the diagnostic-image entry now launches a dedicated
+ * [DiagnosticXrActivity] via Intent. HorizonOS picks up the `com.oculus.intent.category.VR`
+ * intent-filter declared in `src/vr/AndroidManifest.xml` and launches the Activity in headset
+ * mode. The Activity owns the OpenXR session, frame loop, and input handling end-to-end;
+ * this gateway only signals user intent and stays decoupled from native lifecycle.
+ *
+ * Runtime probe: if the native library is unavailable on the current device (non-arm64 ABI
+ * where the OpenXR slice is absent), short-circuit to [XrEntryResult.UnavailableNoRuntime]
+ * before starting the Activity — otherwise the user would see a blank Activity flash before
+ * the on-device runtime check rejects the session.
  */
 @Singleton
 class XrEntryGatewayImpl @Inject constructor(
     @ApplicationContext private val appContext: Context,
-    private val runtime: DiagnosticXrRuntime
+    private val runtime: DiagnosticXrRuntime,
 ) : XrEntryGateway {
 
     override suspend fun tryEnter(): Boolean {
@@ -29,33 +35,24 @@ class XrEntryGatewayImpl @Inject constructor(
     }
 
     override suspend fun enterDiagnosticImage(): XrEntryResult {
+        Timber.d("S0249: XrEntryGatewayImpl.enterDiagnosticImage - dispatching to DiagnosticXrActivity")
+        if (!runtime.isNativeAvailable) {
+            Timber.i("XrEntryGatewayImpl: native runtime unavailable on this ABI - returning UnavailableNoRuntime")
+            return XrEntryResult.UnavailableNoRuntime
+        }
         if (runtime.isRunning()) {
-            Timber.w("XrEntryGatewayImpl: enterDiagnosticImage rejected - runtime already running")
+            Timber.w("XrEntryGatewayImpl: diagnostic session already active - InitializationFailed")
             return XrEntryResult.InitializationFailed
         }
-        val probe = runtime.probeExtensions()
-        if (probe != DiagnosticXrNativeResult.Ok) {
-            Timber.w("XrEntryGatewayImpl: probeExtensions returned $probe")
-            return XrEntryResult.InitializationFailed
-        }
-        val startResult = runtime.startSession(appContext)
-        when (startResult) {
-            DiagnosticXrNativeResult.Ok -> Unit
-            DiagnosticXrNativeResult.LoaderUnavailable -> return XrEntryResult.UnavailableNoRuntime
-            DiagnosticXrNativeResult.SystemNotFound -> return XrEntryResult.UnavailableNoRuntime
-            else -> {
-                Timber.w("XrEntryGatewayImpl: startSession returned $startResult")
-                return XrEntryResult.InitializationFailed
-            }
-        }
-        val presentResult = runtime.presentBundledDiagnosticImage()
-        return when (presentResult) {
-            DiagnosticXrNativeResult.Ok -> XrEntryResult.Started
-            else -> {
-                Timber.w("XrEntryGatewayImpl: presentBundledDiagnosticImage returned $presentResult")
-                runtime.requestExit()
-                XrEntryResult.InitializationFailed
-            }
+        return try {
+            val intent = Intent(appContext, DiagnosticXrActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            appContext.startActivity(intent)
+            Timber.d("XrEntryGatewayImpl: DiagnosticXrActivity launched")
+            XrEntryResult.Started
+        } catch (t: Throwable) {
+            Timber.e(t, "XrEntryGatewayImpl: startActivity(DiagnosticXrActivity) threw")
+            XrEntryResult.InitializationFailed
         }
     }
 }

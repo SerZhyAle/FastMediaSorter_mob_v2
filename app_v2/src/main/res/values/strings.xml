@@ -11,6 +11,8 @@
     <string name="settings_saved">Settings saved</string>
     <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
     <string name="vr_settings_block_title">3D-VR controls</string>
+    <string name="settings_3d_vr_help_title">About 3D VR mode</string>
+    <string name="settings_3d_vr_help_message">3D VR provides immersive video and photo playback on headsets such as Meta Quest 3 and Android XR. On devices without an XR runtime, the master toggle stays inactive. The app detects video format (SBS, OU, 360°, VR180) automatically; manual override is available in the player dialog.</string>
     <string name="vr_settings_xr_unavailable_advisory">Available on devices such as Meta Quest 3 and Android XR.</string>
     <string name="vr_settings_test_immersive_label">Test Immersive</string>
     <string name="vr_settings_test_immersive_content_description">Open a sample 360° image in immersive mode.</string>
@@ -81,6 +83,7 @@
     <!-- General Settings -->
     <string name="documentation">Documentation Portal</string>
     <string name="settings_category_interface">Interface</string>
+    <string name="settings_category_authorization">Authorization</string>
     <string name="settings_category_files">Files &amp; Data</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
     <string name="settings_category_about">About</string>
@@ -90,7 +93,12 @@
     <string name="settings_category_file_operations">File Access in Player</string>
     <string name="settings_category_copy_move">Copy &amp; Move</string>
     <string name="settings_category_safety">Safety &amp; Confirmation</string>
-    <string name="settings_category_grid_view">Grid View</string>
+    <string name="settings_section_autoplay_resume">Autoplay &amp; Resume</string>
+    <string name="settings_section_delete_trash">Delete &amp; Trash</string>
+    <string name="settings_section_grid_browse">Grid &amp; Browse</string>
+    <string name="settings_section_network_cache">Network &amp; Cache</string>
+    <string name="settings_section_quick_sort_list">Quick Sort List</string>
+    <string name="settings_section_remote_gamepad">Remote &amp; Gamepad</string>
     <string name="settings_category_player_ui">Player UI</string>
     <string name="settings_category_touch_zones">Touch Zones</string>
     <string name="settings_subcategory_incoming_links">Incoming links</string>
@@ -609,7 +617,7 @@ Close the player and try again.</string>
     <string name="track_unknown">Track %d</string>
     <string name="repeat_mode">Repeat</string>
     <string name="resource_name">Folder Name</string>
-    <string name="resource_name_hint">Leave empty to auto-generate from path</string>
+    <string name="resource_name_hint">If empty - auto-generated</string>
     <string name="resource_comment">Comment</string>
     <string name="resource_pin_code">PIN Code (Optional)</string>
     <string name="resource_pin_code_hint">4-6 digits to protect this folder</string>
@@ -949,56 +957,14 @@ Close the player and try again.</string>
     <string name="welcome_vr_feature_headset">Quest Headset Playback</string>
     <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
 
-    <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
-    <string name="settings_vr_section_title">VR</string>
-    <string name="settings_vr_forced_flat_format">Forced flat format</string>
-    <string name="settings_vr_forced_flat_format_desc">Override auto-detection for flat SBS/OU/mono playback in the current session</string>
-    <string name="settings_vr_forced_spherical_format">Forced spherical format</string>
-    <string name="settings_vr_forced_spherical_format_desc">Override auto-detection for 360°, VR180, and cylinder playback in the current session</string>
-    <string name="settings_vr_remember_format">Remember file format</string>
-    <string name="settings_vr_remember_format_desc">Cache detected format per file in local database</string>
     <string name="settings_player_show_fps">Show FPS over player</string>
     <string name="settings_player_show_fps_desc">Display diagnostic FPS counter over the flat 2D player</string>
     <!-- S0028: multi-window -->
-    <string name="action_open_in_separate_window">In separate window</string>
-    <string name="setting_allow_separate_window">Allow opening in a separate window</string>
+    <string name="action_open_in_separate_window">Open in new window</string>
+    <string name="setting_allow_separate_window">Allow new windows</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
     <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON for non-VR builds, OFF for VR.</string>
     <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
-    <string name="settings_vr_help_title">VR Settings</string>
-    <string name="settings_vr_help_message">These settings control how stereoscopic 3D and spherical content is detected and rendered in the VR headset.\n\nAuto-detect analyzes media metadata and aspect ratio to determine the stereo layout family.\n\nForced flat format applies only to SBS, Over-Under, and mono cinema playback. Forced spherical format applies only to 360°, VR180, and cylinder playback.\n\nRendering mode chooses between a flat cinema screen in VR space or full per-eye stereoscopic rendering.</string>
-    <string-array name="vr_forced_format_entries">
-        <item>Auto</item>
-        <item>SBS (Side-by-Side)</item>
-        <item>OU (Over-Under)</item>
-        <item>Mono</item>
-    </string-array>
-    <string-array name="vr_forced_format_values">
-        <item>AUTO</item>
-        <item>SBS</item>
-        <item>OU</item>
-        <item>MONO</item>
-    </string-array>
-    <string-array name="vr_forced_spherical_format_entries">
-        <item>Auto</item>
-        <item>360° Mono</item>
-        <item>360° SBS</item>
-        <item>360° OU</item>
-        <item>180° Mono</item>
-        <item>180° SBS</item>
-        <item>VR180</item>
-        <item>Cylinder 180°</item>
-    </string-array>
-    <string-array name="vr_forced_spherical_format_values">
-        <item>AUTO</item>
-        <item>EQUIRECT_360_MONO</item>
-        <item>EQUIRECT_360_SBS</item>
-        <item>EQUIRECT_360_OU</item>
-        <item>EQUIRECT_180_MONO</item>
-        <item>EQUIRECT_180_SBS</item>
-        <item>VR180_FISHEYE_SBS</item>
-        <item>CYLINDER_180</item>
-    </string-array>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Storage Access</string>
@@ -1037,10 +1003,10 @@ Close the player and try again.</string>
     <string name="reset_smb_connections_message">This will close all SMB connections and clear error state. Use if you experience persistent connection issues.</string>
     <string name="reset_smb_success">SMB connections reset successfully</string>
     <string name="smb_auto_reset_notification">SMB connections reset automatically</string>
-    <string name="gms_update_required">Google Play Services needs to be updated for full functionality. Some features may not work correctly.</string>
-    <string name="gms_unavailable">Google Play Services is unavailable. Some features may not work correctly.</string>
+    <string name="gms_update_required">Google Play Services are outdated. Most of the app works fine without them — updating only adds a few optional features. Skip if you don\'t need them.</string>
+    <string name="gms_unavailable">Google Play Services aren\'t available. Most of the app works without them; only a few optional features will be unavailable.</string>
     <string name="gms_update_action">Update</string>
-    <string name="gms_settings_link">Google Play Services needs updating for full functionality. Tap to update.</string>
+    <string name="gms_settings_link">You can update Google Play Services to enable a few optional features. If you don\'t need them, skip it.</string>
     <string name="network_unstable_snackbar">Network unstable - check Wi-Fi</string>
     <string name="cache_size_calculating">Calculating…</string>
     <string name="cache_size_format">Cache: %s</string>
@@ -1286,8 +1252,8 @@ Close the player and try again.</string>
     <string name="smb_port">Port</string>
     <string name="smb_port_hint">Default: 445</string>
     <string name="default_smb_port" translatable="false">445</string>
-    <string name="smb_test_connection">Test Connection</string>
-    <string name="smb_scan_shares">Scan Shares</string>
+    <string name="smb_test_connection">Test connection</string>
+    <string name="smb_scan_shares">Scan host</string>
     <string name="smb_credentials">Network Folder (SMB)</string>
 
     <!-- SFTP / FTP -->
@@ -2193,8 +2159,6 @@ Close the player and try again.</string>
     <string name="activity_player_unified_btnSlideShow_text">SlideShow</string>
     <string name="activity_player_unified_btnVolumeDown_text">−</string>
     <string name="activity_player_unified_btnVolumeUp_text">+</string>
-    <string name="activity_player_unified_copyToPanelIndicator_text">▼</string>
-    <string name="activity_player_unified_moveToPanelIndicator_text">▼</string>
     <string name="activity_player_unified_playerView_resize_mode">fit</string>
     <string name="activity_player_unified_touchZone3Gestures_layout_weight">0.60</string>
     <string name="activity_player_unified_touchZone3Next_layout_weight">0.20</string>
@@ -2386,7 +2350,6 @@ Close the player and try again.</string>
     <string name="default_zero">0</string>
     <string name="search_counter_default">0/0</string>
     <string name="epub_chapter_indicator_default">1/1</string>
-    <string name="panel_indicator_collapsed">▼</string>
     <string name="player_volume_down_symbol">−</string>
     <string name="player_previous_symbol">◀</string>
     <string name="player_play_symbol">▶</string>
@@ -2428,7 +2391,6 @@ Close the player and try again.</string>
     <string name="settings_search_hint">Search settings</string>
     <string name="settings_search_no_results">No settings found</string>
     <string name="settings_search_section_format">Section: %1$s</string>
-    <string name="main_settings_new">New settings</string>
     <string name="reset_general_section">Reset General section</string>
     <string name="reset_media_section">Reset Media section</string>
     <string name="reset_playback_section">Reset Playback section</string>
@@ -2833,9 +2795,11 @@ Close the player and try again.</string>
     <string name="duplicate_scan_notif_channel_name">Duplicate scanner</string>
     <string name="action_create_folder">Create Folder</string>
     <string name="action_create_text_file">Create text note</string>
+    <string name="action_create_drawing">Create drawing</string>
     <string name="create_text_file_title">New text note</string>
     <string name="create_text_file_hint">File name</string>
     <string name="error_text_note_create_failed">Couldn\'t create the note here. Please try a different folder.</string>
+    <string name="error_drawing_create_failed">Couldn\'t create the drawing here. Please try a different folder.</string>
     <string name="msg_text_note_created">Note created: %1$s</string>
     <string name="error_invalid_text_note_name">Use letters, digits, dashes; avoid / \\ : * ? \" &lt; &gt; |</string>
     <string name="text_editor_action_save">Save</string>
@@ -2860,8 +2824,7 @@ Close the player and try again.</string>
     <string name="error_cross_protocol_dir_not_supported">Folder copy/move between different storage types is not supported.</string>
     <string name="operation_completed">Operation completed</string>
     <string name="error_some_operations_failed">%1$d of %2$d operations failed</string>
-    <string name="menu_automate_source_current">Automation: current settings..</string>
-    <string name="menu_automate_source_revised">Automation: new settings..</string>
+    <string name="menu_automate_source">Automation..</string>
     <string name="menu_add_receiver">Add to Sort List</string>
     <string name="msg_added_as_receiver">Resource added to Sort List</string>
     <string name="btn_edit_receiver">Configure</string>
@@ -3043,8 +3006,6 @@ Close the player and try again.</string>
 
     <string name="kbm_help_browse_open">Open folder or file</string>
     <string name="kbm_help_browse_back">Go to parent folder</string>
-    <string name="kbm_help_browse_settings_current">Open current settings menu</string>
-    <string name="kbm_help_browse_settings_revised">Open new settings</string>
 
     <string name="kbm_help_sel_toggle">Toggle selection</string>
     <string name="kbm_help_sel_all">Select all</string>
@@ -3574,7 +3535,7 @@ Close the player and try again.</string>
     <string name="draw_color_custom_cd">Custom color</string>
     <string name="draw_save_ok_toast">Saved</string>
     <string name="draw_save_failed_toast">Failed to save</string>
+    <string name="draw_save_remote_failed">Couldn\'t reach the folder. Your drawing stayed on this device - try saving again.</string>
     <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
+    <string name="setting_show_pdf_thumbnails_desc">Generates large preview images for PDFs (slower on remote sources)</string>
 </resources>
-
-

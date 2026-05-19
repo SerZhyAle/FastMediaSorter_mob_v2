@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 06 - Draw overlay toolbar v2 (landscape), single vertical strip.
+    S0191/S0192 - Draw overlay toolbar (landscape).
 
-    Layout (top → bottom):
-      [tool selector] [B][W][R][C] ......(weighted spacer)...... [⋮] [X]
-
-    The bottom Save button was removed in Phase 06; both save modes (in-place
-    overwrite + save-as-new) live inside the overflow popup (⋮).
+    Vertical strip keeps tool + colour controls at the top, primary save/share/cancel
+    actions at the bottom, and the overflow for secondary commands.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawOverlayToolbar"
@@ -79,9 +76,55 @@
         android:layout_weight="1" />
 
     <ImageButton
+        android:id="@+id/btn_draw_save"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/text_editor_action_save"
+        android:padding="8dp"
+        android:src="@drawable/ic_text_save"
+        android:tint="#FFFFFFFF" />
+
+    <ImageButton
+        android:id="@+id/btn_draw_save_close"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/text_editor_action_save_close"
+        android:padding="8dp"
+        android:src="@drawable/ic_text_save_close"
+        android:tint="#FFFFFFFF" />
+
+    <ImageButton
+        android:id="@+id/btn_draw_save_share"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/text_editor_action_save_send"
+        android:padding="8dp"
+        android:src="@drawable/ic_text_save_send"
+        android:tint="#FFFFFFFF"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/btn_draw_share"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/share"
+        android:padding="8dp"
+        android:src="@drawable/ic_share"
+        android:tint="#FFFFFFFF"
+        android:visibility="gone" />
+
+    <ImageButton
         android:id="@+id/btn_draw_overflow"
         android:layout_width="@dimen/player_cmd_button_size"
         android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_marginTop="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/draw_overflow_settings"
         android:padding="8dp"
@@ -94,7 +137,7 @@
         android:layout_height="@dimen/player_cmd_button_size"
         android:layout_marginTop="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/cancel"
+        android:contentDescription="@string/text_editor_action_cancel"
         android:padding="8dp"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:tint="#FFFFFFFF" />

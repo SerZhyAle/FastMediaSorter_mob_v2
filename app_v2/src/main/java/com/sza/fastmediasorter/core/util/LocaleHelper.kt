@@ -17,7 +17,7 @@ import java.util.Locale
 /**
  * Utility for managing app language/locale
  * According to V2 Specification: Language selection with app restart
- * 
+ *
  * IMPORTANT: Android 13+ (API 33) uses per-app language preferences via LocaleManager
  */
 object LocaleHelper {

@@ -109,6 +109,7 @@ class VrSettingsBlockFragment : Fragment() {
     }
 
     private fun launchDiagnosticImmerse() {
+        Timber.d("S0249: VrSettingsBlockFragment.launchDiagnosticImmerse - user tapped Test Immersive")
         viewLifecycleOwner.lifecycleScope.launch {
             val result = entryGateway.enterDiagnosticImage()
             Timber.d("VrSettingsBlockFragment: enterDiagnosticImage -> $result")

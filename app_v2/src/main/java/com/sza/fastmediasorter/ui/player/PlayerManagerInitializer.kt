@@ -299,8 +299,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.imageDrawOverlayManager.baseBitmapProvider = { activity.viewModel.currentDisplayedBitmap }
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
         activity.setupDrawOverlaySaveCallback()
-        // S0192 Phase 06 - wire in-place save callback for the `[Save]` button
-        activity.setupDrawOverlayInPlaceSaveCallback()
+        activity.setupDrawOverlayActionCallbacks()
         activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
             activity = activity,
             safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)

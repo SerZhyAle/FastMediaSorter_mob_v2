@@ -6,19 +6,25 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.SharePayload
+import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -62,6 +68,7 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import androidx.media3.common.Player
+import java.io.File
 import java.util.Optional
 import javax.inject.Inject
 
@@ -307,6 +314,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     lateinit var settingsRepository: SettingsRepository
 
     @Inject
+    lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
+
+    @Inject
     lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 
     // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
@@ -452,7 +462,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         initializeManagers()
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
-            window.decorView.post { if (isDrawOverlayManagerReady) imageDrawOverlayManager.enterDrawMode() }
+            window.decorView.post {
+                if (isDrawOverlayManagerReady) {
+                    syncDrawOverlayCurrentFile()
+                    imageDrawOverlayManager.enterDrawMode()
+                }
+            }
         }
         // S0189: signal textViewerManager to enter edit mode once text content finishes loading
         if (intent.getBooleanExtra(EXTRA_TEXT_EDIT_MODE_ON_OPEN, false)) {
@@ -716,6 +731,328 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // S0192 Phase 05 - Google Keep export, invoked from the draw editor overflow menu.
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
 
+    private val saveDrawingUseCase by lazy {
+        com.sza.fastmediasorter.domain.usecase.SaveDrawingUseCase(
+            fileOperationUseCase = fileOperationUseCase,
+            stagingRegistry = textNoteStagingRegistry,
+            resourceRepository = resourceRepository,
+        )
+    }
+
+    private enum class DrawSaveMode { SAVE, SAVE_AND_CLOSE, SAVE_AND_SHARE }
+
+    internal fun syncDrawOverlayCurrentFile() {
+        if (isDrawOverlayManagerReady) {
+            imageDrawOverlayManager.currentFile = viewModel.state.value.currentFile
+        }
+    }
+
+    internal fun setupDrawOverlayActionCallbacks() {
+        imageDrawOverlayManager.setShareActionsVisible(hasImageShareTargets())
+        imageDrawOverlayManager.actionCallback =
+            object : com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager.DrawOverlayActionCallback {
+                override fun onSaveRequested(overlayBitmap: android.graphics.Bitmap) {
+                    requestDrawSave(DrawSaveMode.SAVE, overlayBitmap)
+                }
+
+                override fun onSaveAndCloseRequested(overlayBitmap: android.graphics.Bitmap) {
+                    requestDrawSave(DrawSaveMode.SAVE_AND_CLOSE, overlayBitmap)
+                }
+
+                override fun onSaveAndShareRequested(overlayBitmap: android.graphics.Bitmap) {
+                    requestDrawSave(DrawSaveMode.SAVE_AND_SHARE, overlayBitmap)
+                }
+
+                override fun onShareRequested(overlayBitmap: android.graphics.Bitmap) {
+                    shareCurrentDrawing(overlayBitmap)
+                }
+
+                override fun onCancelRequested() {
+                    cancelDrawSession()
+                }
+            }
+    }
+
+    private fun requestDrawSave(mode: DrawSaveMode, overlayBitmap: android.graphics.Bitmap) {
+        val currentFile = viewModel.state.value.currentFile ?: run {
+            Toast.makeText(this, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (lookupStagedDrawing(currentFile) != null) {
+            promptForDrawingName(currentFile.name) { chosenName ->
+                commitStagedDrawing(mode, overlayBitmap, currentFile, chosenName)
+            }
+        } else {
+            saveExistingDrawingInPlace(mode, overlayBitmap, currentFile)
+        }
+    }
+
+    private fun commitStagedDrawing(
+        mode: DrawSaveMode,
+        overlayBitmap: android.graphics.Bitmap,
+        currentFile: MediaFile,
+        chosenName: String,
+    ) {
+        if (!currentFile.path.startsWith("/")) {
+            Toast.makeText(this, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val bytes = buildMergedDrawingBytes(overlayBitmap, currentFile) ?: return@launch
+            val oldPath = currentFile.path
+            val result = saveDrawingUseCase(
+                currentLocalFile = File(oldPath),
+                intendedName = chosenName,
+                imageBytes = bytes,
+                keepEditableCopy = mode != DrawSaveMode.SAVE_AND_CLOSE,
+            )
+
+            val outcome = result.getOrElse { error ->
+                Timber.e(error, "S0191: staged drawing save failed")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+
+            withContext(Dispatchers.Main) {
+                outcome.editableLocalPath
+                    ?.takeIf { it != oldPath }
+                    ?.let { newPath ->
+                        viewModel.updateRenamedFilePath(oldPath, newPath)
+                    }
+
+                syncDrawOverlayCurrentFile()
+
+                if (outcome.remoteFailureMessage != null) {
+                    Toast.makeText(this@PlayerActivity, R.string.draw_save_remote_failed, Toast.LENGTH_LONG).show()
+                    return@withContext
+                }
+
+                setResult(Activity.RESULT_OK)
+                imageDrawOverlayManager.markCurrentStateSaved()
+                Toast.makeText(this@PlayerActivity, R.string.draw_save_ok_toast, Toast.LENGTH_SHORT).show()
+
+                if (mode == DrawSaveMode.SAVE_AND_SHARE) {
+                    shareDrawingBytes(bytes, outcome.finalName)
+                }
+                if (mode == DrawSaveMode.SAVE_AND_CLOSE) {
+                    finish()
+                }
+            }
+        }
+    }
+
+    private fun saveExistingDrawingInPlace(
+        mode: DrawSaveMode,
+        overlayBitmap: android.graphics.Bitmap,
+        currentFile: MediaFile,
+    ) {
+        lifecycleScope.launch {
+            val bytes = buildMergedDrawingBytes(overlayBitmap, currentFile) ?: return@launch
+            val writeOk = writeDrawingBytesInPlace(currentFile.path, bytes)
+
+            withContext(Dispatchers.Main) {
+                if (!writeOk) {
+                    Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+                    return@withContext
+                }
+
+                setResult(Activity.RESULT_OK)
+                imageDrawOverlayManager.markCurrentStateSaved()
+                syncDrawOverlayCurrentFile()
+                Toast.makeText(this@PlayerActivity, R.string.draw_save_ok_toast, Toast.LENGTH_SHORT).show()
+
+                if (mode == DrawSaveMode.SAVE_AND_SHARE) {
+                    shareDrawingBytes(bytes, currentFile.name)
+                }
+                if (mode == DrawSaveMode.SAVE_AND_CLOSE) {
+                    finish()
+                }
+            }
+        }
+    }
+
+    private fun shareCurrentDrawing(overlayBitmap: android.graphics.Bitmap) {
+        val currentFile = viewModel.state.value.currentFile ?: run {
+            Toast.makeText(this, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val bytes = buildMergedDrawingBytes(overlayBitmap, currentFile) ?: return@launch
+            withContext(Dispatchers.Main) {
+                shareDrawingBytes(bytes, currentFile.name)
+            }
+        }
+    }
+
+    private suspend fun buildMergedDrawingBytes(
+        overlayBitmap: android.graphics.Bitmap,
+        currentFile: MediaFile,
+    ): ByteArray? {
+        val baseBitmap = viewModel.currentDisplayedBitmap ?: run {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+            }
+            return null
+        }
+
+        val ext = currentFile.name.substringAfterLast('.', "").lowercase()
+        val outputFormat = if (ext == "jpg" || ext == "jpeg") {
+            android.graphics.Bitmap.CompressFormat.JPEG
+        } else {
+            android.graphics.Bitmap.CompressFormat.PNG
+        }
+        val displayRect = activityBinding.photoView.displayRect
+        val croppedOverlay = cropOverlayToImage(
+            overlay = overlayBitmap,
+            imageRect = displayRect,
+            targetW = baseBitmap.width,
+            targetH = baseBitmap.height,
+        )
+        val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
+        return mergeResult.getOrElse { error ->
+            Timber.e(error, "S0191: draw overlay merge failed")
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+            }
+            null
+        }
+    }
+
+    private suspend fun writeDrawingBytesInPlace(path: String, bytes: ByteArray): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                when {
+                    path.startsWith("content://") -> {
+                        val uri = android.net.Uri.parse(path)
+                        val stream = contentResolver.openOutputStream(uri, "wt") ?: return@withContext false
+                        stream.use { it.write(bytes) }
+                        true
+                    }
+
+                    path.startsWith("/") -> {
+                        java.io.FileOutputStream(File(path)).use { it.write(bytes) }
+                        true
+                    }
+
+                    else -> false
+                }
+            } catch (e: Throwable) {
+                Timber.e(e, "S0191: draw in-place write failed for $path")
+                false
+            }
+        }
+    }
+
+    private fun cancelDrawSession() {
+        val currentFile = viewModel.state.value.currentFile
+        val stagedDrawing = currentFile?.let(::lookupStagedDrawing)
+
+        if (currentFile == null || stagedDrawing == null) {
+            imageDrawOverlayManager.exitDrawMode(save = false)
+            return
+        }
+
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val localFile = File(currentFile.path)
+                textNoteStagingRegistry.unregister(localFile)
+                if (localFile.exists() && !localFile.delete()) {
+                    Timber.w("S0191: failed to delete staged drawing %s", localFile.absolutePath)
+                }
+                val sessionDir = localFile.parentFile
+                if (sessionDir != null && sessionDir.name.startsWith("drawing_session_") && sessionDir.list().isNullOrEmpty()) {
+                    sessionDir.delete()
+                }
+            }
+            imageDrawOverlayManager.exitDrawMode(save = false)
+            finish()
+        }
+    }
+
+    private fun lookupStagedDrawing(
+        currentFile: MediaFile,
+    ): com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry.StagedEntry? {
+        if (!currentFile.path.startsWith("/")) return null
+        return textNoteStagingRegistry.lookup(File(currentFile.path))
+            ?.takeIf { it.kind == com.sza.fastmediasorter.data.local.staging.StagedKind.DRAWING }
+    }
+
+    private fun promptForDrawingName(defaultName: String, onConfirm: (String) -> Unit) {
+        val forbiddenChars = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
+        val input = android.widget.EditText(this).apply {
+            setSingleLine(true)
+            setText(defaultName)
+            hint = getString(R.string.draw_overlay_filename_hint)
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.text_editor_action_save)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                onConfirm(input.text?.toString()?.trim().orEmpty())
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+
+        dialog.show()
+
+        val positiveButton = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
+        val validate = {
+            val text = input.text?.toString()?.trim().orEmpty()
+            positiveButton.isEnabled = text.isNotEmpty() && text.none { it in forbiddenChars }
+        }
+        validate()
+
+        input.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = validate()
+        })
+        input.setSelection(input.text?.length ?: 0)
+    }
+
+    private fun hasImageShareTargets(): Boolean {
+        val intent = Intent(Intent.ACTION_SEND).apply { type = "image/*" }
+        return packageManager.queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+            .isNotEmpty()
+    }
+
+    private suspend fun shareDrawingBytes(bytes: ByteArray, fileName: String) {
+        val shareFile = runCatching {
+            withContext(Dispatchers.IO) {
+                val shareDir = File(cacheDir, "draw_share").apply { mkdirs() }
+                val normalizedName = if (fileName.contains('.')) fileName else "$fileName.jpg"
+                File(shareDir, normalizedName.ifBlank { "drawing.jpg" }).apply {
+                    writeBytes(bytes)
+                }
+            }
+        }.getOrElse { error ->
+            Timber.e(error, "S0191: failed to prepare drawing share file")
+            Toast.makeText(this@PlayerActivity, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", shareFile)
+        val sent = SystemShareInvoker.invoke(
+            context = this,
+            payload = SharePayload.Image(uri = uri, mime = mimeForFileName(shareFile.name)),
+            chooserTitle = getString(R.string.share),
+        )
+        if (!sent) {
+            Toast.makeText(this, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun mimeForFileName(fileName: String): String {
+        val ext = fileName.substringAfterLast('.', "jpg").lowercase()
+        return if (ext == "jpg" || ext == "jpeg") "image/jpeg" else "image/png"
+    }
+
     /**
      * S0192 Phase 06 - in-place overwrite callback for the `[Save]` button.
      *
@@ -928,17 +1265,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         else blackScreenOverlayManager.show()
     }
 
-    // S0028: tear off current Player to a new window slot; current player finishes (returns to Browse)
+    // S0184: open a duplicate Player in a new window slot while keeping the source player alive.
     internal fun tearOffPlayer() {
         val filePath = currentFilePath ?: return
+        val state = viewModel.state.value
         val newWindowId = java.util.UUID.randomUUID().toString()
         val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra("resourceId", state.resourceId)
+            putExtra("initialIndex", state.currentIndex)
             putExtra("initialFilePath", filePath)
             putExtra(EXTRA_WINDOW_ID, newWindowId)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         startActivity(intent)
-        finish()
     }
 
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
@@ -1254,7 +1593,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         Timber.d("VR_AUDIT/11: PlayerActivity.setStereoMode mode=%s (panel 3D-dialog selection)", mode)
         viewModel.setStereoMode(mode)
     }
-    override fun rememberStereoModeIfEnabled(mode: StereoMode) = viewModel.rememberStereoModeIfEnabled(mode)
+    override fun rememberStereoModeForCurrentFile(mode: StereoMode) = viewModel.rememberStereoModeForCurrentFile(mode)
 
     override val videoPlayerHandle: VideoPlayerHandle get() = playerActivityVideoHandle
 

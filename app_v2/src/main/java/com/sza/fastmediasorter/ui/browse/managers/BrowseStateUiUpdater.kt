@@ -146,6 +146,12 @@ class BrowseStateUiUpdater(
                 && !VirtualPathUtils.isVirtualPath(resource.path)
                 && resource.supportsDocuments()
         binding.btnCreateTextFile?.isVisible = canCreateTextNote
+
+        val canCreateDrawing = resource != null
+            && !resource.isReadOnly
+            && !VirtualPathUtils.isVirtualPath(resource.path)
+            && resource.supportsImages()
+        binding.btnCreateDrawing?.isVisible = canCreateDrawing
     }
 
     private fun updateResourceActionButton(state: BrowseState) {

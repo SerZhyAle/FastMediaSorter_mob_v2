@@ -18,13 +18,12 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import kotlinx.coroutines.launch
 
-@android.annotation.SuppressLint("SetTextI18n")
 class PlaybackSettingsFragment : Fragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
@@ -35,17 +34,23 @@ class PlaybackSettingsFragment : Fragment() {
         private const val PREFS_NAME = "playback_sections_state"
         private const val KEY_SORTING_EXPANDED = "section_sorting_expanded"
         private const val KEY_FILE_OPS_EXPANDED = "section_file_ops_expanded"
-        private const val KEY_GRID_VIEW_EXPANDED = "section_grid_view_expanded"
         private const val KEY_PLAYER_UI_EXPANDED = "section_player_ui_expanded"
         private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
         private const val KEY_BEHAVIOUR_EXPANDED = "section_behaviour_expanded"
     }
-    
+
+    private data class ExpandableSection(
+        val header: CollapsibleSectionHeader,
+        val container: View,
+        val prefKey: String,
+        val defaultExpanded: Boolean,
+    )
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsPlaybackBinding.inflate(inflater, container, false)
         return binding.root
     }
-    
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         try {
@@ -57,12 +62,12 @@ class PlaybackSettingsFragment : Fragment() {
         }
         observeData()
     }
-    
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-    
+
     private fun setupViews() {
         binding.rowControlsKeybindings.setOnClickListener {
             com.sza.fastmediasorter.ui.settings.SettingsActivity.openKeybindingRemap(requireContext())
@@ -70,7 +75,7 @@ class PlaybackSettingsFragment : Fragment() {
 
         // Sort mode dropdown
         val sortModes = arrayOf(
-            "Name (A-Z)", "Name (Z-A)", 
+            "Name (A-Z)", "Name (Z-A)",
             "Date (Old first)", "Date (New first)",
             "Size (Small first)", "Size (Large first)",
             "Type (A-Z)", "Type (Z-A)"
@@ -82,19 +87,19 @@ class PlaybackSettingsFragment : Fragment() {
             val sortMode = SortMode.entries[position]
             viewModel.updateSettings(current.copy(defaultSortMode = sortMode))
         }
-        
+
         // Slideshow interval dropdown (1,5,10,30,60,120,300 sec)
         val slideshowOptions = arrayOf("1", "5", "10", "30", "60", "120", "300")
         val slideshowAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, slideshowOptions)
         binding.etSlideshowInterval.setAdapter(slideshowAdapter)
         binding.etSlideshowInterval.setText(getString(R.string.number_format, viewModel.settings.value.slideshowInterval), false)
-        
+
         binding.etSlideshowInterval.setOnItemClickListener { _, _, position, _ ->
             val seconds = slideshowOptions[position].toInt()
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(slideshowInterval = seconds))
         }
-        
+
         // Handle manual input
         binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -110,88 +115,47 @@ class PlaybackSettingsFragment : Fragment() {
                 }
             }
         }
-        
-        // Switches
-        binding.switchPlayToEnd.setOnCheckedChangeListener { _, isChecked ->
+
+        // Switches (migrated to SettingsToggleRow under S0258)
+        binding.rowPlayToEnd.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(playToEndInSlideshow = isChecked))
         }
-        
-        binding.switchAllowRename.setOnCheckedChangeListener { _, isChecked ->
+
+        binding.rowAllowRename.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(allowRename = isChecked))
         }
-        
-        binding.switchAllowDelete.setOnCheckedChangeListener { _, isChecked ->
+
+        binding.rowAllowDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(allowDelete = isChecked))
         }
 
-        binding.switchDisableCameraCapture.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowDisableCameraCapture.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(disableCameraCapture = isChecked))
         }
 
-        binding.switchSkipCameraFilenameDialog.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowSkipCameraFilenameDialog.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(skipCameraFilenameDialog = isChecked))
         }
 
-        binding.iconHelpCameraCapture.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_camera_capture_title,
-                R.string.tooltip_camera_capture_message
-            )
-        }
+        // Help for camera capture is now inline on rowDisableCameraCapture (folded by SettingsToggleRow).
 
-        binding.iconHelpSavedAuthorizations.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_saved_authorizations_title,
-                R.string.tooltip_saved_authorizations_message
-            )
-        }
-
-        binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowConfirmDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(confirmDelete = isChecked))
         }
-        
-        binding.switchGridMode.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
-        }
-        
-        binding.switchHideGridActionButtons.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
-        }
 
-        binding.switchFileOpsOverflowMenu.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            if (isChecked && !current.fileOpsOverflowMenuHintShown) {
-                android.widget.Toast.makeText(
-                    requireContext(),
-                    R.string.file_ops_moved_to_menu_hint,
-                    android.widget.Toast.LENGTH_LONG
-                ).show()
-                viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = true, fileOpsOverflowMenuHintShown = true))
-            } else {
-                viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
-            }
-        }
-
-        binding.switchHideSystemUiInFullscreen.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowHideSystemUiInFullscreen.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(hideSystemUiInFullscreen = isChecked))
@@ -202,37 +166,37 @@ class PlaybackSettingsFragment : Fragment() {
             .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
         binding.layoutFollowSystemRotation.isVisible = hasAccelerometer
         if (hasAccelerometer) {
-            binding.switchFollowSystemRotation.setOnCheckedChangeListener { _, isChecked ->
+            binding.rowFollowSystemRotation.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(followSystemRotation = isChecked))
             }
         }
 
-        binding.switchShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowShowCommandPanel.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
-        
-        binding.switchDetailedErrors.setOnCheckedChangeListener { _, isChecked ->
+
+        binding.rowDetailedErrors.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showDetailedErrors = isChecked))
         }
-        
-        binding.switchShowPlayerHint.setOnCheckedChangeListener { _, isChecked ->
+
+        binding.rowShowPlayerHint.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showPlayerHintOnFirstRun = isChecked))
         }
-        
-        binding.switchAlwaysShowTouchZones.setOnCheckedChangeListener { _, isChecked ->
+
+        binding.rowAlwaysShowTouchZones.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(alwaysShowTouchZonesOverlay = isChecked))
         }
-        
+
         binding.iconHelpSlideshow.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
@@ -240,15 +204,9 @@ class PlaybackSettingsFragment : Fragment() {
                 R.string.tooltip_slideshow_message
             )
         }
-        
-        binding.iconHelpTouchZones.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_touch_zones_title,
-                R.string.tooltip_touch_zones_message
-            )
-        }
-        
+
+        // Help for touch zones is now inline on rowAlwaysShowTouchZones (folded by SettingsToggleRow).
+
         binding.btnShowHintNow.setOnClickListener {
             // Reset first-run flag to trigger hint on next PlayerActivity launch
             viewModel.resetPlayerFirstRun()
@@ -263,14 +221,14 @@ class PlaybackSettingsFragment : Fragment() {
         binding.layoutDefaultPlayerToggles.isVisible = BuildConfig.SUPPORTS_DEFAULT_PLAYER
 
         if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
-            binding.switchPrimaryMediaPlayer.setOnCheckedChangeListener { _, isChecked ->
+            binding.rowPrimaryMediaPlayer.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked)
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = isChecked))
             }
 
-            binding.switchAcceptSharedFiles.setOnCheckedChangeListener { _, isChecked ->
+            binding.rowAcceptSharedFiles.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked)
                 val current = viewModel.settings.value
@@ -281,31 +239,23 @@ class PlaybackSettingsFragment : Fragment() {
         // S0003: Link auto-download - master toggle + open-in-player toggle.
         // Resource picker (row_link_autodownload_resource) is wired in Phase 05;
         // for Phase 01 the row stays informational and reflects the persisted id.
-        binding.switchLinkAutodownloadEnabled.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowLinkAutodownloadEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(linkAutoDownloadEnabled = isChecked))
         }
-        binding.switchLinkAutodownloadOpenInPlayer.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowLinkAutodownloadOpenInPlayer.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(linkAutoDownloadOpenInPlayer = isChecked))
         }
-        // S0116 §5.1 pillar K: saved authorizations sub-screen entry. SettingsActivity uses
-        // ViewPager2 tabs at the host level, so a non-tab settings surface is an Activity
-        // launch (mirrors the project's existing keybinding sub-screen pattern). The actual
-        // AuthSessionsListFragment is attached inside AuthSessionsActivity.onCreate.
-        binding.rowSavedAuthorizations.setOnClickListener {
-            AuthSessionsActivity.start(requireContext())
-        }
-
-        binding.switchResumeOnNextLaunch.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowResumeOnNextLaunch.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(resumeOnNextLaunch = isChecked))
         }
 
-        binding.switchShowBlackScreenButton.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowShowBlackScreenButton.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
@@ -326,45 +276,19 @@ class PlaybackSettingsFragment : Fragment() {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
-        
-        // Icon size dropdown (24-1024px)
-        val iconSizeOptions = arrayOf("24", "32", "48", "64", "96", "128", "160", "192", "256", "320", "384", "512", "768", "1024")
-        val iconSizeAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)
-        binding.etIconSize.setAdapter(iconSizeAdapter)
-        binding.etIconSize.setText(getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
-        
-        binding.etIconSize.setOnItemClickListener { _, _, position, _ ->
-            val size = iconSizeOptions[position].toInt()
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultIconSize = size))
-        }
-        
-        binding.iconHelpGridSize.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_grid_size_title,
-                R.string.tooltip_grid_size_message
-            )
-        }
 
-        binding.iconHelpCommandPanel.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_command_panel_title,
-                R.string.tooltip_command_panel_message
-            )
-        }
+        // Help for command panel is now inline on rowShowCommandPanel (folded by SettingsToggleRow).
 
         // PiP is only supported on Android 12+ (API 31)
         binding.layoutPip.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        binding.switchEnablePip.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowEnablePip.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enablePictureInPicture = isChecked))
         }
 
         // Panel single-eye 3D crop (spec_panel-stereo-single-eye)
-        binding.switchPanelStereoSingleEye.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowPanelStereoSingleEye.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(panelStereoSingleEye = isChecked))
@@ -373,147 +297,108 @@ class PlaybackSettingsFragment : Fragment() {
         // S0158: Big Buttons Mode - stored in PlayerLayoutModePrefs (SharedPreferences, not DataStore).
         // ADR-2: change takes effect on next player open; no restart required.
         isUpdatingFromSettings = true
-        binding.switchBigButtonsMode.isChecked = PlayerLayoutModePrefs.isBigButtonsMode(requireContext())
+        binding.rowBigButtonsMode.setCheckedSilently(PlayerLayoutModePrefs.isBigButtonsMode(requireContext()))
         isUpdatingFromSettings = false
-        binding.switchBigButtonsMode.setOnCheckedChangeListener { _, isChecked ->
+        binding.rowBigButtonsMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             PlayerLayoutModePrefs.setBigButtonsMode(requireContext(), isChecked)
         }
-        binding.iconHelpBigButtonsMode?.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_big_buttons_mode_title,
-                R.string.tooltip_big_buttons_mode_message
-            )
-        }
-
-        // Handle manual input
-        binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val text = binding.etIconSize.text.toString()
-                val size = text.toIntOrNull() ?: 96
-                val clampedSize = size.coerceIn(24, 1024)
-                if (size != clampedSize) {
-                    binding.etIconSize.setText(getString(R.string.number_format, clampedSize), false)
-                }
-                val current = viewModel.settings.value
-                if (clampedSize != current.defaultIconSize) {
-                    viewModel.updateSettings(current.copy(defaultIconSize = clampedSize))
-                }
-            }
-        }
+        // Help for big buttons mode is now inline on rowBigButtonsMode (folded by SettingsToggleRow).
     }
-    
+
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
                     // Sort mode
                     binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
-                    
+
                     // Slideshow interval
                     val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
                     if (currentSlideshow != settings.slideshowInterval) {
                         binding.etSlideshowInterval.setText(getString(R.string.number_format, settings.slideshowInterval), false)
                     }
-                    
-                    // Switches (only update if value changed)
-                    if (binding.switchPlayToEnd.isChecked != settings.playToEndInSlideshow) {
-                        binding.switchPlayToEnd.isChecked = settings.playToEndInSlideshow
+
+                    // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
+                    if (binding.rowPlayToEnd.isChecked != settings.playToEndInSlideshow) {
+                        binding.rowPlayToEnd.setCheckedSilently(settings.playToEndInSlideshow)
                     }
-                    if (binding.switchAllowRename.isChecked != settings.allowRename) {
-                        binding.switchAllowRename.isChecked = settings.allowRename
+                    if (binding.rowAllowRename.isChecked != settings.allowRename) {
+                        binding.rowAllowRename.setCheckedSilently(settings.allowRename)
                     }
-                    if (binding.switchAllowDelete.isChecked != settings.allowDelete) {
-                        binding.switchAllowDelete.isChecked = settings.allowDelete
+                    if (binding.rowAllowDelete.isChecked != settings.allowDelete) {
+                        binding.rowAllowDelete.setCheckedSilently(settings.allowDelete)
                     }
-                    if (binding.switchDisableCameraCapture.isChecked != settings.disableCameraCapture) {
-                        binding.switchDisableCameraCapture.isChecked = settings.disableCameraCapture
+                    if (binding.rowDisableCameraCapture.isChecked != settings.disableCameraCapture) {
+                        binding.rowDisableCameraCapture.setCheckedSilently(settings.disableCameraCapture)
                     }
-                    if (binding.switchSkipCameraFilenameDialog.isChecked != settings.skipCameraFilenameDialog) {
-                        binding.switchSkipCameraFilenameDialog.isChecked = settings.skipCameraFilenameDialog
+                    if (binding.rowSkipCameraFilenameDialog.isChecked != settings.skipCameraFilenameDialog) {
+                        binding.rowSkipCameraFilenameDialog.setCheckedSilently(settings.skipCameraFilenameDialog)
                     }
                     binding.layoutSkipCameraFilename.isVisible = !settings.disableCameraCapture
-                    if (binding.switchConfirmDelete.isChecked != settings.confirmDelete) {
-                        binding.switchConfirmDelete.isChecked = settings.confirmDelete
+                    if (binding.rowConfirmDelete.isChecked != settings.confirmDelete) {
+                        binding.rowConfirmDelete.setCheckedSilently(settings.confirmDelete)
                     }
-                    if (binding.switchGridMode.isChecked != settings.defaultGridMode) {
-                        binding.switchGridMode.isChecked = settings.defaultGridMode
-                    }
-                    if (binding.switchHideGridActionButtons.isChecked != settings.hideGridActionButtons) {
-                        binding.switchHideGridActionButtons.isChecked = settings.hideGridActionButtons
-                    }
-                    if (binding.switchFileOpsOverflowMenu.isChecked != settings.fileOpsInOverflowMenu) {
-                        binding.switchFileOpsOverflowMenu.isChecked = settings.fileOpsInOverflowMenu
-                    }
-                    if (binding.switchHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
-                        binding.switchHideSystemUiInFullscreen.isChecked = settings.hideSystemUiInFullscreen
+                    if (binding.rowHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
+                        binding.rowHideSystemUiInFullscreen.setCheckedSilently(settings.hideSystemUiInFullscreen)
                     }
                     // S0162
-                    if (binding.switchFollowSystemRotation.isChecked != settings.followSystemRotation) {
-                        binding.switchFollowSystemRotation.isChecked = settings.followSystemRotation
+                    if (binding.rowFollowSystemRotation.isChecked != settings.followSystemRotation) {
+                        binding.rowFollowSystemRotation.setCheckedSilently(settings.followSystemRotation)
                     }
-                    if (binding.switchShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
-                        binding.switchShowCommandPanel.isChecked = settings.defaultShowCommandPanel
+                    if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
+                        binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)
                     }
-                    if (binding.switchDetailedErrors.isChecked != settings.showDetailedErrors) {
-                        binding.switchDetailedErrors.isChecked = settings.showDetailedErrors
+                    if (binding.rowDetailedErrors.isChecked != settings.showDetailedErrors) {
+                        binding.rowDetailedErrors.setCheckedSilently(settings.showDetailedErrors)
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        if (binding.switchEnablePip.isChecked != settings.enablePictureInPicture) {
-                            binding.switchEnablePip.isChecked = settings.enablePictureInPicture
+                        if (binding.rowEnablePip.isChecked != settings.enablePictureInPicture) {
+                            binding.rowEnablePip.setCheckedSilently(settings.enablePictureInPicture)
                         }
                     }
-                    if (binding.switchPanelStereoSingleEye.isChecked != settings.panelStereoSingleEye) {
-                        binding.switchPanelStereoSingleEye.isChecked = settings.panelStereoSingleEye
+                    if (binding.rowPanelStereoSingleEye.isChecked != settings.panelStereoSingleEye) {
+                        binding.rowPanelStereoSingleEye.setCheckedSilently(settings.panelStereoSingleEye)
                     }
-                    if (binding.switchShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
-                        binding.switchShowPlayerHint.isChecked = settings.showPlayerHintOnFirstRun
+                    if (binding.rowShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
+                        binding.rowShowPlayerHint.setCheckedSilently(settings.showPlayerHintOnFirstRun)
                     }
-                    if (binding.switchAlwaysShowTouchZones.isChecked != settings.alwaysShowTouchZonesOverlay) {
-                        binding.switchAlwaysShowTouchZones.isChecked = settings.alwaysShowTouchZonesOverlay
-                    }
-                    
-                    // Icon size
-                    val currentIconSize = binding.etIconSize.text.toString().toIntOrNull()
-                    if (currentIconSize != settings.defaultIconSize) {
-                        binding.etIconSize.setText(getString(R.string.number_format, settings.defaultIconSize), false)
+                    if (binding.rowAlwaysShowTouchZones.isChecked != settings.alwaysShowTouchZonesOverlay) {
+                        binding.rowAlwaysShowTouchZones.setCheckedSilently(settings.alwaysShowTouchZonesOverlay)
                     }
 
                     // Default Player toggles (visible only when SUPPORTS_DEFAULT_PLAYER)
                     if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
-                        if (binding.switchPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
-                            binding.switchPrimaryMediaPlayer.isChecked = settings.isPrimaryMediaPlayer
+                        if (binding.rowPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
+                            binding.rowPrimaryMediaPlayer.setCheckedSilently(settings.isPrimaryMediaPlayer)
                         }
-                        if (binding.switchAcceptSharedFiles.isChecked != settings.acceptSharedFiles) {
-                            binding.switchAcceptSharedFiles.isChecked = settings.acceptSharedFiles
+                        if (binding.rowAcceptSharedFiles.isChecked != settings.acceptSharedFiles) {
+                            binding.rowAcceptSharedFiles.setCheckedSilently(settings.acceptSharedFiles)
                         }
                     }
 
-                    if (binding.switchResumeOnNextLaunch.isChecked != settings.resumeOnNextLaunch) {
-                        binding.switchResumeOnNextLaunch.isChecked = settings.resumeOnNextLaunch
+                    if (binding.rowResumeOnNextLaunch.isChecked != settings.resumeOnNextLaunch) {
+                        binding.rowResumeOnNextLaunch.setCheckedSilently(settings.resumeOnNextLaunch)
                     }
 
                     // S0003: Link auto-download
-                    if (binding.switchLinkAutodownloadEnabled.isChecked != settings.linkAutoDownloadEnabled) {
-                        binding.switchLinkAutodownloadEnabled.isChecked = settings.linkAutoDownloadEnabled
+                    if (binding.rowLinkAutodownloadEnabled.isChecked != settings.linkAutoDownloadEnabled) {
+                        binding.rowLinkAutodownloadEnabled.setCheckedSilently(settings.linkAutoDownloadEnabled)
                     }
-                    if (binding.switchLinkAutodownloadOpenInPlayer.isChecked != settings.linkAutoDownloadOpenInPlayer) {
-                        binding.switchLinkAutodownloadOpenInPlayer.isChecked = settings.linkAutoDownloadOpenInPlayer
+                    if (binding.rowLinkAutodownloadOpenInPlayer.isChecked != settings.linkAutoDownloadOpenInPlayer) {
+                        binding.rowLinkAutodownloadOpenInPlayer.setCheckedSilently(settings.linkAutoDownloadOpenInPlayer)
                     }
                     // Disable child controls when master toggle is off
-                    binding.switchLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
+                    binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
                     binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
                     binding.tvLinkAutodownloadResourceValue.isEnabled = settings.linkAutoDownloadEnabled
-                    // S0116 §5.1 pillar K: saved authorizations row follows the same enable rule.
-                    binding.rowSavedAuthorizations.isEnabled = settings.linkAutoDownloadEnabled
                     binding.tvLinkAutodownloadResourceValue.text = if (settings.linkAutoDownloadResourceId == null) {
                         getString(R.string.link_autodownload_resource_not_set)
                     } else {
                         // Phase 05 will resolve the resource label via GetDestinationsUseCase.
                         getString(R.string.link_autodownload_resource_not_set)
                     }
-                    if (binding.switchShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
-                        binding.switchShowBlackScreenButton.isChecked = settings.showBlackScreenButton
+                    if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
+                        binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
                     }
 
                     isUpdatingFromSettings = false
@@ -521,77 +406,26 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     private fun setupExpandableSections() {
-        // Restore saved states or default to collapsed
         val savedStates = getSavedSectionStates()
-        
-        bindSectionToggle(
-            binding.headerSortingSlideshow, 
-            binding.containerSortingSlideshow, 
-            getString(R.string.settings_category_sorting_slideshow),
-            KEY_SORTING_EXPANDED,
-            savedStates[KEY_SORTING_EXPANDED] ?: false
+        val sections = listOf(
+            ExpandableSection(binding.headerSortingSlideshow, binding.containerSortingSlideshow, KEY_SORTING_EXPANDED, false),
+            ExpandableSection(binding.headerFileOperations, binding.containerFileOperations, KEY_FILE_OPS_EXPANDED, false),
+            ExpandableSection(binding.headerPlayerUI, binding.containerPlayerUI, KEY_PLAYER_UI_EXPANDED, false),
+            ExpandableSection(binding.headerTouchZones, binding.containerTouchZones, KEY_TOUCH_ZONES_EXPANDED, false),
+            ExpandableSection(binding.headerBehaviour, binding.containerBehaviour, KEY_BEHAVIOUR_EXPANDED, false),
         )
-        bindSectionToggle(
-            binding.headerFileOperations, 
-            binding.containerFileOperations, 
-            getString(R.string.settings_category_file_operations),
-            KEY_FILE_OPS_EXPANDED,
-            savedStates[KEY_FILE_OPS_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerGridView, 
-            binding.containerGridView, 
-            getString(R.string.settings_category_grid_view),
-            KEY_GRID_VIEW_EXPANDED,
-            savedStates[KEY_GRID_VIEW_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerPlayerUI, 
-            binding.containerPlayerUI, 
-            getString(R.string.settings_category_player_ui),
-            KEY_PLAYER_UI_EXPANDED,
-            savedStates[KEY_PLAYER_UI_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerTouchZones,
-            binding.containerTouchZones,
-            getString(R.string.settings_category_touch_zones),
-            KEY_TOUCH_ZONES_EXPANDED,
-            savedStates[KEY_TOUCH_ZONES_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerBehaviour,
-            binding.containerBehaviour,
-            getString(R.string.settings_category_behaviour),
-            KEY_BEHAVIOUR_EXPANDED,
-            savedStates[KEY_BEHAVIOUR_EXPANDED] ?: false
-        )
-    }
 
-    private fun bindSectionToggle(
-        header: android.widget.TextView, 
-        content: View, 
-        title: String,
-        prefKey: String,
-        initiallyExpanded: Boolean
-    ) {
-        // Set initial state
-        content.isVisible = initiallyExpanded
-        updateHeader(header, title, initiallyExpanded)
-
-        header.setOnClickListener {
-            val expanded = !content.isVisible
-            content.isVisible = expanded
-            updateHeader(header, title, expanded)
-            saveSectionState(prefKey, expanded)
+        sections.forEach { section ->
+            val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
+            section.header.setExpanded(expanded, notify = false)
+            section.container.isVisible = expanded
+            section.header.setOnExpandedChangeListener { isExpanded ->
+                section.container.isVisible = isExpanded
+                saveSectionState(section.prefKey, isExpanded)
+            }
         }
     }
 
-    private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
-        val prefix = if (expanded) "▼" else "▶"
-        header.text = getString(R.string.string_format_two_args, prefix, title)
-    }
-    
     /**
      * Get saved section states from SharedPreferences.
      * Wrapped in StrictModeHelper to avoid violations during fragment creation.
@@ -602,14 +436,13 @@ class PlaybackSettingsFragment : Fragment() {
             mapOf(
                 KEY_SORTING_EXPANDED to prefs.getBoolean(KEY_SORTING_EXPANDED, false),
                 KEY_FILE_OPS_EXPANDED to prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false),
-                KEY_GRID_VIEW_EXPANDED to prefs.getBoolean(KEY_GRID_VIEW_EXPANDED, false),
                 KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
                 KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
                 KEY_BEHAVIOUR_EXPANDED to prefs.getBoolean(KEY_BEHAVIOUR_EXPANDED, false)
             )
         }
     }
-    
+
     /**
      * Save section expanded state to SharedPreferences.
      * Wrapped in StrictModeHelper to avoid violations.

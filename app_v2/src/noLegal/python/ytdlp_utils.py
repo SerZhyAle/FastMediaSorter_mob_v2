@@ -159,6 +159,21 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
             raise ValueError('yt-dlp returned no info for url=' + str(url))
         ext = info.get('ext', 'mp4')
         title = info.get('title', 'download')
+        # S0260: yt-dlp selected-format diagnostic. Chaquopy bridges stdout to
+        # Android logcat (tag python.stdout) so this line appears alongside the
+        # Kotlin Timber traces during a YTMusic share device test. The four
+        # fields distinguish H1/H2/H3 hypotheses: audio formats land on
+        # vcodec=none + acodec=mp4a (or similar); video-only formats land on
+        # vcodec=avc1/vp09 + acodec=none; combined progressive shows both.
+        print(
+            "S0260: python download done format_id={fid} ext={ext} vcodec={vc} acodec={ac} audio_only_hint={ao}".format(
+                fid=info.get('format_id'),
+                ext=ext,
+                vc=info.get('vcodec'),
+                ac=info.get('acodec'),
+                ao=audio_only,
+            )
+        )
         out_path = os.path.join(out_dir, file_stem + '.' + ext)
         if not os.path.exists(out_path):
             # yt-dlp may have picked a different extension - scan the dir for the file.

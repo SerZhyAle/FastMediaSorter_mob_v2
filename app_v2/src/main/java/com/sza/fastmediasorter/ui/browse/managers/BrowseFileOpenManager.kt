@@ -93,6 +93,14 @@ class BrowseFileOpenManager(
         sendEvent(BrowseEvent.NavigateToTextEditor(path, resourceId))
     }
 
+    /**
+     * S0191: open a freshly created blank drawing in PlayerActivity and enter draw mode.
+     */
+    fun openDrawingInEditor(path: String, resourceId: Long) {
+        inlineStop()
+        sendEvent(BrowseEvent.NavigateToDrawingEditor(path, resourceId))
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /**

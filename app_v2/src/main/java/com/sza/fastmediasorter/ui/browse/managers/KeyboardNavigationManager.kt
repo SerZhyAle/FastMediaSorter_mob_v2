@@ -37,9 +37,9 @@ class KeyboardNavigationManager(
         fun navigateUp()
         fun showCreateFolderDialog()
         fun showCreateTextNoteDialog()
+        fun showCreateDrawingDialog()
         fun showHelp()
         fun showContextMenu()
-        fun openBrowseSettings(): Boolean
         fun extendSelectionUp()
         fun extendSelectionDown()
         fun undoLastOperation()
@@ -58,6 +58,7 @@ class KeyboardNavigationManager(
         "sorting.move"              -> dispatchAction(InputAction.MoveSelection)
         "sorting.rename"            -> dispatchAction(InputAction.RenameSelection)
         "sorting.create_text_note"  -> dispatchAction(InputAction.CreateTextNote)
+        "sorting.create_drawing"    -> dispatchAction(InputAction.CreateDrawing)
         "navigation.next_file"      -> dispatchAction(InputAction.MoveFocus(FocusDirection.DOWN))
         "navigation.previous_file"  -> dispatchAction(InputAction.MoveFocus(FocusDirection.UP))
         else                        -> false
@@ -88,6 +89,7 @@ class KeyboardNavigationManager(
             InputAction.DeleteSelection -> { if (hasSelection) callbacks.showDeleteConfirmation(); true }
             InputAction.CreateFolder -> { callbacks.showCreateFolderDialog(); true }
             InputAction.CreateTextNote -> { callbacks.showCreateTextNoteDialog(); true }
+            InputAction.CreateDrawing -> { callbacks.showCreateDrawingDialog(); true }
             InputAction.RefreshCurrent -> { callbacks.refreshFiles(); true }
             InputAction.SelectAll -> { callbacks.selectAllFiles(); true }
             InputAction.ClearSelection -> { callbacks.clearSelection(); true }
@@ -95,7 +97,6 @@ class KeyboardNavigationManager(
                 callbacks.toggleCurrentItemSelection(pos); true
             }
             InputAction.ShowContextMenu -> { callbacks.showContextMenu(); true }
-            InputAction.OpenBrowseSettings -> callbacks.openBrowseSettings()
             InputAction.RangeExtendUp -> { callbacks.extendSelectionUp(); true }
             InputAction.RangeExtendDown -> { callbacks.extendSelectionDown(); true }
             InputAction.UndoRequested -> { callbacks.undoLastOperation(); true }

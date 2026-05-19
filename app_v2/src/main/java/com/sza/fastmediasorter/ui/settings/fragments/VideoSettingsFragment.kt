@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -13,15 +12,15 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
-class VideoSettingsFragment : Fragment() {
+class VideoSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsVideoBinding? = null
     private val binding get() = _binding!!
-    
+
     private val viewModel: SettingsViewModel by activityViewModels()
-    private var isUpdatingFromSettings = false
 
     companion object {
         private const val KB_TO_BYTES = 1024L
@@ -43,20 +42,16 @@ class VideoSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
-        // Support Videos
-        binding.switchSupportVideos.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportVideos = isChecked))
-            }
+        // Support Videos — help payload now folded into the row's helper icon (str_helpTitle/str_helpMessage)
+        bindSwitch(binding.rowSupportVideos) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportVideos = isChecked))
         }
 
-        // Show video thumbnails
-        binding.switchShowVideoThumbnails.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
-            }
+        // Show video thumbnails — help payload folded into the row
+        bindSwitch(binding.rowShowVideoThumbnails) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
         }
 
         // Video size limits
@@ -84,23 +79,8 @@ class VideoSettingsFragment : Fragment() {
             }
         })
 
-        // Help button click handlers
-        binding.iconHelpSupportVideos.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.support_video_description,
-                com.sza.fastmediasorter.R.string.supported_video_formats
-            )
-        }
-
-        binding.iconHelpVideoThumbnails.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_video_thumbnails_title,
-                com.sza.fastmediasorter.R.string.tooltip_video_thumbnails_message
-            )
-        }
-
+        // Free-standing help icon next to "Video size limit" label — not part of a switch row,
+        // kept as standalone ImageButton with TooltipDialog wiring.
         binding.iconHelpVideoSizeLimits.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
@@ -154,6 +134,8 @@ class VideoSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(videoSnapshotResourceId = null))
         }
 
+        // Free-standing help icon next to "Video snapshot" section header — not part of a switch row,
+        // kept as standalone ImageButton with TooltipDialog wiring.
         binding.iconHelpVideoSnapshot.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
@@ -175,78 +157,69 @@ class VideoSettingsFragment : Fragment() {
 
     /**
      * S0251: the former VR-only block lost its forced-format controls (dead since S0241).
-     * `switchPlayerShowFps` (S0021) and `switchAllowSeparateWindow` (S0028) live on as plain
+     * `rowPlayerShowFps` (S0021) and `rowAllowSeparateWindow` (S0028) live on as plain
      * Video-section toggles, unconditional on every build.
      */
     private fun setupPlayerExtras() {
+        Timber.d("S0251: VideoSettings relocated FPS + multi-window switches setup entry")
         // S0021: Show FPS over flat (non-immersive) player
-        binding.switchPlayerShowFps.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(playerShowFps = isChecked))
-            }
+        bindSwitch(binding.rowPlayerShowFps) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(playerShowFps = isChecked))
         }
 
         // S0028: Multi-window mode — open Browse / Player in a separate window
-        binding.switchAllowSeparateWindow.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(allowSeparateWindow = isChecked))
-            }
+        bindSwitch(binding.rowAllowSeparateWindow) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(allowSeparateWindow = isChecked))
         }
     }
 
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
-                    isUpdatingFromSettings = true
-                    
-                    val isAllFilesEnabled = settings.allFiles
-                    
-                    // When All Files is enabled, force switch ON and disable it
-                    binding.switchSupportVideos.isChecked = isAllFilesEnabled || settings.supportVideos
-                    binding.switchSupportVideos.isEnabled = !isAllFilesEnabled
-                    
-                    binding.switchShowVideoThumbnails.isChecked = settings.showVideoThumbnails
+            withSettingsUpdate {
+                val isAllFilesEnabled = settings.allFiles
 
-                    val minKb = settings.videoSizeMin / KB_TO_BYTES
-                    val maxKb = settings.videoSizeMax / KB_TO_BYTES
-                    
-                    if (binding.etVideoSizeMin.text.toString() != minKb.toString()) {
-                        binding.etVideoSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
+                // When All Files is enabled, force switch ON and disable it
+                setSwitchChecked(binding.rowSupportVideos, isAllFilesEnabled || settings.supportVideos)
+                binding.rowSupportVideos.isEnabled = !isAllFilesEnabled
+
+                setSwitchChecked(binding.rowShowVideoThumbnails, settings.showVideoThumbnails)
+
+                val minKb = settings.videoSizeMin / KB_TO_BYTES
+                val maxKb = settings.videoSizeMax / KB_TO_BYTES
+
+                if (binding.etVideoSizeMin.text.toString() != minKb.toString()) {
+                    binding.etVideoSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
+                }
+                if (binding.etVideoSizeMax.text.toString() != maxKb.toString()) {
+                    binding.etVideoSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
+                }
+
+                // Video snapshot resource: show name or "not selected" hint
+                if (settings.videoSnapshotResourceId != null) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val resource = viewModel.resourceRepository.getResourceById(settings.videoSnapshotResourceId)
+                        binding.tvSelectedSnapshotResource.text = resource?.name
+                            ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
                     }
-                    if (binding.etVideoSizeMax.text.toString() != maxKb.toString()) {
-                        binding.etVideoSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
-                    }
+                    binding.btnClearSnapshotResource.visibility = android.view.View.VISIBLE
+                } else {
+                    binding.tvSelectedSnapshotResource.setText(com.sza.fastmediasorter.R.string.video_snapshot_resource_not_set)
+                    binding.btnClearSnapshotResource.visibility = android.view.View.GONE
+                }
 
-                    // Video snapshot resource: show name or "not selected" hint
-                    if (settings.videoSnapshotResourceId != null) {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val resource = viewModel.resourceRepository.getResourceById(settings.videoSnapshotResourceId)
-                            binding.tvSelectedSnapshotResource.text = resource?.name
-                                ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
-                        }
-                        binding.btnClearSnapshotResource.visibility = android.view.View.VISIBLE
-                    } else {
-                        binding.tvSelectedSnapshotResource.setText(com.sza.fastmediasorter.R.string.video_snapshot_resource_not_set)
-                        binding.btnClearSnapshotResource.visibility = android.view.View.GONE
-                    }
+                // Snapshot format radio button: reflects videoSnapshotFormat setting
+                binding.rgSnapshotFormat.check(
+                    if (settings.videoSnapshotFormat == "JPG") R.id.rbSnapshotJpg else R.id.rbSnapshotPng
+                )
 
-                    // Snapshot format radio button: reflects videoSnapshotFormat setting
-                    binding.rgSnapshotFormat.check(
-                        if (settings.videoSnapshotFormat == "JPG") R.id.rbSnapshotJpg else R.id.rbSnapshotPng
-                    )
+                // S0021: FPS overlay over flat player
+                setSwitchChecked(binding.rowPlayerShowFps, settings.playerShowFps)
 
-                    // S0021: FPS overlay over flat player
-                    if (binding.switchPlayerShowFps.isChecked != settings.playerShowFps) {
-                        binding.switchPlayerShowFps.isChecked = settings.playerShowFps
-                    }
-
-                    // S0028: Multi-window mode
-                    if (binding.switchAllowSeparateWindow.isChecked != settings.allowSeparateWindow) {
-                        binding.switchAllowSeparateWindow.isChecked = settings.allowSeparateWindow
-                    }
-
-                    isUpdatingFromSettings = false
+                // S0028: Multi-window mode
+                setSwitchChecked(binding.rowAllowSeparateWindow, settings.allowSeparateWindow)
+            }
         }
     }
 
