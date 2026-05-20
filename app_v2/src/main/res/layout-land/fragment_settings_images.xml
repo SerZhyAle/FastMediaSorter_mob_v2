@@ -42,32 +42,45 @@
 
     </LinearLayout>
 
-    <!-- Load full size images - help payload folded into the row -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowLoadFullSizeImages"
+    <!-- Landscape keeps the paired image toggles side by side to reduce vertical scroll. -->
+    <LinearLayout
+        android:id="@+id/containerLoadAndCropImages"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
         android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/load_full_size_images"
-        app:str_subtitle="@string/setting_load_full_size_images_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/load_full_size_images"
-        app:str_helpMessage="@string/load_full_size_images_hint" />
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <!-- Crop images to fill screen - help payload folded into the row -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowCropImagesToFullscreen"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/pref_crop_images_fullscreen_title"
-        app:str_subtitle="@string/setting_crop_images_to_fullscreen_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/tooltip_crop_images_fullscreen_title"
-        app:str_helpMessage="@string/tooltip_crop_images_fullscreen_message"
-        app:str_checked="true" />
+        <!-- Load full size images - help payload folded into the row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLoadFullSizeImages"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/resource_field_margin_end"
+            android:layout_weight="1"
+            app:str_title="@string/load_full_size_images"
+            app:str_subtitle="@string/setting_load_full_size_images_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/load_full_size_images"
+            app:str_helpMessage="@string/load_full_size_images_hint" />
+
+        <!-- Crop images to fill screen - help payload folded into the row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowCropImagesToFullscreen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_help_icon_margin"
+            android:layout_weight="1"
+            app:str_title="@string/pref_crop_images_fullscreen_title"
+            app:str_subtitle="@string/setting_crop_images_to_fullscreen_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/tooltip_crop_images_fullscreen_title"
+            app:str_helpMessage="@string/tooltip_crop_images_fullscreen_message"
+            app:str_checked="true" />
+
+    </LinearLayout>
 
     <!-- Dynamic Background Extension - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -125,6 +138,6 @@
         <Button android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
     </LinearLayout>
 
-    <Button android:id="@+id/btnSetDefaultImageViewer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/settings_set_default_image_viewer" android:textAllCaps="false" />
+    <Button android:id="@+id/btnSetDefaultImageViewer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/settings_set_default_image_viewer" android:textAllCaps="false" />
 
 </LinearLayout>

@@ -147,6 +147,40 @@ The `name` field in the journal is the **bare slug** - no `spec_` prefix. The pl
 & pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
 
+**5.1 - Detect spec character and emit §3.3 (Approval-gate inputs).**
+
+Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gate)` with bullets that match the spec's *actual* scope. The gate (`scripts/spec_catalog/check-owner-inputs.ps1`) validates only what is present in §3.3 - it does not require fields irrelevant to the spec's detected character. Authoring 12 `n/a` lines on an infrastructure spec is forbidden as bureaucracy theater.
+
+**Detection inputs:** combine three text sources case-insensitively: the `shortName` slug, the §1 Проблема body, and the §3.2 Жёсткие ограничения bullets. Scan once for each tag below.
+
+| Tag | Slug substrings | Text triggers (RU / EN substrings) | §3.3 bullets emitted |
+| --- | --- | --- | --- |
+| `flavor-aware` | `vr`, `wear`, `nolegal`, `lite`, `photos`, `legacy`, `flavor` | флейвор, вариант сборки, VR, noLegal, no-legal, Wear OS, lite, photos, legacy | **Flavor scope** |
+| `api-bound` | `api`, `sdk`, `android-1` | minSdk, targetSdk, API level, уровень API, Android 1 (matches Android 11/12/13/14/15) | **API level constraints** |
+| `wear-os` | `wear`, `watch` | Wear OS, watch, часы, companion module | **Wear OS** |
+| `perf-critical` | `perf`, `memory`, `battery`, `startup`, `latency`, `lag` | перфоманс, performance, память, memory, battery, батарея, latency, лаг, тормоз, startup, cold start, scroll perf | **Performance budget** |
+| `data-surface` | `room`, `db`, `database`, `migration`, `backup`, `restore`, `schema`, `entity` | Room, схема, миграция, migration, @Entity, backup, restore, persistent storage | **Data compatibility** |
+| `localization-touched` | `i18n`, `locale`, `string`, `translation`, `lang` | строк, локализац, strings.xml, translation, перевод | **Localization** |
+| `ui-facing` | `ui`, `layout`, `dialog`, `screen`, `menu`, `button`, `view` | интерфейс, экран, диалог, кнопка, меню, layout, fragment, activity, view, ориентация, landscape, portrait | **UI placement contract**, **Accessibility** |
+| `comm-policy-applies` | — | toast, тост, snackbar, ошибк, error message, CTA, уведомлен, empty state | **Communication policy** |
+
+**Conditional closure bullets:** if *any* of the tags above matched, additionally emit **Validation level** and **Owner sign-off**. If no tag matched (pure doc/refactor spec), skip both.
+
+**Universal bullet:** always emit **Related tickets**, even on tag-empty specs - this is the only field that is non-negotiable per the Approval gate.
+
+**Emission rules.**
+
+- Each emitted bullet must carry a concrete value drawn from research already in §1/§3.2/§4/§10/§11. The agent fills the values - do not leave bracketed placeholders.
+- If a value genuinely does not apply within the emitted bullet's scope (e.g. flavor-aware spec where only one flavor is in play), write `<concrete value> — <one-clause reason>` rather than `n/a` alone.
+- Do NOT emit irrelevant bullets just to look thorough. The gate accepts 1-bullet §3.3 (`Related tickets: none`) on a pure-doc spec.
+
+**Examples.**
+
+- Infrastructure tooling spec (e.g. build script): no tag matched → §3.3 contains only `Related tickets: none`.
+- Bugfix on a landscape dialog: `ui-facing` + `comm-policy-applies` → §3.3 contains UI placement contract, Accessibility, Communication policy, Validation level, Owner sign-off, Related tickets.
+- VR-only player feature: `flavor-aware` + `ui-facing` → §3.3 contains Flavor scope, UI placement contract, Accessibility, Validation level, Owner sign-off, Related tickets.
+- Room migration for new metadata: `data-surface` → §3.3 contains Data compatibility, Validation level, Owner sign-off, Related tickets.
+
 **6 - Auto-approve and run dev log.**
 
 Immediately after writing the file, advance `Status: Draft` → `Status: Approved` in the spec file and in the journal:
@@ -235,6 +269,26 @@ Block states (any active spec may transition into one of these and back via `upd
 - **Совместимость данных:** <форма миграции без номера версии Room>
 - **Локализация:** EN/RU/UK - всегда обязательно, или уточнение.
 - **Доступность:** <TalkBack, touch target, не-цветовое отличие - если фича визуальная>
+
+### 3.3 Owner inputs (Approval gate)
+
+Каждое поле ниже должно содержать конкретное значение, чтобы спека могла перейти Draft → Approved. Состав полей определяется характером спеки (см. Process step 5.1) - irrelevant поля не эмитятся, их отсутствие гейтом не блокируется. Универсально обязательное поле — `Related tickets`. Проверка: `pwsh -NoProfile -File scripts/spec_catalog/check-owner-inputs.ps1 -Id Sxxxx`.
+
+<!-- /spec emits ONLY the bullets matching the detected scope. Examples below; emit only the relevant subset. -->
+<!--
+- **Flavor scope:** <flavor-aware tag matched>
+- **API level constraints:** <api-bound tag matched>
+- **Wear OS:** <wear-os tag matched>
+- **Performance budget:** <perf-critical tag matched>
+- **Data compatibility:** <data-surface tag matched>
+- **Localization:** <localization-touched tag matched>
+- **UI placement contract:** <ui-facing tag matched>
+- **Accessibility:** <ui-facing tag matched>
+- **Communication policy:** <comm-policy-applies tag matched>
+- **Validation level:** <any tag matched>
+- **Owner sign-off:** <any tag matched - YYYY-MM-DD>
+-->
+- **Related tickets:** <Sxxxx-зависимости / зависящие, либо «none»>
 
 ---
 

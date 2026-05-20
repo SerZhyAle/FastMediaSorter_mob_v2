@@ -50,7 +50,7 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process for AAB (Release with R8 optimizations)
 Write-Host "Running: gradlew bundleStandardRelease" -ForegroundColor Yellow
-& $gradlew bundleStandardRelease "-Pchaquopy.enabled=false"
+& $gradlew bundleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nAAB Build Failed! Exiting..." -ForegroundColor Red
@@ -61,7 +61,7 @@ Write-Host "`nAAB Build Successful!" -ForegroundColor Green
 
 # Build APK as well
 Write-Host "Running: gradlew assembleStandardRelease" -ForegroundColor Yellow
-& $gradlew assembleStandardRelease "-Pchaquopy.enabled=false"
+& $gradlew assembleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nAPK Build Failed! Exiting..." -ForegroundColor Red

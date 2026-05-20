@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5180.136 (May 2026)
+## What's New in v2.60.5202.303 (May 2026)
 
-**Changed:**
-Simplified player controls (stereo content type, rendering mode and IPD removed on non-VR flavors), OCR restored on high-RAM low-heap devices (Quest 3), VR dead code purge across 16 main-side files.
+**New:**
+16KB Page Alignment (aligns native libraries to 16KB boundaries for Android 15+ compatibility), AI Audit Dashboard (publishes consensus evaluation results to GitHub Pages), Landscape Layout Tuning (optimizes spacing and pairs setting rows on wide screens).
 
 **Fixed:**
-"Low memory, close player" snackbar false-fires on capable devices, VR-only Browse routing branch on non-VR flavors, Google Drive sign-in navigation to folder picker.
+Resolves MediaStore local copying regression on Android versions pre-Q (S0280).
 
 [Full release notes →](docs/WHATS_NEW.md)
 

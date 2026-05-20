@@ -43,6 +43,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
             :wear:assembleDebug :wear:assembleRelease `
             "-Pchaquopy.enabled=false" `
+            --configuration-cache `
             | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
 
         $pass1Exit = $LASTEXITCODE
@@ -54,6 +55,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         & $gradlew `
             assembleNoLegalDebug assembleNoLegalRelease `
             "-Pchaquopy.enabled=true" `
+            --no-configuration-cache `
             | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"
 
         if ($LASTEXITCODE -eq 0) {

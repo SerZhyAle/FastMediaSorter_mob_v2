@@ -1,6 +1,24 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5180.136** (May 2026)
+**Current release: 2.60.5202.303** (May 2026)
+
+> Changes since version 2.60.5180.136
+
+---
+
+## What's New
+
+- **16KB Page Alignment** - aligns native libraries to 16KB boundaries for Android 15+.
+- **AI Audit Dashboard** - publishes consensus evaluation results to GitHub Pages.
+- **Landscape Layout Tuning** - optimizes spacing and pairs setting rows on wide screens.
+
+## What's Fixed
+
+- Resolves MediaStore local copying regression on Android versions pre-Q (S0280).
+
+---
+
+## Previous Release: 2.60.5180.136 (May 2026)
 
 > Changes since version 2.60.5172.102
 

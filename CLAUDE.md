@@ -54,14 +54,24 @@ Timber.d("Sxxxx: <short description of exercised path>")
 | Situation | Skill |
 |-----------|-------|
 | **Очень незначительная** правка (коррекция дизайна, опечатка, цвет/отступ, одна строка ресурса) | `/quick` (без спеки/доков/билда; только `dev/CHANGELOG.md`) |
-| Creating/updating `PLAN/Sxxxx_*.md` | `/spec` |
-| Full spec pipeline (idea → verified implementation, unattended) | `/spec-all` |
+| Creating or updating any `PLAN/Sxxxx_*.md` strategic spec | `/spec` |
+| Full spec pipeline from idea to verified implementation, unattended | `/spec-all` |
+| Breaking an approved strategic spec into a tactical phase plan | `/spec-tech` |
+| Reviewing and refining an existing spec file (strategic or tactical) | `/spec-update` |
+| Executing a tactical spec step by step, implementing phases | `/spec-dev` |
+| Auditing a spec against the actual codebase state | `/spec-check` |
+| Applying mechanical fixes after a spec-check audit | `/spec-fix` |
+| Archiving a spec - move `PLAN/Sxxxx_*` files to `temp/done/` and mark the journal record `Archived` | `/spec-arc` |
+| End-to-end on-device verification of a spec (build → install → drive UI → harvest logcat → patch spec's Manual block) | `/spec-test-device` |
+| Locating a Kotlin class or feature before grepping, planning a refactor/decomposition, auditing who injects a type, or refreshing class-catalog metadata | `/catalog` (query `dev/CATALOG/scripts/query.ps1` before global grep; run `scripts/catalog_sync.ps1` after every `.kt` change) |
 | UI/UX change touching layout, menus, visibility, orientation, empty/error states, overflow | `/ui-clarify` (blocks impl until ambiguities resolved) |
 | Editing `docs/FEATURES*.md` or other feature docs | `/doc-update` (EN/RU/UK mirrors; `noLegal`-only features → `docs/FEATURES_noLegal*.md`, never public files) |
 | Analysing `logs/current.log` or logcat | `/log-reader` |
 | Build questions or triggering a build | `/build` (do NOT invoke gradle directly) |
 | Git questions (commit/stage/push/diff/history) | `/git` |
-| "Where does X happen?" / "find file Foo.kt" / auditing code / planning a refactor / adding a class | `/catalog` (query first, update after) |
+| User asks for caveman mode, fewer tokens, ultra-terse replies, or `/caveman` | `/caveman` |
+| User asks for a terse commit message, caveman commit message, or `/caveman-commit` | `/caveman-commit` |
+| User asks for terse code review comments, caveman review, or `/caveman-review` | `/caveman-review` |
 
 ## Spec Catalog (Sxxxx tickets)
 
@@ -84,10 +94,11 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md` - workspace routing + **Feature-to-Path Map** (use before any global search).
 2. For any `Sxxxx`-tagged question - run `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` first to get current status / file path; do not infer from filename alone.
-3. **`dev/CATALOG/<module>.md` (or `query.ps1`) - MANDATORY first stop for any class/file lookup.**
-   - Run `query.ps1` before any `Grep`, `Glob`, or shell `find`. These are fallbacks only when the catalogue yields nothing.
-   - Locating a `.kt` file by name? → `-ClassMatches "*Name*"`. Finding what touches a feature? → `-PathMatches` or `-Role`. Who injects a type? → `-Injected <Type>`.
-   - **Never use `find`/`Glob` to locate a Kotlin class - the catalogue already knows the path.**
+3. **`dev/CATALOG/<module>.md`, `.jsonl`, or `query.ps1` - choose the lookup mode by question type.**
+   - **Semantic lookup**: use `query.ps1` first (or direct `.jsonl` reads for narrow semantic checks) for questions like "who injects this type", "what touches disk/network/Room", "which class owns this feature", "which classes exceed N LOC", or "what is this class's role/status".
+   - **Exact-match lookup**: use `rg` or direct `.jsonl` reads for a known class/file/token/resource-key/log-tag/string-literal name. Default broad-search excludes: `-g '!temp/' -g '!DOWNLOADS/' -g '!.venv/' -g '!logs/' -g '!.kotlin/' -g '!**/node_modules/'`.
+   - Locating a `.kt` file by semantic ownership? → `-PathMatches` or `-Role`. Locating a known class by exact name? → `rg` or direct `.jsonl` read. Who injects a type? → `-Injected <Type>`.
+   - **Do not use `find`/`Glob`/blind grep as a substitute for the catalogue when the task is semantic lookup or broad Kotlin class discovery.**
 4. Domain doc per task type:
    - Architecture → `docs/ARCHITECTURE.md`
    - Build/flags → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`
@@ -244,6 +255,8 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 
 Every step closes with the minimum validation that is actually discriminating for the change type. Grep and text checks are structural preflight only - they do not close a non-trivial step alone.
 
+- Failed build-log inspection: do not use `tail -N` or `Select-Object -Last N` on build logs - the real `FAILURE:` block may sit in the middle. Use `a.ps1 bf`.
+
 | Change type | Preflight | Required closure |
 |-------------|-----------|-----------------|
 | Doc-only (`.md`, `docs/**`, `PLAN/*.md`) | - | Grep for expected content |
@@ -262,27 +275,30 @@ Every step closes with the minimum validation that is actually discriminating fo
 
 ## Post-Change Steps (mandatory, all agents)
 
-**Fail-closed:** each numbered step below must succeed (script exit 0 / predicate pass) before the next step begins. A non-zero exit or failed predicate is a hard blocker - do not mark the step done, do not advance to the next step. Treat the failure as a build error: diagnose and fix before continuing.
+**Fail-closed:** mechanical closure after a change goes through one command. If it returns non-zero, stop and treat that as a blocker.
 
-1. **Dev Changelog** after every code/config change - run
-   `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`
-   (never edit `dev/CHANGELOG.md` directly).
-2. **Feature docs** only when a genuinely new user-visible capability is introduced - update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet. **Skip for:** code improvements, refactors, bug fixes, UX polish, performance, internal architecture, or anything invisible to an end user as a new feature. **Exception:** `noLegal`-only new features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored) - never into the public files. Even when this step is skipped, the functionality log (step 3) must still be evaluated, because internal history covers more than the public catalogue (it also tracks changes, removals, and fixes of existing capabilities).
-3. **Functionality log** - when a task completes a user-visible behaviour change (new/changed/removed/fixed capability), append one line via
-   `.\scripts\add_to_functionality_log.ps1 -Id Sxxxx -Op <ADD|CHANGE|DELETE|FIX> -Description "<english summary>"`
-   (omit `-Id` for entries without a spec ticket). Skip for pure refactors, internal optimisations, or any change a user cannot perceive. Skills `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-all`, `/quick`, `/skill-fix-release` invoke this automatically - call the CLI manually only when no skill is in flight.
-4. **String locale audit** after adding/removing any `strings.xml` keys - run
-   `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`
-   to verify EN/RU/UK parity. Exit code 1 = missing keys, must fix before commit.
-5. **Catalogue sync** - run after **every** `.kt` file change (not only API changes):
-   - Single command (preferred): `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` - chains scan + render in one PowerShell process.
-   - For new classes, fill `role` + `status` via `set.ps1` (see `dev/CATALOG/README.md`).
-   - Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
-6. **Spec catalog sync** - run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
-   - `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes).
-   - Skills `/spec`, `/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-update`, `/spec-all`, `/quick` perform this automatically - invoke the CLI yourself only when no skill is in flight.
-   - Direct edits to `PLAN/spec-catalog.jsonl` are forbidden.
-7. **Branch context** - the `add_to_dev_log.ps1` script records the current branch automatically in every changelog entry. No manual action needed; verify with `git branch --show-current` if unsure.
+Run:
+`pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<english description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`
+
+`ChangeType` routes the mechanical post-change steps:
+
+- `Doc`, `Script`, `Config` - dev log only.
+- `Kotlin` - dev log + `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>`.
+- `Xml` - dev log + `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` when string keys changed.
+- `Mixed` - dev log + both applicable checks above.
+- Omit `-ChangeType` only for backward compatibility with older callers; new calls must pass it explicitly.
+
+Skill-owned decisions stay outside `post-change.ps1`:
+
+- **Feature docs** only when a genuinely new user-visible capability is introduced - update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet. **Skip for:** code improvements, refactors, bug fixes, UX polish, performance, internal architecture, or anything invisible to an end user as a new feature. **Exception:** `noLegal`-only new features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored) - never into the public files.
+- **Functionality log** - when a task completes a user-visible behaviour change, append one line via `\.\scripts\add_to_functionality_log.ps1 -Id Sxxxx -Op <ADD|CHANGE|DELETE|FIX> -Description "<english summary>"` (omit `-Id` for entries without a spec ticket). Skills `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-all`, `/quick`, `/skill-fix-release` invoke this automatically - call the CLI manually only when no skill is in flight.
+- **Spec catalog sync** - on every spec status transition run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes) unless the active skill already owns it. Direct edits to `PLAN/spec-catalog.jsonl` are forbidden.
+
+Notes:
+
+- `post-change.ps1` covers only the mechanical closure steps. Build, test, and compile gates still follow the `Validation Requirements` table above.
+- `add_to_dev_log.ps1` already records the current branch - no separate branch step is needed.
+- `dev/CATALOG/<module>.jsonl` and `<module>.md` are local gitignored indexes. Regenerate them via `scripts/catalog_sync.ps1`; do not expect or require a git commit for them.
 
 ## Git Branching Model
 

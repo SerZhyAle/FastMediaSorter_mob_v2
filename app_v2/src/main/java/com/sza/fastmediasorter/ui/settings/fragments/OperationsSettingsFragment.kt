@@ -292,6 +292,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                         withSettingsUpdate {
                             binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
                             binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
+                            binding.layoutScheduledActions.isVisible = settings.enableScheduledOperations
                             binding.rowEnableCopying.setCheckedSilently(settings.enableCopying)
                             binding.rowGoToNextAfterCopy.setCheckedSilently(settings.goToNextAfterCopy)
                             binding.rowOverwriteOnCopy.setCheckedSilently(settings.overwriteOnCopy)
@@ -389,12 +390,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
     private fun setupScheduledSection() {
         updateScheduledNotificationPermissionButton()
+        binding.rowEnableScheduledOps.setTrailingControl(binding.layoutScheduledActions)
 
         binding.rowEnableScheduledOps.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableScheduledOperations = isChecked))
             binding.containerScheduledContent.isVisible = isChecked
+            binding.layoutScheduledActions.isVisible = isChecked
             if (isChecked) checkAndRequestScheduledPermissions()
         }
 

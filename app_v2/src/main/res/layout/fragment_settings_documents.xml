@@ -83,7 +83,7 @@
     <Button
         android:id="@+id/btnSetDefaultDocsViewer"
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
         android:text="@string/settings_set_default_docs_viewer"

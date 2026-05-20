@@ -239,7 +239,7 @@
 | Property                                   | Value           | Purpose                                 |
 |:-------------------------------------------|:----------------|:----------------------------------------|
 | `org.gradle.jvmargs`                      | `-Xmx16g`      | Max heap for Gradle daemon              |
-| `org.gradle.configuration-cache`           | `true`          | Faster build configuration              |
+| `org.gradle.configuration-cache`           | `false`         | Safe default for direct noLegal/IDE builds; helper scripts opt in explicitly |
 | `org.gradle.parallel`                      | `true`          | Parallel task execution                 |
 | `org.gradle.caching`                       | `true`          | Build cache enabled                     |
 | `android.enableR8.fullMode`               | `false`         | R8 compat mode (faster builds)          |

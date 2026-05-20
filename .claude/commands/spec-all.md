@@ -107,6 +107,16 @@ Allocate `Sxxxx` via `insert.ps1`. Write a single `PLAN/Sxxxx_<short-name>.md` t
 Use the `spec_tech` phase template directly (English, imperative steps with Verification predicates).
 Include a brief **Goal** section (2–4 sentences, Russian) before the phases. Auto-derive priority per `/spec` rules.
 
+**Approval gate stub.** Compact specs still hit the Draft → Approved gate. Append a minimal §3.3 block at the end of the file before flipping status:
+
+```markdown
+### 3.3 Owner inputs (Approval gate)
+
+- **Related tickets:** <none | Sxxxx,Sxxxx>
+```
+
+If the compact spec touches a sensitive scope (UI / flavor / data / API), follow `/spec` Process step 5.1 detection and emit the matching bullets in the same block - the gate uses the same `check-owner-inputs.ps1`.
+
 Flip `Status: Draft` → `Status: Approved` in the file and via `update.ps1`.
 Run dev log: `.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Compact spec: <Sxxxx>"`
 

@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,9 +41,54 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
         overwrite: Boolean
     ): Result<LocalSink> = withContext(Dispatchers.IO) {
         when (destination) {
-            is LocalDestinationCategory.PublicCollection -> openMediaStoreSink(destination, overwrite)
+            is LocalDestinationCategory.PublicCollection -> {
+                // S0280: scoped-storage MediaStore API (RELATIVE_PATH + IS_PENDING)
+                // was introduced in Android Q (API 29). On pre-Q the legacy MediaProvider
+                // rejects those columns with "no such column: relative_path" on query
+                // and "no path was provided when inserting new file" on insert. Public
+                // directories are directly writable on API < 29 with the legacy
+                // WRITE_EXTERNAL_STORAGE permission, so we route through FileOutputStream.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    openLegacyPublicCollectionSink(destination, overwrite)
+                } else {
+                    openMediaStoreSink(destination, overwrite)
+                }
+            }
             is LocalDestinationCategory.NonPublic -> openFileSystemSink(destination, overwrite)
         }
+    }
+
+    // --------------------------------------------------------------------- Legacy (pre-Q) public collections
+
+    /**
+     * On API < 29 a `PublicCollection` destination is reachable as a plain filesystem
+     * path: `${primary external storage}/${relativePath}${displayName}`. We reconstruct
+     * the absolute path and reuse [openFileSystemSink] - the legacy storage permission
+     * model permits direct writes here, and we sidestep the MediaProvider entirely.
+     */
+    private fun openLegacyPublicCollectionSink(
+        destination: LocalDestinationCategory.PublicCollection,
+        overwrite: Boolean
+    ): Result<LocalSink> {
+        Timber.d("S0280: pre-Q public collection routed to FileSystemSink collection=${destination.collection} displayName=${destination.displayName}")
+        val externalRoot = runCatching { Environment.getExternalStorageDirectory() }.getOrNull()
+        if (externalRoot == null) {
+            Timber.w("MediaStoreLocalDestinationWriter: external storage dir unavailable on pre-Q for ${destination.displayName}")
+            return Result.failure(IOException("External storage directory unavailable"))
+        }
+        val relative = destination.relativePath.trim('/')
+        val absolutePath = if (relative.isEmpty()) {
+            File(externalRoot, destination.displayName).absolutePath
+        } else {
+            File(File(externalRoot, relative), destination.displayName).absolutePath
+        }
+        Timber.d("MediaStoreLocalDestinationWriter: pre-Q legacy write absolute=$absolutePath collection=${destination.collection}")
+        val nonPublic = LocalDestinationCategory.NonPublic(
+            absolutePath = absolutePath,
+            displayName = destination.displayName,
+            mimeType = destination.mimeType
+        )
+        return openFileSystemSink(nonPublic, overwrite)
     }
 
     // --------------------------------------------------------------------- MediaStore
@@ -119,6 +165,12 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
     }
 
     private fun findExistingItem(collectionUri: Uri, displayName: String, relativePath: String): Uri? {
+        // S0280: RELATIVE_PATH column is API 29+. Avoid querying it on pre-Q where the
+        // legacy MediaProvider crashes with "no such column: relative_path". `open()`
+        // already short-circuits PublicCollection on pre-Q, so this is a defensive guard.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return null
+        }
         val projection = arrayOf(MediaStore.MediaColumns._ID)
         val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.RELATIVE_PATH} = ?"
         val args = arrayOf(displayName, relativePath)

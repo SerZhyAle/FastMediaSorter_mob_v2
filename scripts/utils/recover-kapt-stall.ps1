@@ -110,8 +110,12 @@ Write-Host "Retrying target task once with --no-daemon: $Task" -ForegroundColor 
 # so the Chaquopy beforeVariants block does not hide non-noLegal variants (see
 # project_build_gotchas memory entry - S0174 / S0175 follow-up).
 $chaquopyFlag = if ($Task -match '(?i)noLegal') { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
+$gradleArgs = @($Task, $chaquopyFlag, "--no-daemon", "--no-build-cache")
+if ($Task -match '(?i)noLegal') {
+    $gradleArgs += "--no-configuration-cache"
+}
 
-& $gradleWrapper $Task $chaquopyFlag --no-daemon --no-build-cache
+& $gradleWrapper @gradleArgs
 
 $retryExit = $LASTEXITCODE
 if ($retryExit -ne 0) {

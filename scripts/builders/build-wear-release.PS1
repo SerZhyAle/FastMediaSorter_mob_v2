@@ -4,7 +4,7 @@
 Write-Host "Building Wear OS release APK (auto-versioned)..." -ForegroundColor Cyan
 
 # Start the Gradle build process
-& "$PSScriptRoot\..\..\gradlew.bat" :wear:assembleRelease
+& "$PSScriptRoot\..\..\gradlew.bat" :wear:assembleRelease --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

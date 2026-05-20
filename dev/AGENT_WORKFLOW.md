@@ -81,3 +81,60 @@ Full build logs, grep dumps, and verbose command output are NOT written into the
 At the start of every new session, rename the current `logs/dev_progress.log` to `logs/dev_progress_<YYYYMMDD_HHMMSS>.log` (timestamp = session start time), then create a fresh `logs/dev_progress.log` with the new session-start marker. This keeps each session independently readable and the active file short.
 
 Rotated files are kept in `logs/` alongside timestamped logcat files. No automatic purge - manual cleanup only.
+
+---
+
+## Agent Continuity Layer (S0268)
+
+The continuity layer is composed of five independent PowerShell utilities under `scripts/agent_continuity/`. Each one runs in isolation (ADR-4) and may be invoked alone; together they cover bootstrap, resume, request logging, request digest, and dirty-tree classification. Tactical decisions for every research item (§6.1..§6.6) are recorded in `scripts/agent_continuity/README.md`; consult that file when behaviour seems ambiguous.
+
+### Bootstrap packet
+
+Invoke at the start of any significant session.
+
+```
+pwsh -NoProfile -File scripts/agent_continuity/start-packet.ps1 [-Ticket S####]
+```
+
+Prints seven blocks: `## branch`, `## dirty-tree`, `## active-ticket`, `## modules`, `## prompt-routing`, `## docs-vs-gradle`, `## ux-volatility`. Output is fact-only; routing decisions stay with the agent.
+
+### Resume layer
+
+Invoke `session-snapshot.ps1` at every phase boundary (and at task end), `session-resume.ps1` at session start when continuing prior work.
+
+```
+pwsh -NoProfile -File scripts/agent_continuity/session-snapshot.ps1 -Goal "<title>" [-Ticket S####] [-FilesTouched @(...)] [-Decisions ...] [-Blockers ...] [-NextStep ...] [-Agent <id>]
+pwsh -NoProfile -File scripts/agent_continuity/session-resume.ps1 [-Agent <id>]
+```
+
+Snapshots land at `temp/sessions/<yyyyMMddHHmmss>_<agent>_state.md` with six sections: `## goal`, `## ticket`, `## files-touched`, `## decisions`, `## blockers`, `## next-step`. Reader prints the most recent snapshot or `NO-SNAPSHOT` when none exists.
+
+### Request logger
+
+Invoke at the end of a significant session (or at every phase boundary inside `/spec-dev`).
+
+```
+pwsh -NoProfile -File scripts/agent_continuity/request-log.ps1 -Request "<text>" [-Route /...] [-Module app_v2|wear] [-Flavor ...] [-Ticket S####] [-FilesTouched @(...)] [-ValidationKind ...] [-ValidationExit <int>] [-InterruptionMarker ...] [-Outcome done|partial|aborted|escalated]
+```
+
+Appends one JSONL line to `dev/agent-continuity/requests.jsonl` (gitignored) with eleven keys: `ts`, `request`, `route`, `module`, `flavor`, `ticket`, `files_touched`, `validation_kind`, `validation_exit`, `interruption_marker`, `outcome`.
+
+### Request digest
+
+Invoke on demand for periodic review or audit.
+
+```
+pwsh -NoProfile -File scripts/agent_continuity/request-digest.ps1 [-Window 30]
+```
+
+Prints `# Request Digest` header plus five sections: `## top-routes`, `## top-modules`, `## validation-cost`, `## interruptions`, `## ux-volatility`. Tolerates an absent request log and falls back to `dev/FUNCTIONALITY.log` plus recent `PLAN/S*.md` modification times.
+
+### Dirty-tree guard
+
+Invoke before editing `CLAUDE.md`, `AGENTS.md`, `app_v2/build.gradle.kts`, or any other shared-infrastructure file when working on a non-empty branch.
+
+```
+pwsh -NoProfile -File scripts/agent_continuity/dirty-tree-guard.ps1 -Paths @("path1","path2",...) [-ExtraHighRiskPaths @(...)]
+```
+
+Prints one of four categories: `clean`, `same area`, `same file`, `high-risk overlap`. The guard never blocks - it informs and the agent owns the decision.

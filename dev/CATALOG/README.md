@@ -116,9 +116,18 @@ for cleaning up wrongly-added manual entries.
 
 ## When to use the catalogue
 
-**Before planning or analysing code:** query the catalogue first. It's faster
-than grepping 755 files and already carries semantic context (role, status,
-side effects, DI graph).
+**Semantic lookup:** use `query.ps1` first when the question is about role,
+ownership, DI wiring, side effects, size, or feature boundaries. It is faster
+than grepping the whole repo and already carries semantic context (role,
+status, side effects, DI graph).
+
+**Exact-match lookup:** for a known class/file/token name, read
+`app_v2.jsonl` or `wear.jsonl` directly, or use `rg` if the target is not a
+catalogued Kotlin symbol. Keep this path narrow and deterministic.
+
+**Read/write rule:** direct `.jsonl` reads are allowed for narrow lookup, but
+writes remain script-only through `scan.ps1`, `set.ps1`, and `remove.ps1`.
+Never hand-edit catalogue records.
 
 **After changes to any file's public API:** re-run `scan.ps1` for the module.
 New records start with empty `role`/`status`; fill them with `set.ps1`.

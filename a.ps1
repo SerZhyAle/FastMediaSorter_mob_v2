@@ -19,6 +19,7 @@
     s    - Setup Test Media
     bp   - Build and Push All
     ss   - Show unresolved specs (alias: sca-specs)
+    bf   - Show last build failure block
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
 .EXAMPLE
@@ -63,79 +64,9 @@ $scripts = @{
     'bp'        = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @{} }
     'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
     'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
+    'bf'        = @{ Path = 'scripts\builders\get-last-build-failure.ps1'; Args = @{} }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
-}
-
-function Set-ChaquopyLocalState {
-    param(
-        [Parameter(Mandatory = $true)]
-        [bool]$Enabled
-    )
-
-    $localPropertiesPath = Join-Path $ProjectRoot 'local.properties'
-    if (-not (Test-Path $localPropertiesPath)) {
-        Write-Host "Warning: local.properties not found, skipping Chaquopy toggle." -ForegroundColor Yellow
-        return
-    }
-
-    $desiredLine = if ($Enabled) { 'chaquopy.enabled=true' } else { '# chaquopy.enabled=true' }
-    $lines = Get-Content -Path $localPropertiesPath
-    $updatedLines = New-Object System.Collections.Generic.List[string]
-    $foundChaquopyLine = $false
-
-    foreach ($line in $lines) {
-        if ($line -match '^[ \t]*#?[ \t]*chaquopy\.enabled\s*=.*$') {
-            if (-not $foundChaquopyLine) {
-                $updatedLines.Add($desiredLine)
-                $foundChaquopyLine = $true
-            }
-            continue
-        }
-
-        $updatedLines.Add($line)
-    }
-
-    if (-not $foundChaquopyLine) {
-        if (-not $Enabled) {
-            return
-        }
-
-        if ($updatedLines.Count -gt 0 -and $updatedLines[$updatedLines.Count - 1] -ne '') {
-            $updatedLines.Add('')
-        }
-
-        $updatedLines.Add('# S0174: Enable Chaquopy Python plugin for noLegal flavor builds.')
-        $updatedLines.Add('# Required whenever :app_v2:compileNoLegal* tasks are in scope (IDE sync, assembleNoLegal*).')
-        $updatedLines.Add('# Without this, com.chaquo.python.* is not on the classpath and noLegal fails to compile.')
-        $updatedLines.Add($desiredLine)
-    }
-
-    $currentContent = Get-Content -Path $localPropertiesPath -Raw
-    $updatedContent = ($updatedLines -join [Environment]::NewLine)
-    if ($updatedContent -ne $currentContent.TrimEnd("`r", "`n")) {
-        $writeError = $null
-        for ($attempt = 1; $attempt -le 5; $attempt++) {
-            try {
-                # Android Studio / Gradle can briefly probe local.properties, so tolerate
-                # a short transient lock instead of failing the launcher immediately.
-                Set-Content -Path $localPropertiesPath -Value $updatedContent -Encoding utf8NoBOM
-                $writeError = $null
-                break
-            }
-            catch {
-                $writeError = $_
-                [System.Threading.Thread]::Sleep(200)
-            }
-        }
-
-        if ($null -ne $writeError) {
-            throw $writeError
-        }
-
-        $stateLabel = if ($Enabled) { 'ON' } else { 'OFF' }
-        Write-Host "Chaquopy local toggle: $stateLabel" -ForegroundColor DarkGray
-    }
 }
 
 # Validate command
@@ -159,32 +90,13 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  b    - Build and Push All (same as bp)" -ForegroundColor Cyan
     Write-Host "  bp   - Build and Push All" -ForegroundColor Cyan
     Write-Host "  ss   - Show unresolved specs (alias: sca-specs)" -ForegroundColor Cyan
+    Write-Host "  bf   - Show last build failure block" -ForegroundColor Cyan
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray
     exit 1
-}
-
-# Keep local.properties aligned with the launcher command so IDE sync and manual builds
-# follow the same noLegal-vs-non-noLegal Chaquopy state between invocations.
-$chaquopyLocalState = switch ($Command) {
-    'nd' { $true }
-    'nl' { $true }
-    'd' { $false }
-    'db' { $false }
-    'bd' { $false }
-    'dq' { $false }
-    'dc' { $false }
-    'cd' { $false }
-    'cdb' { $false }
-    'r' { $false }
-    default { $null }
-}
-
-if ($null -ne $chaquopyLocalState) {
-    Set-ChaquopyLocalState -Enabled $chaquopyLocalState
 }
 
 # Get script path

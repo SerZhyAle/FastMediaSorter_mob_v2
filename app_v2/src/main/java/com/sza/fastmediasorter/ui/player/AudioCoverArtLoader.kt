@@ -76,6 +76,23 @@ class AudioCoverArtLoader(
     }
 
     /**
+     * Keep a visible fallback in the ImageView while an async cover request is in flight.
+     * Without this, the empty-state animation may hide first and leave the player visually blank
+     * until Glide resolves or fails the request.
+     */
+    private fun prepareCoverTarget(reason: String) {
+        audioEmptyStateController?.hide()
+        binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+        binding.audioCoverArtView.isVisible = true
+        Timber.d(
+            "AudioCoverArtLoader.prepareCoverTarget: reason=%s visible=%s drawable=%s",
+            reason,
+            binding.audioCoverArtView.isVisible,
+            binding.audioCoverArtView.drawable != null
+        )
+    }
+
+    /**
      * Load audio cover art. Skips redundant reload if the same file is already visible
      * (ExoPlayer re-fires STATE_READY after every seek).
      */
@@ -219,12 +236,11 @@ class AudioCoverArtLoader(
                         if (cached != null) {
                             Timber.d("loadAudioCoverArt[$callId]: LOCAL CACHE hit for ${file.name}")
                             if (cached.coverFile != null) {
-                                audioEmptyStateController?.hide()
+                                prepareCoverTarget("local-cache-file")
                                 Glide.with(binding.audioCoverArtView.context).load(cached.coverFile)
                                     .error(R.drawable.ic_music_note)
                                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                                     .into(binding.audioCoverArtView)
-                                binding.audioCoverArtView.isVisible = true
                                 coverArtDisplayedForPath = file.path
                                 callback.onAudioMetadataLoaded(AudioMetadata(cached.trackName, cached.artistName, cached.albumName, cached.releaseYear, cached.coverArtUrl), file.path)
                                 return@withContext
@@ -236,8 +252,7 @@ class AudioCoverArtLoader(
                                         ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                                     return@withContext
                                 }
-                                audioEmptyStateController?.hide()
-                                binding.audioCoverArtView.isVisible = true
+                                prepareCoverTarget("local-cache-url")
                                 Glide.with(binding.audioCoverArtView.context).load(cached.coverArtUrl)
                                     .error(R.drawable.ic_music_note)
                                     .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -272,8 +287,7 @@ class AudioCoverArtLoader(
                                 } catch (e: Exception) { Timber.d(e, "AudioMetadataCache: save failed for %s", file.name) }
                             }
                             Timber.d("loadAudioCoverArt[$callId]: ONLINE cover found: $coverUrl")
-                            audioEmptyStateController?.hide()
-                            binding.audioCoverArtView.isVisible = true
+                            prepareCoverTarget("local-online-url")
                             val capturedMode = settings.audioEmptyStateMode
                             val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
                                 .error(R.drawable.ic_music_note)
@@ -292,6 +306,11 @@ class AudioCoverArtLoader(
                                     return true
                                 }
                                 override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                                    Timber.d(
+                                        "loadAudioCoverArt[$callId]: onResourceReady source=$dataSource visibleBefore=%s drawableBefore=%s",
+                                        binding.audioCoverArtView.isVisible,
+                                        binding.audioCoverArtView.drawable != null
+                                    )
                                     if (currentFilePathProvider() != file.path) {
                                         Timber.d("AudioCoverArtLoader: stale cover bitmap for ${file.name} (current=${currentFilePathProvider()}) - dropped")
                                         return false
@@ -336,17 +355,15 @@ class AudioCoverArtLoader(
                     Timber.d("searchOnlineAndDisplayCover[$callId]: LOCAL CACHE hit for ${file.name}")
                     withContext(Dispatchers.Main) {
                         if (cached.coverFile != null) {
-                            audioEmptyStateController?.hide()
+                            prepareCoverTarget("network-cache-file")
                             Glide.with(binding.audioCoverArtView.context).load(cached.coverFile)
                                 .error(R.drawable.ic_music_note).diskCacheStrategy(DiskCacheStrategy.NONE).into(binding.audioCoverArtView)
-                            binding.audioCoverArtView.isVisible = true
                             coverArtDisplayedForPath = file.path
                             callback.onAudioMetadataLoaded(AudioMetadata(cached.trackName, cached.artistName, cached.albumName, cached.releaseYear, cached.coverArtUrl), file.path)
                             return@withContext
                         }
                         if (cached.coverArtUrl != null) {
-                            audioEmptyStateController?.hide()
-                            binding.audioCoverArtView.isVisible = true
+                            prepareCoverTarget("network-cache-url")
                             Glide.with(binding.audioCoverArtView.context).load(cached.coverArtUrl)
                                 .error(R.drawable.ic_music_note).diskCacheStrategy(DiskCacheStrategy.ALL).into(binding.audioCoverArtView)
                             coverArtDisplayedForPath = file.path
@@ -380,8 +397,7 @@ class AudioCoverArtLoader(
                             } catch (e: Exception) { Timber.d(e, "AudioMetadataCache: save failed for %s", file.name) }
                         }
                         Timber.d("searchOnlineAndDisplayCover[$callId]: Found URL: $coverUrl")
-                        audioEmptyStateController?.hide()
-                        binding.audioCoverArtView.isVisible = true
+                        prepareCoverTarget("network-online-url")
                         val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
                             .error(R.drawable.ic_music_note)
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -399,7 +415,11 @@ class AudioCoverArtLoader(
                                 return true
                             }
                             override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
-                                Timber.d("searchOnlineAndDisplayCover[$callId]: Glide loaded from $dataSource")
+                                Timber.d(
+                                    "searchOnlineAndDisplayCover[$callId]: Glide loaded from $dataSource visibleBefore=%s drawableBefore=%s",
+                                    binding.audioCoverArtView.isVisible,
+                                    binding.audioCoverArtView.drawable != null
+                                )
                                 if (currentFilePathProvider() != file.path) {
                                     Timber.d("AudioCoverArtLoader: stale cover bitmap for ${file.name} (current=${currentFilePathProvider()}) - dropped")
                                     return false

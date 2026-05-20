@@ -46,6 +46,7 @@ Do not search the codebase unless the user's question requires it. The reference
 |------|---------|
 | Standard debug + version bump + deploy to device | `.\dev\build-with-version.ps1` |
 | Fast debug (no version bump) | `.\build-debug.PS1` |
+| Inspect the last saved build failure | `.\a.ps1 bf` |
 | Specific flavor debug | `.\gradlew.bat assemble<Flavor>Debug` |
 | Device build (build + adb install + launch) | `.\scripts\builders\build-standard-device.ps1` |
 | Release APK | `.\scripts\builders\build-standard-release.ps1` |
@@ -149,6 +150,8 @@ app_v2/build/outputs/apk/standard/release/
 ---
 
 ### Device & Log Scripts
+
+If a build command returns non-zero, run `.\a.ps1 bf` before manually tailing the log. Do not use `tail -N` or `Select-Object -Last N` as the primary failure diagnostic path.
 
 ```powershell
 # Install release APK manually via ADB

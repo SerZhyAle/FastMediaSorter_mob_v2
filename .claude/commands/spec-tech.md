@@ -11,7 +11,9 @@ Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imp
 /spec-tech <Sxxxx-or-slug> --dry-run
 ```
 
-**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding (the spec was just written - manual approval gate adds no value). Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort - they require explicit resolution.
+**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding. Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort - they require explicit resolution.
+
+The auto-promote runs through `update.ps1`, which fires the Owner-Inputs gate (`scripts/spec_catalog/check-owner-inputs.ps1`). If the strategic spec lacks §3.3 or any bullet inside it is a placeholder, the gate blocks the promotion - abort with the gate's exact error and ask the operator to fix §3.3 (the agent must not invent or backfill `n/a` lines just to pass). The gate is relevance-driven: only the bullets `/spec` step 5.1 emitted are validated, and `Related tickets` is the only universally-required field.
 
 The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 
