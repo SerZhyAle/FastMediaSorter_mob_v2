@@ -64,7 +64,6 @@ class BrowseTextNoteCreateManager(
      * Runs on [ioDispatcher]; success/error and open-notification run on Main.
      */
     fun createTextNote(name: String) {
-        Timber.d("S0189: BrowseTextNoteCreateManager.createTextNote")
         scope.launch(ioDispatcher) {
             val resource = stateFlow.value.resource ?: return@launch
             val currentPath = stateFlow.value.currentPath ?: resource.path

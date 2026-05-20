@@ -181,7 +181,6 @@ class SettingsViewModel @Inject constructor(
         updateSettings(
             current.copy(
                 language = defaults.language,
-                preventSleep = defaults.preventSleep,
                 showSmallControls = defaults.showSmallControls,
                 defaultUser = defaults.defaultUser,
                 defaultPassword = defaults.defaultPassword,
@@ -248,6 +247,7 @@ class SettingsViewModel @Inject constructor(
         val current = settings.value
         updateSettings(
             current.copy(
+                preventSleep = defaults.preventSleep,
                 defaultSortMode = defaults.defaultSortMode,
                 slideshowInterval = defaults.slideshowInterval,
                 slideshowMusicUri = defaults.slideshowMusicUri,
@@ -268,7 +268,8 @@ class SettingsViewModel @Inject constructor(
                 showPlayerHintOnFirstRun = defaults.showPlayerHintOnFirstRun,
                 alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay,
                 isResourceGridMode = defaults.isResourceGridMode,
-                showBlackScreenButton = defaults.showBlackScreenButton
+                showBlackScreenButton = defaults.showBlackScreenButton,
+                defaultRememberFileList = defaults.defaultRememberFileList
             )
         )
         // Also reset per-type touch zone hints

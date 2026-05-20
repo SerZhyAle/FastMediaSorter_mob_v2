@@ -3,15 +3,12 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.android.legacy-kapt")
     id("com.google.dagger.hilt.android")
     id("androidx.navigation.safeargs.kotlin")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// android.newDsl=false is intentionally set in gradle.properties (kapt compat).
-// Remove once kapt → KSP migration is complete.
 android {
     val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
@@ -40,8 +37,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260519231
-        versionName = "2.60.5192.313"
+        versionCode = 260520124
+        versionName = "2.60.5201.241"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -368,42 +365,42 @@ android {
     // expose pseudo-flavor inheritance, so each flavor explicitly maps to one of the two.
     sourceSets {
         getByName("standard") {
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
             // S0250 / S0245 wiring closure: NoOp XR Hilt bindings live in src/vrStub/java.
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
-            java.directories.add("src/vrStub/java")
+            kotlin.directories.add("src/vrStub/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
             // S0250: noLegal owns the sideload VR-capable surface (replaces vrUnlicensed).
             // Mount vr source set so VrPlayerActivity, OpenXR bridge, and XR Hilt bindings
             // are available.
-            java.directories.add("src/vr/java")
+            kotlin.directories.add("src/vr/java")
             res.directories.add("src/vr/res")
             manifest.srcFile("src/vr/AndroidManifest.xml")
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
         }
         getByName("legacy") {
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
-            java.directories.add("src/vrStub/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/vrStub/java")
         }
         getByName("vr") {
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
         }
         getByName("photos") {
-            java.directories.add("src/streamingDisabled/java")
-            java.directories.add("src/cloudEnabled/java")
-            java.directories.add("src/vrStub/java")
+            kotlin.directories.add("src/streamingDisabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/vrStub/java")
         }
         getByName("lite") {
-            java.directories.add("src/streamingDisabled/java")
-            java.directories.add("src/cloudDisabled/java")
-            java.directories.add("src/vrStub/java")
+            kotlin.directories.add("src/streamingDisabled/java")
+            kotlin.directories.add("src/cloudDisabled/java")
+            kotlin.directories.add("src/vrStub/java")
         }
     }
 
@@ -723,10 +720,10 @@ if (isNoLegalBuild) {
 }
 
 
-// Replaces the deprecated android { kotlinOptions { jvmTarget } } block
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+// Built-in Kotlin inherits compileOptions.targetCompatibility by default.
+kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
@@ -787,8 +784,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
     
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
+    implementation("com.google.dagger:hilt-android:2.59")
+    kapt("com.google.dagger:hilt-android-compiler:2.59")
     
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
@@ -969,7 +966,7 @@ dependencies {
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
 }
 
 // TEMPORARILY DISABLED: BouncyCastle resolutionStrategy (was needed for PDFBox)

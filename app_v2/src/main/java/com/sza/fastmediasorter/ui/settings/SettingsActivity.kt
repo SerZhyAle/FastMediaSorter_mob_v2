@@ -101,7 +101,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             )
         }
     }
-    
+
+    override fun shouldEnableEdgeToEdge(): Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Measure actionBarSize and register insets listener before the first frame
@@ -109,7 +111,14 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         val tv = TypedValue()
         theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)
         actionBarSizePx = TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
-        applyEdgeToEdgeInsets()
+        // Apply insets handling whenever the system draws content edge-to-edge:
+        // either we opted in explicitly, or Android 15+ (API 35) forces it for
+        // targetSdk 35 regardless of enableEdgeToEdge(). Without this, the toolbar
+        // title slides under the status bar on Android 15+ (observed on Samsung S25FE).
+        if (shouldEnableEdgeToEdge() ||
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            applyEdgeToEdgeInsets()
+        }
     }
 
     override fun getViewBinding(): ActivitySettingsBinding {
@@ -290,6 +299,13 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         if (keyboardManager.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)
     }
+
+    /**
+     * On TV/keyboard-only devices, hand initial focus to the active tab content rather than the
+     * toolbar. ViewPager2 forwards the focus request to the currently-bound fragment's first
+     * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
+     */
+    override fun getInitialFocusView(): View? = binding.viewPager
 
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)

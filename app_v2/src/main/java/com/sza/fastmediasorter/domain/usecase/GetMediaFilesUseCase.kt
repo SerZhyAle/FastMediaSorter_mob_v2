@@ -293,7 +293,6 @@ class GetMediaFilesUseCase @Inject constructor(
                         }
                         StructuredLogger.d("Progressive: emitting listing-only PENDING batch", "count" to tagged.size)
                         StructuredLogger.i("listing_complete", "resource" to resource.id, "count" to tagged.size)
-                        Timber.d("S0248: PENDING batch emit count=${tagged.size} resource=${resource.id}")
                         emit(tagged)
                     } else {
                         StructuredLogger.d("Progressive: folder empty, skipping early emit")

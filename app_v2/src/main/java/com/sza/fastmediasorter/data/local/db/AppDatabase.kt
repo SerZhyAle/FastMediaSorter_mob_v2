@@ -712,7 +712,6 @@ abstract class AppDatabase : RoomDatabase() {
                             "ADD COLUMN metadataState TEXT NOT NULL DEFAULT 'COMPLETE'"
                     )
                 }
-                Timber.d("S0248: Room migration 30->31 applied (file_metadata_cache.metadataState column)")
             }
         }
 

@@ -139,6 +139,10 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
             binding.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
         )
         binding.btnSetDefaultImageViewer.setOnClickListener {
+            val current = viewModel.settings.value
+            if (!current.isPrimaryMediaPlayer) {
+                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "image/*")
         }
     }

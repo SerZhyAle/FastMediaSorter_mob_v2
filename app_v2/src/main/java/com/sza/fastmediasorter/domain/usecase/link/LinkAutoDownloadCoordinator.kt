@@ -35,6 +35,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val sessionContext: LinkDownloadSessionContext,
     private val cookieStore: EncryptedCookieStore,
     private val urlCanonicalizer: LinkUrlCanonicalizer,
+    private val contract: YtMusicAudioOnlyContract,
 ) {
 
     // S0176: resolves the stored host whose cookies should be applied to the current run.
@@ -160,7 +161,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         val appliedSessionHost =
             if (host.isNotBlank()) applySessionContext(host, accountId, canonical.audioOnly) else null
         val result = try {
-            handleUrl(url = canonical.url, settings = settings, callbacks = callbacks, accountId = accountId)
+            handleUrl(
+                url = canonical.url,
+                settings = settings,
+                callbacks = callbacks,
+                accountId = accountId,
+                originalUrl = url,
+                canonicalAudioOnly = canonical.audioOnly,
+            )
         } finally {
             sessionContext.clear()
         }
@@ -206,6 +214,8 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         settings: AppSettings,
         callbacks: Callbacks,
         accountId: String? = null,
+        originalUrl: String = url,
+        canonicalAudioOnly: Boolean = false,
     ): Result {
         unsupportedContentFailure(url)?.let { unsupported ->
             Timber.i("S0225: rejected unsupported YouTube community post in batch/direct path url=%s", url.take(120))
@@ -265,7 +275,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 openedStream = opened
                                 break
                             }
-                            is OpenResult.Streaming -> return runStreaming(opened, settings, callbacks)
+                            is OpenResult.Streaming -> {
+                                return runStreaming(opened, settings, callbacks, originalUrl, canonicalAudioOnly)
+                            }
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.SocialPreviewOnly -> {
                                 Timber.i(
@@ -337,7 +349,13 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 )
                 return Result.Failed.NoMediaFound
             }
-            return writeStreamResult(stream = stream, settings = settings, callbacks = callbacks)
+            return writeStreamResult(
+                stream = stream,
+                settings = settings,
+                callbacks = callbacks,
+                originalUrl = originalUrl,
+                canonicalAudioOnly = canonicalAudioOnly,
+            )
         } finally {
             openedStream?.close?.invoke()
         }
@@ -347,7 +365,18 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         stream: OpenResult.Stream,
         settings: AppSettings,
         callbacks: Callbacks,
+        originalUrl: String,
+        canonicalAudioOnly: Boolean,
     ): Result {
+        // Validate before persistence because resource-backed saves do not always expose
+        // a deletable Uri after the file is written.
+        enforceYtMusicAudioOnlyContract(
+            originalUrl = originalUrl,
+            canonicalAudioOnly = canonicalAudioOnly,
+            resultMime = stream.mime,
+            resultFileName = stream.fileName,
+        )?.let { return it }
+
         val writeResult = writer.writeFromStream(
             stream = stream.body,
             mime = stream.mime,
@@ -529,6 +558,8 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         streaming: OpenResult.Streaming,
         settings: AppSettings,
         callbacks: Callbacks,
+        originalUrl: String,
+        canonicalAudioOnly: Boolean,
     ): Result {
         val quality = MediaQualityPreference.fromSettings(
             maxResolution = settings.linkDownloadMaxResolution,
@@ -545,6 +576,13 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             is PipelineOutcome.Success -> {
                 val input = FileInputStream(outcome.file)
                 try {
+                    enforceYtMusicAudioOnlyContract(
+                        originalUrl = originalUrl,
+                        canonicalAudioOnly = canonicalAudioOnly,
+                        resultMime = outcome.mime,
+                        resultFileName = streaming.tentativeFileName,
+                    )?.let { return it }
+
                     val writeResult = writer.writeFromStream(
                         stream = input,
                         mime = outcome.mime,
@@ -592,6 +630,29 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             PipelineOutcome.Disabled -> Result.Failed.StreamingDisabled
             is PipelineOutcome.MuxFailed -> Result.Failed.MuxFailed(codec = outcome.codec)
             is PipelineOutcome.NetworkError -> mapIoError(outcome.cause)
+        }
+    }
+
+    private fun enforceYtMusicAudioOnlyContract(
+        originalUrl: String,
+        canonicalAudioOnly: Boolean,
+        resultMime: String?,
+        resultFileName: String?,
+    ): Result? {
+        return when (val outcome = contract.validate(originalUrl, canonicalAudioOnly, resultMime, resultFileName)) {
+            YtMusicAudioOnlyContract.ValidationOutcome.Accept -> {
+                Timber.i("S0260: contract outcome=Accept reason=%s", "none")
+                null
+            }
+            is YtMusicAudioOnlyContract.ValidationOutcome.Reject -> {
+                Timber.i("S0260: contract outcome=Reject reason=%s", outcome.reasonCode)
+                if (outcome.fallbackAllowed) {
+                    Timber.w("S0260: contract fallback permitted reason=%s", outcome.reasonCode)
+                    null
+                } else {
+                    Result.Failed.Other(IllegalStateException(YtMusicAudioOnlyContract.USER_FACING_ERROR_KEY))
+                }
+            }
         }
     }
 

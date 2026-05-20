@@ -11,8 +11,8 @@ import org.robolectric.annotation.Config
 /**
  * Unit tests for [LocalDestinationClassifier].
  *
- * Pure path arithmetic + `MimeTypeMap` - Robolectric is sufficient to back
- * `Environment.getExternalStorageDirectory()` and the MIME map.
+ * Pure path arithmetic + extension-based MIME resolution - Robolectric is
+ * sufficient to back `Environment.getExternalStorageDirectory()`.
  *
  * See spec S0231 §6.1 (public collection boundary) and §6.3 (MIME).
  */
@@ -61,6 +61,32 @@ class LocalDestinationClassifierTest {
         assertEquals(LocalDestinationCategory.PublicCollection.Kind.DOWNLOADS, pub.collection)
         assertEquals("Download/", pub.relativePath)
         assertEquals("application/pdf", pub.mimeType)
+    }
+
+    @Test
+    @Config(sdk = [28])
+    fun `pre-q download root does not crash when matching public collections`() {
+        val path = "$externalRoot/Download/doc.pdf"
+
+        val result = classifier.classify(path)
+
+        assertTrue(result is LocalDestinationCategory.PublicCollection)
+        val pub = result as LocalDestinationCategory.PublicCollection
+        assertEquals(LocalDestinationCategory.PublicCollection.Kind.DOWNLOADS, pub.collection)
+        assertEquals("Download/", pub.relativePath)
+    }
+
+    @Test
+    @Config(sdk = [28])
+    fun `pre-q audiobooks root still maps to AUDIO public collection`() {
+        val path = "$externalRoot/Audiobooks/book.mp3"
+
+        val result = classifier.classify(path)
+
+        assertTrue(result is LocalDestinationCategory.PublicCollection)
+        val pub = result as LocalDestinationCategory.PublicCollection
+        assertEquals(LocalDestinationCategory.PublicCollection.Kind.AUDIO, pub.collection)
+        assertEquals("Audiobooks/", pub.relativePath)
     }
 
     @Test

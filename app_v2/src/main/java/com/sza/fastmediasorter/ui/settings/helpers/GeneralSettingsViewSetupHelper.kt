@@ -71,13 +71,14 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupSwitches() {
-        binding.rowPreventSleep.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(preventSleep = isChecked))
-        }
         binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableFavorites = isChecked))
+        }
+        // S0028: Multi-window toggle. Relocated from VideoSettings to General → Interface (bottom of section).
+        binding.rowAllowSeparateWindow.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(allowSeparateWindow = isChecked))
         }
         binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
@@ -142,10 +143,6 @@ class GeneralSettingsViewSetupHelper(
         binding.rowShowSubfoldersAsItems.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showSubfoldersAsItems = isChecked))
-        }
-        binding.rowDefaultRememberFileList.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(defaultRememberFileList = isChecked))
         }
     }
 

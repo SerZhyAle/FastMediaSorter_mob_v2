@@ -310,6 +310,12 @@ class VideoPlayerManager(
         Timber.d("VideoPlayerManager: vrImmersiveActive=$active - re-applying video effects")
         // Re-apply on the main thread to honour the toggle for the currently-loaded media.
         applyConfiguredVideoEffects()
+        // S0264: immersive transition flips panel single-eye crop on/off; sync TextureView matrix.
+        com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
+            playerView = currentPlayerView,
+            mode = stereoVideoProcessor.getCurrentMode(),
+            singleEyeEnabled = panelStereoSingleEyeEnabled && !vrImmersiveActive,
+        )
     }
 
     init {
@@ -320,6 +326,12 @@ class VideoPlayerManager(
                 panelStereoSingleEyeEnabled = enabled
                 Timber.d("VideoPlayerManager: panelStereoSingleEye=$enabled - re-applying video effects")
                 applyConfiguredVideoEffects()
+                // S0264: user toggled single-eye crop on/off mid-playback — push the matrix.
+                com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
+                    playerView = currentPlayerView,
+                    mode = stereoVideoProcessor.getCurrentMode(),
+                    singleEyeEnabled = enabled && !vrImmersiveActive,
+                )
             }
             .launchIn(managerScope)
     }
@@ -641,6 +653,15 @@ class VideoPlayerManager(
                     pendingEffectsApply = false
                     applyConfiguredVideoEffects()
                 }
+                // S0264: reapply single-eye TextureView matrix now that the surface is
+                // sized to the new media. Without this, the crop set in applyStereoEffect
+                // before the first decoded frame would be reset by PlayerView's own
+                // applyTextureViewRotation on layout.
+                com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
+                    playerView = currentPlayerView,
+                    mode = stereoVideoProcessor.getCurrentMode(),
+                    singleEyeEnabled = panelStereoSingleEyeEnabled && !vrImmersiveActive,
+                )
             }
         }
     }
@@ -708,6 +729,9 @@ class VideoPlayerManager(
         playerCallback.onBeforeVideoLoad(path)
         // Reset the panel single-eye toast one-shot for the new media session.
         panelStereoSingleEyeNotifier.resetForNewSession()
+        // S0264: reset TextureView crop matrix so a leftover transform from the previous
+        // SBS/OU file doesn't corrupt the first frames of a new MONO file.
+        com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.reset(currentPlayerView)
         val scenarioTag = scenarioTagFor(path)
         val playbackScenario = if (scenarioTag == "audio") {
             MemoryScenario.AUDIO_PLAYBACK

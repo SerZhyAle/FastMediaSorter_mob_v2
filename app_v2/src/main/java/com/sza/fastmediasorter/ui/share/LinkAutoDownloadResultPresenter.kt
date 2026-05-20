@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
+import com.sza.fastmediasorter.domain.usecase.link.YtMusicAudioOnlyContract
 import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -102,7 +103,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                     toast(R.string.s0116_toast_auth_required, result.host)
                 }
             }
-            is LinkAutoDownloadCoordinator.Result.Failed.Other -> toast(R.string.receive_share_cache_failed)
+            is LinkAutoDownloadCoordinator.Result.Failed.Other -> toast(resolveOtherFailureString(result.cause))
         }
     }
 
@@ -263,7 +264,14 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired ->
                 appContext.getString(R.string.s0116_toast_auth_required, failure.host)
             is LinkAutoDownloadCoordinator.Result.Failed.Other ->
-                appContext.getString(R.string.receive_share_cache_failed)
+                appContext.getString(resolveOtherFailureString(failure.cause))
+        }
+    }
+
+    private fun resolveOtherFailureString(cause: Throwable): Int {
+        return when (cause.message) {
+            YtMusicAudioOnlyContract.USER_FACING_ERROR_KEY -> R.string.link_download_error_ytmusic_audio_only
+            else -> R.string.receive_share_cache_failed
         }
     }
 

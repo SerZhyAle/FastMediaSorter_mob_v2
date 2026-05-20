@@ -69,6 +69,13 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
+        // Prevent Sleep — moved from General > Network & Cache to Playback > Behaviour.
+        binding.rowPreventSleep.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(preventSleep = isChecked))
+        }
+
         binding.rowControlsKeybindings.setOnClickListener {
             com.sza.fastmediasorter.ui.settings.SettingsActivity.openKeybindingRemap(requireContext())
         }
@@ -121,6 +128,18 @@ class PlaybackSettingsFragment : Fragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(playToEndInSlideshow = isChecked))
+        }
+
+        binding.rowDefaultGridMode.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
+        }
+
+        binding.rowFileOpsInOverflowMenu.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
 
         binding.rowAllowRename.setOnCheckedChangeListener { isChecked ->
@@ -261,6 +280,12 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
         }
 
+        binding.rowDefaultRememberFileList.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
+        }
+
         binding.btnResetPlaybackSection.setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.reset_playback_section_title)
@@ -309,6 +334,10 @@ class PlaybackSettingsFragment : Fragment() {
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
+                    // Prevent Sleep (relocated from General)
+                    if (binding.rowPreventSleep.isChecked != settings.preventSleep) {
+                        binding.rowPreventSleep.setCheckedSilently(settings.preventSleep)
+                    }
                     // Sort mode
                     binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
 
@@ -321,6 +350,12 @@ class PlaybackSettingsFragment : Fragment() {
                     // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
                     if (binding.rowPlayToEnd.isChecked != settings.playToEndInSlideshow) {
                         binding.rowPlayToEnd.setCheckedSilently(settings.playToEndInSlideshow)
+                    }
+                    if (binding.rowDefaultGridMode.isChecked != settings.defaultGridMode) {
+                        binding.rowDefaultGridMode.setCheckedSilently(settings.defaultGridMode)
+                    }
+                    if (binding.rowFileOpsInOverflowMenu.isChecked != settings.fileOpsInOverflowMenu) {
+                        binding.rowFileOpsInOverflowMenu.setCheckedSilently(settings.fileOpsInOverflowMenu)
                     }
                     if (binding.rowAllowRename.isChecked != settings.allowRename) {
                         binding.rowAllowRename.setCheckedSilently(settings.allowRename)
@@ -399,6 +434,9 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
                         binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
+                    }
+                    if (binding.rowDefaultRememberFileList.isChecked != settings.defaultRememberFileList) {
+                        binding.rowDefaultRememberFileList.setCheckedSilently(settings.defaultRememberFileList)
                     }
 
                     isUpdatingFromSettings = false

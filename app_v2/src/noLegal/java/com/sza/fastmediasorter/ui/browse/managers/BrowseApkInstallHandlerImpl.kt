@@ -12,9 +12,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaFile
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.lang.ref.WeakReference
@@ -28,19 +32,22 @@ import javax.inject.Singleton
  * Silent install via session API is forbidden - S0183 §3, S0156 ADR-4.
  *
  * S0183: APK install from Browse (noLegal only).
+ * S0266: cloud APK paths are downloaded into the cache directory under their real `.apk` name
+ *        before the system installer is invoked - no FileOperationProgressDialog, only a Toast.
  */
 @Singleton
 class BrowseApkInstallHandlerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val cloudFileOperationHandler: CloudFileOperationHandler,
 ) : BrowseBinaryFileMenuAction {
 
     // ActivityResultLaunchers - re-registered on each Activity.onCreate via registerLaunchers().
     private var installLauncher: ActivityResultLauncher<Intent>? = null
     private var settingsLauncher: ActivityResultLauncher<Intent>? = null
 
-    // Weak reference to the current Activity - used for UI (AlertDialog, Toast) only.
+    // Weak reference to the current Activity - used for UI (AlertDialog, Toast, lifecycleScope) only.
     // ApplicationContext is used for PackageManager and FileProvider.
-    private var activityRef: WeakReference<Activity> = WeakReference(null)
+    private var activityRef: WeakReference<ComponentActivity> = WeakReference(null)
 
     // File waiting for permission grant from Settings.
     private var pendingFile: MediaFile? = null
@@ -120,9 +127,56 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
     }
 
     private fun triggerInstall(file: MediaFile) {
+        // S0266: cloud sources need a real local file before PackageInstaller can run.
+        if (file.path.startsWith("cloud://")) {
+            downloadAndInstallFromCloud(file)
+        } else {
+            launchSystemInstaller(File(file.path), file.name)
+        }
+    }
+
+    /**
+     * S0266: noLegal-only cloud APK install. Downloads the APK silently into cacheDir under its
+     * real `.apk` name and immediately invokes the system installer. Single Toast at start, no
+     * FileOperationProgressDialog. Operations occur on lifecycleScope of the current Activity.
+     */
+    private fun downloadAndInstallFromCloud(file: MediaFile) {
+        Timber.d("S0266: noLegal cloud APK install entry for ${file.path}")
+        val act = activityRef.get()
+        if (act == null || act.isFinishing || act.isDestroyed) {
+            Timber.w("S0266: cloud APK install dropped - no valid activity")
+            return
+        }
+        Toast.makeText(act, R.string.s0266_apk_download_preparing, Toast.LENGTH_SHORT).show()
+
+        val cacheApkDir = File(context.cacheDir, "apk_install").apply { mkdirs() }
+        val cacheApkFile = File(cacheApkDir, file.name)
+
+        act.lifecycleScope.launchWhenStarted {
+            val downloaded = withContext(Dispatchers.IO) {
+                runCatching {
+                    cloudFileOperationHandler.downloadFromCloudToPublic(
+                        cloudPath = file.path,
+                        destPath = cacheApkDir.absolutePath,
+                        fileName = file.name,
+                    )
+                }.getOrElse { e ->
+                    Timber.e(e, "S0266: cloud APK download threw")
+                    false
+                }
+            }
+            if (downloaded && cacheApkFile.exists() && cacheApkFile.length() > 0L) {
+                launchSystemInstaller(cacheApkFile, file.name)
+            } else {
+                Timber.w("S0266: cloud APK download reported failure for ${file.name}")
+                Toast.makeText(act, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun launchSystemInstaller(apkFile: File, fileName: String) {
         val act = activityRef.get()
         try {
-            val apkFile = File(file.path)
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
@@ -139,7 +193,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
             }
             installLauncher?.launch(intent)
         } catch (e: Exception) {
-            Timber.e(e, "S0183: failed to launch APK install for ${file.name}")
+            Timber.e(e, "S0183: failed to launch APK install for $fileName")
             act?.let { Toast.makeText(it, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show() }
         }
     }

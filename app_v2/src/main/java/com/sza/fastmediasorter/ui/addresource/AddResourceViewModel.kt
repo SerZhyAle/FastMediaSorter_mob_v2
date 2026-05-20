@@ -68,6 +68,8 @@ sealed class AddResourceEvent {
         /** S0064: previously used / manually entered share names for this server. */
         val manualShares: List<String> = emptyList()
     ) : AddResourceEvent()
+    /** SMB share scan completed successfully but returned no selectable shares. */
+    data object ShowNoSharesFound : AddResourceEvent()
     object ResourcesAdded : AddResourceEvent()
 }
 

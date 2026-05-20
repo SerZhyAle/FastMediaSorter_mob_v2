@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
 import androidx.media3.common.Effect
-import androidx.media3.effect.Crop
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
 
@@ -81,28 +80,18 @@ class StereoVideoProcessor {
      * Called by [VideoPlayerManager.applyStereoEffect] whenever the stereo mode changes.
      */
     fun buildGlEffect(mode: StereoMode): Effect? {
-        return when (mode) {
-            StereoMode.SBS_FULL, StereoMode.SBS_HALF,
-            StereoMode.EQUIRECT_360_SBS, StereoMode.EQUIRECT_180_SBS,
-            StereoMode.VR180_FISHEYE_SBS -> {
-                // Right eye is the right half of the SBS frame (NDC x = 0..1).
-                // Equirect modes in panel mode are not sphere-rendered, so the same right-half
-                // crop applies - without it, both SBS eyes appear side by side on screen.
-                Timber.d("StereoVideoProcessor: buildGlEffect → SBS right-eye crop for $mode")
-                Crop(0f, 1f, -1f, 1f)
-            }
-            StereoMode.OU, StereoMode.EQUIRECT_360_OU -> {
-                // Bottom eye occupies the bottom half of the OU frame (GL NDC y = -1..0).
-                // Same logic as flat OU applies for equirect OU in panel mode.
-                Timber.d("StereoVideoProcessor: buildGlEffect → OU bottom-eye crop for $mode")
-                Crop(-1f, 1f, -1f, 0f)
-            }
-            // No visual transformation for mono / monoscopic spherical / unresolved modes
-            else -> {
-                Timber.d("StereoVideoProcessor: buildGlEffect → no effect for $mode")
-                null
-            }
-        }
+        // S0264: Media3 1.2.1 effects pipeline does not visually render Crop when
+        // PlayerView uses surface_type=texture_view (androidx/media issue #779). The
+        // single-eye crop is therefore applied via a TextureView matrix in
+        // PanelStereoCropApplier instead, and this builder returns null for every mode.
+        // Hue / brightness effects from VideoColorProcessor are unaffected — they sit in
+        // the same pipeline and have the same constraint, tracked separately as
+        // pre-existing tech debt.
+        Timber.d(
+            "StereoVideoProcessor: buildGlEffect → no GL effect for $mode (crop handled by " +
+                "PanelStereoCropApplier on TextureView)"
+        )
+        return null
     }
 
     /**

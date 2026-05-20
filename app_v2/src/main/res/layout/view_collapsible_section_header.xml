@@ -12,6 +12,12 @@
         android:orientation="horizontal"
         android:padding="@dimen/settings_padding_vertical">
 
+        <TextView
+            android:id="@+id/csh_prefix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
         <ImageButton
             android:id="@+id/csh_iconHelp"
             android:layout_width="@dimen/settings_help_icon_size"

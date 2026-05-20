@@ -257,7 +257,7 @@ abstract class BaseFileOperationHandler(
 
     protected fun extractFileName(path: String, fallbackName: String): String {
         return when {
-            // Cloud paths contain folder IDs, not filenames - use fallback (actual filename)
+            // S0266: fallbackName is the displayName when caller passed a CloudFileHandle; raw cloud:// URIs land here with fileId as fallbackName and CloudFileOperationHandler.downloadFromCloudTo re-fetches metadata.
             path.startsWith("cloud://") || path.startsWith("cloud:/") -> fallbackName
             path.startsWith("content:/") -> {
                 try {

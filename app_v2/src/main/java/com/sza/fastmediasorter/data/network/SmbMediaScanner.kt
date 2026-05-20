@@ -224,7 +224,6 @@ class SmbMediaScanner @Inject constructor(
                             path
                         )
                     }
-                    Timber.d("S0248: SmbMediaScanner scan complete totalFiles=${files.size} timeoutFallback=$timeoutCount path=$path")
                     files
                 }
                 is SmbResult.Error -> {

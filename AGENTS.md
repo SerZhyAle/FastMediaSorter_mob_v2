@@ -126,7 +126,8 @@ Use the narrowest fitting agent profile.
 Every `pwsh` invocation is a fresh process - shell state never persists. Cold start on Windows is 200..500 ms; with 100+ calls per turn, startup overhead dominates real work. Rules below are mandatory for all skills, agents, and ad-hoc shell calls.
 
 - **Always pass `-NoProfile`.** No project script depends on the user's `$PROFILE`; profile load adds ~200 ms with zero benefit. Wrong: `pwsh -File foo.ps1`. Right: `pwsh -NoProfile -File foo.ps1`.
-- **Batch related calls** into one tool invocation via `pwsh -NoProfile -Command "& { ./a.ps1; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; ./b.ps1 }"`.
+- **Batch related calls** into one PowerShell process. In the Codex shell wrapper, prefer a native block: `& { ./a.ps1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./b.ps1 }`. Only if a fresh process is truly required, use `pwsh -NoProfile -Command '& { ./a.ps1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./b.ps1 }'`.
+- **Quoting rule for `$` variables.** In runnable commands, write `$LASTEXITCODE` and `$PROFILE` literally. Do not put backslashes before `$` in actual commands, and avoid double-quoted `-Command "..."` wrappers around PowerShell code with `$...` variables - outer layers may strip or interpolate them before PowerShell sees them.
 - **Use the wrapper** for hot rituals - `scripts/catalog_sync.ps1` for catalogue sync (scan + render in one process). If a frequently-chained ritual lacks a wrapper, create one in `scripts/` (single-purpose, fail-fast on `$LASTEXITCODE`) and document it in `CLAUDE.md` → PowerShell Efficiency table.
 - **Do not invent** background-daemon or long-running-shell workarounds. If overhead remains painful after these rules, raise an MCP-server proposal instead.
 

@@ -70,7 +70,7 @@
 
             <TextView android:id="@+id/tvSelectedSnapshotResource" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/video_snapshot_resource_not_set" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
 
-            <Button android:id="@+id/btnSelectSnapshotResource" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/select_snapshot_destination" android:textAllCaps="false" />
+            <Button android:id="@+id/btnSelectSnapshotResource" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:maxWidth="140dp" android:maxLines="2" android:breakStrategy="balanced" android:text="@string/select_snapshot_destination" android:textAllCaps="false" />
 
             <Button android:id="@+id/btnClearSnapshotResource" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/clear_selection" android:textAllCaps="false" android:visibility="gone" />
         </LinearLayout>
@@ -99,13 +99,5 @@
         android:layout_marginTop="@dimen/margin_small"
         app:str_title="@string/settings_player_show_fps"
         app:str_subtitle="@string/settings_player_show_fps_desc" />
-
-    <!-- S0028: Multi-window mode — allow opening in a separate window -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowAllowSeparateWindow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        app:str_title="@string/setting_allow_separate_window" />
 
 </LinearLayout>

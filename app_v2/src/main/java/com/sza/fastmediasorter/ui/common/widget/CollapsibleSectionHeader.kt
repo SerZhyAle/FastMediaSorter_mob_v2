@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +30,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private val headerRow: LinearLayout
     private val helpIcon: ImageButton
+    private val prefixView: TextView
     private val titleView: TextView
     private val trailingSlot: FrameLayout
 
@@ -41,6 +43,8 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     private var virtual = false
     private var expandedChangeListener: ((Boolean) -> Unit)? = null
     private var defaultHeaderBackground = background
+    private var collapsedPrefixText: CharSequence? = null
+    private var expandedPrefixText: CharSequence? = null
 
     /**
      * `true` when the optional help icon is visible.
@@ -55,6 +59,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
         headerRow = findViewById(R.id.csh_headerRow)
         helpIcon = findViewById(R.id.csh_iconHelp)
+        prefixView = findViewById(R.id.csh_prefix)
         titleView = findViewById(R.id.csh_title)
         trailingSlot = findViewById(R.id.csh_trailingSlot)
         defaultHeaderBackground = headerRow.background
@@ -199,17 +204,69 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             helpTitleText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpTitle)
             helpMessageText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpMessage)
             virtual = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_virtual, false)
+            collapsedPrefixText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_collapsedPrefix)
+            expandedPrefixText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_expandedPrefix)
             val showHelp = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_showHelp, false)
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+
+            typedArray.getColorStateList(R.styleable.CollapsibleSectionHeader_csh_titleTextColor)?.let {
+                titleView.setTextColor(it)
+            }
+            typedArray.getColorStateList(R.styleable.CollapsibleSectionHeader_csh_prefixTextColor)?.let {
+                prefixView.setTextColor(it)
+            }
+            if (typedArray.hasValue(R.styleable.CollapsibleSectionHeader_csh_titleTextSize)) {
+                val textSizePx = typedArray.getDimension(R.styleable.CollapsibleSectionHeader_csh_titleTextSize, titleView.textSize)
+                titleView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
+                prefixView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
+            }
+            if (typedArray.hasValue(R.styleable.CollapsibleSectionHeader_csh_titleBold)) {
+                titleView.setTypeface(titleView.typeface, if (typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_titleBold, true)) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+            }
+            typedArray.getDrawable(R.styleable.CollapsibleSectionHeader_csh_headerBackground)?.let {
+                headerRow.background = it
+                defaultHeaderBackground = it
+            }
+            if (typedArray.hasValue(R.styleable.CollapsibleSectionHeader_csh_headerPaddingHorizontal) ||
+                typedArray.hasValue(R.styleable.CollapsibleSectionHeader_csh_headerPaddingVertical)
+            ) {
+                val horizontal = typedArray.getDimensionPixelSize(
+                    R.styleable.CollapsibleSectionHeader_csh_headerPaddingHorizontal,
+                    headerRow.paddingLeft,
+                )
+                val vertical = typedArray.getDimensionPixelSize(
+                    R.styleable.CollapsibleSectionHeader_csh_headerPaddingVertical,
+                    headerRow.paddingTop,
+                )
+                headerRow.setPadding(horizontal, vertical, horizontal, vertical)
+            }
+            if (typedArray.hasValue(R.styleable.CollapsibleSectionHeader_csh_prefixPaddingEnd)) {
+                prefixView.setPaddingRelative(
+                    prefixView.paddingStart,
+                    prefixView.paddingTop,
+                    typedArray.getDimensionPixelSize(
+                        R.styleable.CollapsibleSectionHeader_csh_prefixPaddingEnd,
+                        prefixView.paddingEnd,
+                    ),
+                    prefixView.paddingBottom,
+                )
+            }
         }
     }
 
     private fun renderTitle() {
-        titleView.text = if (virtual) {
-            titleText
+        if (virtual) {
+            prefixView.visibility = View.GONE
+            titleView.text = titleText
         } else {
-            val prefix = if (expanded) "▼" else "▶"
-            context.getString(R.string.string_format_two_args, prefix, titleText)
+            val prefix = if (expanded) expandedPrefixText ?: "▼" else collapsedPrefixText ?: "▶"
+            if (prefix.isNullOrEmpty()) {
+                prefixView.visibility = View.GONE
+            } else {
+                prefixView.visibility = View.VISIBLE
+                prefixView.text = prefix
+            }
+            titleView.text = titleText
         }
         updateHeaderContentDescription()
     }

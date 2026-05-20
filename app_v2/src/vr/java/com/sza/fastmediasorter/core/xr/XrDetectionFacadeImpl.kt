@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.core.xr
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +18,6 @@ class XrDetectionFacadeImpl @Inject constructor(
 
     override fun state(): Flow<XrDetectionState> {
         val env = detector.detect()
-        Timber.d("S0245: XrDetectionFacadeImpl.state() env=$env")
         return preferences.enabled
             .map { enabled -> fold(env, enabled) }
             .distinctUntilChanged()

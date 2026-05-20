@@ -8,7 +8,8 @@ import kotlin.math.abs
 
 /**
  * Unit tests for the pure helper functions introduced in S0227:
- * [DestinationButtonsManager.computeMaxPerRow] and [DestinationButtonsManager.computeFontSizeSp].
+ * [DestinationButtonsManager.computeMaxPerRow], [DestinationButtonsManager.computeFontSizeSp],
+ * and [DestinationButtonsManager.computeAutoSizeMaxSp].
  *
  * These functions contain all the business logic for adaptive layout - they are deliberately
  * extracted to companion object so they can be tested without Android framework dependencies.
@@ -111,6 +112,26 @@ class DestinationButtonsManagerTest {
     fun `computeFontSizeSp - above maximum - clamps to SP_MAX`() {
         val result = DestinationButtonsManager.computeFontSizeSp(500f)
         assertEquals("Above max → clamp to SP_MAX", 16f, result, 0.01f)
+    }
+
+    // --- computeAutoSizeMaxSp ---
+
+    @Test
+    fun `computeAutoSizeMaxSp - min font size - returns null`() {
+        val result = DestinationButtonsManager.computeAutoSizeMaxSp(10f)
+        assertEquals("Min font size should skip auto-size upper bound", null, result)
+    }
+
+    @Test
+    fun `computeAutoSizeMaxSp - fractional font size above minimum - rounds up`() {
+        val result = DestinationButtonsManager.computeAutoSizeMaxSp(10.2f)
+        assertEquals("Fractional font sizes above min should keep a valid upper bound", 11, result)
+    }
+
+    @Test
+    fun `computeAutoSizeMaxSp - above maximum - clamps to SP_MAX`() {
+        val result = DestinationButtonsManager.computeAutoSizeMaxSp(20f)
+        assertEquals("Auto-size upper bound should clamp to SP_MAX", 16, result)
     }
 
     // --- Distribution logic: adaptive single row vs lookup table ---

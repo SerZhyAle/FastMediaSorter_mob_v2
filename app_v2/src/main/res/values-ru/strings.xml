@@ -3,25 +3,25 @@
     <string name="app_name">FastMediaSorter</string>
     <string name="poster_thumbnail_unavailable">Превью недоступно</string>
     <string name="add_new_account">Добавить новый аккаунт</string>
-    <string name="settings_category_interface">Интерфейс</string>
-    <string name="settings_category_authorization">Авторизация</string>
+    <string name="settings_category_interface">Общий интерфейс программы</string>
+    <string name="settings_category_authorization">Авторизация и аккаунты</string>
     <string name="settings_category_files">Файлы и данные</string>
     <string name="settings_category_permissions">Разрешения и доступ</string>
     <string name="settings_category_about">О приложении</string>
-    <string name="settings_category_app_data">Данные и резервные копии</string>
-    <string name="settings_category_system">Сеть и кэш</string>
-    <string name="settings_category_sorting_slideshow">Сортировка, слайдшоу и воспроизведение</string>
-    <string name="settings_category_file_operations">Доступ к файлам в плеере</string>
-    <string name="settings_category_copy_move">Копирование и перемещение</string>
-    <string name="settings_category_safety">Безопасность операций</string>
+    <string name="settings_category_app_data">Резервные копии, восстановление и экспорт</string>
+    <string name="settings_category_system">Фоновая синхронизация, сеть и кэш</string>
+    <string name="settings_category_sorting_slideshow">Сортировка, слайд-шоу и порядок запуска</string>
+    <string name="settings_category_file_operations">Удаление и переименование в плеере</string>
+    <string name="settings_category_copy_move">Копирование, перемещение и перезапись</string>
+    <string name="settings_category_safety">Удаление файлов, корзина</string>
     <string name="settings_section_autoplay_resume">Автовоспроизведение и продолжение</string>
     <string name="settings_section_delete_trash">Удаление и корзина</string>
     <string name="settings_section_grid_browse">Сетка и просмотр</string>
     <string name="settings_section_network_cache">Сеть и кэш</string>
     <string name="settings_section_quick_sort_list">Список быстрой сортировки</string>
     <string name="settings_section_remote_gamepad">Пульт и геймпад</string>
-    <string name="settings_category_player_ui">Интерфейс плеера</string>
-    <string name="settings_category_touch_zones">Сенсорные зоны</string>
+    <string name="settings_category_player_ui">Интерфейс и команды плеера</string>
+    <string name="settings_category_touch_zones">Зоны касания и экранные подсказки</string>
     <string name="settings_subcategory_incoming_links">Входящие ссылки</string>
     <string name="settings_subcategory_camera_capture">Захват с камеры</string>
     <string name="start_player">Запустить плеер</string>
@@ -29,7 +29,7 @@
     <string name="settings">Настройки</string>
     <string name="settings_saved">Настройки сохранены</string>
     <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
-    <string name="vr_settings_block_title">Управление 3D-VR</string>
+    <string name="vr_settings_block_title">3D-VR Воспроизведение и управление</string>
     <string name="settings_3d_vr_help_title">О режиме 3D VR</string>
     <string name="settings_3d_vr_help_message">3D VR — это погружённый просмотр видео и фото на гарнитурах типа Meta Quest 3 и Android XR. На устройствах без поддержки XR-среды переключатель остаётся недоступным. Приложение само определяет формат видео (SBS, OU, 360°, VR180); ручной выбор доступен в диалоге плеера.</string>
     <string name="vr_settings_xr_unavailable_advisory">Доступно на устройствах типа Meta Quest 3, Android XR.</string>
@@ -262,7 +262,7 @@
     <string name="no_media_files_found">В этой папке нет медиафайлов</string>
     <string name="recent_media">Недавние медиа</string>
     <string name="virtual_all_music">Вся музыка</string>
-    <string name="virtual_all_video">Все видео</string>
+    <string name="virtual_all_video">Всё видео</string>
     <string name="virtual_all_images">Все изображения</string>
     <string name="virtual_all_docs">Все документы</string>
     <string name="resource_name_downloads">Загрузки</string>
@@ -472,7 +472,7 @@
     <string name="hint_access_pin">PIN-код (4–6 цифр)</string>
     <string name="hint_slideshow_interval">Интервал слайдшоу (секунды)</string>
     <string name="label_media_types">Типы медиа</string>
-    <string name="label_scanning_settings">Сканирование</string>
+    <string name="label_scanning_settings">Условия сканирования содержимого</string>
     <string name="label_connection_settings">Параметры подключения</string>
     <string name="label_destination_settings">Настройки назначения</string>
     <string name="label_advanced_settings">Расширенные настройки</string>
@@ -628,6 +628,8 @@
     <string name="stop">Стоп</string>
     <string name="scan_stopped">Сканирование остановлено. Работаем с %d файлами</string>
     <string name="play_video_to_end">Проигрывать видео/аудио в слайдшоу до конца</string>
+    <string name="default_grid_mode">По умолчанию открывать сеткой</string>
+    <string name="file_ops_in_overflow_menu">Операции с файлами в меню ⋮</string>
     <string name="slideshow_settings">Настройки слайдшоу</string>
     <string name="play_video_audio_to_end">Проигрывать видео/аудио до конца</string>
     <string name="play_to_end_hint">Переопределяет интервал для медиа с длительностью</string>
@@ -665,7 +667,7 @@
     <string name="destinations_list">Быстрая сортировка (0-9)</string>
     <string name="destinations_description">До 10 папок быстрой сортировки. Каждая имеет цвет и номер (0-9).</string>
     <string name="add_destination">Добавить в быструю сортировку</string>
-    <string name="destinations_list_header">Список быстрой сортировки</string>
+    <string name="destinations_list_header">Назначения быстрой сортировки</string>
     <string name="add_resources_first_message">Сначала добавьте папки на главном экране, прежде чем отмечать их для быстрой сортировки.</string>
     <string name="register_as_destination">Быстрая сортировка</string>
 
@@ -675,6 +677,8 @@
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Открыть в новом окне</string>
     <string name="setting_allow_separate_window">Разрешить новые окна</string>
+    <string name="tooltip_allow_separate_window_title">Разрешить новые окна</string>
+    <string name="tooltip_allow_separate_window_message">Когда включено, на экранах обзора и плеера появляется действие «Открыть в новом окне», запускающее выбранную папку или файл в отдельном окне Android. Полезно на устройствах, поддерживающих многооконный режим (планшеты, складные устройства, ChromeOS, большие дисплеи). Когда выключено, действие скрыто и всё открывается в текущем окне.</string>
 
     <!-- Edit Folder -->
     <string name="edit_resource">Редактирование папки</string>
@@ -833,7 +837,7 @@
     <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
 
     <string name="pref_panel_stereo_single_eye_title">Показывать 3D-контент с одного глаза</string>
-    <string name="pref_panel_stereo_single_eye_summary">Если включено, SBS- и OU-стерео-видео и полноэкранные фото обрезаются до одного глаза и растягиваются на весь экран - удобно смотреть без 3D-очков. По умолчанию: включено в обычных сборках, выключено в VR-сборке.</string>
+    <string name="pref_panel_stereo_single_eye_summary">Если включено, SBS- и OU-стерео-видео и полноэкранные фото обрезаются до одного глаза и растягиваются на весь экран - удобно смотреть без 3D-очков. По умолчанию: включено. В погружённом VR-режиме настройка автоматически отключается, и стерео-кадр показывается целиком.</string>
     <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрезан до одного глаза</string>
 
     <!-- Permissions -->
@@ -852,7 +856,7 @@
     <string name="grant_local_files_permission">Доступ к файлам</string>
     <string name="grant_network_permission">Сетевые разрешения</string>
     <string name="network_permission_granted">Сетевые разрешения</string>
-    <string name="debug_settings_title">Отладка</string>
+    <string name="debug_settings_title">Отладочные журналы и тестовые инструменты</string>
     <string name="show_log">Показать лог</string>
     <string name="show_current_session_log">Лог текущей сессии</string>
     <string name="settings_application_log_title">Лог приложения</string>
@@ -1074,6 +1078,7 @@
     <!-- Add Resource -->
     <string name="add_local_folder">Добавить локальную папку</string>
     <string name="add_network_folder">Добавить сетевую папку (SMB)</string>
+    <string name="create_network_resource_smb">Создание сетевого ресурса (SMB)</string>
     <string name="network_folder">Сетевая папка</string>
     <string name="network_folder_description">Добавить SMB сетевые ресурсы</string>
     <string name="cloud_folder">Облачная папка</string>
@@ -1110,7 +1115,7 @@
     <string name="smb_server">IP сервера</string>
     <string name="smb_server_hint">например 192.168.1.100</string>
     <string name="smb_share_name">Имя общего ресурса /подпапка</string>
-    <string name="smb_share_name_hint">например Common, Photos, Documents</string>
+    <string name="smb_share_name_hint">например Common, Photos</string>
     <string name="smb_add_manually">Добавить вручную</string>
     <string name="smb_username">Имя пользователя</string>
     <string name="smb_password">Пароль</string>
@@ -1250,7 +1255,8 @@
 
     <!-- Streaming / Pre-cache settings -->
     <string name="pref_prefetch_cache_title">Размер предварительного кэша видео</string>
-    <string name="pref_prefetch_cache_helper">Меньше: минимальная буферизация · индикатор и предложение сохранения скрыты</string>
+    <string name="pref_prefetch_cache_help_title">Размер предварительного кэша видео</string>
+    <string name="pref_prefetch_cache_help_message">Определяет, сколько видео плеер буферизует заранее при потоковом воспроизведении.\n\n• Меньше (0.5×) — минимальная буферизация. Индикатор предварительной загрузки и предложение «сохранить кэшированное видео» скрыты. Экономит диск и трафик; при медленной сети возможны подёргивания.\n• Авто — размер по умолчанию, подбирается плеером исходя из устройства и текущей сети.\n• Больше (2×) — увеличенный буфер для плавного воспроизведения на нестабильной сети. Занимает больше места на диске.</string>
     <string name="pref_prefetch_cache_less">Меньше (0.5×)</string>
     <string name="pref_prefetch_cache_auto">Авто</string>
     <string name="pref_prefetch_cache_more">Больше (2×)</string>
@@ -1443,9 +1449,10 @@
     <string name="msg_scan_complete">Сканирование завершено</string>
     <string name="msg_host_selected">Выбрано %1$s (%2$s)</string>
     <string name="msg_scan_again">Сканировать снова</string>
-    <string name="msg_no_shares_found">Общие папки не найдены. Введите имя вручную.</string>
+    <string name="msg_no_shares_found">На этом сервере общие папки не найдены. Закройте это сообщение и введите имя папки вручную.</string>
     <string name="msg_share_scan_failed">Не получилось просканировать общие папки. Попробуйте ещё раз.</string>
     <string name="msg_select_share">Папки на %1$s</string>
+    <string name="smb_no_shares_found_title">Общие папки не найдены</string>
     <!-- S0064: диалог ручного ввода имени шары -->
     <string name="smb_enter_share_manually">+ Ввести имя папки вручную..</string>
     <string name="smb_manual_share_dialog_title">Введите имя папки</string>
@@ -1750,11 +1757,11 @@
     <string name="current_path">Текущая папка</string>
     <string name="select_current_folder">Выбрать эту папку</string>
     <!-- Media Settings Categories -->
-    <string name="settings_category_images">Изображения</string>
-    <string name="settings_category_video">Видео</string>
-    <string name="settings_category_audio">Аудио</string>
-    <string name="settings_category_documents">Документы</string>
-    <string name="settings_category_other">Прочее</string>
+    <string name="settings_category_images">Изображения, GIF и слайд-шоу</string>
+    <string name="settings_category_video">Видео, настройки проигрывателя</string>
+    <string name="settings_category_audio">Аудио, обложки и фоновые визуализации</string>
+    <string name="settings_category_documents">Просмотр текста, PDF и EPUB</string>
+    <string name="settings_category_other">Перевод, OCR и Google Lens</string>
 
     <!-- Photos during audio playback -->
     <string name="enable_photos_during_audio_description">Показывать случайные фото при воспроизведении аудио</string>
@@ -1888,10 +1895,7 @@
     <string name="dialog_file_operation_progress_btnCancel_text">Отмена</string>
     <string name="transfer_overall_progress_desc">Общий прогресс передачи</string>
     <string name="transfer_eta_desc">Оставшееся время</string>
-    <string name="dialog_file_operation_progress_tvCurrentFile_text">file.jpg</string>
-    <string name="dialog_file_operation_progress_tvProgressText_text">0 / 10</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов…</string>
-    <string name="dialog_file_operation_progress_tvSpeed_text">1.5 МБ/с</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_suffixText">МБ</string>
@@ -2373,19 +2377,20 @@
     <string name="setting_enable_translation_desc">Включить поддержку перевода текста через OCR</string>
     <string name="setting_overwrite_on_move_desc">Заменять существующий файл при совпадении имени при перемещении</string>
     <string name="setting_play_to_end_desc">Воспроизводить медиа до конца вместо интервала слайдшоу</string>
+    <string name="setting_default_grid_mode_desc">Browse открывается в режиме сетки вместо списка</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Скрывает Copy/Move/Rename/Delete в выпадающее меню строки</string>
     <string name="setting_prevent_sleep_desc">Не выключать экран при просмотре медиа</string>
     <string name="setting_safe_mode_desc">Подтверждать перед деструктивными операциями (удаление, перемещение)</string>
     <string name="setting_show_hidden_files_desc">Показывать файлы и папки, начинающиеся с точки</string>
     <string name="setting_show_subfolders_as_items_desc">Показывать подпапки как кликабельные элементы в списке файлов</string>
     <string name="setting_small_controls_desc">Компактные элементы управления для экономии места</string>
     <string name="setting_translation_lens_style_desc">Показывать результаты перевода блоками</string>
-    <string name="settings_set_default_media_player">Назначить медиаплеером по умолчанию</string>
     <string name="setting_accept_shared_files_desc">Разрешить получение файлов из других приложений</string>
     <string name="setting_confirm_delete_player_desc">Запрашивать подтверждение перед удалением файлов в проигрывателе</string>
     <string name="setting_detailed_errors_desc">Показывать полные детали ошибок вместо упрощённых сообщений</string>
     <string name="setting_hide_grid_action_buttons_desc">Скрыть кнопки быстрых действий на миниатюрах</string>
     <string name="setting_hide_system_ui_desc">Скрыть статус-бар и навигацию в полноэкранном режиме</string>
-    <string name="setting_primary_media_player_desc">Использовать FastMediaSorter как основной плеер для медиафайлов</string>
+    <string name="setting_primary_media_player_desc">Показывать FastMediaSorter в «Открыть с помощью» и обрабатывать медиакнопки</string>
     <string name="setting_show_command_panel_desc">Автоматически показывать панель команд при входе в проигрыватель</string>
     <string name="setting_support_audio_desc">Воспроизведение MP3, FLAC, AAC, OGG и других аудиоформатов</string>
     <string name="setting_support_videos_desc">Воспроизведение MP4, MKV, MOV и других видеоформатов</string>
@@ -2408,8 +2413,8 @@
     <string name="cb_play_to_end_desc">Ожидает окончания каждого видео или аудио перед переходом в слайдшоу</string>
     <string name="settings_accept_shared_files">Принимать общие файлы</string>
     <string name="settings_category_default_player">Медиаплеер по умолчанию</string>
-    <string name="settings_primary_media_player">Основной медиаплеер</string>
-    <string name="settings_category_behaviour">Поведение</string>
+    <string name="settings_primary_media_player">Системный обработчик медиа</string>
+    <string name="settings_category_behaviour">Поведение и правила программы</string>
     <string name="setting_resume_on_next_launch">Продолжать воспроизведение при следующем запуске</string>
     <string name="setting_resume_on_next_launch_desc">При запуске приложения автоматически открывать последний воспроизводимый файл с того места, где было остановлено</string>
 
@@ -2500,7 +2505,7 @@
     <string name="tile_audio_play_music">Воспроизвести музыку</string>
 
     <!-- Scheduled Operations -->
-    <string name="scheduled_ops_section_title">По расписанию</string>
+    <string name="scheduled_ops_section_title">Запланированные операции по расписанию</string>
     <string name="scheduled_ops_toggle">Использовать операции по расписанию</string>
     <string name="scheduled_ops_toggle_hint">Копирование, перемещение, удаление на фоне</string>
     <string name="scheduled_ops_overwrite">Перезаписывать существующие файлы</string>
@@ -3061,7 +3066,6 @@
     <string name="vr_cheatsheet_footer">Коснитесь в любом месте чтобы закрыть · долгое Y или F1 - открыть снова</string>
 
     <!-- S0100 Microphone recording -->
-    <string name="settings_mic_recording_section_title">Запись с микрофона</string>
     <string name="settings_mic_recording_enable_title">Включить запись с микрофона</string>
     <string name="settings_mic_recording_enable_desc">Показывать кнопку микрофона в Browse для записи аудио в текущую папку</string>
     <string name="settings_mic_recording_ask_filename_title">Спрашивать имя файла</string>
@@ -3431,6 +3435,7 @@
     <string name="receive_share_source_name">Общее</string>
     <string name="receive_share_no_content">Не получен контент для импорта</string>
     <string name="receive_share_cache_failed">Не получилось подготовить общий файл. Попробуйте ещё раз.</string>
+    <string name="link_download_error_ytmusic_audio_only">Не получилось сохранить аудиодорожку из YouTube Music. Ссылка не вернула воспроизводимый аудиофайл.</string>
     <string name="receive_share_copied_to_folder">Сохранено в выбранную папку</string>
     <string name="receive_share_copy_to_folder_failed">Не получилось сохранить общий файл в эту папку. Попробуйте ещё раз.</string>
     <string name="favorites_slideshow_open_first">Сначала откройте Избранное, а потом запустите слайд-шоу там.</string>
@@ -3490,4 +3495,6 @@
     <string name="draw_save_remote_failed">Не получилось сохранить в эту папку. Рисунок остался на этом устройстве - попробуйте ещё раз.</string>
     <string name="error_reason_local_destination_permission_denied">Не удалось сохранить - Android не разрешает запись в эту папку. Попробуйте сохранить в Music, Movies, Pictures или Downloads.</string>
     <string name="setting_show_pdf_thumbnails_desc">Создаёт крупные превью для PDF (медленнее для удалённых источников)</string>
+    <string name="file_operation_progress_preparing">Подготовка..</string>
+    <string name="s0266_apk_download_preparing">Подготавливается установка..</string>
 </resources>

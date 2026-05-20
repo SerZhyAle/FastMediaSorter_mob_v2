@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cstring>
 #include <mutex>
+#include <string>
 #include <vector>
 
 #define XR_USE_PLATFORM_ANDROID
@@ -245,9 +246,69 @@ void multiply4x4(const float* a, const float* b, float* out) {
     }
 }
 
+bool hasInstanceExtension(const std::vector<XrExtensionProperties>& props, const char* target) {
+    for (const auto& prop : props) {
+        if (std::strcmp(prop.extensionName, target) == 0) return true;
+    }
+    return false;
+}
+
+void logInstanceExtensionSupport() {
+    uint32_t count = 0;
+    XrResult r = xrEnumerateInstanceExtensionProperties(nullptr, 0, &count, nullptr);
+    if (XR_FAILED(r)) {
+        LOGW("xrEnumerateInstanceExtensionProperties(count)=%d", (int)r);
+        return;
+    }
+    std::vector<XrExtensionProperties> props(count);
+    for (auto& prop : props) {
+        prop.type = XR_TYPE_EXTENSION_PROPERTIES;
+        prop.next = nullptr;
+    }
+    r = xrEnumerateInstanceExtensionProperties(nullptr, count, &count, props.data());
+    if (XR_FAILED(r)) {
+        LOGW("xrEnumerateInstanceExtensionProperties(list)=%d", (int)r);
+        return;
+    }
+    LOGD(
+        "instance extensions: count=%u android_create=%d opengles_enable=%d",
+        count,
+        hasInstanceExtension(props, XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME) ? 1 : 0,
+        hasInstanceExtension(props, XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME) ? 1 : 0
+    );
+}
+
 // ------------------------- pipeline stages -------------------------
 
 NativeResult createInstance(JavaVM* vm, jobject activity) {
+    LOGD("createInstance: begin vm=%p activity=%p", (void*)vm, activity);
+    logInstanceExtensionSupport();
+
+    // Android OpenXR loaders require explicit loader initialization before xrCreateInstance.
+    PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
+    XrResult r = xrGetInstanceProcAddr(
+        XR_NULL_HANDLE,
+        "xrInitializeLoaderKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&initializeLoader)
+    );
+    if (XR_FAILED(r) || initializeLoader == nullptr) {
+        LOGE(
+            "xrGetInstanceProcAddr(xrInitializeLoaderKHR)=%d ptr=%p",
+            (int)r,
+            reinterpret_cast<void*>(initializeLoader)
+        );
+        return NativeResult::InstanceCreationFailed;
+    }
+    XrLoaderInitInfoAndroidKHR loaderInfo{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
+    loaderInfo.applicationVM = vm;
+    loaderInfo.applicationContext = activity;
+    r = initializeLoader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR*>(&loaderInfo));
+    if (XR_FAILED(r)) {
+        LOGE("xrInitializeLoaderKHR=%d", (int)r);
+        return NativeResult::InstanceCreationFailed;
+    }
+    LOGD("xrInitializeLoaderKHR ok");
+
     std::vector<const char*> exts = {
         XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
         XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME
@@ -265,7 +326,8 @@ NativeResult createInstance(JavaVM* vm, jobject activity) {
     std::snprintf(info.applicationInfo.engineName, sizeof(info.applicationInfo.engineName), "FastMediaSorter");
     info.applicationInfo.engineVersion = 1;
     info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
-    XrResult r = xrCreateInstance(&info, &g.instance);
+    LOGD("xrCreateInstance: enabling [%s, %s]", exts[0], exts[1]);
+    r = xrCreateInstance(&info, &g.instance);
     if (XR_FAILED(r)) { LOGE("xrCreateInstance=%d", (int)r); return NativeResult::InstanceCreationFailed; }
 
     XrSystemGetInfo sysInfo{XR_TYPE_SYSTEM_GET_INFO};

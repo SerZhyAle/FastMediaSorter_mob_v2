@@ -10,7 +10,7 @@
     <string name="settings">Settings</string>
     <string name="settings_saved">Settings saved</string>
     <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
-    <string name="vr_settings_block_title">3D-VR controls</string>
+    <string name="vr_settings_block_title">3D-VR playback and controls</string>
     <string name="settings_3d_vr_help_title">About 3D VR mode</string>
     <string name="settings_3d_vr_help_message">3D VR provides immersive video and photo playback on headsets such as Meta Quest 3 and Android XR. On devices without an XR runtime, the master toggle stays inactive. The app detects video format (SBS, OU, 360°, VR180) automatically; manual override is available in the player dialog.</string>
     <string name="vr_settings_xr_unavailable_advisory">Available on devices such as Meta Quest 3 and Android XR.</string>
@@ -82,25 +82,25 @@
 
     <!-- General Settings -->
     <string name="documentation">Documentation Portal</string>
-    <string name="settings_category_interface">Interface</string>
-    <string name="settings_category_authorization">Authorization</string>
+    <string name="settings_category_interface">General app interface</string>
+    <string name="settings_category_authorization">Authorization and accounts</string>
     <string name="settings_category_files">Files &amp; Data</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
     <string name="settings_category_about">About</string>
-    <string name="settings_category_app_data">App Data &amp; Backups</string>
-    <string name="settings_category_system">Network &amp; Cache</string>
-    <string name="settings_category_sorting_slideshow">Sorting, Slideshow &amp; Playback</string>
-    <string name="settings_category_file_operations">File Access in Player</string>
-    <string name="settings_category_copy_move">Copy &amp; Move</string>
-    <string name="settings_category_safety">Safety &amp; Confirmation</string>
+    <string name="settings_category_app_data">Backups, restore and settings export</string>
+    <string name="settings_category_system">Background sync, network and cache</string>
+    <string name="settings_category_sorting_slideshow">Sorting, slideshow and playback order</string>
+    <string name="settings_category_file_operations">Deletion and renaming in player</string>
+    <string name="settings_category_copy_move">Copy, move and overwrite behavior</string>
+    <string name="settings_category_safety">File deletion and trash</string>
     <string name="settings_section_autoplay_resume">Autoplay &amp; Resume</string>
     <string name="settings_section_delete_trash">Delete &amp; Trash</string>
     <string name="settings_section_grid_browse">Grid &amp; Browse</string>
     <string name="settings_section_network_cache">Network &amp; Cache</string>
     <string name="settings_section_quick_sort_list">Quick Sort List</string>
     <string name="settings_section_remote_gamepad">Remote &amp; Gamepad</string>
-    <string name="settings_category_player_ui">Player UI</string>
-    <string name="settings_category_touch_zones">Touch Zones</string>
+    <string name="settings_category_player_ui">Player interface and commands</string>
+    <string name="settings_category_touch_zones">Touch zones and on-screen hints</string>
     <string name="settings_subcategory_incoming_links">Incoming links</string>
     <string name="settings_subcategory_camera_capture">Camera capture</string>
 
@@ -530,6 +530,8 @@ Close the player and try again.</string>
     <string name="stop">Stop</string>
     <string name="scan_stopped">Scan stopped. Working with %d files</string>
     <string name="play_video_to_end">Play video/audio in slideshow to end</string>
+    <string name="default_grid_mode">Open browse in grid view</string>
+    <string name="file_ops_in_overflow_menu">File operations in overflow menu</string>
     <string name="allow_rename">Allow rename</string>
     <string name="allow_delete">Allow delete</string>
     <string name="confirm_delete">Confirm delete</string>
@@ -560,7 +562,7 @@ Close the player and try again.</string>
     <string name="destinations_list">Quick Sort (0-9)</string>
     <string name="destinations_description">Up to 30 quick sort folders. Each has a color and number.</string>
     <string name="add_destination">Add to Quick Sort</string>
-    <string name="destinations_list_header">Quick Sort List for Sorting Commands</string>
+    <string name="destinations_list_header">Quick Sort destinations</string>
     <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
     <string name="register_as_destination">Mark for quick sort</string>
 
@@ -696,19 +698,20 @@ Close the player and try again.</string>
     <string name="setting_enable_translation_desc">Enable text translation support via OCR</string>
     <string name="setting_overwrite_on_move_desc">Replace existing file if name matches when moving</string>
     <string name="setting_play_to_end_desc">Play media to end instead of using slideshow interval</string>
+    <string name="setting_default_grid_mode_desc">Browse opens in grid mode instead of list</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Collapse Copy/Move/Rename/Delete into a per-row ⋮ menu</string>
     <string name="setting_prevent_sleep_desc">Keep screen on while viewing media</string>
     <string name="setting_safe_mode_desc">Confirm before destructive operations (delete, move)</string>
     <string name="setting_show_hidden_files_desc">Display files and folders that start with a dot</string>
     <string name="setting_show_subfolders_as_items_desc">Display subfolders as clickable items in the file list</string>
     <string name="setting_small_controls_desc">Use compact control layout to save screen space</string>
     <string name="setting_translation_lens_style_desc">Show translation results as block overlays</string>
-    <string name="settings_set_default_media_player">Set as default media player</string>
     <string name="setting_accept_shared_files_desc">Allow receiving files shared from other apps</string>
     <string name="setting_confirm_delete_player_desc">Ask for confirmation before deleting files in the player</string>
     <string name="setting_detailed_errors_desc">Show full error details instead of simplified messages</string>
     <string name="setting_hide_grid_action_buttons_desc">Hide quick action buttons overlaid on thumbnails</string>
     <string name="setting_hide_system_ui_desc">Hide status bar and navigation in fullscreen mode</string>
-    <string name="setting_primary_media_player_desc">Use FastMediaSorter as the primary player for media files</string>
+    <string name="setting_primary_media_player_desc">Show FastMediaSorter in "Open with" and handle media buttons</string>
     <string name="setting_show_command_panel_desc">Automatically show the command panel when entering the player</string>
     <string name="setting_support_audio_desc">Playback of MP3, FLAC, AAC, OGG, and other audio formats</string>
     <string name="setting_support_videos_desc">Playback of MP4, MKV, MOV, and other video formats</string>
@@ -731,10 +734,10 @@ Close the player and try again.</string>
     <string name="cb_play_to_end_desc">Waits for the end of each video or audio before moving in the slideshow</string>
     <string name="settings_accept_shared_files">Accept shared files</string>
     <string name="settings_category_default_player">Default Media Player</string>
-    <string name="settings_category_behaviour">Behaviour</string>
+    <string name="settings_category_behaviour">App behavior and operating rules</string>
     <string name="setting_resume_on_next_launch">Resume playback on next launch</string>
     <string name="setting_resume_on_next_launch_desc">On app start, automatically reopen the last played file from where you left off</string>
-    <string name="settings_primary_media_player">Primary media player</string>
+    <string name="settings_primary_media_player">System media handler</string>
     <string name="welcome_default_player_btn_audio">Audio</string>
     <string name="welcome_default_player_btn_docs">Documents</string>
     <string name="welcome_default_player_btn_images">Images</string>
@@ -962,8 +965,10 @@ Close the player and try again.</string>
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Open in new window</string>
     <string name="setting_allow_separate_window">Allow new windows</string>
+    <string name="tooltip_allow_separate_window_title">Allow new windows</string>
+    <string name="tooltip_allow_separate_window_message">When enabled, the Browse and Player screens add an "Open in new window" action that launches the picked folder or file in a separate Android window. Useful on devices that support multi-window mode (tablets, foldables, ChromeOS, large displays). When disabled, the action is hidden and everything opens in the current window.</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
-    <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON for non-VR builds, OFF for VR.</string>
+    <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON. Immersive VR rendering overrides this setting and shows the full stereo frame.</string>
     <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
 
     <!-- Permissions -->
@@ -982,7 +987,7 @@ Close the player and try again.</string>
     <string name="grant_local_files_permission">Local files access</string>
     <string name="grant_network_permission">Network permission</string>
     <string name="network_permission_granted">Network permission</string>
-    <string name="debug_settings_title">Debug</string>
+    <string name="debug_settings_title">Debug logs and test tools</string>
     <string name="show_log">Show Log</string>
     <string name="show_current_session_log">Current Session Log</string>
     <string name="settings_application_log_title">Application Log</string>
@@ -1220,6 +1225,7 @@ Close the player and try again.</string>
     <string name="add_to_resources_button">Add to Resources</string>
     <string name="scan_network_button">Scan Network</string>
     <string name="add_network_folder">Add Network Folder (SMB)</string>
+    <string name="create_network_resource_smb">Create Network Resource (SMB)</string>
     <string name="network_folder">Network Folder</string>
     <string name="network_folder_description">Add SMB network shares</string>
     <string name="cloud_folder">Cloud Folder</string>
@@ -1242,7 +1248,7 @@ Close the player and try again.</string>
     <string name="smb_server">Server IP</string>
     <string name="smb_server_hint">e.g. 192.168.1.100</string>
     <string name="smb_share_name">ShareName/subfolder</string>
-    <string name="smb_share_name_hint">e.g. Common, Photos, Documents</string>
+    <string name="smb_share_name_hint">e.g. Common, Photos</string>
     <string name="smb_add_manually">Add Manually</string>
     <string name="smb_add_manual_resource">Add This Resource</string>
     <string name="smb_username">Username</string>
@@ -1507,7 +1513,8 @@ Close the player and try again.</string>
 
     <!-- Streaming / Pre-cache settings -->
     <string name="pref_prefetch_cache_title">Video pre-cache size</string>
-    <string name="pref_prefetch_cache_helper">Less: minimal buffering · progress indicator and save-offer hidden</string>
+    <string name="pref_prefetch_cache_help_title">Video pre-cache size</string>
+    <string name="pref_prefetch_cache_help_message">Controls how much of a streamed video is buffered ahead of the playhead.\n\n• Less (0.5×) — minimal buffering. The pre-cache progress indicator and the "save cached video" offer are hidden. Saves disk space and bandwidth; on a slow network playback may stutter.\n• Auto — default size chosen by the player based on device and current network.\n• More (2×) — larger buffer for smoother playback over unstable networks. Uses more disk space.</string>
     <string name="pref_prefetch_cache_less">Less (0.5×)</string>
     <string name="pref_prefetch_cache_auto">Auto</string>
     <string name="pref_prefetch_cache_more">More (2×)</string>
@@ -1730,9 +1737,10 @@ Close the player and try again.</string>
     <string name="msg_scan_complete">Scan complete</string>
     <string name="msg_host_selected">Selected %1$s (%2$s)</string>
     <string name="msg_scan_again">Scan Again</string>
-    <string name="msg_no_shares_found">No shares found. Enter the share name manually.</string>
+    <string name="msg_no_shares_found">No shares found on this server. Close this message and enter the share name manually.</string>
     <string name="msg_share_scan_failed">Couldn\'t scan the shares. Try again.</string>
     <string name="msg_select_share">Shares on %1$s</string>
+    <string name="smb_no_shares_found_title">No shares found</string>
     <!-- S0064: manual share name entry dialog -->
     <string name="smb_enter_share_manually">+ Enter share name manually..</string>
     <string name="smb_manual_share_dialog_title">Enter share name</string>
@@ -2087,11 +2095,11 @@ Close the player and try again.</string>
     <string name="tooltip_use_trash_title">Move to trash</string>
     <string name="tooltip_use_trash_message">When enabled, deleted local files are moved to a hidden .trash folder and can be recovered via Undo. On Android 12+, some shared folders need MANAGE_MEDIA; without it, Trash may fall back to permanent deletion. When disabled, files are permanently deleted immediately and disk space is freed at once. Network and cloud files are always deleted permanently.</string>
     <!-- Media Settings Categories -->
-    <string name="settings_category_images">Images</string>
-    <string name="settings_category_video">Video</string>
-    <string name="settings_category_audio">Audio</string>
-    <string name="settings_category_documents">Documents</string>
-    <string name="settings_category_other">Other</string>
+    <string name="settings_category_images">Images, GIFs and slideshow</string>
+    <string name="settings_category_video">Video and player settings</string>
+    <string name="settings_category_audio">Audio playback, covers and visuals</string>
+    <string name="settings_category_documents">Text, PDF and EPUB viewing</string>
+    <string name="settings_category_other">Translation, OCR and Google Lens</string>
 
     <!-- General Settings Categories -->
     <string name="settings_general_language_display">Language and Display</string>
@@ -2121,6 +2129,7 @@ Close the player and try again.</string>
     <string name="receive_share_source_name">Shared</string>
     <string name="receive_share_no_content">No content received to import</string>
     <string name="receive_share_cache_failed">Couldn\'t prepare the shared file. Try again.</string>
+    <string name="link_download_error_ytmusic_audio_only">Couldn\'t save the audio track from YouTube Music. The link did not return a playable audio file.</string>
     <string name="receive_share_copied_to_folder">Saved to selected folder</string>
     <string name="receive_share_copy_to_folder_failed">Couldn\'t save the shared file to that folder. Try again.</string>
 
@@ -2226,10 +2235,7 @@ Close the player and try again.</string>
     <string name="dialog_file_operation_progress_btnCancel_text">Cancel</string>
     <string name="transfer_overall_progress_desc">Overall transfer progress</string>
     <string name="transfer_eta_desc">Estimated time remaining</string>
-    <string name="dialog_file_operation_progress_tvCurrentFile_text">file.jpg</string>
-    <string name="dialog_file_operation_progress_tvProgressText_text">0 / 10</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Copying files…</string>
-    <string name="dialog_file_operation_progress_tvSpeed_text">1.5 MB/s</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_suffixText">MB</string>
@@ -2440,7 +2446,7 @@ Close the player and try again.</string>
     <string name="label_destination_settings">Destination Settings</string>
     <string name="label_advanced_settings">Advanced Settings</string>
     <string name="label_additional_options">Additional Options</string>
-    <string name="label_scanning_settings">Scanning</string>
+    <string name="label_scanning_settings">Content Scanning Conditions</string>
     <string name="label_connection_settings">Connection Settings</string>
     <string name="label_content_settings">Content Settings</string>
     <string name="label_is_destination">Use as destination folder</string>
@@ -2603,7 +2609,7 @@ Close the player and try again.</string>
     <string name="tile_audio_play_music">Play Music</string>
 
     <!-- Scheduled Operations -->
-    <string name="scheduled_ops_section_title">Scheduled</string>
+    <string name="scheduled_ops_section_title">Scheduled operations by schedule</string>
     <string name="scheduled_ops_toggle">Use scheduled operations</string>
     <string name="scheduled_ops_toggle_hint">Copy, move, delete in the background</string>
     <string name="scheduled_ops_overwrite">Overwrite existing files</string>
@@ -3142,7 +3148,6 @@ Close the player and try again.</string>
     <string name="vr_cheatsheet_footer">Tap anywhere to close · long-press Y or F1 to re-open</string>
 
     <!-- S0100 Microphone recording -->
-    <string name="settings_mic_recording_section_title">Microphone Recording</string>
     <string name="settings_mic_recording_enable_title">Enable microphone recording</string>
     <string name="settings_mic_recording_enable_desc">Show microphone button in Browse to record audio into the current folder</string>
     <string name="settings_mic_recording_ask_filename_title">Ask for filename</string>
@@ -3538,4 +3543,6 @@ Close the player and try again.</string>
     <string name="draw_save_remote_failed">Couldn\'t reach the folder. Your drawing stayed on this device - try saving again.</string>
     <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
     <string name="setting_show_pdf_thumbnails_desc">Generates large preview images for PDFs (slower on remote sources)</string>
+    <string name="file_operation_progress_preparing">Preparing..</string>
+    <string name="s0266_apk_download_preparing">Preparing install..</string>
 </resources>

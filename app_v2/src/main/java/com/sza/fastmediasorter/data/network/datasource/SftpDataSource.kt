@@ -33,6 +33,13 @@ class SftpDataSource(
     private val context: Context
 ) : BaseDataSource(true) {
 
+    companion object {
+        // IdleDisconnectPolicy expires SFTP transports after 30s. Long-running playback reads can
+        // stream continuously without re-entering SftpClient, so refresh the timer from the active
+        // DataSource before it falsely invalidates a live ExoPlayer transport.
+        private const val PLAYBACK_IDLE_HEARTBEAT_MS = 15_000L
+    }
+
     // Connection from pool - DO NOT close; lifecycle managed by SftpClient pool
     private var session: Session? = null
     private var channel: ChannelSftp? = null
@@ -49,6 +56,7 @@ class SftpDataSource(
     private var openPosition: Long = 0L        // absolute file offset when open() was called
     private var connectionAcquired = false
     private var channelBroken: Boolean = false
+    private var lastPlaybackTouchMs = 0L
 
     override fun open(dataSpec: DataSpec): Long {
         if (!PermissionHelper.hasLocalNetworkPermission(context)) {
@@ -131,6 +139,7 @@ class SftpDataSource(
         openPosition = position
         readCallCount = 0L
         openTimeMs = System.currentTimeMillis()
+        lastPlaybackTouchMs = openTimeMs
         transferStarted(dataSpec)
         Timber.d("SftpDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength")
         return if (bytesRemaining == C.LENGTH_UNSET.toLong()) fileLength else bytesRemaining
@@ -176,6 +185,7 @@ class SftpDataSource(
         if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
             bytesRemaining -= bytesRead.toLong()
         }
+        maybeTouchPlaybackTransport()
         bytesTransferred(bytesRead)
         return bytesRead
     }
@@ -184,6 +194,7 @@ class SftpDataSource(
 
     override fun close() {
         uri = null
+        lastPlaybackTouchMs = 0L
 
         // Only close the InputStream - session and channel are managed by the pool
         val wasAlreadyBroken = channelBroken
@@ -234,6 +245,18 @@ class SftpDataSource(
         Timber.d(
             "SftpDataSource: Closed - totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )
+    }
+
+    private fun maybeTouchPlaybackTransport() {
+        val now = System.currentTimeMillis()
+        if (now - lastPlaybackTouchMs < PLAYBACK_IDLE_HEARTBEAT_MS) return
+        sftpClient.touchPlaybackTransport(
+            host = host,
+            port = port,
+            username = username,
+        )
+        lastPlaybackTouchMs = now
+        Timber.d("SftpDataSource: playback heartbeat refreshed idle timer")
     }
 
     /** Releases the broken connection and opens a fresh one at [resumePosition]. */

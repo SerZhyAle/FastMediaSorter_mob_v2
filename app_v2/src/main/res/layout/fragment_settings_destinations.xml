@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" tools:ignore="NestedWeights">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:descendantFocusability="afterDescendants" tools:ignore="NestedWeights">
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
@@ -199,7 +199,7 @@
                     <com.google.android.material.textview.MaterialTextView android:id="@+id/tvNoResourcesMessage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/add_resources_first_message" android:textSize="@dimen/toggler_title_text_size" android:textColor="?attr/colorOnSurfaceVariant" android:padding="@dimen/bottom_sheet_binary_file_unknown_padding" android:gravity="center" android:layout_marginBottom="@dimen/margin_small" android:visibility="gone"/>
 
                     <!-- Destinations List -->
-                    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvDestinations" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/settings_height_container_min" android:layout_marginBottom="@dimen/settings_padding_vertical"/>
+                    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvDestinations" android:layout_width="match_parent" android:layout_height="wrap_content" android:descendantFocusability="afterDescendants" android:minHeight="@dimen/settings_height_container_min" android:layout_marginBottom="@dimen/settings_padding_vertical"/>
 
                 </LinearLayout>
             </LinearLayout>
@@ -317,6 +317,7 @@
                         android:id="@+id/rvScheduledOps"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:descendantFocusability="afterDescendants"
                         android:nestedScrollingEnabled="false" />
 
                     </LinearLayout><!-- end containerScheduledContent -->

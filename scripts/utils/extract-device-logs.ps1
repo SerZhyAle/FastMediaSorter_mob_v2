@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# Extract device logs for language switching debugging
+# Extract device logs for FastMediaSorter debugging
 # Usage: .\scripts\utils\extract-device-logs.ps1
 
 param(
@@ -35,8 +35,22 @@ if (-not (Test-Path $OutputDir)) {
 # Extract logcat
 Write-Host "[1/4] Extracting logcat..." -ForegroundColor Yellow
 try {
-    # Last 5000 lines of logcat, filter for our app
-    $logcatOutput = adb logcat -d -t 5000 | Select-String -Pattern "FastMediaSorter|LocaleHelper|$PackageName"
+    # Preserve the main package lines plus XR/native tags that do not always repeat the
+    # package id once logcat is converted/exported.
+    $logPatterns = @(
+        "FastMediaSorter",
+        "LocaleHelper",
+        [regex]::Escape($PackageName),
+        "S0249\\.XrSession",
+        "S0249\\.JniBridge",
+        "DiagnosticXr",
+        "XrEntryGatewayImpl",
+        "VrSettingsBlockFragment",
+        "xrInitializeLoaderKHR",
+        "xrCreateInstance",
+        "xrGetSystem"
+    )
+    $logcatOutput = adb logcat -d -t 5000 | Select-String -Pattern $logPatterns
     $logcatOutput | Out-File -FilePath $logFile -Encoding UTF8
     Write-Host "  Saved to: $logFile" -ForegroundColor Green
 }

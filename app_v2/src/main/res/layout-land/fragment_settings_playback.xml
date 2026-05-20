@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" tools:ignore="NestedWeights">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:descendantFocusability="afterDescendants" tools:ignore="NestedWeights">
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
@@ -47,6 +47,24 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/play_video_to_end"
                         app:str_subtitle="@string/setting_play_to_end_desc" />
+
+                    <!-- Default browse view: grid vs list (bound to AppSettings.defaultGridMode) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowDefaultGridMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/default_grid_mode"
+                        app:str_subtitle="@string/setting_default_grid_mode_desc" />
+
+                    <!-- File ops collapse to per-row overflow menu (bound to AppSettings.fileOpsInOverflowMenu) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowFileOpsInOverflowMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/file_ops_in_overflow_menu"
+                        app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -297,6 +315,21 @@
 
                 <LinearLayout android:id="@+id/containerBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
+                    <!-- Prevent Sleep (moved from General > Network & Cache) -->
+                    <LinearLayout android:id="@+id/layoutPreventSleep" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowPreventSleep"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/prevent_sleep"
+                            app:str_subtitle="@string/setting_prevent_sleep_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_prevent_sleep_title"
+                            app:str_helpMessage="@string/tooltip_prevent_sleep_message" />
+
+                    </LinearLayout>
+
                     <!-- Primary Media Player + Accept Shared Files (One Row, visible only when SUPPORTS_DEFAULT_PLAYER) -->
                     <LinearLayout android:id="@+id/layoutDefaultPlayerToggles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
@@ -319,6 +352,15 @@
                             app:str_subtitle="@string/setting_accept_shared_files_desc" />
 
                     </LinearLayout>
+
+                    <!-- Toggle: Resume on next launch (moved up to follow primary player + shared files row, no divider) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowResumeOnNextLaunch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_resume_on_next_launch"
+                        app:str_subtitle="@string/setting_resume_on_next_launch_desc" />
 
                     <!-- S0142: sub-section "Incoming links" - divider + caps header -->
                     <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
@@ -350,18 +392,6 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/link_autodownload_open_in_player_label"
                         app:str_subtitle="@string/link_autodownload_open_in_player_summary" />
-
-                    <!-- S0142: close "Incoming links" sub-section -->
-                    <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
-
-                    <!-- Toggle: Resume on next launch -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowResumeOnNextLaunch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/setting_resume_on_next_launch"
-                        app:str_subtitle="@string/setting_resume_on_next_launch_desc" />
 
                     <!-- S0142: sub-section "Camera capture" - divider + caps header -->
                     <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
@@ -405,6 +435,21 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/settings_black_screen_button_title"
                         app:str_subtitle="@string/settings_black_screen_button_desc" />
+
+                    <!-- Default for new resources: remember last viewed file -->
+                    <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowDefaultRememberFileList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/default_remember_file_list"
+                            app:str_subtitle="@string/setting_default_remember_file_list_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/remember_file_list_help_title"
+                            app:str_helpMessage="@string/remember_file_list_help_message" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>

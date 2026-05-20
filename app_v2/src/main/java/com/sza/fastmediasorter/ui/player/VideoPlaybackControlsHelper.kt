@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
+import com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
 import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
@@ -35,13 +36,24 @@ internal class VideoPlaybackControlsHelper(
             else -> mode
         }
         Timber.d("VideoPlayerManager: applyStereoEffect requested=$mode resolved=$resolved")
-        val effectiveMode = if (manager.panelStereoSingleEyeEnabled && !manager.vrImmersiveActive) {
+        val singleEyeEnabled = manager.panelStereoSingleEyeEnabled && !manager.vrImmersiveActive
+        val effectiveMode = if (singleEyeEnabled) {
             resolved
         } else {
             StereoMode.MONO
         }
         manager.stereoVideoProcessor.setStereoMode(effectiveMode)
         manager.applyConfiguredVideoEffects()
+
+        // S0264: Media3 1.2.1 effects pipeline does not visually render Crop when PlayerView
+        // uses surface_type=texture_view (issue androidx/media#779). Apply the single-eye
+        // crop directly to the TextureView matrix instead — this is what actually moves pixels.
+        PanelStereoCropApplier.apply(
+            playerView = manager.currentPlayerView,
+            mode = resolved,
+            singleEyeEnabled = singleEyeEnabled,
+        )
+
         if (effectiveMode != StereoMode.MONO) {
             manager.panelStereoSingleEyeNotifier.notifyIfFirstThisSession(context)
         }

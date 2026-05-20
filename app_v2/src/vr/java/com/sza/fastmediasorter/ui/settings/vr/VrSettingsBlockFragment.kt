@@ -10,13 +10,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.materialswitch.MaterialSwitch
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.MasterTogglePreferences
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionState
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
 import com.sza.fastmediasorter.core.xr.XrEntryResult
+import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collect
@@ -58,15 +58,10 @@ class VrSettingsBlockFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val advisory = view.findViewById<TextView>(R.id.xrUnavailableAdvisory)
-        val masterRow = view.findViewById<View>(R.id.masterToggleRow)
-        val masterSwitch = view.findViewById<MaterialSwitch>(R.id.masterToggleSwitch)
+        val masterRow = view.findViewById<SettingsToggleRow>(R.id.masterToggleRow)
         val testRow = view.findViewById<View>(R.id.testImmersiveRow)
 
-        masterRow.setOnClickListener {
-            if (masterSwitch.isEnabled) masterSwitch.toggle()
-        }
-
-        masterSwitch.setOnCheckedChangeListener { _, isChecked ->
+        masterRow.setOnCheckedChangeListener { isChecked ->
             viewLifecycleOwner.lifecycleScope.launch {
                 preferences.setEnabled(isChecked)
                 Timber.d("VrSettingsBlockFragment: master toggle -> $isChecked")
@@ -80,7 +75,7 @@ class VrSettingsBlockFragment : Fragment() {
                 combine(detection.state(), preferences.enabled) { state, masterOn ->
                     state to masterOn
                 }.onEach { (state, masterOn) ->
-                    applyState(advisory, masterRow, masterSwitch, testRow, state, masterOn)
+                    applyState(advisory, masterRow, testRow, state, masterOn)
                 }.collect()
             }
         }
@@ -88,19 +83,16 @@ class VrSettingsBlockFragment : Fragment() {
 
     private fun applyState(
         advisory: View,
-        masterRow: View,
-        masterSwitch: MaterialSwitch,
+        masterRow: SettingsToggleRow,
         testRow: View,
         state: XrDetectionState,
         masterOn: Boolean,
     ) {
         val xrPresent = state != XrDetectionState.NONE
         advisory.visibility = if (xrPresent) View.GONE else View.VISIBLE
-        masterSwitch.isEnabled = xrPresent
-        masterRow.isClickable = xrPresent
-        masterRow.isFocusable = xrPresent
-        if (masterSwitch.isChecked != masterOn) {
-            masterSwitch.isChecked = masterOn
+        masterRow.isEnabled = xrPresent
+        if (masterRow.isChecked != masterOn) {
+            masterRow.setCheckedSilently(masterOn)
         }
         val showButton = xrPresent && masterOn
         testRow.visibility = if (showButton) View.VISIBLE else View.GONE

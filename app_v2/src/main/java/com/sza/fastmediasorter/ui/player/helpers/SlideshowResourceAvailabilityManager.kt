@@ -84,7 +84,7 @@ class SlideshowResourceAvailabilityManager(
 
         imageFailureStreak += 1
         Timber.w(
-            "S0188: image failure streak=%d resource=%s file=%s",
+            "Slideshow image failure streak=%d resource=%s file=%s",
             imageFailureStreak,
             currentResourceLabel(),
             activity.viewModel.state.value.currentFile?.path
@@ -99,7 +99,7 @@ class SlideshowResourceAvailabilityManager(
         playbackFailureStreak += 1
         lastPlaybackReadyAtMs = null
         Timber.w(
-            "S0188: playback failure streak=%d resource=%s file=%s",
+            "Slideshow playback failure streak=%d resource=%s file=%s",
             playbackFailureStreak,
             currentResourceLabel(),
             activity.viewModel.state.value.currentFile?.path
@@ -127,7 +127,7 @@ class SlideshowResourceAvailabilityManager(
 
         playbackFailureStreak += 1
         Timber.w(
-            "S0188: quick-end streak=%d resource=%s file=%s readyAt=%s",
+            "Slideshow quick-end streak=%d resource=%s file=%s readyAt=%s",
             playbackFailureStreak,
             currentResourceLabel(),
             currentFile.path,
@@ -145,7 +145,7 @@ class SlideshowResourceAvailabilityManager(
 
         mainHandler.post {
             if (!activity.viewModel.state.value.isSlideShowActive || !isRemoteResource()) return@post
-            Timber.w("S0188: network lost while slideshow is active for %s", currentResourceLabel())
+            Timber.w("Slideshow network lost while active for %s", currentResourceLabel())
             activity.stopSlideshowDueToResourceIssue(
                 activity.getString(
                     R.string.slideshow_stopped_connection_lost,

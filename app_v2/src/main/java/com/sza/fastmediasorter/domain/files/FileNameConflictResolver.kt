@@ -54,7 +54,6 @@ object FileNameConflictResolver {
      * @return pair of (finalName, wasRenamed). `wasRenamed = true` means the suffix was applied.
      */
     fun resolveLocal(parentDir: File, intendedName: String): Pair<String, Boolean> {
-        timber.log.Timber.d("S0189: FileNameConflictResolver.resolveLocal")
         if (!File(parentDir, intendedName).exists()) return Pair(intendedName, false)
         val suffixed = applySecondsSuffix(intendedName)
         return Pair(suffixed, true)

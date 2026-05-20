@@ -363,14 +363,18 @@ class DestinationButtonsManager(
             text = shortName
 
             // S0227: auto-size keeps long labels stable, while the computed cap lets wide buttons grow.
-            val maxAutoSizeSp = fontSizeSp.toInt().coerceIn(SP_MIN.toInt(), SP_MAX.toInt())
-            TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                this,
-                SP_MIN.toInt(),
-                maxAutoSizeSp,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-            )
+            val minAutoSizeSp = SP_MIN.toInt()
+            val maxAutoSizeSp = computeAutoSizeMaxSp(fontSizeSp)
+            if (maxAutoSizeSp != null) {
+                // Android rejects uniform auto-size when the upper bound collapses to the minimum.
+                TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                    this,
+                    minAutoSizeSp,
+                    maxAutoSizeSp,
+                    1,
+                    TypedValue.COMPLEX_UNIT_SP
+                )
+            }
             textSize = SP_MIN
             
             // Calculate brightness to determine text color
@@ -600,6 +604,16 @@ class DestinationButtonsManager(
             val t = ((buttonWidthDp - MIN_BUTTON_WIDTH_DP) / (FONT_WIDTH_MAX_DP - MIN_BUTTON_WIDTH_DP))
                 .coerceIn(0f, 1f)
             return SP_MIN + t * (SP_MAX - SP_MIN)
+        }
+
+        /**
+         * Returns a valid auto-size upper bound or null when the button should stay at [SP_MIN].
+         */
+        fun computeAutoSizeMaxSp(fontSizeSp: Float): Int? {
+            val minSp = SP_MIN.toInt()
+            val maxSp = kotlin.math.ceil(fontSizeSp.toDouble()).toInt()
+                .coerceIn(minSp, SP_MAX.toInt())
+            return maxSp.takeIf { it > minSp }
         }
     }
 }

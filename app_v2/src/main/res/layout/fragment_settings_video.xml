@@ -39,14 +39,14 @@
         <ImageButton android:id="@+id/iconHelpVideoSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_video_size_limits_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
     </LinearLayout>
 
-    <LinearLayout android:id="@+id/layoutVideoSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
+    <LinearLayout android:id="@+id/layoutVideoSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="start" android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilVideoSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:hint="@string/fragment_settings_video_tilVideoSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilVideoSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/settings_margin_standard" android:hint="@string/fragment_settings_video_tilVideoSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etVideoSizeMin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilVideoSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/fragment_settings_video_tilVideoSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilVideoSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/fragment_settings_video_tilVideoSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etVideoSizeMax" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -117,6 +117,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_small"
+                android:maxWidth="140dp"
+                android:maxLines="2"
+                android:breakStrategy="balanced"
                 android:text="@string/select_snapshot_destination"
                 android:textAllCaps="false" />
 
@@ -180,13 +183,5 @@
         android:layout_marginTop="@dimen/margin_small"
         app:str_title="@string/settings_player_show_fps"
         app:str_subtitle="@string/settings_player_show_fps_desc" />
-
-    <!-- S0028: Multi-window mode — allow opening in a separate window -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowAllowSeparateWindow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        app:str_title="@string/setting_allow_separate_window" />
 
 </LinearLayout>

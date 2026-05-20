@@ -277,7 +277,6 @@ class PlayerLifecycleManager(
      * canonical paths via [pathNormalizer] before constructing the [Mutation] variant.
      */
     fun recordMutation(mutation: Mutation) {
-        Timber.d("S0242: Player records ${mutation::class.simpleName} into MutationJournal")
         mutationJournal.record(mutation)
     }
 

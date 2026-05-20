@@ -77,6 +77,7 @@ internal class AddResourceNetworkScanCoordinator(
             return
         }
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
+            bridge.markLoading(true)
             bridge.mutate { it.copy(isScanningShares = true, foundShares = emptyList()) }
             try {
                 // S0064: Load previously saved share names for this server in parallel with the scan.
@@ -93,10 +94,7 @@ internal class AddResourceNetworkScanCoordinator(
                         if (shares.isNotEmpty() || manualShares.isNotEmpty()) {
                             bridge.emit(AddResourceEvent.ShowSharePicker(server, shares, manualShares))
                         } else {
-                            // Both lists empty - guide user to manual entry
-                            bridge.emit(AddResourceEvent.ShowMessage(
-                                context.getString(R.string.msg_no_shares_found)
-                            ))
+                            bridge.emit(AddResourceEvent.ShowNoSharesFound)
                         }
                     }
                     .onFailure { e ->
@@ -117,6 +115,8 @@ internal class AddResourceNetworkScanCoordinator(
                 bridge.emit(AddResourceEvent.ShowError(
                     context.getString(R.string.msg_share_scan_failed)
                 ))
+            } finally {
+                bridge.markLoading(false)
             }
         }
     }

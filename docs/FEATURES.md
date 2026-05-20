@@ -217,7 +217,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 15. Network Sources
 
-- **SMB share picker**: Discover shares or enter share names manually.
+- **SMB share picker**: After host scan, pick a discovered SMB share with one tap and continue filling the resource; if nothing is found, the flow shows an explicit cancel path and manual entry remains available.
 - **SMB / FTP / SFTP**: Native protocols for browsing, managing, and streaming remote collections. SFTP directory reads are optimized into a single round-trip.
 - **Network auto-discovery**: Scans the local subnet (ports 445, 21, 22) to discover NAS endpoints.
 - **Built-in Speed test**: Measures read/write speeds to recommend the optimal thread count.
@@ -322,4 +322,3 @@ Reads documents directly from network or cloud storage, integrating reading them
 - **Android TV Media Centers (Kodi, Plex)**: Provides complete file management, media playback, and slideshows controllable entirely via remote/keyboard without a backend server.
 
 **Bottom line:** FMS provides a consistent, unified experience with deep network and cloud integration that eliminates constant app-switching for users who manage media across local, NAS, and cloud storage.
-

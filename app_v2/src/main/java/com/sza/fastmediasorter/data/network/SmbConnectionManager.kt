@@ -155,9 +155,8 @@ class SmbConnectionManager @Inject constructor(
             .withTimeout(TRANSACTION_TIMEOUT_FAST_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            // S0247 spike: revert after measurement (was 65536)
+            // S0247 graduated: 1 MiB read/write SMB buffers (was 65536) - improves throughput on Wi-Fi 7 NAS.
             .withReadBufferSize(1_048_576)
-            // S0247 spike: revert after measurement (was 65536)
             .withWriteBufferSize(1_048_576)
             .withTransactBufferSize(4280)
             .build()
@@ -168,9 +167,8 @@ class SmbConnectionManager @Inject constructor(
             .withTimeout(TRANSACTION_TIMEOUT_MEDIUM_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            // S0247 spike: revert after measurement (was 65536)
+            // S0247 graduated: 1 MiB read/write SMB buffers (was 65536).
             .withReadBufferSize(1_048_576)
-            // S0247 spike: revert after measurement (was 65536)
             .withWriteBufferSize(1_048_576)
             .withTransactBufferSize(4280)
             .build()
@@ -184,9 +182,8 @@ class SmbConnectionManager @Inject constructor(
             .withTimeout(TRANSACTION_TIMEOUT_SLOW_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_DEGRADED_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            // S0247 spike: revert after measurement (was 32768 - smaller buffer for degraded connections)
+            // S0247 graduated: 1 MiB read/write SMB buffers (was 32768).
             .withReadBufferSize(1_048_576)
-            // S0247 spike: revert after measurement (was 32768)
             .withWriteBufferSize(1_048_576)
             .withTransactBufferSize(4280)
             .build()
@@ -1037,7 +1034,6 @@ class SmbConnectionManager @Inject constructor(
     // callback must stay cleanup-only and never add probes, retries, or extra guards.
     private fun handleIdleTimeout(transportKey: String, key: ConnectionKey) {
         Timber.d("IdleDisconnect: SMB timeout callback accepted (transport=%s)", transportKey)
-        Timber.d("S0228: SMB idle timeout cleanup transport=$transportKey")
         pool.removeAndCloseAsync(key)
     }
 

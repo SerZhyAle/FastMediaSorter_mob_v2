@@ -61,12 +61,9 @@ class SmbFileOperations @Inject constructor(
                 )
 
                 file.use { smbFile ->
-                    // S0247 spike: measure throughput on each transfer.
-                    val fileSize = smbFile.fileInformation.standardInformation.endOfFile
-                    val startNs = System.nanoTime()
-                    Timber.d("S0247: SMB download START path=$remotePath size=$fileSize")
                     smbFile.inputStream.use { rawInput ->
-                        // S0247 spike: revert after measurement - wrap raw SMBJ stream with 64 KiB chunk.
+                        // S0247 graduated: 64 KiB BufferedInputStream wrap on raw SMBJ stream.
+                        val fileSize = smbFile.fileInformation.standardInformation.endOfFile
                         val input = BufferedInputStream(rawInput, 65_536)
                         if (progressCallback != null) {
                             input.copyToWithProgress(
@@ -78,13 +75,6 @@ class SmbFileOperations @Inject constructor(
                             input.copyTo(outputStream)
                         }
                     }
-                    val elapsedMs = (System.nanoTime() - startNs) / 1_000_000L
-                    val throughputMBps = if (elapsedMs > 0L && fileSize > 0L) {
-                        (fileSize * 1000L / elapsedMs).toDouble() / (1024.0 * 1024.0)
-                    } else {
-                        -1.0
-                    }
-                    Timber.d("S0247: SMB download DONE elapsedMs=$elapsedMs throughputMBps=%.2f path=$remotePath".format(throughputMBps))
                 }
                 SmbResult.Success(Unit)
             }
@@ -273,11 +263,8 @@ class SmbFileOperations @Inject constructor(
                 )
 
                 file.use { smbFile ->
-                    // S0247 spike: measure throughput on each transfer.
-                    val startNs = System.nanoTime()
-                    Timber.d("S0247: SMB upload START path=$cleanPath size=$fileSize")
                     smbFile.outputStream.use { rawOutput ->
-                        // S0247 spike: revert after measurement - wrap raw SMBJ stream with 64 KiB chunk.
+                        // S0247 graduated: 64 KiB BufferedOutputStream wrap on raw SMBJ stream.
                         val output = BufferedOutputStream(rawOutput, 65_536)
                         if (progressCallback != null) {
                             localInputStream.copyToWithProgress(
@@ -290,13 +277,6 @@ class SmbFileOperations @Inject constructor(
                         }
                         output.flush()
                     }
-                    val elapsedMs = (System.nanoTime() - startNs) / 1_000_000L
-                    val throughputMBps = if (elapsedMs > 0L && fileSize > 0L) {
-                        (fileSize * 1000L / elapsedMs).toDouble() / (1024.0 * 1024.0)
-                    } else {
-                        -1.0
-                    }
-                    Timber.d("S0247: SMB upload DONE elapsedMs=$elapsedMs throughputMBps=%.2f path=$cleanPath".format(throughputMBps))
                 }
                 SmbResult.Success(Unit)
             }

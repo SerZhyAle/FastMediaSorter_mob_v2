@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -159,20 +160,26 @@ class PlayerDialogHelper(
      * Show copy dialog with destination selection
      */
     fun showCopyDialog(currentFile: MediaFile, resourceId: Long) {
-        // For network paths (SMB/S/FTP), create File with URI-compatible scheme
-        val sourceFile = if (currentFile.path.startsWith("smb://") || 
-                             currentFile.path.startsWith("sftp://") || 
-                             currentFile.path.startsWith("ftp://") ||
-                             currentFile.path.startsWith("cloud://")) {
-            // Use custom File with network path that preserves the scheme
-            object : File(currentFile.path) {
-                override fun getAbsolutePath(): String = currentFile.path
-                override fun getPath(): String = currentFile.path
-                override fun getName(): String = currentFile.name
-                override fun length(): Long = currentFile.size
+        // For network paths (SMB/S/FTP), create File with URI-compatible scheme.
+        // S0266: cloud paths use CloudFileHandle so the display-name + size travel cleanly.
+        val sourceFile = when {
+            currentFile.path.startsWith("cloud://") -> CloudFileHandle(
+                cloudPath = currentFile.path,
+                displayName = currentFile.name,
+                size = currentFile.size,
+            )
+            currentFile.path.startsWith("smb://") ||
+                currentFile.path.startsWith("sftp://") ||
+                currentFile.path.startsWith("ftp://") -> {
+                // Custom File with network path that preserves the scheme.
+                object : File(currentFile.path) {
+                    override fun getAbsolutePath(): String = currentFile.path
+                    override fun getPath(): String = currentFile.path
+                    override fun getName(): String = currentFile.name
+                    override fun length(): Long = currentFile.size
+                }
             }
-        } else {
-            File(currentFile.path)
+            else -> File(currentFile.path)
         }
         
         activity.lifecycleScope.launch {
@@ -257,19 +264,25 @@ class PlayerDialogHelper(
     }
     
     private fun showMoveDialogInternal(currentFile: MediaFile, resourceId: Long, settings: AppSettings) {
-        // For network paths (SMB/S/FTP), create File with URI-compatible scheme
-        val sourceFile = if (currentFile.path.startsWith("smb://") || 
-                             currentFile.path.startsWith("sftp://") || 
-                             currentFile.path.startsWith("ftp://") ||
-                             currentFile.path.startsWith("cloud://")) {
-            object : File(currentFile.path) {
-                override fun getAbsolutePath(): String = currentFile.path
-                override fun getPath(): String = currentFile.path
-                override fun getName(): String = currentFile.name
-                override fun length(): Long = currentFile.size
+        // For network paths (SMB/S/FTP), create File with URI-compatible scheme.
+        // S0266: cloud paths use CloudFileHandle so the display-name + size travel cleanly.
+        val sourceFile = when {
+            currentFile.path.startsWith("cloud://") -> CloudFileHandle(
+                cloudPath = currentFile.path,
+                displayName = currentFile.name,
+                size = currentFile.size,
+            )
+            currentFile.path.startsWith("smb://") ||
+                currentFile.path.startsWith("sftp://") ||
+                currentFile.path.startsWith("ftp://") -> {
+                object : File(currentFile.path) {
+                    override fun getAbsolutePath(): String = currentFile.path
+                    override fun getPath(): String = currentFile.path
+                    override fun getName(): String = currentFile.name
+                    override fun length(): Long = currentFile.size
+                }
             }
-        } else {
-            File(currentFile.path)
+            else -> File(currentFile.path)
         }
         
         val resource = viewModel.state.value.resource

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:maxHeight="@dimen/dialog_landscape_max_height">
@@ -23,7 +24,7 @@
             android:id="@+id/tvCurrentFile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/dialog_file_operation_progress_tvCurrentFile_text"
+            tools:text="file.jpg"
             android:textSize="@dimen/resource_card_desc_text_size"
             android:ellipsize="middle"
             android:singleLine="true"
@@ -50,14 +51,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/dialog_file_operation_progress_tvProgressText_text"
+                tools:text="0 / 10"
                 android:textSize="@dimen/text_size_small" />
 
             <TextView
                 android:id="@+id/tvSpeed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/dialog_file_operation_progress_tvSpeed_text"
+                tools:text="1.5 MB/s"
                 android:textSize="@dimen/text_size_small" />
         </LinearLayout>
 

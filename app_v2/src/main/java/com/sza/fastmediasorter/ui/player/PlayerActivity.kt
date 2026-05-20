@@ -1564,8 +1564,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal fun isInAudioSlideshowPhotoMode(): Boolean = audioSlideshowPhotoModeManager.isActive
 
     /** Called by ImageLoadingManager when audio metadata is loaded from the online source. */
-    fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) =
-        audioMetadataManager.onMetadataLoaded(metadata, viewModel.state.value.currentFile)
+    fun onAudioMetadataLoaded(
+        metadata: com.sza.fastmediasorter.domain.model.AudioMetadata,
+        originatingPath: String
+    ) {
+        val current = viewModel.state.value.currentFile
+        Timber.d("S0265: onAudioMetadataLoaded originating=$originatingPath current=${current?.path}")
+        if (current == null || current.path != originatingPath) {
+            Timber.d("PlayerActivity: stale audio metadata (originating=$originatingPath, current=${current?.path}) - dropped")
+            return
+        }
+        audioMetadataManager.onMetadataLoaded(metadata, current)
+    }
 
     // ── PlayerHostCapabilities ────────────────────────────────────────────────
 

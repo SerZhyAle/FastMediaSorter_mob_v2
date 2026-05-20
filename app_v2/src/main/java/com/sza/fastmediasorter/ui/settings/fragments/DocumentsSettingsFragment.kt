@@ -95,6 +95,10 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
             binding.btnSetDefaultDocsViewer, requireContext(), R.string.settings_set_default_docs_viewer
         )
         binding.btnSetDefaultDocsViewer.setOnClickListener {
+            val current = viewModel.settings.value
+            if (!current.isPrimaryMediaPlayer) {
+                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "application/pdf")
         }
     }

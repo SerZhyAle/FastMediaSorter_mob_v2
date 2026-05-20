@@ -98,6 +98,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
     yt-dlp's native HLS/DASH downloader is used when a manifest format wins selection.
     """
     import yt_dlp
+    from yt_dlp.utils import DownloadError
     import os
     out_template = os.path.join(out_dir, file_stem + '.%(ext)s')
 
@@ -121,7 +122,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         'quiet': True,
         'no_warnings': True,
         'format': (
-            'bestaudio[ext=m4a]/bestaudio[ext=opus]/bestaudio[ext=mp3]/bestaudio'
+            'bestaudio[ext=m4a]/bestaudio[ext=opus]/bestaudio[ext=mp3]/140/251/250/249/bestaudio'
             if audio_only else
             (
                 'best[ext=mp4]/best/'
@@ -141,6 +142,8 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         # Don't try to merge separate video+audio streams (we have no ffmpeg).
         # Forces selector to pick single-stream formats only.
         'allow_unplayable_formats': False,
+        'youtube_include_dash_manifest': True,
+        'youtube_include_hls_manifest': True,
         # S0190 Phase 03: bridge progress_callback (Java interface) into yt-dlp hooks.
         'progress_hooks': [_on_progress],
         # S0190: force preference for android then web YouTube clients.
@@ -154,7 +157,12 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
     if user_agent:
         opts['user_agent'] = user_agent
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
+        try:
+            info = ydl.extract_info(url, download=True)
+        except DownloadError as e:
+            if audio_only and 'Requested format is not available' in str(e):
+                raise DownloadError(f'S0260: ytmusic_no_audio_format_available original={e}') from e
+            raise
         if info is None:
             raise ValueError('yt-dlp returned no info for url=' + str(url))
         ext = info.get('ext', 'mp4')

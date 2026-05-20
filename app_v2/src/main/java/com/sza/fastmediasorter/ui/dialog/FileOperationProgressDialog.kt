@@ -72,7 +72,15 @@ class FileOperationProgressDialog(
         tvEta = view.findViewById(R.id.tvEta)
         progressBar = view.findViewById(R.id.progressBar)
         btnCancel = view.findViewById(R.id.btnCancel)
-        
+
+        // S0266: initialise visible fields with "Preparing.." so cloud downloads (which only emit
+        // their first Processing event after seconds of warm-up) never show layout-tool placeholders.
+        tvCurrentFile.text = context.getString(R.string.file_operation_progress_preparing)
+        tvProgress.text = ""
+        tvSpeed.text = ""
+        tvOverallPercent.text = ""
+        tvEta.text = ""
+
         tvTitle.text = operationType
         
         // Setup cancel button

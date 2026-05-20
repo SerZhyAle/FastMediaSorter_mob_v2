@@ -38,6 +38,7 @@ class LinkAutoDownloadCoordinatorTest {
     private val authSessionRepository: AuthSessionRepository = mockk(relaxed = true)
     private val sessionContext: LinkDownloadSessionContext = mockk(relaxed = true)
     private val cookieStore: EncryptedCookieStore = mockk()
+    private val contract = YtMusicAudioOnlyContract()
 
     private val noOpCallbacks = object : LinkAutoDownloadCoordinator.Callbacks {
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
@@ -58,6 +59,7 @@ class LinkAutoDownloadCoordinatorTest {
             sessionContext = sessionContext,
             cookieStore = cookieStore,
             urlCanonicalizer = LinkUrlCanonicalizer(),
+            contract = contract,
         )
     }
 

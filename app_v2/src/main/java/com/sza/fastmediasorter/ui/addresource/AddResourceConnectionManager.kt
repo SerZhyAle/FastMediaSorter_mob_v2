@@ -401,6 +401,14 @@ internal class AddResourceConnectionManager(
             .show()
     }
 
+    fun showNoSharesFoundDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.smb_no_shares_found_title)
+            .setMessage(R.string.msg_no_shares_found)
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     /**
      * S0064: Shows a validated EditText dialog for manual SMB share name entry.
      * On confirm, fills the share name field and persists the name to history.

@@ -388,7 +388,8 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?: "CINEMA",
                     vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
-                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: !BuildConfig.SUPPORT_VR_PLAYER,
+                    // S0264: default ON for every flavor; immersive VR rendering overrides this at runtime.
+                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
                     vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
 

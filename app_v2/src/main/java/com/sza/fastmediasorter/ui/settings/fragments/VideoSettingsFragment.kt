@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 class VideoSettingsFragment : BaseSettingsFragment() {
@@ -108,6 +107,10 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             binding.btnSetDefaultVideoPlayer, requireContext(), R.string.settings_set_default_video_player
         )
         binding.btnSetDefaultVideoPlayer.setOnClickListener {
+            val current = viewModel.settings.value
+            if (!current.isPrimaryMediaPlayer) {
+                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
         }
     }
@@ -157,21 +160,14 @@ class VideoSettingsFragment : BaseSettingsFragment() {
 
     /**
      * S0251: the former VR-only block lost its forced-format controls (dead since S0241).
-     * `rowPlayerShowFps` (S0021) and `rowAllowSeparateWindow` (S0028) live on as plain
-     * Video-section toggles, unconditional on every build.
+     * `rowPlayerShowFps` (S0021) lives on as a plain Video-section toggle, unconditional on every build.
+     * `rowAllowSeparateWindow` (S0028) was relocated to General → Interface (bottom of section).
      */
     private fun setupPlayerExtras() {
-        Timber.d("S0251: VideoSettings relocated FPS + multi-window switches setup entry")
         // S0021: Show FPS over flat (non-immersive) player
         bindSwitch(binding.rowPlayerShowFps) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(playerShowFps = isChecked))
-        }
-
-        // S0028: Multi-window mode — open Browse / Player in a separate window
-        bindSwitch(binding.rowAllowSeparateWindow) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(allowSeparateWindow = isChecked))
         }
     }
 
@@ -216,9 +212,6 @@ class VideoSettingsFragment : BaseSettingsFragment() {
 
                 // S0021: FPS overlay over flat player
                 setSwitchChecked(binding.rowPlayerShowFps, settings.playerShowFps)
-
-                // S0028: Multi-window mode
-                setSwitchChecked(binding.rowAllowSeparateWindow, settings.allowSeparateWindow)
             }
         }
     }

@@ -60,7 +60,6 @@ class BrowseReconcilerManager @Inject constructor(
         resourceType: ResourceType,
         currentVisible: List<MediaFile>
     ): ReconcileResult {
-        Timber.d("S0242: Reconciler entry resource=%d type=%s visible=%d", resourceId, resourceType, currentVisible.size)
         val since = journal.lastAppliedSeq(resourceId)
         val pending = journal.pendingFor(resourceId, since)
         if (pending.isEmpty()) {
@@ -158,7 +157,6 @@ class BrowseReconcilerManager @Inject constructor(
         visible: List<MediaFile>
     ) {
         if (visible.isEmpty()) return
-        Timber.d("S0242: QuickVerifier scheduled resource=%d type=%s visible=%d", resourceId, resourceType, visible.size)
         applicationScope.launch {
             val missing = quickVerifierDispatcher.probe(resourceId, visible, n = 10)
             if (missing.isEmpty()) return@launch

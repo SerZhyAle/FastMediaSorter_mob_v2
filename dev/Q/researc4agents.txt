@@ -1,0 +1,26 @@
+Имея подписку, провёл расследование 4 моделей Две GPT, Но провайдеры разные:
+Cloud CODE - Opus 4.7 (1M) - Effort high (Cloude)
+MS Copilot - GPT 5.4 XHigh  (GPT)
+Codex - GPT5.5 XHigh (Coedex)
+
+Со всеми работаю некоторое время, раздавая разные задачи, правила, агенты, скилы - обдинаковые.
+Задача - взаимоценка.
+
+Всем 4 последовательно было задано 4 вопроса. 
+Три первых в одном чате. Четвертый в отдельном чате после.
+
+1. to you as my agent I order to study my computer, OS, this vscode project (rules, tools) from the perspectives to optimize and speed up:
+-your research speed and quality
+-your development speed and quality
+2. update it with analysis of our conversations and history of my requests to you
+3. Give me your thoughts and suggestions into /dev/{}_audit.md
+
+4.
+All 4 agents got same chain of prompts. Need you to compare the results and choose the winner with explanation
+P:\ANDROID\FastMediaSorter_mob_v2\dev\claude_audit.md
+P:\ANDROID\FastMediaSorter_mob_v2\dev\codex_audit.md
+P:\ANDROID\FastMediaSorter_mob_v2\dev\gemini_audit.md
+P:\ANDROID\FastMediaSorter_mob_v2\dev\gpt_audit.md
+
+В файлах .result привожу то, как они оценивают друг друга.
+Что может быть полезным

@@ -395,7 +395,16 @@ class YtDlpExtractionStrategy @Inject constructor(
                     val msg = error.message ?: ""
                     // These yt-dlp errors signal the URL is not handleable by this strategy.
                     // Return NotFound so the chain falls through to html/dynamic/site strategies.
-                    if (msg.contains("There is no video in this post", ignoreCase = true) ||
+                    if (msg.contains("ytmusic_no_audio_format_available", ignoreCase = true)) {
+                        // S0260: keep the selector-miss distinct from generic yt-dlp fallthrough
+                        // so the coordinator can differentiate YTMusic audio-only failures.
+                        Timber.d(
+                            "YtDlpExtractionStrategy: ytmusic no-audio format url=%s reason=%s",
+                            url,
+                            msg.take(120),
+                        )
+                        OpenResult.NotFound("ytmusic_no_audio_format_available")
+                    } else if (msg.contains("There is no video in this post", ignoreCase = true) ||
                         msg.contains("Unsupported URL:", ignoreCase = true) ||
                         msg.contains("Instagram sent an empty media response", ignoreCase = true) ||
                         // S0187: YouTube PoToken/JS-challenge failure - format selection raises

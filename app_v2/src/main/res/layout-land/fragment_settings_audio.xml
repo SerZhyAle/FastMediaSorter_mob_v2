@@ -148,9 +148,6 @@
 
     <Button android:id="@+id/btnSetDefaultAudioPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/settings_margin_standard" android:text="@string/settings_set_default_audio_player" android:textAllCaps="false" />
 
-    <!-- S0100 Microphone Recording section -->
-    <TextView android:id="@+id/tvMicRecordingSectionTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_mic_recording_section_title" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
-
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowMicRecordingEnabled"
         android:layout_width="match_parent"

@@ -135,7 +135,19 @@ Exception: only when the script explicitly documents a dependency on a profile-l
 
 ### Rule B - Batch related calls into one process
 
-Two or more PowerShell scripts that always run together must be chained inside one `pwsh -NoProfile -Command "& { ... }"` invocation, not split across separate tool calls.
+Two or more PowerShell scripts that always run together must be chained inside one PowerShell process, not split across separate tool calls.
+
+**Harness-safe default (when the shell is already PowerShell):**
+```powershell
+& { ./dev/CATALOG/scripts/scan.ps1 -Module app_v2; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./dev/CATALOG/scripts/render.ps1 -Module app_v2 }
+```
+
+**Fresh-process variant (only when you truly need a new `pwsh` process, e.g. from another shell):**
+```powershell
+pwsh -NoProfile -Command '& { ./dev/CATALOG/scripts/scan.ps1 -Module app_v2; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./dev/CATALOG/scripts/render.ps1 -Module app_v2 }'
+```
+
+**Important quoting rule:** in runnable commands, write `$LASTEXITCODE` literally. Do **not** write `\$LASTEXITCODE` in an actual shell command, and avoid double-quoted `-Command "..."` wrappers around code that contains `$...` variables - outer wrappers may interpolate or strip the dollar sign before PowerShell receives it.
 
 Wrong (two tool calls, two cold starts):
 ```
@@ -143,9 +155,9 @@ pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1   -Module app_v2
 pwsh -NoProfile -File dev/CATALOG/scripts/render.ps1 -Module app_v2
 ```
 
-Right (one tool call, one cold start):
+Right (one tool call, one cold start, same PowerShell process):
 ```
-pwsh -NoProfile -Command "& { ./dev/CATALOG/scripts/scan.ps1 -Module app_v2; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; ./dev/CATALOG/scripts/render.ps1 -Module app_v2 }"
+& { ./dev/CATALOG/scripts/scan.ps1 -Module app_v2; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./dev/CATALOG/scripts/render.ps1 -Module app_v2 }
 ```
 
 Or, when a wrapper exists, use it (see Rule C).

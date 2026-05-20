@@ -32,7 +32,6 @@ object SystemShareInvoker {
         preferredPackage: String? = null,
         chooserTitle: String? = null,
     ): Boolean {
-        Timber.d("S0189: SystemShareInvoker.invoke")
         val intent = buildIntent(payload)
 
         return if (preferredPackage != null) {

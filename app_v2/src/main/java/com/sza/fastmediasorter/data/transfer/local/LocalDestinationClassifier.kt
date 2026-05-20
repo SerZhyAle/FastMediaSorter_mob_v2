@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.transfer.local
 
+import android.os.Build
 import android.os.Environment
 import android.webkit.MimeTypeMap
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory.NonPublic
@@ -16,7 +17,7 @@ import javax.inject.Inject
  * `Kind`); everything else - including paths outside external storage -
  * becomes a [NonPublic].
  *
- * Pure path arithmetic + `MimeTypeMap`. No `Context` injected.
+ * Pure path arithmetic + extension-based MIME resolution. No `Context` injected.
  *
  * See strategic spec S0231 §6.1 (boundary rule) and §6.3 (MIME resolution).
  */
@@ -72,7 +73,7 @@ open class LocalDestinationClassifier @Inject constructor() {
     private fun matchPublicCollectionKind(segment: String): PublicCollection.Kind? = when (segment) {
         Environment.DIRECTORY_MUSIC,
         Environment.DIRECTORY_PODCASTS,
-        Environment.DIRECTORY_AUDIOBOOKS,
+        getAudiobooksDirectoryName(),
         Environment.DIRECTORY_RINGTONES,
         Environment.DIRECTORY_NOTIFICATIONS,
         Environment.DIRECTORY_ALARMS -> PublicCollection.Kind.AUDIO
@@ -83,14 +84,37 @@ open class LocalDestinationClassifier @Inject constructor() {
         else -> null
     }
 
+    private fun getAudiobooksDirectoryName(): String {
+        // DIRECTORY_AUDIOBOOKS was added after the app's minSdk.
+        // Keep using the canonical folder name on older devices so plain path
+        // classification does not crash during field lookup.
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Environment.DIRECTORY_AUDIOBOOKS
+        } else {
+            LEGACY_AUDIOBOOKS_DIRECTORY
+        }
+    }
+
     private fun resolveMimeType(displayName: String): String {
         val extension = displayName.substringAfterLast('.', missingDelimiterValue = "")
             .lowercase()
         if (extension.isEmpty()) return DEFAULT_MIME
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: DEFAULT_MIME
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+            ?: fallbackMimeType(extension)
+            ?: DEFAULT_MIME
+    }
+
+    private fun fallbackMimeType(extension: String): String? = when (extension) {
+        // Common transfer targets still need stable MIME metadata when the
+        // platform MIME registry is incomplete in unit tests or stripped runtimes.
+        "mp3" -> "audio/mpeg"
+        "mp4", "m4v" -> "video/mp4"
+        "pdf" -> "application/pdf"
+        else -> null
     }
 
     private companion object {
         const val DEFAULT_MIME = "application/octet-stream"
+        const val LEGACY_AUDIOBOOKS_DIRECTORY = "Audiobooks"
     }
 }

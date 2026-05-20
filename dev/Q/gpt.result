@@ -1,0 +1,21 @@
+Победитель: gpt_audit.md.
+
+Он лучший как единый рабочий документ, потому что лучше остальных сочетает три вещи: реальную привязку к текущему GitHub Copilot workflow, хорошую плотность сигнала и проверяемые выводы. У него сильнее всего блок про реальную историю работы: transcript-backed история, темы запросов, usage slash-команд и частотность S-тикетов в gpt_audit.md:236, gpt_audit.md:259, gpt_audit.md:271, gpt_audit.md:278. Плюс у него есть одно действительно полезное, неочевидное уточнение: не “catalog first always”, а “catalog first for semantic lookup; rg first for exact lookup” в gpt_audit.md:84 и gpt_audit.md:110. Это не просто красиво звучит, это практично.
+
+Ещё важнее то, что его ключевые тезисы в основном бьются с репо. GPT пишет про 125 modified files в gpt_audit.md:51; я перепроверил сейчас, и текущее git status даёт 126, то есть попадание очень близкое. Тезис про узкие exclusions тоже подтверждается в settings.json:13 и settings.json:46: там действительно нет exclusions для temp, DOWNLOADS, .venv, node_modules. Тезис про узкие Java source roots подтверждается в settings.json:37. Тезис про drift между docs и Gradle тоже реальный: TECH_REQUIREMENTS.md:15 и TECH_REQUIREMENTS.md:23 расходятся с build.gradle.kts:8, build.gradle.kts:11 и build.gradle.kts:26. И тезис про неидеальный post-change flow тоже подтверждается в post-change.ps1:43, post-change.ps1:48, post-change.ps1:51, post-change.ps1:59.
+
+Рейтинг я бы поставил так.
+
+gpt_audit.md
+Лучший баланс между repo audit и operator/workflow audit. Самый полезный как база для реальных follow-up задач.
+
+codex_audit.md
+Очень сильный второй. Это лучший именно tooling/process audit: post-change, MCP, validation facade, bootstrap, Gradle allowlist в codex_audit.md:112, codex_audit.md:125. Проигрывает GPT только потому, что его блок про историю запросов слабее и сам это признаёт: он работал без полноценного request log и местами опирался на косвенные сигналы в codex_audit.md:206 и codex_audit.md:370.
+
+claude_audit.md
+Самый интересный интеллектуально. Лучшая уникальная мысль среди всех четырёх: реальная потеря времени сидит не в холодном старте PowerShell, а в UI thrash вокруг settings и слабом применении /ui-clarify, что очень хорошо схвачено в claude_audit.md:282, claude_audit.md:304, claude_audit.md:369. Но как итоговый winner он слабее, потому что слишком Claude-specific, слишком длинный и частично сам себя опровергает: большой кусок завязан на .claude memory в claude_audit.md:30, а потом документ сам признаёт, что часть аудита шла через неверную shell-модель в claude_audit.md:329.
+
+gemini_audit.md
+Сильно слабее остальных. Главная проблема не в краткости, а в доверии: текст опирается на tool primitives и артефакты, которые здесь не выглядят реальными для текущей среды, например в gemini_audit.md:12, gemini_audit.md:34, gemini_audit.md:37, gemini_audit.md:60. Из-за этого он читается как шаблон про “мои нативные инструменты”, а не как grounded audit по вашему репо.
+
+Если нужен один базовый документ для дальнейших действий, берите gpt_audit.md. Если нужен лучший гибрид, я бы оставил GPT как основу, добавил из codex_audit.md конкретику по post-change/MCP и взял из claude_audit.md только сильный вывод про settings UI churn и необходимость жёстче применять /ui-clarify.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" tools:ignore="TooManyViews">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:descendantFocusability="afterDescendants" tools:ignore="TooManyViews">
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
@@ -15,26 +15,6 @@
             <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
-
-        <!-- S0097: GMS update banner - visible only when Google Play Services is not OK -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvGmsSettingsLink"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:padding="16dp"
-            android:text="@string/gms_settings_link"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorError"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <!-- S0200 Phase 06: Google Account card (placed above App Data & Backups to make the
-             dependency obvious; per /ui-clarify decision in INDEX.md Pre-Impl Blockers). -->
-        <include layout="@layout/card_google_account" />
 
         <!-- INTERFACE SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -168,34 +148,99 @@
 
                     </LinearLayout>
 
+                    <!-- S0028: Multi-window mode — allow opening in a separate window. Relocated here from VideoSettings; placed at the bottom of the Interface section. -->
+                    <LinearLayout android:id="@+id/layoutAllowSeparateWindow" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowAllowSeparateWindow"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/setting_allow_separate_window"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_allow_separate_window_title"
+                            app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- APP DATA & BACKUPS SECTION -->
+        <!-- S0255: AUTHORIZATION SECTION - groups GSM banner, Google account card and saved authorizations entry. -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-                    android:id="@+id/headerAppData"
+                    android:id="@+id/headerAuthorization"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:csh_title="@string/settings_category_app_data" />
+                    app:csh_title="@string/settings_category_authorization" />
 
-                <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:id="@+id/containerAuthorization" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+                    <!-- S0097: GMS update banner - visible only when Google Play Services is not OK. Moved here under S0255. -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvGmsSettingsLink"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:padding="16dp"
+                        android:text="@string/gms_settings_link"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorError"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowDefaultRememberFileList"
-                            android:layout_width="match_parent"
+                    <!-- S0200 Phase 06: Google Account card. Moved here under S0255. -->
+                    <include layout="@layout/card_google_account" />
+
+                    <!-- S0255: saved authorizations sub-screen entry (always active per strategic §6.2). -->
+                    <LinearLayout
+                        android:id="@+id/row_saved_authorizations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="@dimen/settings_item_min_height"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/iconHelpSavedAuthorizations"
+                            android:layout_width="@dimen/settings_help_icon_size"
+                            android:layout_height="@dimen/settings_help_icon_size"
+                            android:layout_marginEnd="@dimen/settings_help_icon_margin"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/tooltip_saved_authorizations_title"
+                            android:src="@drawable/ic_help_outline_24"
+                            app:tint="@color/text_color_secondary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            app:str_title="@string/default_remember_file_list"
-                            app:str_subtitle="@string/setting_default_remember_file_list_desc"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/remember_file_list_help_title"
-                            app:str_helpMessage="@string/remember_file_list_help_message" />
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/setting_saved_authorizations_title"
+                                android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/setting_saved_authorizations_summary"
+                                android:textSize="@dimen/toggler_desc_text_size"
+                                android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_chevron_right"
+                            android:importantForAccessibility="no" />
 
                     </LinearLayout>
 
@@ -218,6 +263,26 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false) -->
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- APP DATA & BACKUPS SECTION -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerAppData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_app_data" />
+
+                <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
                     <!-- Export/Import Settings -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny">
 
@@ -237,10 +302,6 @@
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_copy" />
 
                     </LinearLayout>
-
-                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false) -->
-                    <View android:id="@+id/dividerWearCompanion" android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
 
                     <!-- Google Drive Backup/Restore -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
@@ -271,6 +332,11 @@
 
                     </FrameLayout>
 
+                    <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <Button android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -289,21 +355,6 @@
 
                 <LinearLayout android:id="@+id/containerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Prevent Sleep (Moved from Sleep/Favorites container) -->
-                    <LinearLayout android:id="@+id/layoutPreventSleep" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowPreventSleep"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/prevent_sleep"
-                            app:str_subtitle="@string/setting_prevent_sleep_desc"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_prevent_sleep_title"
-                            app:str_helpMessage="@string/tooltip_prevent_sleep_message" />
-
-                    </LinearLayout>
-
                     <!-- ── 2x2 grid: network + cache settings ─────────────────────── -->
 
                     <!-- Row 1: Network Parallelism | Prefetch Cache -->
@@ -315,11 +366,13 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_prefetch_cache_title" app:helperText="@string/pref_prefetch_cache_helper">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_prefetch_cache_title">
 
                             <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/toggler_title_text_size" />
 
                         </com.google.android.material.textfield.TextInputLayout>
+
+                        <ImageButton android:id="@+id/iconHelpPrefetchCache" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_gravity="center_vertical" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/pref_prefetch_cache_help_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 
@@ -413,18 +466,12 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerGeneralActions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
-
-                        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/reset_general_section" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnResetSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
-
-                        <!-- Reset Settings Button -->
-                        <Button android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnResetGeneralSection" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Reset General Section button (moved out of the System collapsible group; sits between System and Debug sections). -->
+        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
 
         <!-- DEBUG SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -475,7 +522,7 @@
             app:icon="@drawable/ic_lock"
             app:iconGravity="start" />
 
-        <!-- ABOUT SECTION -->
+        <!-- ABOUT SECTION (heading removed — content sits flush under permissions section) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -483,17 +530,7 @@
             android:layout_marginTop="@dimen/margin_tiny"
             android:orientation="vertical">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-
-                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-                    android:id="@+id/headerAbout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:csh_showHelp="false"
-                    app:csh_title="@string/settings_category_about"
-                    app:csh_virtual="true" />
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- Documentation Links - wraps to multiple lines on narrow screens -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerDocLinks" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny">
@@ -519,7 +556,6 @@
                         <TextView android:id="@+id/tvVersionInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="@dimen/text_size_small" android:textColor="?android:attr/textColorLink" android:clickable="true" android:focusable="true" android:background="?android:attr/selectableItemBackground" android:padding="@dimen/item_resource_btnCopy_padding" />
                     </LinearLayout>
 
-                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 

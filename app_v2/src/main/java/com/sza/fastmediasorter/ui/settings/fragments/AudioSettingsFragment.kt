@@ -403,7 +403,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     private fun setupMicRecordingSection() {
         if (!BuildConfig.SUPPORT_MIC_RECORDING) {
-            binding.tvMicRecordingSectionTitle.visibility = View.GONE
             binding.rowMicRecordingEnabled.isVisible = false
             binding.rowMicRecordingAskFilename.isVisible = false
             return
@@ -451,6 +450,10 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             binding.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
         )
         binding.btnSetDefaultAudioPlayer.setOnClickListener {
+            val current = viewModel.settings.value
+            if (!current.isPrimaryMediaPlayer) {
+                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "audio/*")
         }
     }

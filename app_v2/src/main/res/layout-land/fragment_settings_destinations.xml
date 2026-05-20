@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="false"
+    android:descendantFocusability="afterDescendants"
     tools:ignore="NestedWeights">
 
     <!-- Full-width content to match other Settings pages (Playback, General); 600dp M3 cap removed per user UX preference -->
@@ -377,6 +378,7 @@
                             android:id="@+id/rvDestinations"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:descendantFocusability="afterDescendants"
                             android:layout_marginBottom="@dimen/settings_padding_vertical"
                             android:minHeight="@dimen/settings_height_container_min" />
 
@@ -495,6 +497,7 @@
                                 android:id="@+id/rvScheduledOps"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:descendantFocusability="afterDescendants"
                                 android:nestedScrollingEnabled="false" />
 
                         </LinearLayout>

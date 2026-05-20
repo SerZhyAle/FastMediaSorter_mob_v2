@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -725,7 +726,16 @@ class BrowseManagerInitializer(
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
         val selectedPaths = state.selectedFiles.toList()
         if (selectedPaths.isEmpty()) return Toast.makeText(activity, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
-        val sourceFiles = selectedPaths.map { File(it) }
+        // S0266: cloud paths build CloudFileHandle so the display-name (e.g. "MyVideo.mp4") survives into the copy/move operation.
+        val mediaFilesByPath = state.mediaFiles.associateBy { it.path }
+        val sourceFiles: List<File> = selectedPaths.map { path ->
+            val mf = mediaFilesByPath[path]
+            if (path.startsWith("cloud://") && mf != null) {
+                CloudFileHandle(cloudPath = path, displayName = mf.name, size = mf.size)
+            } else {
+                File(path)
+            }
+        }
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
             FileOperationDestinationDialog(

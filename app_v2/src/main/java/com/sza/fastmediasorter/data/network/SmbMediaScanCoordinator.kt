@@ -67,7 +67,6 @@ class SmbMediaScanCoordinator(
         val existing = inFlightFullScan.putIfAbsent(key, mine)
         if (existing != null) {
             Timber.d("SmbMediaScanCoordinator: dedup hit on $key")
-            Timber.d("S0248: listing-dedup coalescer hit key=$key")
             return existing.await()
         }
         try {

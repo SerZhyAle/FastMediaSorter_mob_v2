@@ -57,6 +57,14 @@ class StereoDetector @javax.inject.Inject constructor() {
         @Suppress("unused")
         private const val SBS_HALF_MIN_HEIGHT = 1800
 
+        // Full Over-Under stereo: two 16:9 frames stacked vertically → 16:18 = 8:9 ≈ 0.8889.
+        // Real-world masters: 1280×1440 (720p), 1920×2160 (1080p), 3840×4320 (4K).
+        // Narrow tolerance ±0.02 keeps the window clear of common portrait ratios (4:5 = 0.8,
+        // 1:1 = 1.0, 9:16 = 0.5625) - none of which are confusable with 8:9 at this width floor.
+        private const val FLAT_OU_AR = 8f / 9f
+        private const val FLAT_OU_AR_TOL = 0.02f
+        private const val FLAT_OU_MIN_WIDTH = 1280
+
         // Matroska StereoMode values (EBML element 0x53B8)
         // https://www.matroska.org/technical/elements.html#StereoMode
         private const val MATROSKA_STEREO_MONO       = "0"
@@ -385,11 +393,15 @@ class StereoDetector @javax.inject.Inject constructor() {
      * Spherical candidates (narrow windows, high-res only):
      *  - AR ≈ 4.0 + width ≥ 4096 → [StereoMode.EQUIRECT_360_SBS] (stacked stereo spheres)
      *  - AR ≈ 2.0 + width ≥ 2048 → [StereoMode.EQUIRECT_360_MONO] (classic 360° mono)
-    *  - AR ≈ 1.0 + width ≥ 3840 → [StereoMode.EQUIRECT_360_OU] (top-bottom stereo spheres)
+     *  - AR ≈ 1.0 + width ≥ 3840 → [StereoMode.EQUIRECT_360_OU] (top-bottom stereo spheres)
      *
-     * OU flat detection via AR is intentionally disabled - portrait video (9:16 = 0.5625)
-     * and flat OU (0.889) are not reliably distinguishable without metadata. Rely on
-     * [detectFromFilename] or Matroska tag for flat OU.
+     * Flat OU (Full Over-Under stacking):
+     *  - AR ≈ 8:9 (0.8889) + width ≥ [FLAT_OU_MIN_WIDTH] → [StereoMode.OU]
+     *    Covers 1280×1440 (720p), 1920×2160 (1080p), 3840×4320 (4K).
+     *    The ±0.02 window is clear of common portrait ratios (4:5=0.8, 1:1=1.0, 9:16=0.5625).
+     *
+     * Half-OU (1920×1080 squeezed) carries normal 16:9 AR and is indistinguishable from regular
+     * landscape - rely on [detectFromFilename] or Matroska tag for that case.
      */
     private fun detectFromAspectRatio(width: Int, height: Int): StereoMode {
         val ar = width.toFloat() / height.toFloat()
@@ -404,7 +416,10 @@ class StereoDetector @javax.inject.Inject constructor() {
                 StereoMode.EQUIRECT_360_OU
             // Flat SBS (existing behaviour)
             ar in SBS_AR_MIN..SBS_AR_MAX -> StereoMode.SBS_FULL
-            // Everything else - mono. Flat OU not detected by AR alone.
+            // Flat OU - 8:9 (Full Over-Under stacking). Real-world: 1280×1440 / 1920×2160 / 3840×4320.
+            isNear(ar, FLAT_OU_AR, FLAT_OU_AR_TOL) && width >= FLAT_OU_MIN_WIDTH ->
+                StereoMode.OU
+            // Everything else - mono. Half-OU (16:9 squeezed) not detected by AR alone.
             else -> StereoMode.MONO
         }
     }

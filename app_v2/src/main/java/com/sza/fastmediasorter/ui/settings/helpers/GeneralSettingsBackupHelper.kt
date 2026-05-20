@@ -21,7 +21,6 @@ class GeneralSettingsBackupHelper(
     fun setupWearCompanionButton() {
         if (!BuildConfig.SUPPORT_WEAR_COMPANION) {
             binding.btnWearCompanion?.visibility = View.GONE
-            binding.dividerWearCompanion?.visibility = View.GONE
             return
         }
         binding.btnWearCompanion?.setOnClickListener {

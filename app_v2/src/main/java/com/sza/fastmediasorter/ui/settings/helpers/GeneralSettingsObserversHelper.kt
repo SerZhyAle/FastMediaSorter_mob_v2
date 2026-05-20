@@ -35,10 +35,11 @@ class GeneralSettingsObserversHelper(
 
             setIsUpdatingSpinner(true)
 
-            if (binding.rowPreventSleep.isChecked != settings.preventSleep)
-                binding.rowPreventSleep.setCheckedSilently(settings.preventSleep)
             if (binding.rowEnableFavorites.isChecked != settings.enableFavorites)
                 binding.rowEnableFavorites.setCheckedSilently(settings.enableFavorites)
+            // S0028: Multi-window toggle observation. Lives in General → Interface (bottom).
+            if (binding.rowAllowSeparateWindow.isChecked != settings.allowSeparateWindow)
+                binding.rowAllowSeparateWindow.setCheckedSilently(settings.allowSeparateWindow)
             if (binding.rowSmallControls.isChecked != settings.showSmallControls)
                 binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
             if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
@@ -57,8 +58,6 @@ class GeneralSettingsObserversHelper(
                 binding.rowShowHiddenFiles.setCheckedSilently(settings.showHiddenFiles)
             if (binding.rowShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems)
                 binding.rowShowSubfoldersAsItems.setCheckedSilently(settings.showSubfoldersAsItems)
-            if (binding.rowDefaultRememberFileList.isChecked != settings.defaultRememberFileList)
-                binding.rowDefaultRememberFileList.setCheckedSilently(settings.defaultRememberFileList)
 
             if (binding.rowEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
                 binding.rowEnableBackgroundSync.setCheckedSilently(settings.enableBackgroundSync)

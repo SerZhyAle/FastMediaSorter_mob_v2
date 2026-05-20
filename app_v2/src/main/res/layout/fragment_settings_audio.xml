@@ -61,14 +61,14 @@
         <ImageButton android:id="@+id/iconHelpAudioSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_audio_size_limits_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
     </LinearLayout>
 
-    <LinearLayout android:id="@+id/layoutAudioSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
+    <LinearLayout android:id="@+id/layoutAudioSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:gravity="start" android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAudioSizeMin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAudioSizeMax" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -221,17 +221,6 @@
         android:layout_marginTop="@dimen/margin_small"
         android:text="@string/settings_set_default_audio_player"
         android:textAllCaps="false" />
-
-    <!-- S0100 Microphone Recording section -->
-    <TextView
-        android:id="@+id/tvMicRecordingSectionTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurfaceVariant"
-        android:padding="@dimen/settings_padding_vertical"
-        android:text="@string/settings_mic_recording_section_title"
-        android:textSize="@dimen/toggler_title_text_size"
-        android:textStyle="bold" />
 
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowMicRecordingEnabled"

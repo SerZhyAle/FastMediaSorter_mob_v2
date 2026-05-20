@@ -16,6 +16,16 @@
         <attr name="csh_helpTitle" format="string|reference" />
         <attr name="csh_helpMessage" format="string|reference" />
         <attr name="csh_virtual" format="boolean" />
+        <attr name="csh_collapsedPrefix" format="string|reference" />
+        <attr name="csh_expandedPrefix" format="string|reference" />
+        <attr name="csh_titleTextColor" format="color|reference" />
+        <attr name="csh_prefixTextColor" format="color|reference" />
+        <attr name="csh_titleTextSize" format="dimension" />
+        <attr name="csh_titleBold" format="boolean" />
+        <attr name="csh_headerBackground" format="reference|color" />
+        <attr name="csh_headerPaddingHorizontal" format="dimension" />
+        <attr name="csh_headerPaddingVertical" format="dimension" />
+        <attr name="csh_prefixPaddingEnd" format="dimension" />
     </declare-styleable>
 
     <!-- Consumed by SettingsToggleRow.kt. All public attrs use the str_ prefix. -->

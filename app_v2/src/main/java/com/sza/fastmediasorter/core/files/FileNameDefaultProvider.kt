@@ -27,7 +27,6 @@ class FileNameDefaultProvider(
         now: Long = System.currentTimeMillis(),
         zone: ZoneId = ZoneId.systemDefault(),
     ): String {
-        timber.log.Timber.d("S0189: FileNameDefaultProvider.defaultName")
         val dt = ZonedDateTime.ofInstant(java.time.Instant.ofEpochMilli(now), zone)
         val stem = formatter.format(dt)
         return if (extension.isEmpty()) stem else "$stem.$extension"

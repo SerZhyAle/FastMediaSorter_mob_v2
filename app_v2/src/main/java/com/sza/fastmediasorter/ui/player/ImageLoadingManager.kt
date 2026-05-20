@@ -81,7 +81,7 @@ class ImageLoadingManager(
         fun showError(message: String, exception: Throwable? = null)
         fun showToast(message: String)
         fun getWindowManager(): android.view.WindowManager
-        fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata)
+        fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata, originatingPath: String)
         fun updateSlideShow()
         fun getAdjacentFiles(): List<MediaFile>
         fun getCurrentFile(): MediaFile?
@@ -162,9 +162,12 @@ class ImageLoadingManager(
             audioMetadataCacheRepository = audioMetadataCacheRepository,
             okHttpClient = okHttpClient,
             memoryTier = memoryTier,
+            currentFilePathProvider = { callback.getCurrentFile()?.path },
             callback = object : AudioCoverArtLoader.Callback {
-                override fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) =
-                    callback.onAudioMetadataLoaded(metadata)
+                override fun onAudioMetadataLoaded(
+                    metadata: com.sza.fastmediasorter.domain.model.AudioMetadata,
+                    originatingPath: String
+                ) = callback.onAudioMetadataLoaded(metadata, originatingPath)
             }
         )
     }

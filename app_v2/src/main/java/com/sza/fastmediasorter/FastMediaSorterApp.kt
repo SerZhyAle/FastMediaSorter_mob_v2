@@ -50,6 +50,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             private set
 
         private const val ENABLE_DEBUG_STRICT_MODE = false
+
+        // Field-name fragments that mark a value as a credential / token.
+        // Matched case-insensitively against lowercase AppSettings field names.
+        // Extend (don't replace) when AppSettings gains a new credential-like field.
+        private val SECRET_FIELD_HINTS = listOf(
+            "password", "secret", "token", "apikey", "credential",
+        )
     }
     
     // S0194: 13 Application-level singletons wrapped in dagger.Lazy<T> so Hilt
@@ -519,24 +526,54 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         sb.append("\n==========================================\n")
         sb.append("   FAST MEDIA SORTER V2 - SETTINGS DUMP\n")
         sb.append("==========================================\n")
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "Language", settings.language))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "Flavor", BuildConfig.FLAVOR))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "Build type", BuildConfig.BUILD_TYPE))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportAudio", settings.supportAudio))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportVideos", settings.supportVideos))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportImages", settings.supportImages))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enablePersistentAudio", settings.enablePersistentAudioPlayback))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "audioEmptyStateMode", settings.audioEmptyStateMode))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enablePhotosDuringAudio", settings.enablePhotosDuringAudio))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "defaultSortMode", settings.defaultSortMode))
-        sb.append(String.format(Locale.US, "%-30s: %d\n", "networkParallelism", settings.networkParallelism))
-        sb.append(String.format(Locale.US, "%-30s: %d MB\n", "cacheSizeMb", settings.cacheSizeMb))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "loadFullSizeImages", settings.loadFullSizeImages))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "rendererMigrationEnabled", settings.rendererMigrationEnabled))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enableTranslation", settings.enableTranslation))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enableBackgroundSync", settings.enableBackgroundSync))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "showDetailedErrors", settings.showDetailedErrors))
+        sb.append(String.format(Locale.US, "%-36s: %s\n", "Flavor", BuildConfig.FLAVOR))
+        sb.append(String.format(Locale.US, "%-36s: %s\n", "Build type", BuildConfig.BUILD_TYPE))
+        sb.append("------------------------------------------\n")
+
+        // Reflection-based dump of every AppSettings field. Adding a new field to
+        // the data class auto-extends the dump on next launch — no edits here.
+        // Java reflection avoids the kotlin-reflect runtime (not on classpath).
+        try {
+            // getDeclaredFields() preserves source order on HotSpot/ART for data classes.
+            val fields = settings.javaClass.declaredFields
+            for (field in fields) {
+                if (field.isSynthetic) continue
+                val mods = field.modifiers
+                if (java.lang.reflect.Modifier.isStatic(mods)) continue
+                field.isAccessible = true
+                val raw: Any? = field.get(settings)
+                val name = field.name
+                val display = formatSettingValue(name, raw)
+                sb.append(String.format(Locale.US, "%-36s: %s\n", name, display))
+            }
+        } catch (t: Throwable) {
+            sb.append("[reflection failed: ").append(t.javaClass.simpleName)
+                .append(": ").append(t.message).append("]\n")
+        }
+
         sb.append("==========================================")
         Timber.w(sb.toString())
+    }
+
+    /**
+     * Renders one AppSettings value for the dump. Masks credential-like fields
+     * by field-name pattern. The matcher is intentionally broad so any future
+     * `*password*`, `*secret*`, `*token*`, `*apiKey*` field is masked on day one.
+     */
+    private fun formatSettingValue(fieldName: String, value: Any?): String {
+        val nameLower = fieldName.lowercase(Locale.US)
+        val isSecret = SECRET_FIELD_HINTS.any { it in nameLower }
+        if (isSecret) {
+            return when (value) {
+                null -> "<null>"
+                is CharSequence -> if (value.isEmpty()) "<empty>" else "<set, len=${value.length}>"
+                else -> "<set>"
+            }
+        }
+        return when (value) {
+            null -> "null"
+            is CharSequence -> if (value.isEmpty()) "<empty>" else value.toString()
+            else -> value.toString()
+        }
     }
 }

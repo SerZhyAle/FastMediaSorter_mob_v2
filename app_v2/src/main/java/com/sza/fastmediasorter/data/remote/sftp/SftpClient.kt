@@ -142,6 +142,17 @@ class SftpClient @Inject constructor(
         }
     }
 
+    /**
+     * Playback reads can stay active for minutes without going through the higher-level client
+     * entrypoints again. Refresh the idle timer from the DataSource itself so the transport is not
+     * considered idle in the middle of a long-running ExoPlayer session.
+     */
+    fun touchPlaybackTransport(host: String, port: Int, username: String) {
+        val connectionInfo = SftpConnectionInfo(host = host, port = port, username = username)
+        val transportKey = rememberTransportKey(connectionInfo)
+        idleDisconnectPolicy.touch(transportKey)
+    }
+
     /** S0067: close all pooled SFTP sessions (UI lifecycle hook). */
     suspend fun disconnectAllPool() {
         disarmAllTrackedTransports()

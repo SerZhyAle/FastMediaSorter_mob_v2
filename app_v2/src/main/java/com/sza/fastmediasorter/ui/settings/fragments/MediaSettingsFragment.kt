@@ -16,9 +16,7 @@ import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -67,30 +65,7 @@ class MediaSettingsFragment : Fragment() {
 
         attachChildFragments()
         setupExpandableSections()
-        if (vrMediaSection.isAvailable) {
-            // Preserve the active S0251 device-test probe while help handling lives in the shared header.
-            Timber.d("S0251: MediaSettings VR help icon setup entry")
-        }
         setupResetSection()
-        setupDefaultPlayerButton()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        _binding?.let {
-            DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultMediaPlayer, requireContext(), R.string.settings_set_default_media_player
-            )
-        }
-    }
-
-    private fun setupDefaultPlayerButton() {
-        DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultMediaPlayer, requireContext(), R.string.settings_set_default_media_player
-        )
-        binding.btnSetDefaultMediaPlayer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
-        }
     }
 
     private fun setupResetSection() {
@@ -131,7 +106,6 @@ class MediaSettingsFragment : Fragment() {
         }
 
         if (vrMediaSection.isAvailable) {
-            Timber.d("S0250: MediaSettingsFragment attaching VR section (noLegal/vr flavor surface)")
             val vrFragment = vrMediaSection.createFragment()
             if (vrFragment != null) {
                 transaction.replace(binding.containerVr.id, vrFragment, "media_vr")

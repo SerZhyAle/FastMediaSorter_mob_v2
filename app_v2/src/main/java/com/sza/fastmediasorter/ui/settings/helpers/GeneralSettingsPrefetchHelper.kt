@@ -33,6 +33,7 @@ class GeneralSettingsPrefetchHelper(
 
     fun setup() {
         setupPrefetchCacheDropdown()
+        setupPrefetchCacheHelpButton()
         setupCleanupModeDropdown()
         setupTtlDropdown()
         setupClearButton()
@@ -65,6 +66,16 @@ class GeneralSettingsPrefetchHelper(
         PrefetchCacheMultiplier.LESS -> fragment.getString(R.string.pref_prefetch_cache_less)
         PrefetchCacheMultiplier.AUTO -> fragment.getString(R.string.pref_prefetch_cache_auto)
         PrefetchCacheMultiplier.MORE -> fragment.getString(R.string.pref_prefetch_cache_more)
+    }
+
+    private fun setupPrefetchCacheHelpButton() {
+        binding.iconHelpPrefetchCache.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                fragment.requireContext(),
+                R.string.pref_prefetch_cache_help_title,
+                R.string.pref_prefetch_cache_help_message
+            )
+        }
     }
 
     // ── Cleanup mode dropdown ─────────────────────────────────────────────────

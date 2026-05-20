@@ -20,7 +20,9 @@ import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
+import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCredentialHelper
@@ -35,6 +37,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import timber.log.Timber
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
@@ -144,6 +147,7 @@ class GeneralSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupGmsBanner()
+        setupSavedAuthorizationsRow()
         logHelper.setupVersionInfo()
         backupHelper.setupWearCompanionButton()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
@@ -195,6 +199,22 @@ class GeneralSettingsFragment : Fragment() {
         observersHelper.dismissManualSyncProgressDialog()
         super.onDestroyView()
         _binding = null
+    }
+
+    // S0255: Wire the saved-authorizations row inside the new "Authorization" group.
+    // Tooltip mirrors the legacy Playback row behavior; navigation opens the sessions list activity.
+    // Row stays always enabled per strategic decision §6.2.
+    private fun setupSavedAuthorizationsRow() {
+        binding.iconHelpSavedAuthorizations.setOnClickListener {
+            TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_saved_authorizations_title,
+                R.string.tooltip_saved_authorizations_message
+            )
+        }
+        binding.rowSavedAuthorizations.setOnClickListener {
+            AuthSessionsActivity.start(requireContext())
+        }
     }
 
     private fun setupGmsBanner() {

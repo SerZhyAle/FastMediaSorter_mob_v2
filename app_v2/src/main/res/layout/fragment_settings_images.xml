@@ -86,15 +86,15 @@
     <!-- Image size limit (for both static and GIF) -->
     <TextView android:id="@+id/tvImageSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/image_and_animation_size_limit" android:textSize="@dimen/toggler_title_text_size" android:layout_marginStart="0dp" android:layout_marginBottom="@dimen/margin_small" />
 
-    <LinearLayout android:id="@+id/layoutImageSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
+    <LinearLayout android:id="@+id/layoutImageSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilImageSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:hint="@string/fragment_settings_images_tilImageSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilImageSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/fragment_settings_images_tilImageSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etImageSizeMin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilImageSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/fragment_settings_images_tilImageSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilImageSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:hint="@string/fragment_settings_images_tilImageSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etImageSizeMax" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
 

@@ -5,7 +5,6 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import timber.log.Timber
 
 /**
  * S0189 (Phase 09): default [EditorActionPanel] implementation.
@@ -30,7 +29,6 @@ class EditorActionPanelBinder(
     private val tinter = DirtyToolbarTinter(hostView, cleanColor, dirtyColor)
 
     override fun setup(callbacks: EditorActionCallbacks) {
-        Timber.d("S0189: EditorActionPanelBinder.setup")
         buttons.save.setOnClickListener { callbacks.onSave() }
         buttons.saveClose.setOnClickListener { callbacks.onSaveAndClose() }
         buttons.saveSend.setOnClickListener { callbacks.onSaveAndSend() }

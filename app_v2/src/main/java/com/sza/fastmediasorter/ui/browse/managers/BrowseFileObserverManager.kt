@@ -224,7 +224,6 @@ class BrowseFileObserverManager(
      * so [ResourceType.LOCAL] is hard-coded for canonicalization.
      */
     private fun recordDelete(rawPath: String) {
-        Timber.d("S0242: FileObserver records Delete for resource=%d", resourceId)
         val canonical = pathNormalizer.canonical(rawPath, ResourceType.LOCAL)
         mutationJournal.record(
             Mutation.Delete(

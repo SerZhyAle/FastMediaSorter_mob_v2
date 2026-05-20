@@ -120,6 +120,44 @@ class StereoDetectorTest {
         assertEquals(StereoMode.MONO, result)
     }
 
+    // ── Aspect ratio heuristic - flat OU detection (Full-OU 8:9 stacking) ─
+
+    @Test
+    fun `detectFromDimensions returns OU for 1920x2160 (Full-OU 1080p)`() {
+        // AR = 8:9 = 0.8889. Real-world: 3D-Blu-ray Full-OU 1080p masters.
+        assertEquals(StereoMode.OU, detector.detectFromDimensions(1920, 2160))
+    }
+
+    @Test
+    fun `detectFromDimensions returns OU for 1280x1440 (Full-OU 720p)`() {
+        // AR = 8:9 = 0.8889. Smallest legitimate Full-OU master (at width floor).
+        assertEquals(StereoMode.OU, detector.detectFromDimensions(1280, 1440))
+    }
+
+    @Test
+    fun `detectFromDimensions returns OU for 3840x4320 (Full-OU 4K)`() {
+        // AR = 8:9 = 0.8889. 4K Full-OU master.
+        assertEquals(StereoMode.OU, detector.detectFromDimensions(3840, 4320))
+    }
+
+    @Test
+    fun `detectFromDimensions returns MONO for 1080x1350 (4 to 5 IG portrait)`() {
+        // AR = 0.8 - outside the flat-OU ±0.02 window around 0.8889 → must not false-positive.
+        assertEquals(StereoMode.MONO, detector.detectFromDimensions(1080, 1350))
+    }
+
+    @Test
+    fun `detectFromDimensions returns MONO for 1080x1920 (9 to 16 phone portrait)`() {
+        // AR = 0.5625 - far outside flat-OU window → must not false-positive.
+        assertEquals(StereoMode.MONO, detector.detectFromDimensions(1080, 1920))
+    }
+
+    @Test
+    fun `detectFromDimensions returns MONO for 800x900 (8 to 9 but below width floor)`() {
+        // AR = 0.8889 matches flat-OU window but width 800 < FLAT_OU_MIN_WIDTH (1280) → MONO.
+        assertEquals(StereoMode.MONO, detector.detectFromDimensions(800, 900))
+    }
+
     // ── Aspect ratio edge cases ───────────────────────────────────────────
 
     @Test

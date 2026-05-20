@@ -53,7 +53,6 @@ class LocalStagingRegistry @Inject constructor() {
         kind: StagedKind,
         location: Location = Location.NETWORK_STAGED,
     ) {
-        timber.log.Timber.d("S0189: LocalStagingRegistry.register")
         val entry = StagedEntry(file, targetResourceId, targetParentPath, intendedName, location, kind)
         registry[file.absolutePath] = entry
     }

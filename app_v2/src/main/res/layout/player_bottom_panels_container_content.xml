@@ -20,7 +20,17 @@
             android:id="@+id/copyToPanelHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:csh_collapsedPrefix="▶"
+            app:csh_expandedPrefix="▼"
+            app:csh_headerBackground="?attr/selectableItemBackground"
+            app:csh_headerPaddingHorizontal="0dp"
+            app:csh_headerPaddingVertical="0dp"
+            app:csh_prefixPaddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            app:csh_prefixTextColor="@color/white"
             app:csh_showHelp="false"
+            app:csh_titleTextColor="@color/white"
+            app:csh_titleTextSize="@dimen/text_size_small"
+            app:csh_titleBold="false"
             app:csh_title="@string/panel_copy_to" />
 
         <GridLayout
@@ -45,7 +55,17 @@
             android:id="@+id/moveToPanelHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:csh_collapsedPrefix="▶"
+            app:csh_expandedPrefix="▼"
+            app:csh_headerBackground="?attr/selectableItemBackground"
+            app:csh_headerPaddingHorizontal="0dp"
+            app:csh_headerPaddingVertical="0dp"
+            app:csh_prefixPaddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            app:csh_prefixTextColor="@color/white"
             app:csh_showHelp="false"
+            app:csh_titleTextColor="@color/white"
+            app:csh_titleTextSize="@dimen/text_size_small"
+            app:csh_titleBold="false"
             app:csh_title="@string/panel_move_to" />
 
         <GridLayout
@@ -57,4 +77,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

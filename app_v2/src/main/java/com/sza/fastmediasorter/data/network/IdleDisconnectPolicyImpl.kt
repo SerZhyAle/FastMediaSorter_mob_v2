@@ -89,7 +89,6 @@ class IdleDisconnectPolicyImpl private constructor(
             }
             timers.remove(transport, coroutineContext[Job])
             Timber.i("IdleDisconnect: timeout fired (transport=%s)", transport)
-            Timber.d("S0228: latest idle timeout accepted transport=$transport")
             runCatching { latestState.callback() }
                 .onFailure {
                     Timber.e(it, "IdleDisconnect: timeout callback failed (transport=%s)", transport)
