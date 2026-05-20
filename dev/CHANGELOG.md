@@ -12119,3 +12119,4 @@ Format: | datetime | file | target | description |
 | 2026-05-20 12:41:30 | `PLAN/S0266_cloud-download-filename-and-progress.md` | `spec-dev` | S0266 all phases done; Status -> Implemented -> BlockNeedUserTest; Timber.d S0266 tags inserted in executeCopy + noLegal cloud APK install [branch: DEBUG-v004] |
 | 2026-05-20 12:41:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt` | `spec-dev` | S0266 finalisation: Timber.d S0266 entry tag at cloud executeCopy for BlockNeedUserTest probe [branch: DEBUG-v004] |
 | 2026-05-20 14:03:34 | `dev/Q/index.html` | `dev/Q audit page` | Reworked the audit comparison page into a visual summary dashboard with accessible tabs and consensus sections [branch: DEBUG-v004] |
+| 2026-05-20 14:19:03 | `.github/workflows/jekyll-gh-pages.yml` | `GitHub Pages build` | Publish dev/Q/index.html as standalone /q/ page during Pages build [branch: temp/publish-q-page] |

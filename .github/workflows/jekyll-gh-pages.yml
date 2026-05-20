@@ -28,6 +28,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Publish dev/Q as standalone page
+        run: |
+          mkdir -p q
+          cp dev/Q/index.html q/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll
