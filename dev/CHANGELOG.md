@@ -12451,3 +12451,4 @@ Format: | datetime | file | target | description |
 | 2026-05-20 22:55:45 | `CLAUDE.md` | `CLAUDE.md` | Align the list of mandatory skills with the Copilot instructions and AGENTS.md [branch: DEBUG-v004] |
 | 2026-05-20 23:03:18 | `app_v2/src/vr/cpp/CMakeLists.txt` | `CMakeLists.txt` | Add target_link_options -Wl,-z,max-page-size=16384 for 16 KB page alignment compatibility [branch: DEBUG-v004] |
 | 2026-05-20 23:10:14 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5202.303 - plateau merge from DEBUG-v006 [branch: DEBUG-v006] |
+| 2026-05-20 23:20:57 | `.gitignore` | `.gitignore` | Add play-console-key.json to .gitignore to exclude Google Play developer API key [branch: DEBUG-v007] |

@@ -90,6 +90,8 @@ local.properties
 keystore.properties
 fastmediasorter.keystore
 upload_certificate.pem
+play-console-key.json
+
 
 # OAuth credentials - NEVER COMMIT
 # Release OAuth config contains production credentials
