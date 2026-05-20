@@ -66,7 +66,7 @@ class TextEditorAutoFitFontManager(
         if (!autoFitEnabled) return
 
         if (editText.height == 0 || scrollView.height == 0) {
-            // Not yet laid out — defer to after layout pass
+            // Not yet laid out - defer to after layout pass
             editText.doOnLayout { recomputeAndApply() }
             return
         }

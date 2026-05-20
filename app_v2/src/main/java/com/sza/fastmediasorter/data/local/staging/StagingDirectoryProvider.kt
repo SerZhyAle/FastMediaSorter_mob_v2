@@ -32,7 +32,7 @@ class StagingDirectoryProvider @Inject constructor(
             val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             File(downloads, "FastMediaSorter/$sub")
         } catch (e: Exception) {
-            Timber.w(e, "StagingDirectoryProvider: cannot access public Downloads — using scoped fallback (kind=$kind)")
+            Timber.w(e, "StagingDirectoryProvider: cannot access public Downloads - using scoped fallback (kind=$kind)")
             null
         }
 

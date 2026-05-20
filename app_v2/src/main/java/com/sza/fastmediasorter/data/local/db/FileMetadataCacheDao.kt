@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.data.local.db
 import androidx.room.*
 
 /**
- * DAO for [FileMetadataCacheEntity] — per-file scan metadata cache (A5).
+ * DAO for [FileMetadataCacheEntity] - per-file scan metadata cache (A5).
  *
- * The primary lookup key is (resourceId, filePath) — unique index guarantees
+ * The primary lookup key is (resourceId, filePath) - unique index guarantees
  * at-most-one cache entry per file per resource.
  */
 @Dao
@@ -73,7 +73,7 @@ interface FileMetadataCacheDao {
 
     /**
      * Remove entries whose parent resource no longer exists.
-     * Defensive cleanup — foreign key CASCADE handles most cases, but
+     * Defensive cleanup - foreign key CASCADE handles most cases, but
      * this covers any edge cases (e.g. manual DB manipulation).
      */
     @Query("DELETE FROM file_metadata_cache WHERE resourceId NOT IN (SELECT id FROM resources)")

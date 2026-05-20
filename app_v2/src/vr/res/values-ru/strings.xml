@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vr_settings_master_toggle_label">Включить 3D VR</string>
+    <string name="vr_settings_master_toggle_summary">Показывать VR-функции в этом приложении</string>
+</resources>

@@ -76,7 +76,7 @@ class AddResourceHelper(
                 // Pre-fill remember file list
                 binding.cbSmbRememberFileList.isChecked = resource.rememberFileList
 
-                // Pre-fill show subfolders as items and disable thumbnails — were added to create
+                // Pre-fill show subfolders as items and disable thumbnails - were added to create
                 // form as part of option-parity fix; must be restored from source resource on copy
                 binding.cbSmbShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
                 binding.cbSmbDisableThumbnails.isChecked = resource.disableThumbnails
@@ -146,7 +146,7 @@ class AddResourceHelper(
                 // Pre-fill remember file list
                 binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
 
-                // Pre-fill show subfolders as items and disable thumbnails — option-parity fields
+                // Pre-fill show subfolders as items and disable thumbnails - option-parity fields
                 binding.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
                 binding.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
 
@@ -207,7 +207,7 @@ class AddResourceHelper(
                 // Pre-fill remember file list
                 binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
 
-                // Pre-fill show subfolders as items and disable thumbnails — option-parity fields
+                // Pre-fill show subfolders as items and disable thumbnails - option-parity fields
                 binding.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
                 binding.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
 

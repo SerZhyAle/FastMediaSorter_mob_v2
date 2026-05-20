@@ -57,7 +57,7 @@ data class FileMetadataCacheEntity(
     /** Epoch ms when this cache entry was written. Used for TTL expiry. */
     val cachedAt: Long,
 
-    // ── Cached metadata (all nullable — may not be available for all file types) ──
+    // ── Cached metadata (all nullable - may not be available for all file types) ──
 
     /** Absolute path to locally cached thumbnail image. */
     val thumbnailPath: String?,
@@ -89,5 +89,14 @@ data class FileMetadataCacheEntity(
     val album: String? = null,
 
     /** Audio track title (ID3/Vorbis tag). */
-    val title: String? = null
+    val title: String? = null,
+
+    // ── Metadata enrichment state (added in migration 30→31, S0248 Phase 1) ───
+
+    /**
+     * Persisted enrichment state. Mirrors
+     * [com.sza.fastmediasorter.domain.model.MetadataState]; stored as TEXT.
+     * Legacy rows default to `"COMPLETE"` via the migration's SQL DEFAULT.
+     */
+    val metadataState: String = "COMPLETE"
 )

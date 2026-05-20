@@ -89,14 +89,14 @@ import androidx.media3.common.Player
 
 /**
  * Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW
- * and Intent.ACTION_SEND). Detached from the main resource/database tree — no resource system,
+ * and Intent.ACTION_SEND). Detached from the main resource/database tree - no resource system,
  * no playlists, no history.
  *
  * All viewer routing is delegated to StandaloneViewManager.
  */
 // StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With"
 // handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded
-// to startActivity/startService — received URIs are only passed to ExoPlayer/Glide as media.
+// to startActivity/startService - received URIs are only passed to ExoPlayer/Glide as media.
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
@@ -115,7 +115,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
-    // Delete permission launchers — pending state and result handling live in fileOperations.
+    // Delete permission launchers - pending state and result handling live in fileOperations.
     // API 30+: MediaStore.createDeleteRequest auto-deletes after user grants permission.
     private val batchDeleteLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
@@ -123,7 +123,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         fileOperations.handleBatchDeleteResult(result.resultCode == RESULT_OK)
     }
 
-    // API 29: RecoverableSecurityException — user grants, then we retry delete.
+    // API 29: RecoverableSecurityException - user grants, then we retry delete.
     private val recoverableDeleteLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -143,7 +143,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         )
     }
 
-    // Injected network/cloud clients — needed to construct StandaloneViewManager's NetworkFileManager.
+    // Injected network/cloud clients - needed to construct StandaloneViewManager's NetworkFileManager.
     // Not exercised for content:// URIs from external intents but required by the constructor.
     @Inject lateinit var smbClient: SmbClient
     @Inject lateinit var sftpClient: SftpClient
@@ -224,12 +224,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
-        // See PlayerActivity.onCreate — must run before super → setContentView.
+        // See PlayerActivity.onCreate - must run before super → setContentView.
         com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.applyControlsThemeOverlay(this)
         super.onCreate(savedInstanceState)
     }
 
-    // Player layout has its own immersive insets handling — skip global edge-to-edge
+    // Player layout has its own immersive insets handling - skip global edge-to-edge
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun setupViews() {
@@ -252,7 +252,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 else -> intent?.data
             }
             val isProbe = probeUri?.toString()?.contains("default_player_probe") == true
-            Timber.d("StandalonePlayer[debug]: setupViews START — isProbe=$isProbe uri=$probeUri")
+            Timber.d("StandalonePlayer[debug]: setupViews START - isProbe=$isProbe uri=$probeUri")
         }
 
         val viewManagerT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
@@ -367,7 +367,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun onShowContextMenu() {
                     binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
                 }
-                // Standalone plays a single file — no playlist navigation.
+                // Standalone plays a single file - no playlist navigation.
                 override fun onNextFile() {}
                 override fun onPreviousFile() {}
                 override fun onToggleFavourite() = viewModel.toggleFavorite()
@@ -403,7 +403,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     override fun onPause() {
-        // Skip pausing playback when entering PiP — the activity is technically paused
+        // Skip pausing playback when entering PiP - the activity is technically paused
         // but media must keep running inside the PiP window.
         val isInPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
         if (!isInPip && ::lifecycleManager.isInitialized) lifecycleManager.onPause()
@@ -446,7 +446,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        // Honour the user's PiP preference — pipManager.isEnabled tracks the latest setting value.
+        // Honour the user's PiP preference - pipManager.isEnabled tracks the latest setting value.
         pipManager?.onUserLeaveHint(pipManager?.isEnabled ?: false)
     }
 
@@ -460,7 +460,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         binding.root.findViewById<android.view.View?>(R.id.bottomPanelsContainer)?.also {
             it.post { it.requestApplyInsets() }
         }
-        // playerView re-measures itself via ExoPlayer's internal SurfaceView listener — no manual action needed
+        // playerView re-measures itself via ExoPlayer's internal SurfaceView listener - no manual action needed
         updateEpubTranslatorVisibility()
     }
 
@@ -504,7 +504,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         }
 
         // Probe files created by DefaultPlayerHelper for the "set as default" flow must not be
-        // played — they are 1-byte stubs and will crash viewers. Silently finish.
+        // played - they are 1-byte stubs and will crash viewers. Silently finish.
         if (uri.toString().contains("default_player_probe")) {
             Timber.d("StandalonePlayer: ignoring default-player probe URI, finishing")
             finish()
@@ -650,7 +650,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
 
-        // bottomPanelsContainer: pad for nav bar (bottom + sides) — only exists in landscape layout
+        // bottomPanelsContainer: pad for nav bar (bottom + sides) - only exists in landscape layout
         binding.root.findViewById<android.view.View?>(R.id.bottomPanelsContainer)?.also { container ->
             ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
                 val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -742,7 +742,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         binding.btnFavorite.visibility = View.VISIBLE
         binding.btnFavorite.setOnClickListener { viewModel.toggleFavorite() }
 
-        // Rename — hidden until capability check completes asynchronously
+        // Rename - hidden until capability check completes asynchronously
         binding.btnRenameCmd.isVisible = false
         binding.btnRenameCmd.setOnClickListener { showStandaloneRenameDialog() }
 
@@ -888,7 +888,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             if (state.isLoading) return@collectOnLifecycle
 
             state.errorMessage?.let { error ->
-                Timber.w("StandalonePlayer: error state — $error")
+                Timber.w("StandalonePlayer: error state - $error")
                 Toast.makeText(this@StandalonePlayerActivity, error, Toast.LENGTH_SHORT).show()
                 finish()
                 return@collectOnLifecycle
@@ -975,7 +975,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
      * then updates [binding.btnRenameCmd] visibility on the Main thread.
      *
      * SAF documents: check FLAG_SUPPORTS_RENAME via DocumentsContract query.
-     * MediaStore URIs: optimistic — show button, handle failure at attempt time.
+     * MediaStore URIs: optimistic - show button, handle failure at attempt time.
      * All other schemes: hidden.
      */
     private fun updateRenameButtonVisibility() = fileOperations.updateRenameButtonVisibility()
@@ -1010,8 +1010,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
 
     override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
-    override fun rememberStereoModeIfEnabled(mode: StereoMode) =
-        viewModel.rememberStereoModeIfEnabled(mode)
+    override fun rememberStereoModeForCurrentFile(mode: StereoMode) =
+        viewModel.rememberStereoModeForCurrentFile(mode)
 
     override val videoPlayerHandle: VideoPlayerHandle get() = standaloneVideoPlayerHandle
 

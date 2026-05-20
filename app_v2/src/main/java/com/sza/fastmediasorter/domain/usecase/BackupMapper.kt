@@ -212,10 +212,7 @@ object BackupMapper {
             linkDownloadMaxResolution = settings.linkDownloadMaxResolution,
             linkDownloadAudioOnly = settings.linkDownloadAudioOnly,
             linkDownloadLoginWallHeuristicEnabled = settings.linkDownloadLoginWallHeuristicEnabled,
-            vrForcedPlatFormat = settings.vrForcedPlatFormat,
-            vrForcedSphericalFormat = settings.vrForcedSphericalFormat,
             vrRenderingMode = settings.vrRenderingMode,
-            vrRememberFileFormat = settings.vrRememberFileFormat,
             vrAutoImmersive = settings.vrAutoImmersive,
             disable3dVr = settings.disable3dVr,
         )
@@ -256,18 +253,6 @@ object BackupMapper {
     }
 
     fun toAppSettings(backup: BackupSettings, current: AppSettings): AppSettings {
-        val legacyVrForcedFormat = backup.vrForcedFormat?.gsonSafe("AUTO")
-        val migratedPlatFormat = when {
-            legacyVrForcedFormat == null -> current.vrForcedPlatFormat
-            legacyVrForcedFormat in VR_FLAT_FORCED_FORMATS -> legacyVrForcedFormat
-            else -> current.vrForcedPlatFormat
-        }
-        val migratedSphericalFormat = when {
-            legacyVrForcedFormat == null -> current.vrForcedSphericalFormat
-            legacyVrForcedFormat in VR_SPHERICAL_FORCED_FORMATS -> legacyVrForcedFormat
-            else -> current.vrForcedSphericalFormat
-        }
-
         return current.copy(
             isResourceGridMode = backup.isResourceGridMode,
             language = backup.language.gsonSafe(current.language),
@@ -374,10 +359,7 @@ object BackupMapper {
             linkDownloadAudioOnly = backup.linkDownloadAudioOnly ?: current.linkDownloadAudioOnly,
             linkDownloadLoginWallHeuristicEnabled = backup.linkDownloadLoginWallHeuristicEnabled
                 ?: current.linkDownloadLoginWallHeuristicEnabled,
-            vrForcedPlatFormat = backup.vrForcedPlatFormat.gsonSafe(migratedPlatFormat),
-            vrForcedSphericalFormat = backup.vrForcedSphericalFormat.gsonSafe(migratedSphericalFormat),
             vrRenderingMode = backup.vrRenderingMode.gsonSafe(current.vrRenderingMode),
-            vrRememberFileFormat = backup.vrRememberFileFormat,
             // null in older backup files → preserve current setting
             vrAutoImmersive = backup.vrAutoImmersive ?: current.vrAutoImmersive,
             // null in older backup files → preserve current setting (don't force to false on restore)
@@ -451,18 +433,6 @@ object BackupMapper {
         return try { com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value) }
         catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
     }
-
-    private val VR_FLAT_FORCED_FORMATS = setOf("AUTO", "SBS", "OU", "MONO")
-    private val VR_SPHERICAL_FORCED_FORMATS = setOf(
-        "AUTO",
-        "EQUIRECT_360_MONO",
-        "EQUIRECT_360_SBS",
-        "EQUIRECT_360_OU",
-        "EQUIRECT_180_MONO",
-        "EQUIRECT_180_SBS",
-        "VR180_FISHEYE_SBS",
-        "CYLINDER_180"
-    )
 
     fun toBackupFavorites(
         favorites: List<FavoritesEntity>,

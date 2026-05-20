@@ -20,7 +20,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 /**
- * S0003 — strategic §5.1, pillar D, sub-strategy 1: direct file URL.
+ * S0003 - strategic §5.1, pillar D, sub-strategy 1: direct file URL.
  *
  * Probe semantics: HEAD (fallback to ranged GET) decides whether the URL points at a
  * media/document file. Open semantics: GET, validate redirects stay on `http(s)`,
@@ -47,7 +47,7 @@ class DirectFileExtractionStrategy @Inject constructor(
                     return@withContext ProbeResult.NotApplicable
                 }
             }
-            // Some servers reject HEAD — try a 1-byte ranged GET.
+            // Some servers reject HEAD - try a 1-byte ranged GET.
             val rangedGet = Request.Builder().url(httpUrl)
                 .header("Range", "bytes=0-0")
                 .get()
@@ -76,7 +76,7 @@ class DirectFileExtractionStrategy @Inject constructor(
     /**
      * S0171 overload: re-fetch with additional request headers. The hidden-WebView strategy
      * uses this to replay the page context (`Referer`, browser `User-Agent`, `Range`) when
-     * downloading a signed CDN URL it intercepted — without these the CDN returns a tiny error
+     * downloading a signed CDN URL it intercepted - without these the CDN returns a tiny error
      * stub. Not part of [UrlExtractionStrategy] (which keeps the 2-arg contract for the registry).
      */
     suspend fun open(
@@ -142,7 +142,7 @@ class DirectFileExtractionStrategy @Inject constructor(
         if (!segment.isNullOrBlank()) {
             val decoded = runCatching { URLDecoder.decode(segment, Charsets.UTF_8.name()) }.getOrNull() ?: segment
             if (decoded.contains('.')) return sanitise(decoded)
-            // No extension — append from MIME.
+            // No extension - append from MIME.
             MediaMimeWhitelist.extensionFor(mime)?.let { return sanitise("$decoded.$it") }
             return sanitise(decoded)
         }

@@ -6,7 +6,7 @@
     <!-- Outer disc body -->
     <path android:fillColor="#1A1A1A" android:pathData="M24,24m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0" />
 
-    <!-- Outer rim highlight — visible chrome edge, makes rotation clear -->
+    <!-- Outer rim highlight - visible chrome edge, makes rotation clear -->
     <path android:fillColor="#00000000" android:strokeColor="#585858" android:strokeWidth="1.2" android:pathData="M24,24m-21,0a21,21 0,1 1,42 0a21,21 0,1 1,-42 0" />
 
     <!-- Groove ring 1 -->
@@ -27,9 +27,9 @@
     <!-- Center hole -->
     <path android:fillColor="#111111" android:pathData="M24,24m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0" />
 
-    <!-- Main glare arc (top-left) — was 6%, now 22% — makes rotation clearly visible -->
+    <!-- Main glare arc (top-left) - was 6%, now 22% - makes rotation clearly visible -->
     <path android:fillColor="#FFFFFF" android:fillAlpha="0.22" android:pathData="M24,2C11.85,2 2,11.85 2,24C2,24 24,24 24,2Z" />
 
-    <!-- Secondary glare spot (bottom-right) — asymmetry is what shows rotation -->
+    <!-- Secondary glare spot (bottom-right) - asymmetry is what shows rotation -->
     <path android:fillColor="#FFFFFF" android:fillAlpha="0.07" android:pathData="M24,46C36.15,46 46,36.15 46,24C46,24 24,24 24,46Z" />
 </vector>

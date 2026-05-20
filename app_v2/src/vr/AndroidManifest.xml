@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- S0249 Phase 02 step 02.6: device feature declarations + DiagnosticXrActivity declaration.
+         All <uses-feature> entries stay required="false" so the single-APK strategy (R-10) keeps
+         phone-Play visibility (S0156 ADR-8). The Quest 3 launcher uses
+         `com.oculus.intent.category.VR` on the DiagnosticXrActivity's intent-filter to launch it
+         in headset mode; non-VR launchers ignore the category. -->
+
+    <!-- Quest -->
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="false"
+        android:version="1" />
+
+    <!-- Android XR -->
+    <uses-feature
+        android:name="android.software.xr.api.openxr"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.xr.input.controller"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.xr.input.hand_tracking"
+        android:required="false" />
+
+    <!--
+        OpenXR permissions:
+        `org.khronos.openxr.permission.OPENXR` and `OPENXR_SYSTEM` are auto-merged from the
+        OpenXR loader AAR (`org.khronos.openxr:openxr_loader_for_android`). Verified by reading
+        the merged_manifests output for noLegalDebug — no manual declaration needed here.
+    -->
+
+    <application>
+        <meta-data
+            android:name="com.oculus.supportedDevices"
+            android:value="quest3|quest3s" />
+
+        <!--
+            S0249 Phase 02 step 02.6: dedicated OpenXR session host. Launched by
+            XrEntryGatewayImpl when the user taps "Test Immersive" on the Settings VR block.
+            - `com.oculus.intent.category.VR` is the HorizonOS hint to launch in headset mode
+              (parallel to LAUNCHER category that lists the app in the launcher grid).
+            - `configChanges` is exhaustive: HorizonOS aggressively triggers screen-layout
+              changes when the user adjusts headset comfort settings or re-centers; we own
+              the OpenXR loop and must not let Android destroy/recreate the Activity.
+            - `resizeableActivity="false"`: the Activity is full-screen-stereoscopic, not a
+              panel; freeform/multi-window does not apply.
+            - `exported="true"`: required for the intent-filter to be discoverable by the
+              HorizonOS launcher. The Activity is still only launched in-process today
+              (`XrEntryGatewayImpl` uses an explicit Intent), but `exported` guards the
+              filter itself.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.ui.xr.DiagnosticXrActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|navigation|uiMode|smallestScreenSize|density"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.oculus.intent.category.VR" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -5,6 +5,9 @@ import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.mutation.Mutation
+import com.sza.fastmediasorter.domain.mutation.MutationJournal
+import com.sza.fastmediasorter.domain.path.PathNormalizer
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -13,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -25,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * - Expose [ignoringFileChanges] flag so programmatic file operations can suppress
  *   spurious observer callbacks.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseFileObserverManager(
     private val scope: CoroutineScope,
@@ -39,7 +43,14 @@ class BrowseFileObserverManager(
      * Called to sort files in-memory after a rename.
      * Equivalent to `sortFiles(files, sortMode, forceSort = true)`.
      */
-    private val onSortFiles: (files: List<MediaFile>, sortMode: SortMode) -> List<MediaFile>
+    private val onSortFiles: (files: List<MediaFile>, sortMode: SortMode) -> List<MediaFile>,
+    // S0242 Phase 05 - Route LOCAL FileObserver events through the journal so Reconciler
+    // becomes the single reader of all source-mutation signals. resourceId is captured at
+    // construction time because the manager is owned by a per-window BrowseViewModel
+    // bound to one resource for its entire lifecycle (matches BrowseLoadingAuxManager).
+    private val resourceId: Long,
+    private val mutationJournal: MutationJournal,
+    private val pathNormalizer: PathNormalizer
 ) {
     // ── State ────────────────────────────────────────────────────────────────
 
@@ -81,6 +92,12 @@ class BrowseFileObserverManager(
                         Timber.i("FileObserver: external file deleted: $fileName")
                         val currentResource = stateFlow.value.resource ?: return
                         val fullPath = File(currentResource.path, fileName).absolutePath
+                        // S0242 Phase 05 - Journal the deletion so the Reconciler reapplies it
+                        // on next onResume if the user navigates away before the live UI removal
+                        // takes effect (or if multiple Browse instances share the resource).
+                        // The immediate onRemoveFiles call stays for the live-view UX; Reconciler
+                        // becomes a no-op when the visible list already lacks the path.
+                        recordDelete(fullPath)
                         onRemoveFiles(listOf(fullPath))
                     }
 
@@ -120,6 +137,14 @@ class BrowseFileObserverManager(
                             when {
                                 from != null && to != null -> {
                                     Timber.i("FileObserver: complete rename '$from' → '$to'")
+                                    // S0242 Phase 05 - Both old and new paths fall within the
+                                    // same resource root (FileObserver fires only for the watched
+                                    // directory), so it's a same-resource Move per Mutation.Move
+                                    // semantics. Live in-memory rename stays for UX.
+                                    val currentResource = stateFlow.value.resource ?: return@launch
+                                    val oldPath = File(currentResource.path, from).absolutePath
+                                    val newPath = File(currentResource.path, to).absolutePath
+                                    recordMoveWithinResource(oldPath, newPath)
                                     handleFileRename(from, to)
                                 }
                                 from != null && to == null -> {
@@ -127,18 +152,30 @@ class BrowseFileObserverManager(
                                     val filePath = File(currentResource.path, from)
                                     if (!filePath.exists()) {
                                         Timber.i("FileObserver: file deleted/moved to trash: $from")
+                                        // S0242 Phase 05 - Journal the disappearance; live
+                                        // onRemoveFiles preserves immediate UI feedback.
+                                        recordDelete(filePath.absolutePath)
                                         onRemoveFiles(listOf(filePath.absolutePath))
                                     } else {
-                                        Timber.w("FileObserver: file moved externally: $from — full reload")
+                                        Timber.w("FileObserver: file moved externally: $from - full reload")
+                                        // S0242 Phase 05 - File left the watched resource (paired
+                                        // 'to' event never arrived but the file is gone from this
+                                        // dir on resume / next probe). Record the delete; the live
+                                        // reload still runs because we don't know the destination.
+                                        recordDelete(filePath.absolutePath)
                                         scheduleReload()
                                     }
                                 }
                                 from == null && to != null -> {
-                                    Timber.i("FileObserver: file moved in: $to — full reload")
+                                    Timber.i("FileObserver: file moved in: $to - full reload")
+                                    // S0242 §6 Item 5 - the journal does not model `Add`. New
+                                    // files in the watched directory keep the legacy reload path.
                                     scheduleReload()
                                 }
                                 else -> {
-                                    Timber.w("FileObserver: incomplete move event (from=$from, to=$to) — full reload")
+                                    Timber.w("FileObserver: incomplete move event (from=$from, to=$to) - full reload")
+                                    // S0242 Phase 05 - Insufficient information to journal;
+                                    // fall back to the legacy reload so the list catches up.
                                     scheduleReload()
                                 }
                             }
@@ -179,6 +216,46 @@ class BrowseFileObserverManager(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /**
+     * S0242 Phase 05 - Append a [Mutation.Delete] entry to the shared journal so
+     * `BrowseReconcilerManager` reapplies it on next `onResume`. Synchronous: the journal
+     * implementation is thread-safe and writes only to an in-memory map.
+     *
+     * FileObserver fires only for LOCAL resources (Android `android.os.FileObserver`),
+     * so [ResourceType.LOCAL] is hard-coded for canonicalization.
+     */
+    private fun recordDelete(rawPath: String) {
+        val canonical = pathNormalizer.canonical(rawPath, ResourceType.LOCAL)
+        mutationJournal.record(
+            Mutation.Delete(
+                resourceId = resourceId,
+                canonicalPath = canonical,
+                opId = UUID.randomUUID().toString(),
+                timestampMs = System.currentTimeMillis()
+            )
+        )
+    }
+
+    /**
+     * S0242 Phase 05 - Append a same-resource [Mutation.Move] entry. Both paths fall
+     * within the watched directory's resource, so `srcResourceId == dstResourceId == resourceId`.
+     */
+    private fun recordMoveWithinResource(oldRawPath: String, newRawPath: String) {
+        val oldCanonical = pathNormalizer.canonical(oldRawPath, ResourceType.LOCAL)
+        val newCanonical = pathNormalizer.canonical(newRawPath, ResourceType.LOCAL)
+        mutationJournal.record(
+            Mutation.Move(
+                resourceId = resourceId,
+                srcResourceId = resourceId,
+                dstResourceId = resourceId,
+                oldCanonicalPath = oldCanonical,
+                newCanonicalPath = newCanonical,
+                opId = UUID.randomUUID().toString(),
+                timestampMs = System.currentTimeMillis()
+            )
+        )
+    }
+
+    /**
      * Debounce reloadFiles() calls triggered by rapid FileObserver events.
      */
     private fun scheduleReload() {
@@ -201,7 +278,7 @@ class BrowseFileObserverManager(
 
             val fileIndex = currentList.indexOfFirst { it.name == oldName }
             if (fileIndex == -1) {
-                Timber.w("FileObserver.handleFileRename: '$oldName' not found — falling back to reload")
+                Timber.w("FileObserver.handleFileRename: '$oldName' not found - falling back to reload")
                 onReloadFiles()
                 return@launch
             }

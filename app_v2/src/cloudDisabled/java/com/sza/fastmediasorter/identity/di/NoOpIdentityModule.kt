@@ -13,7 +13,7 @@ import javax.inject.Singleton
  *
  * Resolves [GoogleIdentityRepository] to the inert [NoOpGoogleIdentityRepository]. The paired
  * `cloudEnabled` source set declares its own `IdentityModule` binding the real Credential Manager
- * implementation — AGP mounts exactly one of the two per flavor (see `app_v2/build.gradle.kts`
+ * implementation - AGP mounts exactly one of the two per flavor (see `app_v2/build.gradle.kts`
  * `sourceSets` block) so there is no duplicate-binding conflict.
  */
 @Module

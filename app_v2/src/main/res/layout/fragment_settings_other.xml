@@ -5,48 +5,17 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
-        <!-- Translation Section -->
-        <LinearLayout
+        <!-- Translation Section - help payload folded into the row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowEnableTranslation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:layout_marginBottom="@dimen/margin_small">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEnableTranslation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/enable_translation"
-                    android:textSize="@dimen/toggler_title_text_size" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_enable_translation_desc"
-                    android:textSize="@dimen/toggler_desc_text_size"
-                    android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/iconHelpTranslation"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_translation_title"
-                android:src="@drawable/ic_help_outline_24"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_title="@string/enable_translation"
+            app:str_subtitle="@string/setting_enable_translation_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/tooltip_translation_title"
+            app:str_helpMessage="@string/tooltip_translation_message" />
 
         <!-- Translation Languages Container (portrait: vertical, landscape: horizontal) -->
         <LinearLayout
@@ -72,7 +41,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_source_language"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
+                    android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/spinnerTranslationSourceLanguage"
@@ -106,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_target_language"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
+                    android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/spinnerTranslationTargetLanguage"
@@ -116,108 +85,34 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Translation Lens Style -->
-        <LinearLayout
-            android:id="@+id/layoutTranslationLensStyle"
+        <!-- Translation Lens Style - help payload folded into the row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowTranslationLensStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
             android:visibility="gone"
-            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchTranslationLensStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/translation_lens_style"
-                    android:textSize="@dimen/toggler_title_text_size" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_translation_lens_style_desc"
-                    android:textSize="@dimen/toggler_desc_text_size"
-                    android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/iconHelpTranslationBlocks"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_translation_blocks_title"
-                android:src="@drawable/ic_help_outline_24"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+            app:str_title="@string/translation_lens_style"
+            app:str_subtitle="@string/setting_translation_lens_style_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/tooltip_translation_blocks_title"
+            app:str_helpMessage="@string/tooltip_translation_blocks_message" />
 
         <!-- Google Lens -->
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowEnableGoogleLens"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
+            app:str_title="@string/enable_google_lens"
+            app:str_subtitle="@string/setting_enable_google_lens_desc" />
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEnableGoogleLens"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/enable_google_lens"
-                    android:textSize="@dimen/toggler_title_text_size" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_enable_google_lens_desc"
-                    android:textSize="@dimen/toggler_desc_text_size"
-                    android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- OCR (Text Recognition) -->
-        <LinearLayout
+        <!-- OCR (Text Recognition) - no subtitle in original layout; tvOcrSummary below shows unsupported reason -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowEnableOcr"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEnableOcr"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/enable_ocr"
-                android:textSize="@dimen/toggler_title_text_size" />
-        </LinearLayout>
+            app:str_title="@string/enable_ocr" />
 
         <TextView
             android:id="@+id/tvOcrSummary"
@@ -246,7 +141,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_size"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/spinnerOcrFontSize"
@@ -272,7 +167,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_family"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/spinnerOcrFontFamily"
@@ -282,4 +177,3 @@
         </LinearLayout>
 
 </LinearLayout>
-

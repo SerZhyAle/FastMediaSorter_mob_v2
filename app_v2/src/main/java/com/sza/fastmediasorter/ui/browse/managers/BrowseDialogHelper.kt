@@ -80,12 +80,12 @@ class BrowseDialogHelper(
          * Called when the user confirms a delete-files dialog.
          *
          * @param overridePaths When non-null, exact set of paths the dialog was shown
-         *   for (per-file overflow menu) — implementation must delete these and leave
+         *   for (per-file overflow menu) - implementation must delete these and leave
          *   the global multiselect untouched. When null, the dialog was shown for the
-         *   current global multiselect — implementation should read it as usual and
+         *   current global multiselect - implementation should read it as usual and
          *   may clear it after deletion. Always-reading-global-selection here breaks
          *   overflow-menu deletes when the global selection is empty (regression
-         *   observed 2026-05-17 — toast `no_files_selected`).
+         *   observed 2026-05-17 - toast `no_files_selected`).
          */
         fun onDeleteConfirmed(overridePaths: Set<String>?)
         fun onCloudSignInRequested(provider: com.sza.fastmediasorter.data.cloud.CloudProvider)
@@ -350,7 +350,7 @@ class BrowseDialogHelper(
      * Show delete-confirmation dialog for [files].
      *
      * @param overridePaths When non-null, forwarded to [DialogCallbacks.onDeleteConfirmed]
-     *   verbatim — used by the per-file overflow menu to delete a single file without
+     *   verbatim - used by the per-file overflow menu to delete a single file without
      *   touching the global multiselect. When null, the callback resolves to the current
      *   global multiselect.
      */

@@ -16,6 +16,7 @@ object UrlInTextDetector {
 
     fun httpUrls(input: String?): List<String> {
         if (input.isNullOrBlank()) return emptyList()
+        Timber.d("S0140: pillar-U multi-URL share-text parser entry")
         val matcher = Patterns.WEB_URL.matcher(input)
         val urls = linkedSetOf<String>()
         while (matcher.find()) {

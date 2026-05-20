@@ -27,7 +27,7 @@ import timber.log.Timber
 /**
  * Handles BrowseEvent dispatch from ViewModel events flow.
  *
- * Extracted from BrowseActivity.observeData() (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity.observeData() (Wave 1.5 decomposition - IV.1).
  */
 class BrowseEventHandler(
     private val activity: Activity,
@@ -96,11 +96,8 @@ class BrowseEventHandler(
                 }
             }
             is BrowseEvent.NavigateToTextEditor -> {
-                // S0189: open text file in edit mode — bypasses normal file-index resolution.
-                // Use createPanelIntent to target the 2D PlayerActivity directly: TEXT is never a
-                // VR-eligible surface, so we must not route through the per-flavor
-                // BuildConfig.PLAYER_ACTIVITY_CLASS override (which on noLegal/vr resolves to
-                // VrPlayerActivity and triggers the «VR Headset Required» fallback on phones).
+                // S0189: open text file in edit mode - bypasses normal file-index resolution.
+                // Use createPanelIntent to target PlayerActivity directly.
                 val activityHost = activity as? ComponentActivity ?: run {
                     Timber.e("BrowseEventHandler: activity is not ComponentActivity, cannot launch text editor")
                     return
@@ -110,6 +107,20 @@ class BrowseEventHandler(
                     event.resourceId,
                     initialFilePath = event.filePath,
                 ).putExtra(PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN, true)
+                playerActivityLauncher.launch(playerIntent)
+                @Suppress("DEPRECATION")
+                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
+            is BrowseEvent.NavigateToDrawingEditor -> {
+                val activityHost = activity as? ComponentActivity ?: run {
+                    Timber.e("BrowseEventHandler: activity is not ComponentActivity, cannot launch drawing editor")
+                    return
+                }
+                val playerIntent = PlayerActivity.createPanelIntent(
+                    activity,
+                    event.resourceId,
+                    initialFilePath = event.filePath,
+                ).putExtra(PlayerActivity.EXTRA_ACTIVATE_DRAW_MODE, true)
                 playerActivityLauncher.launch(playerIntent)
                 @Suppress("DEPRECATION")
                 activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
@@ -240,6 +251,28 @@ class BrowseEventHandler(
         val intent = Intent(activity, BrowseActivity::class.java).apply {
             putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
             putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        activity.startActivity(intent)
+    }
+
+    // S0184: open the selected file's player in a new multi-window slot from Browse.
+    fun openPlayerInNewWindow(file: MediaFile) {
+        viewModel.inlineStop()
+        val currentState = viewModel.state.value
+        val resourceId = currentState.resource?.id ?: file.resourceId ?: 0L
+        val fileIndex = currentState.mediaFiles.indexOfFirst { it.path == file.path }
+            .takeIf { it >= 0 } ?: 0
+        val detectedStereoMode = detectStereoForLaunch(file)
+            .takeUnless { it == StereoMode.UNKNOWN }
+        val windowId = java.util.UUID.randomUUID().toString()
+        val intent = createStandardPlayerIntent(
+            resourceId = resourceId,
+            fileIndex = fileIndex,
+            filePath = file.path,
+            detectedStereoMode = detectedStereoMode,
+        ).apply {
+            putExtra(PlayerActivity.EXTRA_WINDOW_ID, windowId)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         activity.startActivity(intent)

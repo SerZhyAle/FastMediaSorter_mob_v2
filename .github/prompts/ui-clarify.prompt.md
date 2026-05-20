@@ -73,23 +73,23 @@ For the requested change, inspect the spec/request and the current code, then pr
 
 When this prompt is invoked:
 
-**Step 1 — Read context.**
+**Step 1 - Read context.**
 - Read the user request / spec.
 - Read the relevant layouts, controllers, planners, adapters, and strings.
 - Read `docs/ARCHITECTURE.md` if the task affects canonical UI patterns.
 - Read `docs/COMMUNICATION_POLICY.md` if the task affects any user-visible copy.
 
-**Step 2 — Build the ambiguity list.**
+**Step 2 - Build the ambiguity list.**
 - Separate explicit decisions from implicit assumptions.
 - Mark every unresolved item as blocking.
 
-**Step 3 — Ask targeted questions or propose bounded options.**
+**Step 3 - Ask targeted questions or propose bounded options.**
 - Ask only the questions needed to unblock implementation.
 - If a decision can be delegated, present 2-3 concrete options with tradeoffs.
 
-**Step 4 — Produce one of two outcomes.**
+**Step 4 - Produce one of two outcomes.**
 
-### Outcome A — BLOCKED
+### Outcome A - BLOCKED
 Use this when any important UI decision remains unresolved.
 
 ```markdown
@@ -107,7 +107,7 @@ Status: BLOCKED
 <1-3 sentences>
 ```
 
-### Outcome B — READY
+### Outcome B - READY
 Use this only when every important UI decision is explicit or explicitly delegated.
 
 ```markdown

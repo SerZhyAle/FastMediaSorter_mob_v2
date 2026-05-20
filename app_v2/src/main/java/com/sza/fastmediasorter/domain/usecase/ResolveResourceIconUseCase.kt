@@ -21,7 +21,7 @@ import javax.inject.Inject
  */
 class ResolveResourceIconUseCase @Inject constructor() {
 
-    /** Set-id to "first icon" mapping — must stay in sync with [ResourceIconRegistry]. */
+    /** Set-id to "first icon" mapping - must stay in sync with [ResourceIconRegistry]. */
     private val SET_MUSIC = 1
     private val SET_VIDEO = 2
     private val SET_IMAGE = 3

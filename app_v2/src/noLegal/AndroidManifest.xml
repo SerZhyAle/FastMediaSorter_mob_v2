@@ -6,14 +6,14 @@
     S0174 originally set extractNativeLibs="true" here for Chaquopy 16.x. That entry was
     silently ignored because productFlavors.noLegal had manifest.srcFile("src/vr/...")
     set, which REPLACES the auto-detected flavor manifest. Chaquopy 17.x runs fine
-    without the explicit flag — useLegacyPackaging=false in packaging.jniLibs is the
+    without the explicit flag - useLegacyPackaging=false in packaging.jniLibs is the
     modern default and Chaquopy adapts.
 
     S0183 added REQUEST_INSTALL_PACKAGES here. To make this file actually contribute to
     the merged manifest the build.gradle.kts androidComponents.onVariants block injects
     it via variant.sources.manifests.addStaticManifestFile().
 
-  S0183: APK install from Browse — noLegal only; forbidden in market builds.
+  S0183: APK install from Browse - noLegal only; forbidden in market builds.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 

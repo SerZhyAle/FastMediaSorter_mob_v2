@@ -13,12 +13,12 @@ import timber.log.Timber
  * interactive element of a dialog [DEFAULT_DELAY_MS] after `show()`, so TalkBack
  * lands on a meaningful control rather than on the dialog window root.
  *
- * Why an event instead of `requestFocus()` — TalkBack focus is governed by the
+ * Why an event instead of `requestFocus()` - TalkBack focus is governed by the
  * accessibility tree, not the standard view focus system; `View.requestFocus()`
  * does NOT move the TalkBack cursor. The only reliable way to move TalkBack focus
  * programmatically is to dispatch a focused-event from the target view.
  *
- * The 100 ms delay covers the dialog window-attach lifecycle — calling
+ * The 100 ms delay covers the dialog window-attach lifecycle - calling
  * `sendAccessibilityEvent` immediately after `show()` is racy because the
  * dialog's decor view is not yet bound to the AccessibilityManager.
  *
@@ -39,7 +39,7 @@ object DialogAccessibilityHelper {
      *  1. Positive button (`BUTTON_POSITIVE`).
      *  2. Neutral button (`BUTTON_NEUTRAL`).
      *  3. Negative button (`BUTTON_NEGATIVE`).
-     *  4. Custom content view — first child with `isImportantForAccessibility=true`
+     *  4. Custom content view - first child with `isImportantForAccessibility=true`
      *     and `isFocusable=true`. Walks only one nesting level (cheap; deep walk
      *     belongs in a custom-view helper, out of scope here).
      *
@@ -70,7 +70,7 @@ object DialogAccessibilityHelper {
                 if (btn != null && btn.visibility == View.VISIBLE) return btn
             }
         }
-        // Custom-content fallback — walk the decor view tree for the first focusable leaf.
+        // Custom-content fallback - walk the decor view tree for the first focusable leaf.
         val root = dialog.window?.decorView ?: return null
         return firstFocusableLeaf(root)
     }

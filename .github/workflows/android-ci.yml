@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   # ─────────────────────────────────────────────
-  # Job 1: Android Lint — blocks merge on failure
+  # Job 1: Android Lint - blocks merge on failure
   # ─────────────────────────────────────────────
   lint:
     name: Android Lint
@@ -46,7 +46,7 @@ jobs:
           retention-days: 14
 
   # ─────────────────────────────────────────────
-  # Job 2: Unit Tests — blocks merge on failure
+  # Job 2: Unit Tests - blocks merge on failure
   # ─────────────────────────────────────────────
   unit-tests:
     name: Unit Tests
@@ -91,7 +91,7 @@ jobs:
           fail-on-error: true
 
   # ─────────────────────────────────────────────
-  # Job 3: Build checks — all flavors
+  # Job 3: Build checks - all flavors
   # ─────────────────────────────────────────────
   build:
     name: Build (${{ matrix.flavor }})
@@ -120,7 +120,7 @@ jobs:
       - name: Build ${{ matrix.flavor }} debug
         run: ./gradlew assemble${{ matrix.flavor }}Debug --stacktrace
         env:
-          # Dropbox App Key — override with secret if available
+          # Dropbox App Key - override with secret if available
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
       - name: Upload ${{ matrix.flavor }} APK
@@ -156,7 +156,7 @@ jobs:
       - name: Build standard release (unsigned)
         run: ./gradlew assembleStandardRelease --stacktrace
         env:
-          # Skip signing — only verify R8/ProGuard compiles
+          # Skip signing - only verify R8/ProGuard compiles
           SKIP_SIGNING: true
 
       - name: Upload release build mapping
@@ -199,7 +199,7 @@ jobs:
       - name: Write GitHub Step Summary
         run: |
           {
-            echo "## ${{ steps.overall.outputs.emoji }} Android CI — ${{ steps.overall.outputs.status }}"
+            echo "## ${{ steps.overall.outputs.emoji }} Android CI - ${{ steps.overall.outputs.status }}"
             echo ""
             echo "| Job | Result |"
             echo "| --- | ------ |"
@@ -224,7 +224,7 @@ jobs:
             const releaseStatus = '${{ needs.build-release-check.result }}';
 
             const body = [
-              '## ❌ Android CI — pipeline failure',
+              '## ❌ Android CI - pipeline failure',
               '',
               '| Job | Result |',
               '| --- | ------ |',

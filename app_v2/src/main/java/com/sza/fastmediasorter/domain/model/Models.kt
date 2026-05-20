@@ -49,14 +49,14 @@ enum class MediaType {
  * Sort mode enum matching specification
  */
 enum class SortMode {
-    RANDOM,          // Random order (useful for slideshows) — first in sort menu
+    RANDOM,          // Random order (useful for slideshows) - first in sort menu
     NAME_ASC,
     NAME_DESC,
     DATE_ASC,
     DATE_DESC,
     SIZE_ASC,
     SIZE_DESC,
-    MANUAL,          // Manual ordering by displayOrder — placed after SIZE per UX requirement
+    MANUAL,          // Manual ordering by displayOrder - placed after SIZE per UX requirement
     ARTIST_ASC,
     ARTIST_DESC,
     TITLE_ASC,
@@ -78,11 +78,11 @@ enum class DisplayMode {
 }
 
 /**
- * Resource profile enum — quick-setup presets that apply media type and flag defaults.
+ * Resource profile enum - quick-setup presets that apply media type and flag defaults.
  * The selected profile is persisted in the resource entity for informational purposes.
  */
 enum class ResourceProfile {
-    NONE,          // No preset — manual configuration
+    NONE,          // No preset - manual configuration
     AUDIO_LIBRARY, // Audio only + rememberFileList recommended
     VIDEO_LIBRARY, // Video + Audio
     PHOTO_STORAGE, // Image + GIF
@@ -197,7 +197,7 @@ data class MediaResource(
     }
 
     /**
-     * True when the resource is documents-flavored — content may include any document type (TEXT, PDF or EPUB)
+     * True when the resource is documents-flavored - content may include any document type (TEXT, PDF or EPUB)
      * or the catch-all `allFiles` mode is enabled. Used to gate document-authoring entry points (e.g. S0189
      * "Create text note") so they do not appear in audio/video/photo-only libraries where a freshly created
      * `.txt`/`.pdf`/`.epub` would not be listed anyway.
@@ -207,6 +207,17 @@ data class MediaResource(
         return MediaType.TEXT in supportedMediaTypes ||
                 MediaType.PDF in supportedMediaTypes ||
                 MediaType.EPUB in supportedMediaTypes
+    }
+
+    /**
+     * True when the resource can surface static image files in Browse.
+     *
+     * S0191 uses the same gate for "Create drawing" so the action only appears in
+     * libraries where the newly-created `.jpg` will actually show up afterwards.
+     */
+    fun supportsImages(): Boolean {
+        if (allFiles) return true
+        return MediaType.IMAGE in supportedMediaTypes
     }
 }
 
@@ -255,7 +266,9 @@ data class MediaFile(
     val cloudDisplayPath: String? = null, // Human-readable cloud path (folders + file name)
     val cloudItemId: String? = null, // Provider-specific internal file/folder ID
     val attributes: FileAttributes? = null, // Read-only/hidden attributes (where the source reports them)
-    // S0237: metadata enrichment lifecycle marker. COMPLETE keeps legacy/cached records compatible.
+    // S0248 Phase 3: per-file metadata enrichment state. Default COMPLETE keeps legacy
+    // callers source-compatible - only scanners aware of the enrichment lifecycle
+    // (currently SmbMediaScanner) override the default.
     val metadataState: MetadataState = MetadataState.COMPLETE
 )
 

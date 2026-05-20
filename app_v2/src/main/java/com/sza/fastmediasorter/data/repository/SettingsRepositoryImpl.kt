@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -175,13 +176,11 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
 
-        // Legacy shared auto-detect toggle removed during the VR rewrite.
-        private val KEY_VR_AUTO_DETECT_FORMAT = booleanPreferencesKey("vr_auto_detect_format")
-        private val KEY_VR_FORCED_FORMAT = stringPreferencesKey("vr_forced_format")
-        private val KEY_VR_FORCED_PLAT_FORMAT = stringPreferencesKey("vr_forced_plat_format")
-        private val KEY_VR_FORCED_SPHERICAL_FORMAT = stringPreferencesKey("vr_forced_spherical_format")
+        // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
+        // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
+        // declarations are gone; orphan DataStore entries left over in existing installs are
+        // ignored by the new build path.
         private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
-        private val KEY_VR_REMEMBER_FILE_FORMAT = booleanPreferencesKey("vr_remember_file_format")
         private val KEY_VR_AUTO_IMMERSIVE = booleanPreferencesKey("vr_auto_immersive")
         // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
         private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
@@ -205,22 +204,24 @@ class SettingsRepositoryImpl @Inject constructor(
         /** Allowed values for [KEY_STREAMING_CACHE_TTL_DAYS]; `0` means "off". */
         private val STREAMING_CACHE_TTL_VALID = setOf(0, 1, 3, 7, 30)
 
-        private val VR_FORCED_PLAT_VALUES = setOf("AUTO", "SBS", "OU", "MONO")
-        private val VR_FORCED_SPHERICAL_VALUES = setOf(
-            "AUTO",
-            "EQUIRECT_360_MONO",
-            "EQUIRECT_360_SBS",
-            "EQUIRECT_360_OU",
-            "EQUIRECT_180_MONO",
-            "EQUIRECT_180_SBS",
-            "VR180_FISHEYE_SBS",
-            "CYLINDER_180"
-        )
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
     private val glidePrefs by lazy {
         context.getSharedPreferences("app_settings_glide", Context.MODE_PRIVATE)
+    }
+
+    // S0253: distinguishes a fresh install (firstInstallTime == lastUpdateTime) from an upgraded
+    // existing install. Used only as the fallback default for opt-in settings that should be ON
+    // for new users while keeping every existing user's behavior unchanged after they update
+    // to this build (existing user has lastUpdateTime > firstInstallTime → fallback resolves to false).
+    private val isFreshInstall: Boolean by lazy {
+        runCatching {
+            val info = context.packageManager.getPackageInfo(context.packageName, 0)
+            val fresh = info.firstInstallTime == info.lastUpdateTime
+            Timber.d("S0253: install discriminator firstInstall=${info.firstInstallTime} lastUpdate=${info.lastUpdateTime} fresh=$fresh")
+            fresh
+        }.getOrDefault(false)
     }
 
     override fun getSettings(): Flow<AppSettings> {
@@ -261,7 +262,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048,
                     isCacheSizeUserModified = preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] ?: false,
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
-                    resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: false,
+                    resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
                     allFiles = preferences[KEY_ALL_FILES] ?: false,
@@ -326,8 +327,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
-                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: false,
-                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: false,
+                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
+                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: isFreshInstall, // S0253: fresh install suppresses one-time "ops moved to menu" Toast
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
@@ -381,15 +382,13 @@ class SettingsRepositoryImpl @Inject constructor(
                     linkDownloadAudioOnly = preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] ?: false,
                     linkDownloadLoginWallHeuristicEnabled = preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] ?: true,
 
-                    // VR settings (spec §5.7 / Phase 8)
-                    vrForcedPlatFormat = readVrForcedPlatFormat(preferences),
-                    vrForcedSphericalFormat = readVrForcedSphericalFormat(preferences),
+                    // VR settings (spec §5.7 / Phase 8). S0251 removed forced-format fields.
                     vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
                         ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
                         ?: "CINEMA",
-                    vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true,
                     vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
+                    // S0264: default ON for every flavor; immersive VR rendering overrides this at runtime.
                     panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
                     vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
@@ -411,7 +410,8 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?: 7,
 
                     // S0028: Multi-window mode
-                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: false,
+                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW]
+                        ?: MultiWindowCapabilityDetector.defaultAllowSeparateWindow(context),
 
                     // S0162: absent key → default true (no behaviour change on upgrade)
                     followSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,
@@ -571,14 +571,10 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] = settings.linkDownloadAudioOnly
             preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] = settings.linkDownloadLoginWallHeuristicEnabled
 
-            // VR settings (spec §5.7 / Phase 8 split). Remove the deprecated shared
-            // auto-detect key so existing installs converge after the first successful save.
-            preferences.remove(KEY_VR_AUTO_DETECT_FORMAT)
-            preferences[KEY_VR_FORCED_PLAT_FORMAT] = settings.vrForcedPlatFormat
-            preferences[KEY_VR_FORCED_SPHERICAL_FORMAT] = settings.vrForcedSphericalFormat
-            preferences.remove(KEY_VR_FORCED_FORMAT)
+            // VR settings (spec §5.7 / Phase 8 split). S0241/S0251 removed forced-format
+            // keys; the old DataStore entries remain on disk in older installs but the new
+            // read path no longer reads them.
             preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
-            preferences[KEY_VR_REMEMBER_FILE_FORMAT] = settings.vrRememberFileFormat
             preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
             preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
             preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
@@ -685,23 +681,4 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun readVrForcedPlatFormat(preferences: Preferences): String {
-        preferences[KEY_VR_FORCED_PLAT_FORMAT]
-            ?.uppercase()
-            ?.takeIf { it in VR_FORCED_PLAT_VALUES }
-            ?.let { return it }
-
-        val legacy = preferences[KEY_VR_FORCED_FORMAT]?.uppercase() ?: return "AUTO"
-        return legacy.takeIf { it in VR_FORCED_PLAT_VALUES } ?: "AUTO"
-    }
-
-    private fun readVrForcedSphericalFormat(preferences: Preferences): String {
-        preferences[KEY_VR_FORCED_SPHERICAL_FORMAT]
-            ?.uppercase()
-            ?.takeIf { it in VR_FORCED_SPHERICAL_VALUES }
-            ?.let { return it }
-
-        val legacy = preferences[KEY_VR_FORCED_FORMAT]?.uppercase() ?: return "AUTO"
-        return legacy.takeIf { it in VR_FORCED_SPHERICAL_VALUES } ?: "AUTO"
-    }
 }

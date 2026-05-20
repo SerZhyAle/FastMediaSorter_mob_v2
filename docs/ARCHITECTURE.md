@@ -34,11 +34,16 @@
 - **Strategy Pattern**: File operations (`FileOperationStrategy`).
 - **Connection Pooling**: Network clients (`SmbConnectionManager`).
 
-## UI Patterns — Trigger Row (MANDATORY)
+## UI Patterns - Trigger Row (MANDATORY)
 
 Every toggle/switch or checkbox control that carries a description **must** follow one of the two canonical row patterns below. Mixing the patterns or using ad-hoc sizes is prohibited.
 
-### Pattern A — Switch/Toggle row (settings fragments)
+### Pattern A - Switch/Toggle row (settings fragments)
+
+Canonical row layout is `title + helper` inline on the top line, with the
+subtitle directly under the title. Prefer the reusable `SettingsToggleRow`
+compound view (see "Reusable component" below) over hand-built `LinearLayout`s -
+the raw XML below is included for reference and one-off exceptions only.
 
 ```xml
 <LinearLayout
@@ -56,31 +61,53 @@ Every toggle/switch or checkbox control that carries a description **must** foll
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- Main label: always toggler_title_text_size (14sp) -->
-        <TextView android:textSize="@dimen/toggler_title_text_size" />
+        <!-- 2a. Title line: title + helper inline (helper sits next to the title) -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <!-- Help text: always toggler_desc_text_size (12sp) = title − 2sp -->
+            <!-- Main label: always toggler_title_text_size (14sp) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:textSize="@dimen/toggler_title_text_size" />
+
+            <!-- Help icon button: inline next to the title (NOT rightmost) -->
+            <ImageButton
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:src="@drawable/ic_help_outline_24" />
+        </LinearLayout>
+
+        <!-- 2b. Subtitle: always toggler_desc_text_size (12sp) = title − 2sp -->
         <TextView
             android:textSize="@dimen/toggler_desc_text_size"
             android:textColor="@color/text_color_secondary" />
     </LinearLayout>
 
-    <!-- 3. Help icon button (rightmost, optional but ALWAYS on the right) -->
-    <ImageButton
-        android:layout_width="@dimen/settings_help_icon_size"
-        android:layout_height="@dimen/settings_help_icon_size"
-        android:layout_marginStart="@dimen/settings_help_icon_margin"
-        android:src="@drawable/ic_help_outline_24" />
+    <!-- 3. Optional trailing action slot (rare; e.g. an extra action button
+         that belongs to the row). Empty/hidden by default. -->
 </LinearLayout>
 ```
 
 **Rules:**
 - Main label → `@dimen/toggler_title_text_size` (14sp). NEVER hardcode sp values.
-- Help text → `@dimen/toggler_desc_text_size` (12sp). Always exactly 2sp below the title.
-- Help icon (`ic_help_outline_24`) → **always the rightmost child** of the row, after the text group.
-- `layout_weight="1"` on the text group is mandatory so the icon is pinned right.
+- Subtitle → `@dimen/toggler_desc_text_size` (12sp). Always exactly 2sp below the title.
+- Help icon (`ic_help_outline_24`) → **inline next to the title**, opens the tooltip dialog. Hidden when no help payload is configured for the row.
+- Trailing action slot is **optional** and reserved for exceptional rows that genuinely need a second action; the default row has no trailing widget.
+- `layout_weight="1"` on the text group is mandatory so the trailing slot (when present) does not crowd the text.
 
-### Pattern B — Checkbox row (add-resource, cloud folder pickers)
+#### Reusable component
+
+The canonical implementation is `com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow`
+(compound view) backed by `view_settings_toggle_row.xml`. New switch rows in
+settings fragments and forms MUST use this component instead of hand-rolled
+`SwitchMaterial + TextView + ImageButton` triplets. The component encapsulates
+title, subtitle, helper visibility, tooltip wiring, and the optional trailing
+action slot. Hand-built rows are technical debt and must be migrated when
+adjacent code is touched.
+
+### Pattern B - Checkbox row (add-resource, cloud folder pickers)
 
 ```xml
 <LinearLayout android:orientation="vertical">
@@ -109,7 +136,7 @@ Every toggle/switch or checkbox control that carries a description **must** foll
 | `toggler_title_text_size` | 14sp | Switch row main label |
 | `toggler_desc_text_size` | 12sp | Switch row help text (title − 2sp) |
 | `text_size_small` | 14sp | Checkbox row help text (checkbox − 2sp) |
-| `settings_switch_margin_end` | — | Gap between switch and text group |
-| `settings_help_icon_size` | — | Help icon button size |
-| `settings_help_icon_margin` | — | Gap between text group and help icon |
-| `checkbox_subtitle_margin_start` | — | Help text indent under checkbox |
+| `settings_switch_margin_end` | - | Gap between switch and text group |
+| `settings_help_icon_size` | - | Help icon button size |
+| `settings_help_icon_margin` | - | Gap between text group and help icon |
+| `checkbox_subtitle_margin_start` | - | Help text indent under checkbox |

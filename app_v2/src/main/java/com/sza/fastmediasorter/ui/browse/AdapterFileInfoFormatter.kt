@@ -67,7 +67,7 @@ object AdapterFileInfoFormatter {
                     }
                     listOfNotNull(audioTitle, duration, sizeSegment).joinToString(" • ")
                 } else {
-                    // legacyInfo already contains size — do not append sizeSegment here to avoid duplication.
+                    // legacyInfo already contains size - do not append sizeSegment here to avoid duplication.
                     if (duration != null) "$legacyInfo • $duration" else legacyInfo
                 }
             }
@@ -92,8 +92,8 @@ object AdapterFileInfoFormatter {
 
     private fun buildLegacyFileInfo(file: MediaFile): String {
         // Hide invalid FTP metadata (size=0 or date=1970-01-01)
-        val size = if (file.size > 0) formatFileSize(file.size) else "—"
-        val date = if (file.createdDate > 0) DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate)).toString() else "—"
+        val size = if (file.size > 0) formatFileSize(file.size) else "-"
+        val date = if (file.createdDate > 0) DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate)).toString() else "-"
         return "$size • $date"
     }
 

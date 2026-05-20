@@ -5,7 +5,7 @@ package com.sza.fastmediasorter.data.local.staging
  *
  * Drives two concerns:
  * - The player's deferred-bypass loader picks the matching viewer (text editor for
- *   [TEXT_NOTE], drawing editor — future S0191 — for [DRAWING]).
+ *   [TEXT_NOTE], drawing editor - future S0191 - for [DRAWING]).
  * - [StagingDirectoryProvider] uses one subdirectory per kind so the two feature
  *   surfaces never clash on `${resourceId}_${name}` collisions.
  *

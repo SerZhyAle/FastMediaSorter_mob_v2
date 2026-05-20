@@ -82,7 +82,7 @@ class MediaMuxerRemuxer @Inject constructor() {
                             trackIndices[i] = muxerAudioTrack
                             extractor.selectTrack(i)
                         } else {
-                            // Track of same kind reappearing in later segment — reuse muxer track.
+                            // Track of same kind reappearing in later segment - reuse muxer track.
                             val muxerTrack = if (isVideo) muxerVideoTrack else muxerAudioTrack
                             if (muxerTrack >= 0) {
                                 trackIndices[i] = muxerTrack

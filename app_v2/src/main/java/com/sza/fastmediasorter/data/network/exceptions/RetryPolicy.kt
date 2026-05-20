@@ -27,7 +27,7 @@ data class RetryPolicy(
     }
 
     companion object {
-        /** No retries — execute once. */
+        /** No retries - execute once. */
         val NONE = RetryPolicy(maxAttempts = 1)
 
         /** Quick retry for interactive UI (2 extra attempts, short delays). */

@@ -7,7 +7,7 @@ import timber.log.Timber
  * LAN/Wi-Fi environment vs. a one-off server restart.
  *
  * Extracted from [SmbConnectionManager] in S0061 Phase 01 to keep the manager below
- * the project 1000-LOC limit. The class owns no SMB state — it is a pure counter.
+ * the project 1000-LOC limit. The class owns no SMB state - it is a pure counter.
  */
 class SmbReconnectMetric(
     private val countThreshold: Int = 3,
@@ -43,7 +43,7 @@ class SmbReconnectMetric(
             lastNotifyAt = now
             Timber.w(
                 "SMB network unstable: $count reconnects in the last " +
-                    "${windowMs / 1000}s — check Wi-Fi / switch stability"
+                    "${windowMs / 1000}s - check Wi-Fi / switch stability"
             )
         }
     }

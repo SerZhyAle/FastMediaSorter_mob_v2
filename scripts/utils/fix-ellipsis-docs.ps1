@@ -35,10 +35,10 @@ function Replace-EllipsisInMarkdown {
         $newSegments = @()
         for ($i = 0; $i -lt $segments.Length; $i++) {
             if ($i % 2 -eq 0) {
-                # Plain text segment — apply replacement
+                # Plain text segment - apply replacement
                 $newSegments += $segments[$i] -replace '\.\.\.', '..'
             } else {
-                # Inline code segment — keep as-is
+                # Inline code segment - keep as-is
                 $newSegments += $segments[$i]
             }
         }
@@ -67,11 +67,11 @@ foreach ($dir in $Dirs) {
         $rel = $file.FullName.Substring($root.Length + 1)
         if ($DryRun) {
             $count = ([regex]::Matches($content, '\.\.\.') ).Count
-            Write-Host "[dry-run]   $rel — ~$count occurrence(s)"
+            Write-Host "[dry-run]   $rel - ~$count occurrence(s)"
         } else {
             [System.IO.File]::WriteAllText($file.FullName, $updated, [System.Text.UTF8Encoding]::new($false))
             $count = ([regex]::Matches($content, '\.\.\.') ).Count
-            Write-Host "[done]      $rel — replaced ~$count occurrence(s)"
+            Write-Host "[done]      $rel - replaced ~$count occurrence(s)"
         }
     }
 }

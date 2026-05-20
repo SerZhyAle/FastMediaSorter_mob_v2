@@ -9,7 +9,7 @@ import timber.log.Timber
  * RecyclerView scroll listener that pauses thumbnail loading during scroll
  * and resumes it when scroll stops, loading visible items immediately.
  *
- * Extracted from BrowseActivity.setupViews() (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity.setupViews() (Wave 1.5 decomposition - IV.1).
  */
 class BrowseScrollThumbnailListener(
     private val adapter: MediaFileAdapter,

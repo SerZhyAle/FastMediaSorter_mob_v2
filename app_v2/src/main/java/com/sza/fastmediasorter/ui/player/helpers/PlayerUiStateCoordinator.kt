@@ -115,7 +115,7 @@ class PlayerUiStateCoordinator(
         currentFile: MediaFile?
     ): TouchZoneHintType? {
         if (currentFile == null) return null
-        // Documents have touch zones disabled — no hint needed
+        // Documents have touch zones disabled - no hint needed
         if (currentFile.type in listOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)) return null
         if (showCommandPanel) return TouchZoneHintType.COMMAND_PANEL_3ZONE
         val isMedia = currentFile.type in listOf(MediaType.VIDEO, MediaType.AUDIO)
@@ -214,7 +214,7 @@ class PlayerUiStateCoordinator(
                 if (file.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
             )
 
-            // For audio: show full filename with extension (no index — metadata shown in center overlay)
+            // For audio: show full filename with extension (no index - metadata shown in center overlay)
             // For other types: add position index for navigation context
             if (file.type == MediaType.AUDIO) {
                 binding.tvFileNameOverlay.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
@@ -294,7 +294,7 @@ class PlayerUiStateCoordinator(
         callback.updateSlideShowButton()
         callback.updateVolumeButtonsVisibility()
 
-        // Touch Zones Help button (?) — visible for first 3 IMAGE/GIF files since app launch.
+        // Touch Zones Help button (?) - visible for first 3 IMAGE/GIF files since app launch.
         // Counter resets on process death (in-memory only).
         val isImageGif = currentFile != null &&
             (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)

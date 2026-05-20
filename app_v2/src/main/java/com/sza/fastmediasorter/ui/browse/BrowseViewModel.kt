@@ -79,11 +79,18 @@ class BrowseViewModel @Inject constructor(
     private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
     private val createDirectoryUseCase: com.sza.fastmediasorter.domain.usecase.CreateDirectoryUseCase,
     private val createTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.CreateTextNoteUseCase,
+    private val createDrawingUseCase: com.sza.fastmediasorter.domain.usecase.CreateDrawingUseCase,
     private val archiveFilesUseCase: com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase,
     private val extractArchiveUseCase: com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase,
     private val addResourceAsDestinationUseCase: com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase,
     private val deleteDirectoriesUseCase: com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase,
     private val unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler,
+    // S0242 Phase 03 - pull-to-refresh hooks `clearResource(resourceId)` before the rescan
+    // so Reconciler doesn't re-apply stale entries to a freshly-fetched listing.
+    private val mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal,
+    // S0242 Phase 05 - passed into BrowseFileObserverManager so it can canonicalize raw
+    // local paths before recording Mutation entries that the Reconciler reads on resume.
+    private val pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -182,7 +189,12 @@ class BrowseViewModel @Inject constructor(
         updateState = { update -> updateState(update) },
         onRemoveFiles = { paths -> removeFiles(paths) },
         onReloadFiles = { reloadFiles() },
-        onSortFiles = { files, sortMode -> sortFiles(files, sortMode, forceSort = true) }
+        onSortFiles = { files, sortMode -> sortFiles(files, sortMode, forceSort = true) },
+        // S0242 Phase 05 - Route delete / move events through MutationJournal so the
+        // Reconciler picks them up on next onResume (single source-mutation reader).
+        resourceId = resourceId,
+        mutationJournal = mutationJournal,
+        pathNormalizer = pathNormalizer
     )
 
     // Job for current file loading operation (to cancel on reload)
@@ -282,10 +294,17 @@ class BrowseViewModel @Inject constructor(
     // notifyCreatedForOpen lambda is replaced by BrowseManagerInitializer via setOpenNoteCallback().
     private var openNoteCallback: ((String) -> Unit)? = null
     internal fun setOpenNoteCallback(cb: (String) -> Unit) { openNoteCallback = cb }
+    private var openDrawingCallback: ((String) -> Unit)? = null
+    internal fun setOpenDrawingCallback(cb: (String) -> Unit) { openDrawingCallback = cb }
 
     /** S0189: open a freshly created text note in the editor with edit mode pre-activated. */
     internal fun openTextNoteInEditor(path: String) {
         fileOpenManager.openTextNoteInEditor(path, resourceId)
+    }
+
+    /** S0191: open a freshly created blank drawing in PlayerActivity with draw mode pre-activated. */
+    internal fun openDrawingInEditor(path: String) {
+        fileOpenManager.openDrawingInEditor(path, resourceId)
     }
 
     private val textNoteCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseTextNoteCreateManager(
@@ -299,11 +318,23 @@ class BrowseViewModel @Inject constructor(
         notifyCreatedForOpen = { path -> openNoteCallback?.invoke(path) }
     )
 
-    // --- Favorites / cache sync (delegated to BrowseStateSyncManager) ---
+    private val drawingCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDrawingCreateManager(
+        context = context,
+        createDrawingUseCase = createDrawingUseCase,
+        scope = viewModelScope,
+        ioDispatcher = ioDispatcher,
+        stateFlow = state,
+        sendEvent = { event -> sendEvent(event) },
+        notifyCreatedForOpen = { path -> openDrawingCallback?.invoke(path) }
+    )
+
+    // --- Favorites / settings-changed reload (delegated to BrowseStateSyncManager) ---
+    // S0242 Phase 03 - structural-equality cache-sync fast-path removed from the
+    // manager; cache→visible reconciliation is now owned by BrowseReconcilerManager.
+    // This manager keeps only favorites loading + resource-settings-changed reload.
     private val stateSyncManager = com.sza.fastmediasorter.ui.browse.managers.BrowseStateSyncManager(
         favoritesUseCase = favoritesUseCase,
         getResourcesUseCase = getResourcesUseCase,
-        cachedFileListRepository = cachedFileListRepository,
         resourceId = resourceId,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
@@ -311,8 +342,6 @@ class BrowseViewModel @Inject constructor(
         updateState = { update -> updateState(update) },
         setLoading = { isLoading -> setLoading(isLoading) },
         scheduleWarmupIfEligible = { files -> auxManager.schedulePlayerWarmupIfEligible(files) },
-        applyFilterToList = { files, filter -> applyFilterToList(files, filter) },
-        reloadCurrentSubfolder = { path: String -> launchSubfolderReload(path) },
         reloadFiles = { clearList -> reloadFiles(clearList) }
     )
 
@@ -321,6 +350,7 @@ class BrowseViewModel @Inject constructor(
         syncMediaStoreUseCase = syncMediaStoreUseCase,
         smbOperationsUseCase = smbOperationsUseCase,
         cachedFileListRepository = cachedFileListRepository,
+        mutationJournal = mutationJournal,
         resourceId = resourceId,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
@@ -508,7 +538,7 @@ class BrowseViewModel @Inject constructor(
         context.getString(resolveFriendlyBrowseErrorRes(throwable))
 
     private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
-        // WifiRequiredException fires before any socket attempt — clearly a Wi-Fi gate rejection,
+        // WifiRequiredException fires before any socket attempt - clearly a Wi-Fi gate rejection,
         // not a generic outage. Must be checked by type before the message-based heuristics below.
         if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
 
@@ -578,7 +608,7 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
-    /** Get current settings — delegates to BrowseLifecycleSetupManager. */
+    /** Get current settings - delegates to BrowseLifecycleSetupManager. */
     suspend fun getSettings(): com.sza.fastmediasorter.domain.model.AppSettings = lifecycleSetupManager.getSettings()
 
     /** True if scheduled operations are enabled in user settings (runtime flag). */
@@ -586,10 +616,10 @@ class BrowseViewModel @Inject constructor(
 
     fun cancelBackgroundThumbnailLoading() = shutdownCoordinator.cancelBackgroundThumbnailLoading()
 
-    /** Toggle inline playback — delegates to BrowseInlineAudioManager. */
+    /** Toggle inline playback - delegates to BrowseInlineAudioManager. */
     fun inlinePlayToggle(file: MediaFile) = audioManager.inlinePlayToggle(file)
 
-    /** Stop inline playback — delegates to BrowseInlineAudioManager. */
+    /** Stop inline playback - delegates to BrowseInlineAudioManager. */
     fun inlineStop() = audioManager.inlineStop()
 
     override fun onCleared() {
@@ -627,6 +657,10 @@ class BrowseViewModel @Inject constructor(
 
     fun createTextNote(name: String) {
         textNoteCreateManager.createTextNote(name)
+    }
+
+    fun createDrawing(name: String) {
+        drawingCreateManager.createDrawing(name)
     }
 
     fun renameDirectory(path: String, newName: String) = directoryOpsManager.renameDirectory(path, newName)
@@ -808,17 +842,22 @@ class BrowseViewModel @Inject constructor(
     fun createMediaFileFromFile(file: java.io.File): MediaFile = fileListMutationManager.createMediaFileFromFile(file)
     
     /**
-     * Syncs current state with cache.
-     * Called when returning from PlayerActivity to reflect changes (move/delete)
-     * without full network reload.
+     * S0242 Phase 03: replaces the visible media-files list with [updatedList].
+     * Called by `BrowseActivity` after `BrowseReconcilerManager.reconcile(..)` returns
+     * a list whose `visibleChanged == true`. Keeps adapter rebind single-shot - the
+     * `observeData()` `collectOnLifecycle(viewModel.state)` handler sees one state emit
+     * and submits the new list to the adapter via DiffUtil.
      */
-    fun syncWithCache() = stateSyncManager.syncWithCache()
-    
+    fun replaceMediaFiles(updatedList: List<MediaFile>) {
+        updateState { it.copy(mediaFiles = updatedList, totalFileCount = updatedList.size) }
+    }
+
     /**
      * Check if resource settings (supportedMediaTypes, scanSubdirectories) changed in database.
      * If changed, reload files to reflect new filter.
-     * If not changed, sync with PlayerActivity cache for deleted/moved/renamed files.
-    * Called from BrowseActivity.onResume() when returning from PlayerActivity or ResourceEditorActivity.
+     * S0242 Phase 03: structural-equality fast-path removed - Reconciler runs first in
+     * `BrowseActivity.onResumeWithViews` and handles all cache→visible diff application.
+     * Called from BrowseActivity.onResume() when returning from PlayerActivity or ResourceEditorActivity.
      */
     fun checkAndReloadIfResourceChanged() = stateSyncManager.checkAndReloadIfResourceChanged()
     

@@ -46,7 +46,7 @@ class StreamOffloadOfferDialog : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         val o = offer
         if (o == null) {
-            Timber.e("StreamOffloadOfferDialog: no offer set — dismissing")
+            Timber.e("StreamOffloadOfferDialog: no offer set - dismissing")
             dismissAllowingStateLoss()
             return
         }
@@ -61,15 +61,15 @@ class StreamOffloadOfferDialog : BottomSheetDialogFragment() {
         binding.offloadFileSizeRow.text = ctx.getString(R.string.offload_row_file_size, sizeStr)
 
         // Speed / required speed row
-        val speedStr = o.speedMbps?.let { "%.1f Mbps".format(it) } ?: "—"
-        val requiredStr = o.requiredMbps?.let { "%.0f Mbps".format(it) } ?: "—"
+        val speedStr = o.speedMbps?.let { "%.1f Mbps".format(it) } ?: "-"
+        val requiredStr = o.requiredMbps?.let { "%.0f Mbps".format(it) } ?: "-"
         binding.offloadSpeedRow.text =
             ctx.getString(R.string.offload_row_speed, speedStr, requiredStr)
 
         // ETA row
         val etaStr = o.estDownloadSec?.let {
             DateUtils.formatElapsedTime(it).let { s -> "~ $s" }
-        } ?: "—"
+        } ?: "-"
         binding.offloadEtaRow.text = ctx.getString(R.string.offload_row_eta, etaStr)
 
         // Free space row

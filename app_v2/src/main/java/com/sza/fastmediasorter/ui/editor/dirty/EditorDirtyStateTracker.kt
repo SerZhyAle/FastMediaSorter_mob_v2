@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S0189 (Phase 09): observes a [StateFlow] of editor content and emits whether it diverges
@@ -29,7 +28,6 @@ class EditorDirtyStateTracker<T>(
      * `scope.cancel()` to detach.
      */
     fun start(scope: CoroutineScope) {
-        Timber.d("S0189: EditorDirtyStateTracker.start")
         scope.launch {
             contentFlow.collectLatest { value ->
                 val dirty = value != baseline

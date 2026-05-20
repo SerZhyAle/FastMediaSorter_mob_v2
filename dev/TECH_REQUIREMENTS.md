@@ -1,4 +1,4 @@
-# FastMediaSorter v2 — Technical Requirements & Stack Reference
+# FastMediaSorter v2 - Technical Requirements & Stack Reference
 
 **Last Updated**: April 22, 2026
 **Purpose**: Single source of truth for the full technical stack, library inventory, platform constraints, minimum and recommended requirements.
@@ -17,7 +17,7 @@
 | compileSdk           | 35                             | Android 15 (VanillaIceCream)                    |
 | targetSdk            | 35                             | Required for Play Store compliance              |
 | minSdk (standard)    | 26                             | Android 8.0 (Oreo)                              |
-| minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) — covers API 23-25    |
+| minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) - covers API 23-25    |
 | minSdk (wear)        | 28                             | Wear OS 2.0+                                    |
 | NDK version          | 27.2.12479018                  | For native libraries (Tesseract OCR, VR)        |
 | KSP version          | 2.3.2                          | Aligned with Kotlin 2.2.10                      |

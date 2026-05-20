@@ -6,7 +6,7 @@ import javax.inject.Singleton
 /**
  * Lifecycle adapter for cloud providers (Google Drive, OneDrive, Dropbox). S0067 Phase 05.
  *
- * Per strategic ADR-2: gate manages **token expiry only** — does **not** close OkHttp pool
+ * Per strategic ADR-2: gate manages **token expiry only** - does **not** close OkHttp pool
  * on `onStop`. [closeFor] is intentionally a no-op for sockets; OkHttp's connection pool is
  * self-managed and forced closure would interrupt long-running uploads/downloads.
  *
@@ -32,7 +32,7 @@ class CloudConnectionGate @Inject constructor(
     }
 
     override fun release(connection: CloudTokenHandle, success: Boolean) {
-        // Never invoked while acquire throws — kept empty for forward compatibility.
+        // Never invoked while acquire throws - kept empty for forward compatibility.
     }
 
     override suspend fun <R> withRetry(
@@ -52,7 +52,7 @@ class CloudConnectionGate @Inject constructor(
         tracker.lastRecreateMs(resourceKey)
 }
 
-/** Token handle data carrier — used as the gate's connection type. S0067. */
+/** Token handle data carrier - used as the gate's connection type. S0067. */
 data class CloudTokenHandle(
     val provider: String,
     val resourceKey: String,

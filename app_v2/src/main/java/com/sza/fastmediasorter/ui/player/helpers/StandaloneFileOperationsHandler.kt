@@ -85,7 +85,7 @@ class StandaloneFileOperationsHandler(
                     uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
                             && isMediaStoreSpecificUri(uri) -> {
                         // Try direct delete first: succeeds immediately for app-owned items without
-                        // a system dialog. createDeleteRequest is for cross-app deletion — calling
+                        // a system dialog. createDeleteRequest is for cross-app deletion - calling
                         // it on app-owned files throws IAE on some OEM builds
                         // (observed: API 35, content://media/external/downloads/<id> written by
                         // LinkDownloadWriter; exception originates inside the MediaStore provider
@@ -98,7 +98,7 @@ class StandaloneFileOperationsHandler(
                             onDeleteSuccess(fileName)
                             return@launch
                         }
-                        // File not owned by this app — show system confirmation dialog.
+                        // File not owned by this app - show system confirmation dialog.
                         val pendingIntent = MediaStore.createDeleteRequest(activity.contentResolver, listOf(uri))
                         pendingDeleteFileName = fileName
                         batchDeleteLauncher.launch(
@@ -158,7 +158,7 @@ class StandaloneFileOperationsHandler(
     }
 
     private fun retryDeleteAfterPermission(uri: Uri, fileName: String) {
-        // Called after RecoverableSecurityException recovery on API 29 — permission now granted
+        // Called after RecoverableSecurityException recovery on API 29 - permission now granted
         activity.lifecycleScope.launch {
             try {
                 val rows = activity.contentResolver.delete(uri, null, null)
@@ -292,7 +292,7 @@ class StandaloneFileOperationsHandler(
     /**
      * Decide rename-button visibility for the current media file.
      * SAF documents: check FLAG_SUPPORTS_RENAME via DocumentsContract query.
-     * MediaStore URIs: optimistic — show button, handle failure at attempt time.
+     * MediaStore URIs: optimistic - show button, handle failure at attempt time.
      * All other schemes: hidden.
      */
     fun updateRenameButtonVisibility() {
@@ -371,7 +371,7 @@ class StandaloneFileOperationsHandler(
                 withContext(Dispatchers.Main) {
                     if (newUri != null) {
                         onRenameComplete(newUri, newName)
-                        // Audio-specific: SAF rename returns a new URI — update ExoPlayer MediaItem
+                        // Audio-specific: SAF rename returns a new URI - update ExoPlayer MediaItem
                         // so re-buffering (seek beyond cache) doesn't hit the invalidated old URI.
                         if (newUri != uri) {
                             updateAudioMediaItem(newUri)

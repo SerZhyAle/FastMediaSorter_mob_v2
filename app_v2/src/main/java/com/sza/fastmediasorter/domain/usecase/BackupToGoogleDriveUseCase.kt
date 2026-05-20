@@ -44,7 +44,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
         }
 
         private val README_EN = """
-            |# FastMediaSorter — Backup Folder
+            |# FastMediaSorter - Backup Folder
             |
             |This folder is created by the **FastMediaSorter** Android app.
             |
@@ -59,11 +59,11 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |
             |The `backup_YYMMDD-HHmm.json` files contain app configuration backups:
             |
-            |- **Settings** — all app preferences (UI, media filters, playback, network,
+            |- **Settings** - all app preferences (UI, media filters, playback, network,
             |  translation/OCR, cache, etc.)
-            |- **Resource list** — configured media sources (local folders, network shares,
+            |- **Resource list** - configured media sources (local folders, network shares,
             |  cloud folders) with their display and behavior settings
-            |- **Favorites** — bookmarked media files with metadata
+            |- **Favorites** - bookmarked media files with metadata
             |
             |Backups do **not** contain:
             |
@@ -80,13 +80,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
         """.trimMargin()
 
         private val README_RU = """
-            |# FastMediaSorter — Папка резервных копий
+            |# FastMediaSorter - Папка резервных копий
             |
             |Эта папка создана приложением **FastMediaSorter** для Android.
             |
             |## О приложении
             |
-            |FastMediaSorter — браузер и органайзер медиафайлов для Android с поддержкой
+            |FastMediaSorter - браузер и органайзер медиафайлов для Android с поддержкой
             |локального хранилища, сетевых ресурсов SMB/SFTP/FTP и облачных провайдеров
             |(Google Drive, OneDrive, Dropbox). Позволяет просматривать, сортировать
             |и управлять файлами из всех источников в одном приложении.
@@ -95,11 +95,11 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |
             |Файлы `backup_YYMMDD-HHmm.json` содержат резервные копии конфигурации:
             |
-            |- **Настройки** — все параметры приложения (интерфейс, фильтры медиа,
+            |- **Настройки** - все параметры приложения (интерфейс, фильтры медиа,
             |  воспроизведение, сеть, перевод/OCR, кэш и т.д.)
-            |- **Список ресурсов** — настроенные источники медиа (локальные папки,
+            |- **Список ресурсов** - настроенные источники медиа (локальные папки,
             |  сетевые шары, облачные папки) с параметрами отображения и поведения
-            |- **Избранное** — закладки медиафайлов с метаданными
+            |- **Избранное** - закладки медиафайлов с метаданными
             |
             |Резервные копии **не** содержат:
             |
@@ -117,13 +117,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
         """.trimMargin()
 
         private val README_UK = """
-            |# FastMediaSorter — Папка резервних копій
+            |# FastMediaSorter - Папка резервних копій
             |
             |Цю папку створено додатком **FastMediaSorter** для Android.
             |
             |## Про додаток
             |
-            |FastMediaSorter — браузер та органайзер медіафайлів для Android з підтримкою
+            |FastMediaSorter - браузер та органайзер медіафайлів для Android з підтримкою
             |локального сховища, мережевих ресурсів SMB/SFTP/FTP та хмарних провайдерів
             |(Google Drive, OneDrive, Dropbox). Дозволяє переглядати, сортувати
             |та керувати файлами з усіх джерел в одному додатку.
@@ -132,11 +132,11 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |
             |Файли `backup_YYMMDD-HHmm.json` містять резервні копії конфігурації:
             |
-            |- **Налаштування** — всі параметри додатка (інтерфейс, фільтри медіа,
+            |- **Налаштування** - всі параметри додатка (інтерфейс, фільтри медіа,
             |  відтворення, мережа, переклад/OCR, кеш тощо)
-            |- **Список ресурсів** — налаштовані джерела медіа (локальні папки,
+            |- **Список ресурсів** - налаштовані джерела медіа (локальні папки,
             |  мережеві ресурси, хмарні папки) з параметрами відображення та поведінки
-            |- **Обране** — закладки медіафайлів з метаданими
+            |- **Обране** - закладки медіафайлів з метаданими
             |
             |Резервні копії **не** містять:
             |

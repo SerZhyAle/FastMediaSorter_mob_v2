@@ -28,7 +28,7 @@ object DialogUtils {
         cancelable: Boolean = true
     ) {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
-            Timber.w("DialogUtils: skipping showScrollableDialog — Activity is finishing/destroyed")
+            Timber.w("DialogUtils: skipping showScrollableDialog - Activity is finishing/destroyed")
             return
         }
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_scrollable_text, null)
@@ -81,10 +81,10 @@ object DialogUtils {
         try {
             dialog.show()
         } catch (e: WindowManager.BadTokenException) {
-            Timber.e(e, "DialogUtils: dialog show failed — bad window token")
+            Timber.e(e, "DialogUtils: dialog show failed - bad window token")
             return
         }
-        // S0230 Phase 04 — TalkBack initial focus on the most-meaningful button.
+        // S0230 Phase 04 - TalkBack initial focus on the most-meaningful button.
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
 
         // Resize dialog to 90% of screen width

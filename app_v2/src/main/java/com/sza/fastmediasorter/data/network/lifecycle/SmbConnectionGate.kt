@@ -11,7 +11,7 @@ import javax.inject.Singleton
  *
  * **First iteration scope:** [closeFor] (delegates to existing `closeUiConnections()`)
  * and [lastRecreateMs] (delegates to [SmbRecreateTracker]). [acquire] / [release] /
- * [withRetry] throw [UnsupportedOperationException] — SMB consumers continue calling
+ * [withRetry] throw [UnsupportedOperationException] - SMB consumers continue calling
  * `SmbConnectionManager.getConnectionForExoPlayer(..)` directly, per the strategic
  * non-goal "SMB consumers continue to use SmbConnectionManager directly".
  *
@@ -36,7 +36,7 @@ class SmbConnectionGate @Inject constructor(
     }
 
     override fun release(connection: PooledConnection, success: Boolean) {
-        // Never invoked while acquire throws — kept empty for forward compatibility.
+        // Never invoked while acquire throws - kept empty for forward compatibility.
     }
 
     override suspend fun <R> withRetry(
@@ -45,7 +45,7 @@ class SmbConnectionGate @Inject constructor(
         op: suspend (PooledConnection) -> R
     ): R {
         throw UnsupportedOperationException(
-            "S0067 Phase 02: SMB withRetry not yet routed through the gate — see SmbConnectionGate.acquire."
+            "S0067 Phase 02: SMB withRetry not yet routed through the gate - see SmbConnectionGate.acquire."
         )
     }
 
@@ -53,7 +53,7 @@ class SmbConnectionGate @Inject constructor(
         if (consumer.isUi) {
             manager.closeUiConnections()
         }
-        // BACKGROUND_WORKER: no-op — worker sessions survive backgrounding (S0061 contract).
+        // BACKGROUND_WORKER: no-op - worker sessions survive backgrounding (S0061 contract).
     }
 
     override fun lastRecreateMs(resourceKey: String): Long? =

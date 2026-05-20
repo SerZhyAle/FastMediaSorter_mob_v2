@@ -1,14 +1,23 @@
 # Memory Index
 
-- [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) — tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
-- [Build gotchas](project_build_gotchas.md) — build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
-- [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) — docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
-- [Timestamp every chat message](feedback_timestamp_in_chat.md) — prefix each response with [HH:MM:SS] so user can track time spent per step
-- [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) — VR/noLegal/lite/photos/legacy code lives in src/<flavor>/java/; BuildConfig flavor guards in src/main forbidden (CLAUDE.md Rule 15)
-- [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) — noLegal flavor's srcFile(vr-manifest) silently drops src/noLegal/AndroidManifest.xml; use addStaticManifestFile in onVariants
-- [Functionality log](project_functionality_log.md) — dev/FUNCTIONALITY.log: developer-facing ADD/CHANGE/DELETE/FIX history of user-visible capability lifecycle; written via scripts/add_to_functionality_log.ps1
-- [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) — bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
-- [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) — testStandardDebugUnitTest carries ~26 broken pre-existing tests; verify own work via per-class XML reports, use assembleStandardDebug for compile checks
-- [Catalog scan source sets](project_catalog_scan_source_sets.md) — scan.ps1 hard-codes source roots; new buckets (cloudEnabled/cloudDisabled) must be added to $srcRoots
-- [set.ps1 stops on error](project_catalog_set_ps1_stops_on_error.md) — set.ps1 throws & aborts batch on missing path; wrap in try/catch for multi-entry fills
-- [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) — each signingConfig produces a distinct BrowserTabActivity hash; manifest + Azure app registration must declare every variant
+- [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
+- [Build gotchas](project_build_gotchas.md) - build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
+- [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
+- [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS] so user can track time spent per step
+- [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code lives in src/<flavor>/java/; BuildConfig flavor guards in src/main forbidden (CLAUDE.md Rule 15)
+- [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal flavor's srcFile(vr-manifest) silently drops src/noLegal/AndroidManifest.xml; use addStaticManifestFile in onVariants
+- [Functionality log](project_functionality_log.md) - dev/FUNCTIONALITY.log: developer-facing ADD/CHANGE/DELETE/FIX history of user-visible capability lifecycle; written via scripts/add_to_functionality_log.ps1
+- [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
+- [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) - testStandardDebugUnitTest carries ~26 broken pre-existing tests; verify own work via per-class XML reports, use assembleStandardDebug for compile checks
+- [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; new buckets (cloudEnabled/cloudDisabled) must be added to $srcRoots
+- [set.ps1 stops on error](project_catalog_set_ps1_stops_on_error.md) - set.ps1 throws & aborts batch on missing path; wrap in try/catch for multi-entry fills
+- [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - each signingConfig produces a distinct BrowserTabActivity hash; manifest + Azure app registration must declare every variant
+- [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if flavor hierarchy/contracts/inheritance already mechanically determines the answer, don't fabricate a "choice" question
+- [Verify sub-agent build failures yourself](feedback_verify_subagent_build_failures.md) - agent's incremental kapt cache may be stale; re-run `.\a.ps1 dq` before treating reported build failures as hard stops
+- [PowerShell efficiency: -NoProfile + batching + wrappers](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; chain related scripts in one process; use scripts/catalog_sync.ps1 for the scan+render ritual
+- [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep usage before treating as gate; PLAYER_ACTIVITY_CLASS is a dead field
+- [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never use tail -N to investigate gradle failures; FAILURE block sits in the middle
+- [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - S0240 architecture; noLegal is all-inclusive sideload-VR; vrUnlicensed archived in S0250
+- [Reserve Timber.e for real errors only](feedback_log_levels.md) - expected device-capability fallbacks (e.g. native lib missing on non-arm64) log at Timber.i, never Timber.e; ERROR is for things the dev must act on
+- [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if the headline behavior isn't actually working, don't mark phases Done or invite device-test; scaffolding is a milestone, not a deliverable
+- [Check generated binding field types before injecting compat views](feedback_check_generated_binding_types.md) - .bind(root) does unchecked downcasts; Button vs MaterialButton mismatch crashes silently after a clean build

@@ -8,7 +8,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 /**
- * S0118 — narrow tests for [NetworkErrorMessageMapper.toMessageRes].
+ * S0118 - narrow tests for [NetworkErrorMessageMapper.toMessageRes].
  *
  * Resource-only behavior: no Android Context needed, so these tests run as plain
  * JVM unit tests and serve as regression coverage for the friendly-copy contract

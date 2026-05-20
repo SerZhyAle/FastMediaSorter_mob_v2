@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
  * - Track per-file download progress in [inlinePlayerState].
  * - Save / restore inline-playback resume state via [SaveResumeStateUseCase].
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseInlineAudioManager(
     private val context: Context,
@@ -109,7 +109,7 @@ class BrowseInlineAudioManager(
                 kotlinx.coroutines.delay(300)
 
                 if (initialFolderPath != null) {
-                    Timber.d("InlinePlayer: Resume — navigating to '$initialFolderPath'")
+                    Timber.d("InlinePlayer: Resume - navigating to '$initialFolderPath'")
                     onNavigateToFolder(initialFolderPath)
                     kotlinx.coroutines.withTimeout(15_000L) {
                         stateFlow.first {
@@ -122,12 +122,12 @@ class BrowseInlineAudioManager(
                 val targetPath = initialFilePath ?: return@launch
                 val targetFile = stateFlow.value.mediaFiles.firstOrNull { it.path == targetPath }
                 if (targetFile != null && isPlaying == true) {
-                    Timber.d("InlinePlayer: Resume — starting '${targetFile.name}'")
+                    Timber.d("InlinePlayer: Resume - starting '${targetFile.name}'")
                     inlinePlayToggle(targetFile)
                 } else if (targetFile != null) {
-                    Timber.d("InlinePlayer: Resume — found file but isPlaying=false, not auto-starting")
+                    Timber.d("InlinePlayer: Resume - found file but isPlaying=false, not auto-starting")
                 } else {
-                    Timber.w("InlinePlayer: Resume — target file not found: $targetPath")
+                    Timber.w("InlinePlayer: Resume - target file not found: $targetPath")
                 }
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 Timber.w("InlinePlayer: Resume timed out waiting for file list")

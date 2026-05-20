@@ -60,7 +60,7 @@ class BrowseCameraCaptureManager(
             try {
                 handleResult(result)
             } catch (t: Throwable) {
-                Timber.e(t, "S0022-CAM: handleResult threw — captured to prevent crash")
+                Timber.e(t, "S0022-CAM: handleResult threw - captured to prevent crash")
                 showSnackbar(R.string.camera_capture_error_save_generic)
             }
         }
@@ -109,7 +109,7 @@ class BrowseCameraCaptureManager(
             handlers.joinToString { "${it.activityInfo?.packageName}/${it.activityInfo?.name}" },
         )
         if (handlers.isEmpty()) {
-            Timber.w("S0022-CAM: launch ABORT — no Activity handles %s on this device", action)
+            Timber.w("S0022-CAM: launch ABORT - no Activity handles %s on this device", action)
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             pendingResource = null
             return
@@ -117,7 +117,7 @@ class BrowseCameraCaptureManager(
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val tempFile = createTemp(timestamp, ext) ?: run {
-            Timber.w("S0022-CAM: launch ABORT — createTemp returned null")
+            Timber.w("S0022-CAM: launch ABORT - createTemp returned null")
             showSnackbar(R.string.camera_capture_error_temp_file)
             pendingResource = null
             return
@@ -148,7 +148,7 @@ class BrowseCameraCaptureManager(
         try {
             Timber.i("S0022-CAM: launch dispatching launcher.launch(intent) action=%s", action)
             launcher.launch(intent)
-            Timber.i("S0022-CAM: launch dispatched launcher.launch(intent) — awaiting result")
+            Timber.i("S0022-CAM: launch dispatched launcher.launch(intent) - awaiting result")
         } catch (e: ActivityNotFoundException) {
             Timber.e(e, "S0022-CAM: launcher.launch threw ActivityNotFoundException action=%s", action)
             showSnackbar(R.string.camera_capture_error_no_camera_app)
@@ -188,7 +188,7 @@ class BrowseCameraCaptureManager(
         val path = savedState.getString(KEY_TEMP_FILE) ?: return
         val file = File(path)
         if (!file.exists()) {
-            // Temp file was cleaned up by the OS — inform user and bail.
+            // Temp file was cleaned up by the OS - inform user and bail.
             Timber.w("S0022-CAM: restoreState tempFile missing after process death path=%s", path)
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
@@ -196,7 +196,7 @@ class BrowseCameraCaptureManager(
         val resourceId = savedState.getLong(KEY_RESOURCE_ID, -1L)
         val resource = if (resourceId != -1L) getResourceById(resourceId) else null
         if (resource == null) {
-            Timber.w("S0022-CAM: restoreState resource not found id=%d — aborting, deleting tempFile", resourceId)
+            Timber.w("S0022-CAM: restoreState resource not found id=%d - aborting, deleting tempFile", resourceId)
             file.delete()
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
@@ -220,13 +220,13 @@ class BrowseCameraCaptureManager(
             pendingResource?.name,
         )
         val tempFile = pendingTempFile ?: run {
-            // Process death between launch and result — context is gone.
-            Timber.w("S0022-CAM: handleResult ABORT — pendingTempFile is null (process death?)")
+            // Process death between launch and result - context is gone.
+            Timber.w("S0022-CAM: handleResult ABORT - pendingTempFile is null (process death?)")
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
         }
         val resource = pendingResource ?: run {
-            Timber.w("S0022-CAM: handleResult ABORT — pendingResource is null (process death?)")
+            Timber.w("S0022-CAM: handleResult ABORT - pendingResource is null (process death?)")
             tempFile.delete()
             pendingTempFile = null
             showSnackbar(R.string.camera_capture_error_session_expired)
@@ -234,7 +234,7 @@ class BrowseCameraCaptureManager(
         }
         if (result.resultCode != Activity.RESULT_OK) {
             Timber.i(
-                "S0022-CAM: handleResult NON-OK resultCode=%d — deleting tempFile=%s and returning quietly",
+                "S0022-CAM: handleResult NON-OK resultCode=%d - deleting tempFile=%s and returning quietly",
                 result.resultCode,
                 tempFile.absolutePath,
             )
@@ -242,7 +242,7 @@ class BrowseCameraCaptureManager(
             pendingTempFile = null
             return
         }
-        Timber.i("S0022-CAM: handleResult OK — proceeding to save flow tempFile=%s size=%d", tempFile.absolutePath, tempFile.length())
+        Timber.i("S0022-CAM: handleResult OK - proceeding to save flow tempFile=%s size=%d", tempFile.absolutePath, tempFile.length())
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             val defaultName = tempFile.name
@@ -375,7 +375,7 @@ class BrowseCameraCaptureManager(
          * for [resource]. Should be called before showing the camera capture command in a menu so
          * that the command is invisible on devices without a camera app (e.g. Quest 3 / HorizonOS).
          *
-         * Logs a warning when no handlers are found — callers rely on this side-effect for tracing.
+         * Logs a warning when no handlers are found - callers rely on this side-effect for tracing.
          */
         fun hasCameraHandler(context: Context, resource: MediaResource): Boolean {
             val captureVideo = resource.supportedMediaTypes.let { types ->

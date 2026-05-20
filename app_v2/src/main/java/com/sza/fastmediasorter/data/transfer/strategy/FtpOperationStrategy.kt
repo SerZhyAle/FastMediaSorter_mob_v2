@@ -207,7 +207,7 @@ class FtpOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // S0189: defer file creation — see SmbOperationStrategy.createTextFile.
+            // S0189: defer file creation - see SmbOperationStrategy.createTextFile.
             val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
             val localFile = File(dir, "${resourceId}_${fileName}")
             stagingRegistry.register(
@@ -219,7 +219,7 @@ class FtpOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
-            Timber.e(e, "FtpOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
+            Timber.e(e, "FtpOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
     }

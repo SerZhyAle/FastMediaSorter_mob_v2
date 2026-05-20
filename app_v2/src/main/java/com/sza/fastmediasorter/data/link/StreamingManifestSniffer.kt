@@ -17,7 +17,7 @@ import javax.inject.Singleton
  * in one source never aborts the others:
  *
  * 1. `<meta>` / `<link>` / `<source>` element src/href ending in `.m3u8` / `.mpd`.
- * 2. JSON-LD `<script type="application/ld+json">` blocks — `VideoObject.contentUrl`
+ * 2. JSON-LD `<script type="application/ld+json">` blocks - `VideoObject.contentUrl`
  *    or `embedUrl` ending in `.m3u8` / `.mpd`.
  * 3. Plain-text regex over the raw HTML (catches manifests embedded in inline JS).
  * 4. `data-*` attributes whose name contains `hls`, `dash`, or `manifest`.

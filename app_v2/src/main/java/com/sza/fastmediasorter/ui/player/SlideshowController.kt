@@ -243,7 +243,7 @@ class SlideshowController(
     }
     
     private fun scheduleNextSlide() {
-        // Media library mode: no timer/countdown — advance via onPlaybackEnded only
+        // Media library mode: no timer/countdown - advance via onPlaybackEnded only
         if (isMediaLibraryMode) {
             Timber.d("SlideshowController: scheduleNextSlide skipped (mediaLibraryMode)")
             return

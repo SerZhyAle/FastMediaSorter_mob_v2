@@ -81,7 +81,7 @@ class PlayerMediaLoaderManager(
     private val cloudClients: Map<String, CloudStorageClient> = emptyMap(),
     // S0172: used to read/restore SFTP audio position before playback starts
     private val playbackPositionRepository: PlaybackPositionRepository? = null,
-    // S0213 Pillar A: cooldown tracker — short-circuits replay of paths that just failed to decode.
+    // S0213 Pillar A: cooldown tracker - short-circuits replay of paths that just failed to decode.
     private val decoderFailureTracker: RecentDecoderFailureTracker,
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
@@ -131,10 +131,6 @@ class PlayerMediaLoaderManager(
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
-        // Max time to wait for network audio pre-cache before falling back to direct streaming.
-        // SMBJ can hang for ~40s after Connection reset while closing the dead session —
-        // this cap ensures the user doesn't wait indefinitely.
-        private const val NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 20_000L
     }
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
@@ -301,14 +297,14 @@ class PlayerMediaLoaderManager(
             return
         }
 
-        // Cloud audio (Google Drive / OneDrive / Dropbox) — pre-cache current file, then play via service
+        // Cloud audio (Google Drive / OneDrive / Dropbox) - pre-cache current file, then play via service
         if (resourceType == ResourceType.CLOUD) {
             val currentFile = viewModel.state.value.currentFile
             if (currentFile == null) {
                 Timber.w("playAudioViaService: currentFile is null for cloud path")
                 return
             }
-            Timber.d("playAudioViaService: CLOUD audio — downloading ${currentFile.name} (${currentFile.size / 1024} KB) to cache")
+            Timber.d("playAudioViaService: CLOUD audio - downloading ${currentFile.name} (${currentFile.size / 1024} KB) to cache")
             lifecycleScope.launch {
                 // If prefetch is already running for this file, await it instead of re-downloading
                 if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
@@ -317,7 +313,7 @@ class PlayerMediaLoaderManager(
                 }
                 val cachedFile = preCacheCloudAudio(path, currentFile)
                 if (cachedFile != null) {
-                    Timber.d("playAudioViaService: CLOUD pre-cache OK — playing via service: ${cachedFile.absolutePath}")
+                    Timber.d("playAudioViaService: CLOUD pre-cache OK - playing via service: ${cachedFile.absolutePath}")
                     // Set original cloud path as the position key (ADR-3, S0173)
                     AudioPlaybackService.currentOriginalPath = path
                     val uri = Uri.fromFile(cachedFile)
@@ -344,7 +340,7 @@ class PlayerMediaLoaderManager(
             return
         }
 
-        // Network audio (SMB/SFTP/FTP) — await prefetch or download
+        // Network audio (SMB/SFTP/FTP) - await prefetch or download
         val currentFile = viewModel.state.value.currentFile
         val currentFileSize = currentFile?.size ?: 0L
         // Use credentialsId from current file's resource (same lookup path as VideoPlayerManager)
@@ -395,7 +391,7 @@ class PlayerMediaLoaderManager(
                 val resource = viewModel.state.value.resource
                 // Re-post loading indicator: the original 1-second delayed post from playVideo() has
                 // long expired. ExoPlayer will now buffer the SMB stream directly, which can take
-                // several seconds — show spinner so the user sees progress instead of a frozen screen.
+                // several seconds - show spinner so the user sees progress instead of a frozen screen.
                 loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
                 loadingIndicatorHandler.post(showLoadingIndicatorRunnable)
                 playVideoWithResourceType(path, resourceType, currentFile, resource)
@@ -451,6 +447,7 @@ class PlayerMediaLoaderManager(
      *   Fallback to server/share string lookup when null.
      */
     private suspend fun preCacheNetworkAudio(path: String, fileSize: Long = 0L, credentialsId: String? = null): File? = withContext(Dispatchers.IO) {
+        val startupPolicy = PrefetchPolicyManager.audioStartupPolicyFor(path, isAudio = true)
 
         // Check cache first
         if (fileSize > 0) {
@@ -466,8 +463,8 @@ class PlayerMediaLoaderManager(
 
         try {
             // Timeout guards against SMBJ hanging during connection cleanup after Connection reset.
-            // Without it the caller blocks ~40s waiting for the dead session to close.
-            withTimeout(NETWORK_AUDIO_PRECACHE_TIMEOUT_MS) {
+            // SFTP audio gets a shorter startup budget so car playback can fall back to direct streaming promptly.
+            withTimeout(startupPolicy.timeoutMs) {
                 when {
                     path.startsWith("smb://") -> downloadSmbFull(path, destFile, credentialsId)
                     path.startsWith("sftp://") -> downloadSftpFull(path, destFile, credentialsId)
@@ -476,11 +473,15 @@ class PlayerMediaLoaderManager(
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Timber.w("preCacheNetworkAudio: timed out after ${NETWORK_AUDIO_PRECACHE_TIMEOUT_MS}ms for $path — falling back to direct streaming")
+            Timber.d("S0252: SFTP audio early direct-stream fallback (source=${startupPolicy.sourceType.logLabel})")
+            Timber.w(
+                "preCacheNetworkAudio: source=${startupPolicy.sourceType.logLabel} reason=${startupPolicy.reason} " +
+                    "timed out after ${startupPolicy.timeoutMs}ms for $path - falling back to direct streaming"
+            )
             destFile.delete()
             null
         } catch (e: kotlinx.coroutines.CancellationException) {
-            // Structured cancellation (e.g. lifecycleScope destroyed while downloading) — not an error.
+            // Structured cancellation (e.g. lifecycleScope destroyed while downloading) - not an error.
             destFile.delete()
             throw e
         } catch (e: Exception) {
@@ -502,7 +503,7 @@ class PlayerMediaLoaderManager(
         val shareName = parts[1]
         val remotePath = parts[2]
 
-        // Primary: use credentialsId from resource (same as VideoPlayerManager) — avoids server/share string mismatch
+        // Primary: use credentialsId from resource (same as VideoPlayerManager) - avoids server/share string mismatch
         var creds = if (credentialsId != null) credentialsRepository?.getByCredentialId(credentialsId) else null
         // Fallback: lookup by server + share string
         if (creds == null) creds = credentialsRepository?.getByServerAndShare(server, shareName)
@@ -536,7 +537,7 @@ class PlayerMediaLoaderManager(
         val host = hostPort.substringBefore(':')
         val port = hostPort.substringAfter(':', "22").toIntOrNull() ?: 22
 
-        // Primary: use credentialsId from resource — avoids host/port string mismatch
+        // Primary: use credentialsId from resource - avoids host/port string mismatch
         var creds = if (credentialsId != null) credentialsRepository?.getByCredentialId(credentialsId) else null
         if (creds == null) creds = credentialsRepository?.getByTypeServerAndPort("SFTP", host, port)
         if (creds == null) {
@@ -562,7 +563,7 @@ class PlayerMediaLoaderManager(
         val host = hostPort.substringBefore(':')
         val port = hostPort.substringAfter(':', "21").toIntOrNull() ?: 21
 
-        // Primary: use credentialsId from resource — avoids host/port string mismatch
+        // Primary: use credentialsId from resource - avoids host/port string mismatch
         var creds = if (credentialsId != null) credentialsRepository?.getByCredentialId(credentialsId) else null
         if (creds == null) creds = credentialsRepository?.getByTypeServerAndPort("FTP", host, port)
         if (creds == null) {
@@ -615,7 +616,7 @@ class PlayerMediaLoaderManager(
                 return@withContext null
             }
 
-            // Extract fileId — same logic as CloudPathParser
+            // Extract fileId - same logic as CloudPathParser
             val folderId = if (parts.size > 1) parts[1] else null
             val fileId = if (parts.size > 2) {
                 when (provider) {
@@ -635,7 +636,7 @@ class PlayerMediaLoaderManager(
                     Timber.d("preCacheCloudAudio: downloaded ${mediaFile.name} (${destFile.length() / 1024} KB)")
                     destFile
                 } else {
-                    Timber.e("preCacheCloudAudio: download failed for $path — $result")
+                    Timber.e("preCacheCloudAudio: download failed for $path - $result")
                     destFile.delete()
                     null
                 }
@@ -790,7 +791,7 @@ class PlayerMediaLoaderManager(
     /**
      * Prefetch the next audio file into UnifiedFileCache.
      * Called when the current audio reaches STATE_READY (playing).
-     * Only applies to network sources (SMB/SFTP/FTP) — local audio uses ExoPlayer playlist.
+     * Only applies to network sources (SMB/SFTP/FTP) - local audio uses ExoPlayer playlist.
      */
     fun prefetchNextAudio() {
         val nextFile = viewModel.getNextAudioFile() ?: return
@@ -799,13 +800,13 @@ class PlayerMediaLoaderManager(
         val isNetwork = path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")
         val isCloud = path.startsWith("cloud://")
 
-        // Only prefetch network/cloud audio — local files use ExoPlayer playlist
+        // Only prefetch network/cloud audio - local files use ExoPlayer playlist
         if (!isNetwork && !isCloud) return
 
         // Already cached?
         val cached = unifiedCache?.getCachedFile(path, nextFile.size)
         if (cached != null) {
-            Timber.d("prefetchNextAudio: already cached — ${nextFile.name}")
+            Timber.d("prefetchNextAudio: already cached - ${nextFile.name}")
             return
         }
 
@@ -824,9 +825,15 @@ class PlayerMediaLoaderManager(
             Timber.d("prefetchNextAudio: START downloading ${nextFile.name} (${nextFile.size / 1024} KB)")
             val result = if (isCloud) preCacheCloudAudio(path, nextFile) else preCacheNetworkAudio(path, nextFile.size, resolvedPrefetchCredentialsId)
             if (result != null) {
-                Timber.d("prefetchNextAudio: DONE — ${nextFile.name} cached")
+                Timber.d("prefetchNextAudio: DONE - ${nextFile.name} cached")
             } else {
-                Timber.w("prefetchNextAudio: FAILED — ${nextFile.name}")
+                val recovery = PrefetchPolicyManager.nextTrackPrefetchRecovery(path)
+                Timber.d("S0252: prefetchNextAudio recoverable-failure branch hit")
+                Timber.w(
+                    "prefetchNextAudio: RECOVERABLE failure - ${nextFile.name}; " +
+                        "source=${recovery.sourceType.logLabel} reason=${recovery.reason} " +
+                        "currentTrackUnaffected=${recovery.currentTrackUnaffected} retryOnDemand=${recovery.retryOnDemand}"
+                )
             }
         }
     }
@@ -916,7 +923,7 @@ class PlayerMediaLoaderManager(
             // For audio: always show controls, never hide
             // Use Integer.MAX_VALUE to prevent auto-hide (negative values don't work reliably)
             binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
-            // Force controls visible immediately — no tap required
+            // Force controls visible immediately - no tap required
             binding.playerView.showController()
 
             // Hide PlayerView's internal video/content layer for audio.

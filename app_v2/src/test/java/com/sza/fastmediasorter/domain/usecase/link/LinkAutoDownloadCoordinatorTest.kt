@@ -38,6 +38,7 @@ class LinkAutoDownloadCoordinatorTest {
     private val authSessionRepository: AuthSessionRepository = mockk(relaxed = true)
     private val sessionContext: LinkDownloadSessionContext = mockk(relaxed = true)
     private val cookieStore: EncryptedCookieStore = mockk()
+    private val contract = YtMusicAudioOnlyContract()
 
     private val noOpCallbacks = object : LinkAutoDownloadCoordinator.Callbacks {
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
@@ -58,6 +59,7 @@ class LinkAutoDownloadCoordinatorTest {
             sessionContext = sessionContext,
             cookieStore = cookieStore,
             urlCanonicalizer = LinkUrlCanonicalizer(),
+            contract = contract,
         )
     }
 
@@ -68,7 +70,7 @@ class LinkAutoDownloadCoordinatorTest {
             accountId = "acc1", displayName = "Test",
             savedAt = Instant.now(), lastUsedAt = null, cookieCount = 3,
         )
-        // Exact host has cookies — must win without reaching listAllAccounts.
+        // Exact host has cookies - must win without reaching listAllAccounts.
         every { cookieStore.loadForAccount("instagram.com", "acc1") } returns cookies
         every { cookieStore.loadUserAgentForAccount("instagram.com", "acc1") } returns pinnedUa
         every { cookieStore.listAllAccounts() } returns listOf("www.instagram.com" to candidateEntry)
@@ -156,7 +158,7 @@ class LinkAutoDownloadCoordinatorTest {
         verify(exactly = 0) { sessionContext.set(any(), any(), any(), any()) }
     }
 
-    // S0186: cascade resilience — open() must not abort the strategy chain on uncaught Throwable.
+    // S0186: cascade resilience - open() must not abort the strategy chain on uncaught Throwable.
     // Strategy A throws (simulates yt-dlp PyException). Strategy B must still be reached.
 
     @Test
@@ -185,7 +187,7 @@ class LinkAutoDownloadCoordinatorTest {
         coVerify { strategyA.open(any(), any()) }
         coVerify { strategyB.probe(any()) }
         coVerify { strategyB.open(any(), any()) }
-        // Cascade fell through to NotFound — final outcome is NoMediaFound, NOT a thrown exception.
+        // Cascade fell through to NotFound - final outcome is NoMediaFound, NOT a thrown exception.
         assert(result is LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound) {
             "Expected NoMediaFound after cascade fall-through, got: $result"
         }

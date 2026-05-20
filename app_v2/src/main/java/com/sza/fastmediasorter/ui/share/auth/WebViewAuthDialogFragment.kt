@@ -66,7 +66,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
             emitResultAndDismiss(saved = false)
         }
         if (harvestMode) {
-            // In harvest mode there's nothing for the user to save manually — hide the button.
+            // In harvest mode there's nothing for the user to save manually - hide the button.
             saveButton?.visibility = View.GONE
         } else {
             saveButton?.setOnClickListener { harvestAndDismiss() }
@@ -123,7 +123,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
                                 "[S0166] harvest-mode: intercepted CDN media url=%s",
                                 LinkDownloadTrace.truncateUrl(url),
                             )
-                            // shouldInterceptRequest is called on a background thread — post dismiss to main.
+                            // shouldInterceptRequest is called on a background thread - post dismiss to main.
                             view?.handler?.post {
                                 if (isAdded && !isDetached) {
                                     emitResultAndDismiss(saved = false, mediaUrl = url)
@@ -157,7 +157,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     /**
-     * Returns true for URLs that look like streamable video content — used by harvest mode
+     * Returns true for URLs that look like streamable video content - used by harvest mode
      * to auto-detect when the page requests a CDN video file.
      * We check path extensions only (no response headers available in shouldInterceptRequest).
      */
@@ -200,7 +200,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 // yt-dlp/OkHttp on every cookie-bearing request so the same `sessionid`
                 // never appears under more than one UA.
                 val capturedUa = webView?.settings?.userAgentString?.takeIf { it.isNotBlank() }
-                // S0211: dedup-aware save — reuses existing accountId when the cookie set
+                // S0211: dedup-aware save - reuses existing accountId when the cookie set
                 // yields a known platform identity matching a stored record.
                 viewModel.saveSessionFromWebView(
                     host = targetHost,
@@ -237,7 +237,9 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     private fun refreshSaveButtonState() {
-        saveButton?.isEnabled = currentCookies().isNotEmpty()
+        val cookieCount = currentCookies().size
+        Timber.d("S0140: pillar-V auth-flow save-button gate cookies=$cookieCount")
+        saveButton?.isEnabled = cookieCount > 0
     }
 
     private fun currentCookies(): List<HttpCookie> {
@@ -269,8 +271,8 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     private fun parseCookieHeader(header: String, host: String): List<HttpCookie> {
         if (header.isBlank()) return emptyList()
-        // S0170 BUG-6: CookieManager.getCookie() lists a name once per (domain,path) scope —
-        // e.g. csrftoken at .instagram.com and at www.instagram.com — so the raw header carries
+        // S0170 BUG-6: CookieManager.getCookie() lists a name once per (domain,path) scope -
+        // e.g. csrftoken at .instagram.com and at www.instagram.com - so the raw header carries
         // duplicates. Keep the last-seen value per name.
         return header.split(';')
             .mapNotNull { entry ->
@@ -301,7 +303,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
         const val RESULT_HOST = "host"
         const val RESULT_SAVED = "saved"
         const val RESULT_ACCOUNT_ID = "account_id"
-        /** Set when harvest mode intercepts a CDN media URL — use for direct download. */
+        /** Set when harvest mode intercepts a CDN media URL - use for direct download. */
         const val RESULT_MEDIA_URL = "media_url"
 
         fun newInstance(targetUrl: String, harvestMode: Boolean = false): WebViewAuthDialogFragment =

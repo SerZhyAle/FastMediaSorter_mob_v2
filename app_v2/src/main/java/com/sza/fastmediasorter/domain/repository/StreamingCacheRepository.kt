@@ -4,7 +4,7 @@ import com.sza.fastmediasorter.data.local.db.StreamingCacheEntry
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Read/write surface for the streaming-offload cache — files downloaded locally
+ * Read/write surface for the streaming-offload cache - files downloaded locally
  * because the remote protocol was not viable for progressive playback.
  *
  * Implementation is [com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl].
@@ -32,7 +32,7 @@ interface StreamingCacheRepository {
 
     /**
      * Removes both the DB row and the local file. Returns true if the row existed
-     * (the file may already have been deleted by the user out-of-band — that still
+     * (the file may already have been deleted by the user out-of-band - that still
      * counts as success because the end state is the same).
      */
     suspend fun delete(resourceHash: String): Boolean
@@ -45,7 +45,7 @@ interface StreamingCacheRepository {
 
     /**
      * Returns entries whose [StreamingCacheEntry.lastPlayedAt] is older than
-     * `now - ttlMs` — the GC worker deletes them.
+     * `now - ttlMs` - the GC worker deletes them.
      */
     suspend fun findStaleByTtl(now: Long, ttlMs: Long): List<StreamingCacheEntry>
 

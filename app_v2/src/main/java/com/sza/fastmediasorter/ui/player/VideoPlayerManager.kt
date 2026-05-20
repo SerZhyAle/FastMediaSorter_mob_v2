@@ -78,7 +78,7 @@ import timber.log.Timber
  *
  * Responsibilities kept here:
  * - All shared mutable state fields
- * - [Player.Listener] (playerListener) — tightly coupled to all state, cannot be split cleanly
+ * - [Player.Listener] (playerListener) - tightly coupled to all state, cannot be split cleanly
  * - [playVideo] dispatch (routes to protocol-specific extension)
  * - Public API surface (play/pause/seek/track selection)
  * - Lifecycle callbacks
@@ -150,7 +150,7 @@ class VideoPlayerManager(
     companion object {
         private const val MAX_EOF_RETRIES = 3
 
-        // Buffer configuration (ms) — default for SMB/SFTP/FTP.
+        // Buffer configuration (ms) - default for SMB/SFTP/FTP.
         // Reduced to prevent OOM on 4K content (50-120 s at 100 Mbps = 625 MB-1.5 GB).
         internal const val MIN_BUFFER_MS = 15_000
         internal const val MAX_BUFFER_MS = 30_000
@@ -163,7 +163,7 @@ class VideoPlayerManager(
         internal const val CLOUD_BUFFER_FOR_PLAYBACK_MS = 8_000
         internal const val CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 12_000
 
-        // Audio playback uses a smaller buffer than video — codec/decoder allocations are
+        // Audio playback uses a smaller buffer than video - codec/decoder allocations are
         // much lower, so large video-oriented buffers waste memory without audible benefit.
         internal const val AUDIO_MIN_BUFFER_MS = 5_000
         internal const val AUDIO_MAX_BUFFER_MS = 12_000
@@ -187,12 +187,12 @@ class VideoPlayerManager(
         private const val NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES = 30L * 1024 * 1024
         internal const val DEFAULT_BRIGHTNESS_PROGRESS = 50
 
-        // Playback health-check — thresholds for detecting stuck / white-noise audio
+        // Playback health-check - thresholds for detecting stuck / white-noise audio
         internal const val PLAYBACK_HEALTH_CHECK_DELAY_MS = 2_000L
         internal const val MAX_PLAYBACK_STUCK_COUNT = 2
     }
     // ═══════════════════════════════════════════════════════════════════════
-    // Mutable state — internal so extension functions in helpers/ can access
+    // Mutable state - internal so extension functions in helpers/ can access
     // ═══════════════════════════════════════════════════════════════════════
 
     internal var exoPlayer: ExoPlayer? = null
@@ -210,7 +210,7 @@ class VideoPlayerManager(
     // and (in phase 02) a fallback hierarchy to Glide memory cache / placeholder.
     private val posterExtractor = VideoPosterExtractor()
 
-    // Stereo GL effect builder — Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
+    // Stereo GL effect builder - Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
     internal val stereoVideoProcessor = StereoVideoProcessor()
     internal val videoColorProcessor = VideoColorProcessor(
         initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
@@ -243,7 +243,7 @@ class VideoPlayerManager(
         )
     }
 
-    // Retry logic for EOF exceptions (used only inside playerListener — stays private)
+    // Retry logic for EOF exceptions (used only inside playerListener - stays private)
     private var playbackRetryCount = 0
     private var lastPlaybackPosition = 0L
     internal val retryHandler = Handler(Looper.getMainLooper())
@@ -266,7 +266,7 @@ class VideoPlayerManager(
     internal var lastCheckedPosition = 0L
     internal var playbackStuckCount = 0
 
-    // Connection throttling — resource key of the currently streaming server
+    // Connection throttling - resource key of the currently streaming server
     internal var activeResourceKey: String? = null
 
     // Counts track changes on the current ExoPlayer instance; triggers recreation at PLAYER_RECREATE_INTERVAL.
@@ -289,7 +289,7 @@ class VideoPlayerManager(
 
     internal val managerScope = CoroutineScope(Dispatchers.Main + Job())
 
-    // Panel single-eye crop flag — see spec_panel-stereo-single-eye.md.
+    // Panel single-eye crop flag - see spec_panel-stereo-single-eye.md.
     // Default true; overridden as soon as the first DataStore emission arrives below.
     @Volatile
     internal var panelStereoSingleEyeEnabled: Boolean = true
@@ -307,9 +307,15 @@ class VideoPlayerManager(
     fun setVrImmersiveActive(active: Boolean) {
         if (vrImmersiveActive == active) return
         vrImmersiveActive = active
-        Timber.d("VideoPlayerManager: vrImmersiveActive=$active — re-applying video effects")
+        Timber.d("VideoPlayerManager: vrImmersiveActive=$active - re-applying video effects")
         // Re-apply on the main thread to honour the toggle for the currently-loaded media.
         applyConfiguredVideoEffects()
+        // S0264: immersive transition flips panel single-eye crop on/off; sync TextureView matrix.
+        com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
+            playerView = currentPlayerView,
+            mode = stereoVideoProcessor.getCurrentMode(),
+            singleEyeEnabled = panelStereoSingleEyeEnabled && !vrImmersiveActive,
+        )
     }
 
     init {
@@ -318,15 +324,21 @@ class VideoPlayerManager(
             .distinctUntilChanged()
             .onEach { enabled ->
                 panelStereoSingleEyeEnabled = enabled
-                Timber.d("VideoPlayerManager: panelStereoSingleEye=$enabled — re-applying video effects")
+                Timber.d("VideoPlayerManager: panelStereoSingleEye=$enabled - re-applying video effects")
                 applyConfiguredVideoEffects()
+                // S0264: user toggled single-eye crop on/off mid-playback — push the matrix.
+                com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
+                    playerView = currentPlayerView,
+                    mode = stereoVideoProcessor.getCurrentMode(),
+                    singleEyeEnabled = enabled && !vrImmersiveActive,
+                )
             }
             .launchIn(managerScope)
     }
 
     /**
      * Optional callback invoked with the first decoded video frame bitmap.
-     * Only fires for local files — network/cloud paths are short-circuited inside
+     * Only fires for local files - network/cloud paths are short-circuited inside
      * [onRenderedFirstFrame] because the underlying retriever has no streaming support.
      * The Boolean flag is true when the bitmap is a static placeholder (S0032 fallback).
      */
@@ -353,13 +365,13 @@ class VideoPlayerManager(
     @Volatile internal var videoSizeKnown: Boolean = false
     @Volatile internal var pendingEffectsApply: Boolean = false
 
-    // Debounce handler for applyConfiguredVideoEffects() — see PlayerSetupHelper.kt.
+    // Debounce handler for applyConfiguredVideoEffects() - see PlayerSetupHelper.kt.
     // 80 ms window coalesces rapid slider drags into a single pipeline rebuild,
     // preventing TexturePool race crash in Media3 1.2.x.
     internal val effectsHandler = Handler(Looper.getMainLooper())
     internal var pendingEffectsRunnable: Runnable? = null
     // ═══════════════════════════════════════════════════════════════════════
-    // Player.Listener — stays in orchestrator (tightly coupled to all state)
+    // Player.Listener - stays in orchestrator (tightly coupled to all state)
     // ═══════════════════════════════════════════════════════════════════════
 
     internal val playerListener = object : Player.Listener {
@@ -436,7 +448,7 @@ class VideoPlayerManager(
                 generateSequence<Throwable>(error) { it.cause }
                     .any { it is java.io.IOException && it.message?.contains("SFTP", ignoreCase = true) == true }
             if (isSftpIoError && exoPlayer?.playbackState != Player.STATE_IDLE) {
-                Timber.w("VideoPlayerManager: suppressing SFTP IO error toast — player not idle (will retry)")
+                Timber.w("VideoPlayerManager: suppressing SFTP IO error toast - player not idle (will retry)")
                 return
             }
 
@@ -455,22 +467,22 @@ class VideoPlayerManager(
                 retryHandler.postDelayed(retryRunnable!!, 1000)
                 return
             } else if (isEOFException) {
-                Timber.e("VideoPlayerManager: EOFException — max retries exceeded")
+                Timber.e("VideoPlayerManager: EOFException - max retries exceeded")
             }
 
             if (isMediaCodecError) {
                 // S0213 Pillar A: arm cooldown so the very next replay of this same source is
                 // short-circuited by PlayerMediaLoaderManager before media3 rebuilds its graph.
                 currentFilePath?.let(decoderFailureTracker::markFailed)
-                Timber.w("VideoPlayerManager: MediaCodec error — errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
+                Timber.w("VideoPlayerManager: MediaCodec error - errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
             } else {
-                Timber.e(error, "VideoPlayerManager: Playback error — errorCode=${error.errorCode}")
+                Timber.e(error, "VideoPlayerManager: Playback error - errorCode=${error.errorCode}")
             }
 
             if (playerCallback.isActivityDestroyed()) return
 
             // --- Variant B: graceful audio-decoder fallback ---
-            // When the audio renderer fails to initialize (e.g., DTS on Quest 3 — no platform
+            // When the audio renderer fails to initialize (e.g., DTS on Quest 3 - no platform
             // decoder, and FFmpeg extension also unavailable for this specific codec),
             // disable the audio track and resume video playback instead of skipping the file.
             // This prevents jarring auto-navigation away from a perfectly valid video file.
@@ -481,11 +493,11 @@ class VideoPlayerManager(
                 rendererType == C.TRACK_TYPE_AUDIO
             }
             if (isAudioRendererFailure) {
-                // S0213 Pillar A: 4003 audio-renderer failure is the canonical crash-loop entry —
+                // S0213 Pillar A: 4003 audio-renderer failure is the canonical crash-loop entry -
                 // mark the source so retries are throttled even if the user dismisses our toast.
                 currentFilePath?.let(decoderFailureTracker::markFailed)
                 val savedPosition = exoPlayer?.currentPosition ?: 0L
-                Timber.w("VideoPlayerManager: Audio renderer failed (errorCode=${error.errorCode}) — disabling audio, resuming video at ${savedPosition}ms")
+                Timber.w("VideoPlayerManager: Audio renderer failed (errorCode=${error.errorCode}) - disabling audio, resuming video at ${savedPosition}ms")
                 Toast.makeText(
                     context,
                     context.getString(R.string.warning_audio_format_unsupported),
@@ -528,15 +540,15 @@ class VideoPlayerManager(
                 return
             }
             if (isFormatError && currentFilePath != null && !isLocalPath) {
-                Timber.w("VideoPlayerManager: ExoPlayer format error on network path — MediaPlayer fallback skipped")
+                Timber.w("VideoPlayerManager: ExoPlayer format error on network path - MediaPlayer fallback skipped")
                 val lowerPath = currentFilePath!!.lowercase()
                 if (lowerPath.endsWith(".m2ts") || lowerPath.endsWith(".m2t")) {
-                    Timber.i("VideoPlayerManager: BD-TS format error — showing informative dialog")
+                    Timber.i("VideoPlayerManager: BD-TS format error - showing informative dialog")
                     playerCallback.onBdTsFormatError()
                     return
                 }
                 if (lowerPath.endsWith(".vob")) {
-                    Timber.i("VideoPlayerManager: DVD_PS_VOB route error — stopping cascade on current file")
+                    Timber.i("VideoPlayerManager: DVD_PS_VOB route error - stopping cascade on current file")
                     playerCallback.onNetworkContainerRouteError(
                         currentFilePath!!,
                         com.sza.fastmediasorter.ui.player.helpers.NetworkPlaybackContainerHint.DVD_PS_VOB
@@ -562,13 +574,13 @@ class VideoPlayerManager(
         }
 
         override fun onRenderedFirstFrame() {
-            // S0196: primary-content timing probe — fires when ExoPlayer renders the first video
+            // S0196: primary-content timing probe - fires when ExoPlayer renders the first video
             // frame to the surface. Phase 04 reads this tag from logcat as the "video firstContent"
             // timestamp. Intentionally placed before early returns so all sources are covered.
             Timber.d("VideoPlayerManager: onRenderedFirstFrame path=${currentFilePath ?: "(null)"}")
             val path = currentFilePath ?: return
             val callback = onFirstFrameReady ?: return
-            // Poster extractor only supports local files — skip for network/cloud sources
+            // Poster extractor only supports local files - skip for network/cloud sources
             if (path.startsWith("smb://") || path.startsWith("sftp://") ||
                 path.startsWith("ftp://") || path.startsWith("cloud://")) {
                 Timber.d("VideoPlayerManager: Skipping first-frame capture for network/cloud source")
@@ -590,7 +602,7 @@ class VideoPlayerManager(
             val videoFormat = tracks.groups
                 .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }
                 ?.getTrackFormat(0)
-            // WHY: VR_QUALITY_DEBUG — log selected track to diagnose S0041 pixelization regression.
+            // WHY: VR_QUALITY_DEBUG - log selected track to diagnose S0041 pixelization regression.
             // Remove after root cause is confirmed (Phase 2 of S0041 investigation).
             Timber.d("VR_QUALITY_DEBUG: selected track format=%s", videoFormat)
             if (videoFormat != null) {
@@ -621,12 +633,12 @@ class VideoPlayerManager(
                             .distinct()
                             .joinToString(", ")
                         val msg = context.getString(R.string.warning_m2ts_audio_unsupported, codecs)
-                        Timber.d("S0054: VideoPlayerManager all .m2ts audio tracks unsupported path=$path codecs=$codecs — showing warning toast")
-                        Timber.w("VideoPlayerManager: all audio tracks unsupported for $path — codecs=$codecs")
+                        Timber.d("S0054: VideoPlayerManager all .m2ts audio tracks unsupported path=$path codecs=$codecs - showing warning toast")
+                        Timber.w("VideoPlayerManager: all audio tracks unsupported for $path - codecs=$codecs")
                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                     } else {
                         // DefaultTrackSelector already skips unsupported tracks; log confirms this.
-                        Timber.d("VideoPlayerManager: .m2ts has decodable audio — DefaultTrackSelector handles selection")
+                        Timber.d("VideoPlayerManager: .m2ts has decodable audio - DefaultTrackSelector handles selection")
                     }
                 }
             }
@@ -636,11 +648,20 @@ class VideoPlayerManager(
             if (videoSize.width <= 0 || videoSize.height <= 0) return
             if (!videoSizeKnown) {
                 videoSizeKnown = true
-                Timber.d("VideoPlayerManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height} — size known")
+                Timber.d("VideoPlayerManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height} - size known")
                 if (pendingEffectsApply) {
                     pendingEffectsApply = false
                     applyConfiguredVideoEffects()
                 }
+                // S0264: reapply single-eye TextureView matrix now that the surface is
+                // sized to the new media. Without this, the crop set in applyStereoEffect
+                // before the first decoded frame would be reset by PlayerView's own
+                // applyTextureViewRotation on layout.
+                com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
+                    playerView = currentPlayerView,
+                    mode = stereoVideoProcessor.getCurrentMode(),
+                    singleEyeEnabled = panelStereoSingleEyeEnabled && !vrImmersiveActive,
+                )
             }
         }
     }
@@ -653,7 +674,7 @@ class VideoPlayerManager(
         lifecycle.addObserver(this)
     }
     // ═══════════════════════════════════════════════════════════════════════
-    // Public API — PlayerView
+    // Public API - PlayerView
     // ═══════════════════════════════════════════════════════════════════════
 
     /** Attach the [PlayerView] used for video rendering. Must be called before playback. */
@@ -663,7 +684,7 @@ class VideoPlayerManager(
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // Public API — Stereo / color adjustments
+    // Public API - Stereo / color adjustments
     // ═══════════════════════════════════════════════════════════════════════
 
     /** Apply stereo crop effect matching [mode], with VR paths deferring per-eye crop to VrStereoRenderer. */
@@ -685,7 +706,7 @@ class VideoPlayerManager(
     fun getBrightnessPercentOffset(): Int = playbackControlsHelper.getBrightnessPercentOffset()
 
     // ═══════════════════════════════════════════════════════════════════════
-    // Public API — Playback dispatch
+    // Public API - Playback dispatch
     // ═══════════════════════════════════════════════════════════════════════
 
     /**
@@ -708,6 +729,9 @@ class VideoPlayerManager(
         playerCallback.onBeforeVideoLoad(path)
         // Reset the panel single-eye toast one-shot for the new media session.
         panelStereoSingleEyeNotifier.resetForNewSession()
+        // S0264: reset TextureView crop matrix so a leftover transform from the previous
+        // SBS/OU file doesn't corrupt the first frames of a new MONO file.
+        com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.reset(currentPlayerView)
         val scenarioTag = scenarioTagFor(path)
         val playbackScenario = if (scenarioTag == "audio") {
             MemoryScenario.AUDIO_PLAYBACK
@@ -719,10 +743,10 @@ class VideoPlayerManager(
             // Audio playback should not inherit browse thumbnails as warm image memory.
             Glide.get(context).clearMemory()
         }
-        // S0207 Phase 01: PRE_PLAY checkpoint — captures native heap right before ExoPlayer starts.
+        // S0207 Phase 01: PRE_PLAY checkpoint - captures native heap right before ExoPlayer starts.
         memoryProbe.record(MemoryCheckpoint.PRE_PLAY, scenarioTag = scenarioTag)
 
-        // Reset effects-deferral gate for the new file — size will be reported
+        // Reset effects-deferral gate for the new file - size will be reported
         // again via onVideoSizeChanged once the decoder decodes the first frame.
         videoSizeKnown = false
         pendingEffectsApply = false
@@ -746,7 +770,7 @@ class VideoPlayerManager(
             trackChangesSinceRecreate++
             val nativeFree = Debug.getNativeHeapFreeSize()
             if (trackChangesSinceRecreate >= PLAYER_RECREATE_INTERVAL || nativeFree < NATIVE_HEAP_RECREATE_THRESHOLD_BYTES) {
-                Timber.i("VideoPlayerManager: recreating ExoPlayer — trackChanges=$trackChangesSinceRecreate, nativeFree=${nativeFree / 1024 / 1024}MB")
+                Timber.i("VideoPlayerManager: recreating ExoPlayer - trackChanges=$trackChangesSinceRecreate, nativeFree=${nativeFree / 1024 / 1024}MB")
                 releasePlayer()
                 trackChangesSinceRecreate = 0
             }
@@ -755,18 +779,18 @@ class VideoPlayerManager(
         // WHY S0168 §5.3: VP9/other codec decoders allocate 20–30 MB native at init.
         // When native heap is critically low, buffer allocation stalls immediately → errorCode=1004.
         // Run Glide eviction + GC before ExoPlayer starts to maximise available native memory.
-        // S0207 Goal#2: no user-facing toast — playback proceeds; chronic toast noise removed.
+        // S0207 Goal#2: no user-facing toast - playback proceeds; chronic toast noise removed.
         val nativeFreePrePlay = Debug.getNativeHeapFreeSize()
         if (nativeFreePrePlay < NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES) {
             Timber.w(
-                "VideoPlayerManager: native heap low before playback — free=%dMB, running Glide eviction + GC (S0168 §5.3)",
+                "VideoPlayerManager: native heap low before playback - free=%dMB, running Glide eviction + GC (S0168 §5.3)",
                 nativeFreePrePlay / 1024 / 1024
             )
             Glide.get(context).clearMemory()
             Runtime.getRuntime().gc()
             val nativeFreeAfterGc = Debug.getNativeHeapFreeSize()
             Timber.i(
-                "VideoPlayerManager: native heap after GC — free=%dMB",
+                "VideoPlayerManager: native heap after GC - free=%dMB",
                 nativeFreeAfterGc / 1024 / 1024
             )
         }
@@ -775,7 +799,7 @@ class VideoPlayerManager(
             try {
                 val savedPosition = playbackPositionRepository.getPosition(path)
 
-                // MIDI requires MediaPlayer — ExoPlayer has no native MIDI decoder.
+                // MIDI requires MediaPlayer - ExoPlayer has no native MIDI decoder.
                 // Restrict to LOCAL files: MediaPlayer cannot handle network URIs.
                 val isLocalFile = resourceType == ResourceType.LOCAL
                 val shouldUseMediaPlayer = isLocalFile && (
@@ -813,8 +837,8 @@ class VideoPlayerManager(
                 startPositionSaving()
                 onComplete()
             } catch (e: CancellationException) {
-                // Lifecycle/scope cancel (activity destroy, file switch, player release) — not a playback failure.
-                Timber.d("VideoPlayerManager: playVideo cancelled (lifecycle/scope cancel) — path=%s", path)
+                // Lifecycle/scope cancel (activity destroy, file switch, player release) - not a playback failure.
+                Timber.d("VideoPlayerManager: playVideo cancelled (lifecycle/scope cancel) - path=%s", path)
                 playerCallback.onBuffering(false)
                 throw e
             } catch (e: Exception) {
@@ -826,7 +850,7 @@ class VideoPlayerManager(
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // Public API — Player controls
+    // Public API - Player controls
     // ═══════════════════════════════════════════════════════════════════════
 
     fun getPlayer(): ExoPlayer? = exoPlayer
@@ -844,7 +868,7 @@ class VideoPlayerManager(
         playbackControlsHelper.applyPlayerSettings(settings, appLanguage)
 
     // ═══════════════════════════════════════════════════════════════════════
-    // Public API — Track selection (delegated to VideoTrackSelectionManager)
+    // Public API - Track selection (delegated to VideoTrackSelectionManager)
     // ═══════════════════════════════════════════════════════════════════════
 
     /** Track info for display in quick-switcher dialogs. */

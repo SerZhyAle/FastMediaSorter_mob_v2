@@ -1,6 +1,6 @@
 https://www.reddit.com/r/selfhosted/comments/1slh5us/i_built_an_android_app_specifically_for_managing/
 
-PLATFORM: Reddit — r/selfhosted
+PLATFORM: Reddit - r/selfhosted
 URL: https://www.reddit.com/r/selfhosted/
 FORMAT: Reddit Markdown
 TONE: Community member, dev disclosure up front, invite feedback
@@ -8,7 +8,7 @@ FLAIR: App  ← select this via "Add flair" button before posting
 
 ---
 TITLE:
-I built an Android app specifically for managing media across NAS/SMB + cloud — FastMediaSorter v2
+I built an Android app specifically for managing media across NAS/SMB + cloud - FastMediaSorter v2
 
 ---
 BODY:
@@ -17,16 +17,16 @@ I'm the developer. Sharing because this community's use case is exactly what the
 
 **The problem I kept running into:** most Android apps either handle local files well or network files passingly, but not both. VLC can play from SMB but can't manage files. Solid Explorer can manage SMB files but its media player is an afterthought. Google Photos doesn't touch a NAS at all.
 
-So I built FastMediaSorter over the last two years — an app where SMB/NAS is a first-class citizen, not a plugin.
+So I built FastMediaSorter over the last two years - an app where SMB/NAS is a first-class citizen, not a plugin.
 
 **What it does that's relevant to this sub:**
 
 - Connects natively to SMB (SMBJ library), SFTP (SSHJ), FTP, Google Drive, Dropbox, OneDrive
-- Streams video/audio directly from NAS — no download-first step
+- Streams video/audio directly from NAS - no download-first step
 - Cross-protocol file operations: copy from SFTP directly to Google Drive, or SMB to local, or any combination
 - Scheduled operations: move files on a cron-style schedule (e.g., push camera roll to NAS at 2am nightly)
-- File list caching in local Room DB — large SMB directories open near-instantly on second visit
-- Connection pooling — SMB connections are reused, not re-established per file
+- File list caching in local Room DB - large SMB directories open near-instantly on second visit
+- Connection pooling - SMB connections are reused, not re-established per file
 - Up to 24 parallel transfer threads for bulk moves
 - Encrypted credential vault with last-used audit (helps identify stale NAS accounts)
 - PIN protection per resource (useful if sharing a device)

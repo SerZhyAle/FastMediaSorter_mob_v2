@@ -36,7 +36,7 @@ data class SftpFileAttributes(
 
 /**
  * Lightweight listing entry returned by [SftpClient.listFiles].
- * Attributes are populated from [ChannelSftp.LsEntry.attrs] — no extra stat() call needed.
+ * Attributes are populated from [ChannelSftp.LsEntry.attrs] - no extra stat() call needed.
  */
 data class SftpFileListing(
     val path: String,
@@ -142,6 +142,17 @@ class SftpClient @Inject constructor(
         }
     }
 
+    /**
+     * Playback reads can stay active for minutes without going through the higher-level client
+     * entrypoints again. Refresh the idle timer from the DataSource itself so the transport is not
+     * considered idle in the middle of a long-running ExoPlayer session.
+     */
+    fun touchPlaybackTransport(host: String, port: Int, username: String) {
+        val connectionInfo = SftpConnectionInfo(host = host, port = port, username = username)
+        val transportKey = rememberTransportKey(connectionInfo)
+        idleDisconnectPolicy.touch(transportKey)
+    }
+
     /** S0067: close all pooled SFTP sessions (UI lifecycle hook). */
     suspend fun disconnectAllPool() {
         disarmAllTrackedTransports()
@@ -154,7 +165,7 @@ class SftpClient @Inject constructor(
      * List files and directories in remote path.
      * @param recursive If true, scans all subdirectories recursively
      * @param includeDirectories If true, directory entries are also included in the result (non-recursive mode only)
-     * @return List of [SftpFileListing] with path and attrs from the ls response — no extra stat() per file
+     * @return List of [SftpFileListing] with path and attrs from the ls response - no extra stat() per file
      */
     suspend fun listFiles(
         connectionInfo: SftpConnectionInfo,
@@ -231,7 +242,7 @@ class SftpClient @Inject constructor(
                 }
                 
                 if (entry.attrs.isDir) {
-                    // Recursively scan subdirectory — directory itself is not added to results
+                    // Recursively scan subdirectory - directory itself is not added to results
                     listFilesRecursive(channel, fullPath, results)
                 } else {
                     results.add(
@@ -295,7 +306,7 @@ class SftpClient @Inject constructor(
                 throw e
             } catch (e: IOException) {
                 // S0205: IOException on intentional teardown (e.g. ConnectionThrottle ON_STOP) is
-                // expected — W level only. E level is reserved for non-IO logic failures.
+                // expected - W level only. E level is reserved for non-IO logic failures.
                 Timber.w("SFTP read file bytes interrupted (io): ${e.message} | $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
@@ -324,7 +335,7 @@ class SftpClient @Inject constructor(
                     // S0205: never swallow cooperative coroutine cancellation
                     throw e
                 } catch (e: IOException) {
-                    // S0205: IOException on retry is still transient/teardown — W level
+                    // S0205: IOException on retry is still transient/teardown - W level
                     Timber.w("SFTP read file bytes retry interrupted (io): ${e.message} | $remotePath")
                     Result.failure(e)
                 } catch (e: Exception) {
@@ -470,7 +481,7 @@ class SftpClient @Inject constructor(
                         Result.failure(e)
                     }
                 } catch (e: IOException) {
-                    Timber.w("SFTP [FILE_OPS] IOException attempt $attempt: $remotePath — ${e.message}")
+                    Timber.w("SFTP [FILE_OPS] IOException attempt $attempt: $remotePath - ${e.message}")
                     Result.failure(e)
                 } catch (e: Exception) {
                     Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
@@ -673,7 +684,7 @@ class SftpClient @Inject constructor(
         idleDisconnectPolicy.touch(transportKey)
         // S0219 Pillar C: rearm idle timer on every non-cancellation completion path.
         // Note: the InputStream lifetime extends past this function, but idle-disconnect concerns
-        // the pool's session state — activeBorrowCount (Phase 02) keeps the session alive while
+        // the pool's session state - activeBorrowCount (Phase 02) keeps the session alive while
         // the stream is open regardless of the idle timer.
         var cancelled = false
         return try {

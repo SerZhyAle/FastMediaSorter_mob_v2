@@ -1,11 +1,11 @@
-# /skill-release — Plateau Release Pipeline
+# /skill-release - Plateau Release Pipeline
 
 > **GLOBAL EXECUTION DIRECTIVES:**
-> 1. **FULLY AUTONOMOUS** — execute all steps without asking for confirmation unless a hard blocker is hit.
-> 2. **STRICTLY TECHNICAL LANGUAGE** — dry prose only in all outputs and commits.
-> 3. **HARD BLOCKERS ONLY** — stop and report only for: merge conflict, dirty working tree, not on a DEBUG branch, release worktree missing. Everything else: decide and proceed.
+> 1. **FULLY AUTONOMOUS** - execute all steps without asking for confirmation unless a hard blocker is hit.
+> 2. **STRICTLY TECHNICAL LANGUAGE** - dry prose only in all outputs and commits.
+> 3. **HARD BLOCKERS ONLY** - stop and report only for: merge conflict, dirty working tree, not on a DEBUG branch, release worktree missing. Everything else: decide and proceed.
 
-Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, and triggers a release build — all in one unattended pipeline.
+Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, and triggers a release build - all in one unattended pipeline.
 
 ## Usage
 
@@ -19,7 +19,7 @@ No arguments. Always run from the development directory (`FastMediaSorter_mob_v2
 
 ## Pipeline
 
-### Step 1 — Pre-flight
+### Step 1 - Pre-flight
 
 Run these checks in order. Abort with a clear error message on any failure.
 
@@ -48,7 +48,7 @@ Test-Path P:/ANDROID/FastMediaSorter_release
 
 ---
 
-### Step 2 — Determine version and baseline
+### Step 2 - Determine version and baseline
 
 ```bash
 # 2a. Latest release tag (baseline for diff)
@@ -80,7 +80,7 @@ Record as `$MONTH_YEAR`.
 
 ---
 
-### Step 3 — Analyze changes since last release
+### Step 3 - Analyze changes since last release
 
 ```bash
 # 3a. Commit log since last tag
@@ -112,7 +112,7 @@ For each spec file that changed, note the spec name and the nature of its change
 
 ---
 
-### Step 4 — Update `docs/WHATS_NEW.md`
+### Step 4 - Update `docs/WHATS_NEW.md`
 
 Read the current file. Its structure:
 
@@ -165,11 +165,11 @@ Read the current file. Its structure:
 
 ## What's New
 
-[old What's New items — preserved verbatim]
+[old What's New items - preserved verbatim]
 
 ## What's Fixed
 
-[old What's Fixed items — preserved verbatim]
+[old What's Fixed items - preserved verbatim]
 
 ---
 
@@ -180,7 +180,7 @@ Preserve all existing content below the insertion point verbatim. Do not reforma
 
 ---
 
-### Step 5 — Update `README.md`
+### Step 5 - Update `README.md`
 
 Read `README.md`. Find the section:
 
@@ -204,11 +204,11 @@ Replace the entire block (heading + **New:** line + **Fixed:** line + `[Full rel
 
 Keep everything else in README.md unchanged.
 
-Also check `docs/README_RU.md` and `docs/README_UK.md` — if they contain the same `## What's New` section pattern, update the version number and month/year in the heading only (do not translate the content; leave the items in their current language). If the body content in RU/UK mirrors is in Russian/Ukrainian, translate the new items accordingly and replace.
+Also check `docs/README_RU.md` and `docs/README_UK.md` - if they contain the same `## What's New` section pattern, update the version number and month/year in the heading only (do not translate the content; leave the items in their current language). If the body content in RU/UK mirrors is in Russian/Ukrainian, translate the new items accordingly and replace.
 
 ---
 
-### Step 6 — Commit docs on DEBUG branch
+### Step 6 - Commit docs on DEBUG branch
 
 ```bash
 git add docs/WHATS_NEW.md README.md docs/README_RU.md docs/README_UK.md
@@ -217,12 +217,12 @@ git commit -m "docs: release notes and README for v$NEW_VERSION"
 
 Run the dev changelog entry:
 ```powershell
-.\scripts\add_to_dev_log.ps1 "docs/WHATS_NEW.md" "WHATS_NEW" "Release notes for v$NEW_VERSION — plateau merge from $CURRENT_DEBUG"
+.\scripts\add_to_dev_log.ps1 "docs/WHATS_NEW.md" "WHATS_NEW" "Release notes for v$NEW_VERSION - plateau merge from $CURRENT_DEBUG"
 ```
 
 ---
 
-### Step 7 — Push DEBUG branch to origin
+### Step 7 - Push DEBUG branch to origin
 
 ```bash
 git push origin $CURRENT_DEBUG
@@ -232,7 +232,7 @@ If push fails → **ABORT** with the error output. Do not proceed with the merge
 
 ---
 
-### Step 8 — Merge DEBUG into main (release worktree)
+### Step 8 - Merge DEBUG into main (release worktree)
 
 ```bash
 # Move to release worktree
@@ -241,8 +241,8 @@ cd P:/ANDROID/FastMediaSorter_release
 # Ensure main is current
 git pull --ff-only
 
-# Merge — preserve merge commit
-git merge --no-ff $CURRENT_DEBUG -m "release: merge $CURRENT_DEBUG into main — v$NEW_VERSION"
+# Merge - preserve merge commit
+git merge --no-ff $CURRENT_DEBUG -m "release: merge $CURRENT_DEBUG into main - v$NEW_VERSION"
 ```
 
 If merge exits non-zero (conflict) → **ABORT**:
@@ -254,7 +254,7 @@ On success: record that main is now at `v$NEW_VERSION`.
 
 ---
 
-### Step 9 — Tag the release
+### Step 9 - Tag the release
 
 ```bash
 # Still in P:/ANDROID/FastMediaSorter_release
@@ -263,7 +263,7 @@ git tag release/v$NEW_VERSION
 
 ---
 
-### Step 10 — Push main and tag
+### Step 10 - Push main and tag
 
 ```bash
 git push origin main
@@ -272,7 +272,7 @@ git push origin release/v$NEW_VERSION
 
 ---
 
-### Step 11 — Transition to next DEBUG branch
+### Step 11 - Transition to next DEBUG branch
 
 Calculate `$NEXT_DEBUG`:
 - Extract number from `$CURRENT_DEBUG` (e.g. `001` from `DEBUG-v001`).
@@ -309,10 +309,10 @@ In both cases: after this step the dev directory is on `$NEXT_DEBUG` and the rel
 
 ---
 
-### Step 12 — Trigger release build
+### Step 12 - Trigger release build
 
 ```bash
-# From development directory — a.ps1 auto-delegates to the release worktree
+# From development directory - a.ps1 auto-delegates to the release worktree
 cd P:/ANDROID/FastMediaSorter_mob_v2
 .\a.ps1 r
 ```
@@ -324,9 +324,9 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 
 ---
 
-### Step 12a — Functionality log sanity check
+### Step 12a - Functionality log sanity check
 
-The plateau release does not generate functionality-log entries on its own — those should already exist, one per spec, recorded by `/spec-dev` (ADD/CHANGE) or `/spec-fix` (FIX) during the DEBUG cycle.
+The plateau release does not generate functionality-log entries on its own - those should already exist, one per spec, recorded by `/spec-dev` (ADD/CHANGE) or `/spec-fix` (FIX) during the DEBUG cycle.
 
 Cross-check: for every `Sxxxx` ticket whose status moved into `Verified` (or `Implemented`+`BlockNeedUserTest`) between `$PREV_TAG` and `HEAD`, confirm at least one entry exists in `dev/FUNCTIONALITY.log` referencing that id.
 
@@ -337,11 +337,11 @@ git diff $PREV_TAG..HEAD --name-only -- PLAN/spec-catalog.jsonl
 Select-String -Path dev/FUNCTIONALITY.log -Pattern '\[S\d{4}\]'
 ```
 
-If any spec is missing — surface a `[FUNC_LOG MISSED] Sxxxx` line in the final report under a new "Manual follow-ups" section. Do NOT silently backfill the entry; the operator decides whether the spec really delivered a user-visible change.
+If any spec is missing - surface a `[FUNC_LOG MISSED] Sxxxx` line in the final report under a new "Manual follow-ups" section. Do NOT silently backfill the entry; the operator decides whether the spec really delivered a user-visible change.
 
 ---
 
-### Step 13 — Final report
+### Step 13 - Final report
 
 After all steps complete, output a single structured summary:
 
@@ -354,7 +354,7 @@ Release pipeline complete.
   Build:    triggered via .\a r
 
 Manual follow-ups (if any):
-  [FUNC_LOG MISSED] Sxxxx — confirm whether spec delivered user-visible change; add entry via add_to_functionality_log.ps1
+  [FUNC_LOG MISSED] Sxxxx - confirm whether spec delivered user-visible change; add entry via add_to_functionality_log.ps1
 ```
 
 If there are no missed entries, omit the "Manual follow-ups" block. No other prose.

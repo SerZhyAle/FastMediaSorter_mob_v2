@@ -21,7 +21,7 @@ object TooltipDialog {
      */
     fun show(context: Context, title: String, message: String) {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
-            Timber.w("TooltipDialog: skipping show — Activity is finishing/destroyed")
+            Timber.w("TooltipDialog: skipping show - Activity is finishing/destroyed")
             return
         }
         try {
@@ -34,7 +34,7 @@ object TooltipDialog {
                 .setCancelable(true)
                 .show()
         } catch (e: WindowManager.BadTokenException) {
-            Timber.e(e, "TooltipDialog: show failed — bad window token")
+            Timber.e(e, "TooltipDialog: show failed - bad window token")
         }
     }
     

@@ -26,7 +26,7 @@ data class MemoryDegradationEvent(
  * drift_from_baseline ≥ 50 % at cooldown). The consumer is `PlayerActivity`, which collects
  * the flow and shows a one-shot snackbar with a "Close player" action.
  *
- * The signal is deliberately decoupled from `BuildConfig.DEBUG` — the tracker's verbose Timber
+ * The signal is deliberately decoupled from `BuildConfig.DEBUG` - the tracker's verbose Timber
  * output remains DEBUG-only, but the user-facing event must fire in release builds too, since
  * that is where the OOM crash matters most.
  */

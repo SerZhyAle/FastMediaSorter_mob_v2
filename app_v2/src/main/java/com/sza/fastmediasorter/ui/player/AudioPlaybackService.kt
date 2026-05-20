@@ -40,7 +40,7 @@ import javax.inject.Inject
 /**
  * Audio-only background playback service using Media3 MediaSessionService.
  *
- * Scope: ONLY for audio files. Video playback is NOT affected —
+ * Scope: ONLY for audio files. Video playback is NOT affected -
  * video always goes through Activity ExoPlayer in VideoPlayerManager.
  *
  * This service creates its own ExoPlayer instance for audio playback.
@@ -63,7 +63,7 @@ class AudioPlaybackService : MediaSessionService() {
     private val autoStopRunnable = Runnable {
         val p = player
         if (p == null || (!p.isPlaying && p.playbackState != Player.STATE_BUFFERING && p.playbackState != Player.STATE_READY)) {
-            Timber.d("AudioPlaybackService: auto-stop — no new track loaded within timeout")
+            Timber.d("AudioPlaybackService: auto-stop - no new track loaded within timeout")
             stopSelf()
         }
     }
@@ -157,7 +157,7 @@ class AudioPlaybackService : MediaSessionService() {
                 Timber.d("AudioPlaybackService: playbackState=$playbackState")
                 when (playbackState) {
                     Player.STATE_ENDED -> {
-                        // Don't stopSelf immediately — give Activity time to load next track.
+                        // Don't stopSelf immediately - give Activity time to load next track.
                         // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
                         Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
                         // S0172: stop save loop and persist final position before track ends
@@ -167,13 +167,13 @@ class AudioPlaybackService : MediaSessionService() {
                         autoStopHandler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
                     }
                     Player.STATE_READY -> {
-                        // New track loaded — cancel auto-stop, start position save loop
+                        // New track loaded - cancel auto-stop, start position save loop
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                         // S0172: begin periodic save once player is ready
                         startPositionSaving()
                     }
                     Player.STATE_BUFFERING -> {
-                        // New track loading — cancel auto-stop; save loop starts on STATE_READY
+                        // New track loading - cancel auto-stop; save loop starts on STATE_READY
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                     }
                     Player.STATE_IDLE -> {
@@ -193,7 +193,7 @@ class AudioPlaybackService : MediaSessionService() {
                 // SOURCE_ERROR typically means the cached file was evicted from unified_network_cache
                 // while the service still held a file:// URI to it (ENOENT). Stop the service
                 // immediately so the mini bar disappears and isRunning flips to false.
-                Timber.e(error, "AudioPlaybackService: playback error — stopping service (errorCode=${error.errorCode})")
+                Timber.e(error, "AudioPlaybackService: playback error - stopping service (errorCode=${error.errorCode})")
                 autoStopHandler.removeCallbacks(autoStopRunnable)
                 stopSelf()
             }
@@ -220,7 +220,7 @@ class AudioPlaybackService : MediaSessionService() {
             override fun seekToPrevious() {
                 if (exoPlayer.mediaItemCount <= 1) {
                     if (exoPlayer.currentPosition <= 3000L) {
-                        // Near the start: go to previous file — signal Activity via pendingDirection
+                        // Near the start: go to previous file - signal Activity via pendingDirection
                         Timber.d("AudioPlaybackService: seekToPrevious near start → pendingDirection=PREV, seeking to end")
                         pendingDirection = DIRECTION_PREV
                         val target = exoPlayer.duration.takeIf { it > 0 } ?: Int.MAX_VALUE.toLong()
@@ -254,7 +254,7 @@ class AudioPlaybackService : MediaSessionService() {
 
         // Phase 5: MediaButtonRestartReceiver is registered in the manifest with android:priority=1000.
         // The OS delivers MEDIA_BUTTON intents to that receiver when this session is inactive (service dead).
-        // Media3 1.2.1 MediaSession.Builder does not expose setMediaButtonReceiver() — cold-restart
+        // Media3 1.2.1 MediaSession.Builder does not expose setMediaButtonReceiver() - cold-restart
         // is handled entirely by the manifest BroadcastReceiver + PackageManager component toggling.
         //
         // sessionActivity: tapping the notification body (not media buttons) opens the app
@@ -290,7 +290,7 @@ class AudioPlaybackService : MediaSessionService() {
             || currentPlayer.mediaItemCount == 0
             || currentPlayer.playbackState == Player.STATE_ENDED
         ) {
-            Timber.d("AudioPlaybackService: task removed, no active playback — stopping")
+            Timber.d("AudioPlaybackService: task removed, no active playback - stopping")
             stopSelf()
         }
         // If still playing, let the service continue in background
@@ -404,7 +404,7 @@ class AudioPlaybackService : MediaSessionService() {
     /**
      * MediaSession callback for handling controller requests and media button events.
      * Standard player commands (play, pause, seekToNext, seekToPrevious) are routed
-     * directly to the ExoPlayer by Media3 — no override needed.
+     * directly to the ExoPlayer by Media3 - no override needed.
      * This callback ensures all standard commands are available and logs media events.
      */
     private inner class AudioSessionCallback : MediaSession.Callback {

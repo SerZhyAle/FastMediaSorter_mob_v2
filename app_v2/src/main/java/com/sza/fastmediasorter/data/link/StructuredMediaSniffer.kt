@@ -12,6 +12,7 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -27,6 +28,7 @@ class StructuredMediaSniffer @Inject constructor(
 ) {
 
     suspend fun sniff(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> = withContext(Dispatchers.IO) {
+        Timber.d("S0140: pillar-R+S structured-media sniffer (JSON-LD + oEmbed) entry")
         try {
             sniffInternal(rawHtml = rawHtml, baseUri = baseUri)
         } catch (t: Throwable) {
@@ -77,7 +79,7 @@ class StructuredMediaSniffer @Inject constructor(
         // S0197: deduplicate by filename (last URL path segment) rather than raw URL.
         // collectJsonObjects() deep-traverses the entire data-sjs JSON tree; the same carousel
         // slide can be emitted multiple times via different traversal paths. Meta CDN URLs for
-        // the same asset differ only in edge node and query-signing params — the last path
+        // the same asset differ only in edge node and query-signing params - the last path
         // segment ({assetId}_{photoId}_{shardId}_n.{ext}) is stable across all edge variants.
         val result = buildList {
             harvestEmbeddedJson(doc, this)
@@ -361,7 +363,7 @@ class StructuredMediaSniffer @Inject constructor(
     /**
      * S0197: key for deduplicating embedded-JSON candidates by asset identity rather than raw URL.
      * Meta CDN URLs for the same asset differ only in edge node, signing tokens, and `_nc_*`
-     * params — but the path's last segment is stable: `{assetId}_{photoId}_{shardId}_n.{ext}`.
+     * params - but the path's last segment is stable: `{assetId}_{photoId}_{shardId}_n.{ext}`.
      * Two URLs with the same last segment are the same physical asset. Falls back to the full URL
      * for non-Meta / path-less URLs so that the key is always defined.
      */

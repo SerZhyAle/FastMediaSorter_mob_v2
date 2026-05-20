@@ -21,7 +21,7 @@ sealed interface LocalDestinationCategory {
      * Destination is under a canonical public media directory.
      *
      * @param collection MediaStore collection family chosen by physical path
-     *                   (path wins over MIME — see strategic §6.3).
+     *                   (path wins over MIME - see strategic §6.3).
      * @param relativePath Value for `MediaStore.MediaColumns.RELATIVE_PATH`,
      *                     including a trailing slash (e.g. `Music/Artist/Album/`).
      */
@@ -35,7 +35,7 @@ sealed interface LocalDestinationCategory {
     }
 
     /**
-     * Destination is outside the canonical public collections — a private
+     * Destination is outside the canonical public collections - a private
      * app folder, a custom directory chosen by the user, or anything else.
      * Falls back to direct `FileOutputStream`.
      */

@@ -5,28 +5,28 @@ SHORT DESCRIPTION (80 chars):
 Sort photos & videos fast. Swipe to organize files from storage, NAS, and cloud.
 
 FULL DESCRIPTION (4000 chars):
-Stop hunting for photos in cluttered galleries. Fast Media Sorter moves files exactly where you want them — with one tap.
+Stop hunting for photos in cluttered galleries. Fast Media Sorter moves files exactly where you want them - with one tap.
 
 ★ SORT WITH ONE TAP
 Set up target folders once. From then on, a single tap while viewing moves or copies any file to its destination. No drag. No menu. Done.
 
 📂 ALL STORAGE, ONE SCREEN
-Browse files on your phone, SD card, NAS, and cloud — without switching apps.
-• SMB — home NAS, Windows shares, Samba servers
-• SFTP and FTP — Linux servers, seedboxes, NAS
+Browse files on your phone, SD card, NAS, and cloud - without switching apps.
+• SMB - home NAS, Windows shares, Samba servers
+• SFTP and FTP - Linux servers, seedboxes, NAS
 • Google Drive, OneDrive, Dropbox
 
 🖼️ VIEWER AND PLAYER BUILT IN
 View JPEG, PNG, HEIC, WEBP, GIF, animated WebP. Play MP4, MKV, AVI, MOV, M2TS, audio files. Full-screen slideshow.
 
 🗂️ ORGANIZE YOUR WAY
-• Batch select — move, copy, delete, rename in one action
+• Batch select - move, copy, delete, rename in one action
 • Filter by date, size, and file type
-• Soft-delete (trash) with undo — no accidental permanent loss
+• Soft-delete (trash) with undo - no accidental permanent loss
 • Configurable sort order inside folders
 
 🌐 DIRECT NETWORK STORAGE
-Connect to your NAS or home server without cloud intermediaries. SMB, SFTP, and FTP — as fast as local storage.
+Connect to your NAS or home server without cloud intermediaries. SMB, SFTP, and FTP - as fast as local storage.
 
 ☁️ CROSS-CLOUD MOVES
 Move files between Google Drive, OneDrive, Dropbox, and local storage in a single operation.
@@ -40,4 +40,4 @@ Documents: PDF and EPUB preview.
 ✅ WORKS OFFLINE
 Local and NAS operations work without internet.
 
-Fast Media Sorter — sort once, find forever.
+Fast Media Sorter - sort once, find forever.

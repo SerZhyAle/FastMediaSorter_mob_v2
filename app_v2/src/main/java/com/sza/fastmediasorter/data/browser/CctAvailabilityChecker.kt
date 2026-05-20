@@ -14,7 +14,7 @@ import timber.log.Timber
  *
  * Used by [GoogleDomainBrowserLauncher] before launching an OAuth flow and by the Settings
  * Google Account card to show the diagnostics row. Returns ANY CCT-capable browser
- * (`ignoreDefault = true`) — the user-default browser only matters for the OS picker, not for
+ * (`ignoreDefault = true`) - the user-default browser only matters for the OS picker, not for
  * unlocking our feature.
  */
 @Singleton

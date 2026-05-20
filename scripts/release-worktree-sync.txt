@@ -7,10 +7,10 @@
 # Format: one relative path per line (relative to repo root).
 # Lines starting with # and blank lines are ignored.
 # Paths use forward slashes. Missing source files are skipped with a warning
-# (not an error) — builds may still succeed if the file is optional.
+# (not an error) - builds may still succeed if the file is optional.
 # ---------------------------------------------------------------------------
 
-# Machine-specific SDK/NDK paths — always required
+# Machine-specific SDK/NDK paths - always required
 local.properties
 
 # Release signing credentials
@@ -26,13 +26,13 @@ app_v2/src/main/res/xml/sza_resources.xml
 # Google Services / Firebase config (if present)
 google-services.json
 
-# FFmpeg / DTS audio decoder AAR — gitignored (libs/ is in .gitignore).
+# FFmpeg / DTS audio decoder AAR - gitignored (libs/ is in .gitignore).
 # Required at compile time for the standard/legacy/noLegal flavors that
 # include the AUDIO capability; missing this file causes
 # `mergeStandardReleaseArtProfile` to fail with ExtractAarTransform error.
 app_v2/libs/fms-ffmpeg-dts.aar
 
 # MSAL config for Microsoft account sign-in (release flavor).
-# Carries the production signing-hash in redirect_uri — kept out of repo
+# Carries the production signing-hash in redirect_uri - kept out of repo
 # via .gitignore exception, synced into worktree at build time.
 app_v2/src/release/res/raw/msal_config.json

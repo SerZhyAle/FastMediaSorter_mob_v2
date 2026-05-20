@@ -11,21 +11,21 @@ import timber.log.Timber
  * Apache Commons Net initialises the control-channel `InputStreamReader` /
  * `OutputStreamWriter` inside `_connectAction_()` using the *current* value of
  * `getControlEncoding()`. Setting `controlEncoding` AFTER `connect()` therefore
- * has no effect on the already-created readers/writers — the encoding must be
+ * has no effect on the already-created readers/writers - the encoding must be
  * applied before [FTPClient.connect]. See [applyUtf8Encoding].
  *
  * RFC 2640 servers (Microsoft IIS FTP, FileZilla Server on Windows, recent
  * vsftpd builds) require an explicit `OPTS UTF8 ON` after login before they
- * decode filename bytes as UTF-8 — otherwise they interpret them as the
+ * decode filename bytes as UTF-8 - otherwise they interpret them as the
  * system OEM/ANSI codepage and respond with `550 The filename, directory name,
  * or volume label syntax is incorrect` for any non-ASCII filename. See
  * [enableUtf8Mode]. Legacy servers without RFC 2640 support reply with
- * 500/502; the helper logs and returns — non-fatal.
+ * 500/502; the helper logs and returns - non-fatal.
  */
 
 /**
  * Set UTF-8 as the control-connection encoding. MUST be called before
- * [FTPClient.connect] — Apache Commons Net captures the encoding when it
+ * [FTPClient.connect] - Apache Commons Net captures the encoding when it
  * creates the control-channel readers inside `_connectAction_()`, and later
  * changes have no effect.
  */

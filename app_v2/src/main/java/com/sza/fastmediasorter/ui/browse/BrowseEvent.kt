@@ -22,7 +22,7 @@ sealed class BrowseEvent {
         val totalBytes: Long,
         val matchedFiles: List<MediaFile>
     ) : BrowseEvent()
-    /** Archive operation progress — emitted during ZIP creation. */
+    /** Archive operation progress - emitted during ZIP creation. */
     data class ArchiveProgress(val current: Int, val total: Int, val fileName: String) : BrowseEvent()
     /** Archive completed successfully. */
     data class ArchiveSuccess(val archivePath: String, val archivedCount: Int) : BrowseEvent()
@@ -43,6 +43,8 @@ sealed class BrowseEvent {
     data class ScrollToFile(val fileName: String) : BrowseEvent()
     /** S0189: open [filePath] in PlayerActivity with edit mode pre-activated. */
     data class NavigateToTextEditor(val filePath: String, val resourceId: Long) : BrowseEvent()
+    /** S0191: open [filePath] in PlayerActivity and enter draw mode immediately. */
+    data class NavigateToDrawingEditor(val filePath: String, val resourceId: Long) : BrowseEvent()
     /** Scan failed because ACCESS_LOCAL_NETWORK permission is not granted (API 37+). */
     data object ShowLocalNetworkPermissionRequired : BrowseEvent()
 }

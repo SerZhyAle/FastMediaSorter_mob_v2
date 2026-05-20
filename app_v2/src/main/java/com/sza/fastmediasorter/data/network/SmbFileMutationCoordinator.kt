@@ -10,7 +10,7 @@ import java.util.EnumSet
 import timber.log.Timber
 
 /**
- * SMB file mutation coordinator — rename and move of single files plus the shared
+ * SMB file mutation coordinator - rename and move of single files plus the shared
  * `mkdir -p` primitive that both depend on.
  *
  * Extracted from `SmbClient` (S0002 Wave 47) to keep the facade lean. No behaviour

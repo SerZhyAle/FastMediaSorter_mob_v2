@@ -33,7 +33,7 @@ Boot option:         Cold boot (для lifecycle тестов)
 Device Frame:        Disable (экономит ресурсы хоста)
 ```
 
-**⚠ КРИТИЧНО**: `Graphics: Hardware` — без этого эмулятор будет лагать, тесты будут падать по таймауту.
+**⚠ КРИТИЧНО**: `Graphics: Hardware` - без этого эмулятор будет лагать, тесты будут падать по таймауту.
 
 ### 3. Ускорение производительности
 
@@ -133,7 +133,7 @@ adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:
 adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Music/test_media/sample_audio.mp3
 ```
 
-**Если test_media файлы не существуют** — создайте dummy файлы:
+**Если test_media файлы не существуют** - создайте dummy файлы:
 
 ```powershell
 # В temp/ создадим тестовые файлы

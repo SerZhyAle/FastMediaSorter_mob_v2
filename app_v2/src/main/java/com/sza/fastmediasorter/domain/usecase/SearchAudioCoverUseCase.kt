@@ -19,9 +19,9 @@ import javax.inject.Inject
 /**
  * UseCase for searching audio cover art and metadata online.
  * Sources (in priority order):
- *   1. iTunes Search API  — fast, structured; best for English/Western content
- *   2. Deezer Search API  — free, no key; excellent for Russian/CIS content
- *   3. MusicBrainz + Cover Art Archive — free, no key; exhaustive community DB
+ *   1. iTunes Search API  - fast, structured; best for English/Western content
+ *   2. Deezer Search API  - free, no key; excellent for Russian/CIS content
+ *   3. MusicBrainz + Cover Art Archive - free, no key; exhaustive community DB
  */
 class SearchAudioCoverUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -56,13 +56,13 @@ class SearchAudioCoverUseCase @Inject constructor(
                 return null
             }
 
-            // m4a files are voice/mic recordings — searching cover art makes no sense
+            // m4a files are voice/mic recordings - searching cover art makes no sense
             if (filename.endsWith(".m4a", ignoreCase = true)) {
                 Timber.d("Cover search skipped: m4a is a microphone recording ($filename)")
                 return null
             }
 
-            // Priority 0: use internal ID3/Vorbis metadata when available — much more accurate
+            // Priority 0: use internal ID3/Vorbis metadata when available - much more accurate
             // than guessing from the filename (e.g. "test_audio_flac.flac" vs "I'm So Tired / The Beatles")
             val cleanMetaArtist = metadataArtist?.trim()?.takeIf { it.isNotBlank() }
                 ?.let { SearchQueryUtils.filterPlaceholder(it) }
@@ -247,7 +247,7 @@ class SearchAudioCoverUseCase @Inject constructor(
             val releaseMbid = releases.getJSONObject(0).optString("id").takeIf { it.isNotBlank() }
                 ?: return@withContext null
 
-            // Cover Art Archive URL — Glide will follow the 307 redirect to the actual image.
+            // Cover Art Archive URL - Glide will follow the 307 redirect to the actual image.
             // If the release has no cover in CAA, Glide shows the error placeholder.
             val coverUrl = "https://coverartarchive.org/release/$releaseMbid/front-500"
             AudioMetadata(

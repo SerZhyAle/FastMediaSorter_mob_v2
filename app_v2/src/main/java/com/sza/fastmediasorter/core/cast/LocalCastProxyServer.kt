@@ -17,7 +17,7 @@ import java.net.Inet4Address
  *
  * Key design decisions:
  * - Binds to 0.0.0.0 (all interfaces) so the Chromecast can reach the phone over LAN.
- * - [castUrl] returns the phone's actual Wi-Fi LAN IP — NOT 127.0.0.1 (loopback is unreachable
+ * - [castUrl] returns the phone's actual Wi-Fi LAN IP - NOT 127.0.0.1 (loopback is unreachable
  *   from a Chromecast device on the same network segment).
  * - RFC 1918 addresses are already permitted for cleartext in network_security_config.xml, so
  *   no XML change is needed.
@@ -54,7 +54,7 @@ class LocalCastProxyServer(private val context: Context) {
                 Timber.d("LocalCastProxyServer: started on port $port")
                 return
             } catch (e: Exception) {
-                Timber.w("LocalCastProxyServer: port $port unavailable — ${e.message}")
+                Timber.w("LocalCastProxyServer: port $port unavailable - ${e.message}")
             }
         }
         Timber.e("LocalCastProxyServer: all candidate ports are busy; Cast proxy not started")
@@ -88,7 +88,7 @@ class LocalCastProxyServer(private val context: Context) {
             // WifiManager returns little-endian int on all Android versions
             "${ip and 0xff}.${(ip shr 8) and 0xff}.${(ip shr 16) and 0xff}.${(ip shr 24) and 0xff}"
         } catch (e: Exception) {
-            Timber.w("LocalCastProxyServer: getLanIpLegacy failed — ${e.message}")
+            Timber.w("LocalCastProxyServer: getLanIpLegacy failed - ${e.message}")
             "127.0.0.1"
         }
     }
@@ -105,7 +105,7 @@ class LocalCastProxyServer(private val context: Context) {
                 }
                 ?.address?.hostAddress ?: "127.0.0.1"
         } catch (e: Exception) {
-            Timber.w("LocalCastProxyServer: getLanIpApi31 failed — ${e.message}")
+            Timber.w("LocalCastProxyServer: getLanIpApi31 failed - ${e.message}")
             "127.0.0.1"
         }
     }

@@ -65,7 +65,7 @@ object EpubStyleManager {
             // Link colors
             append("a { color: ${theme.linkColor}; }")
 
-            // Headings — slightly larger, with spacing
+            // Headings - slightly larger, with spacing
             append("h1, h2, h3, h4, h5, h6 {")
             append("color: ${theme.textColor};")
             append("margin-top: 1em; margin-bottom: 0.5em;")

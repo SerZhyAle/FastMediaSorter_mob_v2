@@ -16,10 +16,10 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * No-op implementation of [GoogleIdentityRepository] for the `cloudDisabled` source set (lite flavor).
  *
- * The `lite` build has `SUPPORT_CLOUD = false` — no Drive UI is reachable, but Hilt still needs a
+ * The `lite` build has `SUPPORT_CLOUD = false` - no Drive UI is reachable, but Hilt still needs a
  * concrete binding so the graph compiles. All operations are inert. Sign-in attempts return
  * [IdentityFailureReason.UnknownError] since the lite flavor exposes no Google integration path
- * (no dedicated `CloudDisabled` reason exists — this is the closest semantic and is documented
+ * (no dedicated `CloudDisabled` reason exists - this is the closest semantic and is documented
  * here so callers do not interpret it as a CCT / Play Services problem).
  */
 @Singleton

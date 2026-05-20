@@ -18,7 +18,7 @@ class ScheduledOperationsBootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
-        Timber.i("ScheduledOperationsBootReceiver: BOOT_COMPLETED — rescheduling all operations")
+        Timber.i("ScheduledOperationsBootReceiver: BOOT_COMPLETED - rescheduling all operations")
         
         // Use goAsync() to keep broadcast alive until rescheduleAll completes (ML-009)
         val pendingResult = goAsync()

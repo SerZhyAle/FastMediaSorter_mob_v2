@@ -71,6 +71,7 @@ object CommandId {
     const val FILE_OPS = "sorting.file_ops"
     const val CREATE_FOLDER = "sorting.create_folder"
     const val CREATE_TEXT_NOTE = "sorting.create_text_note"
+    const val CREATE_DRAWING = "sorting.create_drawing"
     const val PASTE = "sorting.paste"
     const val SAVE = "sorting.save"
 

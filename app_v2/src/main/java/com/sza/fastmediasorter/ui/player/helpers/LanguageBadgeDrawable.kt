@@ -18,7 +18,7 @@ import android.util.TypedValue
  * Top row: Source language (2 chars ISO) or "A" for auto
  * Bottom row: Target language (2 chars ISO)
  * 
- * Uses white text by default — safe for the dark player background.
+ * Uses white text by default - safe for the dark player background.
  * Pass forcedColor=null only when embedding in a light-background context.
  */
 class LanguageBadgeDrawable(

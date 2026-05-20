@@ -1,10 +1,10 @@
-# Screenshot Shooting Guide — How-To Scenario Guides
+# Screenshot Shooting Guide - How-To Scenario Guides
 
 All screenshots go to: `docs/howto/screenshots/`
 
 ---
 
-## Master Table — All Screenshots
+## Master Table - All Screenshots
 
 | File name | Scenario | Step | What must be visible on screen | Source |
 |-----------|----------|------|-------------------------------|--------|
@@ -30,7 +30,7 @@ All screenshots go to: `docs/howto/screenshots/`
 | `screenshot-cb-step2.png` | Camera Backup | 2 | SMB add-resource form filled in with a backup folder path, e.g. `\\192.168.1.100\PhoneBackup` | 📸 Phone/tablet |
 | `screenshot-cb-step3.png` | Camera Backup | 3 | **Settings → Operations** tab with the **Schedule** section visible (label "Schedule" must be readable) | 📸 Phone/tablet |
 
-| `screenshot-cb-step4.png` | Camera Backup | 4 | New schedule configuration dialog/screen — empty or just opened | 📸 Phone/tablet |
+| `screenshot-cb-step4.png` | Camera Backup | 4 | New schedule configuration dialog/screen - empty or just opened | 📸 Phone/tablet |
 | `screenshot-cb-step5.png` | Camera Backup | 5 | Schedule form fully filled in: source = **Camera Photos**, destination = SMB resource, time = **02:00** | 📸 Phone/tablet |
 | `screenshot-cb-step6.png` | Camera Backup | 6 | Completed schedule entry in the Schedule **list** showing source → destination arrow and scheduled time | 📸 Phone/tablet (after save) |
 
@@ -53,15 +53,15 @@ All screenshots go to: `docs/howto/screenshots/`
 
 | | Count |
 |-|-------|
-| ♻️ Already have — rename only | **9** |
-| 📸 Session A — in app, no network needed (~20 min) | **16** |
-| 📸 Session B — needs live SMB connection (~20 min) | **5** |
+| ♻️ Already have - rename only | **9** |
+| 📸 Session A - in app, no network needed (~20 min) | **16** |
+| 📸 Session B - needs live SMB connection (~20 min) | **5** |
 | **Total** | **30** |
 
-### Session A — no network needed
+### Session A - no network needed
 `smb-step1`, `smb-step2`, `smb-step3` (real IP in form, no scan) · `dl-step1`, `dl-step4`, `dl-step6` · `pf-step1`, `pf-step2`, `pf-step3`, `pf-step4`, `pf-step6` · `car-step1`, `car-step2`, `car-step5` · `cb-step3`, `cb-step4`, `cb-step5`
 
-### Session B — needs live SMB
+### Session B - needs live SMB
 `smb-step4` (connection success toast) · `hc-step2`, `hc-step3` · `cb-step2`, `cb-step6`, `cb-step7`
 
 ### Renames (copy from `store_assets/screenshots/`)

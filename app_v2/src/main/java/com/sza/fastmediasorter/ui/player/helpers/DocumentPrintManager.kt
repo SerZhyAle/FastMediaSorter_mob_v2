@@ -37,10 +37,10 @@ private const val MAX_PRINT_FILE_SIZE_BYTES = 30L * 1024 * 1024 // 30 MB
  * Manages document printing for the Player screen.
  * Supports PDF (custom PrintDocumentAdapter), IMAGE (PrintHelper), and TEXT (WebView adapter).
  *
- * Works for any resource type — local files, content:// URIs, SMB/SFTP/FTP, Google Drive,
+ * Works for any resource type - local files, content:// URIs, SMB/SFTP/FTP, Google Drive,
  * Dropbox, OneDrive. All non-local paths are materialised to a local readable File via
  * [NetworkFileManager.prepareFileForRead]. That method returns either the original local
- * file, a copied content:// temp file (cacheDir), or a file from UnifiedFileCache — none of
+ * file, a copied content:// temp file (cacheDir), or a file from UnifiedFileCache - none of
  * which this class should delete: cacheDir is managed by the OS, UnifiedFileCache has its
  * own LRU eviction, and deleting a cached network file would invalidate the player's cache.
  */
@@ -87,7 +87,7 @@ class DocumentPrintManager(
      * PrintManager.print() to be invoked from an instance whose context is an Activity
      * (checked via `mContext instanceof Activity`). On some OEM builds / x86 emulators this
      * check fails when the manager is obtained via application context, so we:
-     *   1) fetch via `activity.getSystemService(Context.PRINT_SERVICE)` — guarantees Activity-backed instance;
+     *   1) fetch via `activity.getSystemService(Context.PRINT_SERVICE)` - guarantees Activity-backed instance;
      *   2) post the actual print() onto [Activity.runOnUiThread] to guarantee a fresh main-tick;
      *   3) wrap in try/catch to degrade gracefully instead of crashing the process.
      */
@@ -99,7 +99,7 @@ class DocumentPrintManager(
         mimeType: String
     ) {
         // Direct Activity.getSystemService guarantees the returned PrintManager holds an
-        // Activity context — required by PrintManager.print() internal check on API 26–27.
+        // Activity context - required by PrintManager.print() internal check on API 26–27.
         // ContextCompat.getSystemService can return an app-context-backed instance on some
         // x86 emulator builds, causing IllegalStateException: "Can print only from an activity".
         val pm = activity.getSystemService(Context.PRINT_SERVICE) as? PrintManager
@@ -236,7 +236,7 @@ class DocumentPrintManager(
             .replace(">", "&gt;")
 
         // WebView must be created and loaded on the main thread. Creating it can fail when the
-        // system WebView package is disabled or mid-update — surface that as a print error
+        // system WebView package is disabled or mid-update - surface that as a print error
         // instead of letting it crash the coroutine.
         val webView = try {
             WebView(activity)

@@ -2,25 +2,40 @@
 <resources>
     <string name="app_name">FastMediaSorter</string>
     <string name="poster_thumbnail_unavailable">Прев\'ю недоступне</string>
-    <string name="settings_category_interface">Інтерфейс</string>
+    <string name="settings_category_interface">Загальний інтерфейс програми</string>
+    <string name="settings_category_authorization">Авторизація й акаунти</string>
     <string name="settings_category_files">Файли та дані</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
     <string name="settings_category_about">Про програму</string>
-    <string name="settings_category_app_data">Дані та резервні копії</string>
-    <string name="settings_category_system">Мережа та кеш</string>
-    <string name="settings_category_sorting_slideshow">Сортування, слайдшоу та відтворення</string>
-    <string name="settings_category_file_operations">Доступ до файлів у плеєрі</string>
-    <string name="settings_category_copy_move">Копіювання та переміщення</string>
-    <string name="settings_category_safety">Безпека операцій</string>
-    <string name="settings_category_grid_view">Сітка</string>
-    <string name="settings_category_player_ui">Інтерфейс плеєра</string>
-    <string name="settings_category_touch_zones">Сенсорні зони</string>
+    <string name="settings_category_app_data">Резервні копії, відновлення й експорт</string>
+    <string name="settings_category_system">Фонова синхронізація, мережа й кеш</string>
+    <string name="settings_category_sorting_slideshow">Сортування, слайд-шоу й порядок запуску</string>
+    <string name="settings_category_file_operations">Видалення й перейменування у програвачі</string>
+    <string name="settings_category_copy_move">Копіювання, переміщення й перезапис</string>
+    <string name="settings_category_safety">Видалення файлів, кошик</string>
+    <string name="settings_section_autoplay_resume">Автовідтворення та продовження</string>
+    <string name="settings_section_delete_trash">Видалення та кошик</string>
+    <string name="settings_section_grid_browse">Сітка та перегляд</string>
+    <string name="settings_section_network_cache">Мережа та кеш</string>
+    <string name="settings_section_quick_sort_list">Список швидкого сортування</string>
+    <string name="settings_section_remote_gamepad">Пульт та геймпад</string>
+    <string name="settings_category_player_ui">Інтерфейс і команди програвача</string>
+    <string name="settings_category_touch_zones">Зони дотику й екранні підказки</string>
     <string name="settings_subcategory_incoming_links">Вхідні посилання</string>
     <string name="settings_subcategory_camera_capture">Захоплення з камери</string>
     <string name="start_player">Запустити плеєр</string>
     <string name="add">Додати</string>
     <string name="settings">Налаштування</string>
     <string name="settings_saved">Налаштування збережено</string>
+    <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
+    <string name="vr_settings_block_title">3D-VR відтворення й керування</string>
+    <string name="settings_3d_vr_help_title">Про режим 3D VR</string>
+    <string name="settings_3d_vr_help_message">3D VR — це занурений перегляд відео та фото на гарнітурах типу Meta Quest 3 і Android XR. На пристроях без підтримки XR-середовища перемикач залишається недоступним. Додаток сам визначає формат відео (SBS, OU, 360°, VR180); ручний вибір доступний у діалозі плеера.</string>
+    <string name="vr_settings_xr_unavailable_advisory">Доступно на пристроях типу Meta Quest 3, Android XR.</string>
+    <string name="vr_settings_test_immersive_label">Перевірити імерс</string>
+    <string name="vr_settings_test_immersive_content_description">Відкрити пробне 360°-зображення в immerse-режимі.</string>
+    <string name="vr_settings_test_immersive_init_failure_toast">Не вдалося запустити VR. Перевір, що гарнітура під\'єднана.</string>
+    <string name="vr_settings_test_immersive_runtime_loss_toast">VR-сесія завершилась несподівано.</string>
     <string name="copy">Копіювати</string>
     <string name="move">Перемістити</string>
     <string name="move_up">Перемістити вгору</string>
@@ -377,9 +392,9 @@
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Резервне копіювання</string>
-    <string name="backup_info_description">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються — після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
+    <string name="backup_info_description">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються - після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
     <string name="tooltip_backup_info_title">Інформація про резервну копію</string>
-    <string name="tooltip_backup_info_message">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються — після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
+    <string name="tooltip_backup_info_message">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються - після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
     <string name="export_settings">Вивантажити всі налаштування у файл</string>
     <string name="import_settings">Завантажити налаштування з файлу</string>
     <string name="export_import_file_info">Використовується файл: Downloads/FastMediaSorter_export.xml</string>
@@ -456,7 +471,7 @@
     <string name="hint_access_pin">PIN-код (4–6 цифр)</string>
     <string name="hint_slideshow_interval">Інтервал слайдшоу (секунди)</string>
     <string name="label_media_types">Типи медіа</string>
-    <string name="label_scanning_settings">Сканування</string>
+    <string name="label_scanning_settings">Умови сканування вмісту</string>
     <string name="label_connection_settings">Параметри підключення</string>
     <string name="label_destination_settings">Налаштування призначення</string>
     <string name="label_advanced_settings">Розширені налаштування</string>
@@ -608,6 +623,8 @@
     <string name="stop">Стоп</string>
     <string name="scan_stopped">Сканування зупинено. Працюємо з %d файлами</string>
     <string name="play_video_to_end">Відтворювати відео/аудіо в слайдшоу до кінця</string>
+    <string name="default_grid_mode">За замовчуванням відкривати сіткою</string>
+    <string name="file_ops_in_overflow_menu">Операції з файлами в меню ⋮</string>
     <string name="slideshow_settings">Налаштування слайдшоу</string>
     <string name="play_video_audio_to_end">Відтворювати відео/аудіо до кінця</string>
     <string name="play_to_end_hint">Перевизначає інтервал для медіа з тривалістю</string>
@@ -645,7 +662,7 @@
     <string name="destinations_list">Швидке сортування (0-9)</string>
     <string name="destinations_description">До 10 тек швидкого сортування. Кожна має колір і номер (0-9).</string>
     <string name="add_destination">Додати до швидкого сортування</string>
-    <string name="destinations_list_header">Список швидкого сортування</string>
+    <string name="destinations_list_header">Призначення швидкого сортування</string>
     <string name="add_resources_first_message">Спочатку додайте теки на головному екрані, перш ніж позначати їх для швидкого сортування.</string>
     <string name="register_as_destination">Швидке сортування</string>
 
@@ -659,8 +676,10 @@
     <string name="settings_player_show_fps">Показувати FPS над плеєром</string>
     <string name="settings_player_show_fps_desc">Відображати діагностичний лічильник FPS над плоским 2D-плеєром</string>
     <!-- S0028: multi-window -->
-    <string name="action_open_in_separate_window">В окремому вікні</string>
-    <string name="setting_allow_separate_window">Дозволити запуск в окремому вікні</string>
+    <string name="action_open_in_separate_window">Відкрити в новому вікні</string>
+    <string name="setting_allow_separate_window">Дозволити нові вікна</string>
+    <string name="tooltip_allow_separate_window_title">Дозволити нові вікна</string>
+    <string name="tooltip_allow_separate_window_message">Коли увімкнено, на екранах огляду та плеєра з’являється дія «Відкрити в новому вікні», що запускає обрану папку або файл в окремому вікні Android. Корисно на пристроях, що підтримують багатовіконний режим (планшети, складні пристрої, ChromeOS, великі дисплеї). Коли вимкнено, дія прихована і все відкривається в поточному вікні.</string>
     <string name="resource_type_local">Локальні</string>
     <string name="resource_type_smb">Мережева папка SMB</string>
     <string name="resource_type_sftp">SFTP</string>
@@ -678,7 +697,7 @@
     <string name="playback_speed">Швидкість відтворення</string>
     <string name="repeat_mode">Повтор</string>
     <string name="resource_name">Назва ресурсу</string>
-    <string name="resource_name_hint">Залиште порожнім для автогенерації зі шляху</string>
+    <string name="resource_name_hint">Якщо порожньо - автогенерація</string>
     <string name="comment">Коментар</string>
     <string name="access_pin">ПІН-код доступу</string>
     <string name="pin_incorrect">Невірний ПІН-код</string>
@@ -762,20 +781,20 @@
     <string name="random_file_description">Випадковий перехід</string>
     <string name="finish">Готово</string>
     <string name="welcome_title_1">Ласкаво просимо до FastMediaSorter!</string>
-    <string name="welcome_description_1">Ваш універсальний медіаорганайзер.\nПереглядайте, сортуйте та керуйте файлами на локальних, мережевих та хмарних сховищах — все за допомогою інтуїтивних жестів.</string>
+    <string name="welcome_description_1">Ваш універсальний медіаорганайзер.\nПереглядайте, сортуйте та керуйте файлами на локальних, мережевих та хмарних сховищах - все за допомогою інтуїтивних жестів.</string>
     <string name="welcome_title_2">Типи ресурсів</string>
-    <string name="welcome_description_2">Підключайтеся до будь-якого сховища:\n\n📱 ЛОКАЛЬНІ — Папки пристрою, SD-карти\n\n🌐 МЕРЕЖЕВІ — SMB/CIFS, SFTP, FTP\n\n☁️ ХМАРНІ — Google Drive, OneDrive, Dropbox\n\nДодавайте ресурси в Налаштуваннях у будь-який час.</string>
+    <string name="welcome_description_2">Підключайтеся до будь-якого сховища:\n\n📱 ЛОКАЛЬНІ - Папки пристрою, SD-карти\n\n🌐 МЕРЕЖЕВІ - SMB/CIFS, SFTP, FTP\n\n☁️ ХМАРНІ - Google Drive, OneDrive, Dropbox\n\nДодавайте ресурси в Налаштуваннях у будь-який час.</string>
     <string name="welcome_title_3">Сенсорні зони (Зображення/Відео)\nвикористовувати в повноекранному режимі</string>
     <string name="welcome_description_3" formatted="false">Програвач використовує 9 сенсорних зон (сітка 3×3) для швидких дій. Натискайте на зони для навігації, копіювання, переміщення, видалення файлів або доступу до командної панелі. Схему показано вище.</string>
     <string name="welcome_title_4">Ресурси та призначення</string>
-    <string name="welcome_description_4">РЕСУРСИ — Папки з будь-якого типу сховища.\n\nШВИДКЕ СОРТУВАННЯ — До 30 папок призначення з кольоровим маркуванням для швидких операцій копіювання/переміщення.\n\nНалаштовуйте в Налаштуваннях у будь-який час!</string>
+    <string name="welcome_description_4">РЕСУРСИ - Папки з будь-якого типу сховища.\n\nШВИДКЕ СОРТУВАННЯ - До 30 папок призначення з кольоровим маркуванням для швидких операцій копіювання/переміщення.\n\nНалаштовуйте в Налаштуваннях у будь-який час!</string>
     <string name="welcome_title_5">Додаткові можливості</string>
-    <string name="welcome_description_5">Не лише перегляд медіа — FastMediaSorter містить професійні інструменти для тексту, документів та аудіо.</string>
-    <string name="welcome_description_1_details">FastMediaSorter збирає всі види медіа в одному місці. Відкривайте фото, відео, GIF і музику з пристрою, з мережевої папки або з хмари — і розкладайте їх швидкими дотиками замість довгих меню.\n\nУсе, що ви налаштуєте тут, потім можна змінити в налаштуваннях, тож неправильного вибору на цьому екрані немає — просто натисніть «Далі».</string>
-    <string name="welcome_description_2_details">Локальні джерела — це папки на пристрої та карти пам\'яті. Мережеві підключаються через SMB/CIFS, SFTP і FTP. Хмарні зв\'язують Google Drive, OneDrive і Dropbox.\n\nВикористовуйте скільки завгодно — кожне джерело з\'явиться окремим рядком на головному екрані. Додати чи прибрати джерело можна будь-коли в «Налаштування → Ресурси».</string>
-    <string name="welcome_description_3_details" formatted="false">У повноекранному перегляді фото та відео екран поділено на сітку 3×3. Кутові зони гортають файли, бічні — виконують копіювання, переміщення й видалення поточного файлу, центральна — відкриває панель команд.\n\nМаленька схема вище показує, що робить кожна зона. Дії зон можна перепризначити пізніше в налаштуваннях.</string>
-    <string name="welcome_description_4_details">Ресурс — це папка, яку ви переглядаєте, у будь-якому сховищі. Призначення швидкого сортування — папка, куди файл надсилається одним дотиком; їх можна задати до 30, у кожної свій колір і підпис.\n\nТоркніться кольору під час перегляду файлу — і він одразу скопіюється або переміститься туди. І ресурси, і призначення налаштовуються в «Налаштування → Ресурси».</string>
-    <string name="welcome_description_5_details">Окрім перегляду, FastMediaSorter — це ще плеєр і майстерня: аудіоплеєр для музичних бібліотек, відеотека з керуванням відтворенням, читалка PDF та EPUB, перегляд і редагування тексту, OCR і переклад просто на зображенні, слайдшоу, віджети на домашньому екрані, планові операції з файлами, обране та сортування за кольором одним дотиком.\n\nЩо з цього доступно, залежить від редакції застосунку — картки нижче показують, що входить до вашої.</string>
+    <string name="welcome_description_5">Не лише перегляд медіа - FastMediaSorter містить професійні інструменти для тексту, документів та аудіо.</string>
+    <string name="welcome_description_1_details">FastMediaSorter збирає всі види медіа в одному місці. Відкривайте фото, відео, GIF і музику з пристрою, з мережевої папки або з хмари - і розкладайте їх швидкими дотиками замість довгих меню.\n\nУсе, що ви налаштуєте тут, потім можна змінити в налаштуваннях, тож неправильного вибору на цьому екрані немає - просто натисніть «Далі».</string>
+    <string name="welcome_description_2_details">Локальні джерела - це папки на пристрої та карти пам\'яті. Мережеві підключаються через SMB/CIFS, SFTP і FTP. Хмарні зв\'язують Google Drive, OneDrive і Dropbox.\n\nВикористовуйте скільки завгодно - кожне джерело з\'явиться окремим рядком на головному екрані. Додати чи прибрати джерело можна будь-коли в «Налаштування → Ресурси».</string>
+    <string name="welcome_description_3_details" formatted="false">У повноекранному перегляді фото та відео екран поділено на сітку 3×3. Кутові зони гортають файли, бічні - виконують копіювання, переміщення й видалення поточного файлу, центральна - відкриває панель команд.\n\nМаленька схема вище показує, що робить кожна зона. Дії зон можна перепризначити пізніше в налаштуваннях.</string>
+    <string name="welcome_description_4_details">Ресурс - це папка, яку ви переглядаєте, у будь-якому сховищі. Призначення швидкого сортування - папка, куди файл надсилається одним дотиком; їх можна задати до 30, у кожної свій колір і підпис.\n\nТоркніться кольору під час перегляду файлу - і він одразу скопіюється або переміститься туди. І ресурси, і призначення налаштовуються в «Налаштування → Ресурси».</string>
+    <string name="welcome_description_5_details">Окрім перегляду, FastMediaSorter - це ще плеєр і майстерня: аудіоплеєр для музичних бібліотек, відеотека з керуванням відтворенням, читалка PDF та EPUB, перегляд і редагування тексту, OCR і переклад просто на зображенні, слайдшоу, віджети на домашньому екрані, планові операції з файлами, обране та сортування за кольором одним дотиком.\n\nЩо з цього доступно, залежить від редакції застосунку - картки нижче показують, що входить до вашої.</string>
     <string name="welcome_language_picker_hint">Оберіть мову застосунку</string>
     <string name="welcome_permissions_title">Доступ до медіафайлів</string>
     <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
@@ -806,56 +825,14 @@
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set) -->
     <string name="welcome_vr_title">3D та VR</string>
-    <string name="welcome_vr_description">Зануртесь у ваші медіафайли.\nFastMediaSorter VR автоматично визначає стереоскопічний 3D-контент і відтворює його прямо в шоломі — без додаткових застосунків.</string>
+    <string name="welcome_vr_description">Зануртесь у ваші медіафайли.\nFastMediaSorter VR автоматично визначає стереоскопічний 3D-контент і відтворює його прямо в шоломі - без додаткових застосунків.</string>
     <string name="welcome_vr_feature_stereo">Визначення 3D-стерео</string>
     <string name="welcome_vr_feature_headset">Відтворення в Quest</string>
     <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
 
-    <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
-    <string name="settings_vr_section_title">VR</string>
-    <string name="settings_vr_forced_flat_format">Примусовий плоский формат</string>
-    <string name="settings_vr_forced_flat_format_desc">Перевизначити автовизначення для плоского SBS/OU/mono у поточній сесії</string>
-    <string name="settings_vr_forced_spherical_format">Примусовий сферичний формат</string>
-    <string name="settings_vr_forced_spherical_format_desc">Перевизначити автовизначення для 360°, VR180 і циліндричного відтворення</string>
-    <string name="settings_vr_remember_format">Запам\'ятовувати формат файлу</string>
-    <string name="settings_vr_remember_format_desc">Кешувати визначений формат кожного файлу в локальній базі</string>
     <string name="pref_panel_stereo_single_eye_title">Показувати 3D-контент з одного ока</string>
-    <string name="pref_panel_stereo_single_eye_summary">Якщо увімкнено, SBS- та OU-стерео-відео й повноекранні фото обрізаються до одного ока й розтягуються на весь екран — зручно дивитись без 3D-окулярів. Усталено: увімкнено у звичайних збірках, вимкнено у VR-збірці.</string>
+    <string name="pref_panel_stereo_single_eye_summary">Якщо увімкнено, SBS- та OU-стерео-відео й повноекранні фото обрізаються до одного ока й розтягуються на весь екран - зручно дивитись без 3D-окулярів. Усталено: увімкнено. У зануреному VR-режимі налаштування автоматично вимикається, і стерео-кадр показується повністю.</string>
     <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрізано до одного ока</string>
-    <string name="settings_vr_help_title">Налаштування VR</string>
-    <string name="settings_vr_help_message">Ці налаштування керують розпізнаванням і відображенням стереоскопічного 3D- та сферичного контенту у VR-шоломі.\n\nАвтовизначення аналізує метадані та співвідношення сторін, щоб визначити сімейство стереоформату.\n\nПримусовий плоский формат застосовується лише до SBS, Over-Under і mono cinema. Примусовий сферичний формат застосовується лише до 360°, VR180 і циліндричного відтворення.\n\nРежим рендерингу обирає між плоским екраном-кінотеатром у VR-просторі або повним стереоскопічним рендерингом для кожного ока.</string>
-    <string-array name="vr_forced_format_entries">
-        <item>Авто</item>
-        <item>SBS (поруч)</item>
-        <item>OU (зверху-знизу)</item>
-        <item>Mono</item>
-    </string-array>
-    <string-array name="vr_forced_format_values">
-        <item>AUTO</item>
-        <item>SBS</item>
-        <item>OU</item>
-        <item>MONO</item>
-    </string-array>
-    <string-array name="vr_forced_spherical_format_entries">
-        <item>Авто</item>
-        <item>360° моно</item>
-        <item>360° SBS</item>
-        <item>360° OU</item>
-        <item>180° моно</item>
-        <item>180° SBS</item>
-        <item>VR180</item>
-        <item>Циліндр 180°</item>
-    </string-array>
-    <string-array name="vr_forced_spherical_format_values">
-        <item>AUTO</item>
-        <item>EQUIRECT_360_MONO</item>
-        <item>EQUIRECT_360_SBS</item>
-        <item>EQUIRECT_360_OU</item>
-        <item>EQUIRECT_180_MONO</item>
-        <item>EQUIRECT_180_SBS</item>
-        <item>VR180_FISHEYE_SBS</item>
-        <item>CYLINDER_180</item>
-    </string-array>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ до сховища</string>
@@ -873,7 +850,7 @@
     <string name="grant_local_files_permission">Доступ до файлів</string>
     <string name="grant_network_permission">Мережеві дозволи</string>
     <string name="network_permission_granted">Мережеві дозволи</string>
-    <string name="debug_settings_title">Відладка</string>
+    <string name="debug_settings_title">Журнали налагодження й тестові інструменти</string>
     <string name="show_log">Показати лог</string>
     <string name="show_current_session_log">Лог поточної сесії</string>
     <string name="settings_application_log_title">Лог застосунку</string>
@@ -892,11 +869,11 @@
     <string name="reset_smb_connections_message">Це закриє всі SMB з\'єднання та скине стан помилок. Використовуйте, якщо виникають проблеми з підключенням.</string>
     <string name="reset_smb_success">SMB з\'єднання скинуто успішно</string>
     <string name="smb_auto_reset_notification">SMB з\'єднання скинуто автоматично</string>
-    <string name="gms_update_required">Для повноцінної роботи додатка необхідно оновити Google Play Services. Деякі функції можуть працювати некоректно.</string>
-    <string name="gms_unavailable">Google Play Services недоступні. Деякі функції можуть працювати некоректно.</string>
+    <string name="gms_update_required">Google Play Services застаріли. Майже все в додатку працює і так — оновлення додасть лише пару додаткових функцій. Якщо вони не потрібні, оновлення можна пропустити.</string>
+    <string name="gms_unavailable">Google Play Services недоступні. Майже все в додатку працює й без них; недоступними залишаться лише кілька додаткових функцій.</string>
     <string name="gms_update_action">Оновити</string>
-    <string name="gms_settings_link">Для повноцінної роботи додатка необхідно оновити Google Play Services. Натисніть для оновлення.</string>
-    <string name="network_unstable_snackbar">Мережа нестабільна — перевірте Wi-Fi</string>
+    <string name="gms_settings_link">Можна оновити Google Play Services, щоб увімкнути пару додаткових функцій. Якщо вони не потрібні, оновлення можна пропустити.</string>
+    <string name="network_unstable_snackbar">Мережа нестабільна - перевірте Wi-Fi</string>
     <string name="cache_size_limit">Розмір кешу</string>
     <string name="cache_size_limit_mb">%d МБ</string>
     <string name="cache_size_calculating">Обчислення…</string>
@@ -924,7 +901,7 @@
     <string name="tooltip_destinations_message">Цілі швидкого сортування для ефективної організації файлів. Максимум 30 призначень. Кожне має номер та колір для легкої ідентифікації.</string>
     <string name="tooltip_touch_zones_title">Сенсорні зони</string>
     <string name="touch_zones_help">Показати сенсорні зони</string>
-    <string name="hint_touch_zone_3zone">Режим командної панелі\n\nЛіві 20%% — Попередній файл\nЦентр 60%% — Вибір / Дії\nПраві 20%% — Наступний файл\n\nНатисніть будь-де для закриття</string>
+    <string name="hint_touch_zone_3zone">Режим командної панелі\n\nЛіві 20%% - Попередній файл\nЦентр 60%% - Вибір / Дії\nПраві 20%% - Наступний файл\n\nНатисніть будь-де для закриття</string>
     <string name="hint_touch_zone_media">Режим відтворення медіа\n\nСенсорні зони активні лише у верхній частині.\nНижня частина зарезервована для елементів керування програвача.\n\nНатисніть будь-де для закриття</string>
     <string name="tooltip_touch_zones_message">9 невидимих зон (сітка 3×3) для керування жестами у повноекранному режимі. Комбінації Ліво/Центр/Право та Верх/Середина/Низ викликають різні дії: навігація, операції з файлами, керування панелями.</string>
     <string name="tooltip_safe_mode_title">Безпечний режим</string>
@@ -938,7 +915,7 @@
     <string name="tooltip_compact_elements_title">Режим компактних елементів</string>
     <string name="tooltip_compact_elements_message">Цей режим масштабує елементи інтерфейсу (списки, кнопки, текст) у 0.5 раза для збільшення обсягу видимої інформації. Примітка: зони натискання також стануть меншими.</string>
     <string name="big_buttons_mode_title">Режим великі кнопки</string>
-    <string name="big_buttons_mode_summary">Збільшує кнопки плеєра й розтягує керування на всю ширину — зручно для автомагнітол</string>
+    <string name="big_buttons_mode_summary">Збільшує кнопки плеєра й розтягує керування на всю ширину - зручно для автомагнітол</string>
     <string name="tooltip_big_buttons_mode_title">Режим великі кнопки</string>
     <string name="tooltip_big_buttons_mode_message">Кнопки керування плеєром стають більшими й займають всю ширину екрана. На верхній панелі міститься від 5 до 10 кнопок залежно від доступної ширини; решта переходять до меню. У горизонтальній орієнтації висока нижня панель може зменшити область відтворення.</string>
     <string name="big_btn_short_playback_order">Порядок</string>
@@ -1023,7 +1000,7 @@
 
     <!-- Автозавантаження за вхідним посиланням (S0003) -->
     <string name="link_autodownload_section_title">Поведінка</string>
-    <string name="link_autodownload_master_label">Під час отримання посилання — завантажити</string>
+    <string name="link_autodownload_master_label">Під час отримання посилання - завантажити</string>
     <string name="link_autodownload_master_summary">Витягувати файл за http(s)-посиланням з «Поділитися» у вибраний ресурс.</string>
     <string name="link_autodownload_resource_label">Ресурс для завантаження</string>
     <string name="link_autodownload_resource_not_set">Не вибрано (зберігається в Downloads)</string>
@@ -1035,12 +1012,12 @@
     <string name="link_autodownload_cancel">Скасувати</string>
     <string name="link_autodownload_done_resource">Збережено в %s</string>
     <string name="link_autodownload_done_downloads">Збережено в Downloads</string>
-    <string name="link_autodownload_fallback_downloads">Ресурс недоступний — збережено в Downloads</string>
+    <string name="link_autodownload_fallback_downloads">Ресурс недоступний - збережено в Downloads</string>
     <string name="link_autodownload_error_no_network">Немає підключення до мережі</string>
     <string name="link_autodownload_error_resource_unavailable">Вибраний ресурс недоступний</string>
     <string name="link_autodownload_error_no_media">За посиланням не знайдено файл для завантаження</string>
     <string name="link_autodownload_error_youtube_community_post">Дописи спільноти YouTube не можна завантажити</string>
-    <string name="link_autodownload_error_corrupted">Не вдалося завантажити придатний файл — сервер повернув сторінку з помилкою або неповний файл</string>
+    <string name="link_autodownload_error_corrupted">Не вдалося завантажити придатний файл - сервер повернув сторінку з помилкою або неповний файл</string>
     <string name="link_autodownload_error_timeout">Перевищено час очікування завантаження</string>
     <string name="link_autodownload_error_mime_blocked">Цей тип файлу не підтримується</string>
     <string name="vr_fullscreen_already_active">У VR вже активний повноекранний режим</string>
@@ -1053,9 +1030,9 @@
     <string name="passthrough_capture_saved">Знімок passthrough збережено в %s</string>
     <string name="passthrough_capture_unavailable">Passthrough-камера недоступна на цьому пристрої</string>
     <string name="passthrough_capture_error">Не вдалося відкрити passthrough-камеру</string>
-    <string name="passthrough_capture_timeout">Час захвату passthrough вичерпано — спробуйте ще раз</string>
+    <string name="passthrough_capture_timeout">Час захвату passthrough вичерпано - спробуйте ще раз</string>
     <string name="passthrough_capture_error_save">Не вдалося зберегти знімок passthrough</string>
-    <string name="passthrough_capture_permission_denied">Потрібен доступ до камери — відкрийте налаштування застосунку, щоб дозволити</string>
+    <string name="passthrough_capture_permission_denied">Потрібен доступ до камери - відкрийте налаштування застосунку, щоб дозволити</string>
     <string name="passthrough_capture_permission_needed">Для захоплення passthrough-знімків потрібен дозвіл камери</string>
     <string name="snapshot_format_label">Тип файлу кадру:</string>
     <string name="snapshot_format_png">PNG</string>
@@ -1104,6 +1081,7 @@
     <string name="add_to_resources_button">Додати до ресурсів</string>
     <string name="scan_network_button">Сканувати мережу</string>
     <string name="add_network_folder">Додати мережеву теку (SMB)</string>
+    <string name="create_network_resource_smb">Створення мережевого ресурсу (SMB)</string>
     <string name="network_folder">Мережева тека</string>
     <string name="network_folder_description">Додати SMB мережеві ресурси</string>
     <string name="cloud_folder">Хмарна тека</string>
@@ -1132,7 +1110,7 @@
     <string name="smb_server">IP сервера</string>
     <string name="smb_server_hint">наприклад 192.168.1.100</string>
     <string name="smb_share_name">Ім\'я ресурсу /папки</string>
-    <string name="smb_share_name_hint">наприклад Common, Photos, Documents</string>
+    <string name="smb_share_name_hint">наприклад Common, Photos</string>
     <string name="smb_add_manually">Додати вручну</string>
     <string name="smb_username">Ім\'я користувача</string>
     <string name="smb_password">Пароль</string>
@@ -1140,8 +1118,8 @@
     <string name="smb_domain_hint">Залиште порожнім, якщо не потрібно</string>
     <string name="smb_port">Порт</string>
     <string name="smb_port_hint">За замовчуванням: 445</string>
-    <string name="smb_test_connection">Перевірити з\'єднання</string>
-    <string name="smb_scan_shares">Сканувати ресурси</string>
+    <string name="smb_test_connection">Тест з\'єднання</string>
+    <string name="smb_scan_shares">Сканувати хост</string>
     <string name="smb_credentials">Мережева Папка (SMB)</string>
 
     <!-- SFTP / FTP -->
@@ -1272,7 +1250,8 @@
 
     <!-- Streaming / Pre-cache settings -->
     <string name="pref_prefetch_cache_title">Розмір попереднього кешу відео</string>
-    <string name="pref_prefetch_cache_helper">Менше: мінімальна буферизація · індикатор і пропозиція збереження приховані</string>
+    <string name="pref_prefetch_cache_help_title">Розмір попереднього кешу відео</string>
+    <string name="pref_prefetch_cache_help_message">Визначає, скільки відео плеєр буферизує заздалегідь під час потокового відтворення.\n\n• Менше (0.5×) — мінімальна буферизація. Індикатор попереднього завантаження та пропозиція «зберегти кешоване відео» приховані. Економить диск і трафік; за повільної мережі можливі підвисання.\n• Авто — розмір за замовчуванням, підбирається плеєром залежно від пристрою та поточної мережі.\n• Більше (2×) — збільшений буфер для плавного відтворення за нестабільної мережі. Займає більше місця на диску.</string>
     <string name="pref_prefetch_cache_less">Менше (0.5×)</string>
     <string name="pref_prefetch_cache_auto">Авто</string>
     <string name="pref_prefetch_cache_more">Більше (2×)</string>
@@ -1293,7 +1272,7 @@
     <!-- Prefetch overlay pill -->
     <string name="prefetch_overlay_format">%1$dс / %2$dс · %3$s</string>
     <string name="prefetch_overlay_local_copy_format">Локальна копія · %1$s</string>
-    <string name="prefetch_margin_hint">Швидкість на межі — можливі паузи</string>
+    <string name="prefetch_margin_hint">Швидкість на межі - можливі паузи</string>
     <string name="prefetch_a11y_format">Передкеш: %1$dс з %2$dс, %3$s</string>
 
     <!-- Offload offer dialog -->
@@ -1418,7 +1397,7 @@
     <string name="error_queued_operation_move">Не вдалося перемістити "%1$s". Спробуйте ще раз.</string>
     <string name="error_queued_operation_delete">Не вдалося видалити "%1$s". Спробуйте ще раз.</string>
     <string name="error_queued_operation_rename">Не вдалося перейменувати "%1$s". Спробуйте ще раз.</string>
-    <string name="error_queued_move_permission_denied">"%1$s" скопійовано до папки призначення, але видалити локальну копію не вдалося — дозвіл відхилено.</string>
+    <string name="error_queued_move_permission_denied">"%1$s" скопійовано до папки призначення, але видалити локальну копію не вдалося - дозвіл відхилено.</string>
     <string name="error_file_exists_move">Файл "%1$s" вже є в "%2$s".\n\nЯкщо хочете замінити його, увімкніть "Перезапис при переміщенні" в Налаштування -&gt; Копіювання та переміщення.</string>
     <string name="msg_delete_success">Видалили.</string>
     <string name="error_delete_failed">Не вдалося видалити файл.</string>
@@ -1465,9 +1444,10 @@
     <string name="msg_scan_complete">Сканування завершено</string>
     <string name="msg_host_selected">Вибрано %1$s (%2$s)</string>
     <string name="msg_scan_again">Сканувати знову</string>
-    <string name="msg_no_shares_found">Спільних папок не знайдено. Введіть ім\'я вручну.</string>
+    <string name="msg_no_shares_found">На цьому сервері спільних папок не знайдено. Закрийте це повідомлення й введіть назву папки вручну.</string>
     <string name="msg_share_scan_failed">Не вдалося просканувати спільні папки. Спробуйте ще раз.</string>
     <string name="msg_select_share">Папки на %1$s</string>
+    <string name="smb_no_shares_found_title">Спільні папки не знайдено</string>
     <!-- S0064: діалог ручного введення імені шари -->
     <string name="smb_enter_share_manually">+ Ввести ім\'я папки вручну..</string>
     <string name="smb_manual_share_dialog_title">Введіть ім\'я папки</string>
@@ -1545,10 +1525,10 @@
     <string name="error_loading_media">Помилка завантаження файлу, пропуск</string>
     <string name="video_playback_failed_with_name">Не вдалося відтворити: %1$s</string>
     <string name="video_playback_failed_session_warning">У цій сесії цей файл вже не вдалося відтворити.</string>
-    <string name="warning_audio_format_unsupported">Аудіоформат не підтримується — відтворення без звуку</string>
+    <string name="warning_audio_format_unsupported">Аудіоформат не підтримується - відтворення без звуку</string>
 
-    <!-- S0213: захист відтворення відео від OOM — cooldown декодера та сповіщення про пам\'ять -->
-    <string name="s0213_decoder_cooldown_skip">Пропускаємо попередній файл — декодер не впорався.</string>
+    <!-- S0213: захист відтворення відео від OOM - cooldown декодера та сповіщення про пам\'ять -->
+    <string name="s0213_decoder_cooldown_skip">Пропускаємо попередній файл - декодер не впорався.</string>
     <string name="s0213_decoder_cooldown_manual">Цей файл щойно не зміг розкодуватися. Спробуйте через %1$d с або пропустіть.</string>
     <string name="s0213_action_skip">Пропустити</string>
     <string name="s0213_memory_alert_message">Пам\'яті залишилося мало. Закрити плеєр, щоб звільнити ресурси.</string>
@@ -1768,15 +1748,15 @@
     <string name="use_trash_summary">Переміщати видалені файли до .trash замість остаточного видалення. Дозволяє відновити до закриття ресурсу.</string>
     <string name="disable_trash_warning">Файли будуть видалятися остаточно без можливості відновлення</string>
     <string name="tooltip_use_trash_title">Видалення до кошика</string>
-    <string name="tooltip_use_trash_message">При ввімкненій опції видалені локальні файли переміщуються до прихованої папки .trash і можуть бути відновлені через Undo. На Android 12+ для деяких спільних папок потрібен доступ MANAGE_MEDIA; без нього кошик може перейти на остаточне видалення. При вимкненій — файли видаляються негайно і місце звільняється одразу. Мережеві та хмарні файли завжди видаляються остаточно.</string>
+    <string name="tooltip_use_trash_message">При ввімкненій опції видалені локальні файли переміщуються до прихованої папки .trash і можуть бути відновлені через Undo. На Android 12+ для деяких спільних папок потрібен доступ MANAGE_MEDIA; без нього кошик може перейти на остаточне видалення. При вимкненій - файли видаляються негайно і місце звільняється одразу. Мережеві та хмарні файли завжди видаляються остаточно.</string>
 
     <string name="folder_selection_limitations">⚠️ Обмежений доступ до тек\n\nБез дозволу \"Доступ до всіх файлів\" ви можете вибрати лише стандартні теки Android.\n\nЩоб вибрати будь-яку теку на пристрої, будь ласка, надайте дозвіл коли буде запропоновано.</string>
     <!-- Media Settings Categories -->
-    <string name="settings_category_images">Зображення</string>
-    <string name="settings_category_video">Відео</string>
-    <string name="settings_category_audio">Аудіо</string>
-    <string name="settings_category_documents">Документи</string>
-    <string name="settings_category_other">Інше</string>
+    <string name="settings_category_images">Зображення, GIF і слайд-шоу</string>
+    <string name="settings_category_video">Відео, налаштування програвача</string>
+    <string name="settings_category_audio">Аудіо, обкладинки й фонові візуалізації</string>
+    <string name="settings_category_documents">Перегляд тексту, PDF і EPUB</string>
+    <string name="settings_category_other">Переклад, OCR і Google Lens</string>
 
     <!-- General Settings Categories -->
     <string name="settings_general_language_display">Мова та відображення</string>
@@ -1856,8 +1836,6 @@
     <string name="activity_player_unified_btnSlideShow_text">Слайдшоу</string>
     <string name="activity_player_unified_btnVolumeDown_text">−</string>
     <string name="activity_player_unified_btnVolumeUp_text">+</string>
-    <string name="activity_player_unified_copyToPanelIndicator_text">▼</string>
-    <string name="activity_player_unified_moveToPanelIndicator_text">▼</string>
     <string name="activity_player_unified_playerView_resize_mode">fit</string>
     <string name="activity_player_unified_touchZone3Gestures_layout_weight">0.60</string>
     <string name="activity_player_unified_touchZone3Next_layout_weight">0.20</string>
@@ -1925,10 +1903,7 @@
     <string name="dialog_file_operation_progress_btnCancel_text">Відміна</string>
     <string name="transfer_overall_progress_desc">Загальний прогрес передачі</string>
     <string name="transfer_eta_desc">Час, що залишився</string>
-    <string name="dialog_file_operation_progress_tvCurrentFile_text">file.jpg</string>
-    <string name="dialog_file_operation_progress_tvProgressText_text">0 / 10</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Копіювання файлів…</string>
-    <string name="dialog_file_operation_progress_tvSpeed_text">1.5 МБ/с</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_suffixText">МБ</string>
@@ -2105,7 +2080,6 @@
     <string name="layout_gravity_center_vertical">center_vertical</string>
     <string name="layout_gravity_top_end">top|end</string>
     <string name="no_resource_selected">No resource selected</string>
-    <string name="panel_indicator_collapsed">▼</string>
     <string name="pdf_p">PDF (P)</string>
     <string name="pip_pause">Pause</string>
     <string name="player_next_symbol">▶</string>
@@ -2139,7 +2113,7 @@
     <string name="background_audio_exit_message">Музика продовжує грати у фоні. Що зробити?</string>
     <string name="background_audio_exit_stop">Зупинити</string>
     <string name="background_audio_exit_continue">Продовжити</string>
-    <!-- Background audio exit behavior — Settings sub-row -->
+    <!-- Background audio exit behavior - Settings sub-row -->
     <string name="background_audio_exit_behavior_title">При виході з плеєра</string>
     <string name="background_audio_exit_behavior_summary">Виберіть, що трапиться з фоновою музикою при поверненні</string>
     <string name="background_audio_exit_behavior_ask">Запитати кожен раз (за замовчуванням)</string>
@@ -2155,10 +2129,10 @@
     <string name="draft_restored">Чернетку відновлено. Натисніть «Зберегти» для застосування.</string>
     <string name="edit_image">Редагувати зображення</string>
     <string name="empty_folder_with_subfolders">Немає медіафайлів у кореневій папці.\nЦей ресурс містить %d підпапок. Увімкніть \&quot;Сканувати підпапки\&quot; в налаштуваннях для перегляду.</string>
-    <string name="error_connection_access">Не вдається підключитися до \&quot;%1$s\&quot; — доступ заборонено.\n\nПеревірте права спільного ресурсу.</string>
-    <string name="error_connection_auth">Не вдається підключитися до \&quot;%1$s\&quot; — помилка автентифікації.\n\nПеревірте логін та пароль.</string>
+    <string name="error_connection_access">Не вдається підключитися до \&quot;%1$s\&quot; - доступ заборонено.\n\nПеревірте права спільного ресурсу.</string>
+    <string name="error_connection_auth">Не вдається підключитися до \&quot;%1$s\&quot; - помилка автентифікації.\n\nПеревірте логін та пароль.</string>
     <string name="error_connection_server_generic">Не вдається підключитися до сервера. Перевірте адресу та налаштування мережі.</string>
-    <string name="error_connection_share_not_found">Не вдається підключитися до \"%1$s\" — спільний ресурс не знайдено.\n\nПеревірте ім\'я ресурсу на сервері.</string>
+    <string name="error_connection_share_not_found">Не вдається підключитися до \"%1$s\" - спільний ресурс не знайдено.\n\nПеревірте ім\'я ресурсу на сервері.</string>
     <string name="error_invalid_cloud_folder">Невірна папка хмари</string>
     <string name="error_invalid_cloud_provider">Невірний хмарний провайдер</string>
     <string name="error_invalid_host">Невірна адреса хоста</string>
@@ -2337,7 +2311,7 @@
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
     <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>
-    <string name="resume_unavailable">Не вдалося відновити відтворення — ресурс недоступний або сесія закінчилася</string>
+    <string name="resume_unavailable">Не вдалося відновити відтворення - ресурс недоступний або сесія закінчилася</string>
     <string name="resume_checking">Відновлення відтворення…</string>
 
     <!-- Default player association (Phase 3) -->
@@ -2411,19 +2385,20 @@
     <string name="setting_enable_translation_desc">Увімкнути підтримку перекладу тексту через OCR</string>
     <string name="setting_overwrite_on_move_desc">Замінювати наявний файл при збігу імені при переміщенні</string>
     <string name="setting_play_to_end_desc">Відтворювати медіа до кінця замість інтервалу слайдшоу</string>
+    <string name="setting_default_grid_mode_desc">Browse відкривається у режимі сітки замість списку</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Приховує Copy/Move/Rename/Delete у меню рядка, що випадає</string>
     <string name="setting_prevent_sleep_desc">Не вимикати екран під час перегляду медіа</string>
     <string name="setting_safe_mode_desc">Підтверджувати перед деструктивними операціями (видалення, переміщення)</string>
     <string name="setting_show_hidden_files_desc">Показувати файли та папки, що починаються з крапки</string>
     <string name="setting_show_subfolders_as_items_desc">Показувати підпапки як елементи для натискання у списку файлів</string>
     <string name="setting_small_controls_desc">Компактні елементи керування для економії місця</string>
     <string name="setting_translation_lens_style_desc">Показувати результати перекладу блоками</string>
-    <string name="settings_set_default_media_player">Призначити медіапрогравачем за замовчуванням</string>
     <string name="setting_accept_shared_files_desc">Дозволити отримання файлів з інших додатків</string>
     <string name="setting_confirm_delete_player_desc">Запитувати підтвердження перед видаленням файлів у програвачі</string>
     <string name="setting_detailed_errors_desc">Показувати повні деталі помилок замість спрощених повідомлень</string>
     <string name="setting_hide_grid_action_buttons_desc">Приховати кнопки швидких дій на мініатюрах</string>
     <string name="setting_hide_system_ui_desc">Приховати статус-бар та навігацію в повноекранному режимі</string>
-    <string name="setting_primary_media_player_desc">Використовувати FastMediaSorter як основний програвач для медіафайлів</string>
+    <string name="setting_primary_media_player_desc">Показувати FastMediaSorter у «Відкрити за допомогою» й обробляти медіакнопки</string>
     <string name="setting_show_command_panel_desc">Автоматично показувати панель команд при вході до програвача</string>
     <string name="setting_support_audio_desc">Відтворення MP3, FLAC, AAC, OGG та інших аудіоформатів</string>
     <string name="setting_support_videos_desc">Відтворення MP4, MKV, MOV та інших відеоформатів</string>
@@ -2446,8 +2421,8 @@
     <string name="cb_play_to_end_desc">Чекає закінчення кожного відео або аудіо перед переходом у слайдшоу</string>
     <string name="settings_accept_shared_files">Приймати спільні файли</string>
     <string name="settings_category_default_player">Медіапрогравач за замовчуванням</string>
-    <string name="settings_primary_media_player">Основний медіапрогравач</string>
-    <string name="settings_category_behaviour">Поведінка</string>
+    <string name="settings_primary_media_player">Системний обробник медіа</string>
+    <string name="settings_category_behaviour">Поведінка й правила програми</string>
     <string name="setting_resume_on_next_launch">Продовжувати відтворення при наступному запуску</string>
     <string name="setting_resume_on_next_launch_desc">При запуску застосунку автоматично відкривати останній відтворюваний файл з того місця, де було зупинено</string>
 
@@ -2509,7 +2484,7 @@
     <string name="welcome_default_player_btn_images">Зображення</string>
     <string name="welcome_default_player_btn_video">Відео</string>
     <string name="welcome_default_player_description">Призначити FastMediaSorter медіапрогравачем за замовчуванням</string>
-    <string name="welcome_default_player_hint">Натисніть кнопку нижче — з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.
+    <string name="welcome_default_player_hint">Натисніть кнопку нижче - з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.
     </string>
     <string name="welcome_default_player_title">Програвач за замовчуванням</string>
 
@@ -2538,7 +2513,7 @@
     <string name="tile_audio_play_music">Відтворити музику</string>
 
     <!-- Scheduled Operations -->
-    <string name="scheduled_ops_section_title">За розкладом</string>
+    <string name="scheduled_ops_section_title">Заплановані операції за розкладом</string>
     <string name="scheduled_ops_toggle">Використовувати операції за розкладом</string>
     <string name="scheduled_ops_toggle_hint">Копіювання, переміщення, видалення у фоні</string>
     <string name="scheduled_ops_overwrite">Перезаписувати існуючі файли</string>
@@ -2575,8 +2550,8 @@
     <string name="scheduled_ops_next_run">Наступний запуск о:</string>
     <string name="scheduled_ops_save">Зберегти в список операцій</string>
     <string name="scheduled_ops_readonly_source">Ресурс тільки для читання</string>
-    <string name="scheduled_ops_interval_corrected_15">Мінімальний інтервал — 15 хвилин</string>
-    <string name="scheduled_ops_interval_corrected_1h">Не можна задати 0 годин і 0 хвилин — встановлено 1 годину</string>
+    <string name="scheduled_ops_interval_corrected_15">Мінімальний інтервал - 15 хвилин</string>
+    <string name="scheduled_ops_interval_corrected_1h">Не можна задати 0 годин і 0 хвилин - встановлено 1 годину</string>
     <string name="scheduled_ops_no_destinations">Спочатку додайте отримувачів у розділі «Отримувачі»</string>
     <string name="scheduled_ops_confirm_delete">Видалити це завдання?</string>
     <string name="scheduled_ops_confirm_clear">Очистити всі завдання за розкладом?</string>
@@ -2675,7 +2650,7 @@
     <string name="error_print_file_too_large">Файл завеликий для друку (макс. 30 МБ)</string>
     <string name="error_print_download_failed">Не вдалося завантажити файл для друку</string>
     <string name="print_share_chooser_title">Надіслати на друк</string>
-    <string name="print_fallback_to_share">Діалог друку не відкрився — відкрито меню «Поділитися». Виберіть застосунок для друку.</string>
+    <string name="print_fallback_to_share">Діалог друку не відкрився - відкрито меню «Поділитися». Виберіть застосунок для друку.</string>
 
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Трансляція…</string>
@@ -2700,7 +2675,7 @@
     <string name="now_playing_previous_desc">Попередній трек</string>
     <string name="now_playing_next_desc">Наступний трек</string>
     <string name="now_playing_seek_bar_desc">Перемотування</string>
-    <string name="now_playing_mini_bar_desc">Зараз грає — торкніться, щоб відкрити керування</string>
+    <string name="now_playing_mini_bar_desc">Зараз грає - торкніться, щоб відкрити керування</string>
 
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Знайти дублікати</string>
@@ -2727,7 +2702,7 @@
     <string name="camera_capture_error_no_camera_app">На пристрої немає застосунку камери</string>
     <string name="camera_capture_error_permission_denied">Доступ до камери заборонено</string>
     <string name="camera_capture_error_io">Не вдалося прочитати знятий файл</string>
-    <string name="camera_capture_error_session_expired">Сеанс зйомки застарів — спробуйте ще раз</string>
+    <string name="camera_capture_error_session_expired">Сеанс зйомки застарів - спробуйте ще раз</string>
     <string name="duplicate_detection_title">Дублікати</string>
     <string name="duplicate_scan_start">Почати сканування</string>
     <string name="duplicate_scan_failed">Не вдалося завершити пошук дублікатів. Спробуйте ще раз.</string>
@@ -2747,9 +2722,11 @@
     <string name="duplicate_scan_notif_channel_name">Сканер дублікатів</string>
     <string name="action_create_folder">Створити папку</string>
     <string name="action_create_text_file">Створити нотатку</string>
+    <string name="action_create_drawing">Створити рисунок</string>
     <string name="create_text_file_title">Нова нотатка</string>
     <string name="create_text_file_hint">Імʼя файлу</string>
     <string name="error_text_note_create_failed">Не вдалося створити нотатку тут. Спробуйте іншу теку.</string>
+    <string name="error_drawing_create_failed">Не вдалося створити рисунок тут. Спробуйте іншу теку.</string>
     <string name="msg_text_note_created">Нотатку створено: %1$s</string>
     <string name="error_invalid_text_note_name">Літери, цифри, дефіс; без / \\ : * ? \" &lt; &gt; |</string>
     <string name="text_editor_action_save">Зберегти</string>
@@ -2762,7 +2739,7 @@
     <string name="text_note_save_dialog_hint">Ім\'я файлу</string>
     <string name="text_note_save_dialog_ok">Зберегти</string>
     <string name="text_note_save_renamed_suffix">Збережено як %1$s (ім\'я було зайняте)</string>
-    <string name="text_note_save_error_network">Не вийшло достукатися до теки. Нотатка залишилась на пристрої — повторимо, коли з\'явиться зв\'язок.</string>
+    <string name="text_note_save_error_network">Не вийшло достукатися до теки. Нотатка залишилась на пристрої - повторимо, коли з\'явиться зв\'язок.</string>
     <string name="text_note_save_success_local">Збережено.</string>
     <string name="text_note_save_success_remote">Збережено в %1$s.</string>
     <string name="menu_automate_source">Автоматизація..</string>
@@ -2876,7 +2853,7 @@
 
     <string name="vr_immersive_start_failed">Не вдалося запустити immersive-режим. Відтворення зупинено, щоб не залишати фонове аудіо.</string>
     <string name="vr_immersive_unsupported_media">Immersive-режим доступний лише для стерео-відео та підтримуваних 3D-зображень. Цей файл буде відкрито у стандартному плеєрі.</string>
-    <string name="vr_xr_fallback_flat_mode">Immersive-режим недоступний — відтворення у плоскому режимі. Формат 3D можна змінити у налаштуваннях плеєра.</string>
+    <string name="vr_xr_fallback_flat_mode">Immersive-режим недоступний - відтворення у плоскому режимі. Формат 3D можна змінити у налаштуваннях плеєра.</string>
 
     <!-- VR install CTA (shown in standard flavor when 3D content is detected) -->
     <string name="vr_install_cta_title">Це 3D-відео</string>
@@ -2954,7 +2931,7 @@
     <string name="kbm_help_dialog_arrows">Навігація між рядками</string>
     <string name="kbm_help_dialog_toggle">Перемкнути параметр</string>
 
-    <!-- Керування у VR — HUD-індикатори (spec_vr-immersive-controls-tech) -->
+    <!-- Керування у VR - HUD-індикатори (spec_vr-immersive-controls-tech) -->
     <string name="vr_hud_paused">Пауза</string>
     <string name="vr_hud_playing">Відтворення</string>
     <string name="vr_hud_volume_percent">Гучність %1$d%%</string>
@@ -2971,12 +2948,12 @@
     <string name="vr_hud_immersive_on">3D VR</string>
     <string name="vr_hud_immersive_off">Плоский екран</string>
 
-    <!-- Перехідні HUD-банери — поки повноцінні іммерсив-панелі малюються через Android view (spec_vr-immersive-hud-gl). -->
+    <!-- Перехідні HUD-банери - поки повноцінні іммерсив-панелі малюються через Android view (spec_vr-immersive-hud-gl). -->
     <string name="vr_hud_guard_file_ops">Панель файлів недоступна в іммерсиві. Вийди з іммерсиву, щоб скористатися нею.</string>
     <string name="vr_hud_guard_controls">Діалог керування недоступний в іммерсиві. Вийди з іммерсиву, щоб відкрити його.</string>
     <string name="vr_hud_first_run_cheat">A пауза/плей · L стік перемотка · R стік файл/гучність · grip масштаб · Menu налаштування</string>
 
-    <!-- Керування у VR — панель файлових операцій -->
+    <!-- Керування у VR - панель файлових операцій -->
     <string name="vr_fops_title">Операції з файлом</string>
     <string name="vr_fops_copy_to">Скопіювати в..</string>
     <string name="vr_fops_move_to">Перемістити в..</string>
@@ -2992,7 +2969,7 @@
     <string name="vr_fops_not_implemented_move">Переміщення в теку з VR з\'явиться у наступній ітерації</string>
     <string name="vr_fops_not_implemented_rename">Перейменування з VR з\'явиться у наступній ітерації</string>
 
-    <!-- Керування у VR — діалоги підтвердження та інформація про файл -->
+    <!-- Керування у VR - діалоги підтвердження та інформація про файл -->
     <string name="vr_delete_confirm_title">Видалити файл?</string>
     <string name="vr_delete_confirm_msg">\"%1$s\"  %2$s</string>
     <string name="vr_rename_hint">Нове ім\'я</string>
@@ -3005,7 +2982,7 @@
     <string name="vr_info_video">Відеокодек:</string>
     <string name="vr_info_bitrate">Бітрейт: %1$d кбіт/с</string>
 
-    <!-- Керування у VR — швидкі кнопки оверлея -->
+    <!-- Керування у VR - швидкі кнопки оверлея -->
     <string name="vr_overlay_btn_prev">Назад</string>
     <string name="vr_overlay_btn_next">Далі</string>
     <string name="vr_overlay_btn_seek_back">−10с</string>
@@ -3024,33 +3001,32 @@
     <string name="vr_overlay_speed_label">Швид.: %sx</string>
     <string name="vr_overlay_format_label">%s</string>
 
-    <!-- Керування у VR — вміст шпаргалки -->
+    <!-- Керування у VR - вміст шпаргалки -->
     <string name="vr_cheatsheet_title">Керування у VR</string>
     <string name="vr_cheatsheet_section_controllers">Контролери Touch (Quest 2 / 3 / Pro):</string>
-    <string name="vr_cheatsheet_ctrl_a">A (правий) — пауза / плей</string>
-    <string name="vr_cheatsheet_ctrl_b">B (правий) — вихід у 2D-панель</string>
-    <string name="vr_cheatsheet_ctrl_x">X (лівий) — вихід (дубль)</string>
-    <string name="vr_cheatsheet_ctrl_y">Y (лівий) — файлові операції (коротко) / ця шпаргалка (довго)</string>
-    <string name="vr_cheatsheet_ctrl_menu">≡ (лівий) — діалог налаштувань відтворення</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">Лівий стік — ↑↓ гучність · ←→ перемотка ±10с · клік: імерсив ↔ плоский</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">Правий стік — ↑↓ гучність · ←→ попередній / наступний файл · клік: ре-центр</string>
-    <string name="vr_cheatsheet_ctrl_grip">Грип — утримувати + рухати рукою = масштаб · обидва грипи ≥ 1с = скидання масштабу</string>
+    <string name="vr_cheatsheet_ctrl_a">A (правий) - пауза / плей</string>
+    <string name="vr_cheatsheet_ctrl_b">B (правий) - вихід у 2D-панель</string>
+    <string name="vr_cheatsheet_ctrl_x">X (лівий) - вихід (дубль)</string>
+    <string name="vr_cheatsheet_ctrl_y">Y (лівий) - файлові операції (коротко) / ця шпаргалка (довго)</string>
+    <string name="vr_cheatsheet_ctrl_menu">≡ (лівий) - діалог налаштувань відтворення</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">Лівий стік - ↑↓ гучність · ←→ перемотка ±10с · клік: імерсив ↔ плоский</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">Правий стік - ↑↓ гучність · ←→ попередній / наступний файл · клік: ре-центр</string>
+    <string name="vr_cheatsheet_ctrl_grip">Грип - утримувати + рухати рукою = масштаб · обидва грипи ≥ 1с = скидання масштабу</string>
     <string name="vr_cheatsheet_section_keyboard">Bluetooth-клавіатура:</string>
-    <string name="vr_cheatsheet_kb_space">Space / K — пауза / плей · J / L — ±10с · N / P — попередній / наступний · M — без звуку</string>
-    <string name="vr_cheatsheet_kb_arrows">← → — перемотка ±10с · Shift+←→ — ±3с · Ctrl+←→ — ±60с · ↑↓ — гучність</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 — ця шпаргалка · F2 — перейменувати · F3 — про файл · F4 — налаштування · F5 — копіювати · F6 — перемістити · F7 — операції · F8 — видалити · F10 — вихід</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R — перейменувати · Ctrl+C — копіювати · Ctrl+X — перемістити · Ctrl+I — інформація · Ctrl+Y — операції</string>
+    <string name="vr_cheatsheet_kb_space">Space / K - пауза / плей · J / L - ±10с · N / P - попередній / наступний · M - без звуку</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - перемотка ±10с · Shift+←→ - ±3с · Ctrl+←→ - ±60с · ↑↓ - гучність</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - ця шпаргалка · F2 - перейменувати · F3 - про файл · F4 - налаштування · F5 - копіювати · F6 - перемістити · F7 - операції · F8 - видалити · F10 - вихід</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - перейменувати · Ctrl+C - копіювати · Ctrl+X - перемістити · Ctrl+I - інформація · Ctrl+Y - операції</string>
     <string name="vr_cheatsheet_section_mouse">Bluetooth-миша:</string>
-    <string name="vr_cheatsheet_mouse_buttons">ЛКМ — пауза / плей · ПКМ — налаштування · СКМ — ре-центр · кнопка 4/5 — попередній / наступний файл</string>
-    <string name="vr_cheatsheet_mouse_wheel">Колесо — гучність · Shift+колесо — перемотка ±10с</string>
+    <string name="vr_cheatsheet_mouse_buttons">ЛКМ - пауза / плей · ПКМ - налаштування · СКМ - ре-центр · кнопка 4/5 - попередній / наступний файл</string>
+    <string name="vr_cheatsheet_mouse_wheel">Колесо - гучність · Shift+колесо - перемотка ±10с</string>
     <string name="vr_cheatsheet_section_hands">Відстеження рук (без контролерів):</string>
-    <string name="vr_cheatsheet_hands_ray">Направити руку — промінь прицілу · щипок — клік</string>
-    <string name="vr_cheatsheet_hands_swipe">Свайп великим пальцем ←→ — перемотка ±10с · ↑↓ — гучність</string>
-    <string name="vr_cheatsheet_hands_double_pinch">Подвійний щипок — пауза / плей</string>
-    <string name="vr_cheatsheet_footer">Торкніться будь-де щоб закрити · тривале Y або F1 — відкрити знову</string>
+    <string name="vr_cheatsheet_hands_ray">Направити руку - промінь прицілу · щипок - клік</string>
+    <string name="vr_cheatsheet_hands_swipe">Свайп великим пальцем ←→ - перемотка ±10с · ↑↓ - гучність</string>
+    <string name="vr_cheatsheet_hands_double_pinch">Подвійний щипок - пауза / плей</string>
+    <string name="vr_cheatsheet_footer">Торкніться будь-де щоб закрити · тривале Y або F1 - відкрити знову</string>
 
     <!-- S0100 Microphone recording -->
-    <string name="settings_mic_recording_section_title">Запис із мікрофона</string>
     <string name="settings_mic_recording_enable_title">Увімкнути запис із мікрофона</string>
     <string name="settings_mic_recording_enable_desc">Показувати кнопку мікрофона в Browse для запису аудіо в поточну папку</string>
     <string name="settings_mic_recording_ask_filename_title">Запитувати ім\'я файлу</string>
@@ -3080,13 +3056,13 @@
     <string name="settings_controls_keybindings_desc">Перепризначити клавіші і кнопки керування</string>
     <string name="keybinding_remap_search_hint">Пошук команд..</string>
     <string name="keybinding_remap_reset_all">Скинути все</string>
-    <string name="keybinding_remap_not_impl">Скидання всього — незабаром</string>
+    <string name="keybinding_remap_not_impl">Скидання всього - незабаром</string>
     <string name="keybinding_capture_title">Натисніть клавішу або кнопку..</string>
     <string name="keybinding_capture_commit">Призначити</string>
     <string name="keybinding_capture_cancel">Скасувати</string>
     <string name="keybinding_capture_countdown">%d с</string>
     <string name="keybinding_capture_current">Захоплено: %s</string>
-    <string name="keybinding_row_no_binding">—</string>
+    <string name="keybinding_row_no_binding">-</string>
     <string name="keybinding_row_remap">Призначити</string>
     <string name="keybinding_row_reset">За замовчуванням</string>
     <!-- Modifier keys -->
@@ -3249,11 +3225,11 @@
     <string name="btn_refresh_storage">Оновити інформацію про місце</string>
 
     <!-- S0077: optical-disc network thumbnail placeholder -->
-    <string name="thumbnail_unavailable_network_format">%1$s — відеофайл, прев\'ю по мережі недоступне</string>
+    <string name="thumbnail_unavailable_network_format">%1$s - відеофайл, прев\'ю по мережі недоступне</string>
 
     <!-- S0082: банер першого запуску на Chrome OS -->
     <string name="chromeos_banner_title">Запуск на Chrome OS</string>
-    <string name="chromeos_banner_body">Доступ до тек — через системний діалог. Cast і вібрація можуть бути недоступні.</string>
+    <string name="chromeos_banner_body">Доступ до тек - через системний діалог. Cast і вібрація можуть бути недоступні.</string>
     <string name="chromeos_banner_action">Зрозуміло</string>
     <string name="chromeos_banner_shown_pref_key">chromeos_banner_shown</string>
 
@@ -3272,7 +3248,7 @@
     <string name="menu_crop_to_file">Обрізати у файл</string>
     <string name="menu_compress_copy">Стиснута копія</string>
     <string name="dialog_crop_filename_hint">Ім\'я файлу</string>
-    <string name="crop_save_to_downloads_note">Джерело лише для читання — файл буде збережено у Завантаження</string>
+    <string name="crop_save_to_downloads_note">Джерело лише для читання - файл буде збережено у Завантаження</string>
     <string name="crop_file_created">Файл %s створено</string>
     <string name="crop_error_outside_image">Область обрізки виходить за межі зображення. Змініть виділення і повторіть.</string>
     <string name="crop_failed">Не вдалося обрізати зображення. Спробуйте ще раз.</string>
@@ -3292,16 +3268,16 @@
     <string name="s0116_toast_saved_to_resource">Збережено: %1$s</string>
     <string name="s0116_toast_saved_to_downloads">Збережено у Завантаження: %1$s</string>
     <string name="s0116_toast_streaming_started">Завантажується стрім..</string>
-    <string name="s0116_toast_drm_blocked">Захищений контент — завантаження неможливе</string>
+    <string name="s0116_toast_drm_blocked">Захищений контент - завантаження неможливе</string>
     <string name="s0116_toast_mux_failed">Не вдалося зібрати MP4 (codec: %1$s)</string>
     <string name="s0116_toast_streaming_disabled">Стріми недоступні у цій збірці</string>
-    <string name="s0116_toast_auth_required">Потрібен вхід для %1$s — відкрийте налаштування</string>
+    <string name="s0116_toast_auth_required">Потрібен вхід для %1$s - відкрийте налаштування</string>
 
     <!-- S0151: Instagram/Threads social preview-only UX strings -->
     <string name="s0151_toast_content_unavailable">Не вдалося отримати контент за цим посиланням</string>
     <string name="s0151_dialog_auth_title">Увійти в %1$s?</string>
     <string name="s0151_dialog_reauth_title">Оновити вхід у %1$s?</string>
-    <string name="s0151_dialog_message">Справжній контент за цим посиланням потребує входу — прев\'ю-картинку пропущено.</string>
+    <string name="s0151_dialog_message">Справжній контент за цим посиланням потребує входу - прев\'ю-картинку пропущено.</string>
     <string name="s0151_dialog_reauth_message">Застосували збережений вхід у %1$s, але сторінка повернула лише прев\'ю. Можливо, сесія застаріла, або цей пост потребує іншого облікового запису. Увійти знову?</string>
     <string name="s0151_dialog_reauth_positive">Увійти знову</string>
 
@@ -3331,7 +3307,7 @@
     <string name="webview_auth_save_button">Зберегти авторизацію</string>
     <string name="webview_auth_cancel_button">Скасувати</string>
     <string name="webview_auth_url_prompt">Введіть URL (https://..)</string>
-    <string name="webview_auth_invalid_url">Некоректний URL — має починатися з http:// або https://</string>
+    <string name="webview_auth_invalid_url">Некоректний URL - має починатися з http:// або https://</string>
     <!-- S0144: resource picker for "Add authorization" -->
     <string name="auth_add_picker_title">Виберіть ресурс</string>
     <string name="auth_add_enter_manually">Ввести адресу вручну</string>
@@ -3361,13 +3337,13 @@
     <string name="error_details_stack_trace">Стек викликів</string>
 
     <!-- S0118: MediaPlayer fallback diagnostics (PlaybackHealthHelper) -->
-    <string name="player_health_switching_to_fallback">Зі звуком щось не так — перемикаюся на резервний плеєр..</string>
+    <string name="player_health_switching_to_fallback">Зі звуком щось не так - перемикаюся на резервний плеєр..</string>
     <string name="player_health_fallback_failed">Резервний плеєр теж не впорався. %1$s</string>
     <string name="player_health_dialog_header">Резервний плеєр не зміг відтворити файл</string>
     <string name="player_health_error_type_unknown">Тип помилки: невідома</string>
     <string name="player_health_error_type_server_died">Тип помилки: медіа-сервер зупинено</string>
     <string name="player_health_error_type_code">Тип помилки: код %1$d</string>
-    <string name="player_health_io_block">Що трапилося: помилка вводу-виводу — файл може бути пошкоджений, неповний або недоступний.\n\nЩо можна спробувати:\n• Переконатися, що файл завантажено повністю\n• Перевірити, чи не пошкоджений файл\n• Для мережевих файлів — перевірити з\'єднання</string>
+    <string name="player_health_io_block">Що трапилося: помилка вводу-виводу - файл може бути пошкоджений, неповний або недоступний.\n\nЩо можна спробувати:\n• Переконатися, що файл завантажено повністю\n• Перевірити, чи не пошкоджений файл\n• Для мережевих файлів - перевірити з\'єднання</string>
     <string name="player_health_malformed_block">Що трапилося: формат файлу пошкоджений або зібраний некоректно.\n\nСтруктура файлу не відповідає медіа-специфікації.\n\nЩо можна спробувати:\n• Файл може бути пошкоджений або неповний\n• Перезавантажити чи перекодувати файл\n• Перевірити, чи коректно файл було передано</string>
     <string name="player_health_unsupported_block">Що трапилося: формат не підтримується.\n\nРезервний плеєр не дає ради цьому формату або кодеку.\n\nЩо можна спробувати:\n• Відкрити у зовнішньому плеєрі\n• Сконвертувати у стандартний формат (MP4, H.264)</string>
     <string name="player_health_timeout_block">Що трапилося: операція перевищила ліміт очікування.\n\nЩо можна спробувати:\n• Перевірити мережеве з\'єднання\n• Переконатися, що сервер відповідає\n• Повторити спробу пізніше</string>
@@ -3376,7 +3352,7 @@
 
     <!-- S0118 Phase 04: settings copy revisions -->
     <string name="settings_cache_size_range_error">Розмір кешу має бути від 512 до 16384 МБ.</string>
-    <string name="settings_network_permissions_already_granted">Мережеві дозволи вже увімкнені — тут немає що робити.</string>
+    <string name="settings_network_permissions_already_granted">Мережеві дозволи вже увімкнені - тут немає що робити.</string>
     <string name="settings_credentials_picker_failed">Не вдалося відкрити вибір файлів. Спробуйте ще раз.</string>
     <string name="settings_credentials_file_empty">Здається, файл порожній або його не вдалося прочитати.</string>
     <string name="settings_credentials_import_failed">Не вдалося імпортувати цей файл. Спробуйте ще раз.</string>
@@ -3392,7 +3368,7 @@
     <!-- S0118 Phase 05: feature surface sweep -->
     <string name="duplicates_deleted_short">Вибрані файли видалено.</string>
     <string name="duplicates_deleted_count">Видалено %1$d файлів.</string>
-    <string name="addresource_validation_generic">Схоже, чогось не вистачає — перевірте форму та спробуйте знову.</string>
+    <string name="addresource_validation_generic">Схоже, чогось не вистачає - перевірте форму та спробуйте знову.</string>
     <string name="addresource_signed_out">Вийшли з акаунта.</string>
     <string name="addresource_permission_needed">Нам потрібен цей дозвіл, щоб просканувати папки.</string>
     <string name="addresource_scan_failed_short">Сканування не завершилося. Спробуйте ще раз.</string>
@@ -3420,6 +3396,7 @@
     <string name="receive_share_source_name">Спільне</string>
     <string name="receive_share_no_content">Не отримано контенту для імпорту</string>
     <string name="receive_share_cache_failed">Не вдалося підготувати спільний файл. Спробуйте ще раз.</string>
+    <string name="link_download_error_ytmusic_audio_only">Не вдалося зберегти аудіодоріжку з YouTube Music. Посилання не повернуло відтворюваний аудіофайл.</string>
     <string name="receive_share_copied_to_folder">Збережено у вибрану теку</string>
     <string name="receive_share_copy_to_folder_failed">Не вдалося зберегти спільний файл у цю теку. Спробуйте ще раз.</string>
     <string name="favorites_slideshow_open_first">Спочатку відкрийте Обране, а потім запустіть там слайд-шоу.</string>
@@ -3442,18 +3419,18 @@
     <string name="link_download_notif_text_analyzing">Аналіз сторінки..</string>
     <string name="link_download_notif_text_downloading_pct">Завантаження %1$d%%</string>
     <string name="link_download_notif_action_cancel">Скасувати</string>
-    <string name="auth_sessions_info_text">Тут зберігаються авторизації, збережені через вбудований браузер. Кожен запис містить куки для одного облікового запису на одному сайті. Записи «Вхід відхилено» створено при виборі «Не пропонувати» — вони вимикають діалог авторизації для цього сайту. Щоб додати другий обліковий запис для того ж сайту, скористайтесь «Додати авторизацію» у меню.</string>
+    <string name="auth_sessions_info_text">Тут зберігаються авторизації, збережені через вбудований браузер. Кожен запис містить куки для одного облікового запису на одному сайті. Записи «Вхід відхилено» створено при виборі «Не пропонувати» - вони вимикають діалог авторизації для цього сайту. Щоб додати другий обліковий запис для того ж сайту, скористайтесь «Додати авторизацію» у меню.</string>
     <string name="link_download_ytdlp_extracting">Вилучення посилання на медіа…</string>
     <string name="link_download_ytdlp_downloading">Завантаження через універсальний екстрактор…</string>
     <string name="link_download_ytdlp_error_extract">Не вдалося вилучити медіа з цього посилання.</string>
     <string name="link_download_ytdlp_error_runtime">Універсальний екстрактор недоступний.</string>
     <string name="setting_follow_system_rotation_title">Повертати екран разом із ОС</string>
-    <string name="setting_follow_system_rotation_summary">Увімкнено — застосунок слідує системному налаштуванню авторотації. Вимкнено — керування поворотом вручну з плеєра.</string>
+    <string name="setting_follow_system_rotation_summary">Увімкнено - застосунок слідує системному налаштуванню авторотації. Вимкнено - керування поворотом вручну з плеєра.</string>
     <string name="rotation_toggle_title">Поворот</string>
     <string name="rotation_toggle_sensor_on_desc">Поворот екрана: розблоковано</string>
     <string name="rotation_toggle_sensor_off_desc">Поворот екрана: заблоковано</string>
     <string name="keybinding_label_view_rotation_toggle">Поворот екрана</string>
-    <string name="delete_trash_unavailable_fallback_to_hard_delete">Кошик недоступний для частини файлів — видалені остаточно.</string>
+    <string name="delete_trash_unavailable_fallback_to_hard_delete">Кошик недоступний для частини файлів - видалені остаточно.</string>
     <string name="link_download_notif_text_preview_only_signed_in">Не вдалося отримати вміст сторінки. Вхід в акаунт не потрібен.</string>
     <string name="draw_settings_title">Налаштування малювання</string>
     <string name="draw_settings_brush_size">Розмір пензля</string>
@@ -3476,5 +3453,9 @@
     <string name="draw_color_custom_cd">Довільний колір</string>
     <string name="draw_save_ok_toast">Збережено</string>
     <string name="draw_save_failed_toast">Не вдалося зберегти</string>
-    <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти — Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
+    <string name="draw_save_remote_failed">Не вдалося зберегти в цю теку. Рисунок залишився на цьому пристрої - спробуйте ще раз.</string>
+    <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти - Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
+    <string name="setting_show_pdf_thumbnails_desc">Створює великі прев\'ю для PDF (повільніше для віддалених джерел)</string>
+    <string name="file_operation_progress_preparing">Підготовка..</string>
+    <string name="s0266_apk_download_preparing">Готується встановлення..</string>
 </resources>

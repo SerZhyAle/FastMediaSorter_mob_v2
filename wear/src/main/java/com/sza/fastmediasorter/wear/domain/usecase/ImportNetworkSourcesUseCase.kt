@@ -15,7 +15,7 @@ class ImportNetworkSourcesUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(payload: WearSyncPayload): ImportResult {
         if (System.currentTimeMillis() - payload.sentAt > STALE_THRESHOLD_MS) {
-            Timber.w("Sync payload is stale (sentAt=${payload.sentAt}) — ignoring")
+            Timber.w("Sync payload is stale (sentAt=${payload.sentAt}) - ignoring")
             return ImportResult(added = 0, updated = 0, skipped = 0)
         }
 
@@ -29,7 +29,7 @@ class ImportNetworkSourcesUseCase @Inject constructor(
                 "SMB"  -> NetworkSourceType.SMB
                 "FTP"  -> NetworkSourceType.FTP
                 "SFTP" -> NetworkSourceType.SFTP
-                else   -> { Timber.w("Unknown type ${item.type} — skipping"); skipped++; continue }
+                else   -> { Timber.w("Unknown type ${item.type} - skipping"); skipped++; continue }
             }
             val source = NetworkSource(
                 id = item.id,

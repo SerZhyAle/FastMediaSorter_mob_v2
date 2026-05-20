@@ -30,7 +30,7 @@ interface MediaStoreRepository {
 
     /**
      * Query MediaStore for all files matching the given types across all volumes.
-     * No sorting guarantee — files returned in MediaStore's natural order.
+     * No sorting guarantee - files returned in MediaStore's natural order.
      *
      * @param allowedTypes  Set of media types to include
      * @param limit         Maximum number of files to return

@@ -64,7 +64,7 @@ class NetworkMediaDataSource(
 
     override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
         if (isClosed) {
-            return -1 // closed MediaDataSource returns EOF per contract — no logging (tight-loop caller)
+            return -1 // closed MediaDataSource returns EOF per contract - no logging (tight-loop caller)
         }
 
         if (position >= fileSize) {
@@ -320,7 +320,7 @@ class NetworkMediaDataSource(
             privateKey = credentials.sshPrivateKey
         )
 
-        // allowRetry=true: same reasoning as SMB — handles transient TCP failures without false "Server unreachable".
+        // allowRetry=true: same reasoning as SMB - handles transient TCP failures without false "Server unreachable".
         val result = sftpClient.readFileBytesRange(connectionInfo, remotePath, offset, length, allowRetry = true)
         result.getOrNull() ?: run {
             val cause = result.exceptionOrNull()

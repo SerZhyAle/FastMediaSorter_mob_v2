@@ -17,7 +17,7 @@ import timber.log.Timber
 /**
  * FTP network-stream playback.
  *
- * Extension function on [VideoPlayerManager] — extracted to a separate file to reduce
+ * Extension function on [VideoPlayerManager] - extracted to a separate file to reduce
  * per-file CFG complexity for the Kotlin compiler (avoids GC overhead during parallel
  * flavor compilation of the original 1 700-line VideoPlayerManager.kt).
  *

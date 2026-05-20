@@ -40,8 +40,8 @@ private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
  * 4. Falls back to MediaStore Downloads if no destination is configured or copy fails.
  * 5. Shows a Toast with the actual save location or an error.
  *
- * Format: PNG (lossless) or JPG (85% quality) — controlled by videoSnapshotFormat setting.
- * Filename: {video_name}_{HH}h{MM}m{SS}s.{ext} — based on current video track position.
+ * Format: PNG (lossless) or JPG (85% quality) - controlled by videoSnapshotFormat setting.
+ * Filename: {video_name}_{HH}h{MM}m{SS}s.{ext} - based on current video track position.
  * Overwrite: existing files with the same name are always replaced.
  */
 class SaveVideoFrameManager(
@@ -61,7 +61,7 @@ class SaveVideoFrameManager(
             return
         }
 
-        // Capture playback position on main thread before launching coroutine —
+        // Capture playback position on main thread before launching coroutine -
         // player.currentPosition is only safe to read on main thread
         val positionMs = activity._videoPlayerManager?.getPlayer()?.currentPosition ?: 0L
         val sourceFileName = activity.viewModel.state.value.currentFile?.name
@@ -83,7 +83,7 @@ class SaveVideoFrameManager(
                     if (resource != null) {
                         trySaveToResource(tempFile, resource, fileName)
                     } else {
-                        // Configured resource no longer exists — fall back to Downloads
+                        // Configured resource no longer exists - fall back to Downloads
                         Timber.w("SaveVideoFrameManager: configured resource id=$resourceId not found, falling back to Downloads")
                         null
                     }
@@ -154,7 +154,7 @@ class SaveVideoFrameManager(
         val tempFile = File(dir, fileName)
         FileOutputStream(tempFile).use { out ->
             if (useJpeg) {
-                // 85% quality — good balance of file size and visual fidelity for JPEG
+                // 85% quality - good balance of file size and visual fidelity for JPEG
                 bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
             } else {
                 bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, out)
@@ -188,7 +188,7 @@ class SaveVideoFrameManager(
                     resource.name
                 }
                 is FileOperationResult.AuthenticationRequired -> {
-                    // Cloud token expired — user must re-authenticate; don't silently redirect to Downloads
+                    // Cloud token expired - user must re-authenticate; don't silently redirect to Downloads
                     Timber.w("SaveVideoFrameManager: auth required for '${resource.name}' (${result.provider})")
                     null
                 }
@@ -278,7 +278,7 @@ class SaveVideoFrameManager(
         return "${base}_${pos}.${ext}"
     }
 
-    // Toast renders in a system overlay, immune to view hierarchy and edge-to-edge insets —
+    // Toast renders in a system overlay, immune to view hierarchy and edge-to-edge insets -
     // critical for full-screen video player where Snackbar anchor is off-screen.
     private fun showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
         Toast.makeText(activity, message, duration).show()

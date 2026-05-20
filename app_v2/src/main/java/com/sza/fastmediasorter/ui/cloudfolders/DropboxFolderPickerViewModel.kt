@@ -54,7 +54,7 @@ class DropboxFolderPickerViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    /** Account email passed from AddResourceActivity — stored as credentialsId in the resource */
+    /** Account email passed from AddResourceActivity - stored as credentialsId in the resource */
     private val accountEmail: String? = savedStateHandle["extra_account_email"]
 
     private val _state = MutableStateFlow(
@@ -85,8 +85,10 @@ class DropboxFolderPickerViewModel @Inject constructor(
                 }
                 
                 val currentFolderId = _state.value.currentPath.lastOrNull()?.id
+                Timber.d("S0235: folder list request currentFolderId=$currentFolderId")
                 when (val result = dropboxClient.listFolders(currentFolderId)) {
                     is CloudResult.Success -> {
+                        Timber.d("S0235: folder list ok count=${result.data.size}")
                         val folders = result.data.map { cloudFile ->
                             CloudFolderItem(
                                 id = cloudFile.id,
@@ -99,6 +101,7 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load Dropbox folders: ${result.message}")
+                        Timber.d("S0235: folder list failed message=${result.message}")
                         _events.send(
                             DropboxFolderPickerEvent.ShowError(
                                 result.message.takeIf { it.isNotBlank() } ?: genericErrorMessage()

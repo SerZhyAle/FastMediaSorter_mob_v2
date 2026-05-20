@@ -1,16 +1,16 @@
-PLATFORM: Reddit — r/androidapps
+PLATFORM: Reddit - r/androidapps
 URL: https://www.reddit.com/r/androidapps/
 FORMAT: Reddit Markdown
 TONE: Straightforward app intro, dev disclosure, feature-first
 
 ---
 TITLE:
-[DEV] FastMediaSorter v2 — file manager + media player + PDF/EPUB reader that actually works with NAS, SFTP, and all major clouds in one app
+[DEV] FastMediaSorter v2 - file manager + media player + PDF/EPUB reader that actually works with NAS, SFTP, and all major clouds in one app
 
 ---
 BODY:
 
-Developer here. FastMediaSorter v2 is an all-in-one media management app for Android that I've been building for the past two years. The short version: it's a file manager, media player, document reader, and automation tool — with native support for NAS/SMB, SFTP, FTP, Google Drive, Dropbox, and OneDrive all in a single interface.
+Developer here. FastMediaSorter v2 is an all-in-one media management app for Android that I've been building for the past two years. The short version: it's a file manager, media player, document reader, and automation tool - with native support for NAS/SMB, SFTP, FTP, Google Drive, Dropbox, and OneDrive all in a single interface.
 
 **What it replaces (for my own use case):**
 
@@ -21,7 +21,7 @@ Before building this I was juggling: Solid Explorer for file management, VLC for
 *Storage*
 - Local storage, SMB (NAS/Windows shares), FTP, SFTP
 - Google Drive, Dropbox, OneDrive
-- Cross-protocol operations — copy directly from SFTP to Google Drive without touching local storage
+- Cross-protocol operations - copy directly from SFTP to Google Drive without touching local storage
 
 *Media playback*
 - ExoPlayer-based video with gestures, subtitle support, PiP (Android 12+), playback speed control
@@ -36,7 +36,7 @@ Before building this I was juggling: Solid Explorer for file management, VLC for
 
 *File management*
 - Batch copy/move/rename/delete across all sources
-- Scheduled file operations (background, cron-style — e.g., auto-move photos to NAS nightly)
+- Scheduled file operations (background, cron-style - e.g., auto-move photos to NAS nightly)
 - Duplicate finder with SHA-256 matching across sources
 - Recycle bin / trash with restore
 

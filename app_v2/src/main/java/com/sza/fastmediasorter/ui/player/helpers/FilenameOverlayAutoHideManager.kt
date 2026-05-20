@@ -72,7 +72,7 @@ class FilenameOverlayAutoHideManager(
             // onEnterCommandPanelMode() will show and start the timer on return.
             overlayLogicallyVisible = true
             deadlineMs = 0L  // 0 signals "start fresh when returning"
-            Timber.d("FilenameOverlayAutoHideManager: onFileShown (fullscreen) type=$mediaType timeout=${currentTimeoutMs}ms — deferred")
+            Timber.d("FilenameOverlayAutoHideManager: onFileShown (fullscreen) type=$mediaType timeout=${currentTimeoutMs}ms - deferred")
             return
         }
 
@@ -86,7 +86,7 @@ class FilenameOverlayAutoHideManager(
      * Re-shows the overlay if already hidden, extends the deadline if still visible.
      */
     fun onPauseInteraction(mediaType: MediaType) {
-        // Ignore during fullscreen — overlay is not visible there
+        // Ignore during fullscreen - overlay is not visible there
         if (isFullscreen()) return
         currentTimeoutMs = timeoutForType(mediaType)
         triggerReShowOrExtend()
@@ -121,7 +121,7 @@ class FilenameOverlayAutoHideManager(
             val delay = if (remaining > 0L) remaining else currentTimeoutMs
             scheduleHide(delay)
         }
-        // If logically hidden, keep it hidden — nothing to restore.
+        // If logically hidden, keep it hidden - nothing to restore.
     }
 
     /**
@@ -131,7 +131,7 @@ class FilenameOverlayAutoHideManager(
      */
     fun onEnterFullscreenMode() {
         mainHandler.removeCallbacks(hideRunnable)
-        // Don't change overlayLogicallyVisible — preserve for restore on panel-back
+        // Don't change overlayLogicallyVisible - preserve for restore on panel-back
         overlayView.animate().cancel()
         overlayView.isVisible = false
         Timber.d("FilenameOverlayAutoHideManager: onEnterFullscreenMode - timer cancelled")
@@ -153,7 +153,7 @@ class FilenameOverlayAutoHideManager(
      */
     fun onHostResume(currentType: MediaType?) {
         if (!overlayLogicallyVisible) {
-            // Overlay was already hidden before pause — nothing to restore
+            // Overlay was already hidden before pause - nothing to restore
             pausedRemainingMs = -1L
             return
         }

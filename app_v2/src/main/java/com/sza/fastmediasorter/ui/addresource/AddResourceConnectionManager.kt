@@ -365,7 +365,7 @@ internal class AddResourceConnectionManager(
 
     fun showSharePickerDialog(server: String, shares: List<String>, manualShares: List<String> = emptyList()) {
         // Build a combined item list:
-        //   [previously used / manual]  — deduplicated against auto-discovered
+        //   [previously used / manual]  - deduplicated against auto-discovered
         //   [auto-discovered]
         //   "+ Enter share name manually.."
         val autoSet = shares.map { it.lowercase() }.toSet()
@@ -391,12 +391,20 @@ internal class AddResourceConnectionManager(
             .setItems(displayItems.toTypedArray()) { _, which ->
                 val resolved = resolvedNames[which]
                 if (resolved == null) {
-                    // User tapped "Enter manually" — show input dialog
+                    // User tapped "Enter manually" - show input dialog
                     showManualShareInputDialog(server)
                 } else {
                     binding.etSmbShareName.setText(resolved)
                 }
             }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun showNoSharesFoundDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.smb_no_shares_found_title)
+            .setMessage(R.string.msg_no_shares_found)
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
@@ -427,7 +435,7 @@ internal class AddResourceConnectionManager(
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val input = editText.text?.toString()?.trim().orEmpty()
-                // Client-side validation: SMB share names — letters, digits, spaces, hyphens, underscores; 1–80 chars
+                // Client-side validation: SMB share names - letters, digits, spaces, hyphens, underscores; 1–80 chars
                 val valid = input.isNotBlank() && input.length <= 80 &&
                     input.matches(Regex("[A-Za-z0-9][A-Za-z0-9 _\\-]{0,79}"))
                 if (!valid) {
@@ -435,7 +443,7 @@ internal class AddResourceConnectionManager(
                     return@setOnClickListener
                 }
                 binding.etSmbShareName.setText(input)
-                // Persist to history immediately — user confirmed intent; connection may still fail.
+                // Persist to history immediately - user confirmed intent; connection may still fail.
                 viewModel.rememberManualShareName(server, port, input)
                 dialog.dismiss()
             }

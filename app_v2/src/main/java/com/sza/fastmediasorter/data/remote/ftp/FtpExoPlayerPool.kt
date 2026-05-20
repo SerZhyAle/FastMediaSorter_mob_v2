@@ -14,13 +14,13 @@ import java.util.concurrent.Semaphore
 /**
  * ExoPlayer FTP connection management for FtpClient.
  *
- * Each ExoPlayer DataSource gets a dedicated FTPClient instance — sharing a single client
+ * Each ExoPlayer DataSource gets a dedicated FTPClient instance - sharing a single client
  * across concurrent thumbnail extraction threads has been observed causing protocol-reply
  * interleaving (e.g. PASV expects 227 but receives NOOP 200). The semaphore caps total
  * concurrent FTP sockets system-wide.
  *
  * The idle pool tracking remains intact for parity with the previous implementation but is
- * currently dormant — `getConnectionForExoPlayer` always creates a fresh client.
+ * currently dormant - `getConnectionForExoPlayer` always creates a fresh client.
  *
  * Extracted to keep FtpClient below the 1000-line cap.
  */
@@ -38,7 +38,7 @@ class FtpExoPlayerPool {
         val password: String
     )
 
-    /** Wrapper handed back to ExoPlayer DataSources. The client is owned by the pool — do not disconnect. */
+    /** Wrapper handed back to ExoPlayer DataSources. The client is owned by the pool - do not disconnect. */
     data class ExoPlayerFtpConnection(val client: FTPClient)
 
     private data class ConnectionKey(val host: String, val port: Int, val username: String)
@@ -50,7 +50,7 @@ class FtpExoPlayerPool {
 
     /**
      * Get a connection for an ExoPlayer DataSource. BLOCKING (not suspend) because
-     * `DataSource.open()` is itself blocking. Caller must NOT close the returned client —
+     * `DataSource.open()` is itself blocking. Caller must NOT close the returned client -
      * use [releaseExoPlayerConnection] when done.
      */
     @Throws(IOException::class)
@@ -67,7 +67,7 @@ class FtpExoPlayerPool {
             client.defaultTimeout = SOCKET_TIMEOUT
             client.setDataTimeout(SOCKET_TIMEOUT)
             client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-            // S0212: encoding MUST be set before connect — Apache Commons Net
+            // S0212: encoding MUST be set before connect - Apache Commons Net
             // captures the control-channel encoding inside _connectAction_().
             client.applyUtf8Encoding()
 

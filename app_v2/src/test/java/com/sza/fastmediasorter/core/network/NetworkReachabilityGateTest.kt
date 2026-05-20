@@ -42,7 +42,7 @@ class NetworkReachabilityGateTest {
     }
 
     @Test
-    fun `requireWifi throws when no transport is active — delegates to requireAnyNetwork`() {
+    fun `requireWifi throws when no transport is active - delegates to requireAnyNetwork`() {
         every { analyzer.hasAnyNetwork() } returns false
         assertThrows(NetworkConnectionLostException::class.java) {
             gate.requireWifi("TEST")

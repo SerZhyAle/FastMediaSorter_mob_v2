@@ -50,12 +50,19 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             private set
 
         private const val ENABLE_DEBUG_STRICT_MODE = false
+
+        // Field-name fragments that mark a value as a credential / token.
+        // Matched case-insensitively against lowercase AppSettings field names.
+        // Extend (don't replace) when AppSettings gains a new credential-like field.
+        private val SECRET_FIELD_HINTS = listOf(
+            "password", "secret", "token", "apikey", "credential",
+        )
     }
     
     // S0194: 13 Application-level singletons wrapped in dagger.Lazy<T> so Hilt
     // defers their construction until first .get(). The 4 fields below that
     // synchronously register lifecycle observers / OS callbacks in onCreate
-    // intentionally stay eager — they are addressed separately by S0195.
+    // intentionally stay eager - they are addressed separately by S0195.
     @Inject
     lateinit var workManagerScheduler: dagger.Lazy<WorkManagerScheduler>
 
@@ -87,7 +94,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // S0195: the four network lifecycle hooks (NetworkStateMonitor / SmbConnectionManager /
     // SmbBackgroundLifecycleManager / NetworkLifecycleObserver) used to be @Inject'd here and
     // started in onCreate. They are now bootstrapped lazily by NetworkLifecycleBootstrapper
-    // on first real remote use — see data.network.lifecycle.NetworkLifecycleBootstrapper.
+    // on first real remote use - see data.network.lifecycle.NetworkLifecycleBootstrapper.
 
     @Inject
     lateinit var tempFileManager: dagger.Lazy<com.sza.fastmediasorter.domain.transfer.TempFileManager>
@@ -104,7 +111,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var defaultsMapLoader: dagger.Lazy<com.sza.fastmediasorter.data.input.DefaultsMapLoader>
 
-    // S0207 Phase 01: memory observability channel — emitted at fixed lifecycle anchors.
+    // S0207 Phase 01: memory observability channel - emitted at fixed lifecycle anchors.
     // Direct (non-Lazy) injection: used at end of onCreate, before any background work runs.
     @Inject
     lateinit var memoryProbe: MemoryProbe
@@ -175,7 +182,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         })
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
-        // NetworkLifecycleBootstrapper on first remote use — formerly attached eagerly here.
+        // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.
 
         // PDF Support: Using built-in Android PdfRenderer (API 21+)
         // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
@@ -186,13 +193,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
         // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
-        // Skipped on flavors without Cast support (VR — Horizon OS has no Google Play Services Cast module).
+        // Skipped on flavors without Cast support (VR - Horizon OS has no Google Play Services Cast module).
         if (BuildConfig.SUPPORT_CAST) {
             try {
                 com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
                 Timber.d("FastMediaSorterApp: Cast SDK initialized")
             } catch (e: Exception) {
-                Timber.w("FastMediaSorterApp: Cast SDK not available — ${e.message}")
+                Timber.w("FastMediaSorterApp: Cast SDK not available - ${e.message}")
             }
         }
 
@@ -200,7 +207,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Warn if the previous session ended with a crash (user should export logs)
         if (LoggingHelper.hasPreviousCrash()) {
-            Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH — use 'Export debug logs' to collect reports ===")
+            Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH - use 'Export debug logs' to collect reports ===")
         }
 
         // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
@@ -217,7 +224,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             logAppStartupInfo()
         }
 
-        // S0200 Phase 05: legacy auth-state wipe — idempotent, runs once after upgrade then no-ops.
+        // S0200 Phase 05: legacy auth-state wipe - idempotent, runs once after upgrade then no-ops.
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0200AuthStateWipe.get().runIfNeeded()
@@ -252,7 +259,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                     scheduler.cancelResourcesSync()
                     Timber.d("FastMediaSorterApp: Background sync is disabled, skipping scheduling")
                 }
-                // Orphan cleanup runs regardless of sync setting — lightweight maintenance task
+                // Orphan cleanup runs regardless of sync setting - lightweight maintenance task
                 scheduler.scheduleOrphanCleanup()
                 // Retry any OAuth token revocations that failed during sign-out (B5-T3)
                 scheduler.schedulePendingRevocation()
@@ -269,7 +276,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         }
 
-        // S0207 Phase 01: APP_STARTED memory probe — last call in onCreate so the
+        // S0207 Phase 01: APP_STARTED memory probe - last call in onCreate so the
         // measurement reflects the post-init state of the process.
         memoryProbe.record(MemoryCheckpoint.APP_STARTED)
     }
@@ -406,20 +413,20 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // Disk cache is cleared: manually in settings, on file delete/move/rename, or by FIFO eviction
             }
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
-                // App is FOREGROUND but system RAM is low — clear Glide memory cache to avoid OOM kill.
+                // App is FOREGROUND but system RAM is low - clear Glide memory cache to avoid OOM kill.
                 // Disk cache is preserved for fast reload.
                 Timber.w("LOW memory (foreground): level=$level($levelName), mem=$memInfo, clearing Glide memory cache")
                 Glide.get(this).clearMemory()
             }
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE -> {
-                // App is FOREGROUND, moderate pressure — trim Glide to free LRU bitmaps.
+                // App is FOREGROUND, moderate pressure - trim Glide to free LRU bitmaps.
                 Timber.w("MODERATE memory (foreground): level=$level($levelName), mem=$memInfo, trimming Glide")
                 Glide.get(this).trimMemory(level)
             }
             ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
-                // App is in background — trim to release LRU bitmaps, preserve hot items.
+                // App is in background - trim to release LRU bitmaps, preserve hot items.
                 if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
                     Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, trimming Glide")
                     Glide.get(this).trimMemory(level)
@@ -519,24 +526,54 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         sb.append("\n==========================================\n")
         sb.append("   FAST MEDIA SORTER V2 - SETTINGS DUMP\n")
         sb.append("==========================================\n")
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "Language", settings.language))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "Flavor", BuildConfig.FLAVOR))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "Build type", BuildConfig.BUILD_TYPE))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportAudio", settings.supportAudio))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportVideos", settings.supportVideos))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportImages", settings.supportImages))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enablePersistentAudio", settings.enablePersistentAudioPlayback))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "audioEmptyStateMode", settings.audioEmptyStateMode))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enablePhotosDuringAudio", settings.enablePhotosDuringAudio))
-        sb.append(String.format(Locale.US, "%-30s: %s\n", "defaultSortMode", settings.defaultSortMode))
-        sb.append(String.format(Locale.US, "%-30s: %d\n", "networkParallelism", settings.networkParallelism))
-        sb.append(String.format(Locale.US, "%-30s: %d MB\n", "cacheSizeMb", settings.cacheSizeMb))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "loadFullSizeImages", settings.loadFullSizeImages))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "rendererMigrationEnabled", settings.rendererMigrationEnabled))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enableTranslation", settings.enableTranslation))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "enableBackgroundSync", settings.enableBackgroundSync))
-        sb.append(String.format(Locale.US, "%-30s: %b\n", "showDetailedErrors", settings.showDetailedErrors))
+        sb.append(String.format(Locale.US, "%-36s: %s\n", "Flavor", BuildConfig.FLAVOR))
+        sb.append(String.format(Locale.US, "%-36s: %s\n", "Build type", BuildConfig.BUILD_TYPE))
+        sb.append("------------------------------------------\n")
+
+        // Reflection-based dump of every AppSettings field. Adding a new field to
+        // the data class auto-extends the dump on next launch — no edits here.
+        // Java reflection avoids the kotlin-reflect runtime (not on classpath).
+        try {
+            // getDeclaredFields() preserves source order on HotSpot/ART for data classes.
+            val fields = settings.javaClass.declaredFields
+            for (field in fields) {
+                if (field.isSynthetic) continue
+                val mods = field.modifiers
+                if (java.lang.reflect.Modifier.isStatic(mods)) continue
+                field.isAccessible = true
+                val raw: Any? = field.get(settings)
+                val name = field.name
+                val display = formatSettingValue(name, raw)
+                sb.append(String.format(Locale.US, "%-36s: %s\n", name, display))
+            }
+        } catch (t: Throwable) {
+            sb.append("[reflection failed: ").append(t.javaClass.simpleName)
+                .append(": ").append(t.message).append("]\n")
+        }
+
         sb.append("==========================================")
         Timber.w(sb.toString())
+    }
+
+    /**
+     * Renders one AppSettings value for the dump. Masks credential-like fields
+     * by field-name pattern. The matcher is intentionally broad so any future
+     * `*password*`, `*secret*`, `*token*`, `*apiKey*` field is masked on day one.
+     */
+    private fun formatSettingValue(fieldName: String, value: Any?): String {
+        val nameLower = fieldName.lowercase(Locale.US)
+        val isSecret = SECRET_FIELD_HINTS.any { it in nameLower }
+        if (isSecret) {
+            return when (value) {
+                null -> "<null>"
+                is CharSequence -> if (value.isEmpty()) "<empty>" else "<set, len=${value.length}>"
+                else -> "<set>"
+            }
+        }
+        return when (value) {
+            null -> "null"
+            is CharSequence -> if (value.isEmpty()) "<empty>" else value.toString()
+            else -> value.toString()
+        }
     }
 }

@@ -11,11 +11,11 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
  * Kept separate from the classifier so that Android resource dependencies stay
  * out of the domain/data-source layer.
  *
- * S0149 — message contract for SFTP write-operation failures.
+ * S0149 - message contract for SFTP write-operation failures.
  */
 object SftpOperationMessageResolver {
 
-    /** Resolution output — everything the UI layer needs without knowing error internals. */
+    /** Resolution output - everything the UI layer needs without knowing error internals. */
     data class MessageSpec(
         /** String resource id for the primary user-facing message. */
         val messageResId: Int,
@@ -46,11 +46,11 @@ object SftpOperationMessageResolver {
      *
      * The [copyCompleted] flag in the failure drives the special case where
      * a move operation copied the file successfully but could not delete the
-     * source — the file exists at the destination, so the user needs to know
+     * source - the file exists at the destination, so the user needs to know
      * that to avoid double-action.
      */
     fun resolve(failure: SftpOperationFailure): MessageSpec {
-        // Special case: move — copy phase succeeded, source deletion failed.
+        // Special case: move - copy phase succeeded, source deletion failed.
         // Report this regardless of the delete-failure category so the user
         // knows the destination file is intact.
         if (failure.copyCompleted) {
@@ -74,6 +74,11 @@ object SftpOperationMessageResolver {
             SftpFailureCategory.TRANSIENT -> MessageSpec(
                 messageResId = R.string.error_sftp_server_rejected,
                 logLabel = "sftp/transient[${failure.statusCode}]",
+            )
+
+            SftpFailureCategory.EXPECTED_STREAM_CLOSE -> MessageSpec(
+                messageResId = R.string.error_sftp_server_rejected,
+                logLabel = "sftp/expected-stream-close",
             )
         }
     }

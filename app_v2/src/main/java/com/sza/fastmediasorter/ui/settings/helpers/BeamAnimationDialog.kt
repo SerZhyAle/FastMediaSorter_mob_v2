@@ -148,7 +148,7 @@ private fun BeamDialogContent(
                 }
             }
             WearSyncUiState.SettingsPushed -> {
-                // Settings push completed — dialog auto-dismisses via LaunchedEffect above
+                // Settings push completed - dialog auto-dismisses via LaunchedEffect above
                 Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
             }
         }

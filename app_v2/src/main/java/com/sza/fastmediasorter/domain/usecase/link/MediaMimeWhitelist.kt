@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.link
 
 /**
- * S0003 — strategic §3.2 safety constraint: only media/document MIME types are
+ * S0003 - strategic §3.2 safety constraint: only media/document MIME types are
  * allowed through the auto-download channel. `application/octet-stream`,
  * executables, and archives are rejected explicitly.
  */
@@ -37,7 +37,7 @@ object MediaMimeWhitelist {
     )
 
     fun isAllowed(mime: String?): Boolean {
-        // Explicit reject of generic binary stream — never write executables blindly.
+        // Explicit reject of generic binary stream - never write executables blindly.
         if (mime == null) return false
         val normalised = mime.substringBefore(';').trim().lowercase()
         if (normalised == "application/octet-stream") return false

@@ -17,7 +17,7 @@ object ConnectionBadgeMapper {
 
     @DrawableRes
     fun badgeFor(resource: MediaResource): Int? {
-        // Virtual paths are self-describing — no extra badge needed
+        // Virtual paths are self-describing - no extra badge needed
         val virtualPaths = setOf(
             LocalMediaScanner.VIRTUAL_PATH_RECENT,
             LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,

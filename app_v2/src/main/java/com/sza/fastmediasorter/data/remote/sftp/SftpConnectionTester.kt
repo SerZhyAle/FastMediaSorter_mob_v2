@@ -11,7 +11,7 @@ import timber.log.Timber
 /**
  * Stateless SFTP test-connection helpers and recursive `mkdir -p` for SftpClient.
  *
- * Both test methods open a fresh JSch session, connect, and tear down — never touching the
+ * Both test methods open a fresh JSch session, connect, and tear down - never touching the
  * client's pool. Used during AddResource flow to validate credentials before persisting.
  *
  * Extracted to keep SftpClient below the 1000-line cap.
@@ -62,7 +62,7 @@ object SftpConnectionTester {
                 testChannel?.disconnect()
                 testSession?.disconnect()
             } catch (_: Exception) {
-                // ignore teardown errors — the connect attempt already determined success/failure
+                // ignore teardown errors - the connect attempt already determined success/failure
             }
         }
     }
@@ -131,7 +131,7 @@ object SftpConnectionTester {
             channel.cd(remotePath)
             return
         } catch (_: Exception) {
-            // Directory doesn't exist — recurse into parent first
+            // Directory doesn't exist - recurse into parent first
             val parent = remotePath.substringBeforeLast('/', "")
             if (parent.isNotEmpty()) {
                 ensureDirectoryExists(channel, parent)
@@ -141,7 +141,7 @@ object SftpConnectionTester {
                 channel.mkdir(remotePath)
                 Timber.d("Created SFTP directory: $remotePath")
             } catch (mkdirEx: Exception) {
-                // Another process may have created it between our check and mkdir — re-probe.
+                // Another process may have created it between our check and mkdir - re-probe.
                 try {
                     channel.cd(remotePath)
                 } catch (_: Exception) {

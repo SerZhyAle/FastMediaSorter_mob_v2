@@ -14,10 +14,10 @@ import kotlin.math.min
  * [com.sza.fastmediasorter.domain.playback.PrefetchFormula] uses as the hard ceiling
  * for `maxBufferSec`:
  *
- * - JVM heap remaining — 15% of free heap, to leave headroom for decoded frames,
+ * - JVM heap remaining - 15% of free heap, to leave headroom for decoded frames,
  *   bitmaps, and transient allocations that spike during playback.
- * - App cache storage — 25% of free bytes on the internal cache-dir filesystem.
- * - Absolute cap — 256 MB regardless of how large the device is. Beyond that,
+ * - App cache storage - 25% of free bytes on the internal cache-dir filesystem.
+ * - Absolute cap - 256 MB regardless of how large the device is. Beyond that,
  *   the benefit of more pre-cache is dominated by OOM risk and wasted RAM.
  *
  * The [MemoryTier] is reused as a coarse label for the derivation-info dialog,
@@ -49,7 +49,7 @@ class DeviceCapabilityProbe @Inject constructor(
             val stat = StatFs(context.cacheDir.absolutePath)
             stat.availableBytes
         } catch (t: Throwable) {
-            Timber.w(t, "DeviceCapabilityProbe: StatFs failed — falling back to 0 free storage")
+            Timber.w(t, "DeviceCapabilityProbe: StatFs failed - falling back to 0 free storage")
             0L
         }
 

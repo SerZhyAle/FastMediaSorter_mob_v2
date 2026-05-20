@@ -53,7 +53,7 @@ class BrowseRecyclerViewManager(
         }
         Timber.d("updateDisplayMode: Saved scroll position=$scrollPosition")
 
-        // Update adapter mode — always pass full iconSize; compact halving is done inside onBindViewHolder
+        // Update adapter mode - always pass full iconSize; compact halving is done inside onBindViewHolder
         adapter.setGridMode(
             enabled = mode == DisplayMode.GRID,
             iconSize = iconSize

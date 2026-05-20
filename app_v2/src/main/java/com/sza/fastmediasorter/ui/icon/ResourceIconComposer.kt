@@ -33,7 +33,7 @@ object ResourceIconComposer {
         val themeDrawableRes = resolveThemeDrawable(resource)
         val badgeRes = ConnectionBadgeMapper.badgeFor(resource)
 
-        // If there is no badge, a plain drawable is sufficient — avoids LayerDrawable overhead
+        // If there is no badge, a plain drawable is sufficient - avoids LayerDrawable overhead
         if (badgeRes == null) {
             return ContextCompat.getDrawable(context, themeDrawableRes)
                 ?: ContextCompat.getDrawable(context, R.drawable.ic_resource_local)!!
@@ -60,18 +60,18 @@ object ResourceIconComposer {
 
     @DrawableRes
     private fun resolveThemeDrawable(resource: MediaResource): Int {
-        // S0034 custom icon — highest priority
+        // S0034 custom icon - highest priority
         val customRes = ResourceIconRegistry.resolveDrawable(resource.iconId)
         if (customRes != null) return customRes
 
-        // S0034 set-first-icon fallback — uses registry before falling through to pre-S0034 legacy drawables
+        // S0034 set-first-icon fallback - uses registry before falling through to pre-S0034 legacy drawables
         val setFirstId = ResourceIconRegistry.firstIdFor(
             ResourceIconDefaults.setForResource(resource.profile, resource.type)
         )
         val setFallbackRes = ResourceIconRegistry.resolveDrawable(setFirstId)
         if (setFallbackRes != null) return setFallbackRes
 
-        // Pre-S0034 legacy fallback — kept for safety during migration window
+        // Pre-S0034 legacy fallback - kept for safety during migration window
         return legacyIconFor(resource)
     }
 

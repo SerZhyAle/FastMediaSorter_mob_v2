@@ -4,8 +4,8 @@ package com.sza.fastmediasorter.domain.model.link
  * S0116 §5.1 pillar J: format/quality preference applied to streaming variant
  * selection and direct-file candidates with declared resolution.
  *
- * `maxResolutionPx` — vertical resolution ceiling in pixels; `Int.MAX_VALUE`
- * encodes "best available". `audioOnly` — request an audio-only rendition when
+ * `maxResolutionPx` - vertical resolution ceiling in pixels; `Int.MAX_VALUE`
+ * encodes "best available". `audioOnly` - request an audio-only rendition when
  * the manifest exposes one (no-op otherwise).
  */
 data class MediaQualityPreference(

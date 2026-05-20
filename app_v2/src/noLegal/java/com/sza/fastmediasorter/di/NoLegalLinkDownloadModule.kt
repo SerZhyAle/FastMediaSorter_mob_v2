@@ -26,7 +26,7 @@ abstract class NoLegalLinkDownloadModule {
     @IntoSet
     abstract fun bindYtDlp(impl: YtDlpExtractionStrategy): UrlExtractionStrategy
 
-    // S0177: native site extractors — ArtStation, DeviantArt, Vimeo, Dailymotion.
+    // S0177: native site extractors - ArtStation, DeviantArt, Vimeo, Dailymotion.
     @Binds
     @IntoSet
     abstract fun bindArtStation(impl: ArtStationExtractionStrategy): UrlExtractionStrategy

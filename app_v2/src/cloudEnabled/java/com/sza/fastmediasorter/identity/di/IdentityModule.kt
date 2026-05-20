@@ -18,7 +18,7 @@ import javax.inject.Singleton
  *
  * Mounted into every cloud-enabled flavor via the `cloudEnabled` source set declared in
  * `app_v2/build.gradle.kts`. The paired `cloudDisabled` source set ships [com.sza.fastmediasorter.identity.di.NoOpIdentityModule]
- * binding the no-op for the `lite` flavor — AGP mounts exactly one of the two per flavor, so
+ * binding the no-op for the `lite` flavor - AGP mounts exactly one of the two per flavor, so
  * there is no duplicate-binding conflict.
  */
 @Module

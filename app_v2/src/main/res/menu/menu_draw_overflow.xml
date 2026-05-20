@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S0192 Phase 06 — Draw overlay overflow menu.
+    S0191/S0192 - Draw overlay overflow menu.
 
-    Order: Save (primary, in-place) → Save as.. (picker) → Undo last → Undo all
-    → Settings → Send to Google Keep.
+    Order: Save as.. (picker) → Undo last → Undo all → Settings → Send to Google Keep.
 
-    The standalone bottom "Save" button was removed in Phase 06; both save modes
-    now live here. "Save" overwrites the current file in place (with silent
-    fallback to "Save as.." on read-only / non-local resources per ADR-4).
+    S0191 moved the main save/share/cancel contract onto the direct toolbar action strip.
+    The overflow keeps the legacy "Save as.." path plus non-primary editor actions.
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/draw_overflow_save_inplace"
-        android:title="@string/draw_overflow_save_inplace" />
     <item
         android:id="@+id/draw_overflow_save_new"
         android:title="@string/draw_overflow_save_new" />

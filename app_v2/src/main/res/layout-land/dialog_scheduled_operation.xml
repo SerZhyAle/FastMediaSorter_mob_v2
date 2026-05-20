@@ -59,7 +59,7 @@
                 android:textColor="?attr/colorError"
                 android:visibility="gone" />
 
-            <!-- Operation type (no label — value is self-explanatory) -->
+            <!-- Operation type (no label - value is self-explanatory) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -113,35 +113,15 @@
                     android:orientation="vertical">
 
                     <!-- Collapsible header row -->
-                    <LinearLayout
+                    <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for ScheduledOperation conditions if inline help is approved later. -->
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
                         android:id="@+id/headerConditions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:background="?attr/selectableItemBackground">
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/scheduled_ops_col_condition" />
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/scheduled_ops_col_condition"
-                            android:textAppearance="?attr/textAppearanceCaption"
-                            android:alpha="0.7" />
-
-                        <ImageView
-                            android:id="@+id/ivConditionsChevron"
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_expand_more"
-                            android:alpha="0.6"
-                            android:contentDescription="@null"
-                            android:rotation="0" />
-
-                    </LinearLayout>
-
-                    <!-- Collapsible content — hidden by default -->
+                    <!-- Collapsible content - hidden by default -->
                     <LinearLayout
                         android:id="@+id/containerConditionsContent"
                         android:layout_width="match_parent"
@@ -152,7 +132,7 @@
                         android:paddingBottom="8dp"
                         android:visibility="gone">
 
-                        <!-- File type checkboxes — compact, 2-column grid -->
+                        <!-- File type checkboxes - compact, 2-column grid -->
                         <GridLayout
                             android:id="@+id/containerFileTypeMask"
                             android:layout_width="match_parent"
@@ -226,7 +206,7 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Overwrite existing files (hidden for DELETE) — grouped with conditions -->
+                        <!-- Overwrite existing files (hidden for DELETE) - grouped with conditions -->
                         <LinearLayout
                             android:id="@+id/containerOverwrite"
                             android:layout_width="match_parent"
@@ -429,7 +409,7 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Buttons pinned outside scroll — always visible in landscape -->
+    <!-- Buttons pinned outside scroll - always visible in landscape -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

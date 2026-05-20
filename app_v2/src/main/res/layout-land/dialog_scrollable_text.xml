@@ -30,26 +30,30 @@
 
     </ScrollView>
 
+    <!-- Share + Copy are equal-weight so the longer label doesn't squeeze the shorter one -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        android:gravity="end"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnShareContent"
             style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/resource_field_margin_end"
             android:text="@string/share"
             app:icon="@drawable/ic_share" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCopyToClipboard"
             style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/resource_field_margin_start"
             android:text="@string/copy_to_clipboard"
             app:icon="@drawable/ic_copy" />
 

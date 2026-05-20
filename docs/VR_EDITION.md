@@ -2,9 +2,9 @@
 
 ## What is the VR Edition?
 
-FastMediaSorter VR is a dedicated edition of FastMediaSorter designed for VR headsets — Meta Quest 3, Quest Pro, Quest 2, and Android XR devices (Samsung Project Moohan and future). It is a **complete media player** identical to the standard edition, extended with OpenXR stereoscopic rendering.
+FastMediaSorter VR is a dedicated edition of FastMediaSorter designed for VR headsets - Meta Quest 3, Quest Pro, Quest 2, and Android XR devices (Samsung Project Moohan and future). It is a **complete media player** identical to the standard edition, extended with OpenXR stereoscopic rendering.
 
-The VR edition is not a separate app — it is the same codebase built as a `vr` product flavor with an additional OpenXR rendering layer.
+The VR edition is not a separate app - it is the same codebase built as a `vr` product flavor with an additional OpenXR rendering layer.
 
 ## Key Differences from Standard
 
@@ -21,7 +21,7 @@ The VR edition is not a separate app — it is the same codebase built as a `vr`
 
 ## What's Identical
 
-Everything else works the same — file operations (copy, move, delete, rename), sorting, favorites, network drives (SMB, SFTP, FTP), cloud storage (Google Drive, OneDrive, Dropbox), subtitles, audio track selection, sleep timer, slideshow, and all navigation controls.
+Everything else works the same - file operations (copy, move, delete, rename), sorting, favorites, network drives (SMB, SFTP, FTP), cloud storage (Google Drive, OneDrive, Dropbox), subtitles, audio track selection, sleep timer, slideshow, and all navigation controls.
 
 ## How It Works
 
@@ -74,27 +74,29 @@ Package name: `com.sza.fastmediasorter.vr`
 
 ## Technical Constraints
 
-- **Supported ABI:** `arm64-v8a` only. Meta Quest 2/3/Pro and Android XR headsets are exclusively 64-bit ARM — no `armeabi-v7a` or `x86_64` slices are produced for VR flavors.
+- **Supported ABI:** `arm64-v8a` only. Meta Quest 2/3/Pro and Android XR headsets are exclusively 64-bit ARM - no `armeabi-v7a` or `x86_64` slices are produced for VR flavors.
 - **Minimum Android:** API 26 (Android 8.0). Quest 2 ≈ Android 10, Quest 3 ≥ Android 12.
 - **XR runtime:** OpenXR 1.1.48+ required at launch. Without an XR runtime the app shows a fallback screen and does not start playback.
 - **Native code:** ships the OpenXR loader AAR plus `openxr_native.so` (C++ bridge built by CMake). Adds ~8 MB of native payload over the standard build.
 - **No Wear OS companion:** headsets have no paired watch, so `SUPPORT_WEAR_COMPANION = false`.
-- **Package ID:** `com.sza.fastmediasorter.vr` is shared by both `vr` and `vrUnlicensed` flavors — installing one replaces the other on the device.
+- **Package ID:** `com.sza.fastmediasorter.vr` belongs to the `vr` (Store) flavor. The sideload-VR build ships as the `noLegal` flavor and uses `com.sza.fastmediasorter` - it can coexist with `vr` on the same device.
 - **DTS / extended codecs:** always bundled via `fms-ffmpeg-dts.aar`. Quest hardware is uniformly arm64, so the single-ABI AAR is sufficient for every VR user.
 
 ### Distribution Channels
 
-Two flavors produce the same `applicationId` on device, so only one can be installed at a time:
+Two flavors carry the VR feature surface, distributed through different channels:
 
-- **`vr`** — Meta Horizon Store / Google Play. Reviewed distribution. If a store rejects the DTS decoder, the `vr` build can ship without it and sideload users are routed to `vrUnlicensed`.
-- **`vrUnlicensed`** — ADB sideload via Developer Mode. Direct distribution for power users; always ships DTS regardless of store policy.
+- **`vr`** - Meta Horizon Store / Google Play AAB. Store-reviewed. Stays Store-clean: no GPL extractors, no Python runtime, no yt-dlp. If a store rejects the DTS decoder, the `vr` build can ship without it and sideload users are routed to `noLegal`.
+- **`noLegal`** - ADB sideload via Developer Mode. The all-inclusive sideload build covers phones, tablets, Quest, and Android XR in a single APK. Always ships DTS, Python+yt-dlp+NewPipeExtractor, and the full VR runtime regardless of store policy. The VR feature surface is runtime-gated: on devices without an OpenXR runtime the VR controls show as disabled with an advisory notice.
+
+> **Historical note.** Prior to 2026-05-19 a separate `vrUnlicensed` flavor existed for VR-only sideload. It was merged into `noLegal` under S0250 because `noLegal` already carried every dependency needed for VR plus the broader sideload surface. See [PLAN/S0250_nolegal-vr-unification.md](../PLAN/S0250_nolegal-vr-unification.md).
 
 ### Phone Fallback
 
-If the VR APK is launched on a regular phone (no XR runtime detected), `VrPlayerActivity` displays a static fallback screen prompting the user to install the Standard edition. Media playback does not start — the VR build is not designed for flat screens.
+If the VR APK is launched on a regular phone (no XR runtime detected), `VrPlayerActivity` displays a static fallback screen prompting the user to install the Standard edition. Media playback does not start - the VR build is not designed for flat screens.
 
 ## Related Documentation
 
-- [VR Sideloading Guide](VR_SIDELOAD.md) — how to install the VR APK on Quest without a store
-- [Features](FEATURES.md) — full feature inventory
-- [Architecture](ARCHITECTURE.md) — project architecture overview
+- [VR Sideloading Guide](VR_SIDELOAD.md) - how to install the VR APK on Quest without a store
+- [Features](FEATURES.md) - full feature inventory
+- [Architecture](ARCHITECTURE.md) - project architecture overview

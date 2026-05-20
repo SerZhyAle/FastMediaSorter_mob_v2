@@ -109,8 +109,8 @@ class StereoModeTest {
     }
 
     @Test
-    fun `fromKey is case-sensitive — lowercase key does not match`() {
-        // Enum names are uppercase; lowercase must not crash — fallback to AUTO
+    fun `fromKey is case-sensitive - lowercase key does not match`() {
+        // Enum names are uppercase; lowercase must not crash - fallback to AUTO
         assertEquals(StereoMode.AUTO, StereoMode.fromKey("auto"))
         assertEquals(StereoMode.AUTO, StereoMode.fromKey("sbs_full"))
     }

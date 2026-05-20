@@ -85,7 +85,7 @@
   <circle cx="114" cy="112" r="7" fill="#FFBD44"/>
   <circle cx="138" cy="112" r="7" fill="#28C840"/>
   <!-- Window title -->
-  <text x="160" y="118" font-family="Roboto, -apple-system, Arial, sans-serif" font-size="13" fill="rgba(255,255,255,0.9)" font-weight="500">FastMediaSorter — Photos</text>
+  <text x="160" y="118" font-family="Roboto, -apple-system, Arial, sans-serif" font-size="13" fill="rgba(255,255,255,0.9)" font-weight="500">FastMediaSorter - Photos</text>
   <!-- Window title icon -->
   <text x="578" y="118" font-family="Arial" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="end">⬜ ⬜</text>
 
@@ -185,7 +185,7 @@
   <circle cx="684" cy="112" r="7" fill="#FFBD44"/>
   <circle cx="708" cy="112" r="7" fill="#28C840"/>
   <!-- Window title -->
-  <text x="730" y="118" font-family="Roboto, -apple-system, Arial, sans-serif" font-size="13" fill="rgba(255,255,255,0.9)" font-weight="500">FastMediaSorter — Videos</text>
+  <text x="730" y="118" font-family="Roboto, -apple-system, Arial, sans-serif" font-size="13" fill="rgba(255,255,255,0.9)" font-weight="500">FastMediaSorter - Videos</text>
   <text x="1148" y="118" font-family="Arial" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="end">⬜ ⬜</text>
 
   <!-- Breadcrumb bar -->
@@ -270,7 +270,7 @@
   <!-- === KEYBOARD HINT BAR === -->
   <rect x="0" y="665" width="1200" height="55" fill="rgba(15,18,26,0.85)"/>
   <!-- keyboard icon -->
-  <text x="600" y="697" font-family="Roboto, Arial, sans-serif" font-size="12" fill="#4A5568" text-anchor="middle">⌨  Ctrl+W · Ctrl+T · Alt+Tab — full keyboard &amp; pointer support</text>
+  <text x="600" y="697" font-family="Roboto, Arial, sans-serif" font-size="12" fill="#4A5568" text-anchor="middle">⌨  Ctrl+W · Ctrl+T · Alt+Tab - full keyboard &amp; pointer support</text>
 
   <!-- === TOP BADGE === -->
   <rect x="370" y="22" width="460" height="44" rx="22" fill="url(#badgeGrad)"/>

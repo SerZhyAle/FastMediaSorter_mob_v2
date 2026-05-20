@@ -3,7 +3,7 @@
     <!--
         Android 15 (API 35) enforces edge-to-edge at system level.
         Window.setStatusBarColor() / setNavigationBarColor() are deprecated on API 35+ and
-        no longer need to be called — the OS manages system bar transparency automatically.
+        no longer need to be called - the OS manages system bar transparency automatically.
 
         Material 1.13.0+ rewrote BottomSheetDialog edge-to-edge handling to use
         WindowInsetsControllerCompat instead of the deprecated setStatusBarColor /

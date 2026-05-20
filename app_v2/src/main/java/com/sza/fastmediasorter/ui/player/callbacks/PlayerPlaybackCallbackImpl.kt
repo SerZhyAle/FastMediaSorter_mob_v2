@@ -171,6 +171,11 @@ class PlayerPlaybackCallbackImpl(
         // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO.
         viewModel.setAutoDetectedStereoMode(mode, forFilePath)
 
+        // S0264: VR install CTA must not appear on VR-capable builds (vr / noLegal).
+        // Those builds already include VR functionality - prompting the user to install
+        // "the VR edition" while they are running the VR edition is meaningless noise.
+        if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER) return
+
         // Show VR CTA for actual flat 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
         val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
         if (is3d && !stereoToastShownForCurrentFile && !activity.isDestroyed && !activity.isFinishing) {

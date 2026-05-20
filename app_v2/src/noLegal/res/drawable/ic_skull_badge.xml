@@ -8,7 +8,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Dark circular backdrop — ensures skull is readable over any icon background -->
+    <!-- Dark circular backdrop - ensures skull is readable over any icon background -->
     <path
         android:fillColor="#CC000000"
         android:pathData="M62,85 A23,23 0 1,0 108,85 A23,23 0 1,0 62,85 Z" />

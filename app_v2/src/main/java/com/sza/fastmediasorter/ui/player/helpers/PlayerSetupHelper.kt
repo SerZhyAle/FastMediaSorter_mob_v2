@@ -13,7 +13,7 @@ import timber.log.Timber
 /**
  * ExoPlayer creation and video-effect pipeline setup.
  *
- * Extension functions on [VideoPlayerManager] — extracted here to reduce per-file CFG complexity
+ * Extension functions on [VideoPlayerManager] - extracted here to reduce per-file CFG complexity
  * for the Kotlin compiler (avoids GC overhead limit during parallel flavor compilation of the
  * full 1 700-line original class with many coroutine state-machines).
  */
@@ -51,7 +51,7 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Bo
             // Activate FFmpeg/AV1/VPX extension renderers only when the custom AAR is present
             // (ENABLE_DTS_DECODER = true in flavors: standard, legacy, vr, vr-unlicensed).
             // Without the AAR on the classpath this mode has no effect, so it is safe to set
-            // eagerly — ExoPlayer falls back to MediaCodec if no extension is registered.
+            // eagerly - ExoPlayer falls back to MediaCodec if no extension is registered.
             if (BuildConfig.ENABLE_DTS_DECODER) {
                 setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             }
@@ -68,7 +68,7 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Bo
     currentPlayerView = playerView
     exoPlayer = player
 
-    // New player instance — reset pipeline state so we don't skip a legitimate setVideoEffects()
+    // New player instance - reset pipeline state so we don't skip a legitimate setVideoEffects()
     // call on the fresh instance when re-applying previously active effects.
     effectsPipelineActive = false
     videoSizeKnown = false
@@ -78,8 +78,7 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Bo
     // Without this, config changes/player recreation silently drop active video adjustments.
     applyConfiguredVideoEffects()
 
-    // Notify subscribers (VrPlayerActivity uses this to flush a pending VR surface redirect
-    // that was queued while ExoPlayer was still null — fixes the black-screen race).
+    // Notify subscribers when the ExoPlayer instance is (re)created.
     try {
         onPlayerCreated?.invoke(player)
     } catch (t: Throwable) {
@@ -97,7 +96,7 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Bo
 /**
  * Rebuild and apply the composed video-effect pipeline (stereo crop + hue + brightness).
  *
- * Debounced at 80 ms to coalesce rapid slider updates — Media3 1.2.x crashes
+ * Debounced at 80 ms to coalesce rapid slider updates - Media3 1.2.x crashes
  * (TexturePool.freeTexture → IllegalStateException) when setVideoEffects() is called
  * with in-flight frames still pending from the previous pipeline.
  */
@@ -110,7 +109,7 @@ internal fun VideoPlayerManager.applyConfiguredVideoEffects() {
 
     // Guard: skip scheduling when no effects are active and none were previously installed.
     if (effects.isEmpty() && !effectsPipelineActive) {
-        Timber.d("VideoPlayerManager: applyConfiguredVideoEffects — no effects, pipeline already clean, skipping")
+        Timber.d("VideoPlayerManager: applyConfiguredVideoEffects - no effects, pipeline already clean, skipping")
         return
     }
 
@@ -119,7 +118,7 @@ internal fun VideoPlayerManager.applyConfiguredVideoEffects() {
     // onVideoSizeChanged fires with valid dimensions.
     if (!videoSizeKnown && effects.isNotEmpty()) {
         pendingEffectsApply = true
-        Timber.d("VideoPlayerManager: applyConfiguredVideoEffects deferred — video size not yet known")
+        Timber.d("VideoPlayerManager: applyConfiguredVideoEffects deferred - video size not yet known")
         return
     }
 
@@ -130,7 +129,7 @@ internal fun VideoPlayerManager.applyConfiguredVideoEffects() {
         exoPlayer?.setVideoEffects(effects)
         effectsPipelineActive = effects.isNotEmpty()
         Timber.d(
-            "VideoPlayerManager: applyConfiguredVideoEffects applied — " +
+            "VideoPlayerManager: applyConfiguredVideoEffects applied - " +
                 "stereo=${stereoVideoProcessor.getCurrentMode()} " +
                 "hue=${videoColorProcessor.getHueAdjustmentDegrees()} " +
                 "brightness=${videoColorProcessor.getBrightnessAdjustment()} " +

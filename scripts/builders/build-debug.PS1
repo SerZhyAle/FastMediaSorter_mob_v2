@@ -7,8 +7,41 @@ param(
     # S0190 Phase 01 tooling: explicit opt-in for Chaquopy on tasks that don't auto-detect.
     # Auto-enabled when -Task contains "noLegal" (case-insensitive), since the noLegal source
     # set imports com.chaquo.python.* and won't compile without the plugin.
-    [switch]$Chaquopy
+    [switch]$Chaquopy,
+    # Quiet mode: suppress UP-TO-DATE / NO-SOURCE / SKIPPED task lines, deprecated-DSL spam,
+    # and known-acceptable warnings. Errors, FAIL/SUCCESS verdict, and unknown warnings are
+    # always preserved. The full unfiltered output is still captured for retry-detection.
+    [switch]$Quiet
 )
+
+# Patterns that are suppressed in -Quiet mode. Order: most-frequent first.
+# Update this list when adding intentional warnings; do NOT use it to hide real failures.
+$script:QuietSuppressPatterns = @(
+    '^> Task :app_v2:[A-Za-z0-9_]+ (UP-TO-DATE|NO-SOURCE|SKIPPED|FROM-CACHE)$',
+    '^WARNING: The option setting ''android\.(builtInKotlin|newDsl)=false'' is deprecated\.',
+    '^WARNING: API ''(applicationVariants|testVariants|unitTestVariants)'' is obsolete',
+    '^The current default is ''true''\.$',
+    '^It will be removed in version 10\.0 of the Android Gradle plugin\.$',
+    '^The legacy variant API is disabled by default in AGP 9\.0',
+    '^\s*android\.newDsl=false$',
+    '^to this project''s gradle\.properties file\.$',
+    '^For more information, see http://developer\.android\.com/build/r/new-dsl\.$',
+    '^To determine what is calling (applicationVariants|testVariants|unitTestVariants), use -Pandroid\.debug\.obsoleteApi=true',
+    '^Using the build cache is enabled, but no build caches are configured or enabled\.$',
+    "^w: file:///.+/app_v2/build\.gradle\.kts:\d+:\d+: 'fun Project\.android",
+    "^This class is not used for the public extensions in AGP",
+    "^w: file:///.+/PlayerActivity\.kt:(678|686|689|1122):14 'open' has no effect on a final class\.$",
+    '^Note: \[\d+\] Wrote GeneratedAppGlideModule',
+    '^warning: The following options were not recognized by any processor:',
+    '^$'  # blank lines between suppressed blocks
+)
+
+function Test-QuietSuppress([string]$line) {
+    foreach ($p in $script:QuietSuppressPatterns) {
+        if ($line -match $p) { return $true }
+    }
+    return $false
+}
 
 Write-Host "Building debug APK (auto-versioned)..." -ForegroundColor Cyan
 
@@ -111,10 +144,18 @@ function Invoke-DebugBuild {
     Write-Host "Starting Gradle: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
 
     $outputLines = New-Object System.Collections.Generic.List[string]
+    $suppressed = 0
     & "$PSScriptRoot\..\..\\gradlew.bat" @gradleArgs 2>&1 | ForEach-Object {
         $line = [string]$_
         $outputLines.Add($line)
+        if ($script:Quiet -and (Test-QuietSuppress $line)) {
+            $suppressed++
+            return
+        }
         Write-Host $line
+    }
+    if ($script:Quiet -and $suppressed -gt 0) {
+        Write-Host "[quiet] suppressed $suppressed lines of known noise" -ForegroundColor DarkGray
     }
 
     return [PSCustomObject]@{

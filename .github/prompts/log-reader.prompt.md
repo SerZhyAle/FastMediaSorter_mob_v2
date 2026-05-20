@@ -3,7 +3,7 @@ agent: "agent"
 description: "Use when: analyzing Android logcat files, diagnosing runtime errors or crashes, searching logs for patterns, or asked to run /log-reader command. Triggers on: logs, logcat, current.log, errors in log, crash analysis, ANR."
 ---
 
-# Log Reader — Android Logcat Analyst
+# Log Reader - Android Logcat Analyst
 
 > **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
 > 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
@@ -20,11 +20,11 @@ Analyse FastMediaSorter Android logcat files for patterns, errors, warnings, and
 
 Examples:
 
-- `/log-reader` — analyse `logs/current.log` (auto-summary)
-- `/log-reader errors` — show all E-level lines in current log
-- `/log-reader PlayerActivity crash` — trace a specific area
-- `/log-reader temp/fastmediasorter_20260326.log warnings` — named file + filter
-- `/log-reader flow BrowseViewModel,MediaFileAdapter` — cross-tag flow trace
+- `/log-reader` - analyse `logs/current.log` (auto-summary)
+- `/log-reader errors` - show all E-level lines in current log
+- `/log-reader PlayerActivity crash` - trace a specific area
+- `/log-reader temp/fastmediasorter_20260326.log warnings` - named file + filter
+- `/log-reader flow BrowseViewModel,MediaFileAdapter` - cross-tag flow trace
 
 ---
 
@@ -32,7 +32,7 @@ Examples:
 
 When this command is invoked with `$ARGUMENTS`:
 
-**Step 1 — Resolve the target log file.**
+**Step 1 - Resolve the target log file.**
 
 Use this fallback order and stop at the first existing file:
 
@@ -49,7 +49,7 @@ Get-ChildItem -Path "logs","temp" -Filter "*.log" -ErrorAction SilentlyContinue 
 
 Show the list and ask the user which file to use.
 
-**Step 2 — Get line count and file size. MANDATORY — do this before reading any content.**
+**Step 2 - Get line count and file size. MANDATORY - do this before reading any content.**
 
 ```powershell
 $f = Get-Item "<log_file>"
@@ -79,7 +79,7 @@ If the resolved file exists, report its line count to the user before further an
 - **2–20 MB** → use `search-log.ps1` exclusively; do NOT load the full file into context
 - **> 20 MB** → use `search-log.ps1` with targeted queries only; warn the user about size
 
-> **RULE**: The beginning of the log contains app startup config and settings — useful for context. Errors and crashes are almost always at the END. Always read the tail before the head when diagnosing a problem.
+> **RULE**: The beginning of the log contains app startup config and settings - useful for context. Errors and crashes are almost always at the END. Always read the tail before the head when diagnosing a problem.
 
 ---
 
@@ -140,13 +140,13 @@ Then scan for spec verification tags:
 
 Report structure:
 
-1. **File info** — path, size, time range, total lines
-2. **Level distribution** — counts for E/W/I/D/V
-3. **Top errors** — first 30, grouped by tag if > 5 unique tags
-4. **Top warnings** — first 20
-5. **Spam tags** — tags with > 100 occurrences
-6. **Spec verification tags** — see the dedicated subsection below; list which `Sxxxx` probes fired (count + first time). Omit this section only if none were found.
-7. **Verdict** — one-paragraph health assessment: any crashes? repeated errors? suspicious patterns?
+1. **File info** - path, size, time range, total lines
+2. **Level distribution** - counts for E/W/I/D/V
+3. **Top errors** - first 30, grouped by tag if > 5 unique tags
+4. **Top warnings** - first 20
+5. **Spam tags** - tags with > 100 occurrences
+6. **Spec verification tags** - see the dedicated subsection below; list which `Sxxxx` probes fired (count + first time). Omit this section only if none were found.
+7. **Verdict** - one-paragraph health assessment: any crashes? repeated errors? suspicious patterns?
 
 ---
 
@@ -185,7 +185,7 @@ Use when crash, FATAL, or ANR keywords appear, or when `-Errors` output contains
 
 The script auto-detects `FATAL EXCEPTION`, `AndroidRuntime`, `Exception:`, `Caused by:`, `ANR in`, and `begin of crash dump` blocks, then prints the full surrounding stack trace (up to 80 lines forward).
 
-Each block is numbered (`══ BLOCK #N (line NNN) ══`) with line numbers on every line — copy the line number to jump directly in the log file.
+Each block is numbered (`══ BLOCK #N (line NNN) ══`) with line numbers on every line - copy the line number to jump directly in the log file.
 
 For crashes matching a known exception type, also run:
 
@@ -282,7 +282,7 @@ To filter by a specific thread (useful when tracing a coroutine or worker):
 
 Report the top 25 noisy tags. For tags with > 500 occurrences, suggest adding them to `-Exclude` in future queries.
 
-> **JSON note**: JSON exports from Android Studio may contain heavy system noise (oculus services, anchor queries etc.) — use `-AppOnly` to focus on the app.
+> **JSON note**: JSON exports from Android Studio may contain heavy system noise (oculus services, anchor queries etc.) - use `-AppOnly` to focus on the app.
 
 ---
 
@@ -300,7 +300,7 @@ Then run auto-summary on the slice.
 
 ### Spec verification tags (`Sxxxx:` debug probes)
 
-App log messages whose text begins with a ticket id and a colon — `S0043: …`, `S0127: …` — are **debug verification tags** placed by the spec pipeline (see CLAUDE.md "Debug Verification Tags"). A tag exists in code only while its spec is in status `BlockNeedUserTest`; its presence in the log proves that the spec's changed code path was exercised in this session.
+App log messages whose text begins with a ticket id and a colon - `S0043: …`, `S0127: …` - are **debug verification tags** placed by the spec pipeline (see CLAUDE.md "Debug Verification Tags"). A tag exists in code only while its spec is in status `BlockNeedUserTest`; its presence in the log proves that the spec's changed code path was exercised in this session.
 
 Find them:
 
@@ -311,10 +311,10 @@ Find them:
 What to do with them:
 
 - Group by id. For each `Sxxxx` report: hit count, first/last occurrence time, and the message text (it usually names the exercised flow, e.g. `S0054: TsPacketFormatDetector.detect probeSize=576 -> BD_192`).
-- Resolve each id to confirm it really is awaiting on-device test: `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Expected status `BlockNeedUserTest`. If the journal says anything else, flag the tag as **stale** (it should have been removed when the spec left `BlockNeedUserTest`) — note it so the next `/spec-check` / `/spec-fix` strips it.
-- In the verdict line, state which `Sxxxx` probes fired this session — that is the signal the user needs before running `/spec-check Sxxxx` (which, on `Verified`, also deletes the tags).
+- Resolve each id to confirm it really is awaiting on-device test: `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Expected status `BlockNeedUserTest`. If the journal says anything else, flag the tag as **stale** (it should have been removed when the spec left `BlockNeedUserTest`) - note it so the next `/spec-check` / `/spec-fix` strips it.
+- In the verdict line, state which `Sxxxx` probes fired this session - that is the signal the user needs before running `/spec-check Sxxxx` (which, on `Verified`, also deletes the tags).
 - If the user is testing a specific spec and its `Sxxxx:` probe is **absent** from the log, say so: the scenario did not reach that code path → on-device verification is incomplete, not failed.
-- Never treat a `Sxxxx:` line as an error or warning regardless of its level — it is an instrumentation probe.
+- Never treat a `Sxxxx:` line as an error or warning regardless of its level - it is an instrumentation probe.
 
 ---
 
@@ -341,11 +341,11 @@ When reading log content, proactively flag these patterns:
 
 | Pattern | Significance |
 |---------|-------------|
-| `FATAL EXCEPTION` / `Process: ... PID:` | App crash — show full stack trace |
-| `ANR in` | App Not Responding — show what was running |
-| `OutOfMemoryError` | Memory pressure — check heap stats from startup banner |
-| `FileNotFoundException` / `IOException` | File access failure — note path if visible |
-| `SecurityException` | Permission denied — note API level and permission |
+| `FATAL EXCEPTION` / `Process: ... PID:` | App crash - show full stack trace |
+| `ANR in` | App Not Responding - show what was running |
+| `OutOfMemoryError` | Memory pressure - check heap stats from startup banner |
+| `FileNotFoundException` / `IOException` | File access failure - note path if visible |
+| `SecurityException` | Permission denied - note API level and permission |
 | `NetworkOnMainThreadException` | Threading violation |
 | `IllegalStateException` | Often lifecycle issue in Fragment/Activity |
 | `NullPointerException` | Show surrounding 10 lines for context |
@@ -354,17 +354,17 @@ When reading log content, proactively flag these patterns:
 | `W  ExoPlayer` / `E  ExoPlayer` | Media playback failure |
 | `W  Glide` / `E  Glide` | Image loading failure |
 | `E  SMB` / `E  SFTP` / `E  FTP` | Network protocol failure |
-| message text matching `^S\d{4}: ` (e.g. `S0043: …`) | Spec verification probe — the spec is in `BlockNeedUserTest`; this line proves its code path ran. Not an error. Report the id; cross-ref `select.ps1 -Id Sxxxx`. See "Spec verification tags" mode. |
+| message text matching `^S\d{4}: ` (e.g. `S0043: …`) | Spec verification probe - the spec is in `BlockNeedUserTest`; this line proves its code path ran. Not an error. Report the id; cross-ref `select.ps1 -Id Sxxxx`. See "Spec verification tags" mode. |
 
 For FastMediaSorter-specific tags, look for:
 
-- `FastMediaSorter` — app-level events (startup banner, key lifecycle)
-- `BrowseViewModel`, `PlayerViewModel`, `MainViewModel` — ViewModel state
-- `ImageLoading`, `ImageLoadingManager` — Glide/image pipeline
-- `NetworkSync`, `NetworkFilesSyncWorker` — background sync
-- `SmbOps`, `SftpOps`, `FtpOps` — protocol-level network ops
-- `CastManager`, `ChromecastSession` — Cast feature
-- `ThumbnailWorker`, `ThumbnailPreload` — thumbnail pipeline
+- `FastMediaSorter` - app-level events (startup banner, key lifecycle)
+- `BrowseViewModel`, `PlayerViewModel`, `MainViewModel` - ViewModel state
+- `ImageLoading`, `ImageLoadingManager` - Glide/image pipeline
+- `NetworkSync`, `NetworkFilesSyncWorker` - background sync
+- `SmbOps`, `SftpOps`, `FtpOps` - protocol-level network ops
+- `CastManager`, `ChromecastSession` - Cast feature
+- `ThumbnailWorker`, `ThumbnailPreload` - thumbnail pipeline
 
 ---
 
@@ -388,7 +388,7 @@ Key tags to watch for in this project:
 
 ### Format-specific tag notes
 - **LOGCAT/JSON**: tags are full class-level or Android framework tags
-- **TIMBER**: most app logs use the single tag `App` (Timber default tree) — filter by pattern in message, not tag:
+- **TIMBER**: most app logs use the single tag `App` (Timber default tree) - filter by pattern in message, not tag:
   ```powershell
   .\scripts\utils\search-log.ps1 -LogFile "<file>" -Tag "App" -Pattern "BrowseViewModel|SMB|Player"
   ```
@@ -399,7 +399,7 @@ Key tags to watch for in this project:
 
 - Always start with **file metadata**: path, size, time range, total/app-only line count.
 - Use a **findings table** for grouped results (tag | count | level | sample message).
-- Every output line includes a **line number** `[  NNN]` — reference it when quoting log lines (e.g. "line 344").
+- Every output line includes a **line number** `[  NNN]` - reference it when quoting log lines (e.g. "line 344").
 - For crashes: reproduce the **full stack trace** inline (not truncated).
 - For large results: show first N, summarise the rest ("… and X more similar lines").
 - End each analysis with a **1–3 line verdict**: what is healthy, what needs attention.
@@ -464,6 +464,6 @@ Key tags to watch for in this project:
 
 Available log locations:
 
-- `logs/current.log` — most recent session (primary)
-- `temp/current.log` — fallback copy
-- `temp/fastmediasorter_YYYYMMDD_HHmmss.log` — timestamped archives
+- `logs/current.log` - most recent session (primary)
+- `temp/current.log` - fallback copy
+- `temp/fastmediasorter_YYYYMMDD_HHmmss.log` - timestamped archives

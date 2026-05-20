@@ -12,45 +12,18 @@
     app:cardElevation="2dp"
     app:cardCornerRadius="8dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvGroupSize"
-            android:layout_width="0dp"
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerGroup"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/ivExpand"
-            tools:text="14.5 MB" />
-
-        <TextView
-            android:id="@+id/tvGroupCount"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody2"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginTop="4dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvGroupSize"
-            app:layout_constraintEnd_toStartOf="@id/ivExpand"
-            tools:text="3 files" />
-
-        <ImageView
-            android:id="@+id/ivExpand"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:scaleType="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/cd_expand_group"
-            app:srcCompat="@drawable/ic_expand_more"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:csh_showHelp="false"
+            tools:csh_title="14.5 MB - 3 files" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvFiles"
@@ -59,8 +32,7 @@
             android:layout_marginTop="12dp"
             android:visibility="gone"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/tvGroupCount"
             tools:listitem="@layout/item_duplicate_file" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * applications in the same session are silent.
  *
  * Session boundary is defined by [resetForNewSession] (called by [com.sza.fastmediasorter.ui.player.VideoPlayerManager]
- * when a new media file starts loading). Image-side callers do not reset the flag — they
+ * when a new media file starts loading). Image-side callers do not reset the flag - they
  * share the same one-shot semantics as video.
  *
  * Lifecycle: held by PlayerActivity / StandalonePlayerActivity for the duration of the
@@ -30,11 +30,11 @@ class PanelStereoSingleEyeNotifier {
 
     /**
      * Show the localized toast if this is the first crop application in the current session.
-     * Idempotent — additional calls in the same session are silent.
+     * Idempotent - additional calls in the same session are silent.
      */
     fun notifyIfFirstThisSession(context: Context) {
         if (toasted.compareAndSet(false, true)) {
-            Timber.d("PanelStereoSingleEyeNotifier: first crop application this session — showing toast")
+            Timber.d("PanelStereoSingleEyeNotifier: first crop application this session - showing toast")
             Timber.d("VR_AUDIT/11: panel single-eye crop applied (first-this-session toast shown)")
             val appContext = context.applicationContext
             mainHandler.post {
@@ -53,7 +53,7 @@ class PanelStereoSingleEyeNotifier {
      */
     fun resetForNewSession() {
         if (toasted.getAndSet(false)) {
-            Timber.d("PanelStereoSingleEyeNotifier: session reset — toast will fire on next crop application")
+            Timber.d("PanelStereoSingleEyeNotifier: session reset - toast will fire on next crop application")
         }
     }
 }

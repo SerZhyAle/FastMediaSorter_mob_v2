@@ -5,7 +5,6 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import timber.log.Timber
 
 /**
  * S0189 (Phase 09): default [EditorActionPanel] implementation.
@@ -15,7 +14,7 @@ import timber.log.Timber
  *
  * The host view is normally the editor toolbar that owns the buttons; the tint serves as
  * a single, very visible "you have unsaved changes" indicator. Dirty state is observed via
- * the caller-supplied [isDirty] flow — the binder is content-agnostic.
+ * the caller-supplied [isDirty] flow - the binder is content-agnostic.
  */
 class EditorActionPanelBinder(
     private val buttons: EditorActionButtons,
@@ -30,7 +29,6 @@ class EditorActionPanelBinder(
     private val tinter = DirtyToolbarTinter(hostView, cleanColor, dirtyColor)
 
     override fun setup(callbacks: EditorActionCallbacks) {
-        Timber.d("S0189: EditorActionPanelBinder.setup")
         buttons.save.setOnClickListener { callbacks.onSave() }
         buttons.saveClose.setOnClickListener { callbacks.onSaveAndClose() }
         buttons.saveSend.setOnClickListener { callbacks.onSaveAndSend() }
@@ -45,7 +43,7 @@ class EditorActionPanelBinder(
     }
 
     override fun onEnterEditMode() {
-        // No-op for the binder itself — content-specific tracker bookkeeping happens
+        // No-op for the binder itself - content-specific tracker bookkeeping happens
         // in the caller. Reserved so future editors can clear residual tint state here.
         tinter.resetToClean()
     }

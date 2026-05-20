@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Default Player page — landscape variant.
+<!-- Default Player page - landscape variant.
      Keep two-column UX: instructions on the left, action buttons on the right.
      Left side is scrollable so text remains readable on short screens. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

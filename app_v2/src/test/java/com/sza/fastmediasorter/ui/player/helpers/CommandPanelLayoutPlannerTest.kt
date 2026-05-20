@@ -82,7 +82,7 @@ class CommandPanelLayoutPlannerTest {
 
     @Test
     fun `single overflow-only command keeps overflow button visible`() {
-        // SLEEP_TIMER is barCapable=false — must NOT be promoted.
+        // SLEEP_TIMER is barCapable=false - must NOT be promoted.
         val result = planWith(listOf(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
 
         assertTrue(

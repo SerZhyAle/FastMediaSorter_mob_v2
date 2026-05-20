@@ -143,8 +143,8 @@ object KpiAlertChecker {
 
         alerts.forEach { alert ->
             when (alert.severity) {
-                KpiSeverity.FAIL -> Timber.e("KpiAlert FAIL — ${alert.kpi}: ${alert.message}")
-                KpiSeverity.WARN -> Timber.w("KpiAlert WARN — ${alert.kpi}: ${alert.message}")
+                KpiSeverity.FAIL -> Timber.e("KpiAlert FAIL - ${alert.kpi}: ${alert.message}")
+                KpiSeverity.WARN -> Timber.w("KpiAlert WARN - ${alert.kpi}: ${alert.message}")
                 KpiSeverity.OK   -> { /* no-op */ }
             }
         }
@@ -176,10 +176,10 @@ enum class KpiSeverity {
     /** KPI is within acceptable range. */
     OK,
 
-    /** KPI exceeded WARN threshold — investigate. */
+    /** KPI exceeded WARN threshold - investigate. */
     WARN,
 
-    /** KPI exceeded FAIL threshold — action required. */
+    /** KPI exceeded FAIL threshold - action required. */
     FAIL
 }
 

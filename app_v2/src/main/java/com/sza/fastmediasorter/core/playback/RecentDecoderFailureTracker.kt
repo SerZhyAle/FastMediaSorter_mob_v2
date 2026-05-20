@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.core.playback
 /**
  * Cooldown tracker for video sources that recently failed with a decoder error.
  *
- * Used by S0213 §5.1 Pillar A — keeps a short in-memory window after a MediaCodec / FFmpeg
+ * Used by S0213 §5.1 Pillar A - keeps a short in-memory window after a MediaCodec / FFmpeg
  * decoder failure so that the player does not immediately re-create heavy native graphs for the
  * same source. Cooldown lifetime is bounded by [DECODER_COOLDOWN_MS]; entries are also cleared
  * on the next successful playback of any source via [clearAll].

@@ -17,9 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import io.documentnode.epub4j.domain.Book
-import io.documentnode.epub4j.domain.Resource
 import io.documentnode.epub4j.epub.EpubReader
-import org.jsoup.Jsoup
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -59,7 +57,7 @@ class EpubViewerManager(
     private var currentBook: Book? = null
     private var currentChapterIndex = 0
     // S0196 Phase 04: one-shot tag emitted when the first EPUB chapter finishes loading in
-    // the WebView — "primary content rendered" for the StandalonePlayer docs branch.
+    // the WebView - "primary content rendered" for the StandalonePlayer docs branch.
     private var firstChapterRenderedLogged = false
     var chapterCount = 0
     private var currentEpubFile: File? = null
@@ -82,7 +80,7 @@ class EpubViewerManager(
     // Fullscreen mode state
     private var isFullscreenMode = false
 
-    // Settings loading gate — await before first chapter render (C-3 fix)
+    // Settings loading gate - await before first chapter render (C-3 fix)
     private val settingsReady = CompletableDeferred<Unit>()
 
     // WebView for HTML rendering
@@ -93,8 +91,9 @@ class EpubViewerManager(
 
     // TTS Read Aloud delegate
     private val ttsDelegate = EpubTtsDelegate(binding.root.context)
+    private val resourceContentHelper = EpubResourceContentHelper()
 
-    // Translation overlay delegate (extracted from this class — S0002 Wave 42)
+    // Translation overlay delegate (extracted from this class - S0002 Wave 42)
     private val translationHelper = EpubTranslationOverlayHelper(
         binding = binding,
         safeViews = safeViews,
@@ -106,7 +105,7 @@ class EpubViewerManager(
         updateTranslateButtonIcon = ::updateTranslateButtonIcon
     )
 
-    // Search + TOC delegate (extracted from this class — S0002 Wave 42)
+    // Search + TOC delegate (extracted from this class - S0002 Wave 42)
     private val searchAndTocPresenter = EpubSearchAndTocPresenter(
         binding = binding,
         coroutineScope = coroutineScope,
@@ -226,7 +225,7 @@ class EpubViewerManager(
                     } else if (!isHorizontalSwipe && kotlin.math.abs(diffY) > 100 && kotlin.math.abs(velocityY) > 100) {
                         // Vertical swipe: control panel visibility or exit fullscreen
                         if (diffY < 0) {
-                            // Swipe up — show controls if not in fullscreen
+                            // Swipe up - show controls if not in fullscreen
                             if (!isFullscreenMode) {
                                 safeViews.epubControlsLayout.isVisible = true
                                 Timber.d("EPUB: Controls shown via swipe up")
@@ -262,7 +261,7 @@ class EpubViewerManager(
      * Display EPUB file in WebView
      */
     fun displayEpub(mediaFile: MediaFile) {
-        // Reset views — hide all other media viewers
+        // Reset views - hide all other media viewers
         binding.imageView.isVisible = false
         binding.photoView.isVisible = false
         binding.playerView.isVisible = false
@@ -374,7 +373,7 @@ class EpubViewerManager(
 
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            // DON'T hide progressBar here — WebViewClient will handle it after loading
+                            // DON'T hide progressBar here - WebViewClient will handle it after loading
 
                             if (chapterCount > 0) {
                                 showChapter(startChapter)
@@ -439,7 +438,18 @@ class EpubViewerManager(
                 val resource = spineRef.resource
 
                 val htmlContent = resource.data.toString(Charsets.UTF_8)
-                val processedHtml = preprocessHtml(htmlContent, resource)
+                val processedHtml = resourceContentHelper.preprocessHtml(
+                    htmlContent = htmlContent,
+                    resource = resource,
+                    book = currentBook,
+                    style = EpubResourceContentHelper.ReaderStyle(
+                        theme = currentReaderTheme,
+                        fontSizePx = currentFontSize,
+                        fontFamily = currentFontFamily,
+                        lineHeight = currentLineHeight,
+                        horizontalPaddingPx = currentHorizontalMargin
+                    )
+                )
 
                 withContext(Dispatchers.Main) {
                     // Load into WebView (getOrCreateWebView ensures it is initialised and
@@ -483,209 +493,6 @@ class EpubViewerManager(
                 }
             }
         }
-    }
-
-    /**
-     * Preprocess HTML content: inject custom CSS, sync theme, handle images
-     */
-    private suspend fun preprocessHtml(htmlContent: String, resource: Resource): String {
-        val doc = Jsoup.parse(htmlContent)
-
-        // Remove script tags to prevent XSS from untrusted EPUB content (M-6 fix)
-        doc.select("script").remove()
-
-        // Inject trusted selection-bridge script (our own JS, not from EPUB)
-        doc.body()?.append(
-            """<script>
-               document.addEventListener('selectionchange', function() {
-                   if (typeof EpubSelectionBridge !== 'undefined') {
-                       EpubSelectionBridge.onSelectionChanged(window.getSelection().toString());
-                   }
-               });
-               </script>"""
-        )
-
-        val css = EpubStyleManager.generateCss(
-            theme = currentReaderTheme,
-            fontSizePx = currentFontSize,
-            fontFamily = currentFontFamily,
-            lineHeight = currentLineHeight,
-            horizontalPaddingPx = currentHorizontalMargin
-        )
-        doc.head().prepend(css)
-
-        // Handle embedded images — extract from EPUB and convert to base64 data URIs
-        val book = currentBook
-        if (book != null) {
-            val images = doc.select("img")
-            Timber.d("EPUB: Found ${images.size} <img> tags in chapter")
-
-            for (img in images) {
-                val src = img.attr("src")
-                if (src.isNotBlank() && !src.startsWith("data:") && !src.startsWith("http")) {
-                    convertResourceToDataUri(img, "src", src, resource, book)
-                }
-            }
-
-            // Also handle background images in style attributes
-            val elementsWithStyle = doc.select("[style*=url]")
-            Timber.d("EPUB: Found ${elementsWithStyle.size} elements with background-image in style")
-
-            for (element in elementsWithStyle) {
-                val style = element.attr("style")
-                if (style.contains("url(") && !style.contains("data:")) {
-                    val urlStart = style.indexOf("url(") + 4
-                    val urlEnd = style.indexOf(")", urlStart)
-                    if (urlEnd > urlStart) {
-                        val url = style.substring(urlStart, urlEnd).trim('\'', '"', ' ')
-                        if (url.isNotBlank() && !url.startsWith("data:") && !url.startsWith("http")) {
-                            val imageResource = findImageResource(url, resource, book)
-                            if (imageResource != null) {
-                                val imageData = imageResource.data
-                                val base64 = android.util.Base64.encodeToString(imageData, android.util.Base64.NO_WRAP)
-                                val mimeType = imageResource.mediaType?.name ?: "image/jpeg"
-                                val dataUri = "data:$mimeType;base64,$base64"
-                                val newStyle = style.replace("url($url)", "url($dataUri)")
-                                element.attr("style", newStyle)
-                                Timber.d("EPUB: Converted background-image '$url' to data URI")
-                            } else {
-                                Timber.w("EPUB: Background image not found: $url")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return doc.html()
-    }
-
-    /**
-     * Convert image resource to data URI and set it to element attribute
-     */
-    private fun convertResourceToDataUri(
-        element: org.jsoup.nodes.Element,
-        attrName: String,
-        src: String,
-        baseResource: Resource,
-        book: Book
-    ) {
-        try {
-            val imageResource = findImageResource(src, baseResource, book)
-
-            if (imageResource != null) {
-                val imageData = imageResource.data
-                val base64 = android.util.Base64.encodeToString(imageData, android.util.Base64.NO_WRAP)
-                val mimeType = imageResource.mediaType?.name ?: "image/jpeg"
-                val dataUri = "data:$mimeType;base64,$base64"
-                element.attr(attrName, dataUri)
-                Timber.d("EPUB: Converted image '$src' to data URI (${imageData.size} bytes, mime=$mimeType)")
-            } else {
-                Timber.w("EPUB: Image resource not found after all attempts: original='$src'")
-                if (src.contains("cover", ignoreCase = true)) {
-                    val imageResources = book.resources.all.filter { it.mediaType?.name?.startsWith("image/") == true }
-                    Timber.w("EPUB: Available images in EPUB: ${imageResources.map { it.href }.joinToString()}")
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "EPUB: Failed to process image '$src'")
-        }
-    }
-
-    /**
-     * Find image resource using multiple fallback strategies
-     */
-    private fun findImageResource(src: String, baseResource: Resource, book: Book): Resource? {
-        val resourceHref = resolveResourcePath(baseResource.href, src)
-        Timber.d("EPUB: Resolving image - original='$src', base='${baseResource.href}', resolved='$resourceHref'")
-
-        var imageResource = book.resources.getByHref(resourceHref)
-
-        if (imageResource == null) {
-            imageResource = book.resources.getByHref(src)
-            if (imageResource != null) Timber.d("EPUB: Found image by original path '$src'")
-        }
-
-        if (imageResource == null) {
-            val simplePath = src.trimStart('/', '.')
-            imageResource = book.resources.getByHref(simplePath)
-            if (imageResource != null) Timber.d("EPUB: Found image by simple path '$simplePath'")
-        }
-
-        if (imageResource == null) {
-            val filename = src.substringAfterLast('/')
-            for (res in book.resources.all) {
-                if (res.href.endsWith(filename)) {
-                    imageResource = res
-                    Timber.d("EPUB: Found image by filename match '${res.href}'")
-                    break
-                }
-            }
-        }
-
-        return imageResource
-    }
-
-    /**
-     * Find image resource by path from WebView request.
-     * Used by shouldInterceptRequest to serve images from EPUB.
-     */
-    private fun findImageResourceByPath(path: String, book: Book): Resource? {
-        var resource = book.resources.getByHref(path)
-        if (resource != null) {
-            Timber.d("EPUB: Found resource by exact path '$path'")
-            return resource
-        }
-
-        val pathWithoutSlash = path.trimStart('/')
-        resource = book.resources.getByHref(pathWithoutSlash)
-        if (resource != null) {
-            Timber.d("EPUB: Found resource by path without slash '$pathWithoutSlash'")
-            return resource
-        }
-
-        val commonPrefixes = listOf("OEBPS/", "OPS/", "EPUB/", "")
-        for (prefix in commonPrefixes) {
-            resource = book.resources.getByHref(prefix + pathWithoutSlash)
-            if (resource != null) {
-                Timber.d("EPUB: Found resource with prefix '$prefix$pathWithoutSlash'")
-                return resource
-            }
-        }
-
-        val filename = path.substringAfterLast('/')
-        for (res in book.resources.all) {
-            if (res.href.endsWith(filename)) {
-                Timber.d("EPUB: Found resource by filename match '${res.href}' for request '$path'")
-                return res
-            }
-        }
-
-        return null
-    }
-
-    /**
-     * Resolve relative resource path from HTML content.
-     * Example: base="OEBPS/Text/chapter01.xhtml", relative="../Images/pic.jpg" -> "OEBPS/Images/pic.jpg"
-     */
-    private fun resolveResourcePath(baseHref: String, relativePath: String): String {
-        val cleaned = relativePath.removePrefix("./")
-
-        if (!baseHref.contains("/")) return cleaned
-
-        val baseParts = baseHref.split("/").dropLast(1)
-        val relativeParts = cleaned.split("/")
-        val resolvedParts = baseParts.toMutableList()
-
-        for (part in relativeParts) {
-            when (part) {
-                ".." -> if (resolvedParts.isNotEmpty()) resolvedParts.removeAt(resolvedParts.size - 1)
-                "."  -> { /* skip current directory marker */ }
-                else -> resolvedParts.add(part)
-            }
-        }
-
-        return resolvedParts.joinToString("/")
     }
 
     // ── Chapter indicator and navigation dialogs ─────────────────────────────
@@ -801,7 +608,7 @@ class EpubViewerManager(
 
     // ── Fullscreen mode ───────────────────────────────────────────────────────
 
-    /** Enter fullscreen mode — hide controls and show exit button */
+    /** Enter fullscreen mode - hide controls and show exit button */
     fun enterFullscreenMode() {
         isFullscreenMode = true
         callback.onEnterFullscreenMode()
@@ -810,7 +617,7 @@ class EpubViewerManager(
         Timber.d("EPUB: Entered fullscreen mode")
     }
 
-    /** Exit fullscreen mode — show controls and hide exit button */
+    /** Exit fullscreen mode - show controls and hide exit button */
     fun exitFullscreenMode() {
         isFullscreenMode = false
         callback.onExitFullscreenMode()
@@ -879,24 +686,7 @@ class EpubViewerManager(
                     Timber.d("EPUB: Intercepting request for asset: $resourcePath")
                     val book = currentBook
                     if (book != null) {
-                        val imageResource = findImageResourceByPath(resourcePath, book)
-                        if (imageResource != null) {
-                            try {
-                                val imageData = imageResource.data
-                                val mimeType = imageResource.mediaType?.name ?: "image/jpeg"
-                                val inputStream = java.io.ByteArrayInputStream(imageData)
-                                Timber.d("EPUB: Serving intercepted asset '$resourcePath' from EPUB (${imageData.size} bytes, $mimeType)")
-                                return android.webkit.WebResourceResponse(mimeType, "UTF-8", inputStream)
-                            } catch (e: Exception) {
-                                Timber.e(e, "EPUB: Error serving intercepted asset '$resourcePath'")
-                            }
-                        } else {
-                            Timber.w("EPUB: Asset '$resourcePath' not found in EPUB resources")
-                            val imageResources = book.resources.all.filter {
-                                it.mediaType?.name?.startsWith("image/") == true
-                            }
-                            Timber.w("EPUB: Available images: ${imageResources.map { it.href }.joinToString()}")
-                        }
+                        resourceContentHelper.assetResponse(resourcePath, book)?.let { return it }
                     }
                 }
                 return super.shouldInterceptRequest(view, request)
@@ -924,7 +714,7 @@ class EpubViewerManager(
         try {
             webView?.loadUrl("about:blank")
         } catch (e: SecurityException) {
-            Timber.w("EpubViewerManager: loadUrl(about:blank) denied by system (Quest/HorizonOS) — ignored")
+            Timber.w("EpubViewerManager: loadUrl(about:blank) denied by system (Quest/HorizonOS) - ignored")
         }
 
         Timber.d("EPUB: Book closed, resources released")
@@ -1071,7 +861,7 @@ class EpubViewerManager(
         sliderLineHeight.value = currentLineHeight.coerceIn(1.0f, 3.0f)
         sliderMargin.value = currentHorizontalMargin.toFloat().coerceIn(0f, 48f)
 
-        // Theme chip listeners — write to local pending vars, not to class fields (C-1 fix)
+        // Theme chip listeners - write to local pending vars, not to class fields (C-1 fix)
         val chipGroupTheme = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupTheme)
         chipGroupTheme.setOnCheckedStateChangeListener { _, checkedIds ->
             pendingTheme = when {
@@ -1083,7 +873,7 @@ class EpubViewerManager(
             }
         }
 
-        // Font chip listeners — write to local pending vars (C-1 fix)
+        // Font chip listeners - write to local pending vars (C-1 fix)
         val chipGroupFont = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupFont)
         chipGroupFont.setOnCheckedStateChangeListener { _, checkedIds ->
             pendingFontFamily = when {
@@ -1093,7 +883,7 @@ class EpubViewerManager(
             }
         }
 
-        // Font size buttons — use pending var (C-1 fix)
+        // Font size buttons - use pending var (C-1 fix)
         btnFontDecrease.setOnClickListener {
             if (pendingFontSize > MIN_FONT_SIZE) {
                 pendingFontSize -= 2
@@ -1122,7 +912,7 @@ class EpubViewerManager(
                 saveReaderSettings()
                 reloadCurrentChapter()
 
-                Timber.d("EPUB: Reader settings applied — theme=${currentReaderTheme.name}, font=$currentFontFamily, size=$currentFontSize, lh=$currentLineHeight, margin=$currentHorizontalMargin")
+                Timber.d("EPUB: Reader settings applied - theme=${currentReaderTheme.name}, font=$currentFontFamily, size=$currentFontSize, lh=$currentLineHeight, margin=$currentHorizontalMargin")
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -1152,12 +942,12 @@ class EpubViewerManager(
         }
     }
 
-    // ── TOC — delegated to EpubSearchAndTocPresenter ─────────────────────────
+    // ── TOC - delegated to EpubSearchAndTocPresenter ─────────────────────────
 
     /** Show Table of Contents dialog for quick chapter navigation */
     fun showTableOfContents() = searchAndTocPresenter.showTableOfContents()
 
-    // ── Search — delegated to EpubSearchAndTocPresenter ──────────────────────
+    // ── Search - delegated to EpubSearchAndTocPresenter ──────────────────────
 
     /**
      * Search for text in current EPUB chapter using WebView's built-in search.
@@ -1181,7 +971,7 @@ class EpubViewerManager(
     /** Clear search highlighting in WebView */
     fun clearSearch() = searchAndTocPresenter.clearSearch()
 
-    // ── Translation — delegated to EpubTranslationOverlayHelper ──────────────
+    // ── Translation - delegated to EpubTranslationOverlayHelper ──────────────
 
     /**
      * Toggle translation on/off for current chapter.
@@ -1217,7 +1007,7 @@ class EpubViewerManager(
         ) { result ->
             if (result == null || result == "null" || result.trim().isEmpty() || result.trim() == "\"\"") {
                 Timber.d("EPUB OCR: No text extracted")
-                // Show toast directly: user-initiated action — ToastThrottler cooldown must not suppress it
+                // Show toast directly: user-initiated action - ToastThrottler cooldown must not suppress it
                 android.widget.Toast.makeText(
                     binding.root.context,
                     binding.root.context.getString(R.string.translation_error_no_text),
@@ -1273,7 +1063,7 @@ class EpubViewerManager(
                 )
 
                 withContext(Dispatchers.Main) {
-                    // Clear any tint before setting custom drawable — tinting with a solid
+                    // Clear any tint before setting custom drawable - tinting with a solid
                     // colour destroys the LanguageBadgeDrawable text (badge → solid block).
                     binding.btnTranslateEpubCmd.imageTintList = null
                     binding.btnTranslateEpubCmd.setImageDrawable(languageBadge)

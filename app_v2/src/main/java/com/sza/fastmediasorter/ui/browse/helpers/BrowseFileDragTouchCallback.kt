@@ -8,7 +8,7 @@ import timber.log.Timber
 
 /**
  * ItemTouchHelper.Callback for drag-to-reorder in MANUAL sort mode.
- * Drag is initiated only via the drag handle view — long-press drag is disabled.
+ * Drag is initiated only via the drag handle view - long-press drag is disabled.
  * [onDragComplete] is called with the final ordered paths when drag ends.
  */
 class BrowseFileDragTouchCallback(
@@ -43,7 +43,7 @@ class BrowseFileDragTouchCallback(
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        // Swipe disabled — no-op
+        // Swipe disabled - no-op
     }
 
     override fun isLongPressDragEnabled(): Boolean = false

@@ -44,7 +44,7 @@ $yoMap = [ordered]@{
     'найдет'     = 'найдёт'
     'называет'   = 'называет'   # no ё
     'несет'      = 'несёт'
-    'нет'        = 'нет'        # skip — ambiguous
+    'нет'        = 'нет'        # skip - ambiguous
     'отдает'     = 'отдаёт'
     'передает'   = 'передаёт'
     'пишет'      = 'пишет'      # no ё
@@ -115,7 +115,7 @@ $yoMap = [ordered]@{
     'темные'     = 'тёмные'
     'темно'      = 'тёмно'
     'темнота'    = 'тёмнота'
-    'темнее'     = 'темнее'     # no ё — this is comparative, keep
+    'темнее'     = 'темнее'     # no ё - this is comparative, keep
     'тяжелый'    = 'тяжёлый'
     'тяжелая'    = 'тяжёлая'
     'тяжелые'    = 'тяжёлые'
@@ -130,7 +130,7 @@ $yoMap = [ordered]@{
 
     # Pronouns / particles
     'все'        = 'всё'
-    'всего'      = 'всего'      # ambiguous: всего (genitive) vs всё — skip auto
+    'всего'      = 'всего'      # ambiguous: всего (genitive) vs всё - skip auto
     'ее'         = 'её'
     'её'         = 'её'         # already correct
     'мое'        = 'моё'
@@ -139,7 +139,7 @@ $yoMap = [ordered]@{
     'свое'       = 'своё'
     'твоем'      = 'твоём'
     'твое'       = 'твоё'
-    'чем'        = 'чем'        # skip — ambiguous (instrumental)
+    'чем'        = 'чем'        # skip - ambiguous (instrumental)
     'что'        = 'что'        # no ё
 
     # Common in app context
@@ -188,7 +188,7 @@ foreach ($p in $Paths) {
     if ($raw -eq $updated) {
         Write-Host "[no change] $p"
     } elseif ($DryRun) {
-        Write-Host "[dry-run]   $p — changes detected"
+        Write-Host "[dry-run]   $p - changes detected"
     } else {
         [System.IO.File]::WriteAllText($p, $updated, [System.Text.UTF8Encoding]::new($false))
         Write-Host "[done]      $p"

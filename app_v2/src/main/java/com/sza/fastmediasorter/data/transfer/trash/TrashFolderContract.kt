@@ -50,7 +50,7 @@ object TrashFolderContract {
 
     /**
      * Return true when [name] equals the canonical container directory name.
-     * Strictly literal — does NOT match the legacy "`.trash_<ts>`" pattern.
+     * Strictly literal - does NOT match the legacy "`.trash_<ts>`" pattern.
      */
     fun isContainerDir(name: String): Boolean {
         return name == CONTAINER_NAME
@@ -66,7 +66,7 @@ object TrashFolderContract {
 
     /**
      * Return true when [name] follows the legacy "`.trash_<ts>`" pattern.
-     * Used by cleaner migration logic only — never write directories that match this.
+     * Used by cleaner migration logic only - never write directories that match this.
      */
     fun isLegacyContainerDir(name: String): Boolean {
         return name.startsWith(LEGACY_PREFIX)

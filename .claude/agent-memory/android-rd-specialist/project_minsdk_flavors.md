@@ -1,6 +1,6 @@
 ---
 name: minsdk-flavors
-description: minSdk and compileSdk values per flavor — avoids re-reading TECH_REQUIREMENTS.md for basic version queries
+description: minSdk and compileSdk values per flavor - avoids re-reading TECH_REQUIREMENTS.md for basic version queries
 metadata:
   type: project
 ---
@@ -18,6 +18,6 @@ Build baseline values (source of truth: `app_v2/build.gradle.kts`, `gradle/libs.
 
 **Why:** These values are constant per flavor but buried in TECH_REQUIREMENTS.md (26 KB). Pre-caching avoids a large file read on every build/flavor question.
 
-**How to apply:** For quick minSdk/compileSdk queries, use these values directly. Verify against `app_v2/build.gradle.kts` before answering questions about flavor support gaps or minSdk bumps — this memory may lag behind a version bump.
+**How to apply:** For quick minSdk/compileSdk queries, use these values directly. Verify against `app_v2/build.gradle.kts` before answering questions about flavor support gaps or minSdk bumps - this memory may lag behind a version bump.
 
 Related: [[build-gotchas]]

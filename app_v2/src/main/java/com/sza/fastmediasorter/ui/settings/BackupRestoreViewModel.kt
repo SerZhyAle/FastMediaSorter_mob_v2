@@ -71,7 +71,7 @@ class BackupRestoreViewModel @Inject constructor(
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val exportFavoritesUseCase: ExportFavoritesUseCase,
     private val importFavoritesUseCase: ImportFavoritesUseCase,
-    // S0200 Phase 04b — direct identity-domain access for the new sign-in path.
+    // S0200 Phase 04b - direct identity-domain access for the new sign-in path.
     private val identityRepository: GoogleIdentityRepository
 ) : ViewModel() {
 

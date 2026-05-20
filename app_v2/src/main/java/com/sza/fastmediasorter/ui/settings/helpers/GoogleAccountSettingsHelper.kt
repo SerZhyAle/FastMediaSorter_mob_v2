@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * S0200 Phase 06 — wires the "Google Account" Settings card to its ViewModel.
+ * S0200 Phase 06 - wires the "Google Account" Settings card to its ViewModel.
  *
  * Binds card children to the [GoogleAccountSettingsViewModel.uiState] Flow, dispatches
  * action button clicks, shows the sign-out confirmation dialog, renders the diagnostics line.
@@ -186,7 +186,7 @@ class GoogleAccountSettingsHelper(
             .show()
     }
 
-    // S0234: per-reason action click — PlayServicesOutdated routes to Play Store,
+    // S0234: per-reason action click - PlayServicesOutdated routes to Play Store,
     // everything else retries signInPrimary (Decision D1).
     private fun handleErrorAction(reason: IdentityFailureReason) {
         when (reason) {

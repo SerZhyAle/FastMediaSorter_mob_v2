@@ -80,7 +80,7 @@ class SaveTextNoteUseCase @Inject constructor(
 
             } else {
                 // Network-staged save: rewrite local staging file, then upload via Copy.
-                // The staging file may not exist yet (deferred creation) — writeText below
+                // The staging file may not exist yet (deferred creation) - writeText below
                 // creates it before the upload step.
                 val stagingDir = currentLocalFile.parentFile
                     ?: return Result.failure(IllegalStateException("Staging dir is null"))

@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
+import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
@@ -31,7 +33,14 @@ class SftpDataSource(
     private val context: Context
 ) : BaseDataSource(true) {
 
-    // Connection from pool — DO NOT close; lifecycle managed by SftpClient pool
+    companion object {
+        // IdleDisconnectPolicy expires SFTP transports after 30s. Long-running playback reads can
+        // stream continuously without re-entering SftpClient, so refresh the timer from the active
+        // DataSource before it falsely invalidates a live ExoPlayer transport.
+        private const val PLAYBACK_IDLE_HEARTBEAT_MS = 15_000L
+    }
+
+    // Connection from pool - DO NOT close; lifecycle managed by SftpClient pool
     private var session: Session? = null
     private var channel: ChannelSftp? = null
 
@@ -47,6 +56,7 @@ class SftpDataSource(
     private var openPosition: Long = 0L        // absolute file offset when open() was called
     private var connectionAcquired = false
     private var channelBroken: Boolean = false
+    private var lastPlaybackTouchMs = 0L
 
     override fun open(dataSpec: DataSpec): Long {
         if (!PermissionHelper.hasLocalNetworkPermission(context)) {
@@ -77,7 +87,7 @@ class SftpDataSource(
         } catch (e: Exception) {
             val isJSchEx = generateSequence<Throwable>(e) { it.cause }.any { it is JSchException }
             if (isJSchEx && connectionAcquired) {
-                Timber.d("SftpDataSource: retrying open() after JSchException — ${e.cause?.message}")
+                Timber.d("SftpDataSource: retrying open() after JSchException - ${e.cause?.message}")
                 // Release broken connection before retry
                 val brokenCh = channel
                 channel = null; session = null
@@ -93,7 +103,7 @@ class SftpDataSource(
                     val encodedPath = uri?.encodedPath ?: throw IOException("SFTP retry: URI unavailable")
                     return attemptOpen(channel!!, Uri.decode(encodedPath), dataSpec)
                 } catch (retryEx: Exception) {
-                    // Retry failed — rethrow original exception to preserve ExoPlayer's error code
+                    // Retry failed - rethrow original exception to preserve ExoPlayer's error code
                     if (connectionAcquired) channelBroken = true
                     Timber.e(e, "SftpDataSource: Error opening SFTP file (retry also failed)")
                     close()
@@ -129,6 +139,7 @@ class SftpDataSource(
         openPosition = position
         readCallCount = 0L
         openTimeMs = System.currentTimeMillis()
+        lastPlaybackTouchMs = openTimeMs
         transferStarted(dataSpec)
         Timber.d("SftpDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength")
         return if (bytesRemaining == C.LENGTH_UNSET.toLong()) fileLength else bytesRemaining
@@ -146,15 +157,15 @@ class SftpDataSource(
         } catch (e: InterruptedIOException) {
             // ExoPlayer's Loader interrupts its worker thread on cancel/seek; JSch's
             // PipedInputStream.read() then throws InterruptedIOException. Reconnecting here is
-            // futile (acquire would also throw) — restore the interrupt flag, mark the channel
+            // futile (acquire would also throw) - restore the interrupt flag, mark the channel
             // broken so the pool evicts it, propagate without noise.
             Thread.currentThread().interrupt()
             channelBroken = true
             throw e
         } catch (e: Exception) {
-            // One transparent reconnect — same strategy as SftpClientFirstResult on SftpException 4.
+            // One transparent reconnect - same strategy as SftpClientFirstResult on SftpException 4.
             // If the reconnect also fails, propagate so ExoPlayer handles it.
-            Timber.w("SftpDataSource: transient read error, reconnecting — ${e.message}")
+            Timber.w("SftpDataSource: transient read error, reconnecting - ${e.message}")
             try {
                 reconnectStream(openPosition + totalBytesRead)
                 inputStream!!.read(buffer, offset, bytesToRead)
@@ -174,6 +185,7 @@ class SftpDataSource(
         if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
             bytesRemaining -= bytesRead.toLong()
         }
+        maybeTouchPlaybackTransport()
         bytesTransferred(bytesRead)
         return bytesRead
     }
@@ -182,28 +194,39 @@ class SftpDataSource(
 
     override fun close() {
         uri = null
+        lastPlaybackTouchMs = 0L
 
-        // Only close the InputStream — session and channel are managed by the pool
+        // Only close the InputStream - session and channel are managed by the pool
         val wasAlreadyBroken = channelBroken
         try {
             inputStream?.close()
         } catch (e: InterruptedIOException) {
             // ExoPlayer's Loader interrupts its worker thread on cancel/seek; JSch's
             // PipedInputStream.read() inside _sendCLOSE then throws this. Channel state
-            // is undefined after a half-finished CLOSE — return it to the pool as broken.
+            // is undefined after a half-finished CLOSE - return it to the pool as broken.
             channelBroken = true
             Thread.currentThread().interrupt()
             Timber.d("SftpDataSource: InputStream close interrupted by ExoPlayer cancel")
         } catch (e: Exception) {
             channelBroken = true
-            // Pipe closed / similar are expected cascades when the channel already broke in read()
-            if (wasAlreadyBroken) Timber.d("SftpDataSource: InputStream close failed (channel already broken)")
-            else Timber.e(e, "SftpDataSource: Error closing InputStream")
+            val failure = SftpOperationFailure.fromStreamCloseThrowable(
+                throwable = e,
+                channelAlreadyBroken = wasAlreadyBroken,
+                streamWasOpen = opened,
+            )
+            if (failure.category == SftpFailureCategory.EXPECTED_STREAM_CLOSE) {
+                Timber.d("S0252: SftpDataSource expected-close branch hit")
+                Timber.d(
+                    "SftpDataSource: expected InputStream close outcome (${failure.originalMessage})"
+                )
+            } else {
+                Timber.e(e, "SftpDataSource: Error closing InputStream")
+            }
         } finally {
             inputStream = null
         }
 
-        // DO NOT close session or channel — they are pooled!
+        // DO NOT close session or channel - they are pooled!
         val released = channel
         channel = null
         session = null
@@ -220,8 +243,20 @@ class SftpDataSource(
 
         val elapsedMs = System.currentTimeMillis() - openTimeMs
         Timber.d(
-            "SftpDataSource: Closed — totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
+            "SftpDataSource: Closed - totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )
+    }
+
+    private fun maybeTouchPlaybackTransport() {
+        val now = System.currentTimeMillis()
+        if (now - lastPlaybackTouchMs < PLAYBACK_IDLE_HEARTBEAT_MS) return
+        sftpClient.touchPlaybackTransport(
+            host = host,
+            port = port,
+            username = username,
+        )
+        lastPlaybackTouchMs = now
+        Timber.d("SftpDataSource: playback heartbeat refreshed idle timer")
     }
 
     /** Releases the broken connection and opens a fresh one at [resumePosition]. */

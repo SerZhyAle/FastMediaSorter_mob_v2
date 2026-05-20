@@ -6,7 +6,7 @@ package com.sza.fastmediasorter.domain.model
  * @property credentialId UUID of the credential.
  * @property credentialType Protocol type, e.g. "SMB" or "SFTP".
  * @property label Human-readable label: "server:port (username)".
- * @property status Audit status — see [CredentialStatus].
+ * @property status Audit status - see [CredentialStatus].
  * @property createdAt Epoch ms when the credential was originally stored.
  * @property eligibleForCleanup True when [status] is [CredentialStatus.ORPHANED] AND the
  *   grace period defined by [com.sza.fastmediasorter.domain.usecase.UnusedCredentialPolicy]
@@ -24,8 +24,8 @@ data class CredentialAuditEntry(
 /**
  * Audit status of a stored credential.
  *
- * - [ACTIVE]   — at least one resource references this credential.
- * - [ORPHANED] — stored but not referenced by any resource; safe to review/delete.
+ * - [ACTIVE]   - at least one resource references this credential.
+ * - [ORPHANED] - stored but not referenced by any resource; safe to review/delete.
  */
 enum class CredentialStatus {
     ACTIVE,

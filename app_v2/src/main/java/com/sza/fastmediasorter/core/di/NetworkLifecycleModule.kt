@@ -18,7 +18,7 @@ import javax.inject.Singleton
  *
  * S0195: [com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper]
  * is constructor-injected via `@Inject` and therefore needs no explicit `@Provides`
- * binding in this module. Do not add one — duplicate bindings break Hilt graph assembly.
+ * binding in this module. Do not add one - duplicate bindings break Hilt graph assembly.
  */
 @Module
 @InstallIn(SingletonComponent::class)

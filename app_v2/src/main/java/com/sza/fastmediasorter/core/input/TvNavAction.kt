@@ -6,18 +6,18 @@ package com.sza.fastmediasorter.core.input
  * Despite the historical `Tv` prefix, this hierarchy covers every non-gamepad
  * key input the app receives, grouped into three sub-families:
  *
- *  - [Nav]      — focus / page navigation: TV remote D-pad, physical keyboard.
- *  - [Media]    — media transport: car steering-wheel buttons, Bluetooth
+ *  - [Nav]      - focus / page navigation: TV remote D-pad, physical keyboard.
+ *  - [Media]    - media transport: car steering-wheel buttons, Bluetooth
  *                 car-audio remotes, wired/wireless headset hooks, Android
  *                 Auto media keys.
- *  - [Hardware] — physical device buttons: volume, mute, hardware menu /
+ *  - [Hardware] - physical device buttons: volume, mute, hardware menu /
  *                 search keys on phones, tablets, set-top boxes.
  *
  * Consumers (`BaseActivity.onTvNavigation` overrides) react to these semantic
  * actions instead of raw key codes, keeping the input-source matrix out of
  * screen logic.
  *
- * Gamepad / joystick events are NOT represented here — they continue to flow
+ * Gamepad / joystick events are NOT represented here - they continue to flow
  * through [GamepadInputManager] with its dedicated rate-limiting and analog
  * axis handling.
  */
@@ -34,10 +34,10 @@ sealed interface TvNavAction {
 
     // ── Nav ───────────────────────────────────────────────────────────────────
 
-    /** Move to next slide (DPAD_RIGHT). TAB is intentionally NOT mapped — see TvKeyRouter. */
+    /** Move to next slide (DPAD_RIGHT). TAB is intentionally NOT mapped - see TvKeyRouter. */
     data object Next : Nav
 
-    /** Move to previous slide (DPAD_LEFT). SHIFT+TAB is intentionally NOT mapped — see TvKeyRouter. */
+    /** Move to previous slide (DPAD_LEFT). SHIFT+TAB is intentionally NOT mapped - see TvKeyRouter. */
     data object Prev : Nav
 
     /** Move focus up (DPAD_UP). */

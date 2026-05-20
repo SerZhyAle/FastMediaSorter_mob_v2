@@ -59,7 +59,7 @@ class DualSurfaceStaticImageRenderer(
     private var currentTarget: RenderTarget? = null
     // Stereo crop mode for 3D images; MONO = no crop (default).
     private var currentStereoMode: StereoMode = StereoMode.MONO
-    // Panel single-eye crop master toggle — see spec_panel-stereo-single-eye.
+    // Panel single-eye crop master toggle - see spec_panel-stereo-single-eye.
     // When false, stereo crop is suppressed regardless of currentStereoMode.
     // Default true; PlayerManagerInitializer overrides on first DataStore emission.
     @Volatile

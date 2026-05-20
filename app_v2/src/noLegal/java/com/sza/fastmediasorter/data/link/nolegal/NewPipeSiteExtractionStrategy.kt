@@ -167,7 +167,7 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
             .firstOrNull()
 
         if (preferredVideo != null) {
-            // S0175: Stream.url deprecated in v0.26.1 — use content (non-null) since isUrl is pre-checked by filter above.
+            // S0175: Stream.url deprecated in v0.26.1 - use content (non-null) since isUrl is pre-checked by filter above.
             val url = preferredVideo.content.takeIf { it.isNotBlank() } ?: return null
             val format = preferredVideo.format ?: return null
             return SelectedStream(
@@ -191,7 +191,7 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
             .firstOrNull()
 
         if (preferredAudio != null) {
-            // S0175: Stream.url deprecated in v0.26.1 — use content (non-null) since isUrl is pre-checked by filter above.
+            // S0175: Stream.url deprecated in v0.26.1 - use content (non-null) since isUrl is pre-checked by filter above.
             val url = preferredAudio.content.takeIf { it.isNotBlank() } ?: return null
             val format = preferredAudio.format ?: return null
             return SelectedStream(

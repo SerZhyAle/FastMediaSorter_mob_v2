@@ -16,12 +16,12 @@ import kotlin.io.path.createTempDirectory
  * Unit tests for [StereoDetector].
  *
  * Tests cover:
- * 1. Aspect-ratio heuristic — flat SBS / mono and spherical (360° mono/SBS/OU) dimensions
- * 2. Matroska metadata detection — tag values mapped to flat StereoMode
+ * 1. Aspect-ratio heuristic - flat SBS / mono and spherical (360° mono/SBS/OU) dimensions
+ * 2. Matroska metadata detection - tag values mapped to flat StereoMode
  * 3. Metadata priority over aspect ratio
- * 4. Edge cases — invalid dimensions, borderline AR values
- * 5. False-positive guard — common ultra-wide mono content
- * 6. Filename token detection — flat + spherical (360°/VR180/Cylinder) patterns
+ * 4. Edge cases - invalid dimensions, borderline AR values
+ * 5. False-positive guard - common ultra-wide mono content
+ * 6. Filename token detection - flat + spherical (360°/VR180/Cylinder) patterns
  */
 class StereoDetectorTest {
 
@@ -32,7 +32,7 @@ class StereoDetectorTest {
         detector = StereoDetector()
     }
 
-    // ── Aspect ratio heuristic — flat SBS detection ───────────────────────
+    // ── Aspect ratio heuristic - flat SBS detection ───────────────────────
 
     @Test
     fun `detectFromDimensions returns SBS_FULL for 3840x1080`() {
@@ -49,7 +49,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.SBS_FULL, detector.detectFromDimensions(2560, 720))
     }
 
-    // ── Aspect ratio heuristic — mono detection ──────────────────────────
+    // ── Aspect ratio heuristic - mono detection ──────────────────────────
 
     @Test
     fun `detectFromDimensions returns MONO for 1920x1080`() {
@@ -68,7 +68,7 @@ class StereoDetectorTest {
 
     @Test
     fun `detectFromDimensions returns MONO for ultrawide 4096x820`() {
-        // AR ≈ 4.99 — outside narrow EQUIRECT_360_SBS window (3.95..4.05) and above flat SBS max
+        // AR ≈ 4.99 - outside narrow EQUIRECT_360_SBS window (3.95..4.05) and above flat SBS max
         assertEquals(StereoMode.MONO, detector.detectFromDimensions(4096, 820))
     }
 
@@ -78,7 +78,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.MONO, detector.detectFromDimensions(1280, 1280))
     }
 
-    // ── Aspect ratio heuristic — spherical detection ─────────────────────
+    // ── Aspect ratio heuristic - spherical detection ─────────────────────
 
     @Test
     fun `detectFromDimensions returns EQUIRECT_360_MONO for 4096x2048`() {
@@ -115,9 +115,47 @@ class StereoDetectorTest {
 
     @Test
     fun `4K mono at 3840x2160 is not detected as any spherical mode`() {
-        // AR 1.778 — must not match any spherical AR window
+        // AR 1.778 - must not match any spherical AR window
         val result = detector.detectFromDimensions(3840, 2160)
         assertEquals(StereoMode.MONO, result)
+    }
+
+    // ── Aspect ratio heuristic - flat OU detection (Full-OU 8:9 stacking) ─
+
+    @Test
+    fun `detectFromDimensions returns OU for 1920x2160 (Full-OU 1080p)`() {
+        // AR = 8:9 = 0.8889. Real-world: 3D-Blu-ray Full-OU 1080p masters.
+        assertEquals(StereoMode.OU, detector.detectFromDimensions(1920, 2160))
+    }
+
+    @Test
+    fun `detectFromDimensions returns OU for 1280x1440 (Full-OU 720p)`() {
+        // AR = 8:9 = 0.8889. Smallest legitimate Full-OU master (at width floor).
+        assertEquals(StereoMode.OU, detector.detectFromDimensions(1280, 1440))
+    }
+
+    @Test
+    fun `detectFromDimensions returns OU for 3840x4320 (Full-OU 4K)`() {
+        // AR = 8:9 = 0.8889. 4K Full-OU master.
+        assertEquals(StereoMode.OU, detector.detectFromDimensions(3840, 4320))
+    }
+
+    @Test
+    fun `detectFromDimensions returns MONO for 1080x1350 (4 to 5 IG portrait)`() {
+        // AR = 0.8 - outside the flat-OU ±0.02 window around 0.8889 → must not false-positive.
+        assertEquals(StereoMode.MONO, detector.detectFromDimensions(1080, 1350))
+    }
+
+    @Test
+    fun `detectFromDimensions returns MONO for 1080x1920 (9 to 16 phone portrait)`() {
+        // AR = 0.5625 - far outside flat-OU window → must not false-positive.
+        assertEquals(StereoMode.MONO, detector.detectFromDimensions(1080, 1920))
+    }
+
+    @Test
+    fun `detectFromDimensions returns MONO for 800x900 (8 to 9 but below width floor)`() {
+        // AR = 0.8889 matches flat-OU window but width 800 < FLAT_OU_MIN_WIDTH (1280) → MONO.
+        assertEquals(StereoMode.MONO, detector.detectFromDimensions(800, 900))
     }
 
     // ── Aspect ratio edge cases ───────────────────────────────────────────
@@ -144,7 +182,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.SBS_FULL, detector.detectFromDimensions(3800, 1000))
     }
 
-    // ── Matroska metadata — mono tag ─────────────────────────────────────
+    // ── Matroska metadata - mono tag ─────────────────────────────────────
 
     @Test
     fun `detectFromFormat returns MONO when Matroska tag is 0 (mono)`() {
@@ -152,7 +190,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.MONO, detector.detectFromFormat(format))
     }
 
-    // ── Matroska metadata — SBS tags ─────────────────────────────────────
+    // ── Matroska metadata - SBS tags ─────────────────────────────────────
 
     @Test
     fun `detectFromFormat returns SBS_FULL when Matroska tag is 1 (SBS left-first)`() {
@@ -166,7 +204,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(format))
     }
 
-    // ── Matroska metadata — OU tags ──────────────────────────────────────
+    // ── Matroska metadata - OU tags ──────────────────────────────────────
 
     @Test
     fun `detectFromFormat returns OU when Matroska tag is 3 (OU left-eye-top)`() {
@@ -180,7 +218,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.OU, detector.detectFromFormat(format))
     }
 
-    // ── Matroska metadata — MVC packed ───────────────────────────────────
+    // ── Matroska metadata - MVC packed ───────────────────────────────────
 
     @Test
     fun `detectFromFormat returns SBS_HALF when Matroska tag is 13 (MVC left-first)`() {
@@ -208,7 +246,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(format))
     }
 
-    // ── Missing / unknown tag — fall back to AR ───────────────────────────
+    // ── Missing / unknown tag - fall back to AR ───────────────────────────
 
     @Test
     fun `detectFromFormat falls back to AR when tag absent`() {
@@ -234,7 +272,7 @@ class StereoDetectorTest {
 
     @Test
     fun `common cinema aspect ratios are not detected as 3D`() {
-        // 2.39:1 (Scope) — must not be SBS
+        // 2.39:1 (Scope) - must not be SBS
         assertEquals(StereoMode.MONO, detector.detectFromDimensions(2560, 1072))
         // 2.35:1 (CinemaScope)
         assertEquals(StereoMode.MONO, detector.detectFromDimensions(1920, 816))
@@ -242,7 +280,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.MONO, detector.detectFromDimensions(1920, 1038))
     }
 
-    // ── Filename — flat patterns ──────────────────────────────────────────
+    // ── Filename - flat patterns ──────────────────────────────────────────
 
     @Test
     fun `detectFromFilename SBS_FULL for explicit sbs marker`() {
@@ -267,7 +305,7 @@ class StereoDetectorTest {
 
     @Test
     fun `detectFromFilename SBS_FULL for FullSBS marker`() {
-        // "FullSBS3D" — token boundary fails on digit after "sbs", handled via contains()
+        // "FullSBS3D" - token boundary fails on digit after "sbs", handled via contains()
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFilename("Blade Runner (1080p24fpsH264FullSBS3D).mkv"))
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFilename("movie_fullsbs.mkv"))
     }
@@ -312,7 +350,7 @@ class StereoDetectorTest {
         assertEquals(StereoMode.UNKNOWN, detector.detectFromFilename("absorbs_clip.mp4"))
     }
 
-    // ── Filename — spherical patterns ─────────────────────────────────────
+    // ── Filename - spherical patterns ─────────────────────────────────────
 
     @Test
     fun `detectFromFilename EQUIRECT_360_MONO for bare 360 marker`() {
@@ -402,7 +440,7 @@ class StereoDetectorTest {
 
     @Test
     fun `detectForVideo reads st3d mode 4 as EQUIRECT_360_SBS`() {
-        // mode 4 = right-left reversed SBS — same rendering as left-right SBS
+        // mode 4 = right-left reversed SBS - same rendering as left-right SBS
         val file = createMp4WithSpatialMetadata(
             filenameSuffix = "_360",
             st3dLayout = 4,

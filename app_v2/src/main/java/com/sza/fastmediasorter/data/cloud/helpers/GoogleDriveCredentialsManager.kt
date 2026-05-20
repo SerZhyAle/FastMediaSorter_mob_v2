@@ -12,7 +12,7 @@ import javax.inject.Singleton
 /**
  * Manages Google Drive credentials storage using EncryptedSharedPreferences.
  *
- * S0200 Phase 04c: plaintext fallback removed per strategic §5.1 — Keystore failure now
+ * S0200 Phase 04c: plaintext fallback removed per strategic §5.1 - Keystore failure now
  * propagates instead of silently downgrading to unencrypted storage. The legacy
  * `serializeAccount(GoogleSignInAccount)` / `deserializeAccount` helpers are deleted; the
  * identity domain owns primary-account persistence in [PrimaryGoogleAccountStore].
@@ -32,7 +32,7 @@ class GoogleDriveCredentialsManager @Inject constructor(
 
     /**
      * EncryptedSharedPreferences only. If `EncryptedSharedPreferences.create(..)` throws,
-     * the exception propagates — no plaintext fallback (strategic §5.1).
+     * the exception propagates - no plaintext fallback (strategic §5.1).
      */
     private val prefs: SharedPreferences by lazy {
         val masterKey = MasterKey.Builder(context)
@@ -93,7 +93,7 @@ class GoogleDriveCredentialsManager @Inject constructor(
     }
 
     /**
-     * S0200 Phase 05: full wipe — clear the legacy single-account key + every per-account key.
+     * S0200 Phase 05: full wipe - clear the legacy single-account key + every per-account key.
      * Used by [S0200AuthStateWipe] on first launch after the S0200 release.
      */
     fun clearAllCredentials() {

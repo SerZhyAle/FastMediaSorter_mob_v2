@@ -19,7 +19,7 @@ import java.io.File
  * Stores the pending operation, launches OpenDocumentTree, resolves the returned SAF URI
  * to a real File path via UriPathResolver, and delegates to FileOperationsHandler.
  *
- * Modelled after BrowseFolderPickerHandler — same URI resolution and persistence flow.
+ * Modelled after BrowseFolderPickerHandler - same URI resolution and persistence flow.
  */
 class PlayerFolderPickerHandler(
     private val activity: Activity,

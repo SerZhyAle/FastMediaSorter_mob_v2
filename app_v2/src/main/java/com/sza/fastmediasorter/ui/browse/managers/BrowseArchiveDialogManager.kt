@@ -21,7 +21,7 @@ import java.util.Locale
  *
  * Owns [archiveProgressDialog] and [extractProgressDialog] lifecycle.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseArchiveDialogManager(
     private val context: Context,

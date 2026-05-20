@@ -1,20 +1,20 @@
-# Play Console Operator Checklist — S0135
+# Play Console Operator Checklist - S0135
 
 Complete this checklist in Play Console → App content / Store listing before publishing to production.
 Check each item only after the change is confirmed in the Console UI.
 
 ## A. Listing Texts (all three locales: EN / RU / UK)
 
-- [ ] Title updated — source: `store_assets/play_store_description_{locale}.txt` line 2
-- [ ] Short description updated — source: same file, line 5
-- [ ] Full description updated — source: same file, lines 8+
+- [ ] Title updated - source: `store_assets/play_store_description_{locale}.txt` line 2
+- [ ] Short description updated - source: same file, line 5
+- [ ] Full description updated - source: same file, lines 8+
 - [ ] Verify EN title reads "Fast Media Sorter & Organizer" (no `Sorter&` typo)
 
 ## B. What's New
 
-- [ ] EN What's New updated — source: `store_assets/whats_new.txt`
-- [ ] RU What's New updated — source: `store_assets/whats_new_ru.txt`
-- [ ] UK What's New updated — source: `store_assets/whats_new_uk.txt`
+- [ ] EN What's New updated - source: `store_assets/whats_new.txt`
+- [ ] RU What's New updated - source: `store_assets/whats_new_ru.txt`
+- [ ] UK What's New updated - source: `store_assets/whats_new_uk.txt`
 - [ ] No placeholder text `fix and improve` remains
 
 ## C. Graphics
@@ -28,7 +28,7 @@ Check each item only after the change is confirmed in the Console UI.
 
 ## D. App Category
 
-- [ ] Category reviewed — current: Photography. Decision: _____________
+- [ ] Category reviewed - current: Photography. Decision: _____________
   - Suggested: switch to **Productivity** (broader "file organizer" query coverage, lower competition)
   - Research: check competitor categories for Slidebox, Photo Cleaner, Magic Cleaner before deciding
   - Record final decision in strategic spec §6.2

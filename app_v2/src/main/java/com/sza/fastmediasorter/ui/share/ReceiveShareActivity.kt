@@ -115,7 +115,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         if (uri != null) {
             copyToSafFolder(uri)
         } else {
-            // Picker cancelled — re-show destination dialog so user can choose a registered destination
+            // Picker cancelled - re-show destination dialog so user can choose a registered destination
             if (cachedFiles.isNotEmpty()) showDestinationDialog()
             else cleanupAndFinish()
         }
@@ -312,7 +312,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                         this@ReceiveShareActivity,
                     ) { _, bundle ->
                         supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
-                        // S0155: use the accountId the fragment just created — avoids passing
+                        // S0155: use the accountId the fragment just created - avoids passing
                         // null when accounts went from 0→1 (root cause of the bug in on-device test).
                         val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
                         // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
@@ -323,13 +323,13 @@ class ReceiveShareActivity : AppCompatActivity() {
                 }
                 .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
                     Timber.i("[S0166] auth dismissed (no record created): type=%s host=%s", dialogType, host)
-                    // Skip for now — no dismissal recorded; offer will appear again next time the link is shared.
-                    // S0170 BUG-1: isAuthRetry=true — do not re-escalate within this share session.
+                    // Skip for now - no dismissal recorded; offer will appear again next time the link is shared.
+                    // S0170 BUG-1: isAuthRetry=true - do not re-escalate within this share session.
                     processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
                 }
                 .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
                     Timber.i("[S0166] auth dismissed with rejection record created: type=%s host=%s", dialogType, host)
-                    // S0170 BUG-1: await markDismissed before re-running the pipeline — otherwise the
+                    // S0170 BUG-1: await markDismissed before re-running the pipeline - otherwise the
                     // escalation block can read a stale isDismissedForHost() and loop once.
                     lifecycleScope.launch {
                         authSessionRepository.markDismissed(host)
@@ -343,7 +343,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     /**
      * S0161: silently pick the best saved account for [url]'s host (last-used first;
      * null if none) then run a blocking download with progress dialog. No auth picker
-     * is shown upfront — auth is offered ONLY if the download returns SocialPreviewOnly.
+     * is shown upfront - auth is offered ONLY if the download returns SocialPreviewOnly.
      */
     private fun enqueueLinkDownloadSilent(url: String) {
         val host = Uri.parse(url).host.orEmpty()
@@ -365,7 +365,7 @@ class ReceiveShareActivity : AppCompatActivity() {
      *
      * If the host is already dismissed (“don’t ask” was previously chosen), skip the
      * auth dialog and re-enqueue the download as-is. Otherwise show the 3-button auth
-     * offer immediately — bypassing the account-picker / silent-account path so the
+     * offer immediately - bypassing the account-picker / silent-account path so the
      * user always gets the chance to add or refresh credentials.
      */
     private fun handleReAuthFromNotification(url: String) {
@@ -373,7 +373,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val dismissed = host.isNotBlank() && authSessionRepository.isDismissedForHost(host)
             if (dismissed) {
-                // User previously said “don’t ask” — respect that, just re-enqueue.
+                // User previously said “don’t ask” - respect that, just re-enqueue.
                 processLinkAutoDownload(url, accountId = null)
             } else {
                 val resource = if (host.isNotBlank()) KnownAuthResources.matchHost(host) else null
@@ -403,7 +403,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         Timber.i("ReceiveShareActivity: enqueue worker url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
 
         val progressDialog = LinkAutoDownloadProgressDialog(this@ReceiveShareActivity) {
-            // Cancel — propagate to WorkManager so the worker tears down its foreground notification
+            // Cancel - propagate to WorkManager so the worker tears down its foreground notification
             // and aborts in-flight extraction at the next ensureActive() checkpoint (Phase 03).
             WorkManager.getInstance(this@ReceiveShareActivity)
                 .cancelUniqueWork(uniqueWorkNameFor(url))
@@ -466,7 +466,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     /**
      * S0166 §2 Step 0 (extracted by S0202): unknown-host NoMediaFound escalation. Invoked
      * from the WorkInfo observer when the worker reports SUCCEEDED with result_kind
-     * "NoMediaFound". Best-effort — if the watchdog fired first, the activity is gone and
+     * "NoMediaFound". Best-effort - if the watchdog fired first, the activity is gone and
      * the foreground notification's "Sign in" path is the user's remaining route.
      *
      * S0170 BUG-1 invariants preserved: fires at most once per Activity instance
@@ -498,7 +498,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     /**
-     * S0161: batch variant — enqueues all [urls] in a single [LinkDownloadWorker] job
+     * S0161: batch variant - enqueues all [urls] in a single [LinkDownloadWorker] job
      * (coordinator.handleBatch handles ordering) and returns the user to the source app.
      */
     private fun processLinkAutoDownloadBatch(urls: List<String>) {
@@ -580,7 +580,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             }
         ).apply {
             setOnDismissListener {
-                // Guard: when "Select Folder" was clicked, the picker is active — skip cleanup here
+                // Guard: when "Select Folder" was clicked, the picker is active - skip cleanup here
                 if (!folderPickerActive) cleanupAndFinish()
             }
             show()
@@ -660,7 +660,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     /**
-     * S0200 — host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
+     * S0200 - host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
      * keeps the legacy WebView flow. CCT-unavailable triggers the refusal dialog.
      */
     private fun openAuthFlow(url: String, tag: String) {

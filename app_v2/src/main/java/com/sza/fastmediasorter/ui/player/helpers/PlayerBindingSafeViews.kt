@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.google.android.material.button.MaterialButton
 import com.github.chrisbanes.photoview.PhotoView
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 
 class PlayerBindingSafeViews(
     private val binding: ActivityPlayerUnifiedBinding
@@ -40,7 +41,7 @@ class PlayerBindingSafeViews(
     val btnEditCmd: ImageButton get() = required(binding.btnEditCmd, R.id.btnEditCmd)
     val btnSaveFrameCmd: ImageButton get() = required(R.id.btnSaveFrameCmd)
     val btnPrintCmd: ImageButton get() = required(R.id.btnPrintCmd)
-    // S0217: inline accessors for image-edit commands (root-lookup — added to XML post-binding)
+    // S0217: inline accessors for image-edit commands (root-lookup - added to XML post-binding)
     val btnOpenInSeparateWindowCmd: ImageButton get() = required(R.id.btnOpenInSeparateWindowCmd)
     val btnCropCmd: ImageButton get() = required(R.id.btnCropCmd)
     val btnCropToFileCmd: ImageButton get() = required(R.id.btnCropToFileCmd)
@@ -131,7 +132,7 @@ class PlayerBindingSafeViews(
     // S0189: scroll container that hosts etTextContent in edit mode
     val textEditScrollView: ScrollView get() = required(R.id.textEditScrollView)
     // S0189: 5-action editor buttons. Now live inside [editorToolbar] (top bar) instead of the
-    // former bottom action panel — that panel was removed because the soft keyboard covered it
+    // former bottom action panel - that panel was removed because the soft keyboard covered it
     // during edit. The dirty-state tint is applied to [editorToolbar] itself via actionPanelManager.
     val btnEditorSave: ImageButton get() = required(R.id.btnEditorSave)
     val btnEditorSaveClose: ImageButton get() = required(R.id.btnEditorSaveClose)
@@ -187,10 +188,8 @@ class PlayerBindingSafeViews(
     val bottomPanelsContainer: LinearLayout get() = required(R.id.bottomPanelsContainer)
     val copyToPanel: LinearLayout get() = required(R.id.copyToPanel)
     val moveToPanel: LinearLayout get() = required(R.id.moveToPanel)
-    val copyToPanelHeader: LinearLayout get() = required(R.id.copyToPanelHeader)
-    val moveToPanelHeader: LinearLayout get() = required(R.id.moveToPanelHeader)
-    val copyToPanelIndicator: TextView get() = required(R.id.copyToPanelIndicator)
-    val moveToPanelIndicator: TextView get() = required(R.id.moveToPanelIndicator)
+    val copyToPanelHeader: CollapsibleSectionHeader get() = required(R.id.copyToPanelHeader)
+    val moveToPanelHeader: CollapsibleSectionHeader get() = required(R.id.moveToPanelHeader)
     val copyToButtonsGrid: GridLayout get() = required(R.id.copyToButtonsGrid)
     val moveToButtonsGrid: GridLayout get() = required(R.id.moveToButtonsGrid)
     val btnTranslationFontDecrease: ImageButton?
@@ -248,7 +247,7 @@ val ActivityPlayerUnifiedBinding.etTextContent: EditText
 val ActivityPlayerUnifiedBinding.textEditScrollView: ScrollView
     get() = requiredFromRoot(R.id.textEditScrollView)
 
-// S0189: 5-action editor buttons (moved into editorToolbar — see safeViews property docs).
+// S0189: 5-action editor buttons (moved into editorToolbar - see safeViews property docs).
 val ActivityPlayerUnifiedBinding.btnEditorSave: ImageButton
     get() = requiredFromRoot(R.id.btnEditorSave)
 

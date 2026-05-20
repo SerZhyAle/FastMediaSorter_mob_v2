@@ -1,6 +1,6 @@
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: 3D Mode Switching — Toggle between Auto / Force SBS / Mono
+# Test: 3D Mode Switching - Toggle between Auto / Force SBS / Mono
 # Feature: 3D Video Support (SBS), v2.63
 # Duration: ~60 seconds
 # Precondition: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080)

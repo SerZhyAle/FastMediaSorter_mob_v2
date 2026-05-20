@@ -30,6 +30,6 @@ class PublishPlaybackStateUseCase @Inject constructor(
         }
         Wearable.getDataClient(context).putDataItem(request.asPutDataRequest()).await()
     }.onFailure { e ->
-        Timber.e(e, "S0111: PublishPlaybackStateUseCase failed — state not published")
+        Timber.e(e, "S0111: PublishPlaybackStateUseCase failed - state not published")
     }
 }

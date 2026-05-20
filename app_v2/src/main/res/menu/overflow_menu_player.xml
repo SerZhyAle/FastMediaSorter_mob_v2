@@ -59,7 +59,7 @@
         android:title="@string/menu_print"
         app:showAsAction="never" />
 
-    <!-- Save Frame (VIDEO only) — saves current frame as PNG to configured destination -->
+    <!-- Save Frame (VIDEO only) - saves current frame as PNG to configured destination -->
     <item
         android:id="@+id/menu_save_frame"
         android:icon="@drawable/ic_save_frame"
@@ -234,7 +234,7 @@
         android:title="@string/epub_search_all_chapters"
         app:showAsAction="never" />
 
-    <!-- S0028: multi-window — shown only on VR+setting via PlayerCommand filter -->
+    <!-- S0028: multi-window - shown only on VR+setting via PlayerCommand filter -->
     <item
         android:id="@+id/menu_open_in_separate_window"
         android:icon="@drawable/ic_open_in_browse"

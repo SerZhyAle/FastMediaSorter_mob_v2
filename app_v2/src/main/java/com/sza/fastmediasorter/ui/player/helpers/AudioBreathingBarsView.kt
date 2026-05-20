@@ -19,9 +19,9 @@ import kotlin.random.Random
  * create a natural wave effect with a soft colour gradient across the set.
  *
  * Animation lifecycle:
- *  - [startAnimation] — launched when audio starts playing
- *  - [pauseAnimation]  — paused when audio is paused (retains current frame)
- *  - [stopAndReset]    — fully resets to the minimum height state
+ *  - [startAnimation] - launched when audio starts playing
+ *  - [pauseAnimation]  - paused when audio is paused (retains current frame)
+ *  - [stopAndReset]    - fully resets to the minimum height state
  */
 class AudioBreathingBarsView @JvmOverloads constructor(
     context: Context,
@@ -31,7 +31,7 @@ class AudioBreathingBarsView @JvmOverloads constructor(
 
     enum class RenderMode { BARS, RINGS }
 
-    /** Current render mode — BARS (equalizer) or RINGS (pulsing concentric circles for AVD_PULSE). */
+    /** Current render mode - BARS (equalizer) or RINGS (pulsing concentric circles for AVD_PULSE). */
     var renderMode: RenderMode = RenderMode.BARS
 
     companion object {
@@ -63,7 +63,7 @@ class AudioBreathingBarsView @JvmOverloads constructor(
     /** Per-ring hues, randomized on each startAnimation() call in RINGS mode. */
     private val ringHues: FloatArray = FloatArray(RING_COUNT) { Random.nextFloat() * 360f }
 
-    /** Reusable HSV for rings — vivid saturation/value, separate from pastel bars. */
+    /** Reusable HSV for rings - vivid saturation/value, separate from pastel bars. */
     private val ringHsv = floatArrayOf(0f, 0.90f, 1.0f)
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -114,17 +114,17 @@ class AudioBreathingBarsView @JvmOverloads constructor(
     fun startAnimation() {
         when {
             animator.isPaused -> {
-                Timber.d("AudioBreathingBarsView: startAnimation() — resume from pause")
+                Timber.d("AudioBreathingBarsView: startAnimation() - resume from pause")
                 animator.resume()
                 hueAnimator.resume()
             }
             !animator.isRunning -> {
-                Timber.d("AudioBreathingBarsView: startAnimation() — fresh start")
+                Timber.d("AudioBreathingBarsView: startAnimation() - fresh start")
                 if (renderMode == RenderMode.RINGS) regenerateRingColors()
                 animator.start()
                 hueAnimator.start()
             }
-            // already running — no-op
+            // already running - no-op
         }
     }
 
@@ -184,19 +184,19 @@ class AudioBreathingBarsView @JvmOverloads constructor(
      * Ripple effect for AVD_PULSE mode: each ring is born at the center as a point,
      * continuously expands until it leaves the screen, then repeats.
      * Rings are staggered evenly so a new one appears every (duration / RING_COUNT) ms.
-     * Alpha fades from opaque to transparent as radius grows — the ring vanishes off-screen.
+     * Alpha fades from opaque to transparent as radius grows - the ring vanishes off-screen.
      * Colors are randomized per ring on each startAnimation() call.
      */
     private fun drawRings(canvas: Canvas) {
         val cx = width / 2f
         val cy = height / 2f
-        // Diagonal from center to corner — guarantees ring fully exits the screen
+        // Diagonal from center to corner - guarantees ring fully exits the screen
         val maxRadius = Math.sqrt((cx * cx + cy * cy).toDouble()).toFloat() * 1.08f
 
         paint.style = Paint.Style.STROKE
 
         for (i in 0 until RING_COUNT) {
-            // Each ring is offset by 1/RING_COUNT of the cycle — continuous staggered stream
+            // Each ring is offset by 1/RING_COUNT of the cycle - continuous staggered stream
             val progress = (animProgress + i.toFloat() / RING_COUNT) % 1f  // 0..1
             val radius = maxRadius * progress
             // Fade: full opacity at center, transparent at edge

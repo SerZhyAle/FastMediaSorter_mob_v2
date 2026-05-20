@@ -9,11 +9,11 @@ import timber.log.Timber
 
 /**
  * Owns MANUAL-sort-mode ordering:
- *   - sortFiles() — applies saved order if mode == MANUAL, otherwise delegates.
- *   - applyManualOrder() — interleaves directories alphabetically, then files by saved index.
- *   - saveManualOrder() — persists drag-reordered paths and reapplies them to the visible list.
+ *   - sortFiles() - applies saved order if mode == MANUAL, otherwise delegates.
+ *   - applyManualOrder() - interleaves directories alphabetically, then files by saved index.
+ *   - saveManualOrder() - persists drag-reordered paths and reapplies them to the visible list.
  *
- * The coordinator has no coroutine ownership — all calls are synchronous. It reads state via
+ * The coordinator has no coroutine ownership - all calls are synchronous. It reads state via
  * the provided `stateFlow` and writes through `updateState`, matching the convention used by
  * other Browse managers.
  */

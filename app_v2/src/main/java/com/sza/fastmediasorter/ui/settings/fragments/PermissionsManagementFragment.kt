@@ -52,7 +52,7 @@ class PermissionsManagementFragment : Fragment() {
 
     private val fromWelcome get() = arguments?.getBoolean(ARG_FROM_WELCOME, false) ?: false
 
-    // These permissions cannot be granted via requestPermission() — each requires a dedicated
+    // These permissions cannot be granted via requestPermission() - each requires a dedicated
     // system settings screen. Batch-requesting them via requestMultiplePermissions() is silently ignored.
     private val specialGrantPermissions = setOf(
         Manifest.permission.MANAGE_EXTERNAL_STORAGE,
@@ -67,7 +67,7 @@ class PermissionsManagementFragment : Fragment() {
     // 2) the special-permission system screens, opened one at a time.
     private var grantAllInProgress = false
 
-    // Special permissions already shown in the current "Grant all" run — so a permission the user
+    // Special permissions already shown in the current "Grant all" run - so a permission the user
     // declined is not re-opened forever (each return triggers the next one, not the same one).
     private val shownSpecialInRun = mutableSetOf<String>()
 
@@ -87,17 +87,17 @@ class PermissionsManagementFragment : Fragment() {
     // settings screens and cannot be requested via requestMultiplePermissions(). We launch them for
     // result so that returning from the settings screen (via Back or grant) is handled cleanly.
     // On API 34+ the predictive back system can deliver a spurious back event to the underlying
-    // Activity when a child Activity launched with plain startActivity() finishes — using
+    // Activity when a child Activity launched with plain startActivity() finishes - using
     // ActivityResultLauncher prevents that and gives us a reliable return callback.
     private val specialSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
         refreshAdapter()
         updateGrantAllVisibility()
         if (grantAllInProgress) {
-            // Mid "Grant all" run — continue with the next denied special permission. When none
+            // Mid "Grant all" run - continue with the next denied special permission. When none
             // remain, launchNextSpecialPermission() ends the run (and, in welcome mode, proceeds).
             launchNextSpecialPermission()
         } else if (fromWelcome) {
-            // Single special-permission tap from the welcome screen — proceed to the app once the
+            // Single special-permission tap from the welcome screen - proceed to the app once the
             // user returns from the system screen, whether they granted or pressed Back.
             (activity as? WelcomeCompleteListener)?.onWelcomeComplete()
         }
@@ -138,7 +138,7 @@ class PermissionsManagementFragment : Fragment() {
             // each denied special permission via its own system screen, one at a time.
             grantAllInProgress = true
             shownSpecialInRun.clear()
-            // Exclude special permissions — they require dedicated system settings screens
+            // Exclude special permissions - they require dedicated system settings screens
             // and are silently ignored when passed to requestMultiplePermissions().
             val denied = registry.getEntries()
                 .filter { checkStatus(requireContext(), it) == PermissionStatus.DENIED }
@@ -149,7 +149,7 @@ class PermissionsManagementFragment : Fragment() {
                 // launchNextSpecialPermission() is called in the requestMultiple callback.
                 requestMultiple.launch(denied)
             } else {
-                // No regular permissions left — open the first pending special permission directly.
+                // No regular permissions left - open the first pending special permission directly.
                 launchNextSpecialPermission()
             }
         }
@@ -211,7 +211,7 @@ class PermissionsManagementFragment : Fragment() {
     /**
      * Advances a "Grant all" run: opens the system settings screen for the next still-denied
      * special permission that has not been shown yet in this run. When none remain, the run ends
-     * and — in welcome mode — proceeds to the app.
+     * and - in welcome mode - proceeds to the app.
      */
     private fun launchNextSpecialPermission() {
         val entry = registry.getEntries()

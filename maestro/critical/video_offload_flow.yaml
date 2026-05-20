@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Video Offload (Save Local Copy) Flow
-# Description: Critical path — open a network video, trigger offload offer, accept, verify progress dialog,
+# Description: Critical path - open a network video, trigger offload offer, accept, verify progress dialog,
 #              then verify cleanup prompt appears after playback ends
 # Duration: ~60 seconds
 # Prerequisite: one SMB/SFTP/FTP source configured with a video file reachable from the test device
@@ -30,7 +30,7 @@ appId: com.sza.fastmediasorter.debug
     text: "(Save to local copy\\?|Сохранить локальную копию\\?|Зберегти локальну копію\\?)"
     optional: true
 
-# ── Step 3: Accept — tap "Save local copy" button ───────────────────────────
+# ── Step 3: Accept - tap "Save local copy" button ───────────────────────────
 
 - tapOn:
     text: "(Save local copy|Сохранить локальную копию|Зберегти локальну копію)"
@@ -47,7 +47,7 @@ appId: com.sza.fastmediasorter.debug
 - wait:
     timeout: 15000
 
-# ── Step 5: After download — overlay switches to green "local copy" pill ────
+# ── Step 5: After download - overlay switches to green "local copy" pill ────
 
 - assertVisible:
     id: ".*prefetch_overlay.*"

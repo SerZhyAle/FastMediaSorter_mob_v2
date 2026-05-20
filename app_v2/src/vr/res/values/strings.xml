@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0245 + S0249 Stage 1A: VR-only strings (master toggle text reused from S0245).
+         The 5th-tab string `settings_tab_vr` and the Stage 0 placeholder summary were
+         removed by S0249 Phase 04 when the VR block was merged into the Media settings
+         section. Test Immersive button + advisory strings live in main strings.xml because
+         the layout that consumes them is referenced from main-level Media container. -->
+    <string name="vr_settings_master_toggle_label">Enable 3D VR</string>
+    <string name="vr_settings_master_toggle_summary">Show VR features in this app</string>
+</resources>

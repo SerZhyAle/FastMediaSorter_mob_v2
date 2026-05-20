@@ -120,7 +120,7 @@
     <!-- Player Activity -->
     <dimen name="player_cmd_button_size">40dp</dimen>
     <dimen name="player_big_button_height">100dp</dimen>
-    <!-- Big Buttons Mode: starting value — adjust per S0208 §6.1 / §6.4 device-verify. -->
+    <!-- Big Buttons Mode: starting value - adjust per S0208 §6.1 / §6.4 device-verify. -->
     <dimen name="player_big_button_min_slot_width">50dp</dimen>
     <!-- Big Buttons Mode: overflow popup row height; visually half of player_big_button_height. -->
     <dimen name="player_big_button_overflow_row_height">50dp</dimen>
@@ -203,7 +203,7 @@
     <dimen name="player_progress_margin_horizontal">4dp</dimen>
     <dimen name="player_position_text_size">14sp</dimen>
 
-    <!-- Custom Player Controls (LARGE variant — used when "Compact elements" is OFF) -->
+    <!-- Custom Player Controls (LARGE variant - used when "Compact elements" is OFF) -->
     <dimen name="player_progress_height_large">48dp</dimen>
     <dimen name="player_position_text_size_large">18sp</dimen>
     <dimen name="player_progress_bar_height_large">6dp</dimen>
@@ -655,7 +655,7 @@
     <dimen name="item_resource_btnMoveDown_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnMoveUp_padding">@dimen/layout_spacing_normal</dimen>
 
-    <!-- Landscape dialog constraints — referenced only from layout-land/ files -->
+    <!-- Landscape dialog constraints - referenced only from layout-land/ files -->
     <dimen name="dialog_landscape_max_height">320dp</dimen>
     <dimen name="dialog_landscape_list_max_height">240dp</dimen>
 
@@ -675,7 +675,7 @@
     <dimen name="icon_picker_bottom_sheet_peek">300dp</dimen>
 
     <!-- S0070: Device storage info row -->
-    <dimen name="device_storage_text_size">8sp</dimen>
+    <dimen name="device_storage_text_size">10sp</dimen>
     <dimen name="device_storage_button_size">18dp</dimen>
     <dimen name="device_storage_padding_vertical">0dp</dimen>
 

@@ -11,8 +11,8 @@ import com.sza.fastmediasorter.util.AppErrorNotifier
  * S0118: Renders a [UiMessageSpec] onto the appropriate UI surface.
  *
  * Routing rules:
- * - Short form (Snackbar / Toast) via [showShort] — only [UiMessageSpec.shortMessage] is shown.
- * - Detailed form (ErrorDialog) via [showDetailed] — shows [UiMessageSpec.shortMessage] as
+ * - Short form (Snackbar / Toast) via [showShort] - only [UiMessageSpec.shortMessage] is shown.
+ * - Detailed form (ErrorDialog) via [showDetailed] - shows [UiMessageSpec.shortMessage] as
  *   the primary text and [UiMessageSpec.detailedMessage] in the collapsible section when present.
  * - Settings-aware routing via [showRespectingSettings] delegates to [showDetailed] or
  *   [showShort] based on the caller's `showDetailedErrors` flag.

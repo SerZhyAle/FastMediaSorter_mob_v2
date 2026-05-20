@@ -8,7 +8,6 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.main.MainActivity
-import timber.log.Timber
 
 /**
  * Widget provider for Favorites quick access
@@ -40,7 +39,6 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            Timber.d("S0134: FavoritesWidget update — empty state wired")
             val views = RemoteViews(context.packageName, R.layout.widget_favorites)
 
             // Intent to launch MainActivity with Favorites filter
@@ -58,7 +56,7 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
 
             views.setOnClickPendingIntent(R.id.widget_favorites_container, pendingIntent)
 
-            // S0134: dedicated onboarding intent for the empty-state surface — opens MainActivity
+            // S0134: dedicated onboarding intent for the empty-state surface - opens MainActivity
             // in the Favorites tab with the in-app tooltip flow triggered.
             val onboardingIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

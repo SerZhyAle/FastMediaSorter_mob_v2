@@ -38,7 +38,7 @@ object FtpStandaloneOperations {
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             val testClient = FTPClient().apply { applyTimeouts() }
-            // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+            // S0212: encoding MUST be set before connect - see FtpEncodingSupport.
             testClient.applyUtf8Encoding()
 
             testClient.connect(host, port)
@@ -88,7 +88,7 @@ object FtpStandaloneOperations {
         @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
-        // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+        // S0212: encoding MUST be set before connect - see FtpEncodingSupport.
         tempClient.applyUtf8Encoding()
         try {
             tempClient.connect(host, port)
@@ -305,7 +305,7 @@ object FtpStandaloneOperations {
 
     /**
      * Open an InputStream for [remotePath] over a fresh connection. The returned stream owns
-     * the connection — closing the stream completes the pending FTP command and disconnects.
+     * the connection - closing the stream completes the pending FTP command and disconnects.
      */
     suspend fun openInputStream(
         host: String,
@@ -315,7 +315,7 @@ object FtpStandaloneOperations {
         remotePath: String
     ): Result<InputStream> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
-        // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+        // S0212: encoding MUST be set before connect - see FtpEncodingSupport.
         tempClient.applyUtf8Encoding()
         try {
             tempClient.connect(host, port)
@@ -405,7 +405,7 @@ object FtpStandaloneOperations {
         block: (FTPClient) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
-        // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+        // S0212: encoding MUST be set before connect - see FtpEncodingSupport.
         tempClient.applyUtf8Encoding()
         try {
             tempClient.connect(host, port)

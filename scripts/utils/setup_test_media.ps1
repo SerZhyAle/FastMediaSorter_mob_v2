@@ -115,17 +115,17 @@ foreach ($serial in $serials) {
         New-DeviceDir $dir
     }
 
-    # ── 3. DCIM — Block 1 (browse/filter/sort) + Block 2 (player) ─────────────
+    # ── 3. DCIM - Block 1 (browse/filter/sort) + Block 2 (player) ─────────────
     Write-Host "[3/11] Pushing DCIM files (images, video, audio)..." -ForegroundColor Yellow
 
-    #  3a. Images with "IMG_" prefix (for filter "name contains IMG" — Block 1.2)
+    #  3a. Images with "IMG_" prefix (for filter "name contains IMG" - Block 1.2)
     Push-File "test_image_02_green.png"  "$DeviceDestDir/DCIM/IMG_001_green.png"   "IMG filter"
     Push-File "test_image_03_blue.png"   "$DeviceDestDir/DCIM/IMG_002_blue.png"    "IMG filter"
     Push-File "test_image_04_orange.png" "$DeviceDestDir/DCIM/IMG_003_orange.png"  "IMG filter"
     Push-File "test_image_05_purple.png" "$DeviceDestDir/DCIM/IMG_004_purple.png"  "IMG filter"
     Push-File "test_image_06_teal.png"   "$DeviceDestDir/DCIM/IMG_005_teal.png"    "IMG filter"
 
-    #  3b. Non-IMG images (must NOT appear when filter "IMG" is active — Block 1.2)
+    #  3b. Non-IMG images (must NOT appear when filter "IMG" is active - Block 1.2)
     Push-File "photo1.jpg"               "$DeviceDestDir/DCIM/photo_001.jpg"        "photo"
     Push-File "photo2.jpg"               "$DeviceDestDir/DCIM/photo_002.jpg"        "photo"
     Push-File "image_large.jpg"          "$DeviceDestDir/DCIM/photo_large.jpg"      "photo >1MB"
@@ -137,29 +137,29 @@ foreach ($serial in $serials) {
     Push-File "20260101_154510.jpg"      "$DeviceDestDir/DCIM/shot_20260101_a.jpg"  "camera shot"
     Push-File "20260101_155306.jpg"      "$DeviceDestDir/DCIM/shot_20260101_b.jpg"  "camera shot"
 
-    #  3c. Video — Block 2.5
+    #  3c. Video - Block 2.5
     Push-File "test_video.mp4"           "$DeviceDestDir/DCIM/video_sample.mp4"     "video"
     Push-File "VID_20260117_041714_254.mp4" "$DeviceDestDir/DCIM/video_large.mp4"  "video large"
 
-    #  3d. Subfolder — Block 1.1 subfolder navigation
+    #  3d. Subfolder - Block 1.1 subfolder navigation
     Push-File "test_image_07_yellow.png" "$DeviceDestDir/DCIM/_subfolder/sub_photo_01.png" "subfolder"
     Push-File "test_image_08_pink.png"   "$DeviceDestDir/DCIM/_subfolder/sub_photo_02.png" "subfolder"
     Push-File "test_image_09_gray.png"   "$DeviceDestDir/DCIM/_subfolder/sub_photo_03.png" "subfolder"
 
-    # ── 4. Audio — Block 2.6 (audio player + lyrics) ─────────────────────────
+    # ── 4. Audio - Block 2.6 (audio player + lyrics) ─────────────────────────
     Write-Host "[4/11] Pushing audio files..." -ForegroundColor Yellow
 
     Push-File "frank_sinatra_My_way.mp3" "$DeviceDestDir/Audio/frank_sinatra_My_way.mp3"   "audio"
     Push-File "10 - I'm So Tired.flac"  "$DeviceDestDir/Audio/test_audio_flac.flac"        "audio flac"
     Push-File "adele_skyfall.mp3"        "$DeviceDestDir/Audio/adele_skyfall.mp3"           "audio"
 
-    # LRC lyrics file alongside the MP3 (same base name) — Block 2.6 lyrics test
+    # LRC lyrics file alongside the MP3 (same base name) - Block 2.6 lyrics test
     & $AdbExe -s $serial shell @"
-printf '[00:00.00]My Way — Frank Sinatra\n[00:06.00]And now, the end is near\n[00:11.00]And so I face the final curtain\n[00:17.00]My friend, I ll say it clear\n[00:22.00]I ll state my case, of which I m certain\n' > "$DeviceDestDir/Audio/frank_sinatra_My_way.lrc"
+printf '[00:00.00]My Way - Frank Sinatra\n[00:06.00]And now, the end is near\n[00:11.00]And so I face the final curtain\n[00:17.00]My friend, I ll say it clear\n[00:22.00]I ll state my case, of which I m certain\n' > "$DeviceDestDir/Audio/frank_sinatra_My_way.lrc"
 "@ | Out-Null
     Write-Host "  [lyrics] frank_sinatra_My_way.lrc created on device" -ForegroundColor DarkGray
 
-    # ── 5. Docs — Block 2.8 (PDF, EPUB, TXT) ─────────────────────────────────
+    # ── 5. Docs - Block 2.8 (PDF, EPUB, TXT) ─────────────────────────────────
     Write-Host "[5/11] Pushing document files..." -ForegroundColor Yellow
 
     Push-File "romcom.pdf"                     "$DeviceDestDir/Docs/test_doc_romcom.pdf"  "PDF"
@@ -172,13 +172,13 @@ printf 'FastMediaSorter Pre-Release Manual Test\n===============================
 "@ | Out-Null
     Write-Host "  [TXT] readme.txt created on device" -ForegroundColor DarkGray
 
-    # ── 6. OCR — Block 3 (image with readable text) ───────────────────────────
+    # ── 6. OCR - Block 3 (image with readable text) ───────────────────────────
     Write-Host "[6/11] Pushing OCR test image..." -ForegroundColor Yellow
 
     Push-File "Screenshot_Instagram.png"       "$DeviceDestDir/OCR/ocr_screenshot_text.png" "OCR"
     Push-File "comeon 2 Tell us all what you can about this data.jpg" "$DeviceDestDir/OCR/ocr_data_table.jpg" "OCR data"
 
-    # ── 7. Ops — Blocks 1.3-1.9 (copy / move / rename / delete / overwrite) ───
+    # ── 7. Ops - Blocks 1.3-1.9 (copy / move / rename / delete / overwrite) ───
     Write-Host "[7/11] Pushing Ops/src files (real images, not stubs)..." -ForegroundColor Yellow
 
     Push-File "test_image_02_green.png"  "$DeviceDestDir/Ops/src/IMG_copy_01.png"       "ops copy"
@@ -193,7 +193,7 @@ printf 'FastMediaSorter Pre-Release Manual Test\n===============================
     Push-File "test_image_02_green.png"  "$DeviceDestDir/Ops/src/ops_overwrite_B.png"   "ops overwrite"
     Push-File "test_image_02_green.png"  "$DeviceDestDir/Ops/dst/ops_overwrite_A.png"   "dst pre-seed"
 
-    # ── 8. Edge cases — Block 15 ──────────────────────────────────────────────
+    # ── 8. Edge cases - Block 15 ──────────────────────────────────────────────
     Write-Host "[8/11] Setting up edge-case files..." -ForegroundColor Yellow
 
     & $AdbExe -s $serial shell @"
@@ -204,7 +204,7 @@ printf 'This file has no extension. FastMediaSorter should display it without cr
     Push-File "Planet Unknown.2016.WEB-DL 1080p.mkv" "$DeviceDestDir/Edge/video_large_200mb.mkv" "large video"
     Write-Host "  [edge] Empty/ folder ready" -ForegroundColor DarkGray
 
-    # Android/media protected path — Block 1.8
+    # Android/media protected path - Block 1.8
     $androidMediaResult = & $AdbExe -s $serial shell "ls `"$AndroidMediaDir`"" 2>&1
     if ($LASTEXITCODE -eq 0) {
         Push-File "test_image_02_green.png" "$AndroidMediaDir/protected_file_01.png" "android/media"
@@ -215,7 +215,7 @@ printf 'This file has no extension. FastMediaSorter should display it without cr
         Write-Warning "  For Block 1.8: use real Telegram/WhatsApp folder on the device instead."
     }
 
-    # ── 9. S0029 — Resume Position (long + short video) ─────────────────────
+    # ── 9. S0029 - Resume Position (long + short video) ─────────────────────
     Write-Host "[9/11] Pushing S0029 video files (resume-position tests)..." -ForegroundColor Yellow
 
     # long.mp4 : duration > 100 s  → R1 (STATE_ENDED), R2 (near-end 5 s), R3 (50% resume)
@@ -223,7 +223,7 @@ printf 'This file has no extension. FastMediaSorter should display it without cr
     Push-File "long.mp4"  "$DeviceDestDir/S0029/long.mp4"  "S0029 long"
     Push-File "short.mp4" "$DeviceDestDir/S0029/short.mp4" "S0029 short"
 
-    # ── 10. S0047/S0048 — SFTP recovery + Info Dialog metadata (local copy) ─
+    # ── 10. S0047/S0048 - SFTP recovery + Info Dialog metadata (local copy) ─
     Write-Host "[10/11] Pushing S0047/S0048 audio files (info-dialog + SFTP tests)..." -ForegroundColor Yellow
 
     # test.flac    : FLAC with artist/album/year tags + embedded cover art  → I1
@@ -253,7 +253,7 @@ printf 'This file has no extension. FastMediaSorter should display it without cr
 # ── Summary ───────────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "═══════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host " Test media ready on $($serials.Count) device(s) — test-android.md" -ForegroundColor Cyan
+Write-Host " Test media ready on $($serials.Count) device(s) - test-android.md" -ForegroundColor Cyan
 Write-Host "═══════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 Write-Host " Folder layout -> add as LOCAL resources in app:" -ForegroundColor White
@@ -269,13 +269,13 @@ Write-Host "  S0029/       -> 'LOCAL - S0029'  (R1-R4 resume position)"
 Write-Host "  S0048/       -> 'LOCAL - S0048'  (I1-I6 info-dialog metadata)"
 Write-Host ""
 Write-Host " S0029 prerequisites (SKIP files in c:\Common\test_media if missing):" -ForegroundColor White
-Write-Host "  long.mp4  — duration > 100 s (R1 STATE_ENDED, R2 near-end 5 s, R3 50%)"
-Write-Host "  short.mp4 — duration <= 60 s  (R4 near-end 5% ~= 3 s)"
+Write-Host "  long.mp4  - duration > 100 s (R1 STATE_ENDED, R2 near-end 5 s, R3 50%)"
+Write-Host "  short.mp4 - duration <= 60 s  (R4 near-end 5% ~= 3 s)"
 Write-Host ""
 Write-Host " S0047/S0048 prerequisites (SKIP files in c:\Common\test_media if missing):" -ForegroundColor White
-Write-Host "  test.flac    — FLAC with artist/album/year tags + embedded cover (I1)"
-Write-Host "  test_cbr.mp3 — CBR MP3, ID3v2, LAME header, exact bitrate      (I2)"
-Write-Host "  test_vbr.mp3 — VBR MP3, no Xing/LAME header, bitrate must hide  (I3)"
+Write-Host "  test.flac    - FLAC with artist/album/year tags + embedded cover (I1)"
+Write-Host "  test_cbr.mp3 - CBR MP3, ID3v2, LAME header, exact bitrate      (I2)"
+Write-Host "  test_vbr.mp3 - VBR MP3, no Xing/LAME header, bitrate must hide  (I3)"
 Write-Host ""
 Write-Host " Android/media path (Block 1.8):" -ForegroundColor White
 Write-Host "  $AndroidMediaDir"

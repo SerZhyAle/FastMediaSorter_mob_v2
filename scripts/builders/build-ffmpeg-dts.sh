@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ══════════════════════════════════════════════════════════════════════════════
-# build-ffmpeg-dts.sh — Custom FFmpeg build for FMS Android (DTS + extended codecs)
+# build-ffmpeg-dts.sh - Custom FFmpeg build for FMS Android (DTS + extended codecs)
 #
 # Produces: fms-ffmpeg-dts.aar
 #   → Copy to app_v2/libs/ and uncomment dependencies in app_v2/build.gradle.kts
@@ -15,8 +15,8 @@
 set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-# NDK Linux toolchain — expected at ~/android-ndk-r27c (prepared by temp/wsl2-phase1-setup.sh).
-# r27c is the first NDK to ship 16 KB-aligned libc++_shared.so — required for Android 15+.
+# NDK Linux toolchain - expected at ~/android-ndk-r27c (prepared by temp/wsl2-phase1-setup.sh).
+# r27c is the first NDK to ship 16 KB-aligned libc++_shared.so - required for Android 15+.
 # r25c is accepted as fallback: its lld supports -Wl,-z,max-page-size=16384 for our own .so
 # files (libffmpegJNI.so + FFmpeg libs). Because FFmpeg JNI bridge uses c++_static, libc++_shared
 # is NOT bundled in the AAR, so r25c is sufficient for Play compliance.
@@ -34,14 +34,15 @@ MEDIA3_TAG="1.2.1"
 FFMPEG_REPO="https://github.com/FFmpeg/FFmpeg.git"
 MEDIA3_REPO="https://github.com/androidx/media.git"
 
-# ABIs to build — all four production ABIs for multi-ABI AAR distribution.
-#   arm64-v8a   — modern 64-bit ARM (primary; Quest 2/3/Pro)
-#   armeabi-v7a — older 32-bit ARM (old phones, TV boxes, car units, low-end tablets)
-#   x86_64      — Chromebooks, modern x86 emulators
-#   x86         — legacy Chromebooks / API 27 AVDs
-# AAB splits per-device ABI at Play distribution — one user receives one slice only.
-# VR/vrUnlicensed flavors force arm64-v8a at flavor level, so non-arm64 slices are stripped
-# from VR AABs automatically. See PLAN/spec_ffmpeg-dts-multi-abi.md.
+# ABIs to build - all four production ABIs for multi-ABI AAR distribution.
+#   arm64-v8a   - modern 64-bit ARM (primary; Quest 2/3/Pro)
+#   armeabi-v7a - older 32-bit ARM (old phones, TV boxes, car units, low-end tablets)
+#   x86_64      - Chromebooks, modern x86 emulators
+#   x86         - legacy Chromebooks / API 27 AVDs
+# AAB splits per-device ABI at Play distribution - one user receives one slice only.
+# VR flavor forces arm64-v8a at flavor level (Quest target), so non-arm64 slices are
+# stripped from VR AABs automatically. noLegal carries arm64-v8a + x86_64 (sideload
+# universal). See PLAN/spec_ffmpeg-dts-multi-abi.md.
 ABIS=("arm64-v8a" "armeabi-v7a" "x86" "x86_64")
 
 # ── Dependency check ──────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ clone_sources() {
     FFMPEG_COMMIT=$(grep -oP '(?<=commit )[0-9a-f]{40}' "$readme" | head -1 || true)
     if [[ -z "$FFMPEG_COMMIT" ]]; then
         echo "WARN: Could not auto-detect FFmpeg commit from README."
-        echo "      media3 1.2.1 targets FFmpeg release/6.0 — using that branch."
+        echo "      media3 1.2.1 targets FFmpeg release/6.0 - using that branch."
         FFMPEG_COMMIT="release/6.0"
     fi
     echo "[INFO] FFmpeg commit: $FFMPEG_COMMIT"
@@ -140,7 +141,7 @@ build_ffmpeg_abi() {
             host_triple="i686-linux-android"
             arch="i686"
             # --disable-x86asm kept globally (see configure args); avoids nasm dependency.
-            # Audio-only FFmpeg build — SIMD loss is negligible for DTS/APE/WMA decoders.
+            # Audio-only FFmpeg build - SIMD loss is negligible for DTS/APE/WMA decoders.
             ;;
         x86_64)
             host_triple="x86_64-linux-android"
@@ -155,7 +156,7 @@ build_ffmpeg_abi() {
 
     local toolchain="$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64"
     local cross_prefix="${toolchain}/bin/${host_triple}${API_LEVEL}-"
-    # nm, ar, ranlib and strip are provided by LLVM tools — not prefixed like clang/ld
+    # nm, ar, ranlib and strip are provided by LLVM tools - not prefixed like clang/ld
     local llvm_nm="${toolchain}/bin/llvm-nm"
     local llvm_ar="${toolchain}/bin/llvm-ar"
     local llvm_ranlib="${toolchain}/bin/llvm-ranlib"
@@ -289,7 +290,7 @@ build_ffmpeg_abi() {
 #   <jni_dir>/ffmpeg/android-libs/<abi>/*.a  ← pre-built static libs
 #
 # We symlink our FFmpeg source tree and copy pre-built .a files there, then
-# invoke CMake directly — skipping build_ffmpeg.sh (which would re-run configure
+# invoke CMake directly - skipping build_ffmpeg.sh (which would re-run configure
 # without --disable-vulkan and fail on NDK r25c).
 # The 16 KB page-size flag is injected via CMAKE_SHARED_LINKER_FLAGS.
 build_jni_bridge() {
@@ -366,9 +367,9 @@ package_aar() {
     # Search order:
     #   1. Linux Gradle cache (~/.gradle/caches)
     #   2. Windows Gradle cache (/mnt/c/Users/.gradle/caches)
-    #   3. Project's own fms-ffmpeg-dts.aar (or its backup in temp/) — same classes.jar
+    #   3. Project's own fms-ffmpeg-dts.aar (or its backup in temp/) - same classes.jar
     #      because both share the media3-decoder-ffmpeg bytecode verbatim.
-    #   4. Direct download from Google Maven (usually 404 — media3-decoder-ffmpeg is
+    #   4. Direct download from Google Maven (usually 404 - media3-decoder-ffmpeg is
     #      source-only and not published to Maven; keep the step for future compatibility).
     local prebuilt_aar
     prebuilt_aar=$(find "${HOME}/.gradle/caches" -name "media3-decoder-ffmpeg-1.2.1.aar" 2>/dev/null | head -1 || true)
@@ -390,7 +391,7 @@ package_aar() {
     if [[ -z "$prebuilt_aar" ]]; then
         local maven_aar="${WORK_DIR}/media3-decoder-ffmpeg-1.2.1.aar"
         if [[ ! -f "$maven_aar" ]]; then
-            echo "[INFO] media3-decoder-ffmpeg-1.2.1.aar not in Gradle cache — downloading from Maven Central .."
+            echo "[INFO] media3-decoder-ffmpeg-1.2.1.aar not in Gradle cache - downloading from Maven Central .."
             curl -L --progress-bar \
                 -o "$maven_aar" \
                 "https://dl.google.com/android/maven2/androidx/media3/media3-decoder-ffmpeg/1.2.1/media3-decoder-ffmpeg-1.2.1.aar"
@@ -440,7 +441,7 @@ PYEOF
         fi
     done
 
-    # Assemble the AAR (it's a ZIP file — use python3 to avoid needing the 'zip' package)
+    # Assemble the AAR (it's a ZIP file - use python3 to avoid needing the 'zip' package)
     mkdir -p "$OUT_DIR"
     local aar_path="$OUT_DIR/fms-ffmpeg-dts.aar"
     export STAGING_DIR="$staging"
@@ -465,13 +466,13 @@ PYEOF
     echo "══════════════════════════════════════════════════════════════"
     echo " SUCCESS: $aar_path"
     echo ""
-    echo " Next steps (Phase 4) — after 16 KB alignment check passes:"
+    echo " Next steps (Phase 4) - after 16 KB alignment check passes:"
     echo "   1. Copy rebuilt AAR to app_v2/libs/ (already done if OUT_DIR is the project)."
     echo "   2. Confirm app_v2/build.gradle.kts already has:"
     echo "        standardImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
+    echo "        noLegalImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
     echo "        legacyImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
     echo "        vrImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
-    echo "        vrUnlicensedImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
     echo "   3. Rebuild: ./gradlew.bat assembleStandardDebug"
     echo "   4. Inspect APK: python -m zipfile -l <apk> | grep ffmpeg"
     echo "   5. Verify DTS track plays on Quest 3 (DTS-only MKV)."
@@ -507,11 +508,11 @@ verify_16kb_alignment() {
 
     echo ""
     echo "════════════════════════════════════════"
-    echo " 16 KB alignment check (readelf -l) — all ABIs"
+    echo " 16 KB alignment check (readelf -l) - all ABIs"
     echo "════════════════════════════════════════"
 
     if ! command -v readelf &>/dev/null; then
-        echo "WARN: readelf not found — skipping 16 KB alignment check."
+        echo "WARN: readelf not found - skipping 16 KB alignment check."
         echo "      Install binutils: sudo apt-get install -y binutils"
         echo "      Run manually after build:"
         echo "        python3 -m zipfile -e $aar_path /tmp/aar-verify"
@@ -522,7 +523,7 @@ verify_16kb_alignment() {
     fi
 
     if [[ ! -f "$aar_path" ]]; then
-        echo "ERROR: AAR not found at $aar_path — cannot verify alignment."
+        echo "ERROR: AAR not found at $aar_path - cannot verify alignment."
         exit 1
     fi
 
@@ -542,7 +543,7 @@ PYEOF
     for abi in "${ABIS[@]}"; do
         local so_path="$verify_dir/jni/$abi/libffmpegJNI.so"
         if [[ ! -f "$so_path" ]]; then
-            echo "FAIL: $abi — libffmpegJNI.so missing from AAR."
+            echo "FAIL: $abi - libffmpegJNI.so missing from AAR."
             fail=1
             continue
         fi
@@ -553,16 +554,16 @@ PYEOF
         load_lines=$(readelf -lW "$so_path" 2>&1 | grep -E "^\s+LOAD\s+" || true)
 
         if echo "$load_lines" | grep -qE "\s0x1000\s*$"; then
-            echo "FAIL: $abi — 4 KB LOAD alignment (Align=0x1000). Play will reject."
+            echo "FAIL: $abi - 4 KB LOAD alignment (Align=0x1000). Play will reject."
             echo "--- LOAD segments ---"
             echo "$load_lines"
             echo "---------------------"
             fail=1
         elif echo "$load_lines" | grep -qE "\s0x4000\s*$"; then
-            echo "[OK] $abi — 16 KB aligned (Align=0x4000). Play-safe. ✓"
+            echo "[OK] $abi - 16 KB aligned (Align=0x4000). Play-safe. ✓"
             checked=$((checked + 1))
         else
-            echo "WARN: $abi — alignment not confirmed from readelf output:"
+            echo "WARN: $abi - alignment not confirmed from readelf output:"
             echo "$load_lines"
         fi
     done

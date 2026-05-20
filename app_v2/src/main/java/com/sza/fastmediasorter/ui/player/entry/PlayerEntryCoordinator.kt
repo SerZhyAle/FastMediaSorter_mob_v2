@@ -9,7 +9,6 @@ import javax.inject.Inject
  * detected stereo mode and media type.
  *
  * In standard flavor: shows VR install CTA on 3D content.
- * In vr flavor: opens VrPlayerActivity on headset, fallback on phone.
  */
 interface PlayerEntryCoordinator {
     fun resolveEntry(request: PlaybackEntryRequest): PlaybackEntryDecision
@@ -51,7 +50,7 @@ class PlayerEntryCoordinatorImpl @Inject constructor() : PlayerEntryCoordinator 
         }
 
         // Standard flavor path: show VR install CTA for any content that benefits
-        // from the VR edition — flat stereo (SBS/OU) plus spherical (360°/VR180/Cylinder).
+        // from the VR edition - flat stereo (SBS/OU) plus spherical (360°/VR180/Cylinder).
         val needsVr = request.detectedStereoMode.isStereoscopic() ||
                 request.detectedStereoMode.isSpherical()
         if (needsVr && (request.mediaType == MediaType.VIDEO || request.mediaType == MediaType.IMAGE)) {

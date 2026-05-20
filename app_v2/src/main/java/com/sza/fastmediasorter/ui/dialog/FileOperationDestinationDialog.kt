@@ -108,10 +108,10 @@ class FileOperationDestinationDialog(
 
             btnCancel.setOnClickListenerDebounced { dismiss() }
 
-            // ARCHIVE mode uses only registered destinations for folder selection —
+            // ARCHIVE mode uses only registered destinations for folder selection -
             // SAF external folder picking is out of scope here.
             btnSelectFolder.visibility = if (operationType == FileOperationType.ARCHIVE) View.GONE else View.VISIBLE
-            // "Select folder" button — dismiss dialog and delegate to Activity
+            // "Select folder" button - dismiss dialog and delegate to Activity
             btnSelectFolder.setOnClickListenerDebounced {
                 Timber.tag(TAG).d("Select folder button clicked")
                 onSelectFolderClicked?.invoke(operationType, sourceFiles, sourceCredentialsId)
@@ -134,7 +134,7 @@ class FileOperationDestinationDialog(
                 }
                 
                 if (destinations.isEmpty()) {
-                    // No registered destinations — show dialog with only "Select folder" button
+                    // No registered destinations - show dialog with only "Select folder" button
                     Timber.tag(TAG).d("No destinations: showing dialog with Select Folder button only")
                 } else {
                     createDestinationButtons(destinations)
@@ -245,7 +245,7 @@ class FileOperationDestinationDialog(
 
         // ARCHIVE mode: dialog only captures the destination; the caller performs the archive.
         if (operationType == FileOperationType.ARCHIVE) {
-            Timber.d("performOperation: ARCHIVE mode — destination captured, dismissing without running operation")
+            Timber.d("performOperation: ARCHIVE mode - destination captured, dismissing without running operation")
             dismiss()
             return
         }
@@ -371,7 +371,7 @@ class FileOperationDestinationDialog(
                 }
                 Timber.i("performOperation: executeWithProgress completed, flow ended")
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // S0055-D: routine user cancellation — no stack needed
+                // S0055-D: routine user cancellation - no stack needed
                 Timber.i("performOperation: Operation cancelled by user (${operationType.name})")
                 withContext(Dispatchers.Main) {
                     val cancelMsgResId = when (operationType) {

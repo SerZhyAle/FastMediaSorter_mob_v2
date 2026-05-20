@@ -18,7 +18,7 @@ import timber.log.Timber
 /**
  * SFTP (password auth) and FTP flows: test, unified add, and legacy add wrappers.
  *
- * SSH-key based SFTP lives in [AddResourceSftpKeyCoordinator] — the credential
+ * SSH-key based SFTP lives in [AddResourceSftpKeyCoordinator] - the credential
  * save and validation paths diverge enough that keeping them separate avoids
  * hard-to-follow branching inside a single method.
  */

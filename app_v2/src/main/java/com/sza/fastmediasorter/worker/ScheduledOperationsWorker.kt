@@ -66,7 +66,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             scheduledOperationRepository.update(updated)
         }
 
-        Timber.i("ScheduledOperationsWorker: op=$operationId done — ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
+        Timber.i("ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
         return Result.success()
     }
 

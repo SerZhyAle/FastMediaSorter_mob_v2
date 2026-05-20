@@ -72,7 +72,15 @@ class FileOperationProgressDialog(
         tvEta = view.findViewById(R.id.tvEta)
         progressBar = view.findViewById(R.id.progressBar)
         btnCancel = view.findViewById(R.id.btnCancel)
-        
+
+        // S0266: initialise visible fields with "Preparing.." so cloud downloads (which only emit
+        // their first Processing event after seconds of warm-up) never show layout-tool placeholders.
+        tvCurrentFile.text = context.getString(R.string.file_operation_progress_preparing)
+        tvProgress.text = ""
+        tvSpeed.text = ""
+        tvOverallPercent.text = ""
+        tvEta.text = ""
+
         tvTitle.text = operationType
         
         // Setup cancel button
@@ -173,7 +181,7 @@ class FileOperationProgressDialog(
         tvCurrentFile.text = progress.currentFile
         tvOverallPercent.text = if (overallPercent != null) "$overallPercent%" else ""
         tvEta.text = if (etaSeconds > 0L && overallPercent != null) formatEta(etaSeconds) else ""
-        tvOverallPercent.contentDescription = "${overallPercent ?: "—"}%"
+        tvOverallPercent.contentDescription = "${overallPercent ?: "-"}%"
 
         if (progress.speedBytesPerSecond > 0) {
             tvSpeed.text = formatSpeed(progress.speedBytesPerSecond)
@@ -192,7 +200,7 @@ class FileOperationProgressDialog(
 
     override fun onStart() {
         super.onStart()
-        // Set dialog width to 90% of screen width — default Dialog window is too narrow
+        // Set dialog width to 90% of screen width - default Dialog window is too narrow
         window?.setLayout(
             (context.resources.displayMetrics.widthPixels * 0.90).toInt(),
             android.view.WindowManager.LayoutParams.WRAP_CONTENT

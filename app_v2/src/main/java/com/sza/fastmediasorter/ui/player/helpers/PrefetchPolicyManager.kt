@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * user multiplier, protocol) and delegates arithmetic to [PrefetchFormula].
  *
  * Ownership split:
- * - [PrefetchFormula] is a pure function — no side effects, easily tested.
+ * - [PrefetchFormula] is a pure function - no side effects, easily tested.
  * - [PrefetchPolicyManager] is a Hilt-injected `@Singleton` that sources the
  *   runtime context: settings flow, speed cache, device probe. It exists so
  *   callers (PlayerViewModel, *PlaybackHelper) do not need to know how to
@@ -37,7 +37,7 @@ class PrefetchPolicyManager @Inject constructor(
      *
      * @param resourceKey protocol-normalized key used to look up the last speed
      *   measurement. Must match the key used by [ConnectionThrottleManager.setLastSpeedMbps].
-     * @param uri media URI — protocol is detected from its scheme.
+     * @param uri media URI - protocol is detected from its scheme.
      * @param bitrateKbps measured bitrate from ExoPlayer's `onTracksChanged`, or
      *   `null` if metadata has not loaded yet.
      * @param fileDurationSec total file duration or `null` when unknown.
@@ -110,4 +110,72 @@ class PrefetchPolicyManager @Inject constructor(
         "file", "content", null -> Protocol.LOCAL
         else -> Protocol.LOCAL
     }
+
+    companion object {
+        const val DEFAULT_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 20_000L
+        const val SFTP_AUDIO_STARTUP_PRECACHE_TIMEOUT_MS = 5_000L
+
+        fun audioStartupPolicyFor(path: String, isAudio: Boolean): AudioStartupPreCachePolicy {
+            val sourceType = AudioPreCacheSourceType.fromPath(path)
+            val useEarlyFallback = isAudio && sourceType == AudioPreCacheSourceType.SFTP
+            return AudioStartupPreCachePolicy(
+                sourceType = sourceType,
+                timeoutMs = if (useEarlyFallback) {
+                    SFTP_AUDIO_STARTUP_PRECACHE_TIMEOUT_MS
+                } else {
+                    DEFAULT_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS
+                },
+                reason = if (useEarlyFallback) {
+                    "sftp-audio-early-direct-stream"
+                } else {
+                    "network-audio-default"
+                },
+                directStreamFallback = useEarlyFallback
+            )
+        }
+
+        fun nextTrackPrefetchRecovery(path: String): AudioNextTrackPrefetchRecovery {
+            val sourceType = AudioPreCacheSourceType.fromPath(path)
+            return AudioNextTrackPrefetchRecovery(
+                sourceType = sourceType,
+                currentTrackUnaffected = true,
+                retryOnDemand = true,
+                reason = "${sourceType.logLabel}-next-audio-prefetch-degraded"
+            )
+        }
+    }
 }
+
+enum class AudioPreCacheSourceType(val logLabel: String) {
+    SMB("smb"),
+    SFTP("sftp"),
+    FTP("ftp"),
+    CLOUD("cloud"),
+    LOCAL("local"),
+    OTHER("other");
+
+    companion object {
+        fun fromPath(path: String): AudioPreCacheSourceType = when {
+            path.startsWith("smb://", ignoreCase = true) -> SMB
+            path.startsWith("sftp://", ignoreCase = true) -> SFTP
+            path.startsWith("ftp://", ignoreCase = true) -> FTP
+            path.startsWith("cloud://", ignoreCase = true) -> CLOUD
+            path.startsWith("file://", ignoreCase = true) -> LOCAL
+            else -> OTHER
+        }
+    }
+}
+
+data class AudioStartupPreCachePolicy(
+    val sourceType: AudioPreCacheSourceType,
+    val timeoutMs: Long,
+    val reason: String,
+    val directStreamFallback: Boolean
+)
+
+data class AudioNextTrackPrefetchRecovery(
+    val sourceType: AudioPreCacheSourceType,
+    val currentTrackUnaffected: Boolean,
+    val retryOnDemand: Boolean,
+    val reason: String
+)

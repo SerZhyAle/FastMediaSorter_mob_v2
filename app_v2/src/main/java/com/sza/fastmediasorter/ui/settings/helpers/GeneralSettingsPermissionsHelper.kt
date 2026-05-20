@@ -17,7 +17,7 @@ class GeneralSettingsPermissionsHelper(
     private val requestContextualPermission: RequestContextualPermissionUseCase,
     private val permissionRegistry: PermissionRegistryRepository,
 ) {
-    // Permission buttons removed — section replaced by btnPermissionsManagement (TonalButton)
+    // Permission buttons removed - section replaced by btnPermissionsManagement (TonalButton)
     fun updatePermissionButtonsState() = Unit
 
     fun handleLocalFilesPermissionAction() = navigateToPermissionsManagement()

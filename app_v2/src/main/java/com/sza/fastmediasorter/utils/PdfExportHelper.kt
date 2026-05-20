@@ -128,7 +128,7 @@ object PdfExportHelper {
     @Suppress("DEPRECATION")
     private fun saveBitmapToDownloadsLegacy(bitmap: Bitmap, fileName: String, relativePath: String) {
         // On API < 29 MediaStore.Downloads does not exist; write directly to external storage.
-        // relativePath is "Download/<subfolder>" — strip the leading DIRECTORY_DOWNLOADS segment.
+        // relativePath is "Download/<subfolder>" - strip the leading DIRECTORY_DOWNLOADS segment.
         val subPath = relativePath.removePrefix(Environment.DIRECTORY_DOWNLOADS + File.separator)
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val exportDir = File(downloadsDir, subPath).also { it.mkdirs() }

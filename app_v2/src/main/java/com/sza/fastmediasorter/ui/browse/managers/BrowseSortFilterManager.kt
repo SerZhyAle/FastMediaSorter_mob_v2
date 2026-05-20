@@ -35,7 +35,7 @@ import kotlin.random.Random
  * - Apply session-only file filters without touching the resource ([setFilter], [applyFilter]).
  * - Provide filter-to-list application and metadata-guard helpers.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseSortFilterManager(
     private val context: Context,
@@ -87,7 +87,7 @@ class BrowseSortFilterManager(
         val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
         if (cachedFiles != null && cachedFiles.isNotEmpty()) {
             if (cachedFilesMissingMetadataForSort(cachedFiles, sortMode)) {
-                Timber.d("BrowseSortFilterManager.setSortMode: cache lacks metadata for $sortMode — clearing + reload")
+                Timber.d("BrowseSortFilterManager.setSortMode: cache lacks metadata for $sortMode - clearing + reload")
                 MediaFilesCacheManager.clearCache(resourceId)
                 loadMediaFiles()
                 return
@@ -101,13 +101,13 @@ class BrowseSortFilterManager(
                 val sortedFiles = sortFiles(filteredFiles, sortMode, forceSort = true)
                 val sortedCache = sortFiles(cachedFiles, sortMode, forceSort = true)
                 MediaFilesCacheManager.setCachedList(resourceId, sortedCache)
-                // Keep isSorting = true — cleared by BrowseActivity.clearSorting()
+                // Keep isSorting = true - cleared by BrowseActivity.clearSorting()
                 // after DiffUtil finishes computing the diff for the sorted list.
                 updateState { it.copy(mediaFiles = sortedFiles) }
             }
         } else {
             if (cachedFiles != null && cachedFiles.isEmpty()) {
-                Timber.w("BrowseSortFilterManager.setSortMode: empty cache — clearing before reload")
+                Timber.w("BrowseSortFilterManager.setSortMode: empty cache - clearing before reload")
                 MediaFilesCacheManager.clearCache(resourceId)
             }
             loadMediaFiles()
@@ -135,7 +135,7 @@ class BrowseSortFilterManager(
                 val reshuffledFiles = reshuffleVisibleFiles(filteredFiles)
                 val reshuffledCache = sortFiles(cachedFiles, SortMode.RANDOM, forceSort = true)
                 MediaFilesCacheManager.setCachedList(resourceId, reshuffledCache)
-                // Keep isSorting = true — cleared by BrowseActivity.clearSorting() after DiffUtil.
+                // Keep isSorting = true - cleared by BrowseActivity.clearSorting() after DiffUtil.
                 updateState { it.copy(mediaFiles = reshuffledFiles) }
             }
             return
@@ -146,7 +146,7 @@ class BrowseSortFilterManager(
             setLoading(true)
             updateState { it.copy(isSorting = true) }
             scope.launch(ioDispatcher) {
-                // Keep isSorting = true — cleared by BrowseActivity.clearSorting() after DiffUtil.
+                // Keep isSorting = true - cleared by BrowseActivity.clearSorting() after DiffUtil.
                 updateState { it.copy(mediaFiles = reshuffleVisibleFiles(currentFiles)) }
             }
             return
@@ -215,7 +215,7 @@ class BrowseSortFilterManager(
 
         Timber.d("BrowseSortFilterManager.applyFilter: filter=$filter")
 
-        // Fast path — files are already in memory (e.g. cache hit); no scan needed.
+        // Fast path - files are already in memory (e.g. cache hit); no scan needed.
         val cachedFiles = MediaFilesCacheManager.getCachedList(resource.id)
         if (cachedFiles != null) {
             val filteredFiles = if (filter != null) {
@@ -227,7 +227,7 @@ class BrowseSortFilterManager(
             return
         }
 
-        // Slow path — cache is empty, trigger a full scan.
+        // Slow path - cache is empty, trigger a full scan.
         scope.launch(ioDispatcher) {
             setLoading(true)
 
@@ -285,7 +285,7 @@ class BrowseSortFilterManager(
      */
     fun sortFiles(files: List<MediaFile>, mode: SortMode, forceSort: Boolean = false): List<MediaFile> {
         if (!forceSort && files.size > paginationThreshold) {
-            Timber.d("BrowseSortFilterManager.sortFiles: large folder (${files.size}) — skipping auto-sort")
+            Timber.d("BrowseSortFilterManager.sortFiles: large folder (${files.size}) - skipping auto-sort")
             return files
         }
         return fileListManager.sortFiles(files, mode, forceSort, randomShuffleSeed)

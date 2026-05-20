@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,6 +38,9 @@ import timber.log.Timber
 
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
+
+    // S0245: flavor-supplied extra Settings tabs (currently only the VR flavor adds an entry).
+    @Inject lateinit var settingsTabExtensions: Set<@JvmSuppressWildcards SettingsTabExtension>
 
     private val viewModel: SettingsViewModel by viewModels()
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
@@ -84,9 +88,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private var firstPageRenderedLogged = false
     
     companion object {
-        /** Intent extra: Long — pre-select this resource as source in the new scheduled operation dialog. */
+        /** Intent extra: Long - pre-select this resource as source in the new scheduled operation dialog. */
         const val EXTRA_SOURCE_RESOURCE_ID = "extra_source_resource_id"
-        /** Intent extra: Int — open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
+        /** Intent extra: Int - open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
@@ -97,7 +101,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             )
         }
     }
-    
+
+    override fun shouldEnableEdgeToEdge(): Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Measure actionBarSize and register insets listener before the first frame
@@ -105,7 +111,14 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         val tv = TypedValue()
         theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)
         actionBarSizePx = TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
-        applyEdgeToEdgeInsets()
+        // Apply insets handling whenever the system draws content edge-to-edge:
+        // either we opted in explicitly, or Android 15+ (API 35) forces it for
+        // targetSdk 35 regardless of enableEdgeToEdge(). Without this, the toolbar
+        // title slides under the status bar on Android 15+ (observed on Samsung S25FE).
+        if (shouldEnableEdgeToEdge() ||
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            applyEdgeToEdgeInsets()
+        }
     }
 
     override fun getViewBinding(): ActivitySettingsBinding {
@@ -122,8 +135,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
 
-        val adapter = SettingsPagerAdapter(this)
-        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created")
+        val adapter = SettingsPagerAdapter(this, settingsTabExtensions)
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created (tabCount=${adapter.itemCount})")
 
         binding.viewPager.adapter = adapter
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager.adapter set")
@@ -138,13 +151,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer + offscreenLimit)")
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.settings_tab_general)
-                1 -> getString(R.string.settings_tab_media)
-                2 -> getString(R.string.settings_tab_playback)
-                3 -> getString(R.string.settings_tab_operations)
-                else -> ""
-            }
+            tab.text = getString(adapter.getTabTitleResId(position))
         }.attach()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
 
@@ -182,7 +189,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${SettingsSearchRegistry.entries.size} search entries)")
 
         // S0196 Phase 04 measurement hook: posted AFTER the conditional setCurrentItem posts
-        // above, so it fires once the initial tab fragment is laid out — "primary content
+        // above, so it fires once the initial tab fragment is laid out - "primary content
         // rendered" for the settings surface.
         binding.viewPager.post {
             if (!firstPageRenderedLogged) {
@@ -210,7 +217,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             applyWindowInsets(insets)
             insets
         }
-        // setupViews() runs inside post{} — the first insets dispatch has already happened.
+        // setupViews() runs inside post{} - the first insets dispatch has already happened.
         // Use getRootWindowInsets() to apply them immediately; fall back to requestApplyInsets
         // for the rare case where insets aren't cached yet.
         val current = androidx.core.view.ViewCompat.getRootWindowInsets(binding.root)
@@ -292,6 +299,13 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         if (keyboardManager.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)
     }
+
+    /**
+     * On TV/keyboard-only devices, hand initial focus to the active tab content rather than the
+     * toolbar. ViewPager2 forwards the focus request to the currently-bound fragment's first
+     * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
+     */
+    override fun getInitialFocusView(): View? = binding.viewPager
 
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)

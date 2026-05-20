@@ -14,7 +14,7 @@
     <!-- Item layouts - reduce vertical padding -->
     <dimen name="item_padding_vertical">8dp</dimen>
 
-    <!-- Welcome screen landscape — compact sizes so all content fits vertically -->
+    <!-- Welcome screen landscape - compact sizes so all content fits vertically -->
     <dimen name="padding_xxlarge">16dp</dimen>
     <dimen name="welcome_page_padding">16dp</dimen>
     <dimen name="welcome_icon_size">31dp</dimen>

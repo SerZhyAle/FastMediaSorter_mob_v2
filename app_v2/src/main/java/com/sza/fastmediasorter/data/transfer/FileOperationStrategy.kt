@@ -65,7 +65,7 @@ interface FileOperationStrategy {
     /**
      * Creates a new text file in [parentPath] with given [fileName] and UTF-8 encoded [content].
      * Returns the protocol-specific path of the created file.
-     * Caller is responsible for collision resolution — this method overwrites existing files of
+     * Caller is responsible for collision resolution - this method overwrites existing files of
      * the same name only if the strategy explicitly states so in its impl docs (default: fail on conflict).
      *
      * @param parentPath  protocol-specific path of the containing directory

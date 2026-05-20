@@ -19,7 +19,7 @@ import timber.log.Timber
  * Manages the create-text-note action for the Browse screen.
  *
  * S0189 Phase 09: implements the shared [BrowseCreateEntityCommand] pattern so the toolbar
- * registrar can host this command alongside future entity commands (drawings — S0191).
+ * registrar can host this command alongside future entity commands (drawings - S0191).
  *
  * Responsibilities:
  * - Call [CreateTextNoteUseCase] with the current resource and the target parent path.
@@ -64,7 +64,6 @@ class BrowseTextNoteCreateManager(
      * Runs on [ioDispatcher]; success/error and open-notification run on Main.
      */
     fun createTextNote(name: String) {
-        Timber.d("S0189: BrowseTextNoteCreateManager.createTextNote")
         scope.launch(ioDispatcher) {
             val resource = stateFlow.value.resource ?: return@launch
             val currentPath = stateFlow.value.currentPath ?: resource.path
@@ -77,7 +76,7 @@ class BrowseTextNoteCreateManager(
 
         withContext(Dispatchers.Main) {
             result.onSuccess { createdPath ->
-                // S0189: defer-creation contract — no file on disk yet, so no list reload
+                // S0189: defer-creation contract - no file on disk yet, so no list reload
                 // and no "created" toast. Both fire on actual Save (TextEditorSaveFlow).
                 notifyCreatedForOpen(createdPath)
             }.onFailure { error ->

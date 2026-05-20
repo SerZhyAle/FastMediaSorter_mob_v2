@@ -83,7 +83,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { /* Result reflected next onResume via hasFullLocalPermissions() */ }
 
-    // S0043: settings-permission launcher removed — Manage Storage intent is now launched via
+    // S0043: settings-permission launcher removed - Manage Storage intent is now launched via
     // SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable).
     // Result is delivered through onActivityResult below and forwarded to permissionsHelper.
     
@@ -151,7 +151,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
                 val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
                 // Suppression: the worker already posted a result notification for these
-                // success kinds — skip the in-Activity toast to avoid double-feedback.
+                // success kinds - skip the in-Activity toast to avoid double-feedback.
                 // SocialPreviewOnly's "Sign in" notification action is the primary path; the
                 // in-Activity dialog is also redundant.
                 if (pending.notificationShown && (isSuccess || isAuthGated)) {
@@ -192,10 +192,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (intent?.action == Intent.ACTION_MAIN
             && AudioPlaybackService.isRunning
             && AudioPlaybackService.currentResourceId > 0L) {
-            Timber.d("MainActivity: service active on fresh launch — restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
+            Timber.d("MainActivity: service active on fresh launch - restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
             binding.root.post {
                 // Audio playback is inherently a 2D surface. createPanelIntent is kept
-                // here as an explicit "open the flat 2D player" semantics marker — every
+                // here as an explicit "open the flat 2D player" semantics marker - every
                 // flavor now routes to PlayerActivity directly (immersive VR removed in S0241).
                 val playerIntent = PlayerActivity.createPanelIntent(
                     context = this,
@@ -209,7 +209,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // MainActivity continues loading as the back-stack root; do NOT finish().
         }
 
-        // Initialize helpers (binding is already available — set by BaseActivity.onCreate)
+        // Initialize helpers (binding is already available - set by BaseActivity.onCreate)
         resumeHelper = MainResumePlaybackHelper(
             activity = this,
             binding = binding,
@@ -229,7 +229,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isResourceGridMode = { viewModel.state.value.isResourceGridMode }
         )
 
-        // Resume playback logic — only for standard launcher start with killed process
+        // Resume playback logic - only for standard launcher start with killed process
         if (resumeHelper.shouldAttemptResume(intent)) {
             resumeHelper.attemptResumePlayback()
         }
@@ -277,7 +277,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val openFavoritesOnboarding = intent?.getBooleanExtra(onboardingExtraKey, false) == true
         val openFavoritesPlain = intent?.getBooleanExtra("open_favorites", false) == true
         if (openFavoritesOnboarding) {
-            Timber.d("S0134: MainActivity onboarding extra processed")
             binding.root.post {
                 viewModel.openFavorites()
                 com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
@@ -347,7 +346,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
-        // Audio playback is inherently a 2D surface — createPanelIntent makes that
+        // Audio playback is inherently a 2D surface - createPanelIntent makes that
         // intent explicit at call sites. All flavors open PlayerActivity directly
         // (immersive VR removed in S0241).
         val playerIntent = PlayerActivity.createPanelIntent(this, resourceId, index, skipAvailabilityCheck = true)
@@ -362,7 +361,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        // Restore previous tab if returning from Favorites Browse — keeps the active tab
+        // Restore previous tab if returning from Favorites Browse - keeps the active tab
         // sticky after the user navigates back from the Favorites Browse screen.
         if (viewModel.state.value.previousTab != null) {
             viewModel.restorePreviousTab()
@@ -393,7 +392,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     // S0043: Manage Storage intent is launched via SettingsIntentLauncher (which carries
     // setLaunchBounds for XR / freeform / foldable). Result arrives here and is forwarded
     // to permissionsHelper for re-evaluation.
-    @Deprecated("Required for Settings panel bounds — see S0043")
+    @Deprecated("Required for Settings panel bounds - see S0043")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
@@ -503,9 +502,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         
         binding.btnSettings.setOnClickListenerDebounced {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            openSettings()
         }
-        
+
         binding.btnFilter.setOnClickListenerDebounced {
             val currentState = viewModel.state.value
             FilterResourceDialog.newInstance(
@@ -592,7 +591,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             (view as? android.view.ViewGroup)?.clipToPadding = false
             insets
         }
-        // setupViews() runs inside post{} — initial insets dispatch was already missed.
+        // setupViews() runs inside post{} - initial insets dispatch was already missed.
         androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
     }
 
@@ -728,7 +727,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
                 is MainEvent.NavigateToPlayerRandomMusic -> {
-                    // Random music is audio playback — always 2D. createPanelIntent
+                    // Random music is audio playback - always 2D. createPanelIntent
                     // documents the flat-surface intent at the call site. All flavors
                     // open PlayerActivity directly (immersive VR removed in S0241).
                     val intent = PlayerActivity.createPanelIntent(
@@ -781,7 +780,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
                 MainEvent.NavigateToSettings -> {
-                    startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                    openSettings()
                 }
                 is MainEvent.ScanProgress -> {
                     binding.scanProgressLayout.visibility = View.VISIBLE
@@ -819,7 +818,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             layoutChrome.refreshGridSpacing()
         }
     }
-    
+
+    private fun openSettings() {
+        startActivity(Intent(this, SettingsActivity::class.java))
+    }
+
     private fun updateFilterWarning(state: MainState) {
         val hasFilters = state.filterByType != null || 
                          state.filterByMediaType != null || 
@@ -951,7 +954,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
         when (action) {
             is GamepadAction.BrowserAction.Select -> {
-                // Trigger a click on whatever has focus — delegates to the adapter/button listeners.
+                // Trigger a click on whatever has focus - delegates to the adapter/button listeners.
                 currentFocus?.performClick() ?: return false
             }
             is GamepadAction.BrowserAction.Back -> onBackPressedDispatcher.onBackPressed()

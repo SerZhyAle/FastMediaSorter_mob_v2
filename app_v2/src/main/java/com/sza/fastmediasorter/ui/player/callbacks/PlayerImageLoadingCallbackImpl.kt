@@ -43,8 +43,8 @@ class PlayerImageLoadingCallbackImpl(
         return activity.windowManager
     }
 
-    override fun onAudioMetadataLoaded(metadata: AudioMetadata) {
-        activity.onAudioMetadataLoaded(metadata)
+    override fun onAudioMetadataLoaded(metadata: AudioMetadata, originatingPath: String) {
+        activity.onAudioMetadataLoaded(metadata, originatingPath)
     }
 
     override fun updateSlideShow() {

@@ -4,7 +4,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * S0118 — locale parity invariants for the shared friendly-copy contract.
+ * S0118 - locale parity invariants for the shared friendly-copy contract.
  *
  * The full per-locale audit lives in `scripts/check_strings_localized.ps1`; these
  * narrow JVM tests guard the in-app contract that does not depend on Android resources:

@@ -7,10 +7,6 @@
 .PARAMETER Command
     Script command to execute:
     r    - Build AAB Release
-    vr   - Build VR Release APK
-    vrd  - Build VR Debug APK
-    ivr  - Install VR Release APK on device (no launch — use Quest Library)
-    ivrd - Install VR Debug APK on device (no launch — use Quest Library)
     ivn  - Install noLegal Debug APK on device (no launch)
     dc   - Build Debug Clean
     d    - Build Debug
@@ -40,29 +36,35 @@ $ErrorActionPreference = "Stop"
 # Get project root directory
 $ProjectRoot = $PSScriptRoot
 
-# Script mapping
+# Script mapping.
+#
+# Args MUST be a hashtable, not a string array. Reason: `& $script @arrayArgs` splats
+# positionally - strings starting with `-` are treated as values, not flags, and
+# leak into the first positional [string] parameter. With `& $script @hashtableArgs`
+# PowerShell always binds by name, no matter how the keys order. Empty hashtable
+# is fine and means "no args".
+#
+# Each value is `$true` for a switch, or a string/int for a typed param.
 $scripts = @{
-    'r'         = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
-    'vr'        = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @() }
-    'vrd'       = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
-    'ivr'       = @{ Path = 'scripts\builders\install-vr-release-to-device.ps1'; Args = @() }
-    'ivrd'      = @{ Path = 'scripts\builders\install-vr-debug-to-device.ps1'; Args = @() }
-    'ivn'       = @{ Path = 'scripts\builders\install-nolegal-debug-to-device.ps1'; Args = @() }
-    'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
-    'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
-    'db'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
-    'cd'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
-    'cdb'       = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @('-SkipZip') }
-    'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @() }
-    'c'         = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @() }
-    'ch'        = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @() }
-    's'         = @{ Path = 'scripts\utils\setup_test_media.ps1'; Args = @() }
-    'b'         = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
-    'bp'        = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
-    'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
-    'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
-    'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @() }
-    'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @() }
+    'r'         = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @{} }
+    'ivn'       = @{ Path = 'scripts\builders\install-nolegal-debug-to-device.ps1'; Args = @{} }
+    'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
+    'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{} }
+    'db'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ SkipZip = $true } }
+    'bd'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ SkipZip = $true } }  # typo-tolerant alias for 'db'
+    'dq'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ SkipZip = $true; Quiet = $true } }  # quiet debug: filters known noise
+    'cd'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
+    'cdb'       = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{ SkipZip = $true } }
+    'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @{} }
+    'c'         = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @{} }
+    'ch'        = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @{} }
+    's'         = @{ Path = 'scripts\utils\setup_test_media.ps1'; Args = @{} }
+    'b'         = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @{} }
+    'bp'        = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @{} }
+    'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
+    'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
+    'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
+    'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
 }
 
 function Set-ChaquopyLocalState {
@@ -142,14 +144,12 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host ""
     Write-Host "Available commands:" -ForegroundColor Yellow
     Write-Host "  r    - Build AAB Release" -ForegroundColor Cyan
-    Write-Host "  vr   - Build VR Release APK" -ForegroundColor Cyan
-    Write-Host "  vrd  - Build VR Debug APK" -ForegroundColor Cyan
-    Write-Host "  ivr  - Install VR Release APK on device (NO launch — use Quest Library)" -ForegroundColor Cyan
-    Write-Host "  ivrd - Install VR Debug APK on device (NO launch — use Quest Library)" -ForegroundColor Cyan
     Write-Host "  ivn  - Install noLegal Debug APK on device (NO launch)" -ForegroundColor Cyan
     Write-Host "  dc   - Build Debug Clean" -ForegroundColor Cyan
     Write-Host "  d    - Build Debug" -ForegroundColor Cyan
     Write-Host "  db   - Build Debug without zip" -ForegroundColor Cyan
+    Write-Host "  bd   - Build Debug without zip (typo-tolerant alias for db)" -ForegroundColor Cyan
+    Write-Host "  dq   - Build Debug quiet (no zip, suppresses known-noise lines)" -ForegroundColor Cyan
     Write-Host "  cd   - Clean + Debug + zip" -ForegroundColor Cyan
     Write-Host "  cdb  - Clean + Debug without zip" -ForegroundColor Cyan
     Write-Host "  cls  - Clean Gradle caches" -ForegroundColor Cyan
@@ -174,12 +174,12 @@ $chaquopyLocalState = switch ($Command) {
     'nl' { $true }
     'd' { $false }
     'db' { $false }
+    'bd' { $false }
+    'dq' { $false }
     'dc' { $false }
     'cd' { $false }
     'cdb' { $false }
     'r' { $false }
-    'vr' { $false }
-    'vrd' { $false }
     default { $null }
 }
 
@@ -199,13 +199,13 @@ if (-not (Test-Path $scriptPath)) {
 }
 
 # Release commands are always built from the release worktree (main branch).
-# The worktree lives at ../FastMediaSorter_release — created via:
+# The worktree lives at ../FastMediaSorter_release - created via:
 #   git worktree add ../FastMediaSorter_release main
-$releaseCommands = @('r', 'vr', 'nl')
+$releaseCommands = @('r', 'nl')
 if ($releaseCommands -contains $Command) {
     $worktreePath = Join-Path (Split-Path $ProjectRoot -Parent) "FastMediaSorter_release"
     if (Test-Path $worktreePath) {
-        Write-Host "Release build — delegating to release worktree [main]" -ForegroundColor Cyan
+        Write-Host "Release build - delegating to release worktree [main]" -ForegroundColor Cyan
         Write-Host "  $worktreePath" -ForegroundColor DarkGray
 
         # Pull latest main into worktree
@@ -251,12 +251,17 @@ if ($releaseCommands -contains $Command) {
             Write-Host "Error: script not found in release worktree: $worktreeScript" -ForegroundColor Red
             exit 1
         }
-        Write-Host "Executing (worktree): $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
+        $argsDisplay = if ($scriptArgs -is [hashtable]) {
+            ($scriptArgs.GetEnumerator() | ForEach-Object {
+                if ($_.Value -is [bool]) { "-$($_.Key)" } else { "-$($_.Key) $($_.Value)" }
+            }) -join ' '
+        } else { $scriptArgs -join ' ' }
+        Write-Host "Executing (worktree): $($scriptEntry.Path) $argsDisplay" -ForegroundColor Green
         Write-Host ""
         # CRITICAL: change CWD to worktree before invoking the build script.
         # Gradle resolves the project directory from CWD (not from gradlew.bat location),
         # so without this Push-Location Gradle would build the DEV project even though
-        # the script writes versionCode/Name into the worktree's build.gradle.kts —
+        # the script writes versionCode/Name into the worktree's build.gradle.kts -
         # producing artifacts with stale versions and silently mirroring dev outputs.
         Push-Location $worktreePath
         try {
@@ -275,7 +280,7 @@ if ($releaseCommands -contains $Command) {
                 if (-not (Test-Path $localDownloads)) {
                     New-Item -ItemType Directory -Path $localDownloads | Out-Null
                 }
-                # Copy all build artifacts (overwrite) — skip the journal so we append below
+                # Copy all build artifacts (overwrite) - skip the journal so we append below
                 Get-ChildItem -Path $worktreeDownloads -File |
                 Where-Object { $_.Name -ne "builds_versions.lst" } |
                 ForEach-Object {
@@ -307,7 +312,12 @@ if ($releaseCommands -contains $Command) {
 }
 
 # Execute script (non-release commands, or release fallback when no worktree)
-Write-Host "Executing: $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
+$argsDisplay = if ($scriptArgs -is [hashtable]) {
+    ($scriptArgs.GetEnumerator() | ForEach-Object {
+        if ($_.Value -is [bool]) { "-$($_.Key)" } else { "-$($_.Key) $($_.Value)" }
+    }) -join ' '
+} else { $scriptArgs -join ' ' }
+Write-Host "Executing: $($scriptEntry.Path) $argsDisplay" -ForegroundColor Green
 Write-Host ""
 
 & $scriptPath @scriptArgs

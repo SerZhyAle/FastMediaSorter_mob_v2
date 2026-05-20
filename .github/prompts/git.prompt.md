@@ -10,7 +10,7 @@ description: "Use when: asked about git commits, how to stage files, what to com
 > 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
 > 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
 
-Git workflow for FastMediaSorter v2 — branching model, staging, committing, pushing, fix-release, and diff research.
+Git workflow for FastMediaSorter v2 - branching model, staging, committing, pushing, fix-release, and diff research.
 
 ## Usage
 
@@ -19,7 +19,7 @@ Git workflow for FastMediaSorter v2 — branching model, staging, committing, pu
 ```
 
 Examples:
-- `/git` — show full Git reference
+- `/git` - show full Git reference
 - `/git what should I commit now?`
 - `/git analyze current changes and suggest commit groups`
 - `/git how do I see what changed in PlayerActivity.kt?`
@@ -33,12 +33,12 @@ Examples:
 
 When this command is invoked with `$ARGUMENTS`:
 
-**Step 1 — Parse the request.**
+**Step 1 - Parse the request.**
 If `$ARGUMENTS` is empty, output the full Git reference below.
 If `$ARGUMENTS` asks to analyze current changes, run `git status` and `git diff --stat` and group the changes by feature/concern, then suggest commit groups.
 If `$ARGUMENTS` asks about a specific file or topic, focus the answer on that.
 
-**Step 2 — For "analyze changes" requests:**
+**Step 2 - For "analyze changes" requests:**
 1. Run `git status` to see all modified and untracked files.
 2. Run `git branch --show-current` to confirm which branch is active.
 3. Group files by feature (e.g. Chromecast, HEIC/HEIF, settings, docs, infra).
@@ -46,8 +46,8 @@ If `$ARGUMENTS` asks about a specific file or topic, focus the answer on that.
 5. Suggest 2–4 logical commit groups with proposed commit messages.
 6. Show the exact `git add` commands for each group.
 
-**Step 3 — Answer from the reference below.**
-Do not guess — use exact commands from this reference.
+**Step 3 - Answer from the reference below.**
+Do not guess - use exact commands from this reference.
 
 ---
 
@@ -64,7 +64,7 @@ This project uses a two-tier branching model. Know it before touching git.
 
 ### Rules
 
-- **Before any task:** `git branch --show-current` — confirm you are on the expected branch.
+- **Before any task:** `git branch --show-current` - confirm you are on the expected branch.
 - **Development work goes to the current DEBUG branch, never to `main` directly.**
 - `main` accepts only:
   - Merges from `DEBUG-v00N` after plateau verification.
@@ -81,10 +81,10 @@ Two permanent working directories exist simultaneously:
 | `P:/ANDROID/FastMediaSorter_mob_v2` | `DEBUG-v001` (or current) | Development |
 | `P:/ANDROID/FastMediaSorter_release` | `main` | Release builds only |
 
-Release builds (`.\a r`, `.\a vr`, `.\a nl`) run automatically from the release worktree — no manual switching needed.
+Release builds (`.\a r`, `.\a vr`, `.\a nl`) run automatically from the release worktree - no manual switching needed.
 
 ```bash
-# One-time worktree setup (already done — reference only)
+# One-time worktree setup (already done - reference only)
 git worktree add ../FastMediaSorter_release main
 
 # List worktrees
@@ -112,7 +112,7 @@ git diff --stat
 ### Commit on a DEBUG branch
 
 ```bash
-# Stage and commit as usual — everything goes to DEBUG-v00N
+# Stage and commit as usual - everything goes to DEBUG-v00N
 git add path/to/file.kt
 git commit -m "feat: description"
 
@@ -144,16 +144,16 @@ git tag release/v2.60.XXXX.XXX
 git add docs/WHATS_NEW.md
 git commit -m "docs: WHATS_NEW for fix-release vX.X"
 
-# 6. Run release build (or just use .\a r from the dev directory — it auto-pulls)
+# 6. Run release build (or just use .\a r from the dev directory - it auto-pulls)
 .\a.ps1 r
 
-# 7. Back in the dev directory — rebase DEBUG branch onto updated main
+# 7. Back in the dev directory - rebase DEBUG branch onto updated main
 cd P:/ANDROID/FastMediaSorter_mob_v2
 git fetch origin main
 git rebase origin/main          # or: git rebase main (if local main is up to date)
 ```
 
-**Rule:** fix-release = only regression fixes. If you find yourself adding a new string resource, a new menu item, or new UI — stop. That belongs in DEBUG.
+**Rule:** fix-release = only regression fixes. If you find yourself adding a new string resource, a new menu item, or new UI - stop. That belongs in DEBUG.
 
 ---
 
@@ -166,7 +166,7 @@ When the DEBUG branch reaches stability (all key specs Verified/Implemented, bui
 cd P:/ANDROID/FastMediaSorter_release
 git pull --ff-only
 
-# 2. Merge DEBUG into main (no fast-forward — preserve merge commit)
+# 2. Merge DEBUG into main (no fast-forward - preserve merge commit)
 git merge --no-ff DEBUG-v001 -m "release: merge DEBUG-v001 into main"
 
 # 3. Tag the new release
@@ -185,7 +185,7 @@ git push -u origin DEBUG-v002
 
 # 6. Update the worktree to stay on main
 cd P:/ANDROID/FastMediaSorter_release
-# (already on main — no action needed)
+# (already on main - no action needed)
 ```
 
 ---
@@ -247,7 +247,7 @@ git add app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.
 # Stage an entire new directory
 git add app_v2/src/main/java/com/sza/fastmediasorter/core/cast/
 
-# Stage interactively — choose which hunks (chunks) within a file to include
+# Stage interactively - choose which hunks (chunks) within a file to include
 git add -p app_v2/build.gradle.kts
 
 # Verify what will be committed before committing
@@ -335,7 +335,7 @@ git tag --list "release/*" --sort=-version:refname
 # What commit a tag points to
 git rev-parse --short release/v2.60.5130.151
 
-# Restore a single file to a past commit (careful — overwrites working copy)
+# Restore a single file to a past commit (careful - overwrites working copy)
 git checkout 18945f1 -- app_v2/build.gradle.kts
 ```
 
@@ -374,21 +374,21 @@ Always commit:
 
 When multiple features are in progress simultaneously, split into logical commits:
 
-**Group 1 — Feature work**
+**Group 1 - Feature work**
 ```bash
 git add PLAN/S0NNN_feature-name.md
 git add app_v2/src/main/java/com/sza/fastmediasorter/...
 git commit -m "feat: description"
 ```
 
-**Group 2 — Docs & changelog**
+**Group 2 - Docs & changelog**
 ```bash
 git add dev/CHANGELOG.md
 git add docs/FEATURES.md docs/FEATURES_RU.md docs/FEATURES_UK.md
 git commit -m "docs: update feature list and changelog"
 ```
 
-**Group 3 — Shared infra** (build.gradle, strings, settings)
+**Group 3 - Shared infra** (build.gradle, strings, settings)
 ```bash
 git add app_v2/build.gradle.kts
 git commit -m "chore: update dependencies and build config"

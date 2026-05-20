@@ -23,7 +23,7 @@ import timber.log.Timber
  * Applies BrowseState changes to the UI: filter badge, selection panel, display mode,
  * breadcrumb, and resource action button.
  *
- * Extracted from BrowseActivity.observeData() state collector (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity.observeData() state collector (Wave 1.5 decomposition - IV.1).
  */
 class BrowseStateUiUpdater(
     private val activity: Activity,
@@ -101,7 +101,7 @@ class BrowseStateUiUpdater(
 
     /**
      * "Play Random" button appears only for single-type libraries (audio / image / video).
-     * Hidden for mixed, allFiles, or document-only resources — random play has no meaningful
+     * Hidden for mixed, allFiles, or document-only resources - random play has no meaningful
      * semantics there from a UX perspective.
      */
     private fun updatePlayRandomButtonVisibility(state: BrowseState) {
@@ -146,6 +146,12 @@ class BrowseStateUiUpdater(
                 && !VirtualPathUtils.isVirtualPath(resource.path)
                 && resource.supportsDocuments()
         binding.btnCreateTextFile?.isVisible = canCreateTextNote
+
+        val canCreateDrawing = resource != null
+            && !resource.isReadOnly
+            && !VirtualPathUtils.isVirtualPath(resource.path)
+            && resource.supportsImages()
+        binding.btnCreateDrawing?.isVisible = canCreateDrawing
     }
 
     private fun updateResourceActionButton(state: BrowseState) {

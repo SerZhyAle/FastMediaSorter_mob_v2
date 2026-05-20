@@ -8,9 +8,10 @@ import kotlin.math.abs
 
 /**
  * Unit tests for the pure helper functions introduced in S0227:
- * [DestinationButtonsManager.computeMaxPerRow] and [DestinationButtonsManager.computeFontSizeSp].
+ * [DestinationButtonsManager.computeMaxPerRow], [DestinationButtonsManager.computeFontSizeSp],
+ * and [DestinationButtonsManager.computeAutoSizeMaxSp].
  *
- * These functions contain all the business logic for adaptive layout — they are deliberately
+ * These functions contain all the business logic for adaptive layout - they are deliberately
  * extracted to companion object so they can be tested without Android framework dependencies.
  */
 class DestinationButtonsManagerTest {
@@ -113,6 +114,26 @@ class DestinationButtonsManagerTest {
         assertEquals("Above max → clamp to SP_MAX", 16f, result, 0.01f)
     }
 
+    // --- computeAutoSizeMaxSp ---
+
+    @Test
+    fun `computeAutoSizeMaxSp - min font size - returns null`() {
+        val result = DestinationButtonsManager.computeAutoSizeMaxSp(10f)
+        assertEquals("Min font size should skip auto-size upper bound", null, result)
+    }
+
+    @Test
+    fun `computeAutoSizeMaxSp - fractional font size above minimum - rounds up`() {
+        val result = DestinationButtonsManager.computeAutoSizeMaxSp(10.2f)
+        assertEquals("Fractional font sizes above min should keep a valid upper bound", 11, result)
+    }
+
+    @Test
+    fun `computeAutoSizeMaxSp - above maximum - clamps to SP_MAX`() {
+        val result = DestinationButtonsManager.computeAutoSizeMaxSp(20f)
+        assertEquals("Auto-size upper bound should clamp to SP_MAX", 16, result)
+    }
+
     // --- Distribution logic: adaptive single row vs lookup table ---
 
     @Test
@@ -122,7 +143,7 @@ class DestinationButtonsManagerTest {
         val maxPerRow = DestinationButtonsManager.computeMaxPerRow(availableWidthDp)
         val count = 5
         val usesAdaptive = count > 0 && count <= maxPerRow
-        // Adaptive path NOT taken; lookup returns listOf(5) — 1 row, no regression
+        // Adaptive path NOT taken; lookup returns listOf(5) - 1 row, no regression
         assertEquals("360dp + 5 buttons: maxPerRow=4 < 5, adaptive NOT triggered", 4, maxPerRow)
         assertTrue("360dp + 5: lookup path taken (count > maxPerRow)", !usesAdaptive)
     }
@@ -133,7 +154,7 @@ class DestinationButtonsManagerTest {
         val count = 6
         val usesAdaptive = count > 0 && count <= maxPerRow
         assertTrue("360dp + 6 buttons: should NOT use adaptive single row", !usesAdaptive)
-        // lookup → listOf(3,3) — 2 rows, no regression
+        // lookup → listOf(3,3) - 2 rows, no regression
     }
 
     @Test

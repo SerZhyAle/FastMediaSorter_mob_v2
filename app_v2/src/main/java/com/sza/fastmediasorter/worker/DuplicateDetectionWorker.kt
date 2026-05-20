@@ -88,7 +88,7 @@ class DuplicateDetectionWorker @AssistedInject constructor(
         val result = detectionResult
         return if (result != null) {
             Timber.i(
-                "DuplicateDetectionWorker: done — ${result.groups.size} groups, " +
+                "DuplicateDetectionWorker: done - ${result.groups.size} groups, " +
                 "${result.totalWastedBytes / 1024} KB wasted, ${result.durationMs}ms"
             )
             Result.success(

@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -16,13 +15,12 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
-class ImagesSettingsFragment : Fragment() {
+class ImagesSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsImagesBinding? = null
     private val binding get() = _binding!!
-    
+
     private val viewModel: SettingsViewModel by activityViewModels()
-    private var isUpdatingFromSettings = false
 
     companion object {
         private const val KB_TO_BYTES = 1024L
@@ -44,77 +42,34 @@ class ImagesSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
-        // Support Images
-        binding.switchSupportImages.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportImages = isChecked))
-            }
+        // Support Images - help payload folded into the row
+        bindSwitch(binding.rowSupportImages) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportImages = isChecked))
         }
 
         // Support GIFs
-        binding.switchSupportGifs.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportGifs = isChecked))
-            }
+        bindSwitch(binding.rowSupportGifs) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportGifs = isChecked))
         }
 
-        // Load Full Size Images
-        binding.switchLoadFullSizeImages.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(loadFullSizeImages = isChecked))
-            }
+        // Load Full Size Images - help payload folded into the row
+        bindSwitch(binding.rowLoadFullSizeImages) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(loadFullSizeImages = isChecked))
         }
 
-        // Crop Images to Fullscreen
-        binding.switchCropImagesToFullscreen.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(cropImagesToFullscreen = isChecked))
-            }
+        // Crop Images to Fullscreen - help payload folded into the row
+        bindSwitch(binding.rowCropImagesToFullscreen) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(cropImagesToFullscreen = isChecked))
         }
 
-        // Help buttons
-        binding.iconHelpSupportImages.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.support_images_description,
-                com.sza.fastmediasorter.R.string.supported_image_formats
-            )
-        }
-        
-        binding.iconHelpFullSizeImages.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.load_full_size_images,
-                com.sza.fastmediasorter.R.string.load_full_size_images_hint
-            )
-        }
-
-        binding.iconHelpCropImages.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_crop_images_fullscreen_title,
-                com.sza.fastmediasorter.R.string.tooltip_crop_images_fullscreen_message
-            )
-        }
-
-        // Dynamic Background Extension
-        binding.switchDynamicBackground.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(dynamicBackgroundExtension = isChecked))
-            }
-        }
-
-        binding.iconHelpDynamicBackground.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_dynamic_background_title,
-                com.sza.fastmediasorter.R.string.tooltip_dynamic_background_message
-            )
+        // Dynamic Background Extension - help payload folded into the row
+        bindSwitch(binding.rowDynamicBackground) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(dynamicBackgroundExtension = isChecked))
         }
 
         // Image Size Min
@@ -131,7 +86,6 @@ class ImagesSettingsFragment : Fragment() {
         })
 
         // Image Size Max
-        // Image Size Max
         binding.etImageSizeMax.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -144,13 +98,11 @@ class ImagesSettingsFragment : Fragment() {
             }
         })
 
-        // Slideshow background music toggle
-        binding.switchSlideshowBackgroundMusic.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(enableSlideshowBackgroundMusic = isChecked))
-                binding.layoutMusicSourceSelector.isVisible = isChecked
-            }
+        // Slideshow background music toggle - help payload folded into the row
+        bindSwitch(binding.rowSlideshowBackgroundMusic) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableSlideshowBackgroundMusic = isChecked))
+            binding.layoutMusicSourceSelector.isVisible = isChecked
         }
 
         // Select music source button
@@ -170,15 +122,6 @@ class ImagesSettingsFragment : Fragment() {
             ).show()
         }
 
-        // Help icons
-        binding.iconHelpSlideshowMusic.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_slideshow_music_title,
-                com.sza.fastmediasorter.R.string.tooltip_slideshow_music_message
-            )
-        }
-
         setupDefaultPlayerButton()
     }
 
@@ -196,47 +139,49 @@ class ImagesSettingsFragment : Fragment() {
             binding.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
         )
         binding.btnSetDefaultImageViewer.setOnClickListener {
+            val current = viewModel.settings.value
+            if (!current.isPrimaryMediaPlayer) {
+                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "image/*")
         }
     }
 
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
-                    isUpdatingFromSettings = true
-                    
-                    binding.switchSupportImages.isChecked = settings.supportImages
-                    binding.switchSupportGifs.isChecked = settings.supportGifs
-                    binding.switchLoadFullSizeImages.isChecked = settings.loadFullSizeImages
-                    binding.switchCropImagesToFullscreen.isChecked = settings.cropImagesToFullscreen
-                    binding.switchDynamicBackground.isChecked = settings.dynamicBackgroundExtension
+            withSettingsUpdate {
+                setSwitchChecked(binding.rowSupportImages, settings.supportImages)
+                setSwitchChecked(binding.rowSupportGifs, settings.supportGifs)
+                setSwitchChecked(binding.rowLoadFullSizeImages, settings.loadFullSizeImages)
+                setSwitchChecked(binding.rowCropImagesToFullscreen, settings.cropImagesToFullscreen)
+                setSwitchChecked(binding.rowDynamicBackground, settings.dynamicBackgroundExtension)
 
-                    val minKb = settings.imageSizeMin / KB_TO_BYTES
-                    val maxKb = settings.imageSizeMax / KB_TO_BYTES
-                    
-                    if (binding.etImageSizeMin.text.toString() != minKb.toString()) {
-                        binding.etImageSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
-                    }
-                    if (binding.etImageSizeMax.text.toString() != maxKb.toString()) {
-                        binding.etImageSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
-                    }
+                val minKb = settings.imageSizeMin / KB_TO_BYTES
+                val maxKb = settings.imageSizeMax / KB_TO_BYTES
 
-                    // Slideshow background music
-                    binding.switchSlideshowBackgroundMusic.isChecked = settings.enableSlideshowBackgroundMusic
-                    binding.layoutMusicSourceSelector.isVisible = settings.enableSlideshowBackgroundMusic
+                if (binding.etImageSizeMin.text.toString() != minKb.toString()) {
+                    binding.etImageSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
+                }
+                if (binding.etImageSizeMax.text.toString() != maxKb.toString()) {
+                    binding.etImageSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
+                }
 
-                    // Update selected music source text
-                    if (settings.slideshowMusicResourceId != null) {
-                        // Load resource name from repository
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val resource = viewModel.resourceRepository.getResourceById(settings.slideshowMusicResourceId)
-                            binding.tvSelectedMusicSource.text = resource?.name
-                                ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
-                        }
-                    } else {
-                        binding.tvSelectedMusicSource.setText(com.sza.fastmediasorter.R.string.no_music_source_selected)
+                // Slideshow background music
+                setSwitchChecked(binding.rowSlideshowBackgroundMusic, settings.enableSlideshowBackgroundMusic)
+                binding.layoutMusicSourceSelector.isVisible = settings.enableSlideshowBackgroundMusic
+
+                // Update selected music source text
+                if (settings.slideshowMusicResourceId != null) {
+                    // Load resource name from repository
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val resource = viewModel.resourceRepository.getResourceById(settings.slideshowMusicResourceId)
+                        binding.tvSelectedMusicSource.text = resource?.name
+                            ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
                     }
-                    
-                    isUpdatingFromSettings = false
+                } else {
+                    binding.tvSelectedMusicSource.setText(com.sza.fastmediasorter.R.string.no_music_source_selected)
+                }
+            }
         }
     }
 

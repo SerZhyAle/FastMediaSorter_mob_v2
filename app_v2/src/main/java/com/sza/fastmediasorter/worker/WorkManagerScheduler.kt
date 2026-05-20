@@ -293,7 +293,7 @@ class WorkManagerScheduler @Inject constructor(
 
     /**
      * Enqueue a one-time thumbnail preload job for [resourceId].
-     * Uses KEEP policy — if a job is already pending/running for this resource it is not replaced.
+     * Uses KEEP policy - if a job is already pending/running for this resource it is not replaced.
      *
      * @param resourceId ID of the network resource to preload thumbnails for.
      * @param wifiOnly If true, adds NetworkType.UNMETERED constraint (default: true).
@@ -367,7 +367,7 @@ class WorkManagerScheduler @Inject constructor(
                         scheduleOperation(updated)
                     }
                 } else {
-                    Timber.w("WorkManagerScheduler: op=$operationId finished with state=${workInfo?.state} — skipping reschedule")
+                    Timber.w("WorkManagerScheduler: op=$operationId finished with state=${workInfo?.state} - skipping reschedule")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "WorkManagerScheduler: reschedule observer failed for op=$operationId")
@@ -377,7 +377,7 @@ class WorkManagerScheduler @Inject constructor(
 
     /**
      * Enqueue a one-shot streaming-cache GC pass on app start.
-     * Safe to call on every launch — WorkManager dedupes by unique name.
+     * Safe to call on every launch - WorkManager dedupes by unique name.
      *
      * @param ttlDays TTL in days for the eviction pass; `0` disables TTL eviction
      *   but still runs the verify-and-prune step.

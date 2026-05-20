@@ -1,4 +1,4 @@
-# Activity Catalog — app_v2
+# Activity Catalog - app_v2
 
 *Generated: 2026-05-09 15:03*
 

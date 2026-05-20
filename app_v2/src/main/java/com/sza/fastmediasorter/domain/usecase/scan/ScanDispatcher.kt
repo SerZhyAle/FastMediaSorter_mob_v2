@@ -13,7 +13,7 @@ import javax.inject.Singleton
  * Wraps a [Semaphore] per [ResourceType] category. Call [withScanPermit] inside
  * any scan coroutine to wait for an available slot before proceeding.
  *
- * Thread-safe. Singletons survive across scan cycles — [reset] must be called
+ * Thread-safe. Singletons survive across scan cycles - [reset] must be called
  * explicitly if [ScanSettings] limits are changed at runtime.
  *
  * Usage:
@@ -62,11 +62,11 @@ class ScanDispatcher @Inject constructor(
 
     /**
      * Re-initialises all semaphores with current [ScanSettings] values.
-     * Call ONLY when no scans are in progress — existing permits are dropped.
+     * Call ONLY when no scans are in progress - existing permits are dropped.
      */
     fun reset() {
         Timber.d(
-            "ScanDispatcher: resetting — local=${settings.localParallelism}, " +
+            "ScanDispatcher: resetting - local=${settings.localParallelism}, " +
                 "network=${settings.networkParallelism}, cloud=${settings.cloudParallelism}"
         )
         localSemaphore   = Semaphore(settings.localParallelism)

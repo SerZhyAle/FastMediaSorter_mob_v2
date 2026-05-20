@@ -12,7 +12,7 @@ import javax.inject.Singleton
  *
  * **First iteration scope:** [closeFor] (delegates to existing `disconnectAll()`)
  * and [lastRecreateMs] (delegates to [SftpRecreateTracker]).
- * [acquire] / [release] / [withRetry] throw [UnsupportedOperationException] — SFTP consumers
+ * [acquire] / [release] / [withRetry] throw [UnsupportedOperationException] - SFTP consumers
  * continue calling `SftpClient` / `SftpConnectionPool` directly, per the strategic non-goal
  * "non-SMB consumers continue using their existing client until per-pool refactor lands".
  *
@@ -39,7 +39,7 @@ class SftpConnectionGate @Inject constructor(
     }
 
     override fun release(connection: ChannelSftp, success: Boolean) {
-        // Never invoked while acquire throws — kept empty for forward compatibility.
+        // Never invoked while acquire throws - kept empty for forward compatibility.
     }
 
     override suspend fun <R> withRetry(

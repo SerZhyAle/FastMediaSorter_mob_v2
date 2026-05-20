@@ -1,4 +1,4 @@
-# Spec Catalog — Journal Schema
+# Spec Catalog - Journal Schema
 
 **Journal file:** `PLAN/spec-catalog.jsonl` (one JSON object per line, UTF-8 no BOM).
 
@@ -9,7 +9,7 @@
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `id` | string | yes | Stable ticket id, format `^S\d{4}$`. Allocated once; never reused. |
-| `name` | string | yes | Slug — the post-prefix portion of the spec file name. Example: `decompose-giant-files`. No `spec_` prefix. |
+| `name` | string | yes | Slug - the post-prefix portion of the spec file name. Example: `decompose-giant-files`. No `spec_` prefix. |
 | `status` | string | yes | One of the values listed below. |
 | `priority` | integer | yes | 0..100. Higher = more urgent. See priority guide below. |
 | `tier` | integer | no | Roadmap tier 0..4 from the strategic spec header. Omit when not applicable. |
@@ -35,14 +35,14 @@ Active lifecycle:
 
 Block states (any active spec may transition into one of these and back):
 
-- `BlockByOtherTask`  — depends on another spec; record the dependency in the ticket body.
-- `BlockNeedUserTest` — implementation done, awaiting hands-on verification.
-- `BlockQuestions`    — awaiting clarification from the user.
-- `BlockExternal`     — waiting on an external dependency (library release, hardware, third party).
+- `BlockByOtherTask`  - depends on another spec; record the dependency in the ticket body.
+- `BlockNeedUserTest` - implementation done, awaiting hands-on verification.
+- `BlockQuestions`    - awaiting clarification from the user.
+- `BlockExternal`     - waiting on an external dependency (library release, hardware, third party).
 
 Terminal:
 
-- `Archived` — soft-deleted; record stays forever, id never reused.
+- `Archived` - soft-deleted; record stays forever, id never reused.
 
 State transitions:
 
@@ -81,14 +81,14 @@ The CLI computes "days since `updated`" for the report (`a.ps1 ss`):
 
 ## Optional fields
 
-All fields below are optional. Absence in any record — old or new — is valid and passes `validate.ps1` without error.
+All fields below are optional. Absence in any record - old or new - is valid and passes `validate.ps1` without error.
 
-- `title` (string) — human-readable display name; free text; used by `search.ps1` for substring matching alongside `name`.
-- `tags` (string array) — thematic labels, e.g. `["tooling","scripts"]`; filterable by `search.ps1 -Tag`.
-- `type` (string) — work kind; one of `feature`, `bugfix`, `tooling`, `research`; filterable by `search.ps1 -Type`.
-- `blocked_by` (string array) — ids of tickets this one depends on, e.g. `["S0099"]`; informational, not enforced by `validate.ps1`.
-- `closed_at` (string) — `YYYY-MM-DD` date of intentional finalization; written by `close.ps1`; absent until the ticket is closed.
-- `has_tactical` (boolean) — `true` when a `PLAN/Sxxxx_*/INDEX.md` tactical folder exists; written by `/spec-tech` during the Tactical status transition.
+- `title` (string) - human-readable display name; free text; used by `search.ps1` for substring matching alongside `name`.
+- `tags` (string array) - thematic labels, e.g. `["tooling","scripts"]`; filterable by `search.ps1 -Tag`.
+- `type` (string) - work kind; one of `feature`, `bugfix`, `tooling`, `research`; filterable by `search.ps1 -Type`.
+- `blocked_by` (string array) - ids of tickets this one depends on, e.g. `["S0099"]`; informational, not enforced by `validate.ps1`.
+- `closed_at` (string) - `YYYY-MM-DD` date of intentional finalization; written by `close.ps1`; absent until the ticket is closed.
+- `has_tactical` (boolean) - `true` when a `PLAN/Sxxxx_*/INDEX.md` tactical folder exists; written by `/spec-tech` during the Tactical status transition.
 
 ---
 

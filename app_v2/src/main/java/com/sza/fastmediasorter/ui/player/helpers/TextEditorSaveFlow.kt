@@ -16,7 +16,7 @@ import java.io.File
  * S0189: orchestrates the save-with-rename dialog flow for text note editing.
  *
  * Shows [TextNoteSaveDialog], dispatches the save coroutine, surfaces toasts, and
- * invokes [afterSave] on success. Does NOT touch UI state beyond toasts — the caller
+ * invokes [afterSave] on success. Does NOT touch UI state beyond toasts - the caller
  * controls post-save navigation (exit edit mode, share sheet, etc.).
  *
  * Constructed manually by [PlayerViewerFactory] (TextViewerManager is not Hilt-managed).

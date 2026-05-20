@@ -33,7 +33,7 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
      * @return Result with count of deleted files or failure
      */
     suspend operator fun invoke(directoryPath: String): Result<Int> = withContext(Dispatchers.IO) {
-        // Cloud paths (cloud:// and legacy cloud:/) have no concept of local temp files — nothing to clean.
+        // Cloud paths (cloud:// and legacy cloud:/) have no concept of local temp files - nothing to clean.
         // S0236: accept both legacy single-slash and current double-slash forms so a stale resource.path
         // does not leak into SmbFileOperationHandler → LocalOperationStrategy and produce FileNotFoundException.
         if (cloudPathParser.isCloudPath(directoryPath)) {
@@ -42,7 +42,7 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
         }
 
         // Virtual aggregate paths (virtual://all_audio, virtual://all_video, etc.) are MediaStore
-        // virtual views — no real directory, no strategy registered for them
+        // virtual views - no real directory, no strategy registered for them
         if (VirtualPathUtils.isVirtualPath(directoryPath)) {
             Timber.d("CleanupOrphanedTempFilesUseCase: Skipping virtual path: $directoryPath")
             return@withContext Result.success(0)

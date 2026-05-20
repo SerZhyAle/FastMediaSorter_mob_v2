@@ -128,7 +128,7 @@ class PagingMediaFileAdapter(
         }
     }
 
-    // Shared helpers — accessed by both inner ViewHolder classes
+    // Shared helpers - accessed by both inner ViewHolder classes
     private fun createExtensionBitmap(extension: String): Bitmap =
         ExtensionThumbnailGenerator.generate(extension, 200)
 
@@ -320,7 +320,7 @@ class PagingMediaFileAdapter(
                         val extCheck = file.name.substringAfterLast('.', "").lowercase()
                         if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
                                 .shouldSkipNetworkExtraction(extCheck)) {
-                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' — showing placeholder: ${file.name}")
+                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' - showing placeholder: ${file.name}")
                             showGeneratedPlaceholder(imageView, file)
                             imageView.contentDescription = context.getString(
                                 R.string.thumbnail_unavailable_network_format, extCheck.uppercase())
@@ -591,7 +591,7 @@ class PagingMediaFileAdapter(
                         val extCheck = file.name.substringAfterLast('.', "").lowercase()
                         if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
                                 .shouldSkipNetworkExtraction(extCheck)) {
-                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' — showing placeholder: ${file.name}")
+                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' - showing placeholder: ${file.name}")
                             showGeneratedPlaceholder(imageView, file)
                             imageView.contentDescription = context.getString(
                                 R.string.thumbnail_unavailable_network_format, extCheck.uppercase())

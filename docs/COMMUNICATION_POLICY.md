@@ -1,4 +1,4 @@
-# FastMediaSorter — UI Communication Policy
+# FastMediaSorter - UI Communication Policy
 
 **Canonical source:** This document. Mirrors: `COMMUNICATION_POLICY_RU.md`, `COMMUNICATION_POLICY_UK.md`.
 **Origin:** S0118 (friendly-ui-copy-revision). Update this document when new message formulas or feedback channels are added.
@@ -34,7 +34,7 @@
 - Do not expose raw exception text as the primary message.
 - Technical details (stack trace, error codes) go to a secondary "Details" section, not the headline.
 - Examples:
-  - ✓ "Couldn't connect — check the server address and try again."
+  - ✓ "Couldn't connect - check the server address and try again."
   - ✗ "java.net.SocketTimeoutException: timeout"
 
 ### 2.3 Error dialog (expanded)
@@ -78,7 +78,7 @@
 
 - Friendly explanation + a corrective step the user can actually take.
 - Examples:
-  - ✓ "Can't reach the server — check your connection or try again later."
+  - ✓ "Can't reach the server - check your connection or try again later."
   - ✗ "SMB STATUS_BAD_NETWORK_NAME"
 
 ---
@@ -94,9 +94,9 @@ Show at most one contextual next step in dead-end or problem states. Never in sh
 | UX dead-end, help surface, or About screen | Improvement suggestion / review: Google Play |
 
 Rules:
-- Pick the most relevant single channel — do not show all three at once.
+- Pick the most relevant single channel - do not show all three at once.
 - The next-step CTA is secondary to the main message and never replaces the corrective advice.
-- Do not show feedback/help CTAs after every success action — only in genuine dead ends and problem states.
+- Do not show feedback/help CTAs after every success action - only in genuine dead ends and problem states.
 
 ---
 
@@ -113,7 +113,7 @@ Rules:
 ## 5. Localization Rules
 
 - Every new or updated user-visible string must be present in EN, RU, and UK in one commit.
-- Verify parity with `scripts/check_strings_localized.ps1` — exit code 1 is a blocker.
+- Verify parity with `scripts/check_strings_localized.ps1` - exit code 1 is a blocker.
 - EN is the source locale; RU and UK must match in structure and intent, adapted naturally (not word-for-word translated).
 - `..` (two dots) as ellipsis in all locales; never `…` (Unicode) or `...`.
 

@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
@@ -14,13 +13,12 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 
-class OtherMediaSettingsFragment : Fragment() {
+class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsOtherBinding? = null
     private val binding get() = _binding!!
-    
+
     private val viewModel: SettingsViewModel by activityViewModels()
-    private var isUpdatingFromSettings = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,55 +35,52 @@ class OtherMediaSettingsFragment : Fragment() {
         setupViews()
         observeData()
     }
-    
+
     /**
      * Hide UI elements that are not supported by the current device hardware / Android version.
      * OCR availability is decided by [com.sza.fastmediasorter.core.util.DeviceCapabilities],
-     * which uses physical RAM + API level — never the per-process heap limit. This is the
+     * which uses physical RAM + API level - never the per-process heap limit. This is the
      * correct signal for a feature like ML Kit text recognition; using [MemoryTier] here
      * incorrectly disabled OCR on Quest 3 / canonical emulator (7 GB RAM, 512 MB heap).
      */
     private fun applyDeviceCapabilityRestrictions() {
         val support = com.sza.fastmediasorter.core.util.DeviceCapabilities.ocrSupport(requireContext())
         if (support is com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrSupport.Unsupported) {
-            val ocrContainer = binding.switchEnableOcr.parent as? View
-            ocrContainer?.let {
-                // Disable OCR switch and show explanation
-                binding.switchEnableOcr.isEnabled = false
-                binding.switchEnableOcr.isChecked = false
-                binding.tvOcrSummary.isVisible = true
-                val reasonStringRes = when (support.reason) {
-                    com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrUnavailableReason.OS_TOO_OLD ->
-                        com.sza.fastmediasorter.R.string.ocr_unavailable_reason_os
-                    com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrUnavailableReason.DEVICE_TOO_WEAK ->
-                        com.sza.fastmediasorter.R.string.ocr_unavailable_reason_ram
-                }
-                binding.tvOcrSummary.text = getString(
-                    com.sza.fastmediasorter.R.string.ocr_requires_newer_device,
-                    getString(reasonStringRes),
-                    support.apiLevel
-                )
-                binding.tvOcrSummary.alpha = 1.0f
-
-                // Force-disable OCR in settings only if the device truly can't run it
-                val current = viewModel.settings.value
-                if (current.enableOcr) {
-                    viewModel.updateSettings(current.copy(enableOcr = false))
-                }
-
-                timber.log.Timber.i(
-                    "OtherMediaSettingsFragment: OCR disabled - reason=${support.reason}, " +
-                        "API=${support.apiLevel}, totalRAM=${"%.2f".format(support.totalRamGb)}GB, " +
-                        "isLowRamDevice=${support.isLowRamDevice}"
-                )
+            // After migration the row IS the visible element; no extra wrapper container.
+            binding.rowEnableOcr.isEnabled = false
+            binding.rowEnableOcr.setCheckedSilently(false)
+            binding.tvOcrSummary.isVisible = true
+            val reasonStringRes = when (support.reason) {
+                com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrUnavailableReason.OS_TOO_OLD ->
+                    com.sza.fastmediasorter.R.string.ocr_unavailable_reason_os
+                com.sza.fastmediasorter.core.util.DeviceCapabilities.OcrUnavailableReason.DEVICE_TOO_WEAK ->
+                    com.sza.fastmediasorter.R.string.ocr_unavailable_reason_ram
             }
+            binding.tvOcrSummary.text = getString(
+                com.sza.fastmediasorter.R.string.ocr_requires_newer_device,
+                getString(reasonStringRes),
+                support.apiLevel
+            )
+            binding.tvOcrSummary.alpha = 1.0f
+
+            // Force-disable OCR in settings only if the device truly can't run it
+            val current = viewModel.settings.value
+            if (current.enableOcr) {
+                viewModel.updateSettings(current.copy(enableOcr = false))
+            }
+
+            timber.log.Timber.i(
+                "OtherMediaSettingsFragment: OCR disabled - reason=${support.reason}, " +
+                    "API=${support.apiLevel}, totalRAM=${"%.2f".format(support.totalRamGb)}GB, " +
+                    "isLowRamDevice=${support.isLowRamDevice}"
+            )
 
             // Hide OCR font settings
             binding.layoutOcrFontSize?.isVisible = false
             binding.layoutOcrFontFamily?.isVisible = false
         }
     }
-    
+
     /**
      * Hide UI elements that are not supported by the current product flavor.
      * Translation and OCR features require ENABLE_TRANSLATION=true.
@@ -93,16 +88,16 @@ class OtherMediaSettingsFragment : Fragment() {
     private fun applyFlavorRestrictions() {
         // Translation and OCR features are only available when ENABLE_TRANSLATION is true
         if (!BuildConfig.ENABLE_TRANSLATION) {
-            // Hide translation toggle and its parent container
-            (binding.switchEnableTranslation.parent as? View)?.isVisible = false
+            // After migration the row IS the visible element; no extra wrapper container.
+            binding.rowEnableTranslation.isVisible = false
             binding.layoutTranslationLanguages.isVisible = false
-            binding.layoutTranslationLensStyle.isVisible = false
-            
-            // Hide Google Lens parent container
-            (binding.switchEnableGoogleLens.parent as? View)?.isVisible = false
-            
-            // Hide OCR switch parent container and summary
-            (binding.switchEnableOcr.parent as? View)?.isVisible = false
+            binding.rowTranslationLensStyle.isVisible = false
+
+            // Hide Google Lens row
+            binding.rowEnableGoogleLens.isVisible = false
+
+            // Hide OCR row and summary
+            binding.rowEnableOcr.isVisible = false
             binding.tvOcrSummary.isVisible = false
             binding.layoutOcrFontSize?.isVisible = false
             binding.layoutOcrFontFamily?.isVisible = false
@@ -113,13 +108,11 @@ class OtherMediaSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
-        // Translation toggle
-        binding.switchEnableTranslation.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(enableTranslation = isChecked))
-                updateTranslationVisibility(isChecked)
-            }
+        // Translation toggle - help payload folded into the row
+        bindSwitch(binding.rowEnableTranslation) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableTranslation = isChecked))
+            updateTranslationVisibility(isChecked)
         }
 
         // Translation language spinners
@@ -129,7 +122,7 @@ class OtherMediaSettingsFragment : Fragment() {
         binding.btnSwapLanguages.setOnClickListener {
             val sourceCode = viewModel.settings.value.translationSourceLanguage
             val targetCode = viewModel.settings.value.translationTargetLanguage
-            
+
             // Cannot swap if source is auto-detect
             if (sourceCode != "auto") {
                 viewModel.updateSettings(viewModel.settings.value.copy(
@@ -139,50 +132,27 @@ class OtherMediaSettingsFragment : Fragment() {
             }
         }
 
-        // Translation Lens Style
-        binding.switchTranslationLensStyle.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(translationLensStyle = isChecked))
-            }
+        // Translation Lens Style - help payload folded into the row
+        bindSwitch(binding.rowTranslationLensStyle) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(translationLensStyle = isChecked))
         }
 
         // Google Lens
-        binding.switchEnableGoogleLens.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(enableGoogleLens = isChecked))
-            }
+        bindSwitch(binding.rowEnableGoogleLens) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableGoogleLens = isChecked))
         }
 
         // OCR
-        binding.switchEnableOcr.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(enableOcr = isChecked))
-                updateOcrVisibility(isChecked)
-            }
+        bindSwitch(binding.rowEnableOcr) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableOcr = isChecked))
+            updateOcrVisibility(isChecked)
         }
-        
+
         // OCR Font Settings
         setupOcrFontSpinners()
-
-        // Help button click handlers
-        binding.iconHelpTranslation?.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_translation_title,
-                com.sza.fastmediasorter.R.string.tooltip_translation_message
-            )
-        }
-
-        binding.iconHelpTranslationBlocks?.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                com.sza.fastmediasorter.R.string.tooltip_translation_blocks_title,
-                com.sza.fastmediasorter.R.string.tooltip_translation_blocks_message
-            )
-        }
     }
 
     private fun setupLanguageSpinners() {
@@ -192,7 +162,7 @@ class OtherMediaSettingsFragment : Fragment() {
             "Italian", "Turkish", "Polish", "Dutch", "Thai", "Persian", "Greek",
             "Indonesian", "Maltese"
         )
-        
+
         val targetLanguages = arrayOf(
             "English", "Russian", "Ukrainian", "Spanish", "French", "German",
             "Chinese", "Japanese", "Korean", "Arabic", "Portuguese", "Hindi",
@@ -202,7 +172,7 @@ class OtherMediaSettingsFragment : Fragment() {
 
         val sourceAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sourceLanguages)
         sourceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        
+
         val targetAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, targetLanguages)
         targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
@@ -344,9 +314,9 @@ class OtherMediaSettingsFragment : Fragment() {
 
     private fun updateTranslationVisibility(enabled: Boolean) {
         binding.layoutTranslationLanguages.isVisible = enabled
-        binding.layoutTranslationLensStyle.isVisible = enabled
+        binding.rowTranslationLensStyle.isVisible = enabled
     }
-    
+
     private fun setupOcrFontSpinners() {
         // Font Size
         val fontSizes = arrayOf(
@@ -360,7 +330,7 @@ class OtherMediaSettingsFragment : Fragment() {
         val fontSizeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, fontSizes)
         fontSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerOcrFontSize?.adapter = fontSizeAdapter
-        
+
         binding.spinnerOcrFontSize?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (!isUpdatingFromSettings) {
@@ -379,7 +349,7 @@ class OtherMediaSettingsFragment : Fragment() {
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
-        
+
         // Font Family
         val fontFamilies = arrayOf(
             getString(R.string.font_family_default),
@@ -389,7 +359,7 @@ class OtherMediaSettingsFragment : Fragment() {
         val fontFamilyAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, fontFamilies)
         fontFamilyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerOcrFontFamily?.adapter = fontFamilyAdapter
-        
+
         binding.spinnerOcrFontFamily?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (!isUpdatingFromSettings) {
@@ -406,7 +376,7 @@ class OtherMediaSettingsFragment : Fragment() {
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
     }
-    
+
     private fun updateOcrVisibility(enabled: Boolean) {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
@@ -414,40 +384,38 @@ class OtherMediaSettingsFragment : Fragment() {
 
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
-            isUpdatingFromSettings = true
+            withSettingsUpdate {
+                setSwitchChecked(binding.rowEnableTranslation, settings.enableTranslation)
+                updateTranslationVisibility(settings.enableTranslation)
 
-            binding.switchEnableTranslation.isChecked = settings.enableTranslation
-            updateTranslationVisibility(settings.enableTranslation)
+                binding.spinnerTranslationSourceLanguage.setSelection(getLanguagePosition(settings.translationSourceLanguage, isSource = true))
+                binding.spinnerTranslationTargetLanguage.setSelection(getLanguagePosition(settings.translationTargetLanguage, isSource = false))
 
-            binding.spinnerTranslationSourceLanguage.setSelection(getLanguagePosition(settings.translationSourceLanguage, isSource = true))
-            binding.spinnerTranslationTargetLanguage.setSelection(getLanguagePosition(settings.translationTargetLanguage, isSource = false))
+                setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
+                setSwitchChecked(binding.rowEnableGoogleLens, settings.enableGoogleLens)
+                setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
+                updateOcrVisibility(settings.enableOcr)
 
-            binding.switchTranslationLensStyle.isChecked = settings.translationLensStyle
-            binding.switchEnableGoogleLens.isChecked = settings.enableGoogleLens
-            binding.switchEnableOcr.isChecked = settings.enableOcr
-            updateOcrVisibility(settings.enableOcr)
+                // OCR Font Settings
+                val fontSizePosition = when (settings.ocrDefaultFontSize) {
+                    "AUTO" -> 0
+                    "MINIMUM" -> 1
+                    "SMALL" -> 2
+                    "MEDIUM" -> 3
+                    "LARGE" -> 4
+                    "HUGE" -> 5
+                    else -> 0
+                }
+                binding.spinnerOcrFontSize?.setSelection(fontSizePosition)
 
-            // OCR Font Settings
-            val fontSizePosition = when (settings.ocrDefaultFontSize) {
-                "AUTO" -> 0
-                "MINIMUM" -> 1
-                "SMALL" -> 2
-                "MEDIUM" -> 3
-                "LARGE" -> 4
-                "HUGE" -> 5
-                else -> 0
+                val fontFamilyPosition = when (settings.ocrDefaultFontFamily) {
+                    "DEFAULT" -> 0
+                    "SERIF" -> 1
+                    "MONOSPACE" -> 2
+                    else -> 0 // Default to DEFAULT
+                }
+                binding.spinnerOcrFontFamily?.setSelection(fontFamilyPosition)
             }
-            binding.spinnerOcrFontSize?.setSelection(fontSizePosition)
-
-            val fontFamilyPosition = when (settings.ocrDefaultFontFamily) {
-                "DEFAULT" -> 0
-                "SERIF" -> 1
-                "MONOSPACE" -> 2
-                else -> 0 // Default to DEFAULT
-            }
-            binding.spinnerOcrFontFamily?.setSelection(fontFamilyPosition)
-
-            isUpdatingFromSettings = false
         }
     }
 

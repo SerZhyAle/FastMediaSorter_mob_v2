@@ -79,7 +79,7 @@ foreach ($ss in $sourceSets) {
         } elseif ($rawName.StartsWith($ownPackage)) {
             $fqn = $rawName
         } else {
-            # Third-party activity — skip
+            # Third-party activity - skip
             continue
         }
 
@@ -142,7 +142,7 @@ foreach ($ss in $sourceSets) {
         # Track which source sets this Activity appears in
         $scanned[$key].presentInSets.Add($ss.name) | Out-Null
 
-        # Merge exported/launcher — if ANY sourceSet marks it exported/launcher, it is
+        # Merge exported/launcher - if ANY sourceSet marks it exported/launcher, it is
         if ($isExported)  { $scanned[$key].exported = $true }
         if ($isLauncher)  { $scanned[$key].launcher = $true }
         foreach ($a in $actions) {
@@ -170,7 +170,7 @@ foreach ($key in $scanned.Keys) {
             }
         }
     }
-    # wear module has no flavor variants — noFlavors is always empty
+    # wear module has no flavor variants - noFlavors is always empty
     if ($Module -eq "wear") {
         $rec.noFlavors = @()
     } else {

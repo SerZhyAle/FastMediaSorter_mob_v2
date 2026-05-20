@@ -30,7 +30,7 @@ import timber.log.Timber
 import java.io.File
 import kotlin.math.roundToInt
 
-// S0238: VR-entry button visibility — open for video and pixel-media (image, gif).
+// S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
 
@@ -62,8 +62,8 @@ class CommandPanelController(
         fun onUndoClicked()
         fun onFullscreenClicked()
         fun onSlideshowClicked()
-        fun onCopyPanelHeaderClicked()
-        fun onMovePanelHeaderClicked()
+        fun onCopyPanelExpandedChanged(expanded: Boolean)
+        fun onMovePanelExpandedChanged(expanded: Boolean)
         fun onInfoClicked()
         fun onLyricsClicked()
         fun onSearchYoutubeMusicClicked()
@@ -228,24 +228,20 @@ class CommandPanelController(
         
         // Setup collapsible Copy to panel
         safeViews.copyToPanelHeader.apply {
-            setOnClickListener { _ ->
-                Timber.d("CommandPanelController: copyToPanelHeader clicked - toggling Copy panel")
-                callback.onCopyPanelHeaderClicked()
+            setExpanded(false, notify = false)
+            setOnExpandedChangeListener { expanded ->
+                Timber.d("CommandPanelController: copyToPanelHeader expanded=$expanded")
+                callback.onCopyPanelExpandedChanged(expanded)
             }
-            // Prevent click propagation to underlying PlayerView
-            isClickable = true
-            isFocusable = true
         }
         
         // Setup collapsible Move to panel
         safeViews.moveToPanelHeader.apply {
-            setOnClickListener { _ ->
-                Timber.d("CommandPanelController: moveToPanelHeader clicked - toggling Move panel")
-                callback.onMovePanelHeaderClicked()
+            setExpanded(false, notify = false)
+            setOnExpandedChangeListener { expanded ->
+                Timber.d("CommandPanelController: moveToPanelHeader expanded=$expanded")
+                callback.onMovePanelExpandedChanged(expanded)
             }
-            // Prevent click propagation to underlying PlayerView
-            isClickable = true
-            isFocusable = true
         }
 
         // S0162: Rotation toggle
@@ -328,7 +324,7 @@ class CommandPanelController(
         val isAudio = currentFile.type == MediaType.AUDIO
         val showSlideshow = isImage || isVideo
 
-        // Back + Previous/Next are fixed anchors — always visible when command panel is shown.
+        // Back + Previous/Next are fixed anchors - always visible when command panel is shown.
         binding.btnBack.isVisible = effectiveShowCommandPanel
         binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
         binding.btnNextCmd.isVisible = effectiveShowCommandPanel
@@ -345,7 +341,7 @@ class CommandPanelController(
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                val shouldAllowSeparateWindow = false
+                val shouldAllowSeparateWindow = settings.allowSeparateWindow
                 withContext(Dispatchers.Main) {
                     val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
                     val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow
@@ -501,7 +497,7 @@ class CommandPanelController(
             getOverflowableButtons().forEach { it.isVisible = false }
         }
         
-        // Enable states (set regardless of visibility — overflow menu uses the same callbacks)
+        // Enable states (set regardless of visibility - overflow menu uses the same callbacks)
         binding.btnBack.isEnabled = true
         binding.btnPreviousCmd.isEnabled = true
         binding.btnNextCmd.isEnabled = true

@@ -16,9 +16,9 @@ enum class Protocol {
 /**
  * Classification of the current playback session's ability to stream smoothly.
  *
- * - [VIABLE]: ratio < 0.7 — comfortable headroom, normal pre-cache
- * - [MARGINAL]: ratio in [0.7, 0.9) — tight, needs larger pre-cache
- * - [NOT_VIABLE]: ratio >= 0.9 — streaming will stall indefinitely;
+ * - [VIABLE]: ratio < 0.7 - comfortable headroom, normal pre-cache
+ * - [MARGINAL]: ratio in [0.7, 0.9) - tight, needs larger pre-cache
+ * - [NOT_VIABLE]: ratio >= 0.9 - streaming will stall indefinitely;
  *   the app should offer a local download (offload) instead.
  */
 enum class StreamViabilityState {
@@ -56,7 +56,7 @@ data class PrefetchDerivation(
  * Consumers translate to ExoPlayer `DefaultLoadControl` milliseconds by `* 1000`.
  *
  * When [viability] is [StreamViabilityState.NOT_VIABLE], the helpers that build
- * a `DefaultLoadControl` MUST NOT apply the plan directly — instead, the player
+ * a `DefaultLoadControl` MUST NOT apply the plan directly - instead, the player
  * surfaces a streaming-offload offer via `PlayerViewModel.offloadOffer`.
  */
 data class PrefetchPlan(

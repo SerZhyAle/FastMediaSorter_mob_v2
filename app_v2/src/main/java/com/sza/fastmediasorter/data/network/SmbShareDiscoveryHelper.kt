@@ -42,12 +42,12 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
             val shares = mutableSetOf<String>()
 
             try {
-                // Attempt 1: Probe IPC$ — successful connect indicates user has admin rights
+                // Attempt 1: Probe IPC$ - successful connect indicates user has admin rights
                 try {
                     val ipcShare = session.connectShare("IPC$")
                     ipcShare.close()
                     Timber.d("IPC$ connection successful - user may have admin rights")
-                    // SMBJ does not expose RAP or SRVSVC enumeration directly — no actual list to read.
+                    // SMBJ does not expose RAP or SRVSVC enumeration directly - no actual list to read.
                     Timber.d("Share enumeration via IPC$ not directly supported by SMBJ")
                 } catch (e: Exception) {
                     Timber.d("IPC$ access denied or not available: ${e.message}")
@@ -79,7 +79,7 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
 
                         share.close()
                     } catch (_: Exception) {
-                        // Share doesn't exist, not accessible, or hidden — skip silently (expected)
+                        // Share doesn't exist, not accessible, or hidden - skip silently (expected)
                     }
                 }
 
@@ -117,7 +117,7 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
 
             val sharesList = shares.toList().sorted()
             if (sharesList.size < 3) {
-                // Informational only — thin results are normal on NAS/custom configurations;
+                // Informational only - thin results are normal on NAS/custom configurations;
                 // the UI now offers manual entry as fallback (S0064).
                 Timber.i("Only ${sharesList.size} share(s) found. There may be more shares with custom names.")
             }
@@ -167,10 +167,10 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
                 var pathWarning = ""
                 if (targetPath.isNotEmpty()) {
                     try {
-                        // SMBJ's fileExists() only checks files, not folders — fall back to folderExists
+                        // SMBJ's fileExists() only checks files, not folders - fall back to folderExists
                         val pathExists = share.folderExists(targetPath) || share.fileExists(targetPath)
                         if (!pathExists) {
-                            // Hard-fail when a specific subfolder is requested but missing — prevents the
+                            // Hard-fail when a specific subfolder is requested but missing - prevents the
                             // user creating a resource pointing to a non-existent folder (typo guard).
                             return@withConnection SmbResult.Error(
                                 "Subfolder '$targetPath' does not exist on share '${connectionInfo.shareName}'"

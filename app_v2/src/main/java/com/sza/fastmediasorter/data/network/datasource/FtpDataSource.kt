@@ -237,7 +237,7 @@ class FtpDataSource(
 
         val elapsedMs = System.currentTimeMillis() - openTimeMs
         Timber.d(
-            "FtpDataSource: Closed — totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
+            "FtpDataSource: Closed - totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )
     }
 }

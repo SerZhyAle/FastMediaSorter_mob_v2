@@ -19,7 +19,7 @@ Answer questions about the build system, scripts, versioning, flavors, and deplo
 ```
 
 Examples:
-- `/build` — show the full build reference
+- `/build` - show the full build reference
 - `/build how do I build for device?`
 - `/build what flavors exist?`
 - `/build how does versioning work?`
@@ -30,10 +30,10 @@ Examples:
 
 When this command is invoked with `$ARGUMENTS`:
 
-**Step 1 — Parse the question.**
+**Step 1 - Parse the question.**
 If `$ARGUMENTS` is provided, focus the answer on that topic. Otherwise output the full build reference below.
 
-**Step 2 — Answer from the reference below.**
+**Step 2 - Answer from the reference below.**
 Do not search the codebase unless the user's question requires it. The reference below is authoritative for build/script/versioning questions.
 
 ---
@@ -62,9 +62,9 @@ Do not search the codebase unless the user's question requires it. The reference
 | Flavor | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | minSdk |
 |--------|:-----:|:-----:|:------:|:-----:|:----:|:----:|:------:|
 | `standard` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 |
-| `lite` | ✓ | — | ✓ | — | — | — | 26 |
-| `photos` | — | — | ✓ | — | — | ✓ | 26 |
-| `legacy` | ✓ | ✓ | ✓ | — | — | ✓ | 23 |
+| `lite` | ✓ | - | ✓ | - | - | - | 26 |
+| `photos` | - | - | ✓ | - | - | ✓ | 26 |
+| `legacy` | ✓ | ✓ | ✓ | - | - | ✓ | 23 |
 
 Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 Source of truth for flavor config: `app_v2/build.gradle.kts`.
@@ -107,12 +107,12 @@ Source of truth for flavor config: `app_v2/build.gradle.kts`.
 
 Example: `2.63.2281.432` = 2026/03/28 14:32
 
-**versionCode format:** `YYMMDDHHm` (9 digits, first digit of minutes only — to stay within Int32.MaxValue)
+**versionCode format:** `YYMMDDHHm` (9 digits, first digit of minutes only - to stay within Int32.MaxValue)
 - Example: `260328143` = 2026/03/28 14:3x
 
 **How versioning is applied:**
-- `.\dev\build-with-version.ps1` — generates version from current datetime, patches `app_v2/build.gradle.kts`, builds, restores on failure.
-- `.\build-debug.PS1` — fast build, does NOT bump version.
+- `.\dev\build-with-version.ps1` - generates version from current datetime, patches `app_v2/build.gradle.kts`, builds, restores on failure.
+- `.\build-debug.PS1` - fast build, does NOT bump version.
 - Manual bump: edit `versionCode` and `versionName` in `app_v2/build.gradle.kts` directly.
 
 ---
@@ -216,7 +216,7 @@ This appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` 
 
 ### Dependency Management
 
-- Version catalog: `gradle/libs.versions.toml` — check here first before adding any dependency.
+- Version catalog: `gradle/libs.versions.toml` - check here first before adding any dependency.
 - If a library is absent from the catalog, add it there before referencing it in `build.gradle.kts`.
 - Room schema version: increment on every entity/schema change in `app_v2/build.gradle.kts` AND add a migration in `AppDatabase.kt`.
 
@@ -236,7 +236,7 @@ This appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` 
 
 ### Quality Rules
 
-- All temp artifacts, APK copies, and backups go to `temp/` — never to project root.
+- All temp artifacts, APK copies, and backups go to `temp/` - never to project root.
 - File size limit: 1500 lines max. Files >500 lines need a timestamped backup in `temp/` before modification.
-- Never use `Log.d()` — use `Timber` only.
+- Never use `Log.d()` - use `Timber` only.
 - Activity/Fragment logic must be delegated to `helpers/*Manager.kt` classes.

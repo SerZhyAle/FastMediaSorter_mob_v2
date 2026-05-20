@@ -1,8 +1,8 @@
 🎉 May 2026 Update
 
 ✅ New:
-• Move-to-trash toggle in Settings — choose between recoverable .trash with Undo or immediate permanent delete
-• Android TV launcher support — full Leanback compatibility
+• Move-to-trash toggle in Settings - choose between recoverable .trash with Undo or immediate permanent delete
+• Android TV launcher support - full Leanback compatibility
 • Bigger player controls and overflow menu for one-handed sorting
 • Screen rotation control for slideshow sessions
 

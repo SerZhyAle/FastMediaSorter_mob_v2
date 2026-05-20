@@ -19,7 +19,7 @@ object SystemShareInvoker {
     /**
      * @param context          launching context (Activity preferred for direct
      *                         `startActivity`; Application context falls back via FLAG_ACTIVITY_NEW_TASK).
-     * @param payload          what to share — text or image, per [SharePayload].
+     * @param payload          what to share - text or image, per [SharePayload].
      * @param preferredPackage optional package id to target directly (e.g. `"com.google.android.keep"`).
      *                         When non-null, the chooser is bypassed; if the package is unavailable
      *                         the call returns `false` without falling back to the chooser.
@@ -32,7 +32,6 @@ object SystemShareInvoker {
         preferredPackage: String? = null,
         chooserTitle: String? = null,
     ): Boolean {
-        Timber.d("S0189: SystemShareInvoker.invoke")
         val intent = buildIntent(payload)
 
         return if (preferredPackage != null) {

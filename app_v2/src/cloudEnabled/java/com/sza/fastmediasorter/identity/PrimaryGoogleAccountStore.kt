@@ -16,12 +16,12 @@ import timber.log.Timber
 /**
  * Encrypted-only persistent store for the primary Google account binding (strategic S0200 §5.1).
  *
- * Modelled after `EncryptedCookieStore` — NEVER falls back to plaintext SharedPreferences on
+ * Modelled after `EncryptedCookieStore` - NEVER falls back to plaintext SharedPreferences on
  * Keystore failure. If encrypted-prefs initialization throws (e.g. corrupted Keystore,
  * unsupported device), the failure propagates to the caller and `CredentialManagerGoogleIdentityRepository`
  * surfaces it as `PrimaryGoogleAccountState.Error(IdentityFailureReason.UnknownError)`.
  *
- * The token strings themselves are not stored here — only the [PrimaryGoogleAccount] identity envelope.
+ * The token strings themselves are not stored here - only the [PrimaryGoogleAccount] identity envelope.
  * Tokens live in [GoogleTokenIssuer]'s in-memory cache and get re-issued via `GoogleAuthUtil`.
  */
 @Singleton

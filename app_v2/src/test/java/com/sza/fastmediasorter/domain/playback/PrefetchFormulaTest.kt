@@ -248,7 +248,7 @@ class PrefetchFormulaTest {
             userMultiplier = PrefetchCacheMultiplier.AUTO
         )
         assertEquals(24, plan.derivation.maxBufferSecByFile)
-        // Physics target for this input is 28s — must be capped by file ceiling.
+        // Physics target for this input is 28s - must be capped by file ceiling.
         assertEquals(24, plan.targetPrefetchSec)
     }
 

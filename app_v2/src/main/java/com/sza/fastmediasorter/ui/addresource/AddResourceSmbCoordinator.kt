@@ -111,7 +111,7 @@ internal class AddResourceSmbCoordinator(
                     )
                 }
 
-                // SMBJ detects only common share names — when results look thin,
+                // SMBJ detects only common share names - when results look thin,
                 // remind users that custom-named shares need to be added manually.
                 val message = when {
                     shares.size in 1..2 ->
@@ -253,7 +253,7 @@ internal class AddResourceSmbCoordinator(
                     ?: return@onSuccess
                 val (isDestination, destinationOrder, destinationColor) = destSlot
 
-                // SMBJ quirk: some clients pass share with backslashes — normalize once here
+                // SMBJ quirk: some clients pass share with backslashes - normalize once here
                 val normalizedShareName = shareName.replace('\\', '/')
                 val path = "smb://$server/$normalizedShareName"
                 val settings = settingsRepository.getSettings().first()
@@ -288,7 +288,7 @@ internal class AddResourceSmbCoordinator(
                 addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
                     Timber.d("Added manually entered SMB resource")
 
-                    // Skip write-test when the user marked it read-only — avoids spurious
+                    // Skip write-test when the user marked it read-only - avoids spurious
                     // ACCESS_DENIED → SMB auto-reset → toast. Only trigger speed test when
                     // writable (read-only resource can't create .speedtest_*.tmp).
                     val scanSuccessful = finalizer.scanInsertedResource(

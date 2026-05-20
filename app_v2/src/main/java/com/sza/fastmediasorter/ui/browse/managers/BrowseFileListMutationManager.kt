@@ -20,7 +20,7 @@ import timber.log.Timber
  * - Handle a file that disappeared from disk ([onFileMissingFromDisk]).
  * - Create a [MediaFile] from a [java.io.File] reference ([createMediaFileFromFile]).
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseFileListMutationManager(
     private val fileListManager: BrowseFileListManager,

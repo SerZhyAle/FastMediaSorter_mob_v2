@@ -2,7 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 /**
  * Represents a single network source serialized for Wearable Data Layer transfer.
- * Credentials are included as plaintext — the Data Layer channel is TLS-encrypted;
+ * Credentials are included as plaintext - the Data Layer channel is TLS-encrypted;
  * the payload is stored only in EncryptedSharedPreferences on the watch.
  */
 data class WearNetworkSourcePayload(
@@ -24,7 +24,7 @@ data class WearNetworkSourcePayload(
  */
 data class WearSyncPayload(
     val version: Int = 1,
-    val sentAt: Long,               // Epoch ms — used to reject stale replays (> 24 h)
-    val phoneName: String,          // e.g. "Pixel 8 Pro" — shown on watch during transfer
+    val sentAt: Long,               // Epoch ms - used to reject stale replays (> 24 h)
+    val phoneName: String,          // e.g. "Pixel 8 Pro" - shown on watch during transfer
     val sources: List<WearNetworkSourcePayload>
 )

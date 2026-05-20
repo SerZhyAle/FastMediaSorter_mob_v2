@@ -62,7 +62,7 @@ class ScheduledOperationDialog(
     }
 
     private fun setupDropdowns() {
-        // Source resources — detect read-only on selection
+        // Source resources - detect read-only on selection
         val sourceNames = resources.map { it.name }
         b.actvSource.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, sourceNames))
         b.actvSource.setOnItemClickListener { _, _, pos, _ ->
@@ -85,14 +85,14 @@ class ScheduledOperationDialog(
         }
         b.actvOperation.setText(opLabels[0], false)
 
-        // Target (destinations only) — auto-fill if exactly one option
+        // Target (destinations only) - auto-fill if exactly one option
         val destNames = destinations.map { it.name }
         b.actvTarget.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, destNames))
         if (destinations.size == 1 && existing == null) {
             b.actvTarget.setText(destinations[0].name, false)
         }
 
-        // File type filters — checkboxes with ALL_FILES interlock
+        // File type filters - checkboxes with ALL_FILES interlock
         updateFileTypeCheckboxVisibility()
         setupFileTypeInterlock()
 
@@ -108,15 +108,10 @@ class ScheduledOperationDialog(
     }
 
     private fun setupConditionsCollapse() {
-        b.headerConditions.setOnClickListener {
-            val expanded = b.containerConditionsContent.visibility == View.VISIBLE
-            if (expanded) {
-                b.containerConditionsContent.visibility = View.GONE
-                b.ivConditionsChevron.rotation = 0f
-            } else {
-                b.containerConditionsContent.visibility = View.VISIBLE
-                b.ivConditionsChevron.rotation = 180f
-            }
+        b.headerConditions.setExpanded(false, notify = false)
+        b.containerConditionsContent.visibility = View.GONE
+        b.headerConditions.setOnExpandedChangeListener { expanded ->
+            b.containerConditionsContent.visibility = if (expanded) View.VISIBLE else View.GONE
         }
     }
 

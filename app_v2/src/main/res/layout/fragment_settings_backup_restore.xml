@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:descendantFocusability="afterDescendants">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,7 +30,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBackup"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/backup_to_google_drive"
@@ -53,14 +54,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/toggler_title_text_size" />
 
                         <TextView
                             android:id="@+id/tvBackupAccount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/toggler_title_text_size" />
 
                     </LinearLayout>
 
@@ -102,7 +103,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRestore"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -153,7 +154,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExportFavorites"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/backup_export_favorites"
@@ -191,7 +192,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnImportFavorites"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/backup_import_favorites"

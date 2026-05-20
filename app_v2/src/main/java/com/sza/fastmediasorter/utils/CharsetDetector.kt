@@ -8,8 +8,8 @@ import java.nio.charset.Charset
  * Detects character encoding of text files.
  *
  * Strategy:
- * 1. BOM (Byte Order Mark) check — most reliable
- * 2. Heuristic probe of first 4KB — UTF-8 validation, then Cyrillic patterns
+ * 1. BOM (Byte Order Mark) check - most reliable
+ * 2. Heuristic probe of first 4KB - UTF-8 validation, then Cyrillic patterns
  * 3. Fallback to ISO-8859-1 (accepts any byte sequence)
  */
 object CharsetDetector {
@@ -37,7 +37,7 @@ object CharsetDetector {
 
     /**
      * Detect charset of a file.
-     * Returns detected charset (never null — falls back to UTF-8).
+     * Returns detected charset (never null - falls back to UTF-8).
      */
     fun detect(file: File): Charset {
         val probeSize = minOf(PROBE_SIZE.toLong(), file.length()).toInt()
@@ -46,7 +46,7 @@ object CharsetDetector {
         val probe = ByteArray(probeSize)
         file.inputStream().use { it.read(probe) }
 
-        // 1. BOM check — most reliable indicator
+        // 1. BOM check - most reliable indicator
         detectFromBom(probe)?.let { charset ->
             Timber.d("CharsetDetector: BOM detected → ${charset.name()}")
             return charset

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.adaptCloudProgress
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
@@ -179,15 +180,18 @@ class CloudFileOperationHandler @Inject constructor(
             
             operation.sources.forEachIndexed { index, source ->
                 val fileName = extractFileName(source.path, source.name)
+                Timber.d("S0266: cloud copy executeCopy fileName=$fileName cloudPath=${source.path}")
                 Timber.d("Cloud executeCopy: [${index + 1}/${operation.sources.size}] Downloading $fileName")
-                
+                // S0266: announce current file to progress UI before the blocking download starts.
+                progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
+
                 val success = downloadFromCloudTo(
                     cloudPath = source.path,
                     destPath = destinationPath,
                     fileName = fileName,
                     progressCallback = progressCallback
                 )
-                
+
                 if (success) {
                     val resultPath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" else "$destinationPath/$fileName"
                     copiedPaths.add(resultPath)
@@ -327,7 +331,9 @@ class CloudFileOperationHandler @Inject constructor(
             operation.sources.forEachIndexed { index, source ->
                 val fileName = extractFileName(source.path, source.name)
                 Timber.d("Cloud executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName from cloud")
-                
+                // S0266: announce current file to progress UI before the blocking download starts.
+                progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
+
                 // 1. Download
                 val success = downloadFromCloudTo(
                     cloudPath = source.path,
@@ -462,6 +468,22 @@ class CloudFileOperationHandler @Inject constructor(
     }
 
     /**
+     * S0266: public wrapper for noLegal silent APK install. Forwards into the internal
+     * download path so callers (e.g. BrowseApkInstallHandlerImpl) can hide the operation
+     * from the universal FileOperationProgressDialog.
+     */
+    suspend fun downloadFromCloudToPublic(
+        cloudPath: String,
+        destPath: String,
+        fileName: String,
+    ): Boolean = downloadFromCloudTo(
+        cloudPath = cloudPath,
+        destPath = destPath,
+        fileName = fileName,
+        progressCallback = null,
+    )
+
+    /**
      * Universal download from cloud to any destination (local or network)
      * @param cloudPath Cloud path (cloud://provider/fileId/filename)
      * @param destPath Destination path (local path, smb://, sftp://, or ftp://)
@@ -471,17 +493,40 @@ class CloudFileOperationHandler @Inject constructor(
         cloudPath: String,
         destPath: String,
         fileName: String,
-        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+        progressCallback: ByteProgressCallback? = null
     ): Boolean {
         val normalizedDestPath = normalizeNetworkPath(destPath)
         Timber.d("downloadFromCloudTo: $cloudPath → $normalizedDestPath (orig: $destPath)")
-        
+        // S0266: build a scope bound to the current suspend context so the cloud progress adapter
+        // can launch onProgress emissions concurrently with the download stream.
+        val downloadScope = kotlinx.coroutines.CoroutineScope(kotlin.coroutines.coroutineContext)
+        val cloudProgressEmitter = adaptCloudProgress(progressCallback, downloadScope)
+
         val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
         if (pathInfo == null) {
             Timber.e("downloadFromCloudTo: Failed to parse cloud path: $cloudPath")
             return false
         }
-        
+
+        // S0266: defensive metadata fetch. If the caller passed a bare fileId (no extension, fits the
+        // cloud-id charset), look up the real display-name from the provider so the final file lands
+        // with the correct name and MIME-derivable extension.
+        val bareIdPattern = Regex("^[A-Za-z0-9_-]{20,}$")
+        val resolvedFileName = if (bareIdPattern.matches(fileName)) {
+            val metadataResult = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                client.getFileMetadata(pathInfo.fileId)
+            }
+            when (metadataResult) {
+                is CloudResult.Success -> metadataResult.data.name.takeIf { it.isNotBlank() } ?: fileName
+                else -> {
+                    Timber.w("S0266: getFileMetadata fallback failed for $cloudPath - using original fileName")
+                    fileName
+                }
+            }
+        } else {
+            fileName
+        }
+
         // Download to temp file first
         val tempFile = File.createTempFile("cloud_download_", ".tmp", context.cacheDir)
         try {
@@ -493,7 +538,7 @@ class CloudFileOperationHandler @Inject constructor(
                 
                 // Use BufferedOutputStream for performance
                 val outputStream = java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize)
-                val result = client.downloadFile(pathInfo.fileId, outputStream, null)
+                val result = client.downloadFile(pathInfo.fileId, outputStream, cloudProgressEmitter)
                 outputStream.close()
                 result
             }
@@ -511,7 +556,7 @@ class CloudFileOperationHandler @Inject constructor(
             return when (destType) {
                     ResourceType.LOCAL -> {
                         // Copy temp file to local destination
-                        val localFile = File(normalizedDestPath, fileName)
+                        val localFile = File(normalizedDestPath, resolvedFileName)
                         localFile.parentFile?.mkdirs()
                         tempFile.copyTo(localFile, overwrite = true)
                         Timber.i("downloadFromCloudTo: SUCCESS - wrote to local ${localFile.absolutePath}")
@@ -527,7 +572,7 @@ class CloudFileOperationHandler @Inject constructor(
                         }
                         val prefix = "smb://${credentials.server}/${credentials.shareName}"
                         val remotePath = normalizedDestPath.removePrefix(prefix).removePrefix("/")
-                        val remoteFilePath = if (remotePath.isEmpty()) fileName else "$remotePath/$fileName"
+                        val remoteFilePath = if (remotePath.isEmpty()) resolvedFileName else "$remotePath/$resolvedFileName"
                         
                         val uploadResult = smbClient.uploadFile(
                             networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
@@ -556,7 +601,7 @@ class CloudFileOperationHandler @Inject constructor(
                         return false
                     }
                     val remotePath = extractSftpRemotePath(normalizedDestPath, credentials)
-                    val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") fileName else "$remotePath/$fileName"
+                    val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") resolvedFileName else "$remotePath/$resolvedFileName"
                     
                     val uploadResult = sftpClient.uploadFile(
                         networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
@@ -599,7 +644,7 @@ class CloudFileOperationHandler @Inject constructor(
                     
                     try {
                         val remotePath = extractFtpRemotePath(normalizedDestPath, credentials)
-                        val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") fileName else "$remotePath/$fileName"
+                        val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") resolvedFileName else "$remotePath/$resolvedFileName"
                         
                         val uploadResult = ftpClient.uploadFile(
                             remoteFilePath,

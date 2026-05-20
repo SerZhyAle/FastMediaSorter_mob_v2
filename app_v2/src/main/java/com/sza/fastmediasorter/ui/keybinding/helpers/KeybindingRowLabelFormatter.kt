@@ -12,7 +12,7 @@ import javax.inject.Inject
  * Translates [InputTrigger] instances to human-readable strings.
  * Also resolves command label keys from resource names.
  *
- * All display strings use [resources.getString] — never hardcoded.
+ * All display strings use [resources.getString] - never hardcoded.
  */
 class KeybindingRowLabelFormatter @Inject constructor(
     @ApplicationContext private val context: Context

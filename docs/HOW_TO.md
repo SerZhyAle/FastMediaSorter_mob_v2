@@ -7,6 +7,11 @@ permalink: /docs/HOW_TO.html
 
 Step-by-step instructions for common tasks.
 
+This guide now has two layers:
+
+- **Scenario Groups** for richer real-life workflows and combinations of features.
+- **Core Task Reference** for direct one-feature recipes further below.
+
 [Русский](HOW_TO_RU.md) | [Українська](HOW_TO_UK.md)
 
 ---
@@ -31,26 +36,269 @@ If a feature is marked with "✗", you can download the **Standard** flavor to a
 
 ## Table of Contents
 
-1. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
-2. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
-3. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
-4. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
-5. [Use Touch Zones](#how-to-use-touch-zones)
-6. [Watch 3D Videos (VR)](#how-to-watch-3d-videos-vr)
-7. [Edit Photos](#how-to-edit-photos)
-8. [Create Slideshow](#how-to-create-slideshow)
-9. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
-10. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
-11. [Empty Trash](#how-to-empty-trash)
-12. [Backup Settings](#how-to-backup-settings)
-13. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
-14. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
-15. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
-16. [View Song Lyrics](#how-to-view-song-lyrics)
-17. [Auto-Translation](#auto-translation)
-18. [Use FMS on Android TV Box](#how-to-use-fms-on-android-tv-box)
+### Scenario Groups
+
+#### Home media, TV and living room flows
+
+1. [Turn a NAS into a living-room media shelf](#turn-a-nas-into-a-living-room-media-shelf)
+2. [Run a slideshow with background music for a room display](#run-a-slideshow-with-background-music-for-a-room-display)
+3. [Watch SBS 3D videos in VR mode](#watch-sbs-3d-videos-in-vr-mode)
+4. [Use FMS on Android TV Box](#how-to-use-fms-on-android-tv-box)
+
+#### Travel, reading and document workflows
+
+5. [Prepare a folder for travel without stable internet](#prepare-a-folder-for-travel-without-stable-internet)
+6. [Read cloud documents and EPUBs on the go](#read-cloud-documents-and-epubs-on-the-go)
+7. [Translate signs, scans and screenshots with OCR](#translate-signs-scans-and-screenshots-with-ocr)
+8. [Hand network files off to specialist apps](#hand-network-files-off-to-specialist-apps)
+
+#### Power-user and mixed media workflows
+
+9. [Sort a family photo archive with Quick Sort](#sort-a-family-photo-archive-with-quick-sort)
+10. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
+11. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
+12. [Auto-Translation](#auto-translation)
+
+### Core Task Reference
+
+13. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
+14. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
+15. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
+16. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
+17. [Use Touch Zones](#how-to-use-touch-zones)
+18. [Edit Photos](#how-to-edit-photos)
+19. [Create Slideshow](#how-to-create-slideshow)
+20. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
+21. [Empty Trash](#how-to-empty-trash)
+22. [Backup Settings](#how-to-backup-settings)
+23. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
+24. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
+25. [View Song Lyrics](#how-to-view-song-lyrics)
 
 ---
+
+## Scenario Groups
+
+These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where FastMediaSorter is especially strong.
+
+## Home media, TV and living room flows
+
+## Turn a NAS into a living-room media shelf
+
+**Available in:** Standard, Lite, Photos
+
+**Quick Path**
+
+1. Add your NAS as an SMB resource.
+2. Run **Scan Network** if you do not want to type the IP manually.
+3. Open the resource from a TV box, tablet, or phone.
+4. Start browsing videos, photos, or documents directly from the NAS.
+
+**Scenario Walkthrough**
+
+- Keep one SMB resource for the whole family library and separate child folders by use: Movies, Family Photos, Scans, Manuals.
+- Run **Test Connection** once during setup so the resource is stable before you rely on it from the sofa.
+- If the NAS is used from a TV box, pair it with a Bluetooth keyboard or TV remote for fast navigation.
+- If browsing feels slow, open the resource settings and run the built-in speed check before changing anything else.
+
+**When It Helps**
+
+- You want one central media source instead of copying the same files to several devices.
+- You want the same library to work for slideshow, document reading, and playback.
+
+**Avoid This**
+
+- Do not start with hostname troubleshooting. Use an IP address first, then optimize later.
+- Do not expect Legacy flavor to browse SMB shares.
+
+## Run a slideshow with background music for a room display
+
+**Available in:** Standard
+
+**Quick Path**
+
+1. Add one image source and one music source.
+2. In **Settings → Media → Audio playback, covers and visuals**, enable background music for slideshows.
+3. Pick the music resource.
+4. Open a photo folder and press **Play**.
+
+**Scenario Walkthrough**
+
+- Use a local image folder or a fast NAS share for the smoothest transitions.
+- Keep a separate music resource for calm background tracks so slideshow audio is predictable.
+- If the folder contains both images and videos, remember that music pauses automatically when a video starts.
+
+**When It Helps**
+
+- You want a TV box, tablet, or old phone to act as a digital frame for a room.
+- You want one setup that can rotate family photos, event shots, or travel albums without manual queue building.
+
+**Avoid This**
+
+- Do not use a very slow network share for both images and music if smooth playback matters.
+
+## Watch SBS 3D videos in VR mode
+
+**Available in:** Standard, Legacy
+
+**Quick Path**
+
+1. Open an SBS 3D video.
+2. Enter fullscreen.
+3. Open **Playback Settings**.
+4. Switch **3D Video** to **Auto-detect** or **Side-by-Side (SBS)**.
+
+**Scenario Walkthrough**
+
+- Start with Auto-detect for normal SBS files.
+- If the picture looks doubled, force **Side-by-Side (SBS)** manually.
+- For simple phone VR viewers, confirm the stereo mode first and only then place the phone in the headset.
+
+**When It Helps**
+
+- You have archived SBS vacation videos, concert captures, or hobby footage and want to revisit them without a separate VR media app.
+
+**Avoid This**
+
+- Do not expect Over-Under material to behave like SBS.
+- Do not assume every wide video is 3D; verify before saving a playback preset.
+
+## Travel, reading and document workflows
+
+## Prepare a folder for travel without stable internet
+
+**Available in:** Standard, Lite, Photos, Legacy
+
+**Quick Path**
+
+1. Create or choose one local folder for the trip.
+2. Copy the media, PDFs, EPUBs, or notes you need into it before leaving Wi-Fi.
+3. Open that folder once in FastMediaSorter so thumbnails and last positions are ready.
+4. Use the folder offline during the trip.
+
+**Scenario Walkthrough**
+
+- Keep travel media in one local folder even if the originals normally live on NAS or cloud.
+- Mix formats on purpose: boarding PDFs, reading EPUBs, screenshots, and offline music can live side by side.
+- Use the filter panel if you want to switch between only images, only documents, or only audio while offline.
+
+**When It Helps**
+
+- Flights, trains, hotels, and rural areas where cloud streaming is unreliable.
+- Situations where you want one offline pack instead of searching across several apps.
+
+**Avoid This**
+
+- Do not wait until the last minute to test whether the files really open without internet.
+
+## Read cloud documents and EPUBs on the go
+
+**Available in:** Standard for cloud access, Standard/Lite/Photos/Legacy for local reading
+
+**Quick Path**
+
+1. Add your cloud provider in **Cloud Storage**.
+2. Open the folder that contains PDFs or EPUBs.
+3. Tap the file directly from the cloud resource.
+4. Continue reading from your last saved position later.
+
+**Scenario Walkthrough**
+
+- Use this when your working documents already live in Google Drive, OneDrive, or Dropbox and you do not want a separate reader workflow.
+- PDFs are best for fixed-layout files like tickets, manuals, and scanned contracts.
+- EPUB is better for long-form reading where adjustable font size and chapter navigation matter more than layout fidelity.
+
+**When It Helps**
+
+- You move between work documents and personal reading without leaving the app.
+- You keep travel or client files in the cloud but still want a reading-first interface.
+
+**Avoid This**
+
+- Do not expect cloud reading in Lite, Photos, or Legacy.
+- Do not treat slow mobile data as a guaranteed reading experience for very large files.
+
+## Translate signs, scans and screenshots with OCR
+
+**Available in:** Standard, Lite, Photos, Legacy
+
+**Quick Path**
+
+1. Open an image, PDF, or text file.
+2. Show the command panel.
+3. Tap **Translate**.
+4. Confirm the model download on first use if needed.
+
+**Scenario Walkthrough**
+
+- For Latin-script text, the app usually starts with ML Kit for speed.
+- For Cyrillic-heavy material, the app can switch to Tesseract for better recognition quality.
+- Screenshots, receipts, menus, and scanned pages work especially well when the source text is reasonably sharp.
+
+**When It Helps**
+
+- You are travelling, reading foreign manuals, or decoding screenshots from chats and apps.
+- You need translation in place instead of copying text into a separate tool first.
+
+**Avoid This**
+
+- Do not judge OCR quality from a blurred night photo or a badly cropped scan.
+
+## Hand network files off to specialist apps
+
+**Available in:** Standard, Lite, Photos
+
+**Quick Path**
+
+1. Open a file from SMB, SFTP, or FTP.
+2. Tap **ⓘ Info**.
+3. Tap **Download and Open**.
+4. Pick the specialist app from the Android chooser.
+
+**Scenario Walkthrough**
+
+- Use this when FastMediaSorter is the best browser for remote storage, but another app is the best editor or viewer for one file type.
+- Typical handoff cases are office documents, advanced PDFs, codec-heavy videos, and niche media formats.
+- The downloaded copy remains in `Downloads`, so you can reopen it later even if the remote source goes offline.
+
+**When It Helps**
+
+- You want one remote file hub without giving up best-in-class specialist tools.
+
+**Avoid This**
+
+- Do not expect cloud handoff through this exact flow yet.
+
+## Power-user and mixed media workflows
+
+## Sort a family photo archive with Quick Sort
+
+**Available in:** Standard, Lite, Photos, Legacy
+
+**Quick Path**
+
+1. Add your destination folders to **Quick Sort**.
+2. Open the source folder with unsorted family photos.
+3. Use numbered buttons or touch zones while reviewing images.
+4. Send keepers to destination folders immediately.
+
+**Scenario Walkthrough**
+
+- Create destination folders by outcome, not by date alone: `Best`, `Print`, `Send to family`, `Archive`.
+- Review in fullscreen so you can decide quickly and move or copy without dropping back to the file list.
+- If several people curate the same archive, keep one consistent destination naming scheme before a large sorting session.
+
+**When It Helps**
+
+- You have a backlog from birthdays, trips, school events, or old phone imports.
+- You want a fast triage flow instead of dragging files manually in a file manager.
+
+**Avoid This**
+
+- Do not start sorting before destinations are named clearly.
+- Do not use Move immediately if you are still unsure which folders should stay as the long-term archive.
+
+## Core Task Reference
 
 ## How to Connect to Network Drive (SMB)
 
@@ -195,7 +443,7 @@ When you add a new network resource, the app automatically runs a speed test in 
 
 **Method 1: From Settings**
 
-1. **Settings** → **Quick Sort** tab
+1. **Settings** → **Operations** tab → **Quick Sort destinations**
 2. Tap **"Add to Quick Sort"**
 3. Select an existing folder from list
 4. Folder gets assigned number (0-9) and color
@@ -288,10 +536,10 @@ Then use **command panel buttons** instead.
 3. Tap **Playback Settings** (gear icon) in the player controls.
 4. Scroll to the **3D Video** section.
 5. Choose a stereo mode:
-   - **Auto-detect** — app analyses the aspect ratio and embedded metadata to detect SBS automatically.
-   - **Side-by-Side (SBS)** — manually enable side-by-side stereo rendering regardless of detection.
-   - **Mono (Disabled)** — disable stereo (standard viewing).
-6. Tap **Apply** — the player switches to the selected mode instantly.
+   - **Auto-detect** - app analyses the aspect ratio and embedded metadata to detect SBS automatically.
+   - **Side-by-Side (SBS)** - manually enable side-by-side stereo rendering regardless of detection.
+   - **Mono (Disabled)** - disable stereo (standard viewing).
+6. Tap **Apply** - the player switches to the selected mode instantly.
 7. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D.
 
 **Tips:**
@@ -366,7 +614,7 @@ Then use **command panel buttons** instead.
 
 **Setup:**
 
-1. **Settings** → **Audio** tab
+1. **Settings** → **Media** tab → **Audio playback, covers and visuals**
 2. Enable **"Enable Background Music for Slideshows"**
 3. Tap **"Select Music Source"** button
 4. Choose a resource that contains your music files
@@ -440,7 +688,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **Method 1: Clear All Trash**
 
-1. **Settings** → **Quick Sort** tab
+1. **Settings** → **Operations** tab → **File deletion and trash**
 2. Tap **"Clear Trash"**
 3. Confirm deletion
 4. All `.trash/` folders across all resources are emptied
@@ -460,17 +708,15 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **Export Settings:**
 
-1. **Settings** → **General** tab
-2. Tap **"Backup & Restore"**
-3. Tap **"Export Settings"**
+1. **Settings** → **General** tab → **Backups, restore and settings export**
+2. Tap **"Export All Settings to File"**
 4. Choose location (e.g., Downloads)
 5. File saved as `fastmediasorter_backup.xml`
 
 **Restore Settings:**
 
-1. **Settings** → **General** tab
-2. Tap **"Backup & Restore"**
-3. Tap **"Import Settings"**
+1. **Settings** → **General** tab → **Backups, restore and settings export**
+2. Tap **"Import Settings from File"**
 4. Select backup file
 5. Tap **"Restore"**
 6. App restarts with restored settings
@@ -493,7 +739,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **1. Enable Support:**
 
-1. **Settings** → **Documents**
+1. **Settings** → **Media** tab → **Text, PDF and EPUB viewing**
 2. Enable **"Support Text Files"** and **"Support PDF Files"**
 3. **Rescan** your folders to find the new files.
 
@@ -535,7 +781,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **Requirements:**
 
-- **Settings** → **Documents** → **Support EPUB** must be enabled (on by default)
+- **Settings** → **Media** tab → **Text, PDF and EPUB viewing** → **Support EPUB** must be enabled (on by default)
 - Supported format: `.epub` (DRM-free)
 
 **Features:**
@@ -642,7 +888,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 **Setup:**
 
-1. **Settings** → **Documents**
+1. **Settings** → **Media** tab → **Translation, OCR and Google Lens**
 2. Enable **"Enable Translation"**
 3. Select **Source Language**:
    - **"Auto" (Recommended):** Automatically selects the best engine (Tesseract for Cyrillic, ML Kit for others).
@@ -665,7 +911,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 ## How to Use FMS on Android TV Box
 
-FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required — the app is fully operable via TV remote or Bluetooth keyboard.
+FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
 
 **What you need:**
 
@@ -693,15 +939,15 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 2. On the main screen, press **OK** on the (+) button to add a resource.
 3. Choose **Local Folder** for USB/SD storage, or **Network folder** to connect to a NAS via SMB.
 4. After adding the resource, navigate into it with D-pad + OK to browse files.
-5. Open any video, image, or audio file — the player works fully via remote.
+5. Open any video, image, or audio file - the player works fully via remote.
 6. To start a slideshow, open an image folder and navigate to the **Slideshow** button in the command bar.
-7. To add background music to the slideshow, go to **Settings → Audio → Slideshow Background Music** and select your music resource.
+7. To add background music to the slideshow, go to **Settings → Media → Audio playback, covers and visuals** and select your music resource.
 
 **Tips:**
 
 - Hold D-pad Up/Down to accelerate scrolling through long file lists.
 - Press **F1** on a Bluetooth keyboard to open a surface-specific shortcut reference on any screen.
-- TV remote color keys can be reassigned in **Settings → Controls & Keybindings**.
+- TV remote color keys can be reassigned in **Settings → Playback → Controls & Keybindings**.
 
 ---
 

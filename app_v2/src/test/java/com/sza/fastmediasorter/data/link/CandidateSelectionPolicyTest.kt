@@ -80,7 +80,7 @@ class CandidateSelectionPolicyTest {
     /**
      * S0166 Phase 06: social-preview guard invariant.
      *
-     * CandidateSelectionPolicy.choose() itself does not discriminate by source — that
+     * CandidateSelectionPolicy.choose() itself does not discriminate by source - that
      * responsibility sits in HtmlPageExtractionStrategy.  These tests document the
      * expected behaviour of the real-content predicate that guards the SocialPreviewOnly
      * branch: sources OG_IMAGE, IMG_TAG, and IMG_SRCSET are not treated as real content;

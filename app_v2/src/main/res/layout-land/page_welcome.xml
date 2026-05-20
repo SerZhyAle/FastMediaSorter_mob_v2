@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Landscape standard welcome page: icon on the left, header text (title + short summary)
-     and the scrollable "details" block stacked on the right. The page itself never scrolls —
+     and the scrollable "details" block stacked on the right. The page itself never scrolls -
      only the details ScrollView does. maxWidth keeps the two-column layout from going too wide on TV. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

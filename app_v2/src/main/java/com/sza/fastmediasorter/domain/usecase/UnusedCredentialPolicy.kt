@@ -12,7 +12,7 @@ import javax.inject.Singleton
  * cleanup only after a configurable grace period. This prevents accidental deletion of
  * credentials that were temporarily unused due to a resource being removed and re-added.
  *
- * **Credentials are never auto-deleted** — this class only marks eligibility.
+ * **Credentials are never auto-deleted** - this class only marks eligibility.
  * Actual deletion must be triggered explicitly (e.g., by a user action or scheduled job
  * after confirmation).
  *

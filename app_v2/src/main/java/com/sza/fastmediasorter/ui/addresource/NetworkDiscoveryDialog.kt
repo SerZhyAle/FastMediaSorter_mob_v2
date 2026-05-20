@@ -32,7 +32,7 @@ class NetworkDiscoveryDialog : DialogFragment() {
     var onHostSelected: ((NetworkHost) -> Unit)? = null
 
     // onCreateDialog inflates the view and sets it via setView() so the dialog has
-    // visible content. viewLifecycleOwner is NOT available in this path — observation
+    // visible content. viewLifecycleOwner is NOT available in this path - observation
     // uses lifecycleScope + repeatOnLifecycle(STARTED) instead (STARTED = dialog visible).
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogNetworkDiscoveryBinding.inflate(LayoutInflater.from(requireContext()))
@@ -51,10 +51,10 @@ class NetworkDiscoveryDialog : DialogFragment() {
         binding.rvHosts.adapter = adapter
 
         // tvStatus announces scan state changes to screen readers. Use View property
-        // directly — ViewCompat.setAccessibilityLiveRegion is deprecated (minSdk 26).
+        // directly - ViewCompat.setAccessibilityLiveRegion is deprecated (minSdk 26).
         binding.tvStatus.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
 
-        // btnStopScan may be null in landscape layout variant — use safe call
+        // btnStopScan may be null in landscape layout variant - use safe call
         binding.btnStopScan?.setOnClickListener {
             if (viewModel.state.value.isScanning) {
                 // Stop the active scan without closing the dialog.
@@ -72,7 +72,7 @@ class NetworkDiscoveryDialog : DialogFragment() {
     }
 
     private fun observeData() {
-        // DialogFragment via onCreateDialog+setView has no view lifecycle —
+        // DialogFragment via onCreateDialog+setView has no view lifecycle -
         // use fragment lifecycle (STARTED = dialog is visible and interactive).
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -89,7 +89,7 @@ class NetworkDiscoveryDialog : DialogFragment() {
                         else -> getString(R.string.msg_scan_complete)
                     }
 
-                    // Stop button label switches based on scanning state — null-safe for landscape
+                    // Stop button label switches based on scanning state - null-safe for landscape
                     binding.btnStopScan?.text = if (state.isScanning) {
                         getString(R.string.stop)
                     } else {

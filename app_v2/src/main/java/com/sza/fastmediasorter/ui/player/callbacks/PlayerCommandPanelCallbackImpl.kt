@@ -117,12 +117,12 @@ class PlayerCommandPanelCallbackImpl(
         activity.updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
 
-    override fun onCopyPanelHeaderClicked() {
-        activity.dialogAndUiStateManager.toggleCopyPanel()
+    override fun onCopyPanelExpandedChanged(expanded: Boolean) {
+        activity.dialogAndUiStateManager.setCopyPanelExpanded(expanded)
     }
 
-    override fun onMovePanelHeaderClicked() {
-        activity.dialogAndUiStateManager.toggleMovePanel()
+    override fun onMovePanelExpandedChanged(expanded: Boolean) {
+        activity.dialogAndUiStateManager.setMovePanelExpanded(expanded)
     }
 
     override fun onInfoClicked() {
@@ -262,8 +262,7 @@ class PlayerCommandPanelCallbackImpl(
             return
         }
 
-        // PlayerActivity decides the correct capture backend: TextureView on phone/tablet,
-        // OpenXR swapchain in VrPlayerActivity.
+        // PlayerActivity decides the correct capture backend (TextureView on phone/tablet).
         activity.saveCurrentFrame()
     }
 
@@ -288,6 +287,7 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onDrawOverlayClicked() {
+        activity.syncDrawOverlayCurrentFile()
         activity.imageDrawOverlayManager.enterDrawMode()
     }
 

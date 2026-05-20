@@ -21,14 +21,14 @@ object ResourceIconDefaults {
             ResourceProfile.VIDEO_LIBRARY -> ResourceIconSet.VIDEO
             ResourceProfile.PHOTO_STORAGE -> ResourceIconSet.IMAGE
             ResourceProfile.DOCUMENTS    -> ResourceIconSet.DOCS
-            // NONE and ALL_FILES do not narrow media type — fall through to OTHER
+            // NONE and ALL_FILES do not narrow media type - fall through to OTHER
             else                         -> ResourceIconSet.OTHER
         }
 
     /**
      * Returns a fixed icon id for well-known virtual paths so predefined resources always
      * show the same icon on every device/install.
-     * Returns null for custom paths — caller should assign a random icon from the set.
+     * Returns null for custom paths - caller should assign a random icon from the set.
      */
     fun fixedIconForVirtualPath(path: String): String? = when (path) {
         LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO   -> "ico-01-001"

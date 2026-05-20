@@ -6,18 +6,18 @@
 .DESCRIPTION
     Supports three input formats produced by Android Studio and device tools:
 
-    FORMAT 1 — LOGCAT (standard)
+    FORMAT 1 - LOGCAT (standard)
       Produced by: Android Studio Logcat copy-paste or adb logcat
       Pattern: YYYY-MM-DD HH:MM:SS.mmm PID-TID TAG PKG LVL  MESSAGE
       Example: 2026-04-20 00:52:13.639 25733-25733 ApplicationLoaders com.example D  text
 
-    FORMAT 2 — JSON (.logcat)
+    FORMAT 2 - JSON (.logcat)
       Produced by: Android Studio "Export to File" → saves as .logcat (JSON)
       Structure: { "metadata": {...}, "logcatMessages": [ { "header": {...}, "message": "..." } ] }
       header fields: logLevel (DEBUG/INFO/WARN/ERROR/VERBOSE/FATAL), pid, tid,
                      applicationId, processName, tag, timestamp { seconds, nanos }
 
-    FORMAT 3 — TIMBER (app device export)
+    FORMAT 3 - TIMBER (app device export)
       Produced by: Timber FileTree or app's own log export to /sdcard/
       Pattern: YYYY-MM-DD HH:MM:SS.mmm LVL/TAG: MESSAGE
       Example: 2026-04-19 21:17:55.057 I/App: Starting network monitor
@@ -190,7 +190,7 @@ function Convert-TimberLog([string]$path, [string]$appPkg) {
 
 # ─── LOGCAT pass-through ─────────────────────────────────────────────────────
 function Convert-Logcat([string]$path) {
-    Write-Host "  Format is already standard logcat — copying as-is." -ForegroundColor DarkGray
+    Write-Host "  Format is already standard logcat - copying as-is." -ForegroundColor DarkGray
     return [string[]](Get-Content -Path $path -Encoding UTF8)
 }
 
@@ -205,7 +205,7 @@ $outputLines = switch ($format) {
     "TIMBER" { Convert-TimberLog   $InputFile $AppId }
     "LOGCAT" { Convert-Logcat      $InputFile }
     default {
-        Write-Warning "Unknown log format — passing through without conversion."
+        Write-Warning "Unknown log format - passing through without conversion."
         Convert-Logcat $InputFile
     }
 }

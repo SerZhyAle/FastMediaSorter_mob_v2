@@ -142,7 +142,16 @@
         </activity>
 
         <!-- MSAL Browser Tab Activity for OneDrive. All cloud-enabled flavors reuse the
-             standard msauth host, so every official signing certificate hash must be listed. -->
+             standard msauth host (com.sza.fastmediasorter), so every signing-hash that may
+             produce an installable cloud-enabled build MUST be listed below as a separate
+             <data android:path="…"/> entry. Origin: S0232.
+
+             Adding a new signing keystore requires BOTH steps - neither alone is enough:
+               (a) add a new <intent-filter> + <data android:path="<hash>"/> here, AND
+               (b) register the matching redirect URI in the Azure App, Google Cloud OAuth
+                   console (S0233), and Dropbox app console (S0235).
+             Forgetting (a) -> MsalClientException "Intent filter for BrowserTabActivity is
+             missing"; forgetting (b) -> provider rejects the redirect at the OAuth step. -->
         <activity android:name="com.microsoft.identity.client.BrowserTabActivity" android:exported="true" android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout" tools:replace="android:configChanges">
             <!-- Release keystore signature hash -->
             <intent-filter>
@@ -207,7 +216,7 @@
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
         </service>
 
-        <!-- Wearable Data Layer — receives sync requests and acks from the watch companion -->
+        <!-- Wearable Data Layer - receives sync requests and acks from the watch companion -->
         <service android:name=".service.PhoneWearListenerService" android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
@@ -240,7 +249,7 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_photos_info" />
         </receiver>
 
-        <!-- Random Music Widget (S0134) — removed in photos flavor (no audio support) -->
+        <!-- Random Music Widget (S0134) - removed in photos flavor (no audio support) -->
         <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true" android:label="@string/widget_random_music_label" android:icon="@drawable/ic_widget_random_music">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

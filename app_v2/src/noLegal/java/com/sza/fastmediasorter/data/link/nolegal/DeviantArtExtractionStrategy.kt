@@ -22,7 +22,7 @@ import javax.inject.Singleton
  *
  * Primary path: parses `window.__INITIAL_STATE__` JSON from the deviation page.
  * Fallback path: oEmbed API (returns preview-quality URL when primary parsing fails).
- * Cookies injected automatically by [LinkDownloadCookieJar] — no manual cookie handling needed.
+ * Cookies injected automatically by [LinkDownloadCookieJar] - no manual cookie handling needed.
  */
 @Singleton
 class DeviantArtExtractionStrategy @Inject constructor(
@@ -76,7 +76,7 @@ class DeviantArtExtractionStrategy @Inject constructor(
             )
         }
 
-        // Fallback: oEmbed API — returns preview-quality URL.
+        // Fallback: oEmbed API - returns preview-quality URL.
         Timber.d("DeviantArtExtractor: fallback oEmbed for %s", url)
         val oEmbedUrl = runCatching { fetchOEmbed(url) }.getOrElse { e ->
             Timber.w(e, "DeviantArtExtractor: oEmbed failed for %s", url)

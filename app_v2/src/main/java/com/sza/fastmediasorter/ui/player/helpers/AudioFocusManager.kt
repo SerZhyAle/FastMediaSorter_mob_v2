@@ -18,7 +18,7 @@ import timber.log.Timber
  *  - API 26+ (Android 8+): AudioFocusRequest.Builder
  *  - API 23–25 (legacy flavor): deprecated requestAudioFocus() overload
  *
- * Audio focus regain (AUDIOFOCUS_GAIN) is only logged — no auto-resume to avoid
+ * Audio focus regain (AUDIOFOCUS_GAIN) is only logged - no auto-resume to avoid
  * surprising the user in a standalone "open single file" context (ADR-2).
  */
 class AudioFocusManager(
@@ -36,17 +36,17 @@ class AudioFocusManager(
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                Timber.d("AudioFocusManager: transient loss — pausing")
+                Timber.d("AudioFocusManager: transient loss - pausing")
                 onFocusLoss(false)
             }
             AudioManager.AUDIOFOCUS_LOSS -> {
-                Timber.d("AudioFocusManager: permanent loss — stopping")
+                Timber.d("AudioFocusManager: permanent loss - stopping")
                 hasFocus = false
                 onFocusLoss(true)
             }
             AudioManager.AUDIOFOCUS_GAIN -> {
                 Timber.d("AudioFocusManager: focus regained")
-                // No auto-resume — caller is responsible (ADR-2)
+                // No auto-resume - caller is responsible (ADR-2)
             }
         }
     }

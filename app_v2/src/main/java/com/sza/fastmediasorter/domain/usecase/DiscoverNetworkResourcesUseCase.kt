@@ -56,7 +56,7 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
      *
      * @param onProgress called from background threads after each IP is probed;
      *   args: subnet prefix (e.g. "192.168.1"), probed count, total (always 254).
-     *   Safe to mutate UI state via StateFlow — never called from the main thread.
+     *   Safe to mutate UI state via StateFlow - never called from the main thread.
      */
     suspend fun execute(
         onProgress: ((subnet: String, probed: Int, total: Int) -> Unit)? = null
@@ -93,7 +93,7 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
      * Probes all 254 addresses in [subnet] (x.y.z.1..254) in parallel, bounded
      * by [MAX_CONCURRENT_PROBES]. Returns the number of hosts discovered.
      *
-     * [skipIp] is the device's own IP address — skipped to avoid self-probing.
+     * [skipIp] is the device's own IP address - skipped to avoid self-probing.
      * [onProgress] receives (subnet, probedCount, 254) after each IP is resolved.
      * [emit] is called for each discovered host; runs on IO, so the caller must
      * guard with `isActive` before forwarding to a channel.
@@ -140,7 +140,7 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
      *   is closed (legacy NetBIOS fallback). Reporting 139 separately lets the caller
      *   use the correct port for the SMBJ connection.
      * - Worst-case latency per IP: max(SMB_PROBE_TIMEOUT_MS, OTHER_PROBE_TIMEOUT_MS)
-     *   instead of their sum — O(max) vs O(sum).
+     *   instead of their sum - O(max) vs O(sum).
      */
     internal suspend fun probePorts(ip: String): List<Int> = coroutineScope {
         // Fire all four probes concurrently on IO threads.

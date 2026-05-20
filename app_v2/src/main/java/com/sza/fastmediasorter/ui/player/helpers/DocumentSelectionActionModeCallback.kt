@@ -14,7 +14,7 @@ import timber.log.Timber
  * Unified floating ActionMode callback for document text selection (TXT, EPUB, PDF overlay).
  *
  * Adds "Translate", "Search in Google", and optionally "Read Aloud" items on top of the
- * platform-provided "Copy / Share / Select All" items.  Platform items are NOT touched — they
+ * platform-provided "Copy / Share / Select All" items.  Platform items are NOT touched - they
  * are injected automatically by the system.
  *
  * @param showTranslate    Whether to show the Translate item (BuildConfig.ENABLE_TRANSLATION AND
@@ -85,6 +85,6 @@ fun openGoogleSearch(context: Context, text: String) {
     try {
         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
     } catch (e: ActivityNotFoundException) {
-        Timber.w("openGoogleSearch: no browser available — %s", e.message)
+        Timber.w("openGoogleSearch: no browser available - %s", e.message)
     }
 }

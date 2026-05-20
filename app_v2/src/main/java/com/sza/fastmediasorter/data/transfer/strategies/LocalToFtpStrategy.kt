@@ -33,7 +33,7 @@ class LocalToFtpStrategy @Inject constructor(
         sourceCredentialsId: String?,
         progressCallback: ByteProgressCallback?
     ): Boolean = withContext(Dispatchers.IO) {
-        // Always dispatch to IO — FtpClient does not switch dispatchers internally.
+        // Always dispatch to IO - FtpClient does not switch dispatchers internally.
         // Resolve destination credentials
         val destCredentials = credentialsResolver.getCredentials(destination.toString())
         if (destCredentials == null) {

@@ -48,7 +48,7 @@ $now      = Get-Date -Format "yyyy-MM-dd HH:mm"
 
 $sb = [System.Text.StringBuilder]::new()
 
-[void]$sb.AppendLine("# Activity Catalog — $Module")
+[void]$sb.AppendLine("# Activity Catalog - $Module")
 [void]$sb.AppendLine("")
 [void]$sb.AppendLine("*Generated: $now*")
 [void]$sb.AppendLine("")

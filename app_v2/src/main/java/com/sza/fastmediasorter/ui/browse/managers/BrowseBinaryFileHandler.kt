@@ -12,7 +12,7 @@ import timber.log.Timber
 /**
  * Handles binary file actions for BrowseActivity: bottom sheet menu, open-with, share, MIME type.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseBinaryFileHandler(
     private val activity: Activity,

@@ -82,7 +82,7 @@ class PrefetchProgressTracker(
 
     /**
      * Start observing [player] using [plan]. Safe to call again with a new player
-     * or a new plan — the previous polling job is cancelled first.
+     * or a new plan - the previous polling job is cancelled first.
      */
     fun attach(player: Player, plan: PrefetchPlan) {
         detach()
@@ -168,7 +168,7 @@ class PrefetchProgressTracker(
             )
         )
         if (!emitted) {
-            Timber.w("PrefetchProgressTracker: escalation buffer full — event dropped")
+            Timber.w("PrefetchProgressTracker: escalation buffer full - event dropped")
         }
     }
 

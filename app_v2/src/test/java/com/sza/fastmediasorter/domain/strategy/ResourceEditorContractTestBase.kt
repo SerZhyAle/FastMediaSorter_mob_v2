@@ -13,7 +13,7 @@ import org.junit.Assert.assertTrue
 
 /**
  * Shared helpers for ResourceStrategy contract tests.
- * All strategies are pure domain objects — no DI or Room needed.
+ * All strategies are pure domain objects - no DI or Room needed.
  */
 abstract class ResourceEditorContractTestBase {
 

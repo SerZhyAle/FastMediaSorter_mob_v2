@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.databinding.ItemOnedriveFolderBinding
 
 /**
  * Thin sealed abstraction over three structurally identical cloud folder item layouts.
- * All three XMLs share the same view IDs — this avoids reflection while keeping a single adapter.
+ * All three XMLs share the same view IDs - this avoids reflection while keeping a single adapter.
  */
 sealed interface CloudFolderItemBinding {
     val root: View

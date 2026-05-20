@@ -27,7 +27,7 @@ import timber.log.Timber
  * - Merge a freshly resolved file back into the in-memory and DB cache.
  * - Persist [MediaResource.lastViewedFile] on each open.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseFileOpenManager(
     private val context: Context,
@@ -91,6 +91,14 @@ class BrowseFileOpenManager(
     fun openTextNoteInEditor(path: String, resourceId: Long) {
         inlineStop()
         sendEvent(BrowseEvent.NavigateToTextEditor(path, resourceId))
+    }
+
+    /**
+     * S0191: open a freshly created blank drawing in PlayerActivity and enter draw mode.
+     */
+    fun openDrawingInEditor(path: String, resourceId: Long) {
+        inlineStop()
+        sendEvent(BrowseEvent.NavigateToDrawingEditor(path, resourceId))
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

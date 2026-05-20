@@ -86,11 +86,12 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         url: String,
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
     ): OpenResult {
+        Timber.d("S0140: pillar-P dynamic invisible-WebView extractor open() entry")
         val httpUrl = url.toHttpUrlOrNull() ?: return OpenResult.Blocked(BlockedReason.NonHttpScheme)
 
         // YouTube (and youtu.be) are handled exclusively by yt-dlp and NewPipe. The WebView
         // extractor renders YouTube's error/consent pages and picks up static assets such as
-        // failure.mp3 — never a real video. Exclude to avoid false-positive downloads.
+        // failure.mp3 - never a real video. Exclude to avoid false-positive downloads.
         val hostLower = httpUrl.host.lowercase()
         if (EXCLUDED_HOSTS.any { hostLower == it || hostLower.endsWith(".$it") }) {
             Timber.d("InvisibleWebViewExtractionStrategy: host excluded url=%s", url.take(80))
@@ -105,7 +106,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         val probed = probeCandidates(renderedCandidates.take(MAX_PROBED_CANDIDATES))
         val allCandidates = (probed + renderedCandidates.drop(MAX_PROBED_CANDIDATES)).distinctBy { it.url }
         val accepted = allCandidates.filter(::isAcceptedCandidate)
-        // TikTok's <video> currentSrc resolves to www.tiktok.com/aweme/v1/play/ — a server-side
+        // TikTok's <video> currentSrc resolves to www.tiktok.com/aweme/v1/play/ - a server-side
         // API redirect that 302s to /404. The real CDN URL comes from the SSR rehydration JSON.
         // Filter it out so CandidateSelectionPolicy picks the v16-webapp CDN entry instead.
         val merged = accepted.filterNot { isTikTokApiRedirect(it.url) }.ifEmpty { accepted }
@@ -116,7 +117,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         val nonImageCandidates = merged.filterNot(::isImageCandidate)
         // S0197: a candidate harvested from an authoritative data-sjs payload is itself the
         // signal that this is a legitimate image post (Threads/IG photo single or carousel).
-        // Treat that signal as overriding the preview-only guard — without this bypass,
+        // Treat that signal as overriding the preview-only guard - without this bypass,
         // Instagram photo posts always return SocialPreviewOnly because they contain no
         // <video> element and only OG/IMG/EMBEDDED_JSON candidates.
         val hasEmbeddedJsonImage = merged.any {
@@ -157,7 +158,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                 tentativeFileName = deriveStreamingFileName(chosen.url),
             )
         }
-        // S0171: replay the page request context on the CDN re-fetch — Instagram's CDN edge
+        // S0171: replay the page request context on the CDN re-fetch - Instagram's CDN edge
         // rejects requests without a `Referer`, and a real browser `User-Agent` is needed because
         // the link-download OkHttp client otherwise sends `okhttp/4.x` (rejected by many CDNs).
         val replayHeaders = cdnReplayHeaders(chosen)
@@ -178,7 +179,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         val host = candidate.url.toHttpUrlOrNull()?.host?.lowercase().orEmpty()
         if (isTikTokHost(host) || host.contains("tiktokcdn") || host.contains("byteoversea") || host.contains("muscdn")) {
             put("Range", "bytes=0-")
-            // S0171 Step 9: TikTok CDN edge validates browser security headers — without these
+            // S0171 Step 9: TikTok CDN edge validates browser security headers - without these
             // it returns 403 even when session cookies are correctly forwarded.
             put("Sec-Fetch-Dest", "video")
             put("Sec-Fetch-Mode", "no-cors")
@@ -194,7 +195,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                     async(Dispatchers.IO) {
                         if (candidate.manifest != null || isLikelySegment(candidate.url)) return@async candidate
                         runCatching {
-                            // S0171: replay the page context on the HEAD probe too — the Instagram
+                            // S0171: replay the page context on the HEAD probe too - the Instagram
                             // CDN edge serves a bogus tiny 200 (with a `video/mp4` Content-Type) when
                             // the Referer is missing, which would otherwise poison the size heuristics.
                             val request = Request.Builder().url(candidate.url).head().apply {
@@ -221,7 +222,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         if (candidate.manifest != null) return true
         // S0171: a candidate that came from an explicit media element (<video>/<source>/<audio>)
         // or a structured-data field (og:video, JSON-LD, the TikTok rehydration JSON pushed as
-        // VIDEO_TAG) is media by construction — accept it even when the URL has no media extension
+        // VIDEO_TAG) is media by construction - accept it even when the URL has no media extension
         // and we haven't probed its MIME (TikTok playAddr URLs are extension-less, signed paths).
         if (candidate.source in TRUSTED_MEDIA_SOURCES) return true
         val mime = candidate.tentativeMime?.substringBefore(';')?.trim()
@@ -244,7 +245,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     private fun shouldReturnBatch(candidates: List<HtmlMediaCandidate>): Boolean {
         if (candidates.size < 2) return false
         // S0197: an EMBEDDED_JSON candidate is authoritative (e.g. a Threads/IG carousel slide
-        // emitted from data-sjs). Treat it as substantial regardless of probed size — sizes for
+        // emitted from data-sjs). Treat it as substantial regardless of probed size - sizes for
         // these CDN URLs often arrive after the HEAD-probe budget expires.
         val substantial = candidates.count {
             it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON ||
@@ -295,7 +296,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
             val mainHandler = Handler(Looper.getMainLooper())
             mainHandler.post {
                 val observedRequests = LinkedHashMap<String, Pair<HtmlMediaCandidate.Source, String>>()
-                // S0171: the page URL the WebView is currently on — read from the WebView's worker
+                // S0171: the page URL the WebView is currently on - read from the WebView's worker
                 // thread in shouldInterceptRequest, written on the main thread in onPageStarted /
                 // onPageFinished; tracked so each candidate can carry its page origin for the
                 // Referer header on the CDN re-fetch (and to follow short-URL redirects).
@@ -563,7 +564,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     private fun isTikTokHost(host: String): Boolean =
         TIKTOK_HOSTS.any { host == it || host.endsWith(".$it") }
 
-    // Detects TikTok server-side API redirect candidates — www.tiktok.com/aweme/v1/play/ returns
+    // Detects TikTok server-side API redirect candidates - www.tiktok.com/aweme/v1/play/ returns
     // 302 → /404, never a real media file. The CDN URL is always on a v16-webapp-prime subdomain.
     private fun isTikTokApiRedirect(url: String): Boolean {
         val parsed = url.toHttpUrlOrNull() ?: return false
@@ -631,7 +632,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
             val limited = if (decodedHtml.length > 512 * 1024) decodedHtml.substring(0, 512 * 1024) else decodedHtml
             file.writeText(limited, Charsets.UTF_8)
         }.onFailure {
-            Timber.w("InvisibleWebViewExtractionStrategy: page-html-dump failed — %s", it.message)
+            Timber.w("InvisibleWebViewExtractionStrategy: page-html-dump failed - %s", it.message)
         }
     }
 
@@ -645,7 +646,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     }
 
     private companion object {
-        // Instagram and Threads are heavy React SPAs — hydration alone takes 10+ seconds.
+        // Instagram and Threads are heavy React SPAs - hydration alone takes 10+ seconds.
         // 8 s was consistently triggering hard-stop before onPageFinished, yielding no candidates.
         const val HARD_TIMEOUT_MS = 22_000L
         const val DOM_SETTLE_MS = 4_000L
@@ -664,12 +665,12 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         // (e.g. YouTube's failure.mp3 error sound asset).
         val EXCLUDED_HOSTS = setOf("youtube.com", "youtu.be")
 
-        // S0171: hosts whose mobile web serves an "open in app" interstitial — load with a desktop UA.
+        // S0171: hosts whose mobile web serves an "open in app" interstitial - load with a desktop UA.
         val TIKTOK_HOSTS = setOf("tiktok.com", "vm.tiktok.com", "vt.tiktok.com")
         const val DESKTOP_CHROME_UA =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-        // S0171: candidate sources that are media by construction — accepted without a MIME probe.
+        // S0171: candidate sources that are media by construction - accepted without a MIME probe.
         val TRUSTED_MEDIA_SOURCES = setOf(
             HtmlMediaCandidate.Source.VIDEO_TAG,
             HtmlMediaCandidate.Source.SOURCE_TAG,
@@ -728,7 +729,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                   const item = detail && detail.itemInfo && detail.itemInfo.itemStruct;
                   const video = item && item.video;
                   if (video) {
-                    // Prioritise direct CDN URLs — downloadAddr and bitrateInfo carry v16-webapp*
+                    // Prioritise direct CDN URLs - downloadAddr and bitrateInfo carry v16-webapp*
                     // hosts; playAddr sometimes resolves to a www.tiktok.com API redirect which
                     // triggers MimeBlocked after the 302 (observed build 333, ZNRsTRFXg/).
                     if (video.downloadAddr && video.downloadAddr !== video.playAddr) push(video.downloadAddr, 'VIDEO_TAG');
@@ -741,7 +742,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                     if (video.playAddr) push(video.playAddr, 'VIDEO_TAG');
                   }
                 }
-              } catch (e) { /* schema drift — fall back to intercepted requests */ }
+              } catch (e) { /* schema drift - fall back to intercepted requests */ }
 
               return out;
             })();

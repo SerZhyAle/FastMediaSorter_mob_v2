@@ -23,7 +23,7 @@ import timber.log.Timber
  * - Settings changes (PDF thumbnails, icon size)
  * - Error state + empty state text
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseObserverManager(
     private val lifecycleOwner: LifecycleOwner,

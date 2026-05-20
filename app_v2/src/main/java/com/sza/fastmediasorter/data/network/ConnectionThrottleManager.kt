@@ -14,26 +14,47 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Manages dynamic parallelism limits for network protocols.
  * Limits adjust based on protocol type and connection health.
- * 
+ *
  * Usage:
  * ```
  * ConnectionThrottleManager.withThrottle(ProtocolLimits.SMB, "192.168.1.10") {
  *     smbClient.readFileBytes(...)
  * }
  * ```
+ *
+ * S0248 Phase 5 - per-resource adaptive halve-on-timeout, no upward auto-tune (only
+ * applies to [ProtocolLimits.SMB_HEADER] / [ProtocolLimits.SMB_FULL_METADATA]; the
+ * legacy SMB/SFTP/FTP/CLOUD tiers keep the linear `--` / `++` ladder).
  */
 object ConnectionThrottleManager {
-    
+
     /**
-     * Base parallelism limits per protocol type.
-     * Each protocol has max (initial) and min (degraded) concurrent request limits.
+     * Base parallelism limits per protocol type (max + min concurrent).
+     *
+     * S0248 Phase 5: SMB-class metadata operations are split into two tiers because
+     * they place very different pressure on the server and the local heap.
+     *  - [SMB_HEADER] - header-only reads (EXIF, ID3 quick probe, dir listing) are
+     *    light on RAM, so concurrency=8 is safe even on commodity NAS. Jellyfin
+     *    empirically validates 1..8 as NAS-friendly for tasks of this shape.
+     *  - [SMB_FULL_METADATA] - `MediaMetadataRetriever` allocates ~700 MiB per
+     *    instance, so we cap at 3 in line with Jellyfin issues #15728/#12203/#13531.
+     *  - [SMB] - kept at the historical `(2, 1)` for NON-metadata SMB operations
+     *    (open/read for playback, copy, delete). These are throughput-bound and
+     *    have their own degradation history (ArrayIndexOutOfBoundsException root
+     *    cause). Do not retire this entry.
+     *
+     * Per-resource adaptive override: on a read-timeout for a given host the
+     * scheduler halves `currentLimit` (never below `minConcurrent`). No upward
+     * auto-tune - recovery requires an explicit reset.
      */
     enum class ProtocolLimits(val maxConcurrent: Int, val minConcurrent: Int) {
-        LOCAL(24, 24),        // No throttling for local files
-        SMB(8, 2),            // S0237 §6.1: raised from 2→8 (min 1→2); typical home NAS tolerates this comfortably. Speed-test override still applies on top.
-        SFTP(3, 1),           // Increased from 2→3: channel pooling prevents race conditions
-        FTP(2, 1),            // Reduced from 3→2: align with SMB for consistency
-        CLOUD(8, 3)           // Cloud APIs usually handle batching well
+        LOCAL(24, 24),              // No throttling for local files
+        SMB(2, 1),                  // Non-metadata SMB ops (open/read/copy/delete) - kept at historical (2,1)
+        SMB_HEADER(8, 1),           // S0248: header-only metadata reads (EXIF, ID3 quick) - raised from 2 to 8
+        SMB_FULL_METADATA(3, 1),    // S0248: MediaMetadataRetriever full video probe - RAM-bound, Jellyfin-validated 1..3
+        SFTP(3, 1),                 // Increased from 2→3: channel pooling prevents race conditions
+        FTP(2, 1),                  // Reduced from 3→2: align with SMB for consistency
+        CLOUD(8, 3)                 // Cloud APIs usually handle batching well
     }
     
     /**
@@ -54,9 +75,8 @@ object ConnectionThrottleManager {
     private val semaphoreLocks = ConcurrentHashMap<String, Any>()
     
     // User defined limit for network protocols (SMB, FTP, SFTP)
-    // S0237 §6.1: raised default from 2→8 to match SMB base bump.
-    // Mirrored in `ScanConcurrencyConfig.SMB_DEFAULT_LIMIT` — keep all three in sync.
-    private var userDefinedNetworkLimit: Int = 8
+    // Reduced default from 2 to match new base limits
+    private var userDefinedNetworkLimit: Int = 2
     
     // Cache for speed test recommended threads per resource
     private val recommendedThreadsCache = ConcurrentHashMap<String, Int>()
@@ -197,7 +217,7 @@ object ConnectionThrottleManager {
         synchronized(videoPlayerResources) {
             videoPlayerResources.remove(resourceKey)
             // S0066: clear transient thumbnail failures for this resource so previews recover
-            // automatically once playback ends — uniform across SMB / SFTP / FTP.
+            // automatically once playback ends - uniform across SMB / SFTP / FTP.
             try {
                 com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
                     .clearTransientFailuresForResource(resourceKey)
@@ -410,10 +430,16 @@ object ConnectionThrottleManager {
             // Success: increment success counter, reset timeout counter
             state.consecutiveTimeouts.set(0)
             val successes = state.consecutiveSuccesses.incrementAndGet()
-            
+
+            // S0248 Phase 5: SMB_HEADER and SMB_FULL_METADATA explicitly opt out of upward
+            // auto-tune. Recovery requires an explicit reset - these tiers must never
+            // climb back above the configured fixed maxConcurrent on success streaks.
+            val allowUpwardRestore = protocol != ProtocolLimits.SMB_HEADER &&
+                protocol != ProtocolLimits.SMB_FULL_METADATA
+
             // Restore limit if enough consecutive successes
             val maxLimit = getMaxLimit(protocol, resourceKey)
-            if (successes >= RESTORE_AFTER_SUCCESSES && state.currentLimit < maxLimit) {
+            if (allowUpwardRestore && successes >= RESTORE_AFTER_SUCCESSES && state.currentLimit < maxLimit) {
                 synchronized(state) {
                     if (state.currentLimit < maxLimit) {
                         state.currentLimit++
@@ -423,7 +449,7 @@ object ConnectionThrottleManager {
                     }
                 }
             }
-            
+
             return result
         } catch (e: Exception) {
             // Check if timeout/network error
@@ -441,7 +467,17 @@ object ConnectionThrottleManager {
                 if (timeouts >= DEGRADE_AFTER_TIMEOUTS && state.currentLimit > minLimit) {
                     synchronized(state) {
                         if (state.currentLimit > minLimit) {
-                            state.currentLimit--
+                            // S0248 Phase 5: SMB_HEADER and SMB_FULL_METADATA halve their limit
+                            // on a timeout instead of decrementing by 1. The drop from 8 → 4 → 2
+                            // (header) or 3 → 1 (full-metadata) reaches a safe floor in two
+                            // steps instead of waiting for the linear `--` ladder.
+                            val halveOnTimeout = protocol == ProtocolLimits.SMB_HEADER ||
+                                protocol == ProtocolLimits.SMB_FULL_METADATA
+                            state.currentLimit = if (halveOnTimeout) {
+                                (state.currentLimit / 2).coerceAtLeast(minLimit)
+                            } else {
+                                state.currentLimit - 1
+                            }
                             state.consecutiveTimeouts.set(0)
                             state.isDegraded = true  // Mark as degraded for extended timeouts
                             Timber.w("ConnectionThrottle: Degraded $resourceKey limit to ${state.currentLimit} (${timeouts} timeouts) - EXTENDED TIMEOUTS ENABLED")

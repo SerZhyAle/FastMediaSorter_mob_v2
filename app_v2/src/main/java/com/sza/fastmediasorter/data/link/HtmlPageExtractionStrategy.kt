@@ -99,6 +99,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         if (candidates.isEmpty()) {
             val loginWallEnabled = settingsRepository.getSettings().first().linkDownloadLoginWallHeuristicEnabled
             if (loginWallEnabled && looksLikeSoftLoginWall(rawHtml, finalUrl)) {
+                Timber.d("S0140: pillar-T soft login-wall heuristic hit -> AuthRequired")
                 LinkDownloadTrace.verbose(
                     "auth-required soft-login-wall for ${LinkDownloadTrace.truncateUrl(finalUrl)} strategy=$id",
                 )
@@ -120,7 +121,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
             mime == null || MediaMimeWhitelist.isAllowed(mime)
         }
 
-        // S0197: Threads/IG photo carousel — when ≥ 2 authoritative image candidates come from
+        // S0197: Threads/IG photo carousel - when ≥ 2 authoritative image candidates come from
         // data-sjs, emit a Batch directly from the cheap path so the user gets all slides without
         // having to spin up the WebView strategy.
         val embeddedImages = filtered.filter {
@@ -228,7 +229,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
             emptyList()
         }
         val staticCandidates = harvestStaticCandidates(html, baseUri)
-        // igApiCandidates first — authoritative; then embedded (Threads data-sjs); then static noise.
+        // igApiCandidates first - authoritative; then embedded (Threads data-sjs); then static noise.
         val merged = (igApiCandidates + embedded + structured + staticCandidates).distinctBy { it.url }
 
         val structuredCount = merged.count {
@@ -317,7 +318,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         return out.distinctBy { it.url }
     }
 
-    // S0197: mirrors InvisibleWebViewExtractionStrategy.isImageCandidate — image MIME, OG/IMG
+    // S0197: mirrors InvisibleWebViewExtractionStrategy.isImageCandidate - image MIME, OG/IMG
     // source, or known image extension. Used by the Batch trigger and (Step 03.4) the
     // SocialPreviewOnly bypass for embedded-JSON-driven carousels.
     private fun isImageCandidate(candidate: HtmlMediaCandidate): Boolean {

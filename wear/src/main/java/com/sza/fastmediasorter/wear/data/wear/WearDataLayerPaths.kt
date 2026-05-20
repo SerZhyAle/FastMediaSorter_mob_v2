@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.wear.data.wear
 
 /**
- * Path constants for the Wear OS Data Layer — watch side mirror.
+ * Path constants for the Wear OS Data Layer - watch side mirror.
  * String values are identical to the phone-side WearDataLayerPaths to guarantee path matching.
  * Existing /fms/network_sources/ paths are defined locally in WatchWearListenerService
  * for backward compatibility and are not listed here.

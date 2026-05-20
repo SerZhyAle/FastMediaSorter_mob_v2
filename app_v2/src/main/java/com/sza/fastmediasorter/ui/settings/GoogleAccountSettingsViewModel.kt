@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * S0200 Phase 06 — ViewModel for the "Google Account" Settings card.
+ * S0200 Phase 06 - ViewModel for the "Google Account" Settings card.
  *
  * Observes the identity-domain state Flow, drives sign-in / sign-out via the identity domain,
  * exposes CCT availability for the diagnostics line. On successful sign-in, clears the
@@ -100,7 +100,7 @@ class GoogleAccountSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             // S0200 §11.5 fix: capture the bound primary email BEFORE signing out, then mark only
             // its Drive resources as needs-sign-in. Secondary multi-account Drive resources (under
-            // different Google accounts) keep access — strategic ADR-3 / §5.2.
+            // different Google accounts) keep access - strategic ADR-3 / §5.2.
             val primaryEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)
                 ?.account
                 ?.email

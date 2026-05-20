@@ -1,4 +1,4 @@
-# Разработка и релиз FastMediaSorter v2 — практическое руководство
+# Разработка и релиз FastMediaSorter v2 - практическое руководство
 
 Документ описывает три рабочих сценария: ежедневная разработка с отладочными сборками, экстренный фикс-релиз и плановый релиз по завершению цикла разработки.
 
@@ -10,8 +10,8 @@
 
 | Директория | Ветка | Назначение |
 |------------|-------|------------|
-| `P:/ANDROID/FastMediaSorter_mob_v2` | `DEBUG-v00N` | Разработка — здесь пишется весь код |
-| `P:/ANDROID/FastMediaSorter_release` | `main` | Сборки релизов — сюда никогда не переключаться вручную |
+| `P:/ANDROID/FastMediaSorter_mob_v2` | `DEBUG-v00N` | Разработка - здесь пишется весь код |
+| `P:/ANDROID/FastMediaSorter_release` | `main` | Сборки релизов - сюда никогда не переключаться вручную |
 
 Все команды `.\a …` запускаются из `FastMediaSorter_mob_v2`. Релизные команды (`r`, `vr`, `nl`) автоматически переключаются на `FastMediaSorter_release`, собирают там, копируют артефакты обратно.
 
@@ -22,7 +22,7 @@ git branch --show-current   # убедиться что ты на DEBUG-v00N, а
 
 ---
 
-## Сценарий 1 — Ежедневная разработка и тестирование debug-версий
+## Сценарий 1 - Ежедневная разработка и тестирование debug-версий
 
 ### Когда применяется
 
@@ -45,7 +45,7 @@ git branch --show-current   # убедиться что ты на DEBUG-v00N, а
 
 **3. Устанавливаешь на устройство.** `.\a d` также запускает фоновый auto-deploy через ADB, если устройство подключено.
 
-**4. Тестируешь на устройстве.** Если нужно смотреть logcat — фильтруй по тегу приложения.
+**4. Тестируешь на устройстве.** Если нужно смотреть logcat - фильтруй по тегу приложения.
 
 **5. Фиксируешь изменения:**
 ```powershell
@@ -65,13 +65,13 @@ APK в DOWNLOADS, изменения зафиксированы на DEBUG-ве�
 
 ---
 
-## Сценарий 2 — Фикс-релиз (исправление уже опубликованной версии)
+## Сценарий 2 - Фикс-релиз (исправление уже опубликованной версии)
 
 ### Когда применяется
 
-Найден баг в опубликованной версии. Нужно выпустить исправление как можно скорее. В релизе — **только fix**, никакого нового функционала или UI.
+Найден баг в опубликованной версии. Нужно выпустить исправление как можно скорее. В релизе - **только fix**, никакого нового функционала или UI.
 
-Фикс-релиз — единственная законная причина делать коммит напрямую в `main` вне цикла DEBUG → main.
+Фикс-релиз - единственная законная причина делать коммит напрямую в `main` вне цикла DEBUG → main.
 
 ### Предусловия
 
@@ -89,17 +89,17 @@ APK в DOWNLOADS, изменения зафиксированы на DEBUG-ве�
 Скилл выполняет полный пайплайн автономно:
 
 1. Pre-flight: ветка, чистота, наличие worktree.
-2. Резолвит спеку `S0123` через каталог — получает название, путь к файлу.
+2. Резолвит спеку `S0123` через каталог - получает название, путь к файлу.
 3. Ищет коммиты для этого фикса в трёх фазах:
-   - Фаза A: `git log origin/main..HEAD --grep="S0123"` — коммиты с ID в сообщении.
+   - Фаза A: `git log origin/main..HEAD --grep="S0123"` - коммиты с ID в сообщении.
    - Фаза B: коммиты, затронувшие файл спеки.
    - Фаза C (fallback): парсит файл спеки на предмет упомянутых путей, делает `git diff origin/main..HEAD -- <path>` для каждого.
 4. Показывает список найденных коммитов и файлов (без паузы).
-5. Cherry-pick найденных коммитов в `main` (в release worktree) — **только они**, остальной код DEBUG не трогается.
-6. Обновляет `docs/WHATS_NEW.md` — новый блок «Fix Release» становится текущим, старый «Current release» становится «Previous Release».
-7. Обновляет `README.md` (и RU/UK зеркала) — версия в заголовке «What's New».
+5. Cherry-pick найденных коммитов в `main` (в release worktree) - **только они**, остальной код DEBUG не трогается.
+6. Обновляет `docs/WHATS_NEW.md` - новый блок «Fix Release» становится текущим, старый «Current release» становится «Previous Release».
+7. Обновляет `README.md` (и RU/UK зеркала) - версия в заголовке «What's New».
 8. Коммит документов прямо в `main`, тег `release/vX.X.XXXX.XXX`, push.
-9. Запускает `.\a r` — AAB для Google Play (gitignored-файлы копируются автоматом).
+9. Запускает `.\a r` - AAB для Google Play (gitignored-файлы копируются автоматом).
 10. Rebase `DEBUG-v00N` на обновлённый `main`, push с `--force-with-lease`.
 
 ### Что делать при конфликте cherry-pick
@@ -120,7 +120,7 @@ git cherry-pick --continue
 | Тег | `release/vX.X.XXXX.XXX` с меткой Fix Release |
 | Документы | `WHATS_NEW.md`, `README.md` обновлены прямо в `main` |
 | `DEBUG-v00N` | перебазирован, фикс не задублируется при следующем merge |
-| Артефакт | AAB в `DOWNLOADS/` — готов к публикации |
+| Артефакт | AAB в `DOWNLOADS/` - готов к публикации |
 
 Публикуешь артефакт из `DOWNLOADS/` вручную. Для VR дополнительно: `.\a vr`.
 
@@ -128,12 +128,12 @@ git cherry-pick --continue
 
 - [ ] Исправление закоммичено на DEBUG с понятным сообщением (желательно содержит `S0123`)
 - [ ] Спека `S0123` в каталоге в статусе `Implemented` или `Verified`
-- [ ] В релизе только fix — никакого нового функционала
+- [ ] В релизе только fix - никакого нового функционала
 - [ ] DEBUG-ветки перебазированы (скилл делает это автоматически)
 
 ---
 
-## Сценарий 3 — Плановый релиз текущего DEBUG-бранча (`/skill-release`)
+## Сценарий 3 - Плановый релиз текущего DEBUG-бранча (`/skill-release`)
 
 ### Когда применяется
 
@@ -156,15 +156,15 @@ git cherry-pick --continue
 
 1. Pre-flight: проверяет ветку, чистоту дерева, наличие worktree.
 2. Генерирует версию по формату `Y.YM.MDDH.Hmm`.
-3. Анализирует `git log <prev-tag>..HEAD` — разбивает коммиты на «What's New» (`feat:`) и «What's Fixed» (`fix:`).
-4. Обновляет `docs/WHATS_NEW.md` — старый «Current release» становится «Previous Release», сверху вставляется новый блок.
-5. Обновляет `README.md` (и зеркала `README_RU.md`, `README_UK.md`) — раздел «What's New» с новой версией.
+3. Анализирует `git log <prev-tag>..HEAD` - разбивает коммиты на «What's New» (`feat:`) и «What's Fixed» (`fix:`).
+4. Обновляет `docs/WHATS_NEW.md` - старый «Current release» становится «Previous Release», сверху вставляется новый блок.
+5. Обновляет `README.md` (и зеркала `README_RU.md`, `README_UK.md`) - раздел «What's New» с новой версией.
 6. Коммитит документы на DEBUG-ветке, пушит.
 7. Мёрджит DEBUG → main в release worktree (`--no-ff`), ставит тег, пушит `main` и тег.
 8. Переходит на следующий DEBUG-бранч:
    - Если `DEBUG-v002` уже существует (был «future»-бранчем) → `git checkout DEBUG-v002`.
    - Если нет → создаёт `DEBUG-v002` от свежего `main`, пушит с трекингом.
-9. Запускает `.\a r` — релизный билд AAB в worktree, артефакты в `DOWNLOADS/`.
+9. Запускает `.\a r` - релизный билд AAB в worktree, артефакты в `DOWNLOADS/`.
 
 ### Что делать при конфликте мёрджа
 
@@ -189,7 +189,7 @@ git push origin release/v$NEW_VERSION
 | Тег | `release/v$NEW_VERSION` в истории git |
 | Документы | `WHATS_NEW.md`, `README.md` обновлены и закоммичены |
 | Dev-директория | переключена на `DEBUG-v002` (следующий цикл) |
-| Артефакт | AAB в `DOWNLOADS/` — готов к публикации в Google Play |
+| Артефакт | AAB в `DOWNLOADS/` - готов к публикации в Google Play |
 
 Публикуешь AAB из `DOWNLOADS/` вручную в Google Play Console. Для VR после этого запускаешь `.\a vr` отдельно.
 
@@ -214,7 +214,7 @@ git push origin release/v$NEW_VERSION
 
 ## Связанные документы
 
-- [`.claude/commands/git.md`](../.claude/commands/git.md) — полный git-справочник: ветки, worktree, fix-release, push
-- [`.claude/commands/skill-release.md`](../.claude/commands/skill-release.md) — детальный алгоритм `/skill-release`
-- [`scripts/release-worktree-sync.txt`](../scripts/release-worktree-sync.txt) — список gitignored-файлов, синхронизируемых в worktree перед каждым release-билдом
-- [`docs/WHATS_NEW.md`](WHATS_NEW.md) — история релизов
+- [`.claude/commands/git.md`](../.claude/commands/git.md) - полный git-справочник: ветки, worktree, fix-release, push
+- [`.claude/commands/skill-release.md`](../.claude/commands/skill-release.md) - детальный алгоритм `/skill-release`
+- [`scripts/release-worktree-sync.txt`](../scripts/release-worktree-sync.txt) - список gitignored-файлов, синхронизируемых в worktree перед каждым release-билдом
+- [`docs/WHATS_NEW.md`](WHATS_NEW.md) - история релизов

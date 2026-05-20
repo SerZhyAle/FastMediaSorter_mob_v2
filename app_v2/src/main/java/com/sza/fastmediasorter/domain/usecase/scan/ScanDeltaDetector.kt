@@ -42,7 +42,7 @@ object ScanDeltaDetector {
      */
     fun compute(current: List<MediaFile>, previous: List<MediaFile>): ScanDelta {
         if (previous.isEmpty()) {
-            // No previous data — everything is "added", nothing deleted/unchanged.
+            // No previous data - everything is "added", nothing deleted/unchanged.
             return ScanDelta(
                 added     = current,
                 modified  = emptyList(),

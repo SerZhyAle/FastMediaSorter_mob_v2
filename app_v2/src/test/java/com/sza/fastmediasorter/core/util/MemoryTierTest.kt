@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Unit tests for [MemoryTier.classify] — pure classification logic without [android.content.Context].
+ * Unit tests for [MemoryTier.classify] - pure classification logic without [android.content.Context].
  *
  * Covers the S0207 Phase 02 contract:
  * - Java heap-limit dominates physical RAM,
@@ -26,7 +26,7 @@ class MemoryTierTest {
 
     @Test
     fun `512 MB heap with 6 GB RAM classifies as LOW (Quest 3)`() {
-        // Quest 3 reports heapMax=512 MB exactly with >= 6 GB RAM —
+        // Quest 3 reports heapMax=512 MB exactly with >= 6 GB RAM -
         // S0207 explicitly relies on heap-limit dominating tier classification.
         val tier = MemoryTier.classify(
             isLowRamDevice = false,

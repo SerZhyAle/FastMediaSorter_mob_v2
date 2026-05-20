@@ -39,7 +39,7 @@ class NetworkFileModelLoader(
         ModelLoader.LoadData(model, NetworkFileDataFetcher(model, smbClient, sftpClient, ftpClient, credentialsRepository))
     
     override fun handles(model: NetworkFileData): Boolean {
-        // Skip PDF/EPUB (dedicated loaders) and video (dedicated decoder — avoids HEIF fallback errors)
+        // Skip PDF/EPUB (dedicated loaders) and video (dedicated decoder - avoids HEIF fallback errors)
         val extension = model.path.substringAfterLast('.', "").lowercase()
         val isVideo = extension in VIDEO_EXTENSIONS
         if (isVideo) Timber.d("NetworkFileModelLoader.handles: REJECTED video file ${model.path.substringAfterLast('/')}")
@@ -53,7 +53,7 @@ class NetworkFileModelLoader(
     companion object {
         private val VIDEO_EXTENSIONS = setOf(
             "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg",
-            // DVD / transport-stream formats — MPEG2 PS/TS headers are not valid image data
+            // DVD / transport-stream formats - MPEG2 PS/TS headers are not valid image data
             "vob", "ts", "m2ts", "mts", "m2t", "ifo", "bup"
         )
     }
@@ -92,7 +92,7 @@ class NetworkFileDataFetcher(
         )
         private const val MAX_FAILED_CACHE = 5000
 
-        // S0060: Transient failures (not persisted) — SMB race/timeout-during-playback; expire via TTL or playback-stop.
+        // S0060: Transient failures (not persisted) - SMB race/timeout-during-playback; expire via TTL or playback-stop.
         private val transientFailedVideos = java.util.concurrent.ConcurrentHashMap<String, Long>() // path → timestampMs
         private const val TRANSIENT_TTL_MS = 120_000L // safety net: 2 minutes max
 
@@ -111,7 +111,7 @@ class NetworkFileDataFetcher(
                     }
                     Timber.d("Loaded ${persisted.size} persisted failure entries into in-memory cache")
                 } catch (e: Exception) {
-                    Timber.w(e, "Failed to load persisted failure cache — continuing with empty in-memory cache")
+                    Timber.w(e, "Failed to load persisted failure cache - continuing with empty in-memory cache")
                 }
                 persistenceInitialized = true
             }
@@ -155,11 +155,11 @@ class NetworkFileDataFetcher(
         }
 
         @Deprecated(
-            "S0066 — use clearTransientFailuresForResource(resourceKey)",
+            "S0066 - use clearTransientFailuresForResource(resourceKey)",
             ReplaceWith("clearTransientFailuresForResource(resourceKey)")
         )
         fun clearTransientFailuresForHost(smbHost: String) {
-            // Caller passed only host — try the two well-known SMB ports.
+            // Caller passed only host - try the two well-known SMB ports.
             clearTransientFailuresForResource("smb://$smbHost:445")
             clearTransientFailuresForResource("smb://$smbHost:139")
         }
@@ -368,7 +368,7 @@ class NetworkFileDataFetcher(
                     }
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // S0055-B: normal scroll/recycle cancellation — re-throw to propagate coroutine cancellation
+                // S0055-B: normal scroll/recycle cancellation - re-throw to propagate coroutine cancellation
                 Timber.v("fetchBytesFromSmb CANCELLED: $fileName")
                 throw e
             } catch (e: Exception) {
@@ -521,7 +521,7 @@ class NetworkFileDataFetcher(
         
         // Check JPEG signature: FF D8 FF
         if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte()) {
-            // Motion photos (Google/Samsung) append MP4 after JPEG EOI — FF D9 may be several MB from EOF.
+            // Motion photos (Google/Samsung) append MP4 after JPEG EOI - FF D9 may be several MB from EOF.
             // Use 4 MB tail window to avoid false-positive EXIF thumbnail markers.
             if (bytes.size < 4) return false
 
@@ -639,7 +639,7 @@ class NetworkFileDataFetcher(
     }
     
     override fun cancel() {
-        // S0055-A: debug stack trace removed — cancel() is called on every RecyclerView scroll recycle
+        // S0055-A: debug stack trace removed - cancel() is called on every RecyclerView scroll recycle
         isCancelled = true
         loadJob?.cancel()
     }
@@ -649,7 +649,7 @@ class NetworkFileDataFetcher(
     override fun getDataSource(): DataSource = DataSource.REMOTE
 }
 
-/** Factory for NetworkFileModelLoader — lazily resolves Hilt dependencies on first build. */
+/** Factory for NetworkFileModelLoader - lazily resolves Hilt dependencies on first build. */
 class NetworkFileModelLoaderFactory : ModelLoaderFactory<NetworkFileData, InputStream> {
 
     private var smbClient: SmbClient? = null

@@ -92,7 +92,7 @@ class PdfViewerManager(
     private var pageRenderJob: Job? = null
 
     // S0196 Phase 04: one-shot tag emitted when the first PDF page bitmap is pushed to
-    // the PhotoView — "primary content rendered" for the StandalonePlayer docs branch.
+    // the PhotoView - "primary content rendered" for the StandalonePlayer docs branch.
     private var firstPageRenderedLogged = false
     
     // Single-thread dispatcher for PdfRenderer (non-thread-safe API)
@@ -756,7 +756,7 @@ class PdfViewerManager(
     
     /**
      * OCR current PDF page and copy extracted text to clipboard.
-     * Does not switch views — stays on the PDF page.
+     * Does not switch views - stays on the PDF page.
      */
     fun copyPageTextToClipboard() {
         pdfLinkAndSearchManager.copyPageTextToClipboard(currentPageBitmap)
@@ -1010,7 +1010,7 @@ class PdfViewerManager(
     }
 
     /**
-     * Speak arbitrary [text] aloud — used by the text-selection floating ActionMode callback.
+     * Speak arbitrary [text] aloud - used by the text-selection floating ActionMode callback.
      */
     fun speakText(text: String) {
         pdfTtsDelegate.speakText(text)
@@ -1049,7 +1049,7 @@ class PdfViewerManager(
         pdfPageAdapter = null
         bitmapCache?.clear()
         bitmapCache = null
-        // Don't call rendererWrapper.close() — closePdfRenderer() closes the underlying PdfRenderer
+        // Don't call rendererWrapper.close() - closePdfRenderer() closes the underlying PdfRenderer
         rendererWrapper = null
         
         // Clear PhotoView reference to bitmap BEFORE recycling (M3 fix)
@@ -1143,13 +1143,13 @@ class PdfViewerManager(
                 // CRITICAL: Render page in background (this is the heavy operation)
                 page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
-                // Close page immediately after render — PdfRenderer allows only ONE page open at
+                // Close page immediately after render - PdfRenderer allows only ONE page open at
                 // a time. Leaving it open blocks PdfRendererWrapper used by thumbnail navigation,
                 // causing thumbnails to never load (openPage throws, returns null silently).
                 currentPdfPage?.close()
                 currentPdfPage = null
 
-                // Extract PDF link annotations for tap-to-open (API 35+, fast — no OCR needed)
+                // Extract PDF link annotations for tap-to-open (API 35+, fast - no OCR needed)
                 if (Build.VERSION.SDK_INT >= 35) {
                     pdfLinkAndSearchManager.extractLinksNative(currentPdfFile!!, index, width, height)
                 }

@@ -18,6 +18,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
+import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import dagger.assisted.Assisted
@@ -31,9 +32,9 @@ import timber.log.Timber
  * source app (Instagram, browser, etc.) immediately after sharing a URL.
  *
  * Input data:
- *  - [KEY_URL]        — single URL (mutually exclusive with [KEY_URLS]).
- *  - [KEY_URLS]       — string array for batch (multiple URLs from one share intent).
- *  - [KEY_ACCOUNT_ID] — account whose cookies the coordinator should use (single-URL only).
+ *  - [KEY_URL]        - single URL (mutually exclusive with [KEY_URLS]).
+ *  - [KEY_URLS]       - string array for batch (multiple URLs from one share intent).
+ *  - [KEY_ACCOUNT_ID] - account whose cookies the coordinator should use (single-URL only).
  *
  * The worker posts a [NOTIF_ID_PROGRESS] foreground notification during download, then
  * a separate auto-cancel result notification when done.  For [SocialPreviewOnly] results
@@ -80,11 +81,11 @@ class LinkDownloadWorker @AssistedInject constructor(
         val accountId = inputData.getString(KEY_ACCOUNT_ID)
 
         if (url == null && urls.isNullOrEmpty()) {
-            Timber.e("LinkDownloadWorker: no url(s) in inputData — aborting")
+            Timber.e("LinkDownloadWorker: no url(s) in inputData - aborting")
             return Result.failure()
         }
 
-        // S0202: dual-mode worker — single-URL share runs as a long-running foreground
+        // S0202: dual-mode worker - single-URL share runs as a long-running foreground
         // worker (setForeground from getForegroundInfo) so backgrounding the share Activity
         // does not kill the download. Batch mode keeps the existing short-lived expedited
         // path (no setForeground), because batch is enqueued from the share-Activity in a
@@ -125,7 +126,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             .build()
         // S0202: also push the terminal result to the in-memory bus so the foreground
         // Activity (typically MainActivity when the user returns from Instagram/Threads)
-        // can present it on resume — toast, open-in-player, or auth-required dialog —
+        // can present it on resume - toast, open-in-player, or auth-required dialog -
         // without depending on whether the share Activity is still alive.
         runCatching {
             resultBus.publish(
@@ -139,7 +140,7 @@ class LinkDownloadWorker @AssistedInject constructor(
         return Result.success(outputData)
     }
 
-    /** No-op callbacks — progress is not reflected in the notification for simplicity. */
+    /** No-op callbacks - progress is not reflected in the notification for simplicity. */
     private fun silentCallbacks() = object : LinkAutoDownloadCoordinator.Callbacks {
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
     }
@@ -150,7 +151,7 @@ class LinkDownloadWorker @AssistedInject constructor(
      * via `LinkDownloadProgressCodec.decode`) AND into the ongoing foreground notification
      * (so backgrounded users still see live progress in the system shade).
      *
-     * `setProgressAsync` is fire-and-forget — `onProgress` is a non-suspending interface
+     * `setProgressAsync` is fire-and-forget - `onProgress` is a non-suspending interface
      * method called from Dispatchers.IO; awaiting the ListenableFuture would force us to
      * either block the IO thread or wrap each callback in a coroutine builder, both of
      * which add latency for no observable benefit.
@@ -220,16 +221,27 @@ class LinkDownloadWorker @AssistedInject constructor(
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(context.getString(R.string.link_download_notif_text_saved, result.fileName))
+                // S0257: tap on the notification body opens StandalonePlayerActivity on the
+                // saved file. The URI is now always populated (coordinator no longer nullifies
+                // it when linkAutoDownloadOpenInPlayer == false) - an explicit tap is treated
+                // as a manual choice that overrides the auto-open setting.
+                result.openInPlayerUri?.let {
+                    builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
+                }
             }
             is LinkAutoDownloadCoordinator.Result.FellBackToDownloads -> {
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(context.getString(R.string.link_download_notif_text_saved, result.fileName))
+                // S0257: see Saved branch.
+                result.openInPlayerUri?.let {
+                    builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
+                }
             }
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
                 val s = result.summary
                 // S0224 §5.4: observability log so the batch notification total can be verified from logcat
-                // without device-side testing. Uses `Timber.i` (info) — not `Timber.d("S0224:` — because that
+                // without device-side testing. Uses `Timber.i` (info) - not `Timber.d("S0224:` - because that
                 // tag idiom is bound to BlockNeedUserTest status only (CLAUDE.md "Debug Verification Tags").
                 Timber.i(
                     "LinkDownloadNotification set total=%d success=%d label=%s",
@@ -242,6 +254,12 @@ class LinkDownloadWorker @AssistedInject constructor(
                     .setContentText(
                         context.getString(R.string.link_download_notif_text_batch_done, s.successCount, s.totalItems),
                     )
+                // S0257: for a batched share, the notification tap opens the first successfully
+                // saved file. `firstSavedUri` is null when every batch item failed, in which case
+                // the notification stays informational with no content intent.
+                s.firstSavedUri?.let {
+                    builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
+                }
             }
             LinkAutoDownloadCoordinator.Result.Failed.UnsupportedYouTubeCommunityPost -> {
                 builder
@@ -251,10 +269,10 @@ class LinkDownloadWorker @AssistedInject constructor(
             }
             is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> {
                 // S0211: worker cannot show dialogs. Three branches:
-                // - extractor already ran with a valid stored session (hadExistingSession) — honest
+                // - extractor already ran with a valid stored session (hadExistingSession) - honest
                 //   notice, no Sign-In CTA. Mirrors LinkAutoDownloadResultPresenter.presentSocialPreviewOnly.
-                // - "don't ask" recorded for this host — quiet failure notification.
-                // - no session yet — heads-up sign-in notification with re-auth CTA.
+                // - "don't ask" recorded for this host - quiet failure notification.
+                // - no session yet - heads-up sign-in notification with re-auth CTA.
                 when {
                     result.hadExistingSession -> {
                         Timber.d("S0211: LinkDownloadWorker notify preview-only-signed-in host=%s", result.host)
@@ -335,6 +353,33 @@ class LinkDownloadWorker @AssistedInject constructor(
         )
     }
 
+    /**
+     * S0257: PendingIntent that opens [StandalonePlayerActivity] on a saved file URI.
+     *
+     * Used as the content intent of the success result notifications (Saved /
+     * FellBackToDownloads / BatchCompleted) so a tap on the notification body launches the
+     * player on the freshly downloaded file. Action-button PendingIntents (Sign-in,
+     * Open-URL) keep their own ranges; this helper reserves request-code base `20_000` to
+     * avoid colliding with `buildSignInAction` (base `0`) and `buildOpenUrlAction` (base
+     * `10_000`).
+     *
+     * `FLAG_ACTIVITY_NEW_TASK` is mandatory because PendingIntents from a worker fire in a
+     * non-Activity context. `FLAG_GRANT_READ_URI_PERMISSION` mirrors the in-process player
+     * launch in [com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter.launchPlayer].
+     */
+    private fun buildOpenInPlayerPendingIntent(uri: Uri, originalUrl: String): PendingIntent {
+        Timber.d("S0257: building open-in-player PendingIntent for uri=%s", uri)
+        val intent = Intent(context, StandalonePlayerActivity::class.java)
+            .setData(uri)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        return PendingIntent.getActivity(
+            context,
+            20_000 + Math.floorMod(originalUrl.hashCode(), 10_000),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
     // ── Foreground notification (S0202) ───────────────────────────────────────
 
     /**
@@ -361,7 +406,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     }
 
     /**
-     * Cancel action wired to WorkManager.createCancelPendingIntent — tapping it
+     * Cancel action wired to WorkManager.createCancelPendingIntent - tapping it
      * cancels this worker's unique work, which in turn raises CancellationException
      * inside coordinator.handle (Phase 03 ensures atomic cleanup).
      */

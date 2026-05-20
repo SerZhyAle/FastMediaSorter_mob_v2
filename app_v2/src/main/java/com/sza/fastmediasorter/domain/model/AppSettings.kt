@@ -176,15 +176,14 @@ data class AppSettings(
     val linkDownloadAudioOnly: Boolean = false,
     val linkDownloadLoginWallHeuristicEnabled: Boolean = true,
 
-    // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true)
-    val vrForcedPlatFormat: String = "AUTO",        // Forced flat-family override: AUTO, SBS, OU, MONO
-    val vrForcedSphericalFormat: String = "AUTO",   // Forced spherical-family override: AUTO or spherical StereoMode enum name
+    // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true).
     val vrRenderingMode: String = "CINEMA",         // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
-    val vrRememberFileFormat: Boolean = true,        // Remember manual VR format per file in the local Room override cache
     val vrAutoImmersive: Boolean = true,             // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
     // Global VR kill-switch: when true, bypasses all 3D/VR classification; all content plays as plain 2D
     val disable3dVr: Boolean = false,
-    // Panel-mode crop of SBS/OU stereo content to a single eye; always ON now that VR is removed.
+    // S0264: panel-mode crop of SBS/OU stereo content to a single eye; default ON for every flavor.
+    // Immersive VR rendering overrides this flag at runtime via VideoPlayerManager.vrImmersiveActive,
+    // so a true default is safe on VR builds (no double crop while immersive).
     val panelStereoSingleEye: Boolean = true,
     val vrShowFps: Boolean = false,                  // Display diagnostic FPS counter in immersive HUD
     val playerShowFps: Boolean = false,              // S0021: Display diagnostic FPS counter over the flat (non-immersive) player

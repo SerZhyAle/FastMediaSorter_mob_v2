@@ -1,12 +1,12 @@
 https://xdaforums.com/t/app-8-0-fastmediasorter-v2-multi-protocol-media-manager-smb-sftp-ftp-cloud.4785566/
 
-[APP][8.0+] FastMediaSorter v2 — Multi-Protocol Media Manager (SMB/SFTP/FTP/Cloud)
+[APP][8.0+] FastMediaSorter v2 - Multi-Protocol Media Manager (SMB/SFTP/FTP/Cloud)
 
 Tired of apps that can't talk to your NAS?
 
-Tired of switching between five different apps just to move files, play video, and read a PDF — all from your home server?
+Tired of switching between five different apps just to move files, play video, and read a PDF - all from your home server?
 
-FastMediaSorter v2 (FMS) is a single app that handles browsing, playing, organizing, and transferring media across local storage, NAS, and cloud — with no compromises on performance.
+FastMediaSorter v2 (FMS) is a single app that handles browsing, playing, organizing, and transferring media across local storage, NAS, and cloud - with no compromises on performance.
 
 ---
 WHAT MAKES IT DIFFERENT FROM OTHER FILE MANAGERS / GALLERY APPS?
@@ -70,7 +70,7 @@ FEEDBACK & QUESTIONS
 I'm actively developing this and looking for real-world feedback from power users:
 - What protocols or cloud providers are missing?
 - Any performance issues on specific NAS hardware (Synology, QNAP, TrueNAS)?
-- Feature requests welcome — especially around automation workflows
+- Feature requests welcome - especially around automation workflows
 
 Drop a reply or open an issue on GitHub. PRs also welcome.
 

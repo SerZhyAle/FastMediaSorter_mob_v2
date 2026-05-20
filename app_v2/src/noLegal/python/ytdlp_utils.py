@@ -1,5 +1,5 @@
 """
-ytdlp_utils.py — noLegal yt-dlp helper functions.
+ytdlp_utils.py - noLegal yt-dlp helper functions.
 Called from YtDlpExtractionStrategy.kt via Chaquopy.
 """
 
@@ -37,7 +37,7 @@ def _is_probe_excluded(url):
 def probe_url(url):
     """
     Check whether yt-dlp has a non-generic extractor for the given URL.
-    Uses only URL pattern matching — no network calls, no downloads.
+    Uses only URL pattern matching - no network calls, no downloads.
 
     Returns True if a specific extractor matches, None otherwise.
     Caller checks: result != null  →  Applicable.
@@ -74,7 +74,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
     """
     Download media via yt-dlp to out_dir/<file_stem>.<ext>.
     Returns a dict {'path': str, 'title': str, 'ext': str} on success.
-    Raises on failure — caller catches via Chaquopy runCatching.
+    Raises on failure - caller catches via Chaquopy runCatching.
 
     user_agent (S0182): UA pinned to the session at login time. Replays the same UA
     the server first saw with these cookies, avoiding fingerprint flags.
@@ -98,6 +98,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
     yt-dlp's native HLS/DASH downloader is used when a manifest format wins selection.
     """
     import yt_dlp
+    from yt_dlp.utils import DownloadError
     import os
     out_template = os.path.join(out_dir, file_stem + '.%(ext)s')
 
@@ -121,7 +122,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         'quiet': True,
         'no_warnings': True,
         'format': (
-            'bestaudio[ext=m4a]/bestaudio[ext=opus]/bestaudio[ext=mp3]/bestaudio'
+            'bestaudio[ext=m4a]/bestaudio[ext=opus]/bestaudio[ext=mp3]/140/251/250/249/bestaudio'
             if audio_only else
             (
                 'best[ext=mp4]/best/'
@@ -132,15 +133,17 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         ),
         'outtmpl': out_template,
         'socket_timeout': 60,
-        # S0190: explicit pin — protects against upstream default changes.
+        # S0190: explicit pin - protects against upstream default changes.
         'http_chunk_size': 10485760,
         'retries': 3,
         'fragment_retries': 5,
-        # S0190 Phase D: single-stream pacing — parallel chunks can re-trigger CDN throttling.
+        # S0190 Phase D: single-stream pacing - parallel chunks can re-trigger CDN throttling.
         'concurrent_fragment_downloads': 1,
         # Don't try to merge separate video+audio streams (we have no ffmpeg).
         # Forces selector to pick single-stream formats only.
         'allow_unplayable_formats': False,
+        'youtube_include_dash_manifest': True,
+        'youtube_include_hls_manifest': True,
         # S0190 Phase 03: bridge progress_callback (Java interface) into yt-dlp hooks.
         'progress_hooks': [_on_progress],
         # S0190: force preference for android then web YouTube clients.
@@ -154,14 +157,34 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
     if user_agent:
         opts['user_agent'] = user_agent
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
+        try:
+            info = ydl.extract_info(url, download=True)
+        except DownloadError as e:
+            if audio_only and 'Requested format is not available' in str(e):
+                raise DownloadError(f'S0260: ytmusic_no_audio_format_available original={e}') from e
+            raise
         if info is None:
             raise ValueError('yt-dlp returned no info for url=' + str(url))
         ext = info.get('ext', 'mp4')
         title = info.get('title', 'download')
+        # S0260: yt-dlp selected-format diagnostic. Chaquopy bridges stdout to
+        # Android logcat (tag python.stdout) so this line appears alongside the
+        # Kotlin Timber traces during a YTMusic share device test. The four
+        # fields distinguish H1/H2/H3 hypotheses: audio formats land on
+        # vcodec=none + acodec=mp4a (or similar); video-only formats land on
+        # vcodec=avc1/vp09 + acodec=none; combined progressive shows both.
+        print(
+            "S0260: python download done format_id={fid} ext={ext} vcodec={vc} acodec={ac} audio_only_hint={ao}".format(
+                fid=info.get('format_id'),
+                ext=ext,
+                vc=info.get('vcodec'),
+                ac=info.get('acodec'),
+                ao=audio_only,
+            )
+        )
         out_path = os.path.join(out_dir, file_stem + '.' + ext)
         if not os.path.exists(out_path):
-            # yt-dlp may have picked a different extension — scan the dir for the file.
+            # yt-dlp may have picked a different extension - scan the dir for the file.
             try:
                 for f in os.listdir(out_dir):
                     if f.startswith(file_stem + '.'):

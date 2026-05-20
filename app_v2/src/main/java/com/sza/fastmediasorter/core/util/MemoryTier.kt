@@ -13,7 +13,7 @@ enum class MemoryTier {
     /**
      * Low-end devices.
      * Criteria: `isLowRamDevice` OR total RAM < 3 GB OR Java heap-limit <= 512 MB.
-     * Notes: heap-limit dominates physical RAM — Quest 3 and the canonical emulator both
+     * Notes: heap-limit dominates physical RAM - Quest 3 and the canonical emulator both
      * report `maxHeapMb == 512` exactly and therefore land in LOW after S0207 Phase 02.
      * - Force RGB_565 image format (50% memory per pixel)
      * - Disable animations
@@ -25,7 +25,7 @@ enum class MemoryTier {
 
     /**
      * Standard devices.
-     * Criteria: not LOW and not HIGH — i.e. total RAM >= 3 GB AND Java heap-limit > 512 MB,
+     * Criteria: not LOW and not HIGH - i.e. total RAM >= 3 GB AND Java heap-limit > 512 MB,
      * and total RAM < 6 GB (so HIGH is not reached).
      * - Default image loading strategy
      * - Standard animations
@@ -63,7 +63,7 @@ enum class MemoryTier {
 
             // CRITICAL: Also check Java heap limit (maxMemory).
             // Devices with 6GB RAM may have a 512MB heap limit per process.
-            // Physical RAM alone is NOT sufficient to avoid OOM — heap limit is the real bottleneck.
+            // Physical RAM alone is NOT sufficient to avoid OOM - heap limit is the real bottleneck.
             val maxHeapMb = Runtime.getRuntime().maxMemory() / 1024 / 1024
 
             val tier = classify(
@@ -78,7 +78,7 @@ enum class MemoryTier {
         }
 
         /**
-         * Pure classifier — exposed `internal` to support unit tests without
+         * Pure classifier - exposed `internal` to support unit tests without
          * requiring a real [Context] / [ActivityManager].
          *
          * S0207 Phase 02 contract:

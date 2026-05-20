@@ -12,7 +12,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # 1. Clean and Build All
-Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR / NoLegal + Wear OS — Debug + Release ===" -ForegroundColor Cyan
+Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR / NoLegal + Wear OS - Debug + Release ===" -ForegroundColor Cyan
 Write-Host "This may take a while..." -ForegroundColor Yellow
 
 # Try to force-delete locked wear build directory (Windows file lock issue)

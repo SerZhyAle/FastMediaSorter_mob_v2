@@ -104,7 +104,7 @@ class ProvisionDefaultResourcesUseCaseTest {
         val result = useCase()
 
         assertTrue(result)
-        // Downloads is not a predefined virtual path — all 6 must be created
+        // Downloads is not a predefined virtual path - all 6 must be created
         coVerify(exactly = 6) { resourceRepository.addResource(any()) }
     }
 

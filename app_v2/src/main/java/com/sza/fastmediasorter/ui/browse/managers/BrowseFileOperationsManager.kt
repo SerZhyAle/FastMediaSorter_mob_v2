@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -330,26 +331,32 @@ class BrowseFileOperationsManager(
         // Capture destination for directory operations
         var capturedDestination: MediaResource? = null
 
-        // For network/cloud paths, create File with URI-compatible scheme
+        // For network/cloud paths, create File with URI-compatible scheme.
+        // S0266: cloud paths build CloudFileHandle carrying the display-name from MediaFile.name.
         val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
-            if (path.startsWith("smb://") || path.startsWith("sftp://") || 
-                path.startsWith("ftp://") || path.startsWith("cloud://")) {
-                object : File(path) {
-                    override fun getAbsolutePath(): String = path
-                    override fun getPath(): String = path
-                    override fun length(): Long = size
+            when {
+                path.startsWith("cloud://") -> CloudFileHandle(
+                    cloudPath = path,
+                    displayName = mediaFilesMap[path]?.name ?: path.substringAfterLast('/'),
+                    size = size,
+                )
+                path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") -> {
+                    object : File(path) {
+                        override fun getAbsolutePath(): String = path
+                        override fun getPath(): String = path
+                        override fun length(): Long = size
+                    }
                 }
-            } else {
-                File(path)
+                else -> File(path)
             }
         }
-        
+
         val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
             val lastSlashIndex = firstPath.lastIndexOf('/')
             if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
         }
-        
+
         val dialog = FileOperationDestinationDialog(
             context = context,
             operationType = FileOperationType.COPY,
@@ -461,25 +468,31 @@ class BrowseFileOperationsManager(
         // Capture destination for directory move operations
         var capturedDestination: MediaResource? = null
         
+        // S0266: cloud paths build CloudFileHandle carrying the display-name from MediaFile.name.
         val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
-            if (path.startsWith("smb://") || path.startsWith("sftp://") || 
-                path.startsWith("ftp://") || path.startsWith("cloud://")) {
-                object : File(path) {
-                    override fun getAbsolutePath(): String = path
-                    override fun getPath(): String = path
-                    override fun length(): Long = size
+            when {
+                path.startsWith("cloud://") -> CloudFileHandle(
+                    cloudPath = path,
+                    displayName = mediaFilesMap[path]?.name ?: path.substringAfterLast('/'),
+                    size = size,
+                )
+                path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") -> {
+                    object : File(path) {
+                        override fun getAbsolutePath(): String = path
+                        override fun getPath(): String = path
+                        override fun length(): Long = size
+                    }
                 }
-            } else {
-                File(path)
+                else -> File(path)
             }
         }
-        
+
         val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
             val lastSlashIndex = firstPath.lastIndexOf('/')
             if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
         }
-        
+
         val dialog = FileOperationDestinationDialog(
             context = context,
             operationType = FileOperationType.MOVE,

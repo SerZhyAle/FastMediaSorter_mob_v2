@@ -14,8 +14,8 @@ FastMediaSorter v2 follows **Clean Architecture + MVVM + Hilt**.
 
 ## Modules
 
-- `app_v2/` — main Android application
-- `wear/` — Wear OS companion application
+- `app_v2/` - main Android application
+- `wear/` - Wear OS companion application
 
 ## Key implementation notes
 

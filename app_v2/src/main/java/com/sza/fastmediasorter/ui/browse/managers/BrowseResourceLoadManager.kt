@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * - Delegate standard scan and pagination setup to [BrowseLoadingManager].
  * - Own [loadFilesJob], [loadResourceJob], [stopButtonTimerJob], [shouldStopScan].
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseResourceLoadManager(
     private val context: Context,
@@ -71,12 +71,12 @@ class BrowseResourceLoadManager(
     private val resourceId: Long,
     private val skipAvailabilityCheck: Boolean,
     private val paginationThreshold: Int,
-    // — Job-reference setters (fields owned by BrowseViewModel) —
+    // - Job-reference setters (fields owned by BrowseViewModel) -
     private val setLoadFilesJobRef: (Job?) -> Unit,
     private val setLoadResourceJobRef: (Job?) -> Unit,
     private val setStopButtonTimerJobRef: (Job?) -> Unit,
     private val shouldStopScanRef: AtomicBoolean,
-    // — Cross-manager callbacks —
+    // - Cross-manager callbacks -
     private val loadFavorites: () -> Unit,
     private val onFilesLoadedSaveAndEnrich: suspend (MediaResource, List<MediaFile>) -> Unit,
     private val onHandleLoadingError: (MediaResource, Throwable) -> Unit,
@@ -95,7 +95,7 @@ class BrowseResourceLoadManager(
      * Calls [loadMediaFiles] internally when a fresh scan is needed.
      */
     fun loadResource(forceRescan: Boolean = false) {
-        Timber.d("BrowseResourceLoadManager.loadResource: START — resourceId=$resourceId")
+        Timber.d("BrowseResourceLoadManager.loadResource: START - resourceId=$resourceId")
         val job = scope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
 
@@ -251,11 +251,11 @@ class BrowseResourceLoadManager(
                     setLoading(false)
                     updateResourceMetadata(resource, reconciledFiles.size, -1)
                     onFilesLoadedSaveAndEnrich(resource, reconciledFiles)
-                    Timber.d("BrowseResourceLoadManager.loadResource: cache hit — ${reconciledFiles.size} files")
+                    Timber.d("BrowseResourceLoadManager.loadResource: cache hit - ${reconciledFiles.size} files")
                     return@launch
                 }
                 is BrowseCacheManager.CacheCheckResult.Rescan ->
-                    Timber.d("BrowseResourceLoadManager.loadResource: cache rejected — ${cacheResult.reason}")
+                    Timber.d("BrowseResourceLoadManager.loadResource: cache rejected - ${cacheResult.reason}")
             }
 
             Timber.d("BrowseResourceLoadManager.loadResource: starting fresh scan")
@@ -369,7 +369,7 @@ class BrowseResourceLoadManager(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /**
-     * Early auth guard — runs before any scan scaffolding is allocated.
+     * Early auth guard - runs before any scan scaffolding is allocated.
      * Returns true if scan may proceed; false if an auth event was emitted and scan must be aborted.
      */
     private suspend fun checkCloudAuthBeforeScan(resource: MediaResource): Boolean {
@@ -402,14 +402,14 @@ class BrowseResourceLoadManager(
         val credId = resource.credentialsId
         if (credId != null && dropboxClient.tryRestoreForAccount(credId)) return true
         if (dropboxClient.isAuthenticated()) return true
-        Timber.w("BrowseResourceLoadManager: Dropbox not authenticated — emitting auth required")
+        Timber.w("BrowseResourceLoadManager: Dropbox not authenticated - emitting auth required")
         sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
         return false
     }
 
     private fun checkOneDriveAuth(resource: MediaResource, provider: CloudProvider): Boolean {
         if (oneDriveClient.isAuthenticated()) return true
-        Timber.w("BrowseResourceLoadManager: OneDrive not authenticated — emitting auth required")
+        Timber.w("BrowseResourceLoadManager: OneDrive not authenticated - emitting auth required")
         sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
         return false
     }

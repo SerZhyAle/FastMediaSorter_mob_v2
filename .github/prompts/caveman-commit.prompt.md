@@ -7,7 +7,7 @@ description: "Use when: user asks for a caveman commit message, terse commit mes
 
 > **LOCAL EXECUTION DIRECTIVES:**
 > 1. Output commit messages in ENGLISH.
-> 2. Use `..` (two dots) — never `...`.
+> 2. Use `..` (two dots) - never `...`.
 > 3. Generate the message only. Do NOT run `git commit`, do NOT stage files, do NOT amend history.
 > 4. Repo safety rules win. For breaking changes, security fixes, data migrations, or reverts, include enough context even if it costs more words.
 
@@ -20,8 +20,8 @@ Generate a terse Conventional Commit message with minimal noise and exact intent
 ```
 
 Examples:
-- `/caveman-commit` — infer from current diff if available
-- `/caveman-commit fix network thumbnail retry` — generate from explicit context
+- `/caveman-commit` - infer from current diff if available
+- `/caveman-commit fix network thumbnail retry` - generate from explicit context
 
 ## Process
 

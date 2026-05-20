@@ -338,7 +338,7 @@ class ResourceRepositoryImpl @Inject constructor(
         if (effectiveShareName != connectionInfo.shareName) {
             Timber.w(
                 "testSmbConnection: credentials shareName='${connectionInfo.shareName}' " +
-                "differs from path shareName='$effectiveShareName' — using path value"
+                "differs from path shareName='$effectiveShareName' - using path value"
             )
         }
 

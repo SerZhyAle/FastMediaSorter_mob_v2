@@ -253,7 +253,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         if (shareName.isBlank()) return
         val credentials = dao.getAllByTypeServerAndPort("SMB", server, port)
         if (credentials.isEmpty()) {
-            // No credential entry for this server yet — nothing to attach the name to.
+            // No credential entry for this server yet - nothing to attach the name to.
             // The name will be persisted once the user completes an add (via saveCredentials).
             return
         }
@@ -273,7 +273,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     /**
      * S0139: defense-in-depth check. SMB credentials must carry a non-empty `shareName`;
      * otherwise the runtime self-heal in [com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl.testSmbConnection]
-     * fires a `W` log on every connection test. Non-throwing — some import paths legitimately
+     * fires a `W` log on every connection test. Non-throwing - some import paths legitimately
      * receive credentials without share metadata, so we attribute the source via Timber rather
      * than blocking the write.
      */

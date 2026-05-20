@@ -11,7 +11,7 @@ import timber.log.Timber
  * Thread-safe wrapper around PdfRenderer using Kotlin Mutex.
  * Ensures only one page is open/rendered at a time, preventing concurrent access crashes.
  *
- * PdfRenderer is NOT thread-safe — only one Page can be open at any moment.
+ * PdfRenderer is NOT thread-safe - only one Page can be open at any moment.
  */
 class PdfRendererWrapper(
     private val renderer: PdfRenderer

@@ -112,7 +112,7 @@ class DiscoverNetworkResourcesUseCaseTest {
     @Test
     fun `execute skips fallback subnet that matches detected subnet`() = runTest(UnconfinedTestDispatcher()) {
         // Local IP is in 192.168.1.*, so "192.168.1" is the detected subnet.
-        // Fallback scan must NOT retry 192.168.1.* — only 192.168.0.*.
+        // Fallback scan must NOT retry 192.168.1.* - only 192.168.0.*.
         val useCase = FakeUseCase(
             openPorts = emptyMap(),   // primary scan finds nothing → fallback triggered
             fakeLocalIp = "192.168.1.5"

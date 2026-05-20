@@ -39,7 +39,7 @@ object FileOperationErrorFormatter {
         // Extract key error type
         val errorType = detectErrorType(cleanMessage)
         
-        // Build user-friendly message — S0118: emoji-free, short primary line + optional details.
+        // Build user-friendly message - S0118: emoji-free, short primary line + optional details.
         return buildString {
             when (operation.lowercase()) {
                 "copy" -> append(context.getString(R.string.error_operation_title_copy))
@@ -167,7 +167,7 @@ object FileOperationErrorFormatter {
         val lower = cleanMessage.lowercase()
 
         return when {
-            // S0231: scoped-storage local write rejection — checked BEFORE the generic "permission"
+            // S0231: scoped-storage local write rejection - checked BEFORE the generic "permission"
             // rule so it gets its own user message (Music/Movies/Pictures/Downloads guidance).
             lower.contains("localdestinationpermissiondenied") ||
                 lower.contains("local destination not writable") -> ErrorType.LOCAL_SCOPED_STORAGE_DENIED

@@ -25,7 +25,7 @@ import timber.log.Timber
 /**
  * Manages destination buttons in PlayerActivity:
  * - Populates Copy/Move grids with destination buttons
- * - Calculates button distribution — width-adaptive single row, then lookup fallback
+ * - Calculates button distribution - width-adaptive single row, then lookup fallback
  * - Handles panel collapse/expand toggle
  * - Persists collapsed state to settings
  */
@@ -129,7 +129,7 @@ class DestinationButtonsManager(
                     // Otherwise fall back to the original fixed patterns (no regression on narrow screens).
                     val maxPerRow = computeMaxPerRow(availableWidthDp)
                     if (count > 0 && count <= maxPerRow) {
-                        // Width-adaptive single row — saves vertical space on tablets and landscape phones
+                        // Width-adaptive single row - saves vertical space on tablets and landscape phones
                         listOf(count)
                     } else {
                         when (count) {
@@ -345,7 +345,7 @@ class DestinationButtonsManager(
     /**
      * Create destination button with short name, color, click handler.
      *
-     * @param fontSizeSp pre-computed text size from [computeFontSizeSp] — width-adaptive (S0227)
+     * @param fontSizeSp pre-computed text size from [computeFontSizeSp] - width-adaptive (S0227)
      */
     private fun createDestinationButton(
         destination: MediaResource,
@@ -363,14 +363,18 @@ class DestinationButtonsManager(
             text = shortName
 
             // S0227: auto-size keeps long labels stable, while the computed cap lets wide buttons grow.
-            val maxAutoSizeSp = fontSizeSp.toInt().coerceIn(SP_MIN.toInt(), SP_MAX.toInt())
-            TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                this,
-                SP_MIN.toInt(),
-                maxAutoSizeSp,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-            )
+            val minAutoSizeSp = SP_MIN.toInt()
+            val maxAutoSizeSp = computeAutoSizeMaxSp(fontSizeSp)
+            if (maxAutoSizeSp != null) {
+                // Android rejects uniform auto-size when the upper bound collapses to the minimum.
+                TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                    this,
+                    minAutoSizeSp,
+                    maxAutoSizeSp,
+                    1,
+                    TypedValue.COMPLEX_UNIT_SP
+                )
+            }
             textSize = SP_MIN
             
             // Calculate brightness to determine text color
@@ -452,6 +456,17 @@ class DestinationButtonsManager(
             updateCopyPanelVisibility(newCollapsedState)
         }
     }
+
+    fun setCopyPanelExpanded(expanded: Boolean) {
+        lifecycleScope.launch {
+            val currentSettings = settingsRepository.getSettings().first()
+            val newCollapsedState = !expanded
+
+            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
+            cachedCopyCollapsed = newCollapsedState
+            updateCopyPanelVisibility(newCollapsedState)
+        }
+    }
     
     /**
      * Toggle Move to panel collapsed/expanded state
@@ -471,22 +486,33 @@ class DestinationButtonsManager(
             updateMovePanelVisibility(newCollapsedState)
         }
     }
+
+    fun setMovePanelExpanded(expanded: Boolean) {
+        lifecycleScope.launch {
+            val currentSettings = settingsRepository.getSettings().first()
+            val newCollapsedState = !expanded
+
+            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
+            cachedMoveCollapsed = newCollapsedState
+            updateMovePanelVisibility(newCollapsedState)
+        }
+    }
     
     /**
-     * Update Copy to panel buttons visibility and indicator
+     * Update Copy to panel buttons visibility and keep the header prefix in sync.
      */
     private fun updateCopyPanelVisibility(collapsed: Boolean) {
         safeViews.copyToButtonsGrid.isVisible = !collapsed
-        safeViews.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        safeViews.copyToPanelHeader.setExpanded(!collapsed, notify = false)
         updateContainerOrientation()
     }
     
     /**
-     * Update Move to panel buttons visibility and indicator
+     * Update Move to panel buttons visibility and keep the header prefix in sync.
      */
     private fun updateMovePanelVisibility(collapsed: Boolean) {
         safeViews.moveToButtonsGrid.isVisible = !collapsed
-        safeViews.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        safeViews.moveToPanelHeader.setExpanded(!collapsed, notify = false)
         updateContainerOrientation()
     }
 
@@ -522,7 +548,7 @@ class DestinationButtonsManager(
     companion object {
         // Adaptive layout constants (S0227)
         // MIN_BUTTON_WIDTH_DP chosen so that 360 dp screen with 5 buttons keeps a single row via
-        // the lookup table (maxPerRow = 4 < 5, lookup returns listOf(5)) — no regression.
+        // the lookup table (maxPerRow = 4 < 5, lookup returns listOf(5)) - no regression.
         private const val MIN_BUTTON_WIDTH_DP = 58f
         // Approximate wrap_content width of the «..» button
         private const val DOT_DOT_WIDTH_DP = 44f
@@ -536,7 +562,7 @@ class DestinationButtonsManager(
 
         /**
          * Maximum buttons that fit in a single row at the given available width.
-         * Pure function — no side effects, covered by unit tests.
+         * Pure function - no side effects, covered by unit tests.
          *
          * Formula: floor((available - dotDot - dotDotMargin) / (minWidth + margin))
          */
@@ -570,7 +596,7 @@ class DestinationButtonsManager(
 
         /**
          * Interpolate button text size from actual button width.
-         * Pure function — no side effects, covered by unit tests.
+         * Pure function - no side effects, covered by unit tests.
          *
          * Result is clamped to [SP_MIN, SP_MAX].
          */
@@ -578,6 +604,16 @@ class DestinationButtonsManager(
             val t = ((buttonWidthDp - MIN_BUTTON_WIDTH_DP) / (FONT_WIDTH_MAX_DP - MIN_BUTTON_WIDTH_DP))
                 .coerceIn(0f, 1f)
             return SP_MIN + t * (SP_MAX - SP_MIN)
+        }
+
+        /**
+         * Returns a valid auto-size upper bound or null when the button should stay at [SP_MIN].
+         */
+        fun computeAutoSizeMaxSp(fontSizeSp: Float): Int? {
+            val minSp = SP_MIN.toInt()
+            val maxSp = kotlin.math.ceil(fontSizeSp.toDouble()).toInt()
+                .coerceIn(minSp, SP_MAX.toInt())
+            return maxSp.takeIf { it > minSp }
         }
     }
 }

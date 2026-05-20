@@ -37,7 +37,7 @@ data class DuplicatesState(
     val scanState: ScanState = ScanState.Idle,
     val result: DuplicateDetectionResult? = null,
     val selectedFilePaths: Set<String> = emptySet(),
-    /** ID ресурса, переданного при запуске — выводится первым в списке и предвыбирается. */
+    /** ID ресурса, переданного при запуске - выводится первым в списке и предвыбирается. */
     val pinnedResourceId: Long? = null
 )
 
@@ -73,7 +73,7 @@ class DuplicatesViewModel @Inject constructor(
     /** Установлен из Fragment при запуске с EXTRA_RESOURCE_ID. */
     private var pendingPinnedResourceId: Long? = null
 
-    /** true — после завершения скана автоматически удалить выбранные дубликаты. */
+    /** true - после завершения скана автоматически удалить выбранные дубликаты. */
     var autoDeleteMode: Boolean = false
         private set
 
@@ -88,7 +88,7 @@ class DuplicatesViewModel @Inject constructor(
     fun initWithResource(resourceId: Long, autoDelete: Boolean) {
         autoDeleteMode = autoDelete
         pendingPinnedResourceId = resourceId
-        // Если ресурсы уже загружены — применяем сразу
+        // Если ресурсы уже загружены - применяем сразу
         if (_state.value.availableResources.isNotEmpty()) {
             applyPinnedResource(resourceId)
         }

@@ -23,7 +23,7 @@ import org.junit.Test
  * Unit tests for [PrefetchProgressTracker].
  *
  * These tests drive the state machine via the public [PrefetchProgressTracker.markReady]
- * and [PrefetchProgressTracker.recordStall] entry points, which is why those are public —
+ * and [PrefetchProgressTracker.recordStall] entry points, which is why those are public -
  * so unit tests don't need a real ExoPlayer to verify escalation behavior.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -124,7 +124,7 @@ class PrefetchProgressTrackerTest {
         tracker.markReady()
         tracker.recordStall() // 1: no event
         tracker.recordStall() // 2: soft event
-        tracker.recordStall() // 3: still soft — no new event
+        tracker.recordStall() // 3: still soft - no new event
 
         // replayCache is empty (replay=0), so we inspect via take with a soft timeout pattern.
         // After a soft event and a third stall, only one event should have been emitted.
@@ -140,7 +140,7 @@ class PrefetchProgressTrackerTest {
         // Since replay=0, we can't inspect post-hoc; instead, crossing hard must trigger
         // exactly one additional event (not two).
         tracker.recordStall() // 4: hard
-        tracker.recordStall() // 5: still hard — no new event
+        tracker.recordStall() // 5: still hard - no new event
         // The test above ("hard escalation fires at stall count 4") already asserts
         // exactly two events are produced for stalls 1..4. Here, we just assert that
         // a fifth stall does not corrupt the counter.

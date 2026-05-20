@@ -156,7 +156,7 @@ class CloudAuthStateMachine @Inject constructor(
     }
 
     /**
-     * Mark the provider as signed out — transitions state to [AuthState.Idle].
+     * Mark the provider as signed out - transitions state to [AuthState.Idle].
      * Must be called after a successful sign-out from the corresponding client.
      */
     fun onSignedOut(provider: CloudProvider) {

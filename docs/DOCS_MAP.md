@@ -8,7 +8,7 @@ Essential reading for end-users to install, configure, and use the application.
 
 | Document | Description | Last Updated |
 |---|---|---|
-| [What's New](WHATS_NEW.md) | Release notes for v2.60.422.246 — new features and fixes since 2.60.4150.019. | 2026-04-23 |
+| [What's New](WHATS_NEW.md) | Release notes for v2.60.422.246 - new features and fixes since 2.60.4150.019. | 2026-04-23 |
 | [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-03-09 |
 | [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-02-02 |
 | [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-02-03 |
@@ -83,8 +83,8 @@ Resources for developers, QA, and contributors.
 | Document | Description | Last Updated |
 |---|---|---|
 | [Communication Policy](COMMUNICATION_POLICY.md) | Canonical tone-of-voice policy for all user-visible strings (EN). Voice, message formulas by type, next-step rules, feedback channels, tone checklist. Origin: S0118. | 2026-05-09 |
-| [Communication Policy — Russian](COMMUNICATION_POLICY_RU.md) | Mirror of communication policy in Russian. | 2026-05-09 |
-| [Communication Policy — Ukrainian](COMMUNICATION_POLICY_UK.md) | Mirror of communication policy in Ukrainian. | 2026-05-09 |
+| [Communication Policy - Russian](COMMUNICATION_POLICY_RU.md) | Mirror of communication policy in Russian. | 2026-05-09 |
+| [Communication Policy - Ukrainian](COMMUNICATION_POLICY_UK.md) | Mirror of communication policy in Ukrainian. | 2026-05-09 |
 
 ---
 *Note: Some links in the project's `index.html` (website) may refer to outdated or missing files (`V2_Specification.md`, `V2_architecture_overview.md`, `V2_TERMS.md`, `TODO_V2.md`). Use this map for the most accurate list of available documentation.*

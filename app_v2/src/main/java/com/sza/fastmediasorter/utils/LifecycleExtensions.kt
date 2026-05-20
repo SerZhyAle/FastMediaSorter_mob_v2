@@ -10,9 +10,9 @@ import kotlinx.coroutines.launch
 
 /**
  * Collects [flow] on [Lifecycle.State.STARTED] (or [state]) without manual launch/repeatOnLifecycle boilerplate.
- * For Fragment receivers this uses [Fragment.viewLifecycleOwner], which is the safe choice —
+ * For Fragment receivers this uses [Fragment.viewLifecycleOwner], which is the safe choice -
  * never use the Fragment itself as LifecycleOwner for view-bound collection.
- * Do NOT apply to CREATED/RESUMED usages — those require explicit repeatOnLifecycle calls.
+ * Do NOT apply to CREATED/RESUMED usages - those require explicit repeatOnLifecycle calls.
  */
 fun <T> Fragment.collectOnLifecycle(
     flow: Flow<T>,

@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.widget.ResourceLaunchWidgetProvider
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -151,7 +152,7 @@ class ResourceEditorFragment : Fragment() {
 
     /**
      * Builds a SharedPreferences key scoped by screen (editor), resource type, orientation,
-     * and section ID — so portrait/landscape and different resource types have independent
+     * and section ID - so portrait/landscape and different resource types have independent
      * collapsed/expanded states, per spec F2.2.
      */
     private fun sectionStateKey(sectionId: String): String {
@@ -161,43 +162,21 @@ class ResourceEditorFragment : Fragment() {
         return "editor_${type}_${orientation}_$sectionId"
     }
 
+    private data class ExpandableSection(
+        val header: CollapsibleSectionHeader,
+        val content: View,
+        val stateKey: String,
+    )
+
     private fun setupCollapsibleSections() {
-        setupCollapsibleHeader(
-            binding.headerConnectionSettings,
-            binding.contentConnectionSettings,
-            binding.ivConnectionExpand,
-            sectionStateKey(SECTION_CONNECTION)
-        )
-        setupCollapsibleHeader(
-            binding.headerMediaTypes,
-            binding.gridMediaTypes,
-            binding.ivMediaTypesExpand,
-            sectionStateKey(SECTION_MEDIA_TYPES)
-        )
-        setupCollapsibleHeader(
-            binding.headerScanning,
-            binding.contentScanning,
-            binding.ivScanningExpand,
-            sectionStateKey(SECTION_SCANNING)
-        )
-        setupCollapsibleHeader(
-            binding.headerDestination,
-            binding.contentDestination,
-            binding.ivDestinationExpand,
-            sectionStateKey(SECTION_DESTINATION)
-        )
-        setupCollapsibleHeader(
-            binding.headerAdvanced,
-            binding.contentAdvanced,
-            binding.ivAdvancedExpand,
-            sectionStateKey(SECTION_ADVANCED)
-        )
-        setupCollapsibleHeader(
-            binding.headerStatistics,
-            binding.groupStatistics,
-            binding.ivStatisticsExpand,
-            sectionStateKey(SECTION_STATISTICS)
-        )
+        listOf(
+            ExpandableSection(binding.headerConnectionSettings, binding.contentConnectionSettings, sectionStateKey(SECTION_CONNECTION)),
+            ExpandableSection(binding.headerMediaTypes, binding.gridMediaTypes, sectionStateKey(SECTION_MEDIA_TYPES)),
+            ExpandableSection(binding.headerScanning, binding.contentScanning, sectionStateKey(SECTION_SCANNING)),
+            ExpandableSection(binding.headerDestination, binding.contentDestination, sectionStateKey(SECTION_DESTINATION)),
+            ExpandableSection(binding.headerAdvanced, binding.contentAdvanced, sectionStateKey(SECTION_ADVANCED)),
+            ExpandableSection(binding.headerStatistics, binding.groupStatistics, sectionStateKey(SECTION_STATISTICS))
+        ).forEach(::bindCollapsibleSection)
     }
 
     private fun reorderScanningAboveMediaTypes() {
@@ -220,37 +199,18 @@ class ResourceEditorFragment : Fragment() {
         parent.addView(mediaCard, insertIndex + 1)
     }
 
-    private fun setupCollapsibleHeader(
-        header: View,
-        content: View,
-        expandIcon: android.widget.ImageView,
-        stateKey: String
-    ) {
-        val isExpanded = uiPrefs.getBoolean(stateKey, false)
-        setSectionExpanded(content, expandIcon, isExpanded, animate = false)
-
-        header.setOnClickListener {
-            val newExpanded = !content.isVisible
-            setSectionExpanded(content, expandIcon, newExpanded, animate = true)
-            uiPrefs.edit().putBoolean(stateKey, newExpanded).apply()
+    private fun bindCollapsibleSection(section: ExpandableSection) {
+        applySavedSectionState(section)
+        section.header.setOnExpandedChangeListener { expanded ->
+            section.content.isVisible = expanded
+            uiPrefs.edit().putBoolean(section.stateKey, expanded).apply()
         }
     }
 
-    private fun setSectionExpanded(
-        content: View,
-        expandIcon: android.widget.ImageView,
-        isExpanded: Boolean,
-        animate: Boolean
-    ) {
-        content.isVisible = isExpanded
-        if (animate) {
-            expandIcon.animate()
-                .rotation(if (isExpanded) 180f else 0f)
-                .setDuration(200)
-                .start()
-        } else {
-            expandIcon.rotation = if (isExpanded) 180f else 0f
-        }
+    private fun applySavedSectionState(section: ExpandableSection) {
+        val isExpanded = uiPrefs.getBoolean(section.stateKey, false)
+        section.header.setExpanded(isExpanded, notify = false)
+        section.content.isVisible = isExpanded
     }
 
     private fun setupFieldListeners() {
@@ -792,12 +752,8 @@ class ResourceEditorFragment : Fragment() {
             return
         }
 
-        val mediaExpanded = uiPrefs.getBoolean(sectionStateKey(SECTION_MEDIA_TYPES), false)
-        setSectionExpanded(
-            content = binding.gridMediaTypes,
-            expandIcon = binding.ivMediaTypesExpand,
-            isExpanded = mediaExpanded,
-            animate = false
+        applySavedSectionState(
+            ExpandableSection(binding.headerMediaTypes, binding.gridMediaTypes, sectionStateKey(SECTION_MEDIA_TYPES))
         )
     }
 
@@ -833,12 +789,8 @@ class ResourceEditorFragment : Fragment() {
             return
         }
 
-        val connectionExpanded = uiPrefs.getBoolean(sectionStateKey(SECTION_CONNECTION), false)
-        setSectionExpanded(
-            content = binding.contentConnectionSettings,
-            expandIcon = binding.ivConnectionExpand,
-            isExpanded = connectionExpanded,
-            animate = false
+        applySavedSectionState(
+            ExpandableSection(binding.headerConnectionSettings, binding.contentConnectionSettings, sectionStateKey(SECTION_CONNECTION))
         )
     }
 
@@ -996,8 +948,18 @@ class ResourceEditorFragment : Fragment() {
         }
     }
 
-    private fun renderStatistics(statistics: ResourceStatistics?) =
+    private fun renderStatistics(statistics: ResourceStatistics?) {
         outcomeRenderer.renderStatistics(statistics)
+        if (!binding.cardStatistics.isVisible || !binding.headerStatistics.isVisible) {
+            return
+        }
+
+        // OutcomeRenderer controls whether statistics exist in EDIT mode; the header still owns
+        // the expanded state so persistence is not lost on every UI-state emission.
+        applySavedSectionState(
+            ExpandableSection(binding.headerStatistics, binding.groupStatistics, sectionStateKey(SECTION_STATISTICS))
+        )
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -1009,7 +971,7 @@ class ResourceEditorFragment : Fragment() {
         private const val ARG_RESOURCE_ID = "resource_id"
         private const val ARG_RESOURCE_TYPE = "resource_type"
         private const val PREFS_RESOURCE_EDITOR_UI = "resource_editor_ui_state"
-        // Section ID constants — combined with type+orientation in sectionStateKey() at runtime
+        // Section ID constants - combined with type+orientation in sectionStateKey() at runtime
         private const val SECTION_CONNECTION = "connection"
         private const val SECTION_MEDIA_TYPES = "media_types"
         private const val SECTION_SCANNING = "scanning"

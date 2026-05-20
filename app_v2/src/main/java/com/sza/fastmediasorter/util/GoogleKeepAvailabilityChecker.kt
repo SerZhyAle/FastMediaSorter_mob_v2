@@ -7,7 +7,7 @@ import timber.log.Timber
 /**
  * S0189: checks whether Google Keep (or Keep Notes) can receive ACTION_SEND text/plain intents.
  *
- * Google has shipped Keep under two package ids historically — both are probed.
+ * Google has shipped Keep under two package ids historically - both are probed.
  * The resolved value is cached for the lifetime of this instance.
  *
  * Can be used standalone (plain constructor) or injected via Hilt if needed in the future.

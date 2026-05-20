@@ -61,7 +61,7 @@ class MainLayoutChromeManager(
         Timber.d("updateLayoutManagerForScreenSize: screenWidthDp=$screenWidthDp, isWideScreen=$isWideScreen, isGridMode=$gridMode")
 
         if (gridMode) {
-            // Compact Grid Mode — use resource-based column counts
+            // Compact Grid Mode - use resource-based column counts
             val spanCount = if (isWideScreen) {
                 res.getInteger(R.integer.grid_column_count_landscape)
             } else {

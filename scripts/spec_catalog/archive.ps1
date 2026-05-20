@@ -12,10 +12,6 @@ if (-not $record) {
     Write-Error "Record '$Id' not found."
     exit 1
 }
-if ($record.status -eq 'Archived') {
-    Write-Error "$Id is already Archived."
-    exit 1
-}
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $doneDir  = Join-Path $repoRoot 'temp\done'
@@ -26,21 +22,70 @@ if (-not (Test-Path $doneDir)) {
 # Locate artefacts in PLAN/
 $planDir      = Join-Path $repoRoot 'PLAN'
 $slug         = $record.name
-$specFile     = Join-Path $planDir "${Id}_${slug}.md"
-$tacticalDir  = Join-Path $planDir "${Id}_${slug}"
+# Prefer the catalog path because some specs were renamed after ticket creation.
+$recordFileRelative = if ($record.PSObject.Properties.Name -contains 'file' -and "$($record.file)" -ne '') {
+    [string]$record.file
+} else {
+    "PLAN/${Id}_${slug}.md"
+}
+$recordFilePath = Join-Path $repoRoot ($recordFileRelative -replace '/', '\')
+$fallbackSpecFile = Join-Path $planDir "${Id}_${slug}.md"
+
+$candidateSpecFiles = [System.Collections.Generic.List[string]]::new()
+$candidateSpecFiles.Add($recordFilePath)
+if ($fallbackSpecFile -ne $recordFilePath) {
+    $candidateSpecFiles.Add($fallbackSpecFile)
+}
+
+$specFile = $null
+foreach ($candidate in $candidateSpecFiles) {
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+        $specFile = $candidate
+        break
+    }
+}
+
+$candidateTacticalDirs = [System.Collections.Generic.List[string]]::new()
+# Strip the extension to get the tactical folder path; ChangeExtension($p, $null)
+# yields "path." in PowerShell 7+ which then fails to resolve, so build it manually.
+$recordTacticalDir = Join-Path `
+    ([System.IO.Path]::GetDirectoryName($recordFilePath)) `
+    ([System.IO.Path]::GetFileNameWithoutExtension($recordFilePath))
+$candidateTacticalDirs.Add($recordTacticalDir)
+$fallbackTacticalDir = Join-Path $planDir "${Id}_${slug}"
+if ($fallbackTacticalDir -ne $recordTacticalDir) {
+    $candidateTacticalDirs.Add($fallbackTacticalDir)
+}
+
+$tacticalDirs = [System.Collections.Generic.List[string]]::new()
+foreach ($candidate in $candidateTacticalDirs) {
+    if (Test-Path -LiteralPath $candidate -PathType Container) {
+        $tacticalDirs.Add($candidate)
+    }
+}
+
+if ($record.status -eq 'Archived' -and $null -eq $specFile -and $tacticalDirs.Count -eq 0) {
+    Write-Error "$Id is already Archived."
+    exit 1
+}
+if ($record.status -eq 'Archived') {
+    Write-Warning "$Id is already Archived in the catalog; continuing to move remaining artefacts from PLAN/."
+}
 
 $moved = New-Object System.Collections.Generic.List[string]
 
-if (Test-Path $specFile) {
-    Move-Item -LiteralPath $specFile -Destination (Join-Path $doneDir "${Id}_${slug}.md") -Force
-    $moved.Add("${Id}_${slug}.md")
+if ($null -ne $specFile) {
+    $specFileName = Split-Path -Path $specFile -Leaf
+    Move-Item -LiteralPath $specFile -Destination (Join-Path $doneDir $specFileName) -Force
+    $moved.Add($specFileName)
 } else {
-    Write-Warning "Strategic file not found at PLAN/${Id}_${slug}.md — skipping file move."
+    Write-Warning "Strategic file not found in PLAN for '$recordFileRelative' - skipping file move."
 }
 
-if (Test-Path $tacticalDir) {
-    Move-Item -LiteralPath $tacticalDir -Destination (Join-Path $doneDir "${Id}_${slug}") -Force
-    $moved.Add("${Id}_${slug}/")
+foreach ($tacticalDir in $tacticalDirs) {
+    $tacticalDirName = Split-Path -Path $tacticalDir -Leaf
+    Move-Item -LiteralPath $tacticalDir -Destination (Join-Path $doneDir $tacticalDirName) -Force
+    $moved.Add("${tacticalDirName}/")
 }
 
 # Mark Archived in journal, preserve optional fields

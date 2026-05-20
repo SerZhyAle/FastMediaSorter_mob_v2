@@ -107,7 +107,7 @@ $lines = @()
 $date = (Get-Date).ToString("yyyy-MM-dd")
 
 if (-not $PlayStore) {
-    $lines += "## Changelog — $date"
+    $lines += "## Changelog - $date"
     $lines += ""
     $lines += "> Range: \`$range\`  |  Commits: $totalCount"
     $lines += ""

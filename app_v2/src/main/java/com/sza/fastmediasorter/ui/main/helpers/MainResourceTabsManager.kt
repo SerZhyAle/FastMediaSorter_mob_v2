@@ -95,7 +95,7 @@ class MainResourceTabsManager(
         ResourceTab.SMB -> 2
         ResourceTab.FTP_SFTP -> 3
         ResourceTab.CLOUD -> if (BuildConfig.SUPPORT_CLOUD) 4 else 3
-        ResourceTab.FAVORITES -> 0 // Should not happen — defaults to ALL
+        ResourceTab.FAVORITES -> 0 // Should not happen - defaults to ALL
     }
 
     /** Account for hidden Cloud tab in lite flavor. */

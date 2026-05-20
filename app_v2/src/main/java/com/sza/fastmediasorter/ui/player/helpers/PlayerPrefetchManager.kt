@@ -129,7 +129,7 @@ internal class PlayerPrefetchManager(private val activity: PlayerActivity) {
     // ── Offload offer dialog ───────────────────────────────────────────────────
 
     private fun showOffloadOffer(offer: OffloadOffer) {
-        // LESS mode: user opted for minimal UI — skip the offer entirely
+        // LESS mode: user opted for minimal UI - skip the offer entirely
         if (!overlayEnabled) return
 
         // Dismiss any currently-shown overlay while the dialog is visible
@@ -155,7 +155,7 @@ internal class PlayerPrefetchManager(private val activity: PlayerActivity) {
                     fileName = filename,
                     onCancelRequested = { activity.viewModel.cancelOffload() }
                 ).also { it.show() }
-                Timber.d("PlayerPrefetchManager: offload starting — %s", filename)
+                Timber.d("PlayerPrefetchManager: offload starting - %s", filename)
             }
             is StreamOffloadUseCase.OffloadProgress.Downloading -> {
                 fileCopyProgressDialog?.updateProgress(
@@ -169,12 +169,12 @@ internal class PlayerPrefetchManager(private val activity: PlayerActivity) {
                 fileCopyProgressDialog = null
                 val sizeLabel = Formatter.formatShortFileSize(activity, progress.entry.sizeBytes)
                 overlayView.showLocalCopyMode(sizeLabel)
-                Timber.i("PlayerPrefetchManager: offload completed — playing from local copy")
+                Timber.i("PlayerPrefetchManager: offload completed - playing from local copy")
             }
             is StreamOffloadUseCase.OffloadProgress.Failed -> {
                 fileCopyProgressDialog?.dismiss()
                 fileCopyProgressDialog = null
-                Timber.w("PlayerPrefetchManager: offload failed — reason=%s", progress.reason)
+                Timber.w("PlayerPrefetchManager: offload failed - reason=%s", progress.reason)
             }
             is StreamOffloadUseCase.OffloadProgress.Cancelled -> {
                 fileCopyProgressDialog?.dismiss()

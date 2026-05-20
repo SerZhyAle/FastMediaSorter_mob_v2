@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- S0200 — відмова через відсутність CCT -->
+    <!-- S0200 - відмова через відсутність CCT -->
     <string name="s0200_cct_unavailable_title">Потрібен браузер</string>
     <string name="s0200_cct_unavailable_message">Щоб увійти в Google, потрібен браузер із підтримкою Chrome Custom Tabs. Встановіть сумісний браузер (Chrome, Firefox, Brave..) і спробуйте ще раз. Інші функції застосунку працюють.</string>
     <string name="s0200_cct_unavailable_retry">Спробувати ще раз</string>
 
-    <!-- S0200 — картка Google-акаунта -->
+    <!-- S0200 - картка Google-акаунта -->
     <string name="s0200_card_title">Google-акаунт</string>
     <string name="s0200_card_state_unbound_summary">Увійдіть один раз, щоб робити резервні копії в Google Drive і додавати папки без повторної авторизації.</string>
     <string name="s0200_card_state_unbound_cta">Увійти до Google</string>
@@ -22,7 +22,7 @@
     <string name="s0200_sign_out_confirm_confirm">Вийти</string>
     <string name="s0200_resource_needs_sign_in_label">Потрібен вхід</string>
 
-    <!-- S0234 — показ помилок входу -->
+    <!-- S0234 - показ помилок входу -->
     <string name="s0234_error_dialog_title">Не вдалося увійти до Google Drive</string>
     <string name="s0234_card_state_error_play_services_outdated_summary">Google Play Сервіси на пристрої застаріли, тому вхід до Google Drive не завершується. Оновіть Google Play Сервіси в Play Маркеті, щоб продовжити.</string>
     <string name="s0234_card_state_error_play_services_outdated_cta">Оновити Play Сервіси</string>
@@ -32,7 +32,7 @@
     <string name="s0234_card_state_error_user_cancelled_cta">Увійти</string>
     <string name="s0234_card_state_error_cct_unavailable_summary">Немає сумісного браузера. Встановіть Chrome, Firefox, Brave або інший браузер з підтримкою Chrome Custom Tabs і спробуйте знову.</string>
     <string name="s0234_card_state_error_cct_unavailable_cta">Увійти</string>
-    <string name="s0234_card_state_error_unknown_summary">Не вдалося увійти з невідомої причини. Спробуйте ще раз — якщо не допомагає, надішліть звіт про помилку з діалогу.</string>
+    <string name="s0234_card_state_error_unknown_summary">Не вдалося увійти з невідомої причини. Спробуйте ще раз - якщо не допомагає, надішліть звіт про помилку з діалогу.</string>
     <string name="s0234_card_state_error_unknown_cta">Спробувати знову</string>
     <string name="s0234_card_state_error_diag_details_prefix">Причина збою: %1$s</string>
 </resources>

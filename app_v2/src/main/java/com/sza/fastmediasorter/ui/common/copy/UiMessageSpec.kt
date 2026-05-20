@@ -12,7 +12,7 @@ import timber.log.Timber
  * This class carries the payload only; rendering is delegated to [UiMessageProjector].
  *
  * @param family     Semantic family driving the copy formula at the rendering layer.
- * @param shortMessage  Primary user-facing text — short enough for a Snackbar or Toast.
+ * @param shortMessage  Primary user-facing text - short enough for a Snackbar or Toast.
  * @param detailedMessage Optional longer explanation shown in a dialog or details surface.
  * @param nextStep   Single contextual follow-up action, or null when none applies.
  */
@@ -33,7 +33,7 @@ data class UiMessageSpec(
         // nextStep is single by type: sealed interface already prevents multiple steps
         // in one call site, but log for diagnostics when detailedMessage is huge.
         if (detailedMessage != null && detailedMessage.length > 2_000) {
-            Timber.w("UiMessageSpec: detailedMessage is very long (%d chars) — consider truncating at the render layer", detailedMessage.length)
+            Timber.w("UiMessageSpec: detailedMessage is very long (%d chars) - consider truncating at the render layer", detailedMessage.length)
         }
     }
 

@@ -50,7 +50,7 @@ class GoogleDriveRestClient @Inject constructor(
     private val networkCredentialsRepository: NetworkCredentialsRepository,
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
-    // S0200 Phase 04a — additive plumbing; consumed by Phase 04b token-source switchover.
+    // S0200 Phase 04a - additive plumbing; consumed by Phase 04b token-source switchover.
     private val identityRepository: GoogleIdentityRepository,
 ) : CloudStorageClient {
 
@@ -960,7 +960,7 @@ class GoogleDriveRestClient @Inject constructor(
     }
     
     override suspend fun signOut(): CloudResult<Boolean> {
-        // Capture token before clearing — revoke call happens off-Main
+        // Capture token before clearing - revoke call happens off-Main
         val tokenToRevoke = auth.captureToken()
 
         // S0200 Phase 04b: delegate primary-account sign-out to identity domain.
@@ -975,7 +975,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
         if (signOutError != null) return signOutError!!
 
-        // Server-side revocation — performed on IO after local state is cleared
+        // Server-side revocation - performed on IO after local state is cleared
         if (tokenToRevoke != null) {
             withContext(Dispatchers.IO) {
                 try {
@@ -990,7 +990,7 @@ class GoogleDriveRestClient @Inject constructor(
                     if (code == 200 || code == 400) {
                         Timber.i("GoogleDriveRestClient: token revoked (HTTP $code)")
                     } else {
-                        Timber.w("GoogleDriveRestClient: revoke returned HTTP $code — queuing for retry")
+                        Timber.w("GoogleDriveRestClient: revoke returned HTTP $code - queuing for retry")
                         pendingRevocationDao.insert(
                             PendingRevocationEntity(
                                 provider = "google",
@@ -1000,7 +1000,7 @@ class GoogleDriveRestClient @Inject constructor(
                         )
                     }
                 } catch (e: Exception) {
-                    Timber.w(e, "GoogleDriveRestClient: revoke network error — queuing for retry")
+                    Timber.w(e, "GoogleDriveRestClient: revoke network error - queuing for retry")
                     pendingRevocationDao.insert(
                         PendingRevocationEntity(
                             provider = "google",

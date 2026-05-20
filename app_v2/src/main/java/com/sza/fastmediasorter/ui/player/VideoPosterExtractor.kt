@@ -24,7 +24,7 @@ import timber.log.Timber
  * Three tiers, evaluated in order:
  *   1. Preventive skip (native heap low / ExoPlayer decoder busy) → straight to fallback.
  *   2. `MediaMetadataRetriever.getFrameAtTime` for the file's first sync frame.
- *   3. Fallback chain — Glide memory cache (Browse thumbnail) — added in phase 02.
+ *   3. Fallback chain - Glide memory cache (Browse thumbnail) - added in phase 02.
  */
 class VideoPosterExtractor {
 

@@ -17,7 +17,7 @@ import timber.log.Timber
 /**
  * SFTP SSH-private-key authentication flows. Kept separate from
  * [AddResourceSftpFtpCoordinator] because credential save reuses the password
- * field for the key passphrase — mixing the two paths inside one function
+ * field for the key passphrase - mixing the two paths inside one function
  * produces overly branchy code that's hard to reason about.
  */
 internal class AddResourceSftpKeyCoordinator(
@@ -94,7 +94,7 @@ internal class AddResourceSftpKeyCoordinator(
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
 
-            // Credential store reuses the password column for the key passphrase —
+            // Credential store reuses the password column for the key passphrase -
             // the actual secret is the private key body kept in privateKey.
             smbOperationsUseCase.saveSftpCredentials(
                 host = host,

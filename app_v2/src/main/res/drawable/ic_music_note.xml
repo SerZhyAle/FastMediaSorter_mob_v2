@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  3D shiny music note — gold metallic with gloss highlight.
+  3D shiny music note - gold metallic with gloss highlight.
   Gradient fills require API 24+; API 21-23 renders flat #DAA520; API <21 uses AppCompat raster.
   Viewport 96×96 (Material note shape ×4).
 -->
@@ -16,7 +16,7 @@
         android:pathData="M40,93 A22,5 0 1,0 40,93.01Z"
         android:fillColor="#50000000" />
 
-    <!-- ── Main note body (Material note ×4, centred) — metallic gold gradient ── -->
+    <!-- ── Main note body (Material note ×4, centred) - metallic gold gradient ── -->
     <path
         android:pathData="M48,12v42.2c-2.36,-1.36 -5.08,-2.2 -8,-2.2 -8.84,0 -16,7.16 -16,16s7.16,16 16,16 16,-7.16 16,-16V28h16V12h-24z">
         <aapt:attr name="android:fillColor">
@@ -33,7 +33,7 @@
         </aapt:attr>
     </path>
 
-    <!-- ── Dark right/bottom edge — depth illusion ── -->
+    <!-- ── Dark right/bottom edge - depth illusion ── -->
     <path
         android:pathData="M64,12v16h-4V16h-8V12h12z M64,28h-4v38.2c1.44,0.83 2.78,1.84 4,3V28z"
         android:fillColor="#40000000" />
@@ -53,7 +53,7 @@
         android:pathData="M48,12 L80,12 L80,16 Q64,14 48,16z"
         android:fillColor="#70FFFFFF" />
 
-    <!-- ── Note head gloss — top-left specular spot ── -->
+    <!-- ── Note head gloss - top-left specular spot ── -->
     <path
         android:pathData="M29,63 A9,5 45 1,1 29,63.01Z"
         android:fillColor="#80FFFFFF" />

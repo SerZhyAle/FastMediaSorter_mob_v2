@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -92,10 +93,10 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
     // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
     private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
-    // S0135 — Google Play In-App Review request after successful Move/Copy.
+    // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
 ) {
-    // Cached settings and destinations — populated via collectors in initialize().
+    // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
     private var latestSettings: AppSettings? = null
     private var latestHasDestinations: Boolean = false
@@ -206,7 +207,7 @@ class BrowseManagerInitializer(
             },
             onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
             onOverflowMenuClick = overflowClick@{ file, anchor ->
-                // Use cached values — populated by collectors started in initialize().
+                // Use cached values - populated by collectors started in initialize().
                 // First-frame edge case (cache not yet populated): silently skip tap.
                 val settings = latestSettings ?: return@overflowClick
                 val currentState = viewModel.state.value
@@ -237,7 +238,8 @@ class BrowseManagerInitializer(
                     onGoogleLens = { f -> launchGoogleLensForFile(f) },
                     onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
                     onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
-                    onOpenInPlayer = { f -> viewModel.openFile(f) }
+                    onOpenInPlayer = { f -> viewModel.openFile(f) },
+                    onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) }
                 )
             },
             getShowVideoThumbnails = showVideoThumbnailsGetter,
@@ -320,11 +322,12 @@ class BrowseManagerInitializer(
                 }
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
                 override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
+                override fun showCreateDrawingDialog() = resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
                 override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
                         ?.itemView ?: binding.rvMediaFiles
-                    resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel)
+                    showBrowseResourceOpsMenu(anchor)
                 }
                 override fun extendSelectionUp() {
                     val pos = (stateManager.getCurrentFocusPosition() - 1).coerceAtLeast(0)
@@ -549,37 +552,15 @@ class BrowseManagerInitializer(
             override fun onCreateTextNoteClicked() {
                 resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
             }
+            override fun onCreateDrawingClicked() {
+                resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
+            }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
             override fun onMicRecordTouchDown() = activity.onMicRecordTouchDown()
             override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
             override fun onMicRecordSingleTap() = activity.onMicRecordSingleTap()
             override fun onResourceOpsClicked(anchor: android.view.View) {
-                val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
-                lifecycleScope.launch {
-                    val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
-                        .onFailure { Timber.w(it, "onResourceOpsClicked: isDestinationsFull failed") }.getOrDefault(false)
-                    val settings = settingsRepository.getSettings().first()
-                    val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
-                        viewModel.state.value.resource?.let { res ->
-                            passthroughProvider?.isAvailable(activity) == true ||
-                                BrowseCameraCaptureManager.hasCameraHandler(activity, res)
-                        } ?: false
-                    resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel,
-                        isScheduleEnabled = isScheduleEnabled,
-                        onAutomateSource = if (isScheduleEnabled) { {
-                            val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
-                            activity.startActivity(Intent(activity, SettingsActivity::class.java)
-                                .apply { putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId) })
-                        } } else null,
-                        onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
-                        onArchive = { showArchiveDestinationPicker() },
-                        isDestinationsFull = isDestinationsFull,
-                        onCameraCapture = { activity.onCameraCaptureClicked() },
-                        isCameraVisible = isCameraVisible,
-                        isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
-                        onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
-                    )
-                }
+                showBrowseResourceOpsMenu(anchor)
             }
         })
         
@@ -597,6 +578,54 @@ class BrowseManagerInitializer(
         viewModel.setOpenNoteCallback { createdPath ->
             viewModel.openTextNoteInEditor(createdPath)
         }
+        viewModel.setOpenDrawingCallback { createdPath ->
+            viewModel.openDrawingInEditor(createdPath)
+        }
+    }
+
+    private fun showBrowseResourceOpsMenu(anchor: android.view.View) {
+        val isScheduleEnabled = isBrowseAutomationSettingsEnabled()
+        lifecycleScope.launch {
+            val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
+                .onFailure { Timber.w(it, "showBrowseResourceOpsMenu: isDestinationsFull failed") }
+                .getOrDefault(false)
+            val settings = settingsRepository.getSettings().first()
+            val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
+                viewModel.state.value.resource?.let { res ->
+                    passthroughProvider?.isAvailable(activity) == true ||
+                        BrowseCameraCaptureManager.hasCameraHandler(activity, res)
+                } ?: false
+            val resourceId = viewModel.state.value.resource?.id
+            resourceOpsMenuManager.showMenu(
+                anchor = anchor,
+                viewModel = viewModel,
+                isScheduleEnabled = isScheduleEnabled,
+                onAutomateSource = if (isScheduleEnabled && resourceId != null) {
+                    { openLegacyBrowseSettings(resourceId) }
+                } else null,
+                onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
+                onArchive = { showArchiveDestinationPicker() },
+                isDestinationsFull = isDestinationsFull,
+                onCameraCapture = { activity.onCameraCaptureClicked() },
+                isCameraVisible = isCameraVisible,
+                allowSeparateWindow = settings.allowSeparateWindow,
+                openBrowseInNewWindow = if (settings.allowSeparateWindow) {
+                    { id -> eventHandler.openBrowseInNewWindow(id) }
+                } else null,
+                isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
+                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
+            )
+        }
+    }
+
+    private fun isBrowseAutomationSettingsEnabled(): Boolean {
+        return BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
+    }
+
+    private fun openLegacyBrowseSettings(resourceId: Long) {
+        activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
+            putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
+        })
     }
 
     private fun setupDragToReorder() {
@@ -697,7 +726,16 @@ class BrowseManagerInitializer(
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
         val selectedPaths = state.selectedFiles.toList()
         if (selectedPaths.isEmpty()) return Toast.makeText(activity, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
-        val sourceFiles = selectedPaths.map { File(it) }
+        // S0266: cloud paths build CloudFileHandle so the display-name (e.g. "MyVideo.mp4") survives into the copy/move operation.
+        val mediaFilesByPath = state.mediaFiles.associateBy { it.path }
+        val sourceFiles: List<File> = selectedPaths.map { path ->
+            val mf = mediaFilesByPath[path]
+            if (path.startsWith("cloud://") && mf != null) {
+                CloudFileHandle(cloudPath = path, displayName = mf.name, size = mf.size)
+            } else {
+                File(path)
+            }
+        }
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
             FileOperationDestinationDialog(
@@ -732,7 +770,7 @@ class BrowseManagerInitializer(
         val actualIndex = maxOf(0, startIndex)
         val file = state.mediaFiles[actualIndex]
         val isDoc = file.type == MediaType.TEXT || file.type == MediaType.PDF || file.type == MediaType.EPUB
-        // S0241: VR stack removed — every flavor now routes to the flat PlayerActivity directly
+        // S0241: VR stack removed - every flavor now routes to the flat PlayerActivity directly
         // via createPanelIntent. The doc branch stays so non-doc media can still pick up the
         // slideshow_mode extra; both branches share the same target activity.
         val intent = if (isDoc) {
@@ -772,7 +810,7 @@ class BrowseManagerInitializer(
 
     /**
      * S0159: Search YouTube Music directly from Browse using the filename (without extension)
-     * as the query — same fallback the player uses when iTunes metadata cache is empty.
+     * as the query - same fallback the player uses when iTunes metadata cache is empty.
      */
     private fun searchYoutubeMusicForFile(file: MediaFile) {
         val query = file.name.substringBeforeLast(".")
@@ -787,7 +825,7 @@ class BrowseManagerInitializer(
 
     /**
      * S0159: Launch Google Lens directly for a local image file from the Browse overflow menu.
-     * Mirrors PlayerShareManager.shareFileToGoogleLens() — uses FileProvider + ACTION_SEND.
+     * Mirrors PlayerShareManager.shareFileToGoogleLens() - uses FileProvider + ACTION_SEND.
      */
     private fun launchGoogleLensForFile(file: MediaFile) {
         try {

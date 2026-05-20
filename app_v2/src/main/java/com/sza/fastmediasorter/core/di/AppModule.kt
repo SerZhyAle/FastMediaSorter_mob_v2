@@ -99,10 +99,10 @@ object AppModule {
     
     // SftpClient and FtpClient are constructor-injected (@Inject + @Singleton on the class).
     // Their explicit @Provides bindings were removed in S0025 since both now require
-    // NetworkReachabilityGate — Hilt resolves them via the constructor.
+    // NetworkReachabilityGate - Hilt resolves them via the constructor.
 
     // GoogleDriveRestClient is constructor-injected (@Inject + @Singleton on the class).
-    // Explicit @Provides removed in S0025 — Hilt resolves it via the constructor.
+    // Explicit @Provides removed in S0025 - Hilt resolves it via the constructor.
     
     @Provides
     @Singleton

@@ -5,7 +5,7 @@ package com.sza.fastmediasorter.domain.identity
  *
  * Per strategic S0200 §3.2: only non-restricted Google scopes are permitted.
  * Restricted scopes (Gmail, Photos, YouTube user-data) require an explicit separate
- * ticket and Google Security Assessment — never add them here without that gate.
+ * ticket and Google Security Assessment - never add them here without that gate.
  *
  * @see <a href="https://developers.google.com/identity/protocols/oauth2/scopes">Google OAuth 2.0 Scopes</a>
  */

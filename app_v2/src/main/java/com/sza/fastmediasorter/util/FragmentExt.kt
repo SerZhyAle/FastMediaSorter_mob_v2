@@ -11,13 +11,13 @@ import timber.log.Timber
  */
 fun Fragment.safeShowDialog(buildDialog: () -> Dialog) {
     if (!isAdded || activity?.isFinishing == true || activity?.isDestroyed == true) {
-        Timber.w("safeShowDialog: skipping — fragment not attached or Activity finishing (${this::class.simpleName})")
+        Timber.w("safeShowDialog: skipping - fragment not attached or Activity finishing (${this::class.simpleName})")
         return
     }
     try {
         buildDialog().show()
     } catch (e: WindowManager.BadTokenException) {
-        Timber.e(e, "safeShowDialog: show failed — bad window token (${this::class.simpleName})")
+        Timber.e(e, "safeShowDialog: show failed - bad window token (${this::class.simpleName})")
     }
 }
 

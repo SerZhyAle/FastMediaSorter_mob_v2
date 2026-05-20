@@ -144,7 +144,7 @@ class PdfTextSelectionManager(
     // ── Text extraction ───────────────────────────────────────────────────────
 
     /**
-     * Exposed for [PdfTtsDelegate] — delegates to the same extraction pipeline
+     * Exposed for [PdfTtsDelegate] - delegates to the same extraction pipeline
      * used by the text-selection overlay.
      */
     internal suspend fun extractPageTextForTts(

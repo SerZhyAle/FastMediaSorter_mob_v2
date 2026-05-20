@@ -12,12 +12,23 @@ import android.widget.Toast
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-@android.annotation.SuppressLint("SetTextI18n")
+@AndroidEntryPoint
 class MediaSettingsFragment : Fragment() {
+
+    /**
+     * S0249 Phase 04: optional VR media section. Provided as `NoOpVrMediaSectionContract` on
+     * phone-only flavors (`isAvailable = false` → section hidden) and as
+     * `VrMediaSectionContractImpl` on vr/noLegal flavors (`isAvailable = true` → section
+     * visible with disabled toggle + advisory until XR runtime is detected).
+     */
+    @Inject lateinit var vrMediaSection: VrMediaSectionContract
 
     private var _binding: FragmentSettingsMediaContainerBinding? = null
     private val binding get() = _binding!!
@@ -27,10 +38,18 @@ class MediaSettingsFragment : Fragment() {
         private const val PREFS_NAME = "media_sections_state"
         private const val KEY_IMAGES_EXPANDED = "section_images_expanded"
         private const val KEY_VIDEO_EXPANDED = "section_video_expanded"
+        private const val KEY_VR_EXPANDED = "section_vr_expanded"
         private const val KEY_AUDIO_EXPANDED = "section_audio_expanded"
         private const val KEY_DOCUMENTS_EXPANDED = "section_documents_expanded"
         private const val KEY_OTHER_EXPANDED = "section_other_expanded"
     }
+
+    private data class ExpandableSection(
+        val header: CollapsibleSectionHeader,
+        val container: View,
+        val prefKey: String,
+        val defaultExpanded: Boolean,
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,29 +63,9 @@ class MediaSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupSectionTitles()
         attachChildFragments()
         setupExpandableSections()
         setupResetSection()
-        setupDefaultPlayerButton()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        _binding?.let {
-            DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultMediaPlayer, requireContext(), R.string.settings_set_default_media_player
-            )
-        }
-    }
-
-    private fun setupDefaultPlayerButton() {
-        DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultMediaPlayer, requireContext(), R.string.settings_set_default_media_player
-        )
-        binding.btnSetDefaultMediaPlayer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
-        }
     }
 
     private fun setupResetSection() {
@@ -85,14 +84,6 @@ class MediaSettingsFragment : Fragment() {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
-    }
-
-    private fun setupSectionTitles() {
-        updateHeader(binding.headerImages, getString(R.string.settings_category_images), true)
-        updateHeader(binding.headerVideo, getString(R.string.settings_category_video), true)
-        updateHeader(binding.headerAudio, getString(R.string.settings_category_audio), true)
-        updateHeader(binding.headerDocuments, getString(R.string.settings_category_documents), true)
-        updateHeader(binding.headerOther, getString(R.string.settings_category_other), true)
     }
 
     private fun attachChildFragments() {
@@ -114,6 +105,19 @@ class MediaSettingsFragment : Fragment() {
             binding.containerVideo.isVisible = false
         }
 
+        if (vrMediaSection.isAvailable) {
+            val vrFragment = vrMediaSection.createFragment()
+            if (vrFragment != null) {
+                transaction.replace(binding.containerVr.id, vrFragment, "media_vr")
+            } else {
+                binding.headerVr.isVisible = false
+                binding.containerVr.isVisible = false
+            }
+        } else {
+            binding.headerVr.isVisible = false
+            binding.containerVr.isVisible = false
+        }
+
         if (BuildConfig.SUPPORT_AUDIO) {
             transaction.replace(binding.containerAudio.id, AudioSettingsFragment(), "media_audio")
         } else {
@@ -133,92 +137,47 @@ class MediaSettingsFragment : Fragment() {
     }
 
     private fun setupExpandableSections() {
-        // Restore saved states or default to collapsed
         val savedStates = getSavedSectionStates()
-        
-        bindSectionToggle(
-            binding.headerImages, 
-            binding.containerImages, 
-            getString(R.string.settings_category_images),
-            KEY_IMAGES_EXPANDED,
-            savedStates[KEY_IMAGES_EXPANDED] ?: false
+        val sections = listOf(
+            ExpandableSection(binding.headerImages, binding.containerImages, KEY_IMAGES_EXPANDED, false),
+            ExpandableSection(binding.headerVideo, binding.containerVideo, KEY_VIDEO_EXPANDED, false),
+            ExpandableSection(binding.headerVr, binding.containerVr, KEY_VR_EXPANDED, true),
+            ExpandableSection(binding.headerAudio, binding.containerAudio, KEY_AUDIO_EXPANDED, false),
+            ExpandableSection(binding.headerDocuments, binding.containerDocuments, KEY_DOCUMENTS_EXPANDED, false),
+            ExpandableSection(binding.headerOther, binding.containerOther, KEY_OTHER_EXPANDED, false),
         )
-        bindSectionToggle(
-            binding.headerVideo, 
-            binding.containerVideo, 
-            getString(R.string.settings_category_video),
-            KEY_VIDEO_EXPANDED,
-            savedStates[KEY_VIDEO_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerAudio, 
-            binding.containerAudio, 
-            getString(R.string.settings_category_audio),
-            KEY_AUDIO_EXPANDED,
-            savedStates[KEY_AUDIO_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerDocuments, 
-            binding.containerDocuments, 
-            getString(R.string.settings_category_documents),
-            KEY_DOCUMENTS_EXPANDED,
-            savedStates[KEY_DOCUMENTS_EXPANDED] ?: false
-        )
-        bindSectionToggle(
-            binding.headerOther, 
-            binding.containerOther, 
-            getString(R.string.settings_category_other),
-            KEY_OTHER_EXPANDED,
-            savedStates[KEY_OTHER_EXPANDED] ?: false
-        )
+
+        sections.forEach { section ->
+            if (!section.header.isVisible) {
+                section.container.isVisible = false
+                return@forEach
+            }
+
+            val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
+            section.header.setExpanded(expanded, notify = false)
+            section.container.isVisible = expanded
+            section.header.setOnExpandedChangeListener { isExpanded ->
+                section.container.isVisible = isExpanded
+                saveSectionState(section.prefKey, isExpanded)
+            }
+        }
     }
 
     fun ensureSectionExpanded(sectionId: String) {
         when (sectionId) {
-            "images" -> expandSection(binding.headerImages, binding.containerImages, getString(R.string.settings_category_images), KEY_IMAGES_EXPANDED)
-            "video" -> expandSection(binding.headerVideo, binding.containerVideo, getString(R.string.settings_category_video), KEY_VIDEO_EXPANDED)
-            "audio" -> expandSection(binding.headerAudio, binding.containerAudio, getString(R.string.settings_category_audio), KEY_AUDIO_EXPANDED)
-            "documents" -> expandSection(binding.headerDocuments, binding.containerDocuments, getString(R.string.settings_category_documents), KEY_DOCUMENTS_EXPANDED)
-            "other" -> expandSection(binding.headerOther, binding.containerOther, getString(R.string.settings_category_other), KEY_OTHER_EXPANDED)
+            "images" -> expandSection(binding.headerImages)
+            "video" -> expandSection(binding.headerVideo)
+            "vr" -> expandSection(binding.headerVr)
+            "audio" -> expandSection(binding.headerAudio)
+            "documents" -> expandSection(binding.headerDocuments)
+            "other" -> expandSection(binding.headerOther)
         }
     }
 
-    private fun expandSection(header: android.widget.TextView, content: View, title: String, prefKey: String) {
-        if (!header.isVisible) {
-            return
+    private fun expandSection(header: CollapsibleSectionHeader) {
+        if (header.isVisible) {
+            header.setExpanded(true)
         }
-
-        if (!content.isVisible) {
-            content.isVisible = true
-            updateHeader(header, title, true)
-            saveSectionState(prefKey, true)
-        }
-    }
-
-    private fun bindSectionToggle(
-        header: android.widget.TextView, 
-        content: View, 
-        title: String,
-        prefKey: String,
-        initiallyExpanded: Boolean
-    ) {
-        if (!header.isVisible) return
-        
-        // Set initial state
-        content.isVisible = initiallyExpanded
-        updateHeader(header, title, initiallyExpanded)
-
-        header.setOnClickListener {
-            val expanded = !content.isVisible
-            content.isVisible = expanded
-            updateHeader(header, title, expanded)
-            saveSectionState(prefKey, expanded)
-        }
-    }
-
-    private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
-        val prefix = if (expanded) "▼" else "▶"
-        header.text = getString(R.string.string_format_two_args, prefix, title)
     }
     
     /**
@@ -231,6 +190,7 @@ class MediaSettingsFragment : Fragment() {
             mapOf(
                 KEY_IMAGES_EXPANDED to prefs.getBoolean(KEY_IMAGES_EXPANDED, false),
                 KEY_VIDEO_EXPANDED to prefs.getBoolean(KEY_VIDEO_EXPANDED, false),
+                KEY_VR_EXPANDED to prefs.getBoolean(KEY_VR_EXPANDED, true),  // S0249: default expanded
                 KEY_AUDIO_EXPANDED to prefs.getBoolean(KEY_AUDIO_EXPANDED, false),
                 KEY_DOCUMENTS_EXPANDED to prefs.getBoolean(KEY_DOCUMENTS_EXPANDED, false),
                 KEY_OTHER_EXPANDED to prefs.getBoolean(KEY_OTHER_EXPANDED, false)

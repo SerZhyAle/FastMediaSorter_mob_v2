@@ -12,7 +12,7 @@ import timber.log.Timber
  * Applies edge-to-edge window insets to BrowseActivity layout.
  * Pushes top bar below status bar and bottom bar above navigation bar.
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 object BrowseEdgeToEdgeHelper {
 

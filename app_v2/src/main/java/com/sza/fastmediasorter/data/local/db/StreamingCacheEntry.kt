@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
  * Persisted record of a remote media file that was downloaded locally because
  * streaming over the source protocol was judged NOT_VIABLE for the current network.
  *
- * The primary key [resourceHash] is a short SHA-256 prefix of the original URI —
+ * The primary key [resourceHash] is a short SHA-256 prefix of the original URI -
  * stable across sessions, safe for use as a filename suffix, and collision-resistant
  * enough for the ~hundreds of files a user will ever keep offloaded.
  *
@@ -24,7 +24,7 @@ import androidx.room.PrimaryKey
     ]
 )
 data class StreamingCacheEntry(
-    /** `sha256(originalUri).take(16)` — stable ID for this offloaded copy. */
+    /** `sha256(originalUri).take(16)` - stable ID for this offloaded copy. */
     @PrimaryKey val resourceHash: String,
 
     /** Absolute path on internal storage OR `content://` URI from MediaStore. */
@@ -41,9 +41,9 @@ data class StreamingCacheEntry(
     /** Epoch ms when the download completed. */
     val downloadedAt: Long,
 
-    /** Epoch ms of the most recent playback — updated on every replay. Drives TTL GC. */
+    /** Epoch ms of the most recent playback - updated on every replay. Drives TTL GC. */
     val lastPlayedAt: Long,
 
-    /** `LOCAL`/`SMB`/`SFTP`/`FTP`/`CLOUD` — matches [com.sza.fastmediasorter.domain.model.Protocol]. */
+    /** `LOCAL`/`SMB`/`SFTP`/`FTP`/`CLOUD` - matches [com.sza.fastmediasorter.domain.model.Protocol]. */
     val sourceProtocol: String
 )

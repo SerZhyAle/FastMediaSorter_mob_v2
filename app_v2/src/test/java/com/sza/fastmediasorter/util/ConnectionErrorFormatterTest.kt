@@ -13,7 +13,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * S0118 — unit tests for [ConnectionErrorFormatter].
+ * S0118 - unit tests for [ConnectionErrorFormatter].
  *
  * Resource string lookups are stubbed so the asserts focus on the shape of the
  * returned [Pair]/[com.sza.fastmediasorter.ui.common.copy.UiMessageSpec] rather

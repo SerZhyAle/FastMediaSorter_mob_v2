@@ -132,14 +132,13 @@ class PlayerViewModel @Inject constructor(
         // Circular navigation: always allow prev/next if files.size > 1
         val hasPrevious: Boolean get() = files.size > 1
         val hasNext: Boolean get() = files.size > 1
-        // True only for IMAGE/GIF slideshows — drives UI hiding, 9-zone gestures, system bars.
+        // True only for IMAGE/GIF slideshows - drives UI hiding, 9-zone gestures, system bars.
         // VIDEO/AUDIO use isSlideShowActive for auto-advance only, not visual slideshow mode.
         val isPhotoSlideshowActive: Boolean get() =
             isSlideShowActive && (currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF)
-        // S0023: aliases used by the VR-flavor exit path. resourceId is derived from the
-        // active resource; isSlideshowEnabled mirrors the existing isSlideShowActive flag —
-        // VrPlayerActivity.exitVrAndStopPlayback uses these names when it rebuilds the
-        // panel intent for the standard PlayerActivity.
+        // S0023: convenience aliases for callers that prefer the flat names.
+        // resourceId is derived from the active resource; isSlideshowEnabled mirrors
+        // isSlideShowActive for symmetry with intent-extra naming used to rebuild panels.
         val resourceId: Long get() = resource?.id ?: 0L
         val isSlideshowEnabled: Boolean get() = isSlideShowActive
     }
@@ -210,7 +209,7 @@ class PlayerViewModel @Inject constructor(
         stereoCoordinator.setAutoDetectedStereoMode(mode, forFilePath)
     fun resetStereoModeForNewFile(filePath: String? = state.value.currentFile?.path) =
         stereoCoordinator.resetStereoModeForNewFile(filePath)
-    fun rememberStereoModeIfEnabled(mode: StereoMode) = stereoCoordinator.rememberStereoModeIfEnabled(mode)
+    fun rememberStereoModeForCurrentFile(mode: StereoMode) = stereoCoordinator.rememberStereoModeForCurrentFile(mode)
 
     // ── S0107: Draw overlay current-frame bitmap ──────────────────────────────
     /** Bitmap currently displayed in the image viewer; set by ImageLoadingManager on load. Null for video/audio. */
@@ -230,7 +229,7 @@ class PlayerViewModel @Inject constructor(
         sendEvent(PlayerEvent.ShowVrInstallCta(mode))
     }
 
-    // ── Adaptive pre-cache & stream-offload — delegated to PlayerPrefetchOffloadCoordinator.
+    // ── Adaptive pre-cache & stream-offload - delegated to PlayerPrefetchOffloadCoordinator.
     // See spec: PLAN/spec_adaptive-playback-strategy.md §5.5-§5.6.
     private val prefetchOffloadCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchOffloadCoordinator(
         scope = viewModelScope,
@@ -325,7 +324,7 @@ class PlayerViewModel @Inject constructor(
         sendEvent = { event -> sendEvent(event) }
     )
 
-    // IMPORTANT: init must run AFTER mediaFilesLoader/navigationCoordinator are initialized —
+    // IMPORTANT: init must run AFTER mediaFilesLoader/navigationCoordinator are initialized -
     // loadSettings()/loadMediaFiles() delegate into mediaFilesLoader. Moving this block above
     // the helper property initializers causes NPE at ViewModel construction (Wave 4.1 regression).
     init {
@@ -368,7 +367,7 @@ class PlayerViewModel @Inject constructor(
     /**
      * Sync ViewModel's currentIndex to match the audio service's auto-advanced position.
      * Called when ExoPlayer playlist advances via MEDIA_ITEM_TRANSITION_REASON_AUTO.
-     * Unlike [nextFile], this does NOT save resume state or trigger any side effects —
+     * Unlike [nextFile], this does NOT save resume state or trigger any side effects -
      * the audio service is already playing the correct track; we only update the index
      * so the UI (title, cover art, next/prev buttons) reflects the current track.
      */
@@ -386,7 +385,7 @@ class PlayerViewModel @Inject constructor(
     /** Clear resume state when user explicitly exits the player. */
     fun clearResumeState() {
         viewModelScope.launch {
-            Timber.d("PlayerViewModel: clearResumeState — user explicitly exited player")
+            Timber.d("PlayerViewModel: clearResumeState - user explicitly exited player")
             clearResumeStateUseCase(windowId)
         }
     }
@@ -593,9 +592,9 @@ class PlayerViewModel @Inject constructor(
     suspend fun getSettings() = settingsRepository.getSettings().first()
 
     /**
-     * S0023: hot StateFlow of app settings for UI consumers that need synchronous reads
-     * (e.g. VrPlayerActivity HUD FPS gate). Eager start so `.value` is non-default after
-     * the first emission of the underlying DataStore flow.
+     * S0023: hot StateFlow of app settings for UI consumers that need synchronous reads.
+     * Eager start so `.value` is non-default after the first emission of the underlying
+     * DataStore flow.
      */
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
@@ -838,5 +837,4 @@ class PlayerViewModel @Inject constructor(
     }
 
 }
-
 

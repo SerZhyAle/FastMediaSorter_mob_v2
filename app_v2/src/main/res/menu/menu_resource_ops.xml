@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <!-- S0096: audio-only — shown/hidden at runtime -->
+    <!-- S0096: audio-only - shown/hidden at runtime -->
     <item
         android:id="@+id/action_black_screen"
         android:title="@string/black_screen_button_title" />
@@ -24,6 +24,9 @@
         android:id="@+id/action_create_text_file"
         android:title="@string/action_create_text_file" />
     <item
+        android:id="@+id/action_create_drawing"
+        android:title="@string/action_create_drawing" />
+    <item
         android:id="@+id/action_automate_resource"
         android:title="@string/menu_automate_source" />
     <item
@@ -32,7 +35,7 @@
     <item
         android:id="@+id/action_camera_capture"
         android:title="@string/cmd_camera_capture" />
-    <!-- S0028: multi-window — hidden by default, shown on VR+setting -->
+    <!-- S0184: multi-window - hidden unless the user setting allows a new window. -->
     <item
         android:id="@+id/action_open_in_separate_window"
         android:title="@string/action_open_in_separate_window" />

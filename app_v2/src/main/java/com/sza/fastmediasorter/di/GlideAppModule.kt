@@ -89,7 +89,7 @@ class GlideAppModule : AppGlideModule() {
         builder.setDefaultRequestOptions(buildDefaultRequestOptions(startupProfile.useRgb565))
 
         Timber.i(
-            "GlideAppModule: startup memory cache configured from coordinator — %dMB",
+            "GlideAppModule: startup memory cache configured from coordinator - %dMB",
             memoryCacheSize / BYTES_PER_MB,
         )
         Timber.i(

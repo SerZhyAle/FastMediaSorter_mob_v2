@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference
  * Uses MediaMetadataRetriever with NetworkMediaDataSource for direct streaming.
  * Caches extracted thumbnails locally for faster subsequent loads.
  *
- * Fix 1: before marking a file as failed, checks ThumbnailCache — if a concurrent thread
+ * Fix 1: before marking a file as failed, checks ThumbnailCache - if a concurrent thread
  *         already saved a valid thumbnail, the failed-cache entry is suppressed.
  * Fix 2: per-path deduplication via ConcurrentHashMap<path, CompletableFuture<Boolean>>.
  *         Only one extraction runs at a time per file; secondary Glide threads wait for
@@ -75,7 +75,7 @@ class NetworkVideoFrameDecoder(
         // Executor for timeout-controlled operations
         private val extractionExecutor = Executors.newCachedThreadPool()
 
-        // Fix 2: per-path deduplication — only one extraction per file path runs at a time.
+        // Fix 2: per-path deduplication - only one extraction per file path runs at a time.
         // Future<Boolean>: true = success (ThumbnailCache populated), false = failed/timeout.
         private val inFlightExtractions = ConcurrentHashMap<String, CompletableFuture<Boolean>>()
     }
@@ -100,10 +100,10 @@ class NetworkVideoFrameDecoder(
     ): Resource<Drawable>? {
         val fileName = source.path.substringAfterLast('/')
 
-        // 1. Always check ThumbnailCache first — serves even if file is in the failed cache
+        // 1. Always check ThumbnailCache first - serves even if file is in the failed cache
         loadFromThumbnailCache(source.path, fileName)?.let { return it }
 
-        // Guard: no LAN permission — skip extraction without caching failure
+        // Guard: no LAN permission - skip extraction without caching failure
         if (!PermissionHelper.hasLocalNetworkPermission(FastMediaSorterApp.appContext)) {
             return null
         }
@@ -119,7 +119,7 @@ class NetworkVideoFrameDecoder(
                     Timber.v("[scope=thumbnail S0066 protocol=${source.path.substringBefore("://")} resource=$resourceKey] Skipping: transient failure during active playback: $fileName")
                     return null
                 } else {
-                    // Playback stopped (or non-network) — clear transient failure and allow retry
+                    // Playback stopped (or non-network) - clear transient failure and allow retry
                     NetworkFileDataFetcher.clearTransientFailure(source.path)
                     Timber.d("[scope=thumbnail S0060] Cleared transient failure (playback ended): $fileName")
                 }
@@ -129,12 +129,12 @@ class NetworkVideoFrameDecoder(
             }
         }
 
-        // 3. Fix 2: Deduplicate — only one extraction per path at a time
+        // 3. Fix 2: Deduplicate - only one extraction per path at a time
         val ourFuture = CompletableFuture<Boolean>()
         val existingFuture = inFlightExtractions.putIfAbsent(source.path, ourFuture)
 
         if (existingFuture != null) {
-            // Secondary thread: another extraction is already in flight — wait for its result
+            // Secondary thread: another extraction is already in flight - wait for its result
             Timber.d("Dedup: waiting for in-flight extraction of: $fileName")
             val succeeded = try {
                 // Wait slightly longer than the primary's own extraction timeout
@@ -143,7 +143,7 @@ class NetworkVideoFrameDecoder(
                 Timber.d("Dedup: wait timed out/interrupted for: $fileName")
                 false
             }
-            // Primary saved to ThumbnailCache before completing the future — serve from there
+            // Primary saved to ThumbnailCache before completing the future - serve from there
             return if (succeeded) loadFromThumbnailCache(source.path, fileName) else null
         }
 
@@ -172,14 +172,14 @@ class NetworkVideoFrameDecoder(
                     Timber.w(closeError, "Failed to close NetworkMediaDataSource")
                 }
             }
-            // Read stale-share flag AFTER close() — set by NetworkMediaDataSource.readAt(). S0060.
+            // Read stale-share flag AFTER close() - set by NetworkMediaDataSource.readAt(). S0060.
             val isStaleShare = mediaDataSource.encounteredStaleShare
 
             if (outcome.bitmap != null) {
                 val elapsed = System.currentTimeMillis() - startTime
                 Timber.v("Successfully extracted video thumbnail in ${elapsed}ms: $fileName")
 
-                // ADR-4: skip caching dark frames — next request will re-extract with retry logic.
+                // ADR-4: skip caching dark frames - next request will re-extract with retry logic.
                 if (!VideoFrameDarknessEvaluator.isDark(outcome.bitmap)) {
                     // Save to cache BEFORE completing the future so secondary waiters can read immediately
                     runBlocking {
@@ -194,7 +194,7 @@ class NetworkVideoFrameDecoder(
                         }
                     }
                 } else {
-                    Timber.d("[S0178] all candidates dark — not caching, returning best-effort frame: $fileName")
+                    Timber.d("[S0178] all candidates dark - not caching, returning best-effort frame: $fileName")
                 }
 
                 extractionSucceeded = true
@@ -224,7 +224,7 @@ class NetworkVideoFrameDecoder(
                     if (cacheCheck == null || !cacheCheck.exists()) {
                         NetworkFileDataFetcher.markVideoAsFailed(source.path)
                     } else {
-                        Timber.d("Not marking as failed — ThumbnailCache already has entry: $fileName")
+                        Timber.d("Not marking as failed - ThumbnailCache already has entry: $fileName")
                     }
                 }
                 null
@@ -254,9 +254,9 @@ class NetworkVideoFrameDecoder(
         return try {
             val bitmap = BitmapFactory.decodeFile(cached.absolutePath)
             if (bitmap != null) {
-                // ADR-4: lazy eviction — discard already-cached dark thumbnails on first access.
+                // ADR-4: lazy eviction - discard already-cached dark thumbnails on first access.
                 if (VideoFrameDarknessEvaluator.isDark(bitmap)) {
-                    Timber.d("[S0178] cached thumbnail is dark — evicting and re-extracting: $fileName")
+                    Timber.d("[S0178] cached thumbnail is dark - evicting and re-extracting: $fileName")
                     runBlocking { thumbnailCacheRepository.deleteThumbnail(path) }
                     bitmap.recycle()
                     return null

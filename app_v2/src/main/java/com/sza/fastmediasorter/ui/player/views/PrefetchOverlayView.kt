@@ -129,7 +129,7 @@ class PrefetchOverlayView @JvmOverloads constructor(
         isVisible = true
         invalidate()
         scheduleDismiss(LOCAL_COPY_DISMISS_MS)
-        Timber.d("PrefetchOverlayView: local copy mode — will dismiss in ${LOCAL_COPY_DISMISS_MS}ms")
+        Timber.d("PrefetchOverlayView: local copy mode - will dismiss in ${LOCAL_COPY_DISMISS_MS}ms")
     }
 
     /** Called when ExoPlayer reaches STATE_READY + isPlaying. Starts auto-dismiss timer. */
@@ -139,7 +139,7 @@ class PrefetchOverlayView @JvmOverloads constructor(
         }
     }
 
-    /** User tapped the overlay — suppress for the rest of this session. */
+    /** User tapped the overlay - suppress for the rest of this session. */
     fun setUserDismissed() {
         isUserDismissed = true
         dismissRunnable?.let { handler.removeCallbacks(it) }

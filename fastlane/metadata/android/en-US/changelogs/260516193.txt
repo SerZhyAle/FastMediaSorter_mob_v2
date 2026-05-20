@@ -1,5 +1,5 @@
 What's New:
-• Draw editor v2 — oval and text tools, 16-color palette, in-place save, Google Keep export
+• Draw editor v2 - oval and text tools, 16-color palette, in-place save, Google Keep export
 • File size shown in media item info rows in browse list
 
 What's Fixed:

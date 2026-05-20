@@ -25,7 +25,7 @@ internal class VideoPlayerLifecycleHelper(
         manager.pendingEffectsRunnable = null
 
         Timber.d(
-            "VideoPlayerManager: releasePlayer() — exoPlayer=${if (manager.exoPlayer != null) "NOT_NULL" else "NULL"}, " +
+            "VideoPlayerManager: releasePlayer() - exoPlayer=${if (manager.exoPlayer != null) "NOT_NULL" else "NULL"}, " +
                 "resourceKey=${manager.activeResourceKey}"
         )
 

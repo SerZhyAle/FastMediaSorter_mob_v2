@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 /**
  * Gamepad event → [GamepadAction] router used by [PlayerActivity],
- * [VrPlayerActivity], [MainActivity] and [BrowseActivity].
+ * [MainActivity] and [BrowseActivity].
  *
  * Motivation: architecture rules forbid putting input logic directly into
  * Activities. This class centralises the raw Android gamepad mapping so each
@@ -39,14 +39,14 @@ class GamepadInputManager @Inject constructor(
     @Volatile private var lastTriggerSeekMs = -(TRIGGER_SEEK_INTERVAL_MS + 1)
 
     /**
-     * Host surface hint — lets the manager return the right sub-tree for ambiguous buttons
+     * Host surface hint - lets the manager return the right sub-tree for ambiguous buttons
      * (A = PlayPause in player, A = Select in browser).
      */
     enum class Surface { PLAYER, BROWSER }
 
     fun handleKeyEvent(event: KeyEvent, surface: Surface): GamepadAction? {
         if (!event.isFromGamepad()) return null
-        // Consume on ACTION_DOWN — matches platform guidance for gamepad buttons.
+        // Consume on ACTION_DOWN - matches platform guidance for gamepad buttons.
         if (event.action != KeyEvent.ACTION_DOWN) return null
         return when (surface) {
             Surface.PLAYER -> {
@@ -181,7 +181,7 @@ class GamepadInputManager @Inject constructor(
         /** Minimum analog seek magnitude when stick is just past the deadzone. */
         const val MIN_ANALOG_SEEK_MS = 250L
 
-        /** Axes iterated in [handleMotionEvent]. Private list — literals acceptable here. */
+        /** Axes iterated in [handleMotionEvent]. Private list - literals acceptable here. */
         private val TRACKED_AXES = intArrayOf(
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y,
             MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ,

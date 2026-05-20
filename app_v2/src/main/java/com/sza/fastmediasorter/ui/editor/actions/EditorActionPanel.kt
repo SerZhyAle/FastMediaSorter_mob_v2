@@ -4,7 +4,7 @@ import android.widget.ImageButton
 
 /**
  * S0189 (Phase 09): the 5-action editor panel contract shared by every in-app editor
- * (text notes — S0189, drawings — S0191, …).
+ * (text notes - S0189, drawings - S0191, …).
  *
  * Concrete bindings live in [EditorActionPanelBinder]; consumers receive an instance via
  * [EditorActionPanelBinder.bind] and call [onEnterEditMode] / [onExitEditMode] around the

@@ -17,7 +17,7 @@ object KnownAuthResources {
             loginUrl = "https://www.instagram.com/accounts/login/",
             previewOnlyMeansLogin = true,
             // S0197: public Instagram post pages embed the authoritative media URL in
-            // `<script type="application/json" data-sjs>` payloads — the same `image_versions2`
+            // `<script type="application/json" data-sjs>` payloads - the same `image_versions2`
             // schema used by Threads. Enables the embedded-JSON harvester on this host.
             supportsEmbeddedJson = true,
         ),
@@ -26,7 +26,7 @@ object KnownAuthResources {
             host = "threads.net",
             loginUrl = "https://www.threads.net/login",
             // Threads CDN (instagram.fmla*.fna.fbcdn.net/v/t51.82787-15/) delivers full-res
-            // images even without login — previewOnlyMeansLogin caused SocialPreviewOnly on
+            // images even without login - previewOnlyMeansLogin caused SocialPreviewOnly on
             // every photo/carousel post (confirmed build .119, S0171 diag log).
             supportsEmbeddedJson = true,
         ),
@@ -34,7 +34,7 @@ object KnownAuthResources {
             displayName = "Threads",
             host = "threads.com",
             loginUrl = "https://www.threads.com/login",
-            // Same as threads.net — CDN is publicly accessible, login not required for media.
+            // Same as threads.net - CDN is publicly accessible, login not required for media.
             supportsEmbeddedJson = true,
         ),
         KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
@@ -49,7 +49,7 @@ object KnownAuthResources {
             displayName = "Facebook",
             host = "facebook.com",
             loginUrl = "https://www.facebook.com/login",
-            // Facebook requires cookies for most public videos since 2023 —
+            // Facebook requires cookies for most public videos since 2023 -
             // treat SocialPreviewOnly as an auth signal to prompt WebView login.
             previewOnlyMeansLogin = true,
         ),
@@ -58,7 +58,7 @@ object KnownAuthResources {
             host = "youtube.com",
             loginUrl = "https://accounts.google.com/ServiceLogin?service=youtube",
             // S0187: youtube.com and music.youtube.com covered via subdomain matching.
-            // YouTube videos are publicly accessible — SocialPreviewOnly signals
+            // YouTube videos are publicly accessible - SocialPreviewOnly signals
             // age-restriction or private content, not a mandatory login wall.
         ),
     )

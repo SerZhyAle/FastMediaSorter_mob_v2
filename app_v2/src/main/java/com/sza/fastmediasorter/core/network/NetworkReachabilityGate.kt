@@ -41,7 +41,7 @@ class NetworkReachabilityGate @Inject constructor(
         requireAnyNetwork(resourceLabel)
         if (!analyzer.hasWifi()) {
             Timber.w("NetworkReachabilityGate: no-wifi for $resourceLabel")
-            // WifiRequiredException signals that the Wi-Fi gate fired before any socket attempt —
+            // WifiRequiredException signals that the Wi-Fi gate fired before any socket attempt -
             // UIs should explain the Wi-Fi requirement, not a generic connection outage.
             throw WifiRequiredException()
         }

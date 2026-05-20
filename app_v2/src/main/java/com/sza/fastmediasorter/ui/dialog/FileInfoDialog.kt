@@ -207,7 +207,7 @@ class FileInfoDialog(
     }
 
     private fun displayAudioInfo() {
-        // Duration — always visible: show real value or placeholder while async loads
+        // Duration - always visible: show real value or placeholder while async loads
         val durationMs = mediaFile.duration ?: 0L
         if (durationMs > 0) {
             binding.tvAudioDuration.text = context.getString(
@@ -225,7 +225,7 @@ class FileInfoDialog(
     }
 
     private fun displayVideoInfo() {
-        // Duration — show only if duration is actually known (> 0); async will fill it in for network files
+        // Duration - show only if duration is actually known (> 0); async will fill it in for network files
         if (mediaFile.duration != null && mediaFile.duration > 0) {
             binding.tvVideoDuration.text = context.getString(
                 R.string.video_duration_label,
@@ -694,6 +694,6 @@ class FileInfoDialog(
         }
     }
 
-    /** Euclid GCD — used to simplify aspect ratio (e.g. 1920x1080 → 16:9) */
+    /** Euclid GCD - used to simplify aspect ratio (e.g. 1920x1080 → 16:9) */
     private fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
 }

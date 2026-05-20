@@ -68,10 +68,8 @@ class IntegrationTestDialog : DialogFragment() {
             binding.chipThreeDVr
         )
 
-        // 3DVR sweep is only meaningful on the VR flavor — keep the chip hidden elsewhere
-        // so users don't get confused by a button that always reports an empty manifest.
-        binding.chipThreeDVr.visibility =
-            if (BuildConfig.SUPPORT_VR_PLAYER) View.VISIBLE else View.GONE
+        // S0241: 3DVR sweep removed - no VR flavor left to drive it.
+        binding.chipThreeDVr.visibility = View.GONE
         
         // Setup chip click listeners
         binding.chipAll.setOnClickListener { runTestGroup(TestGroup.ALL) }

@@ -226,6 +226,7 @@ class DropboxClient @Inject constructor(
      * Replaces the legacy Auth.startOAuth2Authentication() to avoid Dropbox security alerts.
      */
     fun startPkceAuthentication(activity: android.app.Activity, appKey: String) {
+        Timber.d("S0235: startPkceAuthentication scopes=$REQUIRED_PKCE_SCOPES appKey=$appKey")
         Auth.startOAuth2PKCE(
             activity,
             appKey,

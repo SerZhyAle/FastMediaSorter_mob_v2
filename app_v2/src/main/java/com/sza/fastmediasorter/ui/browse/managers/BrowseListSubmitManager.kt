@@ -17,7 +17,7 @@ import timber.log.Timber
  * - Scroll restoration (lastViewedFile / lastScrollPosition)
  * - Heap protection (Glide memory cache trimming)
  *
- * Extracted from BrowseActivity (Wave 1.5 decomposition — IV.1).
+ * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
  */
 class BrowseListSubmitManager(
     private val activity: Activity,
@@ -57,7 +57,7 @@ class BrowseListSubmitManager(
         val usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
         val heapPct = (usedMem * 100L / maxMem).toInt()
         if (heapPct > 85) {
-            Timber.w("HEAP_MONITOR: ${heapPct}% used — clearing Glide memory cache")
+            Timber.w("HEAP_MONITOR: ${heapPct}% used - clearing Glide memory cache")
             com.bumptech.glide.Glide.get(activity).clearMemory()
         }
     }

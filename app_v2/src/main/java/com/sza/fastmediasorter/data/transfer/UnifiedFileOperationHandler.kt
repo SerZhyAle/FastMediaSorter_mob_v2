@@ -430,7 +430,7 @@ class UnifiedFileOperationHandler @Inject constructor(
      *
      * @param dirPath Protocol-specific path of the directory.
      * @param progressCallback Optional callback (deletedCount, total, currentName).
-     * @return Result<Int> — total number of entries deleted.
+     * @return Result<Int> - total number of entries deleted.
      */
     suspend fun executeDeleteDirectory(
         dirPath: String,
@@ -449,7 +449,7 @@ class UnifiedFileOperationHandler @Inject constructor(
     /**
      * Rename a directory in place (same parent). [newName] must not contain path separators.
      *
-     * @return Result<String> — new full path on success.
+     * @return Result<String> - new full path on success.
      */
     suspend fun executeRenameDirectory(
         oldPath: String,
@@ -471,7 +471,7 @@ class UnifiedFileOperationHandler @Inject constructor(
      * Copy a directory tree to [destParentPath]/dirName.
      * Returns [Result.failure] when source and destination protocols differ.
      *
-     * @return Result<Int> — total files copied.
+     * @return Result<Int> - total files copied.
      */
     suspend fun executeCopyDirectory(
         sourcePath: String,
@@ -505,7 +505,7 @@ class UnifiedFileOperationHandler @Inject constructor(
      * Move a directory tree (copy + delete source) to [destParentPath]/dirName.
      * Returns [Result.failure] when source and destination protocols differ.
      *
-     * @return Result<Int> — total files moved.
+     * @return Result<Int> - total files moved.
      */
     suspend fun executeMoveDirectory(
         sourcePath: String,

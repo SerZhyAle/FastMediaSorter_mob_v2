@@ -1,4 +1,4 @@
-# FastMediaSorter v2 — Complete Feature List
+# FastMediaSorter v2 - Complete Feature List
 
 *Last updated: 2026-05-11*
 
@@ -31,7 +31,7 @@ This document is the canonical inventory of all user-facing features implemented
 - [21. Wear OS Companion App](#21-wear-os-companion-app)
 - [22. Background & System Services](#22-background--system-services)
 - [23. Scheduled File Operations](#23-scheduled-file-operations)
-- [24. Apps FMS Can Replace — Competitor Comparison](#24-apps-fms-can-replace--competitor-comparison)
+- [24. Apps FMS Can Replace - Competitor Comparison](#24-apps-fms-can-replace--competitor-comparison)
 
 ---
 
@@ -62,7 +62,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Multi-select**: Select multiple files to batch copy, move, delete, or share.
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into the file list, or uncheck to flatten the view (recursive scan).
 - **Subfolder operations**: Select, copy, move, rename, delete, and create subfolders directly in Browse for local, network, and cloud resources.
-- **Create Folder button** in Browse toolbar — visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
+- **Create Folder button** in Browse toolbar - visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
 - **Show hidden/all files**: Toggle visibility of system-hidden files, or bypass media filters to view all binary files and archives.
 - **Intelligent thumbnail loading**: Previews for photos and video frames; can be disabled per resource for large network directories.
 - **Fast placeholder for unsupported network video**: Containers that cannot be decoded over a network stream show an icon immediately instead of waiting for a timeout.
@@ -79,6 +79,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **TV remote key remapping**: Reassign color buttons and Channel Up/Down in Settings.
 - **DPAD hold-to-scroll acceleration**: Holding DPAD Up/Down switches to page-jump for fast navigation.
 - **Extended file-info dialog**: Shows full audio metadata for remote files by streaming only the first ~64 KB.
+- **Multi-window mode**: Open Browse for a selected resource - or the viewer/player for a selected file - in an independent parallel window. Activates wherever the platform reports multi-window capability: ChromeOS / Chromebook (Googlebook), Samsung DeX, Android XR Home Space panels, and VR Quest 3+ panels. Enabled by default in those environments; on phones and tablets the setting stays off by default but can be turned on in Settings.
 
 ## 3. File Operations
 
@@ -120,6 +121,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Send to Google Lens**: Quickly bridge any photo to the external Google Lens app.
 - **Crop & Compressed copy**: Save cropped fragments or 70% compressed JPEG copies natively via the overflow menu.
 - **Draw annotations**: Brush, rectangle, oval, eraser, and text tools with a 16-color custom palette and adjustable brush size, text size, and opacity. Save back to the original file or to a new file, undo the last or all changes, and send the merged drawing to Google Keep.
+- **Create new drawing from Browse**: Start a blank `.jpg` canvas directly from the Browse toolbar in local, SMB, SFTP, FTP, or cloud folders. The editor opens immediately with Save, Save & Close, Save & Send, Share, and Cancel actions; remote drawings stay staged locally until you commit them.
 - **Immersive Draw and Crop**: System bars hide automatically during editing for a full-screen workspace.
 
 ## 6. GIF Viewer
@@ -145,7 +147,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Black Screen mode**: Collapses the screen to solid black while playback continues uninterrupted.
 - **Network DVD VOB routing fix**: Correctly routes `.vob` files and handles stream errors clearly.
 - **In-player rotation toggle**: Lock or unlock screen rotation mid-session without leaving the player.
-- **Big Buttons Mode**: Scales player controls and the top toolbar to full screen width with 2× height — designed for car head units and one-handed use while driving.
+- **Big Buttons Mode**: Scales player controls and the top toolbar to full screen width with 2× height - designed for car head units and one-handed use while driving.
 
 ## 8. VR Edition
 
@@ -157,7 +159,6 @@ This document is the canonical inventory of all user-facing features implemented
 - **VR Immersive Controls & HUD**: Full operation using controllers, keyboards, or mice. Features a head-locked HUD with progress, buffer, and control indicators.
 - **Cinema mode**: Displays standard 2D content on a virtual cinema screen within the immersive session.
 - **VR hand tracking**: Switch to OpenXR hand-tracking input automatically when controllers are set aside (aim ray, pinch to click).
-- **Multi-Window Mode**: Tear off Browse or Player into separate independent windows (Quest 3+ / DeX).
 - **Passthrough Snapshot**: Capture a JPEG from front passthrough cameras (Quest 3).
 
 ## 9. Audio Player
@@ -202,7 +203,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Editing**: In-place text editing with auto-save and undo history for local and remote files.
 - **Create new text note from Browse**: tap the "New Note" button in the Browse toolbar to create a `.txt` file in the current folder (local, SMB, SFTP, FTP, or cloud) and open it immediately in the editor. Network notes are staged locally in Downloads/FastMediaSorter/notes/ until saved.
 - **Save-with-rename dialog**: on Save / Save & Close / Save & Send the editor shows a dialog to confirm or rename the file; filename collisions are resolved automatically with a seconds suffix.
-- **5-button action panel**: Save, Save & Close, Save & Send, Send to Keep, Cancel — with a dirty-state indicator that tints the panel when unsaved edits are present.
+- **5-button action panel**: Save, Save & Close, Save & Send, Send to Keep, Cancel - with a dirty-state indicator that tints the panel when unsaved edits are present.
 - **Auto-fit font**: editor font starts at the maximum configured size and shrinks automatically to fit the viewport as content grows; a swipe gesture locks the manual size.
 - **Inline search panel**: Tap-to-search works in both the internal file browser and standalone "Open with" mode.
 
@@ -216,7 +217,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 15. Network Sources
 
-- **SMB share picker**: Discover shares or enter share names manually.
+- **SMB share picker**: After host scan, pick a discovered SMB share with one tap and continue filling the resource; if nothing is found, the flow shows an explicit cancel path and manual entry remains available.
 - **SMB / FTP / SFTP**: Native protocols for browsing, managing, and streaming remote collections. SFTP directory reads are optimized into a single round-trip.
 - **Network auto-discovery**: Scans the local subnet (ports 445, 21, 22) to discover NAS endpoints.
 - **Built-in Speed test**: Measures read/write speeds to recommend the optimal thread count.
@@ -291,7 +292,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Remote support**: Full support for Local, SMB, SFTP, FTP, and Cloud targets. Validates reachability before running.
 - **Logging**: Per-file execution log with success/error status and UI error badges.
 
-## 24. Apps FMS Can Replace — Competitor Comparison
+## 24. Apps FMS Can Replace - Competitor Comparison
 
 FastMediaSorter consolidates functionality that typically requires multiple separate apps into a single tool:
 
@@ -321,4 +322,3 @@ Reads documents directly from network or cloud storage, integrating reading them
 - **Android TV Media Centers (Kodi, Plex)**: Provides complete file management, media playback, and slideshows controllable entirely via remote/keyboard without a backend server.
 
 **Bottom line:** FMS provides a consistent, unified experience with deep network and cloud integration that eliminates constant app-switching for users who manage media across local, NAS, and cloud storage.
-

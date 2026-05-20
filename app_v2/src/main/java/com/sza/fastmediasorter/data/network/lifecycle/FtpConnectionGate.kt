@@ -11,11 +11,11 @@ import javax.inject.Singleton
  *
  * **First iteration scope:** [closeFor] (delegates to `cleanupIdleFtpConnections()`)
  * and [lastRecreateMs] (delegates to [FtpRecreateTracker]).
- * [acquire] / [release] / [withRetry] throw [UnsupportedOperationException] — FTP consumers
+ * [acquire] / [release] / [withRetry] throw [UnsupportedOperationException] - FTP consumers
  * continue calling `FtpClient` / `FtpExoPlayerPool` directly.
  *
  * **Known limitation:** [FtpExoPlayerPool] has no per-consumer (UI vs WORKER) tagging today.
- * `cleanupIdleFtpConnections()` only closes idle connections — active worker FTP transfers
+ * `cleanupIdleFtpConnections()` only closes idle connections - active worker FTP transfers
  * are not interrupted by [closeFor], which is the desired (worker-safe) behaviour.
  */
 @Singleton
@@ -35,7 +35,7 @@ class FtpConnectionGate @Inject constructor(
     }
 
     override fun release(connection: FTPClient, success: Boolean) {
-        // Never invoked while acquire throws — kept empty for forward compatibility.
+        // Never invoked while acquire throws - kept empty for forward compatibility.
     }
 
     override suspend fun <R> withRetry(

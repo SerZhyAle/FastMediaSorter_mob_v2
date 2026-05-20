@@ -191,7 +191,6 @@ class MainViewModel @Inject constructor(
                 // Now configured only when opening specific resource in PlayerViewModel/BrowseViewModel.
                 // This prevents unnecessary FTP/SFTP configuration when only using SMB.
                 
-                // Apply current filters and sorting
                 val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
                 Pair(filteredResources, settings.isResourceGridMode)
             }
@@ -224,13 +223,10 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             try {
-                // Convert activeResourceTab to filterByType if no explicit filter set
                 val effectiveFilterByType = filterManager.getEffectiveTypeFilter(
                     activeTab = state.value.activeResourceTab,
                     explicitFilter = state.value.filterByType
                 )
-                
-                // Use DB-level filtering and sorting for better performance
                 val resources = getResourcesUseCase.getFiltered(
                     filterByType = effectiveFilterByType,
                     filterByMediaType = state.value.filterByMediaType,
@@ -240,7 +236,6 @@ class MainViewModel @Inject constructor(
                 
                 updateState { it.copy(resources = resources) }
 
-                // Update app shortcuts with recent resources
                 appShortcutsManager.updateRecentResourceShortcuts()
             } catch (e: Exception) {
                 Timber.e(e, "Error loading resources")
@@ -256,7 +251,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun openBrowse(resourceOverride: MediaResource? = null) {
-        // Prevent multiple simultaneous navigation attempts
         if (state.value.isNavigating) {
             Timber.d("Navigation already in progress, ignoring click")
             return
@@ -274,7 +268,6 @@ class MainViewModel @Inject constructor(
             }
             
             try {
-                // Set navigation state with status message
                 updateState { 
                     it.copy(
                         isNavigating = true,
@@ -282,11 +275,9 @@ class MainViewModel @Inject constructor(
                     )
                 }
                 
-                // User explicitly selected a resource - use it
                 saveLastUsedResourceId(resource.id)
                 validateAndOpenResource(resource, slideshowMode = false)
             } finally {
-                // Clear navigation state
                 updateState { 
                     it.copy(
                         isNavigating = false,
@@ -298,7 +289,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun startPlayer() {
-        // Prevent multiple simultaneous navigation attempts
         if (state.value.isNavigating) {
             Timber.d("Navigation already in progress, ignoring click")
             return
@@ -308,10 +298,8 @@ class MainViewModel @Inject constructor(
             try {
                 val resource = state.value.selectedResource
                 val resourceToOpen = if (resource != null && resource.id != 0L) {
-                    // User explicitly selected a resource - use it
                     resource
                 } else {
-                    // No selection - try last used resource or first available
                     val lastUsedId = settingsRepository.getLastUsedResourceId()
                     val targetResource = if (lastUsedId != -1L) {
                         state.value.resources.firstOrNull { it.id == lastUsedId }
@@ -327,7 +315,6 @@ class MainViewModel @Inject constructor(
                     return@launch
                 }
                 
-                // Set navigation state with status message
                 updateState { 
                     it.copy(
                         isNavigating = true,
@@ -338,7 +325,6 @@ class MainViewModel @Inject constructor(
                 saveLastUsedResourceId(resourceToOpen.id)
                 validateAndOpenResource(resourceToOpen, slideshowMode = true)
             } finally {
-                // Clear navigation state
                 updateState { 
                     it.copy(
                         isNavigating = false,
@@ -403,7 +389,6 @@ class MainViewModel @Inject constructor(
     private suspend fun saveLastUsedResourceId(resourceId: Long) {
         try {
             settingsRepository.saveLastUsedResourceId(resourceId)
-            // Saved last used resource ID
         } catch (e: Exception) {
             Timber.e(e, "Failed to save last used resource ID")
         }
@@ -437,9 +422,7 @@ class MainViewModel @Inject constructor(
         }
     }
     
-    /**
-     * Called after password verification to proceed with navigation
-     */
+    /** Called after password verification to proceed with navigation. */
     fun proceedAfterPasswordCheck(resourceId: Long, slideshowMode: Boolean) {
         if (slideshowMode) {
             sendEvent(MainEvent.NavigateToPlayerSlideshow(resourceId))
@@ -665,7 +648,7 @@ class MainViewModel @Inject constructor(
      */
     fun scanAllResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            // Check if aggregate virtual resources exist — show warning if so
+            // Check if aggregate virtual resources exist - show warning if so
             val resources = getResourcesUseCase().first()
             if (scanCoordinator.hasAggregateVirtualResources(resources)) {
                 sendEvent(MainEvent.ConfirmRescanWithVirtualResources)

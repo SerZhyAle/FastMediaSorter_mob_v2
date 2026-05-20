@@ -3,15 +3,12 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.android.legacy-kapt")
     id("com.google.dagger.hilt.android")
     id("androidx.navigation.safeargs.kotlin")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// android.newDsl=false is intentionally set in gradle.properties (kapt compat).
-// Remove once kapt → KSP migration is complete.
 android {
     val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
@@ -40,8 +37,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260518013
-        versionName = "2.60.5180.136"
+        versionCode = 260520124
+        versionName = "2.60.5201.241"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -83,9 +80,10 @@ android {
     // Product Flavors: Different app versions for different use cases.
     //
     // S0232 applicationId policy: cloud-enabled flavors that are NOT published to a store
-    // (noLegal, vr, vrUnlicensed) share applicationId = com.sza.fastmediasorter with
-    // `standard`. They are alternate builds of the same product, not separately distributed
-    // apps. A single set of OAuth / MSAL / Dropbox registrations covers all of them.
+    // (noLegal, vr) share applicationId = com.sza.fastmediasorter with `standard`. They
+    // are alternate builds of the same product, not separately distributed apps. A single
+    // set of OAuth / MSAL / Dropbox registrations covers all of them. (S0250: vrUnlicensed
+    // archived; noLegal now owns the sideload-VR distribution channel.)
     // Store-published flavors (photos, legacy) keep their applicationIdSuffix because the
     // Store binds the listing identity to it. lite has no cloud surface and is unaffected.
     // Any new signing keystore additionally requires:
@@ -147,9 +145,10 @@ android {
         // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
         // S0156 ADR-8: single APK covers both Quest (arm64 + OpenXR) and phones (all ABIs).
         // ndk.abiFilters = all 4 ABIs → APK installs on any device.
-        // cmake.abiFilters = arm64-v8a only → OpenXR native bridge compiles for Quest slice only;
-        //   non-arm64 slices simply omit openxr_native.so — VrPlayerActivity must graceful-fallback
-        //   to PlayerActivity when System.loadLibrary("openxr_native") throws UnsatisfiedLinkError.
+        // cmake.abiFilters = arm64-v8a only → diagnostic XR native runtime compiles for Quest
+        //   slice only; non-arm64 slices simply omit libfms_diagnostic_xr.so — VR entry points
+        //   must graceful-fallback to PlayerActivity when System.loadLibrary("fms_diagnostic_xr")
+        //   throws UnsatisfiedLinkError.
         create("noLegal") {
             dimension = "version"
             // S0232: no applicationIdSuffix — noLegal shares com.sza.fastmediasorter with
@@ -165,26 +164,31 @@ android {
             }
             externalNativeBuild {
                 cmake {
-                    // Same JNI bridge as vr/vrUnlicensed — OpenXR loader AAR ships arm64-v8a only.
-                    targets += listOf("openxr_native")
+                    // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) — same
+                    // JNI bridge as vr flavor. OpenXR loader AAR ships arm64-v8a only.
+                    targets += listOf("fms_diagnostic_xr")
                     // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
-                    // openxr_native for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
+                    // fms_diagnostic_xr for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
                     abiFilters += listOf("arm64-v8a")
                     cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
                     arguments += listOf(
                         "-DANDROID_STL=c++_shared",
                         "-DANDROID_PLATFORM=android-26",
-                        "-DENABLE_OPENXR=ON",
-                        // Revision 4: invalidates stale .tmp cmake cache from vr/vrUnlicensed runs.
+                        // S0249 Phase 02: gates the fms_diagnostic_xr SHARED target in
+                        // src/vr/cpp/CMakeLists.txt. Without this flag CMake emits no targets
+                        // and AGP fails with "Unexpected native build target …".
+                        "-DFMS_BUILD_XR_RUNTIME=ON",
+                        // Revision 4: invalidates stale .tmp cmake cache from prior vr runs.
                         "-DFMS_BUILD_REVISION=4"
                     )
                 }
             }
             // S0117: keep the full standard capability surface while isolating
             // site-specific/GPL code behind a dedicated sideload-only flavor.
-            // S0241: while the dedicated VR runtime is being rewritten, noLegal keeps the
-            // vr source set mounted but routes shared runtime entry points through the
-            // standard player path.
+            // S0250: noLegal owns the sideload VR-capable surface (replaces archived
+            // vrUnlicensed flavor). VR feature UI is present in the binary; individual
+            // VR controls are gated at runtime by XrRuntimeAvailability so non-XR
+            // devices see them disabled with the standard "device unsupported" hint.
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
@@ -196,8 +200,8 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
-            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
@@ -301,10 +305,11 @@ android {
             }
             externalNativeBuild {
                 cmake {
-                    // Build only the JNI bridge target; OpenXR loader ships prebuilt in the AAR.
-                    targets += listOf("openxr_native")
+                    // S0249 Phase 02: build the diagnostic XR native runtime (fms_diagnostic_xr).
+                    // OpenXR loader ships prebuilt in the Khronos AAR via prefab.
+                    targets += listOf("fms_diagnostic_xr")
                     // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
-                    // otherwise AGP tries to build openxr_native for every ABI in the buildType
+                    // otherwise AGP tries to build fms_diagnostic_xr for every ABI in the buildType
                     // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
                     // because those OpenXR slices do not exist. ndk.abiFilters above only
                     // governs packaging; externalNativeBuild.cmake.abiFilters governs configure.
@@ -313,9 +318,10 @@ android {
                     arguments += listOf(
                         "-DANDROID_STL=c++_shared",
                         "-DANDROID_PLATFORM=android-26",
-                        // Gate OpenXR find_package in CMakeLists.txt: non-vr flavors omit this
-                        // flag so CMake configure succeeds without the Khronos AAR on the path.
-                        "-DENABLE_OPENXR=ON",
+                        // Gate fms_diagnostic_xr target in src/vr/cpp/CMakeLists.txt: non-vr
+                        // flavors omit this flag so CMake configure succeeds without the
+                        // Khronos OpenXR AAR on the prefab classpath.
+                        "-DFMS_BUILD_XR_RUNTIME=ON",
                         // Force new cmake config hash to avoid stale .tmp file lock (2026-04-21)
                         "-DFMS_BUILD_REVISION=3"
                     )
@@ -343,103 +349,58 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
         }
 
-        // ===== VR-UNLICENSED (ADB sideload only, always includes DTS) =====
-        // Distribution: ADB install via Developer Mode — no Meta Horizon Store.
-        // ~10% of VR users who prefer direct sideload over the store build.
-        // This flavor always ships DTS (libdca via custom FFmpeg AAR): no store review restrictions.
-        // If vr flavor is rejected by Meta due to DTS → ship vr without DTS, point sideloaders here.
-        // See ADR-004 in spec_ffmpeg-custom-build-dts.md.
-        create("vrUnlicensed") {
-            dimension = "version"
-            // S0232: no applicationIdSuffix — sideload-only flavor stays at com.sza.fastmediasorter
-            // permanently so the same Azure/Google/Dropbox app registrations cover it. Replaces
-            // the `vr` flavor on the device because both now share the same package name.
-            versionNameSuffix = "-VR-Unlicensed"
-            // Meta Quest 2/3/Pro: arm64-v8a only, same as vr.
-            ndk {
-                abiFilters += listOf("arm64-v8a")
-            }
-            externalNativeBuild {
-                cmake {
-                    // Same OpenXR native bridge as vr flavor.
-                    targets += listOf("openxr_native")
-                    // Restrict CMake configure to arm64-v8a — OpenXR loader AAR ships only
-                    // arm64. Without this, AGP attempts configure for every buildType ABI.
-                    abiFilters += listOf("arm64-v8a")
-                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
-                    arguments += listOf(
-                        "-DANDROID_STL=c++_shared",
-                        "-DANDROID_PLATFORM=android-26",
-                        "-DENABLE_OPENXR=ON"
-                    )
-                }
-            }
-            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
-            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
-            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
-            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
-            buildConfigField("boolean", "SUPPORT_CLOUD", "true")
-            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
-            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
-            buildConfigField("boolean", "ENABLE_EPUB", "true")
-            buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
-            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
-            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
-            // S0241 Phase 03: vrUnlicensed aligned with vr/standard — VR runtime detached from
-            // main player entry-point during the rewrite window. The src/vr/ source-set is still
-            // packaged but the immersive runtime is no longer reached at runtime.
-            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
-            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")  // Always true — no store restrictions
-            buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
-        }
+        // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role — sideload-only
+        // VR-capable build — is now fulfilled by `noLegal` (full VR feature surface, runtime
+        // XR-gated via XrDetectionFacade). The `vr` flavor remains as the Store-published
+        // (Meta Horizon Store / Google Play AAB) channel, kept Store-clean (no GPL extractors,
+        // no Python runtime). See PLAN/S0250_nolegal-vr-unification.md.
     }
-    
-    // vrUnlicensed shares the same VR Kotlin/Java/C++ sources as vr.
-    // AGP does not inherit flavor source sets automatically, so we add src/vr/ dirs explicitly.
+
+    // AGP does not inherit flavor source sets automatically, so each flavor explicitly maps
+    // to one of the shared streaming/cloud source-sets below.
     //
     // S0116 §3.2: streamingEnabled — Media3 HLS/DASH + MediaMuxer; streamingDisabled — NoOp pipeline for lite/photos.
     // S0200: cloudEnabled — Credential Manager Google identity + Drive auth; cloudDisabled — no-op identity for lite.
     // Both shared source-sets are mounted into every flavor that needs them; AGP does not
     // expose pseudo-flavor inheritance, so each flavor explicitly maps to one of the two.
     sourceSets {
-        getByName("vrUnlicensed") {
-            java.directories.add("src/vr/java")
-            res.directories.add("src/vr/res")
-            manifest.srcFile("src/vr/AndroidManifest.xml")
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
-        }
         getByName("standard") {
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
+            // S0250 / S0245 wiring closure: NoOp XR Hilt bindings live in src/vrStub/java.
+            // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
+            // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
+            kotlin.directories.add("src/vrStub/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
-            // Mount vr source set so VrPlayerActivity and OpenXR bridge are available.
-            java.directories.add("src/vr/java")
+            // S0250: noLegal owns the sideload VR-capable surface (replaces vrUnlicensed).
+            // Mount vr source set so VrPlayerActivity, OpenXR bridge, and XR Hilt bindings
+            // are available.
+            kotlin.directories.add("src/vr/java")
             res.directories.add("src/vr/res")
             manifest.srcFile("src/vr/AndroidManifest.xml")
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
         }
         getByName("legacy") {
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/vrStub/java")
         }
         getByName("vr") {
-            java.directories.add("src/streamingEnabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
         }
         getByName("photos") {
-            java.directories.add("src/streamingDisabled/java")
-            java.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/streamingDisabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/vrStub/java")
         }
         getByName("lite") {
-            java.directories.add("src/streamingDisabled/java")
-            java.directories.add("src/cloudDisabled/java")
+            kotlin.directories.add("src/streamingDisabled/java")
+            kotlin.directories.add("src/cloudDisabled/java")
+            kotlin.directories.add("src/vrStub/java")
         }
     }
 
@@ -759,10 +720,10 @@ if (isNoLegalBuild) {
 }
 
 
-// Replaces the deprecated android { kotlinOptions { jvmTarget } } block
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+// Built-in Kotlin inherits compileOptions.targetCompatibility by default.
+kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
@@ -823,8 +784,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
     
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
+    implementation("com.google.dagger:hilt-android:2.59")
+    kapt("com.google.dagger:hilt-android-compiler:2.59")
     
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
@@ -873,8 +834,6 @@ dependencies {
     "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
-    "vrUnlicensedImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
-    "vrUnlicensedImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
@@ -962,11 +921,10 @@ dependencies {
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
     
-    // OpenXR loader — vr, vrUnlicensed and noLegal (headset XR rendering).
+    // OpenXR loader — vr and noLegal (headset XR rendering).
     // noLegal ships the same arm64-v8a OpenXR slice; non-Quest devices simply never
     // exercise VrPlayerActivity because the graceful fallback fires first.
     "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
-    "vrUnlicensedImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
     "noLegalImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
 
     // SW AV1 decoder (libgav1) — source-only extension, not published on Google Maven.
@@ -974,14 +932,12 @@ dependencies {
     // "standardImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
     // "legacyImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
     // "vrImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
-    // "vrUnlicensedImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
 
     // SW VP9 decoder (libvpx, incl. Profile 2 10-bit HDR) — source-only extension, not on Maven.
     // TODO: build from source before enabling.
     // "standardImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
     // "legacyImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
     // "vrImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
-    // "vrUnlicensedImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
 
     // ── Custom FFmpeg AAR (DTS + APE/WMA/WavPack/TTA/DSD) ─────────────────────────────────────
     // DTS/extended codec decoder via custom FFmpeg AAR — built from media3 1.2.1 sources.
@@ -994,7 +950,6 @@ dependencies {
     "noLegalImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "legacyImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "vrImplementation"(files("libs/fms-ffmpeg-dts.aar"))
-    "vrUnlicensedImplementation"(files("libs/fms-ffmpeg-dts.aar"))
 
     // Testing
     testImplementation("junit:junit:4.13.2")
@@ -1011,7 +966,7 @@ dependencies {
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
 }
 
 // TEMPORARILY DISABLED: BouncyCastle resolutionStrategy (was needed for PDFBox)

@@ -39,7 +39,7 @@ class MigrateS0059UseCase @Inject constructor(
     }
 
     suspend operator fun invoke() {
-        // Idempotency guard — skip if already migrated
+        // Idempotency guard - skip if already migrated
         val isDone = dataStore.data.first()[KEY_DONE] ?: false
         if (isDone) return
 
@@ -62,7 +62,7 @@ class MigrateS0059UseCase @Inject constructor(
                 Timber.i("MigrateS0059UseCase: set allFiles=true on Recent (id=${recent.id})")
             }
         } else {
-            // Recent was manually deleted — recreate it with allFiles=true appended to the list
+            // Recent was manually deleted - recreate it with allFiles=true appended to the list
             val settings = settingsRepository.getSettings().first()
             val maxOrder = resources.maxOfOrNull { it.displayOrder } ?: -1
             val newRecent = MediaResource(

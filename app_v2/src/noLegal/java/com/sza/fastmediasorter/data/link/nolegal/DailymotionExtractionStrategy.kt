@@ -20,8 +20,8 @@ import javax.inject.Singleton
  * S0177: Native extractor for dailymotion.com.
  *
  * Parses the embed page HTML to extract a time-limited HLS stream URL.
- * Stream URLs are IP-bound and expire quickly — extraction and playback must start immediately.
- * No DirectFileExtractionStrategy needed — result is always HLS streaming.
+ * Stream URLs are IP-bound and expire quickly - extraction and playback must start immediately.
+ * No DirectFileExtractionStrategy needed - result is always HLS streaming.
  *
  * Note: Dailymotion's public REST API requires an Enterprise key for stream_url.
  * Embed-page parsing is the only reliable approach for free access.
@@ -79,7 +79,7 @@ class DailymotionExtractionStrategy @Inject constructor(
             return@withContext OpenResult.NotFound("dailymotion_parse_failed")
         }
 
-        // Return immediately — stream URLs are time-limited and IP-bound.
+        // Return immediately - stream URLs are time-limited and IP-bound.
         OpenResult.Streaming(
             manifest = StreamingManifest.Hls(manifestUrl = hlsUrl),
             tentativeFileName = "dailymotion_$videoId.mp4",

@@ -10,7 +10,7 @@ import timber.log.Timber
 /**
  * Shows the "Keep / Delete / Don't ask again" dialog after an offloaded file
  * finishes playing (player exit or file switch). All three choices are surfaced;
- * the third ("Don't ask again") is session-scope only — it does NOT modify the
+ * the third ("Don't ask again") is session-scope only - it does NOT modify the
  * persisted Settings cleanup mode. For that the user opens Settings.
  *
  * The [onDelete] callback deletes the local copy and the DB entry.

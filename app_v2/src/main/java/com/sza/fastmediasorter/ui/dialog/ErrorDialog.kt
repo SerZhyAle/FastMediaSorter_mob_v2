@@ -40,11 +40,11 @@ object ErrorDialog {
     /**
      * Show error dialog with detailed message.
      *
-     * @param context   Context (Activity preferred — required for window token safety)
+     * @param context   Context (Activity preferred - required for window token safety)
      * @param title     Dialog title
      * @param message   User-readable error message shown in the main scrollable text area
      * @param details   Technical details / stack trace; null hides the collapsible section
-     * @param actionButtonText Optional positive button label — when provided, replaces the Share button
+     * @param actionButtonText Optional positive button label - when provided, replaces the Share button
      * @param onActionClick    Callback paired with [actionButtonText]
      */
     fun show(
@@ -56,7 +56,7 @@ object ErrorDialog {
         onActionClick: (() -> Unit)? = null
     ): AlertDialog? {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
-            Timber.w("ErrorDialog: skipping show — Activity is finishing/destroyed")
+            Timber.w("ErrorDialog: skipping show - Activity is finishing/destroyed")
             return null
         }
 
@@ -118,7 +118,7 @@ object ErrorDialog {
         return try {
             builder.show()
         } catch (e: WindowManager.BadTokenException) {
-            Timber.e(e, "ErrorDialog: show failed — bad window token")
+            Timber.e(e, "ErrorDialog: show failed - bad window token")
             null
         }
     }
@@ -149,7 +149,7 @@ object ErrorDialog {
                 val fileName = "fms_error_$timestamp.txt"
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // API 29+: insert via MediaStore — no WRITE_EXTERNAL_STORAGE needed
+                    // API 29+: insert via MediaStore - no WRITE_EXTERNAL_STORAGE needed
                     val values = ContentValues().apply {
                         put(MediaStore.Downloads.DISPLAY_NAME, fileName)
                         put(MediaStore.Downloads.MIME_TYPE, "text/plain")

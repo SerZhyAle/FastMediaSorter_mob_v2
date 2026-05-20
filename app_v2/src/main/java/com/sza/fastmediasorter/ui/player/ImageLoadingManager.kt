@@ -81,7 +81,7 @@ class ImageLoadingManager(
         fun showError(message: String, exception: Throwable? = null)
         fun showToast(message: String)
         fun getWindowManager(): android.view.WindowManager
-        fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata)
+        fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata, originatingPath: String)
         fun updateSlideShow()
         fun getAdjacentFiles(): List<MediaFile>
         fun getCurrentFile(): MediaFile?
@@ -162,9 +162,12 @@ class ImageLoadingManager(
             audioMetadataCacheRepository = audioMetadataCacheRepository,
             okHttpClient = okHttpClient,
             memoryTier = memoryTier,
+            currentFilePathProvider = { callback.getCurrentFile()?.path },
             callback = object : AudioCoverArtLoader.Callback {
-                override fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) =
-                    callback.onAudioMetadataLoaded(metadata)
+                override fun onAudioMetadataLoaded(
+                    metadata: com.sza.fastmediasorter.domain.model.AudioMetadata,
+                    originatingPath: String
+                ) = callback.onAudioMetadataLoaded(metadata, originatingPath)
             }
         )
     }
@@ -271,7 +274,7 @@ class ImageLoadingManager(
         val h = currentDeviceHeight.takeIf { it > 0 } ?: return
         Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h} placeholder=$isPlaceholder")
         // processFromBitmap internally uses the backgroundView dimensions via process(),
-        // which now receives the view size — but for video we pass screen dims as fallback;
+        // which now receives the view size - but for video we pass screen dims as fallback;
         // the processor will use backgroundView.width/height if available via its own layout.
         dynamicBackgroundProcessor?.processFromBitmap(bitmap, w, h)
         binding.ivDynamicBackground.contentDescription = if (isPlaceholder) {
@@ -590,7 +593,7 @@ class ImageLoadingManager(
                     setOnScaleChangeListener { scaleFactor, focusX, focusY ->
                         Timber.d("GESTURE_DEBUG: Scale change - factor=${"%.2f".format(scaleFactor)}, focus=(${"%.0f".format(focusX)}, ${"%.0f".format(focusY)})")
                         if (isPhotoViewImageLoaded && kotlin.math.abs(scaleFactor - 1.0f) > 0.02f) {
-                            // Real user pinch-zoom — notify overlay manager
+                            // Real user pinch-zoom - notify overlay manager
                             onZoomInteraction?.invoke()
                         }
                     }

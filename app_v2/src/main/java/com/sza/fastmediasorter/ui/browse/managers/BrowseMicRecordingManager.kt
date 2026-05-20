@@ -82,7 +82,7 @@ class BrowseMicRecordingManager(
         }
 
         if (!focusGranted) {
-            Timber.w("S0100: startRecording ABORT — audio focus not granted")
+            Timber.w("S0100: startRecording ABORT - audio focus not granted")
             tempFile.delete()
             pendingTempFile = null
             onRecordingStateChanged(false)
@@ -121,11 +121,11 @@ class BrowseMicRecordingManager(
         onRecordingStateChanged(false)
 
         val tempFile = pendingTempFile ?: run {
-            Timber.w("S0100: stopRecording — no pending temp file")
+            Timber.w("S0100: stopRecording - no pending temp file")
             return
         }
         val resource = pendingResource ?: run {
-            Timber.w("S0100: stopRecording — no pending resource")
+            Timber.w("S0100: stopRecording - no pending resource")
             tempFile.delete()
             pendingTempFile = null
             return
@@ -196,7 +196,7 @@ class BrowseMicRecordingManager(
             try {
                 mediaRecorder?.stop()
             } catch (e: Exception) {
-                Timber.w(e, "releaseRecorder: stop threw after start — possible focus loss race")
+                Timber.w(e, "releaseRecorder: stop threw after start - possible focus loss race")
             }
         }
         isRecorderStarted = false

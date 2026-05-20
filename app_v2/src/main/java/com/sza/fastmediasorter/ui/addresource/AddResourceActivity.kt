@@ -82,7 +82,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
 
-    // S0200 Phase 04c: googleSignInLauncher removed — Credential Manager handles sign-in
+    // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager handles sign-in
     // through GoogleIdentityRepository.signInPrimary (via UnifiedCloudAuthManager).
 
     private val sshKeyFilePickerLauncher = registerForActivityResult(
@@ -231,7 +231,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             val dialog = NetworkDiscoveryDialog.newInstance()
             dialog.onHostSelected = { host ->
                 binding.etSmbServer.setText(host.ip)
-                Toast.makeText(this, getString(R.string.msg_host_selected, host.hostname, host.openPorts.joinToString(", ")), Toast.LENGTH_SHORT).show()
+                viewModel.scanShares(
+                    host.ip,
+                    binding.etSmbUsername.text?.toString()?.trim().orEmpty(),
+                    binding.etSmbPassword.text?.toString()?.trim().orEmpty(),
+                    binding.etSmbDomain.text?.toString()?.trim().orEmpty(),
+                    binding.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: 445
+                )
             }
             dialog.show(supportFragmentManager, NetworkDiscoveryDialog.TAG)
         }
@@ -350,6 +356,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     helper.preFillResourceData(event.resource, event.username, event.password, event.domain, event.sshKey, event.sshPassphrase)
                 }
                 AddResourceEvent.ResourcesAdded -> finish()
+                AddResourceEvent.ShowNoSharesFound -> connectionManager.showNoSharesFoundDialog()
                 is AddResourceEvent.ShowSharePicker -> connectionManager.showSharePickerDialog(event.server, event.shares, event.manualShares)
                 AddResourceEvent.ShowLocalNetworkPermission -> connectionManager.showLocalNetworkPermissionRationale()
             }
@@ -373,9 +380,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showSmbFolderOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.isVisible = true
-        binding.tvTitle.text = getString(R.string.add_network_folder)
-        binding.toolbar.title = getString(R.string.add_resource_title)
+        binding.tvTitle.isVisible = false
+        binding.toolbar.title = if (copyResourceId == null) {
+            getString(R.string.create_network_resource_smb)
+        } else {
+            getString(R.string.copy_resource_title)
+        }
         binding.layoutSmbFolder.isVisible = true
         binding.layoutSftpFolder.isVisible = false
         formManager.setupIpAddressField()
@@ -384,9 +394,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showSftpFolderOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.isVisible = true
-        binding.tvTitle.text = getString(R.string.add_sftp_ftp_title)
-        binding.toolbar.title = getString(R.string.add_resource_title)
+        binding.tvTitle.isVisible = false
+        binding.toolbar.title = getString(R.string.add_sftp_ftp_title)
         binding.layoutSmbFolder.isVisible = false
         binding.layoutSftpFolder.isVisible = true
         binding.layoutCloudStorage.isVisible = false
@@ -397,9 +406,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showCloudStorageOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.isVisible = true
-        binding.tvTitle.text = getString(R.string.cloud_storage)
-        binding.toolbar.title = getString(R.string.add_resource_title)
+        binding.tvTitle.isVisible = false
+        binding.toolbar.title = getString(R.string.cloud_storage)
         binding.layoutSmbFolder.isVisible = false
         binding.layoutSftpFolder.isVisible = false
         binding.layoutCloudStorage.isVisible = true
@@ -421,7 +429,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     Toast.makeText(this, getString(R.string.folder_selection_limitations), Toast.LENGTH_LONG).show()
                 }
             }
-            // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed — Credential
+            // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed - Credential
             // Manager owns the handshake (no Intent round-trip).
         }
     }

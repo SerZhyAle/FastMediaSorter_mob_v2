@@ -5,7 +5,7 @@ package com.sza.fastmediasorter.data.network.glide
  * to gate playback-arbitration and to filter the transient-failure cache.
  *
  * Returns a normalized "<scheme>://host:port" for SMB (default 445), SFTP (default 22),
- * FTP (default 21). Returns null for any other input — local paths, empty strings, and
+ * FTP (default 21). Returns null for any other input - local paths, empty strings, and
  * any other scheme (cloud thumbnails go through a separate Glide pipeline and are out of scope).
  */
 internal fun extractNetworkResourceKey(path: String): String? {

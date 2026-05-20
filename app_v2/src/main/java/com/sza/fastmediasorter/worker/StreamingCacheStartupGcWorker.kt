@@ -15,13 +15,13 @@ import java.util.concurrent.TimeUnit
  * Startup-time GC for the streaming-offload cache (see spec §5.7, trigger 3).
  *
  * Two passes:
- * 1. `verifyAndPrune` — drop DB rows whose local file was deleted out-of-band.
- * 2. TTL eviction — delete rows (and files) whose `lastPlayedAt` is older than
+ * 1. `verifyAndPrune` - drop DB rows whose local file was deleted out-of-band.
+ * 2. TTL eviction - delete rows (and files) whose `lastPlayedAt` is older than
  *    the configured TTL.
  *
  * TTL is read from worker input data (`KEY_TTL_DAYS`); when `0`, the TTL pass is
  * skipped (user-selected `Off`). Intentionally scheduled as a one-off from
- * [com.sza.fastmediasorter.core.init.AppStartupInitializer] rather than periodic —
+ * [com.sza.fastmediasorter.core.init.AppStartupInitializer] rather than periodic -
  * once per launch is enough for cleanup that is not time-critical.
  */
 @HiltWorker
@@ -57,7 +57,7 @@ class StreamingCacheStartupGcWorker @AssistedInject constructor(
                     )
                 }
             } else {
-                Timber.d("[stream-cache-gc/$correlationId] TTL disabled — skipping eviction pass")
+                Timber.d("[stream-cache-gc/$correlationId] TTL disabled - skipping eviction pass")
             }
 
             Timber.i("[stream-cache-gc/$correlationId] completed")

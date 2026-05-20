@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 
-// S0238: VR-entry button visibility — open for video and pixel-media (image, gif).
+// S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
 
@@ -18,7 +18,7 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
  *
  * Fixed button groups are NOT subject to adaptive width planning:
  *   – Back (left anchor)
- *   – Previous, Next (right anchor — always visible)
+ *   – Previous, Next (right anchor - always visible)
  */
 class CommandPanelLayoutPlanner {
 
@@ -42,7 +42,7 @@ class CommandPanelLayoutPlanner {
     ) {
         // ── Group 1 : high-priority adaptive commands (priorities 10–70) ──────────
         // Lowest priority numbers = first on bar (leftmost), last to overflow.
-        // Previous/Next are fixed right anchors — not in this group.
+        // Previous/Next are fixed right anchors - not in this group.
 
         DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete,
             R.string.big_btn_short_delete),
@@ -80,7 +80,7 @@ class CommandPanelLayoutPlanner {
             R.string.big_btn_short_lyrics),
         SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
             R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
-        // S0162: Rotation toggle — low-priority, shows on bar only when space permits
+        // S0162: Rotation toggle - low-priority, shows on bar only when space permits
         ROTATION_TOGGLE(490, R.id.menu_rotation_toggle, true,
             R.string.rotation_toggle_title, R.drawable.ic_rotation_unlocked,
             R.string.big_btn_short_rotation),
@@ -154,15 +154,15 @@ class CommandPanelLayoutPlanner {
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
-        // S0028: multi-window — overflow-only; shown only when VR+setting allows it
+        // S0028: multi-window - overflow-only; shown only when VR+setting allows it
         OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, true,
             R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse),
-        // S0106: Image crop & compress (IMAGE only — static formats JPEG/PNG/WebP)
+        // S0106: Image crop & compress (IMAGE only - static formats JPEG/PNG/WebP)
         // S0217: bar-capable; inline when planner has room, otherwise spills to overflow.
         CROP(620, R.id.menu_crop, true, R.string.menu_crop, R.drawable.ic_crop),
         CROP_TO_FILE(630, R.id.menu_crop_to_file, true, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
         COMPRESS_COPY(640, R.id.menu_compress_copy, true, R.string.menu_compress_copy, R.drawable.ic_compress),
-        // S0107: Draw overlay — annotate static images (IMAGE only, not GIF/APNG)
+        // S0107: Draw overlay - annotate static images (IMAGE only, not GIF/APNG)
         DRAW_OVERLAY(650, R.id.menu_draw_overlay, true, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay);
     }
 
@@ -217,7 +217,7 @@ class CommandPanelLayoutPlanner {
             if (BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
             if (isAudio) add(PlayerCommand.LYRICS)
             if (isAudio) add(PlayerCommand.SEARCH_YOUTUBE_MUSIC)
-            // S0162: Rotation toggle — only when global delegation is OFF and device has accelerometer
+            // S0162: Rotation toggle - only when global delegation is OFF and device has accelerometer
             if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
 
             if (isPdf) add(PlayerCommand.SEARCH_PDF)
@@ -258,15 +258,15 @@ class CommandPanelLayoutPlanner {
             if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
-            // S0028: multi-window tear-off — VR+setting guard already applied by controller
+            // S0028: multi-window tear-off - VR+setting guard already applied by controller
             if (allowSeparateWindow) add(PlayerCommand.OPEN_IN_SEPARATE_WINDOW)
-            // S0106: Crop commands — static images only (exclude animated GIF and APNG)
+            // S0106: Crop commands - static images only (exclude animated GIF and APNG)
             val isStaticBitmap = isImage && !file.name.lowercase().endsWith(".gif") &&
                 !file.name.lowercase().endsWith(".apng")
             if (isStaticBitmap && canWrite && !isReadOnly) add(PlayerCommand.CROP)
             if (isStaticBitmap) add(PlayerCommand.CROP_TO_FILE)
             if (isStaticBitmap) add(PlayerCommand.COMPRESS_COPY)
-            // S0107: Draw overlay — static images only (same guard as crop)
+            // S0107: Draw overlay - static images only (same guard as crop)
             if (isStaticBitmap) add(PlayerCommand.DRAW_OVERLAY)
         }.sortedBy { it.priority }
     }

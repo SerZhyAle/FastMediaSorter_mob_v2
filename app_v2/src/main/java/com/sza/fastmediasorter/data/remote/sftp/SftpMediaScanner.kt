@@ -104,7 +104,7 @@ class SftpMediaScanner @Inject constructor(
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
                     val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
 
-                    // Use attrs from listFiles() — no extra stat() round-trip needed.
+                    // Use attrs from listFiles() - no extra stat() round-trip needed.
                     // Fallback to stat() only if size is zero and a minimum size filter is active
                     // (rare: non-standard SFTP servers may omit attrs in ls response).
                     val fileSize: Long
@@ -232,7 +232,7 @@ class SftpMediaScanner @Inject constructor(
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
                     val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
 
-                    // Use attrs from listFiles() — no extra stat() round-trip needed.
+                    // Use attrs from listFiles() - no extra stat() round-trip needed.
                     // Fallback to stat() only if size is zero and a minimum size filter is active.
                     val fileSize: Long
                     val fileDate: Long
@@ -378,7 +378,7 @@ class SftpMediaScanner @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    // Count children in this directory (separate listFiles call — not a stat call)
+                    // Count children in this directory (separate listFiles call - not a stat call)
                     val childCountResult = ConnectionThrottleManager.withThrottle(
                         protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
                         resourceKey = resourceKey,

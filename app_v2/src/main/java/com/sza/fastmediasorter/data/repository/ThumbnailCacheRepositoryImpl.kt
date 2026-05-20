@@ -144,7 +144,7 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
         return try {
             val totalSize = thumbnailCacheDao.getTotalCacheSize()
             if (totalSize <= maxBytes) {
-                Timber.d("ThumbnailCache: size ${totalSize / 1024 / 1024}MB is within limit ${maxBytes / 1024 / 1024}MB — no eviction needed")
+                Timber.d("ThumbnailCache: size ${totalSize / 1024 / 1024}MB is within limit ${maxBytes / 1024 / 1024}MB - no eviction needed")
                 return 0
             }
 

@@ -42,14 +42,14 @@ All string constants are defined in `TestFixtures.kt`. Current values:
 | `TEST_LOCAL_FOLDER` | `/storage/emulated/0/TestMedia` |
 | `TEST_CLOUD_RESOURCE_NAME` | `Test-Cloud` |
 
-To adapt these for a different test environment, edit **only** `TestFixtures.kt` — all tests reference these constants by name.
+To adapt these for a different test environment, edit **only** `TestFixtures.kt` - all tests reference these constants by name.
 
 ---
 
 ## 4. How to Add a New Device-Dependent Test
 
 1. Annotate the test class or method with `@NetworkRequired`.
-2. In `@Before` or at the start of the test, call `assumeTrue(isNetworkTestEnabled())` — the test will be skipped rather than failing if the environment is not configured.
+2. In `@Before` or at the start of the test, call `assumeTrue(isNetworkTestEnabled())` - the test will be skipped rather than failing if the environment is not configured.
 3. Use `TestFixtures.*` constants for all resource names, paths, and credentials.
 4. Document any additional device prerequisites in this file under a new section.
 

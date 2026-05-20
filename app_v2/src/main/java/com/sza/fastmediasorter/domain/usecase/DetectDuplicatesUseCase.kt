@@ -26,9 +26,9 @@ class DetectDuplicatesUseCase @Inject constructor(
      * Runs a three-phase duplicate detection scan over [resources].
      * Emits [DuplicateScanProgress] updates; completes with [DuplicateDetectionResult].
      *
-     * Phase 0 — group by size (zero I/O).
-     * Phase 1 — quick hash (4 KB read per file).
-     * Phase 2 — full hash (full file read for phase-1 survivors).
+     * Phase 0 - group by size (zero I/O).
+     * Phase 1 - quick hash (4 KB read per file).
+     * Phase 2 - full hash (full file read for phase-1 survivors).
      */
     fun detect(resources: List<MediaResource>): Flow<Any> = flow {
         val startMs = System.currentTimeMillis()

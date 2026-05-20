@@ -60,6 +60,7 @@ sealed interface InputAction {
     data object DeleteSelection : InputAction   // F8 / Delete / Ctrl+D
     data object CreateFolder : InputAction      // F7 / Ctrl+Shift+N
     data object CreateTextNote : InputAction    // Ctrl+Alt+N
+    data object CreateDrawing : InputAction     // Ctrl+Alt+Shift+N
     data object ViewCurrent : InputAction       // F3 / Ctrl+Q
     data object EditCurrent : InputAction       // F4 / Ctrl+E
     data object PasteClipboard : InputAction    // Ctrl+V (future file buffer)

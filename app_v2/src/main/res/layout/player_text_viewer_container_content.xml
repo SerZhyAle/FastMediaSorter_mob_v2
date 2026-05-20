@@ -226,7 +226,7 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- S0189: unified editor toolbar — undo/redo/find on the left, cursor pos in the middle,
+        <!-- S0189: unified editor toolbar - undo/redo/find on the left, cursor pos in the middle,
              Save/Save&Close/Save&Send/SendKeep/Cancel on the right (moved up from the former bottom
              red action panel so they stay reachable when the soft keyboard is open). -->
         <LinearLayout

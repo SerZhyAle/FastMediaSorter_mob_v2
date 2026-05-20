@@ -284,10 +284,10 @@ class CloudThumbnailDataFetcher(
                 connection?.disconnect()
                 val freshUrl = fetchFreshGoogleDriveThumbnailUrl(model.fileId, authHeader)
                 if (freshUrl != null) {
-                    Timber.w("CloudThumbnailDataFetcher: thumbnailLink expired (404) — retrying with fresh URL for ${model.fileId}")
+                    Timber.w("CloudThumbnailDataFetcher: thumbnailLink expired (404) - retrying with fresh URL for ${model.fileId}")
                     downloadWithAuth(freshUrl, authHeader, callback, isFallback = true)
                 } else {
-                    Timber.e("Cloud thumbnail failed: $responseCode — no fresh thumbnailLink available for ${model.fileId}")
+                    Timber.e("Cloud thumbnail failed: $responseCode - no fresh thumbnailLink available for ${model.fileId}")
                     callback.onLoadFailed(Exception("HTTP $responseCode"))
                 }
             } else {
@@ -332,7 +332,7 @@ class CloudThumbnailDataFetcher(
     /**
      * S0200 Phase 04c: Drive thumbnail tokens now come from [GoogleIdentityRepository] via an
      * EntryPoint accessor (Glide's data fetcher is not Hilt-managed). Cold-start race handled
-     * by the catch — returns null and Glide retries on the next thumbnail request.
+     * by the catch - returns null and Glide retries on the next thumbnail request.
      */
     private fun getGoogleAccessToken(): String? {
         val now = System.currentTimeMillis()

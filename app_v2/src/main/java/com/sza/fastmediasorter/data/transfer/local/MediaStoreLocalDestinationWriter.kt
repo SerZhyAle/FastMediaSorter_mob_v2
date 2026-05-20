@@ -53,7 +53,7 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
     ): Result<LocalSink> {
         val collectionUri = collectionUriFor(destination.collection)
 
-        // Step 1 — check for existing record.
+        // Step 1 - check for existing record.
         val existingUri = findExistingItem(collectionUri, destination.displayName, destination.relativePath)
         if (existingUri != null) {
             if (!overwrite) {
@@ -66,7 +66,7 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
             Timber.d("MediaStoreLocalDestinationWriter: deleted existing record uri=$existingUri rows=$deletedRows")
         }
 
-        // Step 2 — insert pending record.
+        // Step 2 - insert pending record.
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, destination.displayName)
             put(MediaStore.MediaColumns.RELATIVE_PATH, destination.relativePath)
@@ -76,7 +76,7 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
 
         var insertedUri = context.contentResolver.insert(collectionUri, values)
 
-        // Step 3 — fallback to Files collection if media-typed insert rejected (MIME mismatch).
+        // Step 3 - fallback to Files collection if media-typed insert rejected (MIME mismatch).
         if (insertedUri == null && destination.collection != LocalDestinationCategory.PublicCollection.Kind.FILES) {
             val filesUri = MediaStore.Files.getContentUri("external")
             Timber.w("MediaStoreLocalDestinationWriter: insert rejected for ${destination.collection}, retrying on Files collection")
@@ -88,7 +88,7 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
             return Result.failure(IOException("MediaStore.insert returned null for ${destination.displayName}"))
         }
 
-        // Step 4 — open output stream.
+        // Step 4 - open output stream.
         val outputStream = try {
             context.contentResolver.openOutputStream(insertedUri)
         } catch (e: Exception) {

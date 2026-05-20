@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/bottomPanelsContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,34 +16,22 @@
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
         android:visibility="invisible">
 
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
             android:id="@+id/copyToPanelHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="horizontal"
-            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom">
-
-            <TextView
-                android:id="@+id/copyToPanelIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="0dp"
-                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
-                android:text="@string/activity_player_unified_moveToPanelIndicator_text"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/panel_copy_to"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
-        </LinearLayout>
+            app:csh_collapsedPrefix="▶"
+            app:csh_expandedPrefix="▼"
+            app:csh_headerBackground="?attr/selectableItemBackground"
+            app:csh_headerPaddingHorizontal="0dp"
+            app:csh_headerPaddingVertical="0dp"
+            app:csh_prefixPaddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            app:csh_prefixTextColor="@color/white"
+            app:csh_showHelp="false"
+            app:csh_titleTextColor="@color/white"
+            app:csh_titleTextSize="@dimen/text_size_small"
+            app:csh_titleBold="false"
+            app:csh_title="@string/panel_copy_to" />
 
         <GridLayout
             android:id="@+id/copyToButtonsGrid"
@@ -62,34 +51,22 @@
         android:paddingHorizontal="@dimen/activity_player_unified_moveToPanel_paddingHorizontal"
         android:visibility="invisible">
 
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
             android:id="@+id/moveToPanelHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
-
-            <TextView
-                android:id="@+id/moveToPanelIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/activity_player_unified_moveToPanelIndicator_text"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small"
-                android:paddingStart="0dp"
-                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/panel_move_to"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
-        </LinearLayout>
+            app:csh_collapsedPrefix="▶"
+            app:csh_expandedPrefix="▼"
+            app:csh_headerBackground="?attr/selectableItemBackground"
+            app:csh_headerPaddingHorizontal="0dp"
+            app:csh_headerPaddingVertical="0dp"
+            app:csh_prefixPaddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            app:csh_prefixTextColor="@color/white"
+            app:csh_showHelp="false"
+            app:csh_titleTextColor="@color/white"
+            app:csh_titleTextSize="@dimen/text_size_small"
+            app:csh_titleBold="false"
+            app:csh_title="@string/panel_move_to" />
 
         <GridLayout
             android:id="@+id/moveToButtonsGrid"
@@ -100,4 +77,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

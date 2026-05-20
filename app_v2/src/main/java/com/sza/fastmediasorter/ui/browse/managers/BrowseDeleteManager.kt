@@ -32,7 +32,7 @@ import timber.log.Timber
  * - Handle Android 11+ batch-delete permission grant callback.
  * - Scan/delete files by size ([scanBySize], [executeBySizeDeleteConfirmed]).
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseDeleteManager(
     private val context: Context,
@@ -147,7 +147,7 @@ class BrowseDeleteManager(
                         Timber.w("BrowseDeleteManager: partial delete ${result.processedCount}/${filesToDelete.size}")
                     }
                     is FileOperationResult.Failure -> {
-                        Timber.e("BrowseDeleteManager: failure — ${result.error}")
+                        Timber.e("BrowseDeleteManager: failure - ${result.error}")
                         setIgnoringFileChanges(false)
                         setLoading(false)
                         // Keep the headline human and move filesystem detail to the secondary details surface.
@@ -241,7 +241,7 @@ class BrowseDeleteManager(
         Timber.i("BrowseDeleteManager: ${selectedPaths.size} selected, $alreadyRemoved already removed, removing ${filesToRemove.size}")
 
         if (alreadyRemoved > 0) {
-            Timber.w("BrowseDeleteManager: state inconsistency — $alreadyRemoved files were removed before permission granted")
+            Timber.w("BrowseDeleteManager: state inconsistency - $alreadyRemoved files were removed before permission granted")
             sendEvent(BrowseEvent.ShowMessage(
                 context.getString(R.string.warning_files_may_remain_in_source, alreadyRemoved)
             ))
@@ -316,7 +316,7 @@ class BrowseDeleteManager(
                     }
                 }
                 is FileOperationResult.Failure -> {
-                    Timber.e("BrowseDeleteManager.executeBySizeDeleteConfirmed: failure — ${result.error}")
+                    Timber.e("BrowseDeleteManager.executeBySizeDeleteConfirmed: failure - ${result.error}")
                     withContext(Dispatchers.Main) {
                         sendEvent(BrowseEvent.ShowError(
                             context.getString(R.string.error_deletion_failed),

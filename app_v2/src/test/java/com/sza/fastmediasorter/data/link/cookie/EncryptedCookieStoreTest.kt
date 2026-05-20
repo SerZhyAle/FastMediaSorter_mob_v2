@@ -23,7 +23,7 @@ import java.net.HttpCookie
  * in Robolectric's JVM environment. These tests must be run as instrumented tests on a
  * device or emulator. Marked @Ignore to keep the JVM unit-test suite green.
  */
-@Ignore("AndroidKeyStore unavailable in Robolectric JVM — run as instrumented test on device/emulator")
+@Ignore("AndroidKeyStore unavailable in Robolectric JVM - run as instrumented test on device/emulator")
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdkVersion=35 would fail without this.
 class EncryptedCookieStoreTest {
@@ -71,7 +71,7 @@ class EncryptedCookieStoreTest {
         val expired = HttpCookie("stale", "value").apply {
             domain = "example.com"
             path = "/"
-            maxAge = -1L // session cookie — see contract note: also write a clearly-expired one
+            maxAge = -1L // session cookie - see contract note: also write a clearly-expired one
         }
         // Persist a cookie whose computed expiresAtEpochMillis is in the past by abusing
         // maxAge = 0 (already expired immediately after save).

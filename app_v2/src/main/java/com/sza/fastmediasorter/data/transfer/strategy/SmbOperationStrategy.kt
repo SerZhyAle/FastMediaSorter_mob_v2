@@ -139,7 +139,7 @@ class SmbOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // S0189: defer file creation — only register intent. Disk write happens on first Save
+            // S0189: defer file creation - only register intent. Disk write happens on first Save
             // (handled by SaveTextNoteUseCase). Cancel before save leaves no file on disk.
             val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
             val localFile = File(dir, "${resourceId}_${fileName}")
@@ -152,7 +152,7 @@ class SmbOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
-            Timber.e(e, "SmbOperationStrategy.createTextFile failed — parent=$parentPath name=$fileName")
+            Timber.e(e, "SmbOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
     }
@@ -516,7 +516,7 @@ class SmbOperationStrategy @Inject constructor(
 
         val hostCredentials = credentialsRepository.getCredentialsByHost(server)
         if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
-            // D instead of W — expected fallback during batch ops, not an error worth spamming W-level
+            // D instead of W - expected fallback during batch ops, not an error worth spamming W-level
             Timber.d("SmbOperationStrategy: Share-specific credentials not found for '$server/$shareName', using SMB host credentials (user: ${hostCredentials.username})")
             return hostCredentials
         }

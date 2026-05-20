@@ -31,7 +31,7 @@ abstract class ResourceDao {
     /**
      * S0200 Phase 05: mark every Drive resource as requiring a fresh primary sign-in (or unmark).
      * Used ONLY by [S0200AuthStateWipe] on first launch after upgrade (ADR-6: full legacy
-     * auth-state purge). Sign-out from the primary account must NOT use this — it has to spare
+     * auth-state purge). Sign-out from the primary account must NOT use this - it has to spare
      * secondary multi-account Drive resources (strategic §11.5 / §5.2). Use
      * [markDriveNeedsSignInForCredentials] there instead.
      */

@@ -31,7 +31,7 @@ enum class ChannelPurpose { PLAYBACK, FILE_OPS }
  *
  * One [PooledConnection] per (host, port, user) holds a single JSch [Session] and a list of
  * [PooledChannel]s partitioned by [ChannelPurpose]. The unified design (S0113 Phase 04) eliminates
- * the two-SSH-session problem — PLAYBACK and FILE_OPS channels share one session per account.
+ * the two-SSH-session problem - PLAYBACK and FILE_OPS channels share one session per account.
  *
  * Active borrowers (PLAYBACK streams and FILE_OPS blocks) are tracked via
  * [PooledConnection.activeBorrowCount] so idle cleanup and invalidation never evict a session
@@ -63,7 +63,7 @@ class SftpConnectionPool {
 
     private data class ConnectionKey(val host: String, val port: Int, val username: String)
 
-    /** Unified pool — one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
+    /** Unified pool - one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
     private val pooledSessions = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val poolMutex = Mutex()
@@ -71,7 +71,7 @@ class SftpConnectionPool {
     @Volatile
     private var sweepJob: Job? = null
 
-    /** ExoPlayer-facing wrapper. Both [session] and [channel] are owned by the pool — do not close. */
+    /** ExoPlayer-facing wrapper. Both [session] and [channel] are owned by the pool - do not close. */
     data class ExoPlayerConnection(val session: Session, val channel: ChannelSftp)
 
     // ── Suspend path (FILE_OPS) ──────────────────────────────────────────────────────────────────
@@ -111,8 +111,8 @@ class SftpConnectionPool {
                             actualRetryBorrowed = newPooled
                             return@withContext newPc.mutex.withLock { block(newPc.channel) }
                         }
-                        // S0147: silent TCP drop — isConnected flags stay true but transport is dead.
-                        // S0205: skip retry when the coroutine is being cancelled — "inputstream is
+                        // S0147: silent TCP drop - isConnected flags stay true but transport is dead.
+                        // S0205: skip retry when the coroutine is being cancelled - "inputstream is
                         // closed" can arrive from ConnectionThrottle teardown, not only dead TCP.
                         if (isDeadTransportException(e)) {
                             ensureActive() // throws CancellationException if scope is being cancelled
@@ -237,7 +237,7 @@ class SftpConnectionPool {
             pooledSessions.remove(key)?.let { pooled ->
                 // S0219 Pillar B: session is removed from the map immediately so no new checkout
                 // can see it. If active borrowers still hold a reference, defer the actual
-                // disconnect — the last borrower's finally block calls disconnectOrphan instead.
+                // disconnect - the last borrower's finally block calls disconnectOrphan instead.
                 val deferred = pooled.activeBorrowCount.get() > 0
                 if (!deferred) {
                     try {
@@ -246,7 +246,7 @@ class SftpConnectionPool {
                         Timber.d("SFTP invalidated session with ${pooled.pooledChannels.size} channels")
                     } catch (e: Exception) { Timber.w("Error closing invalidated session: ${e.message}") }
                 } else {
-                    Timber.d("SFTP invalidate deferred for ${key.host} (activeBorrow=${pooled.activeBorrowCount.get()}) — last borrower will disconnect")
+                    Timber.d("SFTP invalidate deferred for ${key.host} (activeBorrow=${pooled.activeBorrowCount.get()}) - last borrower will disconnect")
                 }
             }
         } finally {
@@ -276,7 +276,7 @@ class SftpConnectionPool {
         val keysToRemove = pooledSessions.filter { (_, conn) ->
             val shouldEvict = now - conn.lastUsed > IDLE_TIMEOUT_MS && conn.activeBorrowCount.get() == 0
             if (!shouldEvict && now - conn.lastUsed > IDLE_TIMEOUT_MS) {
-                Timber.d("SFTP [PLAYBACK] idle cleanup skipped — active=${conn.activeBorrowCount.get()}")
+                Timber.d("SFTP [PLAYBACK] idle cleanup skipped - active=${conn.activeBorrowCount.get()}")
             }
             shouldEvict
         }.keys
@@ -346,7 +346,7 @@ class SftpConnectionPool {
                     .firstOrNull { it.purpose == ChannelPurpose.PLAYBACK && it.channel.isConnected }
                 if (existing != null) {
                     pooled.activeBorrowCount.incrementAndGet()
-                    Timber.d("SFTP [PLAYBACK] acquired (reuse) — active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
+                    Timber.d("SFTP [PLAYBACK] acquired (reuse) - active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
                     return ExoPlayerConnection(pooled.session, existing.channel)
                 }
 
@@ -357,15 +357,15 @@ class SftpConnectionPool {
                     pooled.pooledChannels.add(PooledChannel(ch, Mutex(), ChannelPurpose.PLAYBACK))
                     Timber.d("SFTP [PLAYBACK] new channel (total=${pooled.pooledChannels.size}/$MAX_CHANNELS_PER_SESSION)")
                     pooled.activeBorrowCount.incrementAndGet()
-                    Timber.d("SFTP [PLAYBACK] acquired (new channel) — active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
+                    Timber.d("SFTP [PLAYBACK] acquired (new channel) - active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
                     return ExoPlayerConnection(pooled.session, ch)
                 }
 
-                // All PLAYBACK slots taken — reuse first (caller waits on I/O)
+                // All PLAYBACK slots taken - reuse first (caller waits on I/O)
                 val fallback = pooled.pooledChannels.first { it.purpose == ChannelPurpose.PLAYBACK }
                 Timber.d("SFTP [PLAYBACK] all slots busy, reusing first channel")
                 pooled.activeBorrowCount.incrementAndGet()
-                Timber.d("SFTP [PLAYBACK] acquired (fallback) — active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
+                Timber.d("SFTP [PLAYBACK] acquired (fallback) - active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
                 return ExoPlayerConnection(pooled.session, fallback.channel)
             } finally {
                 pooled.openChannelLock.unlock()
@@ -373,7 +373,7 @@ class SftpConnectionPool {
         } catch (e: InterruptedException) {
             // ExoPlayer's Loader.release() interrupts its worker thread; the semaphore acquire
             // then throws InterruptedException. This is orderly cancellation during player teardown,
-            // not a connection failure — log at DEBUG, restore the interrupt flag, propagate as
+            // not a connection failure - log at DEBUG, restore the interrupt flag, propagate as
             // InterruptedIOException so callers (SftpDataSource.read) can short-circuit instead of
             // retrying a doomed reconnect.
             connectionSemaphore.release()
@@ -414,7 +414,7 @@ class SftpConnectionPool {
             session.connect(CONNECTION_TIMEOUT)
             val pooled = PooledConnection(session = session, jsch = jsch)
             pooledSessions[key] = pooled
-            Timber.d("SFTP [PLAYBACK] new unified session created — host=${info.host}")
+            Timber.d("SFTP [PLAYBACK] new unified session created - host=${info.host}")
             return pooled
         }
     }
@@ -446,7 +446,7 @@ class SftpConnectionPool {
             Timber.d("SFTP [PLAYBACK] evicted broken channel, ${pooled.pooledChannels.size} remaining")
             return
         }
-        Timber.d("SFTP [PLAYBACK] eviction skipped — channel not in pool")
+        Timber.d("SFTP [PLAYBACK] eviction skipped - channel not in pool")
     }
 
     // ── InputStream (own-channel, not pooled) ────────────────────────────────────────────────────
@@ -534,7 +534,7 @@ class SftpConnectionPool {
 
     // ── Helpers ──────────────────────────────────────────────────────────────────────────────────
 
-    /** Thread-safe openChannel — serializes via [PooledConnection.openChannelLock] (Research #2). */
+    /** Thread-safe openChannel - serializes via [PooledConnection.openChannelLock] (Research #2). */
     private fun openChannelSafe(pooled: PooledConnection): ChannelSftp {
         pooled.openChannelLock.lock()
         return try {
@@ -591,7 +591,7 @@ class SftpConnectionPool {
     }
 
     /**
-     * Returns true iff [e] is a dead-transport IOException — i.e. the JSch session's underlying
+     * Returns true iff [e] is a dead-transport IOException - i.e. the JSch session's underlying
      * TCP socket is silently broken while JSch's isConnected flags still report true (S0147).
      * SFTP-protocol errors ([com.jcraft.jsch.SftpException]) are not IOExceptions, so they never
      * match here.

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Home Cinema & VR Streaming — FastMediaSorter v2"
+title: "Home Cinema & VR Streaming - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema.html
 ---
 # 🍿 Home Cinema & VR Streaming
@@ -9,9 +9,9 @@ permalink: /docs/howto/scenario-home-cinema.html
 
 [Русский](scenario-home-cinema-ru.md) | [Українська](scenario-home-cinema-uk.md)
 
-Watch your series collection directly from your home PC — on your phone, tablet, or Android-based VR headset (Meta Quest, Pico). No copying files. No USB cables. Just press play.
+Watch your series collection directly from your home PC - on your phone, tablet, or Android-based VR headset (Meta Quest, Pico). No copying files. No USB cables. Just press play.
 
-> **How does this work?** Your phone and PC are on the same home Wi-Fi. The app connects to your PC's shared folder and streams the video directly — just like Netflix streams from their servers, but using your own home network. The video file never gets downloaded to your phone; it plays on-the-fly.
+> **How does this work?** Your phone and PC are on the same home Wi-Fi. The app connects to your PC's shared folder and streams the video directly - just like Netflix streams from their servers, but using your own home network. The video file never gets downloaded to your phone; it plays on-the-fly.
 
 ---
 
@@ -23,7 +23,7 @@ Watch your series collection directly from your home PC — on your phone, table
 
 ---
 
-## Step 1 — Share Your Video Folder on the PC
+## Step 1 - Share Your Video Folder on the PC
 
 First, make the video folder reachable over your home network.
 
@@ -31,17 +31,17 @@ On **Windows:**
 1. Open **File Explorer**, navigate to your video folder (e.g. `D:\Series`)
 2. **Right-click** the folder → **Properties** → **Sharing** tab → click **Share..**
 3. In the dropdown choose **Everyone** (or your username) → click **Add** → click **Share**
-4. Note the IP address of your PC — you'll need it in Step 2
+4. Note the IP address of your PC - you'll need it in Step 2
 
 > **How to find your PC's IP:** press **Win + R**, type `cmd`, press Enter. Type `ipconfig` and press Enter. Find the **IPv4 Address** line under your Wi-Fi adapter. Example: `192.168.1.100`.
 
 ---
 
-## Step 2 — Add the Video Folder in FastMediaSorter
+## Step 2 - Add the Video Folder in FastMediaSorter
 
 1. Open the app → tap **Add (⊕)** → **"Network folder SMB"**
-2. Tap **"Scan Network"** — the app scans your home network for available PCs
-3. When your PC appears in the list, tap it — the address fills in automatically
+2. Tap **"Scan Network"** - the app scans your home network for available PCs
+3. When your PC appears in the list, tap it - the address fills in automatically
 4. Enter the share name (the video folder name), username and Windows password
 5. Tap **Test Connection** → **Save**
 
@@ -50,23 +50,23 @@ On **Windows:**
 
 ---
 
-## Step 3 — Open the Video Folder
+## Step 3 - Open the Video Folder
 
 Tap your newly added resource on the main screen.
 
-Your series folders and video files appear as a grid with thumbnails — just like browsing locally.
+Your series folders and video files appear as a grid with thumbnails - just like browsing locally.
 
-![SMB video folder — episode files (MKV) listed by filename](screenshots/screenshot-hc-step3.png)
+![SMB video folder - episode files (MKV) listed by filename](screenshots/screenshot-hc-step3.png)
 
 ---
 
-## Step 4 — Set Up Auto-Next Episode
+## Step 4 - Set Up Auto-Next Episode
 
-So the next episode starts automatically when one ends — no need to pick the next one manually:
+So the next episode starts automatically when one ends - no need to pick the next one manually:
 
 1. Go back to the main screen → **long-press** your video resource → tap **Edit**
 2. Set **Supported Types** → **Video only** (hides non-video files)
-3. Set **Sort mode** → **Name (A→Z)** — this ensures episodes play in order (Episode 1, 2, 3..)
+3. Set **Sort mode** → **Name (A→Z)** - this ensures episodes play in order (Episode 1, 2, 3..)
 4. Tap **Save**
 
 Then in **Settings → Operations** → enable **"Go to next file after playback"**.
@@ -75,17 +75,17 @@ Then in **Settings → Operations** → enable **"Go to next file after playback
 
 ---
 
-## Step 5 — Start Watching
+## Step 5 - Start Watching
 
 1. Open the folder, navigate into the series subfolder
-2. Tap **Episode 1** — the video player opens immediately and starts streaming
-3. The video plays over Wi-Fi — no waiting for downloads
+2. Tap **Episode 1** - the video player opens immediately and starts streaming
+3. The video plays over Wi-Fi - no waiting for downloads
 
-![Video player full-screen — episode playing with progress bar](screenshots/screenshot-hc-step5.png)
+![Video player full-screen - episode playing with progress bar](screenshots/screenshot-hc-step5.png)
 
 ---
 
-## Step 6 — Controls While Watching
+## Step 6 - Controls While Watching
 
 **Touch gestures during playback:**
 - **Swipe left** → skip to next episode
@@ -94,11 +94,11 @@ Then in **Settings → Operations** → enable **"Go to next file after playback
 - **Pinch** → zoom in or out (useful for widescreen films on a portrait phone)
 - **Double-tap left / right edge** → rewind / fast-forward 10 seconds
 
-When **"Auto-next"** is enabled, the next episode starts automatically when the current one ends — just like Netflix.
+When **"Auto-next"** is enabled, the next episode starts automatically when the current one ends - just like Netflix.
 
 ---
 
-## Step 7 — For VR Headsets (Meta Quest, Pico)
+## Step 7 - For VR Headsets (Meta Quest, Pico)
 
 > **This section is for people with a VR headset (like Meta Quest 2/3 or Pico 4).** If you don't have one, skip this step.
 
@@ -111,7 +111,7 @@ Once installed, the video player works exactly the same:
 - The video fills the **virtual flat screen** inside the headset
 - Use the **controller trigger** to tap buttons
 - Use **thumbstick** to swipe between episodes (if your headset maps media buttons)
-- For regular 2D movies and series — works immediately, no extra setup
+- For regular 2D movies and series - works immediately, no extra setup
 
 > **For VR cinema experience:** you can use a dedicated VR cinema app as a launcher, and then choose "Open with FastMediaSorter" for file management. FastMediaSorter handles the file browsing; the VR cinema app handles immersive 360° display.
 
@@ -119,8 +119,8 @@ Once installed, the video player works exactly the same:
 
 ## Done! What to Try Next
 
-- Add a **Google Drive** or **Dropbox** resource for movies stored in the cloud — works the same way
-- Use **Favorites** (tap the ★ star button while watching) to bookmark your "currently watching" series — jump back to it any time
+- Add a **Google Drive** or **Dropbox** resource for movies stored in the cloud - works the same way
+- Use **Favorites** (tap the ★ star button while watching) to bookmark your "currently watching" series - jump back to it any time
 - **Subtitles:** if your video folder has matching `.srt` subtitle files next to the video files, tap the **CC / subtitle button** in the player toolbar to enable them
 
 ---

@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
  * Resolves filename collisions inside a target directory by appending the current
  * seconds component (`-ss`) to the base name (before the extension).
  *
- * Shared module owned by S0189 (Phase 09). Content-type agnostic — no extension or
+ * Shared module owned by S0189 (Phase 09). Content-type agnostic - no extension or
  * filename pattern assumptions. Consumed by text notes (S0189) and drawings (S0191).
  */
 object FileNameConflictResolver {
@@ -54,7 +54,6 @@ object FileNameConflictResolver {
      * @return pair of (finalName, wasRenamed). `wasRenamed = true` means the suffix was applied.
      */
     fun resolveLocal(parentDir: File, intendedName: String): Pair<String, Boolean> {
-        timber.log.Timber.d("S0189: FileNameConflictResolver.resolveLocal")
         if (!File(parentDir, intendedName).exists()) return Pair(intendedName, false)
         val suffixed = applySecondsSuffix(intendedName)
         return Pair(suffixed, true)

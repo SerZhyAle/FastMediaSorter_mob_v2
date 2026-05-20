@@ -1,8 +1,8 @@
 https://news.ycombinator.com/
 
-PLATFORM: Hacker News — Show HN
+PLATFORM: Hacker News - Show HN
 URL: https://news.ycombinator.com/
-FORMAT: Plain text, HN conventions (no markdown rendered in submission body — title only for submission, context in first comment)
+FORMAT: Plain text, HN conventions (no markdown rendered in submission body - title only for submission, context in first comment)
 NOTE: HN Show HN is title + URL only. The "post" is really the first comment you leave on your own submission.
 
 ---
@@ -24,7 +24,7 @@ FastMediaSorter combines:
 - Native SMB via SMBJ (connection pooling, up to 24 parallel transfer threads, file list caching in Room DB)
 - SFTP via SSHJ, FTP via Apache Commons Net
 - Google Drive, Dropbox, OneDrive (direct API, no intermediate download for playback)
-- ExoPlayer-based video/audio player — streams directly from any source
+- ExoPlayer-based video/audio player - streams directly from any source
 - PDF and EPUB readers that open files from NAS or cloud without downloading first
 - OCR + AR translation overlay on images and PDFs (ML Kit, on-device)
 - Scheduled file operations using WorkManager (cron-style, survives reboots)
@@ -33,7 +33,7 @@ FastMediaSorter combines:
 
 Architecture: MVVM + Clean Architecture, Hilt DI, Kotlin 100%, minSdk 26 (API 23 for Legacy flavor).
 
-The most technically interesting part was making the media player work seamlessly across sources — ExoPlayer's DataSource abstraction handles local and HTTP well, but SMB required a custom DataSource implementation that wraps SMBJ's random-access file handle. SFTP was similar.
+The most technically interesting part was making the media player work seamlessly across sources - ExoPlayer's DataSource abstraction handles local and HTTP well, but SMB required a custom DataSource implementation that wraps SMBJ's random-access file handle. SFTP was similar.
 
 Play Store: https://play.google.com/store/apps/details?id=com.sza.fastmediasorter
 APK: https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp

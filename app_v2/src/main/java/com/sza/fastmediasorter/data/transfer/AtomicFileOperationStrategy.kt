@@ -75,7 +75,7 @@ class AtomicFileOperationStrategy(
         }
 
         // S0231: public collections handle atomicity via MediaStore IS_PENDING in
-        // LocalDestinationWriter — skip the *.temp_copy + rename layer for these paths.
+        // LocalDestinationWriter - skip the *.temp_copy + rename layer for these paths.
         val category = destinationClassifier.classify(destination)
         if (category is LocalDestinationCategory.PublicCollection) {
             return delegate.copyFile(source, destination, overwrite, progressCallback)
@@ -365,7 +365,7 @@ class AtomicFileOperationStrategy(
     
     /**
      * Cleanup temporary file on failure.
-     * Best-effort — logs error but doesn't throw.
+     * Best-effort - logs error but doesn't throw.
      *
      * Runs under NonCancellable so cleanup completes even when the parent scope
      * (e.g. Activity lifecycleScope) is being cancelled mid-copy. Without this,

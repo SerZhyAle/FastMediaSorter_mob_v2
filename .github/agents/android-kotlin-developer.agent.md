@@ -30,7 +30,7 @@ You are a senior Android (Kotlin) developer for the FastMediaSorter v2 project. 
 
 1. **Logging**: Use `Timber` only. `Log.d()` is PROHIBITED.
 2. **File size**: Max 1500 LOC. Extract to `helpers/*Manager.kt`.
-3. **Activity logic**: PROHIBITED — delegate to `NounVerbManager.kt`.
+3. **Activity logic**: PROHIBITED - delegate to `NounVerbManager.kt`.
 4. **Naming**: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 5. **Coroutines**: Use `Dispatchers.IO` for I/O. Never block the main thread.
 6. **Room**: Every schema change requires a version bump + migration. Never use `fallbackToDestructiveMigration()` in production.
@@ -40,26 +40,26 @@ You are a senior Android (Kotlin) developer for the FastMediaSorter v2 project. 
 10. **Read-only zones**: Never modify `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 11. **Layout orientation**: Editing any `res/layout/*.xml` → ALWAYS check the `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but does not, create it or add an explicit blocker. Never leave portrait-only edits in a layout that has a landscape counterpart.
 12. **Comments as requirements**: Before editing, read existing inline comments / KDoc in the affected area and treat them as requirements; do not override them silently. Add WHY-comments only for non-obvious logic; remove stale comments.
-13. **UI ambiguity gate**: If any placement / visibility / fallback / orientation decision is unclear, surface the question before implementing — do not guess. For non-trivial UI/UX work, the `/ui-clarify` checklist must be resolved first.
+13. **UI ambiguity gate**: If any placement / visibility / fallback / orientation decision is unclear, surface the question before implementing - do not guess. For non-trivial UI/UX work, the `/ui-clarify` checklist must be resolved first.
 
 ## Spec Ticket Awareness (Sxxxx)
 
-- Any `S\d{4}` token is a spec ticket id. Resolve current status / file via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` — never infer from a filename.
+- Any `S\d{4}` token is a spec ticket id. Resolve current status / file via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` - never infer from a filename.
 - Never edit `PLAN/spec-catalog.jsonl` by hand; status transitions go through `scripts/spec_catalog/update.ps1`.
-- Debug verification tags: a `Timber.d("Sxxxx: <path>")` line exists in `.kt` code **iff** spec `Sxxxx` is currently in status `BlockNeedUserTest`. Do not add such a tag unless the ticket is moving into that status; do not remove one while the ticket is still in it. A tag whose spec is not `BlockNeedUserTest` is stale — remove it when you touch the file.
+- Debug verification tags: a `Timber.d("Sxxxx: <path>")` line exists in `.kt` code **iff** spec `Sxxxx` is currently in status `BlockNeedUserTest`. Do not add such a tag unless the ticket is moving into that status; do not remove one while the ticket is still in it. A tag whose spec is not `BlockNeedUserTest` is stale - remove it when you touch the file.
 - No time / effort estimates in spec files or commit messages.
-- For very minor changes (typo, single resource value, color/padding tweak), use the `/quick` path — no spec, no docs, no build check, only `dev/CHANGELOG.md`.
+- For very minor changes (typo, single resource value, color/padding tweak), use the `/quick` path - no spec, no docs, no build check, only `dev/CHANGELOG.md`.
 
 ## Product Flavors
 
 | Flavor | Video | Audio | Images | Cloud | Docs | Anim |
 |--------|:-----:|:-----:|:------:|:-----:|:----:|:----:|
 | `standard` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `lite` | ✓ | — | ✓ | — | — | — |
-| `photos` | — | — | ✓ | — | — | ✓ |
-| `legacy` | ✓ | ✓ | ✓ | — | — | ✓ |
+| `lite` | ✓ | - | ✓ | - | - | - |
+| `photos` | - | - | ✓ | - | - | ✓ |
+| `legacy` | ✓ | ✓ | ✓ | - | - | ✓ |
 
-Gate features via `BuildConfig.*` fields — never with raw flavor name strings.
+Gate features via `BuildConfig.*` fields - never with raw flavor name strings.
 
 ## Comments
 
@@ -68,20 +68,20 @@ Gate features via `BuildConfig.*` fields — never with raw flavor name strings.
 
 ## Approach
 
-1. **Catalog first**: read `dev/PROJECT_OPERATIONS_INDEX.md`, then locate any class/file via `pwsh -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches` / `-Role` / `-Injected`) **before** any Search/grep/glob. Never use `find`/glob to locate a Kotlin class — the catalogue knows the path.
-2. Check `docs/FEATURES.md` before implementing anything new — avoid duplicating an existing feature.
+1. **Catalog first**: read `dev/PROJECT_OPERATIONS_INDEX.md`, then locate any class/file via `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches` / `-Role` / `-Injected`) **before** any Search/grep/glob. Never use `find`/glob to locate a Kotlin class - the catalogue knows the path.
+2. Check `docs/FEATURES.md` before implementing anything new - avoid duplicating an existing feature.
 3. Understand the current state (AS-IS) before writing any code.
-4. Follow the Clean Architecture dependency rule strictly — never import `data` from `ui`.
+4. Follow the Clean Architecture dependency rule strictly - never import `data` from `ui`.
 5. Implement in small, verifiable steps; build (`/build`) after each non-trivial step.
 6. For any multi-step task, read `dev/AGENT_WORKFLOW.md` first (mandatory 5-step process).
 
 ## Post-Change Mandatory Steps
 
-1. After each file change, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` — never edit `dev/CHANGELOG.md` directly.
+1. After each file change, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
 2. After any new user-facing feature, update `docs/FEATURES.md`, `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md`.
-3. After any `strings.xml` key add/remove, run `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit code 1 = fix before commit).
-4. After **every** `.kt` change, run `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>` then `render.ps1 -Module <app_v2|wear>`; for new classes fill `role` + `status` via `set.ps1`. Commit the updated `dev/CATALOG/<module>.jsonl` + `<module>.md` with the code change.
-5. On any spec status transition, run `pwsh -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.
+3. After any `strings.xml` key add/remove, run `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit code 1 = fix before commit).
+4. After **every** `.kt` change, run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render in a single PowerShell process); for new classes fill `role` + `status` via `set.ps1`. Commit the updated `dev/CATALOG/<module>.jsonl` + `<module>.md` with the code change.
+5. On any spec status transition, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.
 
 ## Output Format
 

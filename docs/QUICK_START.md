@@ -153,13 +153,13 @@ Settings → Add Folder → **Cloud Storage**
 
 ### Keybinding Remapper
 
-- Settings → **Input** → **Keybindings** — reassign any control to a different key, button, or gamepad input
+- Settings → **Input** → **Keybindings** - reassign any control to a different key, button, or gamepad input
 - 70 built-in defaults; tap **Reset** to restore
 - Press **F1** on any screen to view the active key bindings for that surface
 
 ### Camera Capture
 
-- In Browse, tap the **camera button** in the toolbar to take a photo and save it directly to the current resource — local or network
+- In Browse, tap the **camera button** in the toolbar to take a photo and save it directly to the current resource - local or network
 
 ### Link Auto-Download
 

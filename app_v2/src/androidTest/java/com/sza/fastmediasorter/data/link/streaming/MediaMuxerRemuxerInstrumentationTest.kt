@@ -13,13 +13,13 @@ import java.io.File
 /**
  * S0116 Phase 03 step 9: instrumentation suite for [MediaMuxerRemuxer].
  *
- * Robolectric does not shadow `MediaMuxer` / `MediaExtractor` — these need real
+ * Robolectric does not shadow `MediaMuxer` / `MediaExtractor` - these need real
  * platform native code, hence `@RunWith(AndroidJUnit4)` + a connected device or
  * emulator (gradle task `connectedStandardDebugAndroidTest`).
  *
  * Fixtures live in `androidTest/assets/s0116_fixtures/` and are PLACEHOLDERS by
  * default (see fixture README). When the fixture is empty/absent the test skips
- * via `assumeTrue` rather than failing — replace the placeholders with real
+ * via `assumeTrue` rather than failing - replace the placeholders with real
  * media bytes to exercise the cases.
  */
 @RunWith(AndroidJUnit4::class)
@@ -33,7 +33,7 @@ class MediaMuxerRemuxerInstrumentationTest {
     @Test
     fun `avc_aac fixture remuxes to MP4`() {
         val segment = copyFixture("tiny_avc_aac.ts")
-        assumeTrue("Fixture is a placeholder — populate per assets/s0116_fixtures/README.md", isRealFixture(segment))
+        assumeTrue("Fixture is a placeholder - populate per assets/s0116_fixtures/README.md", isRealFixture(segment))
         val output = tempFolder.newFile("out_avc_aac.mp4")
         val bundle = SegmentBundle(
             manifestFile = segment,
@@ -48,7 +48,7 @@ class MediaMuxerRemuxerInstrumentationTest {
     @Test
     fun `opus fixture reports MuxFailed with codec hint`() {
         val segment = copyFixture("tiny_opus.webm")
-        assumeTrue("Fixture is a placeholder — populate per assets/s0116_fixtures/README.md", isRealFixture(segment))
+        assumeTrue("Fixture is a placeholder - populate per assets/s0116_fixtures/README.md", isRealFixture(segment))
         val output = tempFolder.newFile("out_opus.mp4")
         val bundle = SegmentBundle(
             manifestFile = segment,

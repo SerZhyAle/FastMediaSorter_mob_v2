@@ -178,7 +178,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     }
 
     /**
-     * S0200 — host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
+     * S0200 - host-aware router. Google-domain URLs go to Chrome Custom Tabs; everything else
      * keeps the legacy WebView flow. CCT-unavailable triggers the refusal dialog.
      */
     private fun openAuthWebView(url: String, tag: String) {

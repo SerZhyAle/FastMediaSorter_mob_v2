@@ -17,7 +17,7 @@ import java.net.URL
 /**
  * Owns Drive HTTP token plumbing for GoogleDriveRestClient.
  *
- * S0200 Phase 04b — token source switched to [GoogleIdentityRepository] (Credential Manager).
+ * S0200 Phase 04b - token source switched to [GoogleIdentityRepository] (Credential Manager).
  * Old `GoogleSignIn` / `GoogleAuthUtil` calls are replaced by `identityRepository.getAccessToken`
  * and `invalidateToken`. Cached `accessToken` is kept as a synchronous read accessor for the
  * RestClient hot path; it is refreshed via [fetchTokenFromIdentity] on every suspend entry point.
@@ -74,7 +74,7 @@ class GoogleDriveAuthCoordinator(
     }
 
     /**
-     * Silent sign-in via identity domain — invalidate cached token, request a fresh one.
+     * Silent sign-in via identity domain - invalidate cached token, request a fresh one.
      * [webClientIdResId] is accepted for legacy API compatibility; Credential Manager owns the
      * client-id configuration so the parameter is ignored.
      */
@@ -96,7 +96,7 @@ class GoogleDriveAuthCoordinator(
     /**
      * Issue a Drive token from the currently bound primary account. Falls back to silent refresh
      * via [identityRepository.getAccessToken]. Returns AuthResult.Error when the primary account
-     * is unbound — caller surfaces this so the user signs in through the Settings card.
+     * is unbound - caller surfaces this so the user signs in through the Settings card.
      */
     suspend fun authenticate(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int): AuthResult {
         val token = fetchTokenFromIdentity()
@@ -124,7 +124,7 @@ class GoogleDriveAuthCoordinator(
     }
 
     /**
-     * S0200 Phase 04b: existing call from RestClient.initialize() — identity-domain owns the
+     * S0200 Phase 04b: existing call from RestClient.initialize() - identity-domain owns the
      * persistence of the primary account; this just verifies that a Drive token is reachable now.
      */
     @Suppress("UNUSED_PARAMETER")

@@ -30,7 +30,7 @@ class KeyboardShortcutHandler(
     private val surface: InputSurface,
     private val dispatcher: ActionDispatcher,
     // Optional: when provided, PLAYER/VR_PLAYER surface resolves via the binding system.
-    // Pass null (default) for all other surfaces — they retain legacy inline mapping.
+    // Pass null (default) for all other surfaces - they retain legacy inline mapping.
     private val keyBindingManager: KeyBindingManager? = null,
 ) {
 
@@ -146,7 +146,7 @@ class KeyboardShortcutHandler(
     /**
      * Test-facing entry point. [metaState] must use `KeyEvent.META_*`
      * bit flags. Visible for unit tests to avoid depending on the
-     * Android framework stubs — see `KeyboardShortcutHandlerTest`.
+     * Android framework stubs - see `KeyboardShortcutHandlerTest`.
      */
     internal fun mapToAction(keyCode: Int, metaState: Int): InputAction? {
         val ctrl = (metaState and KeyEvent.META_CTRL_ON) != 0
@@ -233,7 +233,7 @@ class KeyboardShortcutHandler(
         if (!ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_DEL) {
             return InputAction.BackOneLevel
         }
-        // Ctrl+P — Play Random (reshuffle + start player); only meaningful when the button is
+        // Ctrl+P - Play Random (reshuffle + start player); only meaningful when the button is
         // visible (single-type library), but key is registered unconditionally and the handler
         // in BrowseManagerInitializer shows a toast when the action is unavailable.
         if (ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_P) {

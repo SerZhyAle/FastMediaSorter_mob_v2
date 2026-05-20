@@ -1,11 +1,8 @@
 package com.sza.fastmediasorter.ui.keybinding
 
-import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +10,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemKeybindingRowBinding
 import com.sza.fastmediasorter.domain.input.CommandGroup
 import com.sza.fastmediasorter.domain.input.InputTrigger
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 
 sealed class KeybindingListItem {
@@ -57,16 +55,15 @@ class KeybindingListAdapter(
 
     // ----- ViewHolders -----
 
-    inner class HeaderViewHolder(private val container: LinearLayout) : RecyclerView.ViewHolder(container) {
-        private val label: TextView = container.getChildAt(0) as TextView
-        private val resetBtn: ImageView = container.getChildAt(1) as ImageView
+    inner class HeaderViewHolder(private val header: CollapsibleSectionHeader) : RecyclerView.ViewHolder(header) {
+        private val resetBtn: ImageView = header.tag as ImageView
 
         fun bind(item: KeybindingListItem.Header) {
-            val prefix = if (item.isExpanded) "▼" else "▶"
             val groupResName = "keybinding_group_" + item.group.name.lowercase()
             val groupLabel = formatter.resolveGroupLabel(groupResName)
-            label.text = "$prefix  $groupLabel"
-            container.setOnClickListener { onGroupHeaderClick(item.group) }
+            header.setTitle(groupLabel)
+            header.setExpanded(item.isExpanded, notify = false)
+            header.setOnExpandedChangeListener { _ -> onGroupHeaderClick(item.group) }
             resetBtn.setOnClickListener { onGroupResetClick(item.group) }
         }
     }
@@ -108,28 +105,12 @@ class KeybindingListAdapter(
 
     // ----- helpers -----
 
-    private fun createHeaderView(parent: ViewGroup): LinearLayout {
+    private fun createHeaderView(parent: ViewGroup): CollapsibleSectionHeader {
         val ctx = parent.context
         val dp = (ctx.resources.displayMetrics.density * 12).toInt()
-        val container = LinearLayout(ctx).apply {
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
-            setBackgroundColor(
-                ctx.obtainStyledAttributes(intArrayOf(com.google.android.material.R.attr.colorSurfaceVariant))
-                    .run { getColor(0, 0xFFEEEEEE.toInt()).also { recycle() } }
-            )
-            setPadding(dp, dp / 2, dp / 2, dp / 2)
-        }
-
-        val labelView = TextView(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            setTypeface(null, Typeface.BOLD)
-            textSize = 13f
-        }
 
         val resetIcon = ImageView(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(dp * 3, dp * 3)
+            layoutParams = ViewGroup.LayoutParams(dp * 3, dp * 3)
             setImageResource(R.drawable.ic_refresh)
             val attrs = intArrayOf(android.R.attr.selectableItemBackgroundBorderless)
             background = ctx.obtainStyledAttributes(attrs).run { getDrawable(0).also { recycle() } }
@@ -138,9 +119,14 @@ class KeybindingListAdapter(
             contentDescription = ctx.getString(R.string.keybinding_row_reset)
         }
 
-        container.addView(labelView)
-        container.addView(resetIcon)
-        return container
+        return CollapsibleSectionHeader(ctx).apply {
+            layoutParams = RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+            setTrailingControl(resetIcon)
+            tag = resetIcon
+        }
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<KeybindingListItem>() {

@@ -1,4 +1,4 @@
-# Design Brief: Google Play Store Assets — Fast Media Sorter
+# Design Brief: Google Play Store Assets - Fast Media Sorter
 
 **Version:** 1.0 (S0135)
 **Date:** 2026-05-13
@@ -6,10 +6,10 @@
 
 ---
 
-## 1. App Icon — 512 × 512 px
+## 1. App Icon - 512 × 512 px
 
 **Format:** PNG, 32-bit RGBA, transparent background
-**Style:** Symbol-only — no text, no wordmark inside the icon
+**Style:** Symbol-only - no text, no wordmark inside the icon
 **Core motif:** Rising arrows (upward/diagonal, 2–3 arrows) in a blue gradient
   - Base colour: #1565C0 (deep blue)
   - Highlight colour: #42A5F5 (light blue)
@@ -20,19 +20,19 @@
 
 ### Acceptance criteria
 - Passes readability check at 48 dp (export at 3× and inspect at 64 px)
-- Passes greyscale conversion — arrows remain distinguishable from background
+- Passes greyscale conversion - arrows remain distinguishable from background
 - No text or letterforms visible inside the icon boundary
 
 ---
 
-## 2. Feature Graphic — 1024 × 500 px
+## 2. Feature Graphic - 1024 × 500 px
 
 **Format:** PNG or JPG, sRGB
 **Layout (left to right):**
   - Left 30%: app icon (centred vertically, ~200 px)
   - Centre 40%: headline text (see copy below)
   - Right 30%: phone mockup showing the Browse / Sort screen (portrait phone frame, cropped if needed)
-**Background:** dark theme — #0D1B2A (navy) or a subtle dark gradient
+**Background:** dark theme - #0D1B2A (navy) or a subtle dark gradient
 **Headline copy:**
   - EN: "Sort photos & videos in seconds"
   - RU: "Сортируй фото и видео за секунды"
@@ -47,7 +47,7 @@
 
 ---
 
-## 3. Screenshots — 6 Slots × 3 Locales = 18 Files
+## 3. Screenshots - 6 Slots × 3 Locales = 18 Files
 
 **Format:** PNG, sRGB, no alpha
 **Dimensions:** portrait phone, 1080 × 1920 px minimum (up to 1440 × 2560)
@@ -58,43 +58,43 @@
   - Contrast ratio of text over plaque ≥ 4.5:1 (WCAG AA)
   - Text max 2 lines; fits within 90% of screen width
 
-**Screenshot sequence (fixed — do not reorder):**
+**Screenshot sequence (fixed - do not reorder):**
 
-### Slot 1 — Sorting in action
+### Slot 1 - Sorting in action
 **Source screen:** Browse screen with files visible, one file selected / mid-operation
 **Overlay EN:** "Sort thousands of files in minutes"
-**Overlay RU:** "Тысячи файлов — отсортированы за минуты"
-**Overlay UK:** "Тисячі файлів — відсортовані за хвилини"
+**Overlay RU:** "Тысячи файлов - отсортированы за минуты"
+**Overlay UK:** "Тисячі файлів - відсортовані за хвилини"
 
-### Slot 2 — One-tap gesture
+### Slot 2 - One-tap gesture
 **Source screen:** Close-up of the sort-destination button bar (tap targets visible)
-**Overlay EN:** "One tap — file moved. That's it."
-**Overlay RU:** "Одно нажатие — файл перемещён"
-**Overlay UK:** "Одне натискання — файл переміщено"
+**Overlay EN:** "One tap - file moved. That's it."
+**Overlay RU:** "Одно нажатие - файл перемещён"
+**Overlay UK:** "Одне натискання - файл переміщено"
 
-### Slot 3 — Format support
+### Slot 3 - Format support
 **Source screen:** Browse screen showing a mix of photo, video, GIF, audio, and document thumbnails
-**Overlay EN:** "Photos · Videos · Audio · Docs — one app"
-**Overlay RU:** "Фото · Видео · Аудио · Документы — одно приложение"
-**Overlay UK:** "Фото · Відео · Аудіо · Документи — один додаток"
+**Overlay EN:** "Photos · Videos · Audio · Docs - one app"
+**Overlay RU:** "Фото · Видео · Аудио · Документы - одно приложение"
+**Overlay UK:** "Фото · Відео · Аудіо · Документи - один додаток"
 
-### Slot 4 — Storage sources
+### Slot 4 - Storage sources
 **Source screen:** Add resource screen OR a composite showing SMB/SFTP/FTP/GDrive/OneDrive/Dropbox icons
 **Overlay EN:** "Local · SMB · SFTP · FTP · Cloud"
 **Overlay RU:** "Локально · SMB · SFTP · FTP · Облако"
 **Overlay UK:** "Локально · SMB · SFTP · FTP · Хмара"
 
-### Slot 5 — Before / After
-**Source screen:** Split composition — left: unsorted cluttered folder; right: named subfolders tidy
-**Overlay EN:** "From chaos to order — in minutes"
-**Overlay RU:** "Из хаоса в порядок — за минуты"
-**Overlay UK:** "З хаосу в порядок — за хвилини"
+### Slot 5 - Before / After
+**Source screen:** Split composition - left: unsorted cluttered folder; right: named subfolders tidy
+**Overlay EN:** "From chaos to order - in minutes"
+**Overlay RU:** "Из хаоса в порядок - за минуты"
+**Overlay UK:** "З хаосу в порядок - за хвилини"
 
-### Slot 6 — Settings (one screen only, not first)
-**Source screen:** Settings screen — minimal, readable, not cluttered
+### Slot 6 - Settings (one screen only, not first)
+**Source screen:** Settings screen - minimal, readable, not cluttered
 **Overlay EN:** "Configure once, sort forever"
-**Overlay RU:** "Настроил один раз — сортируй всегда"
-**Overlay UK:** "Налаштував один раз — сортуй завжди"
+**Overlay RU:** "Настроил один раз - сортируй всегда"
+**Overlay UK:** "Налаштував один раз - сортуй завжди"
 
 ---
 

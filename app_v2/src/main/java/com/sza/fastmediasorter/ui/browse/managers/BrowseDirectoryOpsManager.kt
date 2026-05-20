@@ -22,7 +22,7 @@ import timber.log.Timber
  * - Rename an existing directory.
  * - Emit user-visible success/error events and trigger a full resource reload.
  *
- * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
 class BrowseDirectoryOpsManager(
     private val context: Context,

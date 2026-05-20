@@ -41,7 +41,7 @@ class FileCopyProgressDialog(
             binding.progressText.text = "$progress%"
         } else {
             binding.progressBar.isIndeterminate = true
-            binding.progressText.text = "—"
+            binding.progressText.text = "-"
         }
 
         binding.speedText.text = formatSpeed(speedBytesPerSec)
@@ -50,7 +50,7 @@ class FileCopyProgressDialog(
     fun showIndeterminate() {
         if (!this::binding.isInitialized) return
         binding.progressBar.isIndeterminate = true
-        binding.progressText.text = "—"
+        binding.progressText.text = "-"
         binding.speedText.text = ""
     }
 

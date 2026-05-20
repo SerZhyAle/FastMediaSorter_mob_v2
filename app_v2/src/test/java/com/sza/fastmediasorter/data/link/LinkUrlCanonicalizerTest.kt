@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * S0190 — verifies that URL canonicalization rewrites the well-known YouTube
+ * S0190 - verifies that URL canonicalization rewrites the well-known YouTube
  * equivalents (music.youtube.com, m.youtube.com, /shorts/) to the canonical
  * `www.youtube.com/watch?v=<id>` form, while leaving everything else untouched.
  */
@@ -79,7 +79,7 @@ class LinkUrlCanonicalizerTest {
     @Test
     fun shorts_host_case_insensitive() {
         val rewritten = canonicalizer.canonicalize("https://WWW.YouTube.COM/shorts/abc123")
-        // Host is case-insensitive — HttpUrl lowercases it automatically.
+        // Host is case-insensitive - HttpUrl lowercases it automatically.
         assertEquals("https://www.youtube.com/watch?v=abc123", rewritten.url)
     }
 

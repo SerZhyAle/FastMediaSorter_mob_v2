@@ -64,8 +64,8 @@ class StandalonePlayerViewModel @Inject constructor(
 
     fun setStereoMode(mode: StereoMode) = stereoCoordinator.setStereoMode(mode)
 
-    fun rememberStereoModeIfEnabled(mode: StereoMode) =
-        stereoCoordinator.rememberStereoModeIfEnabled(mode)
+    fun rememberStereoModeForCurrentFile(mode: StereoMode) =
+        stereoCoordinator.rememberStereoModeForCurrentFile(mode)
 
     fun setAutoDetectedStereoMode(mode: StereoMode) =
         stereoCoordinator.setAutoDetectedStereoMode(mode)

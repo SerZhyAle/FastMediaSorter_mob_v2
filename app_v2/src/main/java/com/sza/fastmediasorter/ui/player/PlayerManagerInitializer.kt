@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.R
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager
@@ -92,6 +93,79 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         }
     }
 
+    /**
+     * S0242 Phase 02: convert a queue-succeeded [PlayerFileOperation] into the matching
+     * [Mutation] variant and append it to the journal.
+     *
+     * Variant selection:
+     * - [PlayerFileOperation.Delete] → [Mutation.Delete].
+     * - [PlayerFileOperation.MoveToResource] → [Mutation.Move] across resources.
+     * - [PlayerFileOperation.MoveToPath] → [Mutation.Move] within the same resource (src == dst).
+     * - [PlayerFileOperation.Rename] → [Mutation.Rename] (same resource, file name only).
+     *
+     * Skipped silently when no resource is bound - without a resource id the entry is unroutable.
+     */
+    private fun recordQueuedOperationMutation(op: PlayerFileOperation) {
+        val lifecycleManager = activity.lifecycleManager
+        val resourceId = lifecycleManager.currentResourceId() ?: return
+        val resourceType = lifecycleManager.currentResourceType() ?: return
+        val normalizer = lifecycleManager.pathNormalizer()
+        val opId = UUID.randomUUID().toString()
+        val timestamp = System.currentTimeMillis()
+
+        val mutation: Mutation = when (op) {
+            is PlayerFileOperation.Delete -> Mutation.Delete(
+                resourceId = resourceId,
+                canonicalPath = normalizer.canonical(op.sourcePath, resourceType),
+                opId = opId,
+                timestampMs = timestamp,
+            )
+            is PlayerFileOperation.MoveToResource -> {
+                val destPath = joinPath(op.destination.path, op.sourceName)
+                val dstResourceId = op.destination.id
+                val dstResourceType = op.destination.type
+                Mutation.Move(
+                    resourceId = resourceId,
+                    srcResourceId = resourceId,
+                    dstResourceId = dstResourceId,
+                    oldCanonicalPath = normalizer.canonical(op.sourcePath, resourceType),
+                    newCanonicalPath = normalizer.canonical(destPath, dstResourceType),
+                    opId = opId,
+                    timestampMs = timestamp,
+                )
+            }
+            is PlayerFileOperation.MoveToPath -> {
+                val destPath = joinPath(op.destinationPath, op.sourceName)
+                Mutation.Move(
+                    resourceId = resourceId,
+                    srcResourceId = resourceId,
+                    dstResourceId = resourceId,
+                    oldCanonicalPath = normalizer.canonical(op.sourcePath, resourceType),
+                    newCanonicalPath = normalizer.canonical(destPath, resourceType),
+                    opId = opId,
+                    timestampMs = timestamp,
+                )
+            }
+            is PlayerFileOperation.Rename -> {
+                val newPath = buildRenamedPath(op.sourcePath, op.newName)
+                Mutation.Rename(
+                    resourceId = resourceId,
+                    oldCanonicalPath = normalizer.canonical(op.sourcePath, resourceType),
+                    newCanonicalPath = normalizer.canonical(newPath, resourceType),
+                    opId = opId,
+                    timestampMs = timestamp,
+                )
+            }
+        }
+        lifecycleManager.recordMutation(mutation)
+    }
+
+    /** Join a directory path and a basename with exactly one `/`. */
+    private fun joinPath(dir: String, name: String): String {
+        val trimmed = dir.trimEnd('/')
+        return "$trimmed/$name"
+    }
+
     private fun initPrefetchManager() {
         activity.playerPrefetchManager = PlayerPrefetchManager(activity)
         activity.playerPrefetchManager.setup()
@@ -102,7 +176,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         activity.backgroundMusicManager.setOnTrackChangedListener { trackName ->
             activity.runOnUiThread {
-                // dialogAndUiStateManager is initialized in initUiCoordinators() — safe here (deferred)
+                // dialogAndUiStateManager is initialized in initUiCoordinators() - safe here (deferred)
                 activity.dialogAndUiStateManager.updateBackgroundMusicTrackDisplay(trackName)
             }
         }
@@ -225,8 +299,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.imageDrawOverlayManager.baseBitmapProvider = { activity.viewModel.currentDisplayedBitmap }
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
         activity.setupDrawOverlaySaveCallback()
-        // S0192 Phase 06 — wire in-place save callback for the `[Save]` button
-        activity.setupDrawOverlayInPlaceSaveCallback()
+        activity.setupDrawOverlayActionCallbacks()
         activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
             activity = activity,
             safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)
@@ -405,7 +478,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     // S0226: Persist lastViewedFile immediately after the optimistic advance so that
                     // a new player session opened before the debounced save (5 s) fires lands on the
                     // correct next file instead of the now-deleted one. Skip when the list had only
-                    // one file — nextFile() wraps back to the same path and the Activity will finish
+                    // one file - nextFile() wraps back to the same path and the Activity will finish
                     // when the delete completes anyway.
                     val nextPath = activity.viewModel.state.value.currentFile?.path
                     if (nextPath != null && nextPath != deletedFilePath) {
@@ -469,7 +542,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                                 event.op.sourcePath,
                                 event.processedCount,
                             )
-                            activity.lifecycleManager.trackModifiedFile(event.op.sourcePath)
+                            // S0242 Phase 02: route queue-succeeded operations through the
+                            // MutationJournal so the Browse Reconciler sees them on its next
+                            // onResume. Variant is selected by op kind.
+                            recordQueuedOperationMutation(event.op)
                             showSuccessToast(event.op)
                         }
 
@@ -488,7 +564,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                             )
                             if (event.retryable && !activity.isFinishing && !activity.isDestroyed) {
                                 // When batch-delete permission is denied on a Move, the upload already
-                                // completed — the file exists at the destination. Show a specific message
+                                // completed - the file exists at the destination. Show a specific message
                                 // instead of the generic "couldn't move" to avoid confusion.
                                 val isMovePermissionDenied = event.message == "permission_denied" &&
                                     (event.op is PlayerFileOperation.MoveToResource || event.op is PlayerFileOperation.MoveToPath)
@@ -503,7 +579,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                                     Snackbar.LENGTH_LONG,
                                 )
                                 // Retry is not useful for permission_denied on Move (the file is already
-                                // at the destination) — do not offer retry in that case.
+                                // at the destination) - do not offer retry in that case.
                                 if (!isMovePermissionDenied) {
                                     snackbar.setAction(activity.getString(R.string.action_retry).uppercase()) {
                                         activity.playerFileOperationQueue.enqueue(cloneQueuedOperation(event.op))
@@ -751,7 +827,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
 
         // Observe stereoMode StateFlow and apply GL effects to the player whenever it changes.
-        // Runs on Main dispatcher (lifecycleScope default) — safe for ExoPlayer.setVideoEffects().
+        // Runs on Main dispatcher (lifecycleScope default) - safe for ExoPlayer.setVideoEffects().
         activity.lifecycleScope.launch {
             activity.viewModel.stereoMode
                 .filter { it != StereoMode.AUTO }
@@ -775,7 +851,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             }
         }
 
-        // Observe panelStereoSingleEye flag — toggle stereo crop on the currently displayed image
+        // Observe panelStereoSingleEye flag - toggle stereo crop on the currently displayed image
         // without a fresh navigation (spec_panel-stereo-single-eye §3.1.1).
         activity.lifecycleScope.launch {
             activity.settingsRepository.getSettings()
@@ -1005,7 +1081,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 "dropbox" to activity.dropboxClient
             ),
             playbackPositionRepository = activity.playbackPositionRepository,
-            // S0213 Pillar A: cooldown gate at playVideo entry — short-circuits decoder-error replays.
+            // S0213 Pillar A: cooldown gate at playVideo entry - short-circuits decoder-error replays.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
         )
     }
@@ -1050,7 +1126,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.dialogAndUiStateManager.audioSlideshowPhotoModeManager =
             activity.audioSlideshowPhotoModeManager
 
-        // Wire FilenameOverlayAutoHideManager — controls auto-hide timing for tvFileNameOverlay.
+        // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay.
         // Use actual command-panel visibility rather than raw showCommandPanel state,
         // because audio can force the panel visible while the ViewModel flag stays false.
         activity.dialogAndUiStateManager.filenameOverlayManager = FilenameOverlayAutoHideManager(
