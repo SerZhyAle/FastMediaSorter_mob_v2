@@ -12121,3 +12121,4 @@ Format: | datetime | file | target | description |
 | 2026-05-20 14:03:34 | `dev/Q/index.html` | `dev/Q audit page` | Reworked the audit comparison page into a visual summary dashboard with accessible tabs and consensus sections [branch: DEBUG-v004] |
 | 2026-05-20 14:19:03 | `.github/workflows/jekyll-gh-pages.yml` | `GitHub Pages build` | Publish dev/Q/index.html as standalone /q/ page during Pages build [branch: temp/publish-q-page] |
 | 2026-05-20 14:25:57 | `dev/Q/index.html` | `Q public page copy` | Rewrite internal repo-facing wording into public standalone page copy for GitHub Pages [branch: temp/q-public-copy] |
+| 2026-05-20 14:31:00 | `dev/Q/index.html` | `Q public page copy` | Rewrite the full public copy of the AI audit board page for standalone GitHub Pages reading [branch: temp/q-public-full-copy] |
