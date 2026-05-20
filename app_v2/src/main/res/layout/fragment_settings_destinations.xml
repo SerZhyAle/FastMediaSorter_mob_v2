@@ -267,11 +267,13 @@
 
                     <!-- Top toolbar: Add + Log buttons -->
                     <LinearLayout
+                        android:id="@+id/layoutScheduledActions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:orientation="horizontal"
-                        android:layout_marginTop="@dimen/margin_tiny">
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:visibility="gone">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnAddScheduledOp"

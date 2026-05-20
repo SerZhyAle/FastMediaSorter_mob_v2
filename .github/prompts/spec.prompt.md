@@ -30,6 +30,24 @@ Do not allocate a ticket id until both arguments are valid.
 
 Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by `scripts/spec_catalog/insert.ps1` - see "Spec Catalog hooks" below). No `_spec_` segment in the filename. Tactical folder created separately by `/spec-tech` at `PLAN/Sxxxx_<short-name>/`.
 
+## Strategic Draft approval gate
+
+A newly written strategic spec MUST stay `Draft` until the owner input gate is complete. `/spec` never auto-promotes a fresh strategic draft just because the file was created.
+
+Before `Draft` → `Approved`, the spec must contain `## 0. Approval Gate (owner input)` with every mandatory characteristic sourced from the human request:
+
+- Requested mode (`research` / `review` / `spec` / `implementation`)
+- Goal / expected outcome
+- Local anchor (`Sxxxx`, symptom, failing command, screen, file, log, or another concrete start point)
+- Scope boundaries / forbidden areas
+- Done / success signal
+- Autonomy rule (`ask on ambiguity` or `agent may decide with explicit assumptions`)
+- UI decisions or explicit delegation for user-visible UI work (`N/A` for non-UI tasks)
+
+Each line in `§0` must be marked `Provided by user`, `Delegated by user`, or `MISSING - requires owner input`. `Inferred by agent` never qualifies a draft for promotion to `Approved`.
+
+The current `/spec` invocation counts as a request to author the draft, not as approval to proceed. Promotion to `Approved` requires either an explicit follow-up approval from the user or an explicit human-triggered `/spec-tech <Sxxxx>` on a draft whose `§0` gate is complete.
+
 ---
 
 ## Process
@@ -114,13 +132,24 @@ The `name` field in the journal is the **bare slug** - no `spec_` prefix. Curren
 
 > **Communication policy note:** If the spec scope touches user-visible strings (toasts, errors, dialogs, empty states, CTAs), include a constraint in §3.2 requiring compliance with `docs/COMMUNICATION_POLICY.md`. Reference the tone checklist (§6 of the policy) as a mandatory gate before string integration.
 
+When filling the template, populate `§0 Approval Gate` only from the user request. Unknown items must stay `MISSING - requires owner input`.
+
 ```powershell
 & pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
 
-**6 - Auto-approve and run dev log.**
+**6 - Keep the spec in `Draft`, record the dev log, and stop at the owner gate by default.**
 
-Immediately after writing the file, advance `Status: Draft` → `Status: Approved` in the spec file and in the journal:
+Do **not** auto-promote a newly written strategic draft.
+
+Normal `/spec` behavior ends here with `Status: Draft`. If any `§0` item is `MISSING`, list those items in chat and mirror unresolved ones into `§6` as `Status: Open` when that helps the next review pass.
+
+Only when **both** conditions are true may the draft be promoted in the same run:
+
+1. Every mandatory `§0` item is complete and marked `Provided by user` or `Delegated by user`.
+2. The current user turn explicitly asks to approve/proceed past the draft. A plain `/spec ...` request does not count.
+
+In that rare case, advance `Status: Draft` → `Status: Approved` in the spec file and in the journal:
 
 ```powershell
 # patch Status line in spec file
@@ -137,11 +166,15 @@ Then record the dev log:
 .\scripts\add_to_dev_log.ps1 "PLAN/<Sxxxx>_<short-name>.md" "spec" "Add strategic spec <Sxxxx> for <id>"
 ```
 
-**7 - Auto-chain to `/spec-tech`.** *(COMPLEX path only - skip if PRIMITIVE path was taken in step 2.5.)*
+**7 - Conditional chain to `/spec-tech`.** *(COMPLEX path only - skip if PRIMITIVE path was taken in step 2.5.)*
 
-Without waiting for the user, immediately invoke `/spec-tech <Sxxxx>` to break the approved spec into phases. The only exception: if any §6 Research item is marked `Status: Open` with a note that human research is required before implementation - list those items and ask whether to proceed. Otherwise proceed automatically.
+Never auto-chain from a freshly created `Draft`.
 
-**Chat output:** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Approved. → Running /spec-tech…`
+Invoke `/spec-tech <Sxxxx>` only after the spec is already `Approved`. The normal path is: `/spec` writes the draft, the owner reviews/fills `§0`, then the owner explicitly invokes `/spec-tech <Sxxxx>` to approve and continue. If any `§6` Research item is marked `Status: Open` with a note that human research is required before implementation, list those items and stop.
+
+**Chat output (default):** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Draft. Waiting for owner approval gate.`
+
+**Chat output (only when explicitly approved in the same turn):** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Approved. → Running /spec-tech…`
 
 ---
 
@@ -172,6 +205,20 @@ Block states (any active spec may transition into one of these and back via `upd
 **Tactical spec:** `PLAN/<Sxxxx>_<short-name>/` (будет создан через `/spec-tech`)
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
+
+---
+
+## 0. Approval Gate (owner input)
+
+- **Requested mode:** <Provided by user | Delegated by user | MISSING - requires owner input> - <research / review / spec / implementation>
+- **Goal / expected outcome:** <Provided by user | Delegated by user | MISSING - requires owner input> - <value>
+- **Local anchor:** <Provided by user | Delegated by user | MISSING - requires owner input> - <ticket / symptom / file / screen / command / log>
+- **Scope boundaries / forbidden areas:** <Provided by user | Delegated by user | MISSING - requires owner input> - <value>
+- **Done / success signal:** <Provided by user | Delegated by user | MISSING - requires owner input> - <value>
+- **Autonomy rule:** <Provided by user | Delegated by user | MISSING - requires owner input> - <ask on ambiguity | agent may decide with explicit assumptions>
+- **UI decisions / delegation:** <Provided by user | Delegated by user | MISSING - requires owner input | N/A> - <placement / visibility / orientation / fallback decisions or explicit delegation>
+
+`Approved` is blocked while any mandatory line in this section contains `MISSING - requires owner input`.
 
 ---
 
@@ -303,9 +350,10 @@ Block states (any active spec may transition into one of these and back via `upd
 ## Constraints
 
 - Language and format: Body in Russian. Frontmatter, code identifiers, and file paths in English. Use `..`, not `...`. Always use `ё`/`Ё`.
+- §0 approval gate is mandatory for every new strategic draft. Missing owner-input lines block `Approved`.
 - §5: no class names, file paths, line budgets, Room versions, Hilt modules - architectural roles only. Strategic scope stays at architecture-role level only.
 - §11: observable outcomes only, no internal architecture claims.
-- Required sections: §6 and §7 are mandatory even if trivial - write explicit "нет" rather than skipping. Sections §10 and §11 must not be omitted - write "No changes" if not applicable.
+- Required sections: §0, §6, and §7 are mandatory even if trivial - write explicit values / `нет` rather than skipping. Sections §10 and §11 must not be omitted - write `No changes` if not applicable.
 - Output hygiene: do not duplicate existing `docs/FEATURES.md` entries.
 - Repo boundaries: never reference read-only zones `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Conditional notes: if the feature adds new dependency wiring, mention the need in §5.3 only at the architectural-role level and defer concrete Hilt module/file details to `/spec-tech`. If the feature has `BuildConfig`-gated behavior, note the product constraint or flavor gate in §3.2 and defer concrete flag/file details to `/spec-tech`.

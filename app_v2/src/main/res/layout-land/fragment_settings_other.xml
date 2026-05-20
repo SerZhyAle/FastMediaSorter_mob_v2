@@ -5,50 +5,62 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
 
-        <!-- Translation Section - help payload folded into the row -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowEnableTranslation"
+        <!-- Translation toggle + lens style on the same row (landscape) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/settings_margin_standard"
-            app:str_title="@string/enable_translation"
-            app:str_subtitle="@string/setting_enable_translation_desc"
-            app:str_showHelp="true"
-            app:str_helpTitle="@string/tooltip_translation_title"
-            app:str_helpMessage="@string/tooltip_translation_message" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowEnableTranslation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/enable_translation"
+                app:str_subtitle="@string/setting_enable_translation_desc"
+                app:str_showHelp="true"
+                app:str_helpTitle="@string/tooltip_translation_title"
+                app:str_helpMessage="@string/tooltip_translation_message" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowTranslationLensStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/settings_margin_standard"
+                android:visibility="gone"
+                app:str_title="@string/translation_lens_style"
+                app:str_subtitle="@string/setting_translation_lens_style_desc"
+                app:str_showHelp="true"
+                app:str_helpTitle="@string/tooltip_translation_blocks_title"
+                app:str_helpMessage="@string/tooltip_translation_blocks_message" />
+        </LinearLayout>
 
         <!-- Translation Languages Container (landscape: horizontal) -->
         <LinearLayout android:id="@+id/layoutTranslationLanguages" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone">
 
             <LinearLayout android:id="@+id/layoutTranslationSource" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/translation_source_language" android:textSize="@dimen/toggler_title_text_size" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/translation_source_language" android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerTranslationSourceLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
+
+                <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
             </LinearLayout>
 
             <ImageButton android:id="@+id/btnSwapLanguages" android:layout_width="@dimen/settings_width_icon" android:layout_height="@dimen/settings_height_icon" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/swap_languages" android:src="@drawable/ic_swap_horizontal" />
 
             <LinearLayout android:id="@+id/layoutTranslationTarget" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/translation_target_language" android:textSize="@dimen/toggler_title_text_size" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/translation_target_language" android:textSize="@dimen/toggler_title_text_size" />
 
                 <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerTranslationTargetLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
+
+                <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
             </LinearLayout>
         </LinearLayout>
-
-        <!-- Translation Lens Style - help payload folded into the row -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowTranslationLensStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/settings_margin_standard"
-            android:visibility="gone"
-            app:str_title="@string/translation_lens_style"
-            app:str_subtitle="@string/setting_translation_lens_style_desc"
-            app:str_showHelp="true"
-            app:str_helpTitle="@string/tooltip_translation_blocks_title"
-            app:str_helpMessage="@string/tooltip_translation_blocks_message" />
 
         <!-- Google Lens -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -71,7 +83,7 @@
         <!-- OCR Font Size -->
         <LinearLayout android:id="@+id/layoutOcrFontSize" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:visibility="gone">
 
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ocr_font_size" android:textSize="@dimen/toggler_title_text_size" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/ocr_font_size" android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerOcrFontSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
         </LinearLayout>
@@ -79,7 +91,7 @@
         <!-- OCR Font Family -->
         <LinearLayout android:id="@+id/layoutOcrFontFamily" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:visibility="gone">
 
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ocr_font_family" android:textSize="@dimen/toggler_title_text_size" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/ocr_font_family" android:textSize="@dimen/toggler_title_text_size" />
 
             <androidx.appcompat.widget.AppCompatSpinner android:id="@+id/spinnerOcrFontFamily" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" />
         </LinearLayout>

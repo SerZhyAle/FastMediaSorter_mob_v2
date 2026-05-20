@@ -71,7 +71,7 @@ if ($LASTEXITCODE -ne 0) {
 # Start the Gradle build process (Debug only for speed)
 Write-Host "Starting build (no cache)..." -ForegroundColor Yellow
 # Using --no-build-cache to force recompilation
-& "$projectRoot\gradlew.bat" assembleStandardDebug "-Pchaquopy.enabled=false" --no-build-cache
+& "$projectRoot\gradlew.bat" assembleStandardDebug "-Pchaquopy.enabled=false" --no-build-cache --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

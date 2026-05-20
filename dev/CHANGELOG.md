@@ -12126,3 +12126,327 @@ Format: | datetime | file | target | description |
 | 2026-05-20 14:50:05 | `dev/Q/index.html` | `Q public page methodology` | Add Gemini 3.1 Pro and note that all compared models ran in max-strength configurations [branch: temp/q-max-copy] |
 | 2026-05-20 15:02:33 | `.github/workflows/jekyll-gh-pages.yml` | `GitHub Pages build` | Publish dev/Q/index-en.html as an English standalone page during Pages build [branch: temp/q-en-copy] |
 | 2026-05-20 15:02:33 | `dev/Q/index-en.html` | `Q English page` | Add an English public version of the AI audit board page [branch: temp/q-en-copy] |
+| 2026-05-20 14:10:01 | `dev/development_audit.md` | `development_audit` | Add consolidated development audit synthesized from Claude, Codex, Gemini, and GPT audits [branch: DEBUG-v004] |
+| 2026-05-20 14:46:26 | `PLAN/spec-catalog.jsonl + PLAN/S0268..S0277_*.md` | `Spec Catalog` | Created 10 strategic specs (S0268..S0277) from dev/development_audit.md: Agent Continuity Layer, Post-Change Ritual Unification, Workspace Noise & Lookup Strategy, Truth Drift Detection, Repo Knowledge Search Expansion, Build Failure Diagnostics, Kotlin Hotspots Decomposition, Test Suite Triage, Configuration Cache Recovery, Per-Agent Memory Seeding. All Draft status, priority 70/55/50/40 by tier. [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0268_agent_continuity_layer.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0269_post_change_ritual_unification.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0271_truth_drift_detection.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0272_repo_knowledge_search_expansion.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0273_build_failure_diagnostics.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0274_kotlin_hotspots_decomposition.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0275_test_suite_triage.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0276_configuration_cache_recovery.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 14:58:43 | `PLAN/S0277_per_agent_memory_seeding.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness) [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0268_agent_continuity_layer.md` | `spec-update` | Refine strategic spec for continuity layer [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0269_post_change_ritual_unification.md` | `spec-update` | Refine strategic spec for post-change ritual unification [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-update` | Refine strategic spec for workspace noise and lookup strategy [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0271_truth_drift_detection.md` | `spec-update` | Refine strategic spec for docs-vs-Gradle truth drift detection [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0272_repo_knowledge_search_expansion.md` | `spec-update` | Refine strategic spec for repo knowledge search expansion [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0273_build_failure_diagnostics.md` | `spec-update` | Refine strategic spec for build failure diagnostics [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0274_kotlin_hotspots_decomposition.md` | `spec-update` | Refine strategic spec for Kotlin hotspot decomposition [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0275_test_suite_triage.md` | `spec-update` | Refine strategic spec for unit test triage [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0276_configuration_cache_recovery.md` | `spec-update` | Refine strategic spec for configuration cache recovery [branch: DEBUG-v004] |
+| 2026-05-20 15:03:40 | `PLAN/S0277_per_agent_memory_seeding.md` | `spec-update` | Refine strategic spec for per-agent memory seeding [branch: DEBUG-v004] |
+| 2026-05-20 15:04:29 | `PLAN/S0269_post_change_ritual_unification.md` | `spec-update` | Polish strategic spec wording and style details [branch: DEBUG-v004] |
+| 2026-05-20 15:04:30 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-update` | Polish strategic spec wording and style details [branch: DEBUG-v004] |
+| 2026-05-20 15:04:30 | `PLAN/S0276_configuration_cache_recovery.md` | `spec-update` | Polish strategic spec wording and style details [branch: DEBUG-v004] |
+| 2026-05-20 15:04:30 | `PLAN/S0277_per_agent_memory_seeding.md` | `spec-update` | Polish strategic spec wording and style details [branch: DEBUG-v004] |
+| 2026-05-20 15:10:59 | `.github/prompts/spec.prompt.md` | `prompt-rule` | Add human approval gate for strategic Draft specs [branch: DEBUG-v004] |
+| 2026-05-20 15:10:59 | `.github/prompts/spec-tech.prompt.md` | `prompt-rule` | Require completed owner approval gate before Draft -> Approved [branch: DEBUG-v004] |
+| 2026-05-20 15:10:59 | `.github/prompts/spec-all.prompt.md` | `prompt-rule` | Remove strategic Draft auto-approve bypasses [branch: DEBUG-v004] |
+| 2026-05-20 15:17:16 | `scripts/spec_catalog/check-owner-inputs.ps1 + scripts/spec_catalog/update.ps1 + PLAN/S0268..S0277_*.md + .claude/agent-memory/android-rd-specialist/` | `Spec Catalog Gate` | Added §3.3 'Owner inputs (Approval gate)' subsection to all strategic specs S0268..S0277 with 12 placeholder fields; new check-owner-inputs.ps1 validates that every field is filled before Draft -> Approved; update.ps1 now hard-blocks the transition if the checker exits non-zero; new feedback memory feedback_strategic_spec_owner_gate.md encodes the rule for android-rd-specialist agent. [branch: DEBUG-v004] |
+| 2026-05-20 15:35:51 | `PLAN/S0268_agent_continuity_layer.md` | `spec-all` | F1: filled S3.3 Owner inputs from S3.2/S8/S10/S11; promoted Draft -> Approved [branch: DEBUG-v004] |
+| 2026-05-20 15:39:07 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-update` | Filled Owner inputs for Draft->Approved gate readiness [branch: DEBUG-v004] |
+| 2026-05-20 15:39:58 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-update` | Set Owner sign-off date for Approved promotion [branch: DEBUG-v004] |
+| 2026-05-20 15:42:57 | `scripts/post-change.ps1` | `post-change.ps1` | Add change-type routing and fail-closed step dispatch [branch: DEBUG-v004] |
+| 2026-05-20 15:43:23 | `PLAN/S0270_workspace_noise_and_lookup_strategy/INDEX.md` | `spec-tech` | Create tactical plan for S0270 [branch: DEBUG-v004] |
+| 2026-05-20 15:43:23 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_01__workspace-excludes.md` | `spec-tech` | Phase 01: workspace excludes [branch: DEBUG-v004] |
+| 2026-05-20 15:43:24 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_02__research-order-rules.md` | `spec-tech` | Phase 02: research order rules [branch: DEBUG-v004] |
+| 2026-05-20 15:43:24 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_03__catalog-guidance.md` | `spec-tech` | Phase 03: catalog guidance [branch: DEBUG-v004] |
+| 2026-05-20 15:43:24 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs catalog cleanup [branch: DEBUG-v004] |
+| 2026-05-20 15:43:24 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-tech` | Status -> Tactical and tactical plan link [branch: DEBUG-v004] |
+| 2026-05-20 15:44:20 | `PLAN/S0268_agent_continuity_layer.md` | `spec-tech` | F2: Status Approved -> Tactical; link tactical plan [branch: DEBUG-v004] |
+| 2026-05-20 15:44:33 | `PLAN/S0268_agent_continuity_layer/INDEX.md` | `spec-tech` | F2: tactical INDEX with 7 phases [branch: DEBUG-v004] |
+| 2026-05-20 15:44:33 | `PLAN/S0268_agent_continuity_layer/PHASE_01__foundations.md` | `spec-tech` | F2: Phase 01 foundations README [branch: DEBUG-v004] |
+| 2026-05-20 15:44:33 | `PLAN/S0268_agent_continuity_layer/PHASE_02__bootstrap-packet.md` | `spec-tech` | F2: Phase 02 bootstrap packet [branch: DEBUG-v004] |
+| 2026-05-20 15:44:33 | `PLAN/S0268_agent_continuity_layer/PHASE_03__resume-layer.md` | `spec-tech` | F2: Phase 03 resume layer + spec-dev hook [branch: DEBUG-v004] |
+| 2026-05-20 15:44:33 | `PLAN/S0268_agent_continuity_layer/PHASE_04__request-logger.md` | `spec-tech` | F2: Phase 04 request logger + gitignore [branch: DEBUG-v004] |
+| 2026-05-20 15:44:34 | `PLAN/S0268_agent_continuity_layer/PHASE_05__request-digest.md` | `spec-tech` | F2: Phase 05 request digest [branch: DEBUG-v004] |
+| 2026-05-20 15:44:34 | `PLAN/S0268_agent_continuity_layer/PHASE_06__dirty-tree-guard.md` | `spec-tech` | F2: Phase 06 dirty-tree guard [branch: DEBUG-v004] |
+| 2026-05-20 15:44:34 | `PLAN/S0268_agent_continuity_layer/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | F2: Phase 07 docs + catalog cleanup [branch: DEBUG-v004] |
+| 2026-05-20 15:46:21 | `scripts/agent_continuity/README.md` | `spec-dev` | Phase 01.1: foundational README with 5 pillars and 6 tactical decisions [branch: DEBUG-v004] |
+| 2026-05-20 15:47:47 | `CLAUDE.md` | `Post-Change Steps` | Collapse post-change ritual to change-type dispatcher [branch: DEBUG-v004] |
+| 2026-05-20 15:48:00 | `.claude/commands/quick.md` | `quick` | Update post-change helper hint to the ChangeType API [branch: DEBUG-v004] |
+| 2026-05-20 15:48:00 | `.claude/agents/android-rd-specialist.md` | `android-rd-specialist` | Switch catalog instructions to catalog_sync and mark catalog outputs as gitignored [branch: DEBUG-v004] |
+| 2026-05-20 15:48:00 | `.github/agents/android-rd-specialist.agent.md` | `android-rd-specialist.agent` | Switch catalog instructions to catalog_sync and mark catalog outputs as gitignored [branch: DEBUG-v004] |
+| 2026-05-20 15:48:00 | `.github/copilot-instructions.md` | `catalog routing` | Switch catalog routing guidance from scan/render to catalog_sync [branch: DEBUG-v004] |
+| 2026-05-20 15:48:10 | `scripts/agent_continuity/start-packet.ps1` | `spec-dev` | Phase 02.1: bootstrap packet with 7 informational blocks [branch: DEBUG-v004] |
+| 2026-05-20 15:50:17 | `scripts/agent_continuity/session-snapshot.ps1` | `spec-dev` | Phase 03.1: session snapshot writer with 6-section schema [branch: DEBUG-v004] |
+| 2026-05-20 15:50:53 | `scripts/agent_continuity/session-resume.ps1` | `spec-dev` | Phase 03.2: session snapshot reader with NO-SNAPSHOT tolerance [branch: DEBUG-v004] |
+| 2026-05-20 15:52:16 | `.claude/commands/spec-dev.md` | `spec-dev` | Phase 03.4: hook /spec-dev to write session-snapshot at every phase boundary [branch: DEBUG-v004] |
+| 2026-05-20 15:53:39 | `scripts/agent_continuity/request-log.ps1` | `spec-dev` | Phase 04.1: request logger appending 11-key JSONL to dev/agent-continuity/requests.jsonl [branch: DEBUG-v004] |
+| 2026-05-20 15:54:07 | `.gitignore` | `spec-dev` | Phase 04.2: ignore dev/agent-continuity/ artifacts [branch: DEBUG-v004] |
+| 2026-05-20 15:56:14 | `scripts/agent_continuity/request-digest.ps1` | `spec-dev` | Phase 05.1: request digest with empty-log tolerance [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `.vscode/settings.json` | `S0270` | Add heavy-directory workspace excludes for search, watcher, and Java import surfaces [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `CLAUDE.md` | `S0270` | Split Research Order into semantic vs exact-match lookup modes and document default rg excludes [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `dev/CATALOG/README.md` | `S0270` | Document semantic query.ps1 usage, exact-match JSONL reads, and script-only catalogue writes [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `PLAN/S0270_workspace_noise_and_lookup_strategy.md` | `spec-all` | Pipeline Verified: S0270 research resolutions, status, and inline audit [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `PLAN/S0270_workspace_noise_and_lookup_strategy/INDEX.md` | `spec-all` | Resolve S0270 blockers and mark all tactical phases complete [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_01__workspace-excludes.md` | `spec-all` | Mark Phase 01 complete with verification evidence [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_02__research-order-rules.md` | `spec-all` | Mark Phase 02 complete with verification evidence [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_03__catalog-guidance.md` | `spec-all` | Mark Phase 03 complete with verification evidence [branch: DEBUG-v004] |
+| 2026-05-20 15:56:56 | `PLAN/S0270_workspace_noise_and_lookup_strategy/PHASE_04__docs-catalog-cleanup.md` | `spec-all` | Mark Phase 04 complete with verification evidence [branch: DEBUG-v004] |
+| 2026-05-20 15:58:08 | `scripts/agent_continuity/dirty-tree-guard.ps1` | `spec-dev` | Phase 06.1: dirty-tree guard with 4-way classification, baseline high-risk list [branch: DEBUG-v004] |
+| 2026-05-20 16:00:21 | `dev/AGENT_WORKFLOW.md` | `spec-dev` | Phase 07: document Agent Continuity Layer pillars [branch: DEBUG-v004] |
+| 2026-05-20 16:01:46 | `PLAN/S0268_agent_continuity_layer.md` | `spec-dev` | All 7 phases done; status Tactical -> Implemented [branch: DEBUG-v004] |
+| 2026-05-20 16:01:46 | `PLAN/S0268_agent_continuity_layer/INDEX.md` | `spec-dev` | INDEX closed: 7/7 phases done [branch: DEBUG-v004] |
+| 2026-05-20 16:03:35 | `PLAN/S0268_agent_continuity_layer.md` | `spec-check` | Audit S0268 -> Verified; PASS/WARN/FAIL 43/0/0; status Implemented -> Verified [branch: DEBUG-v004] |
+| 2026-05-20 16:04:13 | `PLAN/S0269_post_change_ritual_unification.md` | `spec-all` | Fill owner gate, resolve research items, and advance S0269 to Tactical [branch: DEBUG-v004] |
+| 2026-05-20 16:04:13 | `PLAN/S0269_post_change_ritual_unification/INDEX.md` | `spec-tech` | Create tactical plan for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:04:13 | `PLAN/S0269_post_change_ritual_unification/PHASE_01__dispatcher-core.md` | `spec-tech` | Phase 01 tactical plan for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:04:13 | `PLAN/S0269_post_change_ritual_unification/PHASE_02__canonical-rules.md` | `spec-tech` | Phase 02 tactical plan for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:04:13 | `PLAN/S0269_post_change_ritual_unification/PHASE_03__prompt-adoption.md` | `spec-tech` | Phase 03 tactical plan for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:04:13 | `PLAN/S0269_post_change_ritual_unification/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04 tactical plan for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `.github/prompts/quick.prompt.md` | `quick.prompt` | Route quick closure through post-change dispatcher [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `.claude/commands/quick.md` | `quick` | Route quick closure through post-change dispatcher [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `.github/prompts/spec-dev.prompt.md` | `spec-dev.prompt` | Route spec-dev per-file closure through post-change dispatcher [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `.claude/commands/spec-dev.md` | `spec-dev` | Route spec-dev per-file closure through post-change dispatcher and drop raw scan/render fallback [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `PLAN/S0269_post_change_ritual_unification.md` | `spec-all` | Advance S0269 to Implemented after tactical execution [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `PLAN/S0269_post_change_ritual_unification/INDEX.md` | `spec-dev` | Mark all S0269 tactical phases done pending audit [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `PLAN/S0269_post_change_ritual_unification/PHASE_03__prompt-adoption.md` | `spec-dev` | Mark Phase 03 done for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:12:35 | `PLAN/S0269_post_change_ritual_unification/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | Mark Phase 04 done for S0269 [branch: DEBUG-v004] |
+| 2026-05-20 16:14:23 | `PLAN/S0269_post_change_ritual_unification.md` | `spec-check` | Audit S0269 -> Verified; PASS/WARN/FAIL 10/0/0 [branch: DEBUG-v004] |
+| 2026-05-20 16:14:23 | `PLAN/S0269_post_change_ritual_unification/INDEX.md` | `spec-check` | Close S0269 completion gate after verified audit [branch: DEBUG-v004] |
+| 2026-05-20 16:29:09 | `PLAN/S0271_truth_drift_detection.md` | `spec-all` | Strategic spec approved: S0271 Truth Drift Detection (docs vs Gradle) [branch: DEBUG-v004] |
+| 2026-05-20 16:31:19 | `PLAN/S0272_repo_knowledge_search_expansion.md` | `S0272` | Fill owner approval gate for infrastructure spec [branch: DEBUG-v004] |
+| 2026-05-20 16:34:39 | `PLAN/S0273_build_failure_diagnostics.md` | `spec-tech` | Promote S0273 to Tactical and resolve approval gate [branch: DEBUG-v004] |
+| 2026-05-20 16:34:39 | `PLAN/S0273_build_failure_diagnostics/INDEX.md` | `spec-tech` | Create tactical plan index for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:34:39 | `PLAN/S0273_build_failure_diagnostics/PHASE_01__failure-parser.md` | `spec-tech` | Create phase 01 tactical plan for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:34:39 | `PLAN/S0273_build_failure_diagnostics/PHASE_02__launcher-integration.md` | `spec-tech` | Create phase 02 tactical plan for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:34:39 | `PLAN/S0273_build_failure_diagnostics/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Create phase 03 tactical plan for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:36:49 | `scripts/builders/get-last-build-failure.ps1` | `S0273` | Add last build failure extraction helper [branch: DEBUG-v004] |
+| 2026-05-20 16:36:49 | `scripts/builders/testdata/build-success.log` | `S0273` | Add success fixture log for build diagnostics [branch: DEBUG-v004] |
+| 2026-05-20 16:36:49 | `scripts/builders/testdata/build-failure-middle.log` | `S0273` | Add failure fixture log for build diagnostics [branch: DEBUG-v004] |
+| 2026-05-20 16:36:50 | `scripts/builders/testdata/build-truncated.log` | `S0273` | Add truncated fixture log for build diagnostics [branch: DEBUG-v004] |
+| 2026-05-20 16:36:50 | `PLAN/S0273_build_failure_diagnostics/PHASE_01__failure-parser.md` | `spec-dev` | Update phase 01 progress for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:36:50 | `PLAN/S0273_build_failure_diagnostics/INDEX.md` | `spec-dev` | Update tactical index progress for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:36:56 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `spec-tech` | Create tactical plan for S0272 [branch: DEBUG-v004] |
+| 2026-05-20 16:36:56 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_01__search-server.md` | `spec-tech` | Phase 01: search-server [branch: DEBUG-v004] |
+| 2026-05-20 16:36:56 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_02__registration-smoke.md` | `spec-tech` | Phase 02: registration-smoke [branch: DEBUG-v004] |
+| 2026-05-20 16:36:56 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v004] |
+| 2026-05-20 16:36:56 | `PLAN/S0272_repo_knowledge_search_expansion.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/INDEX.md` | `spec-tech` | Tactical INDEX for S0271 [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/PHASE_01__decisions-and-contracts.md` | `spec-tech` | Phase 01: decisions and contracts [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/PHASE_02__gradle-source-parser.md` | `spec-tech` | Phase 02: gradle source parser [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/PHASE_03__pin-manifest-and-doc-parser.md` | `spec-tech` | Phase 03: pin manifest and doc parser [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/PHASE_04__comparator-output-cli.md` | `spec-tech` | Phase 04: comparator, output, cli [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/PHASE_05__test-harness-and-integration.md` | `spec-tech` | Phase 05: test harness and integration [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs and catalog cleanup [branch: DEBUG-v004] |
+| 2026-05-20 16:38:52 | `PLAN/S0271_truth_drift_detection.md` | `spec-tech` | Status -> Tactical, tactical plan linked [branch: DEBUG-v004] |
+| 2026-05-20 16:39:39 | `scripts/mcp/docs-search-mcp/repo-knowledge-server.js` | `repo-knowledge server` | Create curated repo-knowledge MCP server skeleton [branch: DEBUG-v004] |
+| 2026-05-20 16:39:39 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_01__search-server.md` | `S0272 phase 01` | Mark Step 01.1 done [branch: DEBUG-v004] |
+| 2026-05-20 16:39:39 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 01 progress to 1/3 [branch: DEBUG-v004] |
+| 2026-05-20 16:41:03 | `scripts/mcp/docs-search-mcp/repo-knowledge-server.js` | `repo-knowledge server` | Add markdown and JSONL search entry builders [branch: DEBUG-v004] |
+| 2026-05-20 16:41:03 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_01__search-server.md` | `S0272 phase 01` | Mark Step 01.2 done [branch: DEBUG-v004] |
+| 2026-05-20 16:41:03 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 01 progress to 2/3 [branch: DEBUG-v004] |
+| 2026-05-20 16:41:38 | `PLAN/S0271_truth_drift_detection/DECISIONS.md` | `spec-dev` | S0271 Phase 01: locked decisions D-1..D-5 (manifest format, missing-pin semantics, range handling, multi-mention, output grammar) [branch: DEBUG-v004] |
+| 2026-05-20 16:41:42 | `a.ps1` | `S0273` | Add bf launcher alias for build failure diagnostics [branch: DEBUG-v004] |
+| 2026-05-20 16:41:42 | `scripts/builders/build-debug.PS1` | `S0273` | Persist fast debug build logs to temp for bf diagnostics [branch: DEBUG-v004] |
+| 2026-05-20 16:41:42 | `PLAN/S0273_build_failure_diagnostics/PHASE_02__launcher-integration.md` | `spec-dev` | Update phase 02 progress for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:41:42 | `PLAN/S0273_build_failure_diagnostics/INDEX.md` | `spec-dev` | Update tactical index progress for S0273 after phase 02 [branch: DEBUG-v004] |
+| 2026-05-20 16:43:14 | `scripts/mcp/docs-search-mcp/repo-knowledge-server.js` | `repo-knowledge server` | Register repo-knowledge MCP tools and spec catalog query [branch: DEBUG-v004] |
+| 2026-05-20 16:43:14 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_01__search-server.md` | `S0272 phase 01` | Mark Step 01.3 done [branch: DEBUG-v004] |
+| 2026-05-20 16:43:14 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 01 progress to 3/3 [branch: DEBUG-v004] |
+| 2026-05-20 16:43:54 | `scripts/doc-drift/GradleParser.ps1` | `spec-dev` | S0271 Phase 02: Get-GradlePins parser extracts Class-1/2/3 pins from gradle-wrapper.properties + root and app_v2 build.gradle.kts [branch: DEBUG-v004] |
+| 2026-05-20 16:45:56 | `PLAN/S0273_build_failure_diagnostics/INDEX.md` | `spec-dev` | Mark tactical plan complete for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:45:56 | `PLAN/S0273_build_failure_diagnostics.md` | `spec-dev` | Mark S0273 implemented [branch: DEBUG-v004] |
+| 2026-05-20 16:45:56 | `PLAN/S0273_build_failure_diagnostics/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Update phase 03 progress for S0273 [branch: DEBUG-v004] |
+| 2026-05-20 16:45:56 | `CLAUDE.md` | `S0273` | Add canonical build failure diagnostics rule [branch: DEBUG-v004] |
+| 2026-05-20 16:45:56 | `.github/prompts/build.prompt.md` | `S0273` | Document bf diagnostics path in build prompt [branch: DEBUG-v004] |
+| 2026-05-20 16:45:57 | `scripts/builders/README.md` | `S0273` | Add build failure diagnostics note to builders README [branch: DEBUG-v004] |
+| 2026-05-20 16:47:58 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_01__search-server.md` | `S0272 phase 01` | Close Phase 01 after smoke and build pass [branch: DEBUG-v004] |
+| 2026-05-20 16:47:58 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Mark Phase 01 done and bump phase count [branch: DEBUG-v004] |
+| 2026-05-20 16:48:32 | `PLAN/S0273_build_failure_diagnostics.md` | `spec-check` | Audit S0273 and mark verified [branch: DEBUG-v004] |
+| 2026-05-20 16:49:30 | `.vscode/mcp.json` | `repo-knowledge MCP config` | Register repo-knowledge MCP server [branch: DEBUG-v004] |
+| 2026-05-20 16:49:31 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_02__registration-smoke.md` | `S0272 phase 02` | Mark Step 02.1 done [branch: DEBUG-v004] |
+| 2026-05-20 16:49:31 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 02 progress to 1/2 [branch: DEBUG-v004] |
+| 2026-05-20 16:51:22 | `scripts/doc-drift/pins.psd1` | `spec-dev` | S0271 Phase 03: declarative pin manifest (8 Class-1 + 8 Class-2 + 14 Class-3 entries, per-doc required-flag + matcher per D-1/D-2/D-4) [branch: DEBUG-v004] |
+| 2026-05-20 16:51:22 | `scripts/doc-drift/DocParser.ps1` | `spec-dev` | S0271 Phase 03: Get-DocMentions extracts pin mentions per manifest with exclude/policy enforcement [branch: DEBUG-v004] |
+| 2026-05-20 16:51:24 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_02__registration-smoke.md` | `S0272 phase 02` | Mark Step 02.2 done [branch: DEBUG-v004] |
+| 2026-05-20 16:51:24 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 02 progress to 2/2 [branch: DEBUG-v004] |
+| 2026-05-20 16:54:56 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_02__registration-smoke.md` | `S0272 phase 02` | Close Phase 02 after config smoke and build pass [branch: DEBUG-v004] |
+| 2026-05-20 16:54:56 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Mark Phase 02 done and bump phase count [branch: DEBUG-v004] |
+| 2026-05-20 16:56:26 | `scripts/mcp/docs-search-mcp/README.md` | `repo-knowledge README` | Document repo-knowledge server and tool surface [branch: DEBUG-v004] |
+| 2026-05-20 16:56:26 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_03__docs-catalog-cleanup.md` | `S0272 phase 03` | Mark Step 03.1 done [branch: DEBUG-v004] |
+| 2026-05-20 16:56:26 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 03 progress to 1/2 [branch: DEBUG-v004] |
+| 2026-05-20 16:57:37 | `scripts/mcp/docs-search-mcp/README.md` | `repo-knowledge README` | Document internal-only repo-knowledge source coverage [branch: DEBUG-v004] |
+| 2026-05-20 16:57:37 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_03__docs-catalog-cleanup.md` | `S0272 phase 03` | Mark Step 03.2 done [branch: DEBUG-v004] |
+| 2026-05-20 16:57:37 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Advance Phase 03 progress to 2/2 [branch: DEBUG-v004] |
+| 2026-05-20 17:00:13 | `PLAN/S0272_repo_knowledge_search_expansion.md` | `S0272` | Mark S0272 implemented [branch: DEBUG-v004] |
+| 2026-05-20 17:00:14 | `PLAN/S0272_repo_knowledge_search_expansion/PHASE_03__docs-catalog-cleanup.md` | `S0272 phase 03` | Close Phase 03 after cleanup and build pass [branch: DEBUG-v004] |
+| 2026-05-20 17:00:14 | `PLAN/S0272_repo_knowledge_search_expansion/INDEX.md` | `S0272 index` | Mark tactical plan done and bump phase count to 3/3 [branch: DEBUG-v004] |
+| 2026-05-20 17:02:54 | `scripts/mcp/docs-search-mcp/repo-knowledge-server.js` | `repo-knowledge server` | Allow curated directory roots during repo knowledge index build [branch: DEBUG-v004] |
+| 2026-05-20 17:04:16 | `PLAN/S0272_repo_knowledge_search_expansion.md` | `spec-check` | Audit S0272 to Verified [branch: DEBUG-v004] |
+| 2026-05-20 17:10:00 | `scripts/spec_catalog/check-owner-inputs.ps1 + scripts/spec_catalog/update.ps1 + .claude/commands/spec.md + .claude/commands/spec-tech.md + .claude/commands/spec-all.md + .claude/agent-memory/android-rd-specialist/feedback_strategic_spec_owner_gate.md` | `spec-catalog gate` | Make Draft->Approved Owner-Inputs gate relevance-driven: check-owner-inputs.ps1 now validates only bullets actually emitted into S3.3 (no hardcoded 12-field list); 'Related tickets' is the sole universal requirement. /spec gains Process step 5.1 (scope-tag detection from slug+S1+S2; emits matching S3.3 bullets only); /spec-tech and /spec-all Simple Path documented for the new gate behavior; feedback memory rewritten. Existing S0268..S0277 with full 12-bullet S3.3 still pass the gate (backward compatible). [branch: DEBUG-v004] |
+| 2026-05-20 17:25:08 | `PLAN/S0274_kotlin_hotspots_decomposition.md` | `spec-all` | S0274 strategic spec auto-approved (Draft -> Approved); 12 owner-input fields filled from spec body [branch: DEBUG-v004] |
+| 2026-05-20 17:26:24 | `PLAN/S0276_configuration_cache_recovery.md` | `spec-owner-inputs` | Replace non-applicable owner-input placeholders with concrete infrastructure values for S0276 [branch: DEBUG-v004] |
+| 2026-05-20 17:27:12 | `PLAN/S0275_test_suite_triage.md` | `spec-all` | Fill S0275 owner approval gate [branch: DEBUG-v004] |
+| 2026-05-20 17:36:52 | `gradle.properties` | `S0276` | Enable configuration cache by default with explicit noLegal opt-out [branch: DEBUG-v004] |
+| 2026-05-20 17:36:53 | `app_v2/build.gradle.kts` | `S0276` | Remove local.properties Chaquopy fallback for configuration-cache-safe gating [branch: DEBUG-v004] |
+| 2026-05-20 17:36:53 | `a.ps1` | `S0276` | Stop launcher from mutating local Chaquopy state [branch: DEBUG-v004] |
+| 2026-05-20 17:36:54 | `scripts/builders/build-debug.PS1` | `S0276` | Add noLegal configuration-cache opt-out to generic debug builder [branch: DEBUG-v004] |
+| 2026-05-20 17:36:55 | `scripts/builders/build-and-push-all.ps1` | `S0276` | Split batch build cache mode between non-noLegal and noLegal passes [branch: DEBUG-v004] |
+| 2026-05-20 17:36:56 | `scripts/utils/recover-kapt-stall.ps1` | `S0276` | Add noLegal configuration-cache opt-out to KAPT stall recovery retry [branch: DEBUG-v004] |
+| 2026-05-20 17:36:57 | `PLAN/S0276_configuration_cache_recovery.md` | `S0276` | Sync strategic spec with configuration cache recovery findings [branch: DEBUG-v004] |
+| 2026-05-20 17:36:58 | `PLAN/S0276_configuration_cache_recovery/INDEX.md` | `S0276` | Create tactical index for configuration cache recovery [branch: DEBUG-v004] |
+| 2026-05-20 17:36:59 | `PLAN/S0274_kotlin_hotspots_decomposition/INDEX.md` | `spec-tech` | S0274 tactical INDEX: Wave 01 scope + 15-file Wave Backlog [branch: DEBUG-v004] |
+| 2026-05-20 17:36:59 | `PLAN/S0274_kotlin_hotspots_decomposition/PHASE_01__foundation-and-methodology.md` | `spec-tech` | S0274 Phase 01: baseline LOC snapshot + gradle.properties reminder capture [branch: DEBUG-v004] |
+| 2026-05-20 17:36:59 | `PLAN/S0276_configuration_cache_recovery/PHASE_01__chaquopy-gating.md` | `S0276` | Create phase 01 tactical plan for Chaquopy gating [branch: DEBUG-v004] |
+| 2026-05-20 17:36:59 | `PLAN/S0274_kotlin_hotspots_decomposition/PHASE_02__wave-01-videoplayermanager.md` | `spec-tech` | S0274 Phase 02: Wave 01 VideoPlayerManager decomposition steps [branch: DEBUG-v004] |
+| 2026-05-20 17:37:00 | `PLAN/S0274_kotlin_hotspots_decomposition/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | S0274 Phase 03: catalog+changelog cleanup, status to BlockNeedUserTest [branch: DEBUG-v004] |
+| 2026-05-20 17:37:00 | `PLAN/S0274_kotlin_hotspots_decomposition.md` | `spec-tech` | S0274 strategic spec: Status Approved -> Tactical; Tactical plan link wired [branch: DEBUG-v004] |
+| 2026-05-20 17:37:00 | `PLAN/S0276_configuration_cache_recovery/PHASE_02__cc-rollout.md` | `S0276` | Create phase 02 tactical plan for configuration cache rollout [branch: DEBUG-v004] |
+| 2026-05-20 17:37:01 | `PLAN/S0276_configuration_cache_recovery/PHASE_03__docs-catalog-cleanup.md` | `S0276` | Create phase 03 tactical plan for docs cleanup and closure [branch: DEBUG-v004] |
+| 2026-05-20 17:38:09 | `PLAN/S0276_configuration_cache_recovery.md` | `S0276` | Mark S0276 strategic spec implemented with resolved research status [branch: DEBUG-v004] |
+| 2026-05-20 17:38:10 | `PLAN/S0276_configuration_cache_recovery/INDEX.md` | `S0276` | Mark S0276 tactical index complete [branch: DEBUG-v004] |
+| 2026-05-20 17:38:11 | `PLAN/S0276_configuration_cache_recovery/PHASE_01__chaquopy-gating.md` | `S0276` | Mark S0276 phase 01 complete [branch: DEBUG-v004] |
+| 2026-05-20 17:38:12 | `PLAN/S0276_configuration_cache_recovery/PHASE_02__cc-rollout.md` | `S0276` | Mark S0276 phase 02 complete [branch: DEBUG-v004] |
+| 2026-05-20 17:38:13 | `PLAN/S0276_configuration_cache_recovery/PHASE_03__docs-catalog-cleanup.md` | `S0276` | Mark S0276 phase 03 complete [branch: DEBUG-v004] |
+| 2026-05-20 17:38:55 | `PLAN/S0276_configuration_cache_recovery.md` | `S0276` | Record S0276 final audit and verify configuration cache rollout [branch: DEBUG-v004] |
+| 2026-05-20 17:38:56 | `PLAN/S0276_configuration_cache_recovery/INDEX.md` | `S0276` | Mark S0276 tactical completion gate verified [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage.md` | `spec-tech` | Status -> Tactical; resolve S0275 research items [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage/INDEX.md` | `spec-tech` | Create tactical plan for S0275 [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage/PHASE_01__baseline-unblock.md` | `spec-tech` | Phase 01: baseline-unblock [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage/PHASE_02__failure-inventory.md` | `spec-tech` | Phase 02: failure-inventory [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage/PHASE_03__quarantine-infra.md` | `spec-tech` | Phase 03: quarantine-infra [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage/PHASE_04__default-suite-stabilization.md` | `spec-tech` | Phase 04: default-suite-stabilization [branch: DEBUG-v004] |
+| 2026-05-20 17:39:20 | `PLAN/S0275_test_suite_triage/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v004] |
+| 2026-05-20 17:40:54 | `temp/S0274_baseline_2026-05-20.md` | `spec-dev` | S0274 Phase 01: baseline LOC snapshot (16 waves) + gradle.properties reminder captured [branch: DEBUG-v004] |
+| 2026-05-20 17:42:32 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/XrEnvironmentDetectorImplTest.kt` | `S0275 Phase 01` | Remove VR-only XR detector test from shared standard unit-test source set [branch: DEBUG-v004] |
+| 2026-05-20 17:42:32 | `app_v2/src/testVr/java/com/sza/fastmediasorter/core/xr/XrEnvironmentDetectorImplTest.kt` | `S0275 Phase 01` | Re-home XR detector coverage to VR-only unit-test source set [branch: DEBUG-v004] |
+| 2026-05-20 17:45:56 | `PLAN/S0277_per_agent_memory_seeding.md` | `spec` | Align S0277 strategic spec with current /spec template and approval gate [branch: DEBUG-v004] |
+| 2026-05-20 17:47:11 | `PLAN/S0275_test_suite_triage.md` | `S0275 Phase 01` | Status -> In Progress; Phase 01 started [branch: DEBUG-v004] |
+| 2026-05-20 17:47:12 | `PLAN/S0275_test_suite_triage/INDEX.md` | `S0275 Phase 01` | Phase 01 moved to In Progress [branch: DEBUG-v004] |
+| 2026-05-20 17:47:12 | `PLAN/S0275_test_suite_triage/PHASE_01__baseline-unblock.md` | `S0275 Phase 01` | Phase 01 moved to In Progress [branch: DEBUG-v004] |
+| 2026-05-20 17:52:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoPlayerErrorHandler.kt` | `spec-dev` | S0274 Wave 01 Step 02.2: extract VideoPlayerErrorHandler from VideoPlayerManager.onPlayerError [branch: DEBUG-v004] |
+| 2026-05-20 17:52:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev` | S0274 Wave 01 Step 02.2: onPlayerError delegates to VideoPlayerErrorHandler; widened playbackRetryCount/lastPlaybackPosition/retryPlayback to internal; removed orphan ExoPlaybackException import [branch: DEBUG-v004] |
+| 2026-05-20 17:54:58 | `scripts/doc-drift/Comparator.ps1` | `Compare-PinsToDocs` | stabilized comparator order and classification coverage [branch: DEBUG-v004] |
+| 2026-05-20 17:54:59 | `scripts/doc-drift/pins.psd1` | `doc-drift pin manifest` | fixed min-sdk tech stack matchers and kept manifest aligned with tests [branch: DEBUG-v004] |
+| 2026-05-20 17:54:59 | `scripts/doc-drift/README.md` | `doc drift checker readme` | documented checker usage output grammar tests and limits [branch: DEBUG-v004] |
+| 2026-05-20 17:55:00 | `scripts/doc-drift.tests/Test-Helpers.ps1` | `doc-drift test helpers` | added lightweight assertion helpers for S0271 [branch: DEBUG-v004] |
+| 2026-05-20 17:55:00 | `scripts/doc-drift.tests/Run-Tests.ps1` | `doc-drift test runner` | added zero-dependency test runner for S0271 [branch: DEBUG-v004] |
+| 2026-05-20 17:55:01 | `scripts/doc-drift.tests/GradleParser.Tests.ps1` | `gradle parser tests` | covered fixture-based gradle pin extraction [branch: DEBUG-v004] |
+| 2026-05-20 17:55:01 | `scripts/doc-drift.tests/DocParser.Tests.ps1` | `doc parser tests` | covered matcher extraction optional docs and exclude handling [branch: DEBUG-v004] |
+| 2026-05-20 17:55:01 | `scripts/doc-drift.tests/Comparator.Tests.ps1` | `comparator tests` | covered all classifier states and stable output order [branch: DEBUG-v004] |
+| 2026-05-20 17:55:02 | `scripts/doc-drift.tests/fixtures/build.gradle.kts` | `gradle test fixture` | added root gradle fixture for drift checker tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:02 | `scripts/doc-drift.tests/fixtures/app_v2/build.gradle.kts` | `app gradle test fixture` | added app gradle fixture for drift checker tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:03 | `scripts/doc-drift.tests/fixtures/gradle/wrapper/gradle-wrapper.properties` | `wrapper test fixture` | added gradle wrapper fixture for drift checker tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:03 | `scripts/doc-drift.tests/fixtures/dev/TECH_REQUIREMENTS.md` | `tech requirements fixture` | added drifted documentation fixture for parser tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:04 | `scripts/doc-drift.tests/fixtures/docs/TECH_STACK.md` | `tech stack fixture` | added optional-doc fixture for parser tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:04 | `scripts/doc-drift.tests/fixtures/CLAUDE.md` | `claude fixture` | added range-declaration fixture for parser tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:05 | `scripts/doc-drift.tests/fixtures/pins.sample.psd1` | `sample pin manifest fixture` | added manifest fixture for parser tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:05 | `scripts/doc-drift.tests/fixtures/pins.exclude.sample.psd1` | `exclude manifest fixture` | added exclude-based manifest fixture for parser tests [branch: DEBUG-v004] |
+| 2026-05-20 17:55:06 | `PLAN/S0271_truth_drift_detection.md` | `S0271 strategic spec` | recorded follow-up placeholders for wear coverage and PR gate [branch: DEBUG-v004] |
+| 2026-05-20 17:55:06 | `PLAN/S0271_truth_drift_detection/PHASE_04__comparator-output-cli.md` | `S0271 phase 04` | marked comparator output cli phase complete [branch: DEBUG-v004] |
+| 2026-05-20 17:55:06 | `PLAN/S0271_truth_drift_detection/PHASE_05__test-harness-and-integration.md` | `S0271 phase 05` | marked test harness and integration phase complete [branch: DEBUG-v004] |
+| 2026-05-20 17:55:07 | `PLAN/S0271_truth_drift_detection/PHASE_06__docs-catalog-cleanup.md` | `S0271 phase 06` | marked docs and catalog cleanup phase complete [branch: DEBUG-v004] |
+| 2026-05-20 17:55:07 | `PLAN/S0271_truth_drift_detection/INDEX.md` | `S0271 tactical index` | marked all tactical phases complete [branch: DEBUG-v004] |
+| 2026-05-20 17:55:08 | `PLAN/S0278_drift_checker_wear_coverage.md` | `S0278 placeholder spec` | created wear coverage follow-up placeholder [branch: DEBUG-v004] |
+| 2026-05-20 17:55:08 | `PLAN/S0279_drift_checker_pr_gate_wiring.md` | `S0279 placeholder spec` | created PR gate wiring follow-up placeholder [branch: DEBUG-v004] |
+| 2026-05-20 17:55:08 | `scripts/doc-drift/Output.ps1` | `spec-tech-fixup` | Backfill missed dev-log entry [branch: DEBUG-v004] |
+| 2026-05-20 17:55:08 | `scripts/check-doc-vs-gradle.ps1` | `spec-tech-fixup` | Backfill missed dev-log entry [branch: DEBUG-v004] |
+| 2026-05-20 17:56:59 | `PLAN/S0264_panel-stereo-crop-fix.md` | `spec` | Rebuild S0264 strategic spec into current /spec template and approve owner gate [branch: DEBUG-v004] |
+| 2026-05-20 17:57:19 | `PLAN/S0264_panel-stereo-crop-fix.md` | `spec` | Add compatibility owner-input section for S0264 approval gate [branch: DEBUG-v004] |
+| 2026-05-20 17:57:38 | `PLAN/S0271_truth_drift_detection.md` | `S0271 strategic spec` | set verified status and recorded final audit [branch: DEBUG-v004] |
+| 2026-05-20 17:57:38 | `PLAN/S0271_truth_drift_detection/INDEX.md` | `S0271 tactical index` | checked spec-check completion gate items [branch: DEBUG-v004] |
+| 2026-05-20 17:57:39 | `PLAN/S0271_truth_drift_detection/PHASE_04__comparator-output-cli.md` | `S0271 phase 04` | removed self-matching TODO placeholder criterion [branch: DEBUG-v004] |
+| 2026-05-20 17:57:40 | `PLAN/S0271_truth_drift_detection/PHASE_05__test-harness-and-integration.md` | `S0271 phase 05` | removed self-matching TODO placeholder criterion [branch: DEBUG-v004] |
+| 2026-05-20 17:57:41 | `PLAN/S0271_truth_drift_detection/PHASE_06__docs-catalog-cleanup.md` | `S0271 phase 06` | removed self-matching TODO placeholder criterion [branch: DEBUG-v004] |
+| 2026-05-20 17:57:41 | `PLAN/S0271_truth_drift_detection.md` | `spec-check` | Audit S0271 -> Verified; PASS/WARN/FAIL 10/0/0 [branch: DEBUG-v004] |
+| 2026-05-20 17:59:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0275 Phase 01` | Widen helper-accessed playback preflight members to unblock standard Kotlin compile [branch: DEBUG-v004] |
+| 2026-05-20 17:59:52 | `PLAN/S0275_test_suite_triage/INDEX.md` | `S0275 Phase 01` | Mark Step 01.1 done and Step 01.2 in progress [branch: DEBUG-v004] |
+| 2026-05-20 17:59:52 | `PLAN/S0275_test_suite_triage/PHASE_01__baseline-unblock.md` | `S0275 Phase 01` | Mark Step 01.1 done and Step 01.2 in progress [branch: DEBUG-v004] |
+| 2026-05-20 18:00:19 | `PLAN/S0264_panel-stereo-crop-fix/INDEX.md` | `spec-tech` | Create tactical plan for S0264 [branch: DEBUG-v004] |
+| 2026-05-20 18:00:19 | `PLAN/S0264_panel-stereo-crop-fix/PHASE_01__panel-playback-fix.md` | `spec-tech` | Phase 01: panel-playback-fix [branch: DEBUG-v004] |
+| 2026-05-20 18:00:19 | `PLAN/S0264_panel-stereo-crop-fix/PHASE_02__settings-strings-parity.md` | `spec-tech` | Phase 02: settings-strings-parity [branch: DEBUG-v004] |
+| 2026-05-20 18:00:19 | `PLAN/S0264_panel-stereo-crop-fix/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v004] |
+| 2026-05-20 18:00:19 | `PLAN/S0264_panel-stereo-crop-fix.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v004] |
+| 2026-05-20 18:00:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoPlaybackPreflightHelper.kt` | `spec-dev` | S0274 Wave 01 Step 02.3: extract VideoPlaybackPreflightHelper from VideoPlayerManager.playVideo pre-flight [branch: DEBUG-v004] |
+| 2026-05-20 18:01:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev` | S0274 Wave 01 Step 02.3: playVideo delegates pre-flight to VideoPlaybackPreflightHelper; widened posterExtractor/lastCompletedPath/audioUnsupportedShownForPath/trackChangesSinceRecreate/scenarioTagFor to internal; removed orphan Debug + Glide imports; moved 3 constants [branch: DEBUG-v004] |
+| 2026-05-20 18:02:52 | `PLAN/S0267_cloud-auth-unified-storage-research.md` | `S0267 strategic spec` | S0267: closed all 7 research items in section 6; recommendation Go variant B (Hybrid Mirror) with all three sources; status BlockQuestions to Approved [branch: DEBUG-v004] |
+| 2026-05-20 18:05:19 | `PLAN/S0275_test_suite_triage.md` | `S0275 Phase 01` | Mark S0275 BlockByOtherTask on active S0274 compile fallout [branch: DEBUG-v004] |
+| 2026-05-20 18:05:20 | `PLAN/S0275_test_suite_triage/INDEX.md` | `S0275 Phase 01` | Mark Phase 01 blocked by S0274 compile fallout [branch: DEBUG-v004] |
+| 2026-05-20 18:05:20 | `PLAN/S0275_test_suite_triage/PHASE_01__baseline-unblock.md` | `S0275 Phase 01` | Record S0274 blocker for Step 01.2 [branch: DEBUG-v004] |
+| 2026-05-20 18:06:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoPlayerTracksObserver.kt` | `spec-dev` | S0274 Wave 01 Step 02.4: extract VideoPlayerTracksObserver from VideoPlayerManager.playerListener.onTracksChanged [branch: DEBUG-v004] |
+| 2026-05-20 18:06:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev` | S0274 Wave 01 Step 02.4: onTracksChanged delegates to VideoPlayerTracksObserver; widened stereoDetector to internal; removed orphan C import [branch: DEBUG-v004] |
+| 2026-05-20 18:07:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0264` | S0264: reapply panel single-eye TextureView crop on immersive toggle and first video size callback [branch: DEBUG-v004] |
+| 2026-05-20 18:08:59 | `PLAN/S0264_panel-stereo-crop-fix/INDEX.md` | `spec-dev` | S0264: mark tactical plan complete from validated repo state [branch: DEBUG-v004] |
+| 2026-05-20 18:08:59 | `PLAN/S0264_panel-stereo-crop-fix/PHASE_01__panel-playback-fix.md` | `spec-dev` | S0264: phase 01 completed [branch: DEBUG-v004] |
+| 2026-05-20 18:09:00 | `PLAN/S0264_panel-stereo-crop-fix/PHASE_02__settings-strings-parity.md` | `spec-dev` | S0264: phase 02 completed [branch: DEBUG-v004] |
+| 2026-05-20 18:09:00 | `PLAN/S0264_panel-stereo-crop-fix/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | S0264: phase 03 completed [branch: DEBUG-v004] |
+| 2026-05-20 18:09:00 | `PLAN/S0264_panel-stereo-crop-fix.md` | `spec-dev` | S0264: status -> Implemented [branch: DEBUG-v004] |
+| 2026-05-20 18:09:32 | `PLAN/S0264_panel-stereo-crop-fix.md` | `spec-check` | Audit S0264 -> Verified; PASS/WARN/FAIL 16/0/0 [branch: DEBUG-v004] |
+| 2026-05-20 18:11:53 | `gradle.properties` | `spec-dev` | S0274 Wave 01 Step 02.6: refresh Kotlin daemon reminder; VideoPlayerManager 1700+ -> 706 LOC; heap kept at 4g pending next backlog waves [branch: DEBUG-v004] |
+| 2026-05-20 18:11:53 | `temp/S0274_baseline_2026-05-20.md` | `spec-dev` | S0274 Wave 01 Step 02.6: append Wave 01 Result block (706 LOC, helpers list, heap decision) [branch: DEBUG-v004] |
+| 2026-05-20 18:11:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev` | S0274 Wave 01 Step 02.5: insert Timber.d S0274 debug tag at onPlayerError entry for BlockNeedUserTest logcat probe [branch: DEBUG-v004] |
+| 2026-05-20 18:17:09 | `PLAN/S0274_kotlin_hotspots_decomposition.md` | `spec-dev` | S0274 strategic spec: Status In Progress -> BlockNeedUserTest (Wave 01 implementation done; device-test gate) [branch: DEBUG-v004] |
+| 2026-05-20 18:17:10 | `PLAN/S0274_kotlin_hotspots_decomposition/INDEX.md` | `spec-dev` | S0274 tactical INDEX: Phase 01+02 done, Phase 03 final closure pending [branch: DEBUG-v004] |
+| 2026-05-20 18:17:10 | `PLAN/S0274_kotlin_hotspots_decomposition/PHASE_01__foundation-and-methodology.md` | `spec-dev` | S0274 Phase 01: closed with 3/3 steps done [branch: DEBUG-v004] |
+| 2026-05-20 18:17:10 | `PLAN/S0274_kotlin_hotspots_decomposition/PHASE_02__wave-01-videoplayermanager.md` | `spec-dev` | S0274 Phase 02 (Wave 01): closed with 6/6 steps done; VideoPlayerManager 939->706 LOC [branch: DEBUG-v004] |
+| 2026-05-20 18:17:11 | `PLAN/S0274_kotlin_hotspots_decomposition/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | S0274 Phase 03: closed with 4/4 steps done; status moved to BlockNeedUserTest [branch: DEBUG-v004] |
+| 2026-05-20 18:18:57 | `PLAN/S0274_kotlin_hotspots_decomposition.md` | `spec-all` | Pipeline BlockNeedUserTest: S0274 Wave 01 of 16 done (VideoPlayerManager 939->706 LOC); 3 helpers extracted; device-test gate pending [branch: DEBUG-v004] |
+| 2026-05-20 18:19:25 | `PLAN/S0267_cloud-auth-unified-storage-research.md` | `spec-tech` | Promote S0267 strategic spec to Tactical and link tactical plan [branch: DEBUG-v004] |
+| 2026-05-20 18:19:26 | `PLAN/S0267_cloud-auth-unified-storage-research/INDEX.md` | `spec-tech` | Create tactical index for S0267 research decomposition [branch: DEBUG-v004] |
+| 2026-05-20 18:19:27 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_01__child-spec-matrix.md` | `spec-tech` | Add S0267 phase 01 child spec matrix plan [branch: DEBUG-v004] |
+| 2026-05-20 18:19:27 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_02__prompt-pack.md` | `spec-tech` | Add S0267 phase 02 prompt pack plan [branch: DEBUG-v004] |
+| 2026-05-20 18:19:28 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_03__rollout-sequencing.md` | `spec-tech` | Add S0267 phase 03 rollout sequencing plan [branch: DEBUG-v004] |
+| 2026-05-20 18:19:29 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Add S0267 phase 04 cleanup plan [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `gradle.properties` | `Chaquopy CC safety` | Disable repo-default configuration cache for direct noLegal and IDE task safety [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-debug.PS1` | `Chaquopy CC safety` | Route generic debug builds to explicit configuration-cache opt-in or noLegal opt-out [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `dev/build-with-version.ps1` | `Chaquopy CC safety` | Opt standard versioned build into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-standard-debug.ps1` | `Chaquopy CC safety` | Opt standard debug wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-standard-device.ps1` | `Chaquopy CC safety` | Opt standard device wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-standard-release.ps1` | `Chaquopy CC safety` | Opt standard release wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-lite-debug.ps1` | `Chaquopy CC safety` | Opt lite debug wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-lite-device.ps1` | `Chaquopy CC safety` | Opt lite device wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-lite-release.ps1` | `Chaquopy CC safety` | Opt lite release wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-photos-debug.ps1` | `Chaquopy CC safety` | Opt photos debug wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-photos-device.ps1` | `Chaquopy CC safety` | Opt photos device wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-photos-release.ps1` | `Chaquopy CC safety` | Opt photos release wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-legacy-debug.ps1` | `Chaquopy CC safety` | Opt legacy debug wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-legacy-device.ps1` | `Chaquopy CC safety` | Opt legacy device wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-legacy-release.ps1` | `Chaquopy CC safety` | Opt legacy release wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-release.ps1` | `Chaquopy CC safety` | Opt standard release shortcut into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-debug-device.ps1` | `Chaquopy CC safety` | Opt debug-device wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-debug-clean.PS1` | `Chaquopy CC safety` | Opt clean debug rebuild into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:14 | `scripts/builders/build-aab-release.ps1` | `Chaquopy CC safety` | Opt standard bundle and APK release wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:15 | `scripts/builders/build-universal.ps1` | `Chaquopy CC safety` | Opt universal non-noLegal wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:15 | `scripts/builders/build-wear-debug.PS1` | `Chaquopy CC safety` | Opt wear debug wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:15 | `scripts/builders/build-wear-release.PS1` | `Chaquopy CC safety` | Opt wear release wrapper into configuration cache explicitly [branch: DEBUG-v004] |
+| 2026-05-20 21:43:15 | `dev/TECH_REQUIREMENTS.md` | `Chaquopy CC safety` | Sync documented configuration-cache default with direct noLegal safety strategy [branch: DEBUG-v004] |
+| 2026-05-20 22:00:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/local/MediaStoreLocalDestinationWriter.kt` | `S0280` | S0280: pre-Q legacy branch for PublicCollection routes to FileSystemSink; defensive guard in findExistingItem [branch: DEBUG-v004] |
+| 2026-05-20 22:09:43 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `app_v2:land settings` | Pack Allow Separate Window toggle onto the first interface row alongside All Files and Show Hidden Files in landscape; helper button preserved. [branch: DEBUG-v004] |
+| 2026-05-20 22:14:49 | `app_v2/src/main/res/layout/card_google_account.xml` | `Settings/General/Authorization UI polish` | Google account card: place Sign-in button right next to Diagnostics toggle in one row [branch: DEBUG-v004] |
+| 2026-05-20 22:14:59 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `Settings/General/Authorization UI polish` | Saved authorizations row: chevron pinned next to text with primary tint; Wear companion button shrunk to wrap_content [branch: DEBUG-v004] |
+| 2026-05-20 22:15:00 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `Settings/General/Authorization UI polish (landscape)` | Landscape parity: chevron pinned to text with primary tint; Wear companion button width=wrap_content [branch: DEBUG-v004] |
+| 2026-05-20 22:16:07 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general.xml` | Make landscape General settings action buttons hug content width [branch: DEBUG-v004] |
+| 2026-05-20 22:20:40 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `fragment_settings_video.xml` | Tighten landscape video settings action widths and align snapshot controls on one row [branch: DEBUG-v004] |
+| 2026-05-20 22:22:57 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `Settings/General/AppData buttons wrap_content` | Backup-and-export section: all action buttons (Export/Import, Share/Save logs, Backup/Restore, Reset settings) sized to text width instead of stretching to row [branch: DEBUG-v004] |
+| 2026-05-20 22:23:01 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `Settings/General/AppData buttons wrap_content (landscape)` | Landscape parity: Export/Import, Share/Save logs, Backup/Restore, Reset settings sized to text width [branch: DEBUG-v004] |
+| 2026-05-20 22:23:26 | `app_v2/src/main/res/layout-land/fragment_settings_images.xml` | `fragment_settings_images.xml` | Adjust landscape image settings row grouping and default viewer button width [branch: DEBUG-v004] |
+| 2026-05-20 22:25:19 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `fragment_settings_documents.xml` | Make default documents viewer button hug content width [branch: DEBUG-v004] |
+| 2026-05-20 22:26:51 | `app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `Settings/Media tab (landscape)` | Compact landscape layout: pair WiFi-only+local-cache cover toggles into one row, pair mic-enable+ask-filename toggles into one row, shrink default-audio-player button to wrap_content, constrain visualizer dropdown to 280dp. [branch: DEBUG-v004] |
+| 2026-05-20 22:30:31 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Limit landscape playback sort width and pair grid and file ops toggles [branch: DEBUG-v004] |
+| 2026-05-20 22:30:43 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `settings landscape - translation/OCR section` | Land layout: glue language/OCR-font spinners to their labels (drop weight=1 from labels, add Space spacer); put Translation toggle and Translation Lens Style on one horizontal row [branch: DEBUG-v004] |
+| 2026-05-20 22:32:58 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Attach landscape touch zone legend directly to the scheme [branch: DEBUG-v004] |
+| 2026-05-20 22:34:46 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Reflow paired playback settings rows in landscape [branch: DEBUG-v004] |
+| 2026-05-20 22:40:52 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `fragment_settings_destinations.xml` | Move add quick sort button before max recipients in landscape [branch: DEBUG-v004] |
+| 2026-05-20 22:41:32 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `settings playback landscape` | Compact landscape layout: pair PreventSleep+ResumeOnNextLaunch, ResourcePicker+OpenInPlayer (chevron on resource label), DisableCamera+SkipFilename, BlackScreenButton+DefaultRememberFileList; drop divider above Incoming Links; reduce vertical margins to margin_tiny [branch: DEBUG-v004] |
+| 2026-05-20 22:43:12 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `fragment_settings_destinations.xml` | Move landscape scheduled operations action buttons into the toggle row [branch: DEBUG-v004] |
+| 2026-05-20 22:47:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt` | `AddResourceFormManager.kt` | Apply add-resource status bar inset to toolbar container for stable landscape header [branch: DEBUG-v004] |
+| 2026-05-20 22:48:15 | `app_v2/src/main/res/layout/activity_add_resource.xml` | `activity_add_resource.xml` | Wrap add-resource toolbar in a container so landscape header keeps back title and icon button [branch: DEBUG-v004] |
+| 2026-05-20 22:50:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `audio cover fallback` | Keep a visible audio placeholder while async cover art loads and add focused diagnostics for blank audio player transitions. [branch: DEBUG-v004] |
+| 2026-05-20 22:55:18 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `operations-settings` | Mirror layoutScheduledActions id and visibility=gone from landscape variant; fixes noLegal/standard kapt errors after recent landscape edit (S0 rule 12) [branch: DEBUG-v004] |
+| 2026-05-20 22:55:45 | `CLAUDE.md` | `CLAUDE.md` | Align the list of mandatory skills with the Copilot instructions and AGENTS.md [branch: DEBUG-v004] |
+| 2026-05-20 23:03:18 | `app_v2/src/vr/cpp/CMakeLists.txt` | `CMakeLists.txt` | Add target_link_options -Wl,-z,max-page-size=16384 for 16 KB page alignment compatibility [branch: DEBUG-v004] |

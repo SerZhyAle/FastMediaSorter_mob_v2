@@ -54,14 +54,21 @@ Examples:
 
 > **⚠ LAYOUT_ORIENTATION:** Если правится `res/layout/*.xml` - **сразу проверить** `res/layout-land/<тот же файл>.xml`. Файл существует? → внести эквивалентную правку туда же в рамках того же `/quick`. Файл отсутствует, а экран поддерживает обе ориентации? → это уже не «очень незначительная» правка: отказать и предложить `/spec`.
 
-**Step 4 - Залогировать в `dev/CHANGELOG.md`.**
+**Step 4 - Закрыть правку через `scripts/post-change.ps1`.**
 Обязательно - одной командой:
 ```powershell
-.\scripts\add_to_dev_log.ps1 "<relative/path/to/file>" "<target>" "<short EN description>"
+pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]
 ```
 `<target>` - имя класса/ресурса/строки (`colors.xml`, `settings_fragment.xml`, `string/login_title`).
 
-> **Performance hint.** Когда правка касается одного `.kt` и нужен и dev log, и (опционально) функ.лог, и пользователь хочет, чтобы за один pwsh-проход покрылось всё включая каталог - использовать `scripts/post-change.ps1 -File <path> -Target <class> -Description <desc>`. Для `/quick` это избыточно (catalog sync здесь skip по дизайну), но при правках в `.kt` >1 файла удобнее, чем серия отдельных вызовов.
+`ChangeType` выбирается по фактическому типу правки:
+- `Doc` - `.md`, comments-only, `PLAN/`, prompt/rule text.
+- `Xml` - `strings.xml`, layout/resource-only change; при добавлении/удалении string-keys передать `-KeyPrefix`.
+- `Kotlin` - только если мини-правка реально меняет исполняемый Kotlin/Java и нужен catalog sync.
+- `Mixed` - только если одна маленькая правка одновременно тронула код и строки.
+- `Script` / `Config` - для `.ps1` / `.kts` / `.json` / build-like правок без смешанного набора.
+
+> **Performance hint.** Когда правка касается `.kt` и нужно одним pwsh-вызовом закрыть dev log + каталог, использовать `scripts/post-change.ps1 -File <path> -Target <class> -Description <desc> -ChangeType Kotlin` (или `-ChangeType Mixed`, если заодно менялись `strings.xml` с `-KeyPrefix`). Для `/quick` это обычно избыточно, но при пачке `.kt`-правок удобнее, чем серия отдельных вызовов.
 
 **Step 4a - Functionality log (условно).**
 Если правка реально видна пользователю как изменение поведения уже существующей фичи (правка строки в UI, цвета акцента, отступа в видимом элементе, ориентации виджета) - добавить одну строку в `dev/FUNCTIONALITY.log` через:
@@ -79,14 +86,14 @@ Skip (тихий пропуск), если:
 
 **Step 5 - НЕ запускать:**
 - `docs/FEATURES*.md` обновление (skip - это `/doc-update`).
-- Catalog sync (`scan.ps1` / `render.ps1`) - даже для `.kt` (skip; пользователь синхронизирует отдельно при необходимости).
+- Отдельные вызовы `add_to_dev_log.ps1`, `catalog_sync.ps1`, `check_strings_localized.ps1` - skip; применимые механические шаги уже выбирает `post-change.ps1`.
 - Билд (`/build`).
 - `/ui-clarify` gate - игнорируется в `/quick` по дизайну скилла. Если задача требует уточнений UI - это значит она не «очень незначительная» → вернуться на Step 1 и отказать.
 
 **Step 6 - Отчёт.**
 Одно предложение: что изменено, в каком файле, плюс факт логирования. Без сводок, без планов на будущее, без markdown-секций.
 
-Пример: `Padding кнопки Save в settings_fragment.xml поднят с 8dp до 16dp; залогировано в dev/CHANGELOG.md.`
+Пример: `Padding кнопки Save в settings_fragment.xml поднят с 8dp до 16dp; правка закрыта через post-change.ps1.`
 
 ---
 
@@ -96,10 +103,9 @@ Skip (тихий пропуск), если:
 |----------------------|-------------------|
 | Спецификация         | skip              |
 | `/ui-clarify` gate   | skip              |
-| Catalog sync         | skip              |
 | `docs/FEATURES*`     | skip              |
 | Build verification   | skip              |
-| `dev/CHANGELOG.md`   | **обязательно**   |
+| `post-change.ps1`    | **обязательно**   |
 | `dev/FUNCTIONALITY.log` | условно (только если правка видна пользователю как изменение поведения) |
 | Author style (`..`, `ё`) | **обязательно** |
 

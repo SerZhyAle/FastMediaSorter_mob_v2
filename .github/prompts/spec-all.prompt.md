@@ -8,6 +8,8 @@ description: "Use when: asked to run the full spec pipeline from a raw idea to v
 Execute the complete spec pipeline from idea to verified implementation, fully automated.
 Forward bias over correctness theatre - patch the spec and continue. Stop only when forward progress is genuinely impossible without a human. Ready to pick up a spec at any stage, any status. Defers unresolvable human questions to the final report - never blocks mid-pipeline on something that can be skipped and revisited.
 
+Strategic approval is the explicit exception to full automation: newly written strategic or compact specs must not be auto-promoted from `Draft` without the owner-input gate defined by `/spec` (`## 0. Approval Gate (owner input)`).
+
 ## Usage
 
 ```text
@@ -56,7 +58,7 @@ If resolved → read strategic spec file, read current `Status:` → **jump to t
 
 | Current `Status:` | Resume stage |
 | --- | --- |
-| `Draft` | F1 (finish/overwrite strategic spec) or S1 |
+| `Draft` | Validate `## 0. Approval Gate (owner input)`. If complete, promote to `Approved` and continue to the next post-draft stage (`F2` for strategic, `S2` for compact). If incomplete, stop and report missing owner inputs. |
 | `Approved` | F2 (tactical plan) |
 | `Tactical` | F3 (implementation, first non-done step) |
 | `In Progress` | F3 (continue, `--resume`) |
@@ -97,8 +99,12 @@ Allocate `Sxxxx` via `insert.ps1`. Write a single `PLAN/Sxxxx_<short-name>.md` t
 Use the `spec_tech` phase template directly (English, imperative steps with Verification predicates).
 Include a brief **Goal** section (2–4 sentences, Russian) before the phases. Auto-derive priority per `/spec` rules.
 
-Flip `Status: Draft` → `Status: Approved` in the file and via `update.ps1`.
+Add the same owner-input gate used by `/spec` (`## 0. Approval Gate (owner input)`) and fill it only from the human request. Unknown items stay `MISSING - requires owner input`.
+
+Keep `Status: Draft` for a newly created compact spec. Do not auto-promote it in the same run.
 Run dev log: `.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Compact spec: <Sxxxx>"`
+
+If this was a new idea flow, stop here and report: `Draft created. Waiting for owner approval gate / explicit resume.`
 
 ### Stage S2 - Implementation
 
@@ -119,13 +125,9 @@ Audit loop max 3 iterations (not 5). Otherwise same as **Stage F5** below.
 ### Stage F1 - Strategic Spec
 
 Follow `/spec` process with `roadmap-id: ad-hoc`. The id is allocated by `insert.ps1` inside `/spec`.
-After writing: flip `Status: Draft` → `Status: Approved` (file + journal). Add:
+Do **not** auto-promote the newly written strategic draft. Run dev log for the strategic spec file and stop if this run created a new draft.
 
-```markdown
-<!-- auto-approved by /spec-all - <YYYY-MM-DD> -->
-```
-
-Run dev log for the strategic spec file.
+Resume beyond F1 only when the spec already has a complete `## 0. Approval Gate (owner input)` and the current `/spec-all <Sxxxx|slug>` invocation is the explicit human proceed signal.
 
 ### Stage F2 - Tactical Plan
 
@@ -163,7 +165,7 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 **Out-of-scope dependency:**
 
 - Minor (no new classes, no schema change, ≤ ~30 min of work) → implement inline.
-- Significant → allocate a new `Sxxxx` via `insert.ps1`, write `PLAN/Sxxxx_<dependency-slug>.md` (`Status: Approved`, `<!-- discovered by /spec-all - <date> -->`). If the dependency itself is **Full**-complexity, create full tactical folder too. Continue current pipeline. Set the parent's status to `BlockByOtherTask` only if the dependency must finish before continuing - otherwise just record it under §10.
+- Significant → allocate a new `Sxxxx` via `insert.ps1`, write `PLAN/Sxxxx_<dependency-slug>.md` in `Status: Draft` with the owner approval gate. Record it under §10. Do not auto-approve it and do not create a tactical folder for it in the same run. Set the parent's status to `BlockByOtherTask` only if the dependency must finish before continuing - otherwise just record it under §10.
 
 **Override does NOT apply to:** read-only zones (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`).
 

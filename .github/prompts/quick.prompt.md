@@ -57,23 +57,30 @@ Examples:
 
 > **⚠ LAYOUT_ORIENTATION:** Если правится `res/layout/*.xml` - **сразу проверить** `res/layout-land/<тот же файл>.xml`. Файл существует? → внести эквивалентную правку туда же в рамках того же `/quick`. Файл отсутствует, а экран поддерживает обе ориентации? → это уже не «очень незначительная» правка: отказать и предложить `/spec`.
 
-**Step 4 - Залогировать в `dev/CHANGELOG.md`.**
+**Step 4 - Закрыть правку через `scripts/post-change.ps1`.**
 Обязательно - одной командой:
 ```powershell
-.\scripts\add_to_dev_log.ps1 "<relative/path/to/file>" "<target>" "<short EN description>"
+pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]
 ```
 `<target>` - имя класса/ресурса/строки (`colors.xml`, `settings_fragment.xml`, `string/login_title`).
 
+`ChangeType` выбирается по фактическому типу правки:
+- `Doc` - `.md`, comments-only, `PLAN/`, prompt/rule text.
+- `Xml` - `strings.xml`, layout/resource-only change; при добавлении/удалении string-keys передать `-KeyPrefix`.
+- `Kotlin` - только если мини-правка реально меняет исполняемый Kotlin/Java и нужен catalog sync.
+- `Mixed` - только если одна маленькая правка одновременно тронула код и строки.
+- `Script` / `Config` - для `.ps1` / `.kts` / `.json` / build-like правок без смешанного набора.
+
 **Step 5 - НЕ запускать:**
 - `docs/FEATURES*.md` обновление (skip - это `/doc-update`).
-- Catalog sync (`scan.ps1` / `render.ps1`) - даже для `.kt` (skip; пользователь синхронизирует отдельно при необходимости).
+- Отдельные вызовы `add_to_dev_log.ps1`, `catalog_sync.ps1`, `check_strings_localized.ps1` - skip; применимые механические шаги уже выбирает `post-change.ps1`.
 - Билд (`/build`).
 - `/ui-clarify` gate - игнорируется в `/quick` по дизайну скилла. Если задача требует уточнений UI - это значит она не «очень незначительная» → вернуться на Step 1 и отказать.
 
 **Step 6 - Отчёт.**
 Одно предложение: что изменено, в каком файле, плюс факт логирования. Без сводок, без планов на будущее, без markdown-секций.
 
-Пример: `Padding кнопки Save в settings_fragment.xml поднят с 8dp до 16dp; залогировано в dev/CHANGELOG.md.`
+Пример: `Padding кнопки Save в settings_fragment.xml поднят с 8dp до 16dp; правка закрыта через post-change.ps1.`
 
 ---
 
@@ -83,10 +90,9 @@ Examples:
 |----------------------|-------------------|
 | Спецификация         | skip              |
 | `/ui-clarify` gate   | skip              |
-| Catalog sync         | skip              |
 | `docs/FEATURES*`     | skip              |
 | Build verification   | skip              |
-| `dev/CHANGELOG.md`   | **обязательно**   |
+| `post-change.ps1`    | **обязательно**   |
 | Author style (`..`, `ё`) | **обязательно** |
 
 Всё, что в skip - ответственность пользователя при необходимости.

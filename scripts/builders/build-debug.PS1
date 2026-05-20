@@ -80,6 +80,13 @@ Set-Content $buildGradlePath $content -NoNewline
 # Start the Gradle build process (Debug only for speed)
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 Set-Location $projectRoot
+$tempDir = Join-Path $projectRoot "temp"
+if (-not (Test-Path -Path $tempDir)) {
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+}
+
+$logTimestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$buildLogPath = Join-Path $tempDir "build_debug_$logTimestamp.log"
 
 
 function Stop-GradleDaemons {
@@ -133,6 +140,16 @@ function Invoke-DebugBuild {
     $enableChaquopy = $script:Chaquopy.IsPresent -or ($script:Task -match '(?i)noLegal')
     $chaquopyFlag = if ($enableChaquopy) { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
     $gradleArgs = @($script:Task, $chaquopyFlag)
+    if ($enableChaquopy) {
+        # S0276 follow-up: repo default is CC-off for direct noLegal/IDE safety, and any
+        # noLegal/Chaquopy task graph must stay opted out until the plugin becomes
+        # configuration-cache-compatible.
+        $gradleArgs += "--no-configuration-cache"
+    } else {
+        # Default repo state is CC-off for direct noLegal/IDE safety, so safe graphs
+        # opt back in explicitly here to keep the non-noLegal fast path.
+        $gradleArgs += "--configuration-cache"
+    }
     if ($DisableBuildCache) {
         $gradleArgs += "--no-build-cache"
         $gradleArgs += "--rerun-tasks"
@@ -162,6 +179,16 @@ function Invoke-DebugBuild {
         ExitCode = $LASTEXITCODE
         Output   = ($outputLines -join [Environment]::NewLine)
     }
+}
+
+function Save-BuildLog {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$OutputText
+    )
+
+    Set-Content -Path $buildLogPath -Value $OutputText -Encoding utf8NoBOM
+    Write-Host "Build log: $buildLogPath" -ForegroundColor DarkGray
 }
 
 $buildResult = Invoke-DebugBuild
@@ -204,10 +231,12 @@ if ($buildResult.ExitCode -ne 0) {
 }
 
 if ($buildResult.ExitCode -ne 0) {
+    Save-BuildLog -OutputText $buildResult.Output
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
     exit $buildResult.ExitCode
 }
 
+Save-BuildLog -OutputText $buildResult.Output
 Write-Host "`nBuild Successful!" -ForegroundColor Green
 
 # Copy to DOWNLOADS folder

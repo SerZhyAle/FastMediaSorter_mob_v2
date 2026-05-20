@@ -309,14 +309,27 @@
                         android:paddingEnd="@dimen/settings_margin_standard"
                         android:paddingBottom="@dimen/settings_margin_standard">
 
-                        <!-- Max recipients + help icon -->
+                        <!-- Add destination button + max recipients + help icon -->
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
+                            android:baselineAligned="false"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:paddingTop="@dimen/settings_padding_vertical_top_small">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddDestination"
+                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/settings_help_icon_margin"
+                                android:paddingHorizontal="@dimen/settings_padding_horizontal_large"
+                                android:paddingVertical="@dimen/settings_padding_vertical"
+                                android:text="@string/add_destination"
+                                android:textSize="@dimen/toggler_title_text_size"
+                                android:visibility="gone" />
 
                             <com.google.android.material.textfield.TextInputLayout
                                 android:id="@+id/tilMaxRecipients"
@@ -346,19 +359,6 @@
                                 app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
-
-                        <!-- Add Destination Button -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAddDestination"
-                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            android:paddingHorizontal="@dimen/settings_padding_horizontal_large"
-                            android:paddingVertical="@dimen/settings_padding_vertical"
-                            android:text="@string/add_destination"
-                            android:textSize="@dimen/toggler_title_text_size"
-                            android:visibility="gone" />
 
                         <!-- Message when no resources available -->
                         <com.google.android.material.textview.MaterialTextView
@@ -447,11 +447,13 @@
 
                             <!-- Toolbar: Add + Log + Clear buttons -->
                             <LinearLayout
+                                android:id="@+id/layoutScheduledActions"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="end"
                                 android:layout_marginTop="@dimen/margin_tiny"
-                                android:orientation="horizontal">
+                                android:orientation="horizontal"
+                                android:visibility="gone">
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnAddScheduledOp"

@@ -57,9 +57,9 @@ For build/flag questions: consult `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`.
 ## Class Catalog & Navigation
 
 - **Always query catalog first**: `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` for class lookup.
-- After every `.kt` file change, run `scan.ps1` then `render.ps1` for the affected module.
+- After every `.kt` file change, run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
 - For new classes, fill `role` + `status` via `set.ps1`.
-- Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with code changes.
+- `dev/CATALOG/<module>.jsonl` + `<module>.md` are local gitignored indexes - regenerate them, do not expect or require a git commit for them.
 - Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` - never modify these.
 
 ## Post-Change Mandatory Steps
@@ -68,7 +68,7 @@ After every code/config change:
 1. Dev Changelog: `./scripts/add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
 2. Feature docs: update `docs/FEATURES.md` + `_RU` + `_UK` for any new user-facing feature.
 3. String locale audit: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` changes. Exit code 1 = must fix before commit.
-4. Catalogue sync: `scan.ps1` + `render.ps1` for affected module.
+4. Catalogue sync: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
 5. Spec catalog sync: `update.ps1 -Id Sxxxx -Status <new>` on every status transition.
 
 ## Multi-step Tasks

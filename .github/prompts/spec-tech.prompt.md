@@ -5,7 +5,7 @@ description: "Use when: breaking an approved strategic spec into a tactical phas
 
 # Tactical Specification Writer
 
-Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later (see auto-promote rule below).
+Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later, or a `Draft` whose owner approval gate is complete and is being continued by an explicit human `/spec-tech` invocation.
 Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imperative, no rationale prose.
 
 ## Usage
@@ -16,7 +16,7 @@ Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imp
 /spec-tech <Sxxxx-or-slug> --dry-run
 ```
 
-**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding (the spec was just written - manual approval gate adds no value). Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort - they require explicit resolution.
+`Draft` is **not** auto-promoted anymore. The only allowed `Draft` → `Approved` promotion inside this skill is the explicit human-driven proceed signal created by invoking `/spec-tech <Sxxxx>` on a draft whose `## 0. Approval Gate (owner input)` is complete. Block states (`Block*`) and incomplete approval gates cause a hard abort.
 
 The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 
@@ -43,7 +43,9 @@ No `_spec_` segment in any path. Phase-slug: kebab-case, ≤4 words. Examples: `
 
 Resolve `Sxxxx` and slug via `select.ps1`. Read `PLAN/Sxxxx_<short-name>.md`. Abort if missing or `Status: Block*` (block states require resolution first).
 
-If `Status: Draft` → auto-promote to `Approved`:
+If `Status: Draft`, read `## 0. Approval Gate (owner input)` and validate every mandatory line. If any mandatory item is absent, marked `MISSING`, or filled only with agent inference, abort and list the gate items that still require owner input.
+
+If `Status: Draft` and the gate is complete, the current user-invoked `/spec-tech` call counts as the explicit proceed signal. Promote to `Approved` and continue:
 
 ```powershell
 (Get-Content "PLAN/${ticketId}_<short-name>.md") -replace '^(\*\*Status:\*\*\s*)Draft', '${1}Approved' |
@@ -51,7 +53,7 @@ If `Status: Draft` → auto-promote to `Approved`:
 pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
 ```
 
-Note in chat: `Status was Draft - auto-promoted to Approved.`
+Note in chat: `Status was Draft. Approval gate complete - promoted to Approved on explicit /spec-tech request.`
 
 Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars (§5.1), open research items (§6), ADRs (§9), criteria (§11).
 

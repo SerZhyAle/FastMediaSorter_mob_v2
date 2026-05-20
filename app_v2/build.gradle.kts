@@ -37,8 +37,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260520124
-        versionName = "2.60.5201.241"
+        versionCode = 260520230
+        versionName = "2.60.5202.303"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -645,28 +645,23 @@ androidComponents {
 // must avoid applying the plugin at all unless noLegal is actually being built.
 //
 // Activation sources (first match wins):
-//   1. Explicit -Pchaquopy.enabled=true|false (CLI / gradle.properties) — hard override.
+//   1. Explicit -Pchaquopy.enabled=true|false (CLI / helper scripts) — hard override.
 //   2. Auto-detect: any task in gradle.startParameter.taskNames contains "noLegal"
 //      (case-insensitive). Covers Android Studio's debug/run button which schedules
 //      :app_v2:assembleNoLegalDebug / :installNoLegalDebug for the active build variant.
-//      Configuration cache is disabled project-wide (gradle.properties:
-//      org.gradle.configuration-cache=false), so reading startParameter.taskNames is safe.
 //      IDE sync runs no assemble* task, so this path stays false during sync and the
 //      Build Variants dropdown keeps showing every flavor (beforeVariants stays inactive).
-//   3. Fallback: chaquopy.enabled=true in local.properties (machine-local opt-in).
+//
+// S0276: the old local.properties fallback was removed before re-enabling the Gradle
+// configuration cache globally. A machine-local `chaquopy.enabled=true` line would make
+// IDE sync and unrelated Gradle invocations apply Chaquopy even when no noLegal task is
+// in scope, which defeats the non-noLegal fast path and reintroduces CC instability.
 //
 // CLI examples:
 //   ./gradlew :app_v2:assembleNoLegalDebug                          # auto-enabled
 //   ./gradlew :app_v2:assembleNoLegalDebug -Pchaquopy.enabled=true  # explicit
 //   ./gradlew :app_v2:assembleStandardDebug -Pchaquopy.enabled=false # force-off override
 //
-// S0175 fix: providers.gradleProperty() does NOT read local.properties. Read it explicitly
-// so that the "add to local.properties" fallback actually works.
-val _chaquopyLocalPropsFile = rootProject.file("local.properties")
-val _chaquopyLocalProps = Properties()
-if (_chaquopyLocalPropsFile.exists()) {
-    _chaquopyLocalProps.load(FileInputStream(_chaquopyLocalPropsFile))
-}
 val _gradleChaquopyPropRaw = providers.gradleProperty("chaquopy.enabled").orNull
 val _noLegalTaskRequested = gradle.startParameter.taskNames.any {
     it.contains("noLegal", ignoreCase = true)
@@ -674,7 +669,7 @@ val _noLegalTaskRequested = gradle.startParameter.taskNames.any {
 val isNoLegalBuild = when {
     _gradleChaquopyPropRaw != null -> _gradleChaquopyPropRaw.equals("true", ignoreCase = true)
     _noLegalTaskRequested -> true
-    else -> _chaquopyLocalProps.getProperty("chaquopy.enabled", "false").equals("true", ignoreCase = true)
+    else -> false
 }
 if (isNoLegalBuild) {
     // Chaquopy 17.x validates all variants at configuration time. Constraints:

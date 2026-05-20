@@ -56,9 +56,9 @@ Gate features via `BuildConfig.*` - never with raw flavor name strings. Build/fl
 ## Class Catalog & Navigation
 
 - Query the catalogue first: `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"`. Never use `find`/glob to locate a Kotlin class.
-- After every `.kt` change, run `scan.ps1` then `render.ps1` for the affected module.
+- After every `.kt` change, run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
 - For new classes, fill `role` + `status` via `set.ps1`.
-- Commit the updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
+- `dev/CATALOG/<module>.jsonl` + `<module>.md` are local gitignored indexes - regenerate them, do not expect or require a git commit for them.
 - Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` - never modify these. Ignore `*.backup` files unless asked for historical comparison.
 
 ## Post-Change Mandatory Steps
@@ -66,7 +66,7 @@ Gate features via `BuildConfig.*` - never with raw flavor name strings. Build/fl
 1. Dev Changelog: `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
 2. Feature docs: update `docs/FEATURES.md` + `_RU` + `_UK` for any new user-facing feature (route through `/doc-update`).
 3. String locale audit: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` change (exit code 1 = fix before commit).
-4. Catalogue sync: `scan.ps1` + `render.ps1` for the affected module after every `.kt` change.
+4. Catalogue sync: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module after every `.kt` change.
 5. Spec catalog sync: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` on every status transition.
 
 ## Safety Rules

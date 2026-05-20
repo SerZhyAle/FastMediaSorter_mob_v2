@@ -48,6 +48,10 @@ if(FMS_BUILD_XR_RUNTIME)
         -Wall
         -Wno-unused-parameter
     )
+
+    target_link_options(fms_diagnostic_xr PRIVATE
+        -Wl,-z,max-page-size=16384
+    )
 else()
     message(STATUS "S0249 Phase 02: fms_diagnostic_xr disabled (FMS_BUILD_XR_RUNTIME=OFF)")
 endif()

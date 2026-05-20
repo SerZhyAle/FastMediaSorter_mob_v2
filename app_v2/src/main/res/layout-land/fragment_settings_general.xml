@@ -38,7 +38,7 @@
 
                     </LinearLayout>
 
-                    <!-- Row: All Files | Show Hidden Files -->
+                    <!-- Row: All Files | Show Hidden Files | Allow Separate Window (S0028) -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
                         <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
@@ -55,7 +55,7 @@
 
                         </LinearLayout>
 
-                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                                 android:id="@+id/rowShowHiddenFiles"
@@ -66,6 +66,20 @@
                                 app:str_showHelp="true"
                                 app:str_helpTitle="@string/tooltip_show_hidden_files_title"
                                 app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
+
+                        </LinearLayout>
+
+                        <!-- S0028: Multi-window mode toggle. Landscape-only placement: shares the first interface row with All Files / Show Hidden Files to save vertical space. -->
+                        <LinearLayout android:id="@+id/layoutAllowSeparateWindow" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowAllowSeparateWindow"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/setting_allow_separate_window"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_allow_separate_window_title"
+                                app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
 
                         </LinearLayout>
 
@@ -104,44 +118,33 @@
 
                     </LinearLayout>
 
-                    <!-- S0160: Resource ops overflow toggle -->
-                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+                    <!-- Row: Resource Ops in Overflow Menu (S0160) | Enable Favorites -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowResourceOpsInOverflowMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/resource_ops_in_overflow_menu"
-                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+                        <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                    </LinearLayout>
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowResourceOpsInOverflowMenu"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/resource_ops_in_overflow_menu"
+                                app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
 
-                    <!-- Enable Favorites -->
-                    <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+                        </LinearLayout>
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowEnableFavorites"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/enable_favorites"
-                            app:str_subtitle="@string/setting_enable_favorites_desc"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_favorites_title"
-                            app:str_helpMessage="@string/tooltip_favorites_message" />
+                        <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
 
-                    </LinearLayout>
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowEnableFavorites"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/enable_favorites"
+                                app:str_subtitle="@string/setting_enable_favorites_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_favorites_title"
+                                app:str_helpMessage="@string/tooltip_favorites_message" />
 
-                    <!-- S0028: Multi-window mode — allow opening in a separate window. Relocated here from VideoSettings; placed at the bottom of the Interface section. -->
-                    <LinearLayout android:id="@+id/layoutAllowSeparateWindow" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowAllowSeparateWindow"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/setting_allow_separate_window"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_allow_separate_window_title"
-                            app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
+                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -206,9 +209,8 @@
                             app:tint="@color/text_color_secondary" />
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                                 android:text="@string/setting_saved_authorizations_title"
@@ -222,8 +224,10 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
+                            android:layout_marginStart="@dimen/margin_small"
                             android:src="@drawable/ic_chevron_right"
-                            android:importantForAccessibility="no" />
+                            android:importantForAccessibility="no"
+                            app:tint="?attr/colorPrimary" />
 
                     </LinearLayout>
 
@@ -246,8 +250,8 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false) -->
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. -->
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -269,20 +273,20 @@
                     <!-- Export/Import Settings -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" app:icon="@drawable/ic_cloud_upload" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" app:icon="@drawable/ic_cloud_upload" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_settings" app:icon="@drawable/ic_cloud_download" app:layout_constraintStart_toEndOf="@+id/btnExportSettings" app:layout_constraintEnd_toStartOf="@+id/btnHelpExportImport" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_settings" app:icon="@drawable/ic_cloud_download" app:layout_constraintStart_toEndOf="@+id/btnExportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
-                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnImportSettings" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnImportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Debug Logs Export -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_copy" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_copy" />
 
                     </LinearLayout>
 
@@ -291,9 +295,9 @@
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
 
                         <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
@@ -318,7 +322,7 @@
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <Button android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+                    <Button android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -434,7 +438,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Reset General Section button (moved out of the System collapsible group; sits between System and Debug sections). -->
-        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
 
         <!-- DEBUG SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -476,7 +480,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPermissionsManagement"
             style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/settings_margin_standard"
             android:layout_marginTop="@dimen/margin_tiny"

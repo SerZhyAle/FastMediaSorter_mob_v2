@@ -61,7 +61,10 @@ For each step in plan order:
 9. **Outcome:**
    - All predicates PASS → flip to `[x] done`. Append Step Log entry.
    - Any predicate FAIL → leave at `[~] in progress`. Append FAIL note. **Hard stop.**
-10. **Run dev log** for every modified source file (one `add_to_dev_log.ps1` invocation per file).
+10. **Run mechanical post-change closure** for every modified file.
+  - Use `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
+  - Choose `Kotlin` for executable `.kt` / `.java` edits, `Xml` for string/resource changes, `Doc` for spec/doc-only edits, and `Mixed` only when one step genuinely spans code plus strings.
+  - Spec status transitions and functionality-log decisions stay outside this command.
 
 After all planned steps in the current phase complete:
 
@@ -71,6 +74,7 @@ After all planned steps in the current phase complete:
   - Manual review required → leave unticked, mark `MANUAL-REQUIRED`.
 - If every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - If any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
+- **Write session snapshot (S0268 Agent Continuity Layer).** After the phase boundary closes (success or hard-stop), invoke `scripts/agent_continuity/session-snapshot.ps1` with `-Ticket <Sxxxx>` (the active spec id), `-Goal "<phase title>"` (the just-finished phase title), `-FilesTouched @(<file1>, <file2>, ...)` (collected from this phase's `Files Touched` table), and `-NextStep "<cursor>"` (the next step printed in chat output, or `phase-complete` when the whole phase was the final one). One call per phase boundary; the snapshot lands under `temp/sessions/` and is the resume-layer hand-off for the next session.
 
 After all phases done:
 
@@ -97,7 +101,7 @@ After all phases done:
   - Pass `-SkipFuncLog` (or omit `-FuncOp`) when the spec is purely internal (refactor, performance, build/CI plumbing). Document the skip in chat output.
   - The description should be a concise user-visible summary, reusing the spec title or first sentence of §2 Goals.
 
-  Individual-call fallback (`update.ps1 -Status` + `add_to_dev_log.ps1` × N + `add_to_functionality_log.ps1` + `scan.ps1` + `render.ps1`) remains valid when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process.
+  Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `add_to_functionality_log.ps1` + `catalog_sync.ps1` only when a separate catalog repair is still needed) remains valid when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process.
 
 - **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` - in that case note: `→ Awaiting on-device test. Debug tags inserted: N. Run /spec-check <Sxxxx> after verification (it removes the tags on the Verified transition).`
 

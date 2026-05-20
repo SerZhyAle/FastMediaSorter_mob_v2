@@ -81,6 +81,7 @@ Build + install to connected device:
 - **AAB Bundle**: `app_v2/build/outputs/bundle/standardRelease/` or `vrRelease/`
 - **Wear APKs**: `wear/build/outputs/apk/debug/` or `release/`
 - **Auto-copy**: `DOWNLOADS/` (release builds only)
+- **Failure diagnostics**: `.\a.ps1 bf` prints the relevant block from the latest saved `temp/*build*.log`
 
 ## Note
 

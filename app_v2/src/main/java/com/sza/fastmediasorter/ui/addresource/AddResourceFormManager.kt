@@ -39,9 +39,10 @@ internal class AddResourceFormManager(
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val safeStatusBarHeight = insets.getStatusBarHeightSafe(activity.resources)
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            binding.toolbar.setPadding(
-                binding.toolbar.paddingLeft, safeStatusBarHeight,
-                binding.toolbar.paddingRight, binding.toolbar.paddingBottom
+            // Apply the inset to the outer container so the toolbar row keeps its full height in landscape.
+            binding.toolbarContainer.setPadding(
+                binding.toolbarContainer.paddingLeft, safeStatusBarHeight,
+                binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
             )
             binding.root.setPadding(0, 0, 0, navBar.bottom)
             insets

@@ -65,7 +65,10 @@ For each step in plan order:
 9. **Outcome:**
    - All predicates PASS → flip to `[x] done`. Append Step Log entry.
    - Any predicate FAIL → leave at `[~] in progress`. Append FAIL note. **Hard stop.**
-10. **Run dev log** for every modified source file (one `add_to_dev_log.ps1` invocation per file).
+10. **Run mechanical post-change closure** for every modified file.
+  - Use `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
+  - Choose `Kotlin` for executable `.kt` / `.java` edits, `Xml` for string/resource changes, `Doc` for spec/doc-only edits, and `Mixed` only when one step genuinely spans code plus strings.
+  - Spec status transitions and functionality-log decisions stay outside this command.
 
 After all planned steps in the current phase complete:
 
