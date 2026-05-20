@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Audit Jury Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f3efe6;
+            --ink: #1e1a17;
+            --muted: #62584f;
+            --line: rgba(30, 26, 23, 0.12);
+            --panel: rgba(255, 252, 246, 0.86);
+            --panel-strong: #fffaf2;
+            --shadow: 0 24px 60px rgba(58, 41, 28, 0.14);
+            --clay: #d86f45;
+            --gold: #d8a24b;
+            --teal: #1f8a82;
+            --olive: #5f7d3c;
+            --plum: #6b4e71;
+            --winner: #2f6d44;
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --max-width: 1280px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Space Grotesk", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(216, 162, 75, 0.28), transparent 28%),
+                radial-gradient(circle at 85% 15%, rgba(31, 138, 130, 0.18), transparent 22%),
+                linear-gradient(180deg, #f8f3e8 0%, #efe8dd 48%, #f5efe7 100%);
+            line-height: 1.65;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(30, 26, 23, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 26, 23, 0.025) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(circle at center, black 55%, transparent 95%);
+            opacity: 0.5;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .page-shell {
+            position: relative;
+            width: min(calc(100% - 32px), var(--max-width));
+            margin: 0 auto;
+            padding: 24px 0 56px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: var(--radius-xl);
+            background:
+                linear-gradient(135deg, rgba(255, 250, 242, 0.92), rgba(255, 247, 236, 0.76)),
+                linear-gradient(135deg, rgba(216, 111, 69, 0.12), rgba(31, 138, 130, 0.08));
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            right: -80px;
+            top: -80px;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(216, 162, 75, 0.24), transparent 70%);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(30, 26, 23, 0.06);
+            color: var(--muted);
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--winner);
+            box-shadow: 0 0 0 4px rgba(47, 109, 68, 0.12);
+        }
+
+        .hero-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+            gap: 28px;
+            margin-top: 24px;
+        }
+
+        h1 {
+            margin: 0 0 18px;
+            font-size: clamp(2.4rem, 4vw, 4.8rem);
+            line-height: 0.95;
+            letter-spacing: -0.05em;
+            max-width: 10ch;
+        }
+
+        .hero-lead {
+            max-width: 68ch;
+            font-size: 1.05rem;
+            color: var(--muted);
+            margin: 0 0 18px;
+        }
+
+        .chip-row,
+        .summary-row,
+        .vote-grid,
+        .insight-grid,
+        .takeaway-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .chip-row {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            margin-top: 24px;
+        }
+
+        .chip {
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.52);
+        }
+
+        .chip strong,
+        .metric-card strong,
+        .section-title strong {
+            display: block;
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .chip span {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .hero-side {
+            display: grid;
+            gap: 16px;
+            align-content: start;
+        }
+
+        .metric-card,
+        .panel,
+        .vote-card,
+        .insight-card,
+        .detail-card,
+        .takeaway-card {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: var(--panel);
+            box-shadow: 0 10px 30px rgba(58, 41, 28, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card {
+            padding: 22px;
+        }
+
+        .metric-value {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .metric-value b {
+            font-size: clamp(2.4rem, 5vw, 4rem);
+            line-height: 1;
+            letter-spacing: -0.06em;
+        }
+
+        .metric-value span {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--winner);
+        }
+
+        .metric-card p,
+        .vote-card p,
+        .insight-card p,
+        .takeaway-card p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .section {
+            margin-top: 26px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            margin: 0;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+            letter-spacing: -0.04em;
+        }
+
+        .section-title p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            max-width: 62ch;
+        }
+
+        .summary-row {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .panel h3,
+        .detail-card h3 {
+            margin: 0 0 10px;
+            font-size: 1.15rem;
+        }
+
+        .panel p,
+        .detail-card p,
+        .detail-card li {
+            color: var(--muted);
+        }
+
+        .mono {
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 0.92rem;
+        }
+
+        .vote-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .vote-card {
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vote-card::before {
+            content: "";
+            position: absolute;
+            inset: auto 0 0;
+            height: 4px;
+        }
+
+        .vote-card.claude::before { background: var(--clay); }
+        .vote-card.gpt::before { background: var(--teal); }
+        .vote-card.codex::before { background: var(--gold); }
+        .vote-card.gemini::before { background: var(--plum); }
+
+        .agent-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(30, 26, 23, 0.06);
+            font-size: 0.84rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .agent-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .agent-dot.claude { background: var(--clay); }
+        .agent-dot.gpt { background: var(--teal); }
+        .agent-dot.codex { background: var(--gold); }
+        .agent-dot.gemini { background: var(--plum); }
+
+        .vote-card h3 {
+            margin: 18px 0 8px;
+            font-size: 1.3rem;
+        }
+
+        .vote-card b {
+            display: block;
+            margin-top: 16px;
+            font-size: 1.55rem;
+            letter-spacing: -0.04em;
+        }
+
+        .insight-grid,
+        .takeaway-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .insight-card,
+        .takeaway-card {
+            padding: 22px;
+        }
+
+        .insight-card h3,
+        .takeaway-card h3 {
+            margin: 0 0 10px;
+            font-size: 1.1rem;
+        }
+
+        .insight-card ul,
+        .detail-card ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .tabs-shell {
+            padding: 26px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--line);
+            background: rgba(255, 251, 245, 0.72);
+            box-shadow: var(--shadow);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .tab-btn {
+            appearance: none;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.56);
+            color: var(--ink);
+            padding: 14px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+        }
+
+        .tab-btn:hover,
+        .tab-btn:focus-visible {
+            outline: none;
+            transform: translateY(-1px);
+            border-color: rgba(30, 26, 23, 0.28);
+            background: rgba(255, 255, 255, 0.84);
+        }
+
+        .tab-btn[aria-selected="true"] {
+            color: #fffaf2;
+            background: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeSlide 220ms ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detail-card {
+            padding: 28px;
+            background: var(--panel-strong);
+        }
+
+        .verdict-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(47, 109, 68, 0.12);
+            color: var(--winner);
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+            gap: 20px;
+        }
+
+        .detail-side {
+            display: grid;
+            gap: 16px;
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 1080px) {
+            .hero-grid,
+            .detail-grid,
+            .summary-row,
+            .vote-grid,
+            .insight-grid,
+            .takeaway-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page-shell {
+                width: min(calc(100% - 20px), var(--max-width));
+                padding-top: 10px;
+            }
+
+            .hero,
+            .tabs-shell {
+                padding: 20px;
+            }
+
+            h1 {
+                max-width: none;
+            }
+
+            .tab-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <span class="eyebrow">Independent Review / multi-agent jury</span>
+            <div class="hero-grid">
+                <div>
+                    <h1>How four AI agents judged the same audit</h1>
+                    <p class="hero-lead">
+                        This page is a public summary of an independent comparison between four AI audits.
+                        It shows the final vote, the key differences in approach, and the short takeaways
+                        that help explain not just the winner, but the value of each participant.
+                    </p>
+
+                    <div class="chip-row">
+                        <div class="chip">
+                            <strong>Participants</strong>
+                            <span>Claude, GPT, Codex, Gemini</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Models</strong>
+                            <span>Opus 4.7, GPT-5.4, GPT-5.5, Gemini 3.1 Pro</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Material</strong>
+                            <span>4 independent verdicts</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Format</strong>
+                            <span>Comparative jury review</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Conditions</strong>
+                            <span>Shared rules and shared context</span>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="hero-side">
+                    <div class="metric-card">
+                        <strong>Final vote</strong>
+                        <div class="metric-value">
+                            <b>3:1</b>
+                            <span>for Claude</span>
+                        </div>
+                        <p>Three of the four judges ranked Claude first. One vote went to GPT.</p>
+                    </div>
+                    <div class="metric-card">
+                        <strong>Practical takeaway</strong>
+                        <p>Claude emerged as the strongest full-picture result, while GPT is especially valuable where strong verification, measurement, and tighter factual grounding matter most.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <strong>Context</strong>
+                    <h2>What this experiment was</h2>
+                    <p>Four AI agents received the same audit task. After finishing their own work, each agent separately reviewed the final materials and selected the strongest result. The comparison was not abstract: the models mattered, but so did the fact that all participants worked under closely matched conditions.</p>
+                </div>
+            </div>
+
+            <div class="summary-row">
+                <article class="panel">
+                    <h3>Technical lineup</h3>
+                    <p>The comparison included Claude Code on Opus 4.7 with a 1M context window and high effort, Microsoft Copilot on GPT-5.4 in XHigh mode, Codex on GPT-5.5 in XHigh mode, and Gemini 3.1 Pro in High mode. All four participants were used in their strongest available configurations. Two systems used GPT-family models, but through different providers and different agent shells.</p>
+                </article>
+                <article class="panel">
+                    <h3>Equal conditions</h3>
+                    <p>All participants received the same prompt chain. The comparison also started from the same working base: similar agents, the same skills and rules, and an already accumulated history of working with this project.</p>
+                </article>
+                <article class="panel">
+                    <h3>First stage</h3>
+                    <p>Each agent had to study the working environment, the project, and the process, then propose practical recommendations for speeding up work and reducing wasted effort.</p>
+                </article>
+                <article class="panel">
+                    <h3>Second stage</h3>
+                    <p>Once the audits were complete, a separate comparison round began: every participant had to pick the strongest result and explain why.</p>
+                </article>
+                <article class="panel">
+                    <h3>Why this page matters</h3>
+                    <p>It lets you see the overall outcome quickly, without reading four long evaluations in sequence, and helps surface where opinions converged and where they diverged.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <strong>Vote Map</strong>
+                    <h2>Who voted for whom</h2>
+                    <p>This section shows more than the final vote. It shows the different criteria each judge used to make that choice.</p>
+                </div>
+            </div>
+
+            <div class="vote-grid">
+                <article class="vote-card claude">
+                    <span class="agent-pill"><span class="agent-dot claude"></span>Claude judge</span>
+                    <h3>Backed depth and self-reflection</h3>
+                    <p>This choice favored an author who could revise earlier assumptions and explain the process, not just list facts.</p>
+                    <b>Choice: Claude</b>
+                </article>
+                <article class="vote-card gpt">
+                    <span class="agent-pill"><span class="agent-dot gpt"></span>GPT judge</span>
+                    <h3>Backed evidence and density</h3>
+                    <p>The priority here was factual precision, verification, and whether the text could stand on its own as a practical report.</p>
+                    <b>Choice: GPT</b>
+                </article>
+                <article class="vote-card codex">
+                    <span class="agent-pill"><span class="agent-dot codex"></span>Codex judge</span>
+                    <h3>Backed quality of reasoning</h3>
+                    <p>The strongest score went to the audit with the clearest synthesis, prioritization, and real-world usefulness.</p>
+                    <b>Choice: Claude</b>
+                </article>
+                <article class="vote-card gemini">
+                    <span class="agent-pill"><span class="agent-dot gemini"></span>Gemini judge</span>
+                    <h3>Confirmed the broader trend</h3>
+                    <p>This verdict also favored the author who best understood the process itself and extracted the most useful conclusions.</p>
+                    <b>Choice: Claude</b>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <strong>Consensus</strong>
+                    <h2>What kept repeating across judges</h2>
+                    <p>These patterns surfaced in multiple verdicts, which makes them the most stable and meaningful parts of the comparison.</p>
+                </div>
+            </div>
+
+            <div class="insight-grid">
+                <article class="insight-card">
+                    <h3>Claude won on depth and cohesion</h3>
+                    <ul>
+                        <li>It revised earlier hypotheses instead of simply repeating them more confidently.</li>
+                        <li>It focused not only on problems, but also on the cost of delaying decisions.</li>
+                        <li>It connected technical observations to the way the working process actually behaves.</li>
+                    </ul>
+                </article>
+                <article class="insight-card">
+                    <h3>GPT stood out on facts and checks</h3>
+                    <ul>
+                        <li>It offered the strongest factual base and held more tightly to verifiable details.</li>
+                        <li>It was good at spotting cases where default rules should be challenged.</li>
+                        <li>It used process history well, not just the current project snapshot.</li>
+                    </ul>
+                </article>
+                <article class="insight-card">
+                    <h3>Codex was stable and practical</h3>
+                    <ul>
+                        <li>It structured tools, steps, and engineering discipline clearly.</li>
+                        <li>It was strong as an action plan, though less likely to produce surprising strategic insights.</li>
+                    </ul>
+                </article>
+                <article class="insight-card">
+                    <h3>Gemini lost on confidence and depth</h3>
+                    <ul>
+                        <li>The verdict was shorter and less fully argued than the others.</li>
+                        <li>It contained fewer concrete, verifiable findings.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section class="section tabs-shell">
+            <div class="section-header">
+                <div class="section-title">
+                    <strong>Detailed Verdicts</strong>
+                    <h2>Expanded judge positions</h2>
+                    <p>The tabs below show not only the winners, but the reasoning behind each choice, the strengths of the finalists, and the limits of each approach.</p>
+                </div>
+            </div>
+
+            <div class="tabs" role="tablist" aria-label="Agent verdict tabs">
+                <button class="tab-btn" id="tab-claude" role="tab" aria-controls="panel-claude" aria-selected="true" data-target="claude">Claude verdict</button>
+                <button class="tab-btn" id="tab-gpt" role="tab" aria-controls="panel-gpt" aria-selected="false" data-target="gpt">GPT verdict</button>
+                <button class="tab-btn" id="tab-codex" role="tab" aria-controls="panel-codex" aria-selected="false" data-target="codex">Codex verdict</button>
+                <button class="tab-btn" id="tab-gemini" role="tab" aria-controls="panel-gemini" aria-selected="false" data-target="gemini">Gemini verdict</button>
+            </div>
+
+            <section id="panel-claude" class="tab-content active" role="tabpanel" aria-labelledby="tab-claude">
+                <article class="detail-card">
+                    <div class="verdict-banner">Claude's choice: Claude</div>
+                    <div class="detail-grid">
+                        <div>
+                            <h3>How the Claude judge thinks</h3>
+                            <p>This judge values not only the quality of recommendations, but also an author's ability to revise their own conclusions, see the structure of the problem, and keep attention on what matters most.</p>
+                            <ul>
+                                <li>Self-correction ranks above smooth but linear confidence.</li>
+                                <li>The strongest unique point was the gap between idea generation and actual implementation.</li>
+                                <li>A clear statement of what not to do was treated as a major strength.</li>
+                            </ul>
+                        </div>
+                        <div class="detail-side">
+                            <div class="panel">
+                                <h3>What Claude valued most in GPT</h3>
+                                <p>Dense factual support, measurable reasoning, and the ability to strengthen conclusions with concrete checks rather than general commentary.</p>
+                            </div>
+                            <div class="panel">
+                                <h3>The weak side of Claude's logic</h3>
+                                <p>This approach is more willing to tolerate a longer text if it produces a richer and more layered conclusion.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section id="panel-gpt" class="tab-content" role="tabpanel" aria-labelledby="tab-gpt">
+                <article class="detail-card">
+                    <div class="verdict-banner">GPT's choice: GPT</div>
+                    <div class="detail-grid">
+                        <div>
+                            <h3>How the GPT judge thinks</h3>
+                            <p>The top priority here is a document that works as a complete, self-sufficient report: dense, clear, verifiable, and useful without extra assembly.</p>
+                            <ul>
+                                <li>The main criterion is how strongly each claim rests on observable evidence.</li>
+                                <li>The winner is the one that best combines problem history, measurable signals, and practical conclusions.</li>
+                                <li>Claude ranks second because it is stronger conceptually, but less compact as a single working document.</li>
+                            </ul>
+                        </div>
+                        <div class="detail-side">
+                            <div class="panel">
+                                <h3>What GPT valued most in Claude</h3>
+                                <p>Depth of thinking, a sharper view of process design, and the ability to notice the hidden cost of repeated decisions.</p>
+                            </div>
+                            <div class="panel">
+                                <h3>The weak side of GPT's logic</h3>
+                                <p>This approach rewards proof and compactness more strongly, which can leave rarer strategic insights slightly undervalued.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section id="panel-codex" class="tab-content" role="tabpanel" aria-labelledby="tab-codex">
+                <article class="detail-card">
+                    <div class="verdict-banner">Codex's choice: Claude</div>
+                    <div class="detail-grid">
+                        <div>
+                            <h3>How the Codex judge thinks</h3>
+                            <p>This judge looks at reasoning in an applied way: who saw not just isolated issues, but the shape of the process, the cost of wrong hypotheses, and the importance of doing things in the right order.</p>
+                            <ul>
+                                <li>Claude wins on cohesion, self-reflection, and strong prioritization.</li>
+                                <li>Its own result is seen as useful and engineering-focused, but less surprising in its conclusions.</li>
+                                <li>GPT ranks lower not because it is weak, but because its strengths feel more narrowly focused.</li>
+                            </ul>
+                        </div>
+                        <div class="detail-side">
+                            <div class="panel">
+                                <h3>What Codex sees as its own strength</h3>
+                                <p>A strong working plan, engineering discipline, and close attention to how recommendations translate into repeatable steps.</p>
+                            </div>
+                            <div class="panel">
+                                <h3>The weak side of Codex's logic</h3>
+                                <p>Compared with GPT, it gives less weight to quantitative proof and more to reasoning quality and decision structure.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section id="panel-gemini" class="tab-content" role="tabpanel" aria-labelledby="tab-gemini">
+                <article class="detail-card">
+                    <div class="verdict-banner">Gemini's choice: Claude</div>
+                    <div class="detail-grid">
+                        <div>
+                            <h3>How the Gemini judge thinks</h3>
+                            <p>The reasoning here is simpler than the others, but it points in the same direction: the top score goes to the author who understood the process best and offered the most useful conclusions for speeding up work.</p>
+                            <ul>
+                                <li>It highlighted iteration speed, accumulated noise, and the impact of frequent interface shifts on efficiency.</li>
+                                <li>GPT placed second for strong use of facts and process behavior patterns.</li>
+                                <li>Gemini's own result is effectively acknowledged as the weakest in depth and persuasiveness.</li>
+                            </ul>
+                        </div>
+                        <div class="detail-side">
+                            <div class="panel">
+                                <h3>What Gemini confirms as useful</h3>
+                                <p>This is another sign that Claude's lead was not accidental: even a shorter review still lands on the same overall conclusion.</p>
+                            </div>
+                            <div class="panel">
+                                <h3>The weak side of Gemini's logic</h3>
+                                <p>The argument is shorter and the comparison less deep, so this verdict is most useful as additional confirmation of the wider pattern.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <strong>Takeaways</strong>
+                    <h2>What is actually worth carrying forward</h2>
+                    <p>The main value of this page is not the debate itself, but the short map of conclusions that can be used from here.</p>
+                </div>
+            </div>
+
+            <div class="takeaway-grid">
+                <article class="takeaway-card">
+                    <h3>1. Foundation</h3>
+                    <p>If you want the strongest overall result, Claude is the winner because it best connects technical observations with the structure of the working process.</p>
+                </article>
+                <article class="takeaway-card">
+                    <h3>2. Factual layer</h3>
+                    <p>If you need facts, measurements, and strict claim validation, GPT is especially useful.</p>
+                </article>
+                <article class="takeaway-card">
+                    <h3>3. Execution layer</h3>
+                    <p>Codex is especially useful where step ordering, engineering discipline, and careful practical follow-through matter most.</p>
+                </article>
+                <article class="takeaway-card">
+                    <h3>4. Anti-noise lesson</h3>
+                    <p>The core lesson is simple: endless discussion is worse than a short list of concrete implementations carried through to completion.</p>
+                </article>
+            </div>
+
+            <p class="footer-note mono">The next sensible step is to turn the shared conclusions into a short action list with priorities, cost, and implementation status.</p>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
+            var panels = Array.prototype.slice.call(document.querySelectorAll(".tab-content"));
+
+            function activateTab(targetName, updateHash) {
+                tabs.forEach(function (tab) {
+                    var active = tab.getAttribute("data-target") === targetName;
+                    tab.setAttribute("aria-selected", active ? "true" : "false");
+                    tab.tabIndex = active ? 0 : -1;
+                });
+
+                panels.forEach(function (panel) {
+                    panel.classList.toggle("active", panel.id === "panel-" + targetName);
+                });
+
+                if (updateHash) {
+                    window.history.replaceState(null, "", "#" + targetName);
+                }
+            }
+
+            tabs.forEach(function (tab, index) {
+                tab.addEventListener("click", function () {
+                    activateTab(tab.getAttribute("data-target"), true);
+                });
+
+                tab.addEventListener("keydown", function (event) {
+                    var nextIndex = index;
+
+                    if (event.key === "ArrowRight") {
+                        nextIndex = (index + 1) % tabs.length;
+                    } else if (event.key === "ArrowLeft") {
+                        nextIndex = (index - 1 + tabs.length) % tabs.length;
+                    } else {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    tabs[nextIndex].focus();
+                    activateTab(tabs[nextIndex].getAttribute("data-target"), true);
+                });
+            });
+
+            var initial = window.location.hash.replace("#", "");
+            var knownTargets = tabs.map(function (tab) { return tab.getAttribute("data-target"); });
+            activateTab(knownTargets.indexOf(initial) >= 0 ? initial : "claude", false);
+        })();
+    </script>
+</body>
+</html>

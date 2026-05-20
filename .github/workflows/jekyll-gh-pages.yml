@@ -32,6 +32,7 @@ jobs:
         run: |
           mkdir -p q
           cp dev/Q/index.html q/index.html
+          cp dev/Q/index-en.html q/index-en.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll

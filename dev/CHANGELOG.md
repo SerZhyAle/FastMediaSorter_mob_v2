@@ -12124,3 +12124,5 @@ Format: | datetime | file | target | description |
 | 2026-05-20 14:31:00 | `dev/Q/index.html` | `Q public page copy` | Rewrite the full public copy of the AI audit board page for standalone GitHub Pages reading [branch: temp/q-public-full-copy] |
 | 2026-05-20 14:46:00 | `dev/Q/index.html` | `Q public page methodology` | Add model specs and equal-conditions context to the public AI audit board page [branch: temp/q-specs-copy] |
 | 2026-05-20 14:50:05 | `dev/Q/index.html` | `Q public page methodology` | Add Gemini 3.1 Pro and note that all compared models ran in max-strength configurations [branch: temp/q-max-copy] |
+| 2026-05-20 15:02:33 | `.github/workflows/jekyll-gh-pages.yml` | `GitHub Pages build` | Publish dev/Q/index-en.html as an English standalone page during Pages build [branch: temp/q-en-copy] |
+| 2026-05-20 15:02:33 | `dev/Q/index-en.html` | `Q English page` | Add an English public version of the AI audit board page [branch: temp/q-en-copy] |
