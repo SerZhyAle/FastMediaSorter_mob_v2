@@ -561,7 +561,7 @@ Close the player and try again.</string>
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
     <string name="destinations_list">Quick Sort (0-9)</string>
     <string name="destinations_description">Up to 30 quick sort folders. Each has a color and number.</string>
-    <string name="add_destination">Add to Quick Sort</string>
+    <string name="add_destination">+ Add</string>
     <string name="destinations_list_header">Quick Sort destinations</string>
     <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
     <string name="register_as_destination">Mark for quick sort</string>
@@ -1946,6 +1946,17 @@ Close the player and try again.</string>
     <string name="ocr_error">Could not recognize the text.</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="text_copied">Text copied to clipboard</string>
+
+    <!-- OCR Best Models Feature -->
+    <string name="ocr_best_models_title">High-Quality Offline Models</string>
+    <string name="ocr_best_rus_title">Russian Model</string>
+    <string name="ocr_best_ukr_title">Ukrainian Model</string>
+    <string name="ocr_best_model_download">Download</string>
+    <string name="ocr_best_model_delete">Delete</string>
+    <string name="ocr_best_model_installed">Installed</string>
+    <string name="ocr_best_model_downloading">Downloading: %1$d%% (%2$s)</string>
+    <string name="ocr_best_model_size_mb">High-quality best model (~%1$s MB)</string>
+    <string name="ocr_best_download_error">Download failed. Check network connection.</string>
 
     <!-- Media Settings Categories -->
     <string name="media_category_images">Images</string>

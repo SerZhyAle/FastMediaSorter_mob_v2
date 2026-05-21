@@ -46,6 +46,38 @@ class TesseractManager(private val context: Context) {
         if (initializationFailed) return false
 
         return withContext(Dispatchers.IO) {
+            val modelManager = TesseractModelManager(context)
+
+            try {
+                tessApi = TessBaseAPI()
+
+                // Try to use high-quality model (best) if installed
+                if (modelManager.isModelInstalled(language)) {
+                    val bestDataPath = modelManager.getBestDataDir()
+                    Timber.d("Attempting to initialize Tesseract with high-quality model ($language) from: ${bestDataPath.absolutePath}")
+                    
+                    val bestSuccess = tessApi?.init(bestDataPath.absolutePath, language) ?: false
+                    if (bestSuccess) {
+                        isInitialized = true
+                        currentLanguage = language
+                        Timber.d("Tesseract initialized successfully using high-quality model for $language")
+                        return@withContext true
+                    } else {
+                        Timber.w("Tesseract initialization failed with high-quality model for $language, cleaning up and falling back")
+                        modelManager.deleteModel(language)
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "Error initializing Tesseract with high-quality model for $language, cleaning up and falling back")
+                modelManager.deleteModel(language)
+                // Re-create API instance as it might be in an invalid state
+                try {
+                    tessApi?.recycle()
+                } catch (_: Exception) {}
+                tessApi = TessBaseAPI()
+            }
+
+            // Fallback to standard fast models
             try {
                 val dataPath = File(context.filesDir, "tesseract")
                 val tessDataPath = File(dataPath, TESS_DATA_DIR)
@@ -53,31 +85,29 @@ class TesseractManager(private val context: Context) {
                     tessDataPath.mkdirs()
                 }
 
-                // Download data for requested language
+                // Download data for requested language (fast model)
                 val dataDownloaded = checkAndDownloadData(tessDataPath, language)
                 if (!dataDownloaded) {
                     Timber.e("Could not download Tesseract data for $language")
                     initializationFailed = true
                     return@withContext false
                 }
-
-                tessApi = TessBaseAPI()
                 
                 // Initialize for SINGLE language only (no mixing!)
-                Timber.d("Initializing Tesseract with language: $language")
+                Timber.d("Initializing Tesseract with standard fast language model: $language")
                 val success = tessApi?.init(dataPath.absolutePath, language) ?: false
                 
                 if (success) {
                     isInitialized = true
                     currentLanguage = language
-                    Timber.d("Tesseract initialized successfully for $language")
+                    Timber.d("Tesseract initialized successfully with standard fast model for $language")
                 } else {
                     Timber.e("Tesseract initialization failed for $language")
                     initializationFailed = true
                 }
                 success
             } catch (e: Exception) {
-                Timber.e(e, "Error initializing Tesseract")
+                Timber.e(e, "Error initializing Tesseract fallback standard model")
                 initializationFailed = true
                 false
             }

@@ -7,13 +7,22 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class OtherMediaSettingsFragment : BaseSettingsFragment() {
+
+    private val modelManager by lazy { TesseractModelManager(requireContext()) }
+    private var rusDownloadJob: Job? = null
+    private var ukrDownloadJob: Job? = null
 
     private var _binding: FragmentSettingsOtherBinding? = null
     private val binding get() = _binding!!
@@ -153,6 +162,20 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
         // OCR Font Settings
         setupOcrFontSpinners()
+
+        // OCR Best Models
+        binding.btnOcrBestRusDownload.setOnClickListener {
+            startDownload("rus")
+        }
+        binding.btnOcrBestRusDelete.setOnClickListener {
+            deleteModel("rus")
+        }
+        binding.btnOcrBestUkrDownload.setOnClickListener {
+            startDownload("ukr")
+        }
+        binding.btnOcrBestUkrDelete.setOnClickListener {
+            deleteModel("ukr")
+        }
     }
 
     private fun setupLanguageSpinners() {
@@ -380,6 +403,112 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     private fun updateOcrVisibility(enabled: Boolean) {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
+        binding.layoutOcrBestModels?.isVisible = enabled
+        if (enabled) {
+            updateModelStates()
+        }
+    }
+
+    private fun updateModelStates() {
+        if (_binding == null) return
+
+        val isRusInstalled = modelManager.isModelInstalled("rus")
+        val isUkrInstalled = modelManager.isModelInstalled("ukr")
+
+        // Russian model UI state
+        val isRusDownloading = rusDownloadJob?.isActive == true
+        binding.pbOcrBestRusDownload.isVisible = isRusDownloading
+        binding.btnOcrBestRusDownload.isVisible = !isRusInstalled && !isRusDownloading
+        binding.btnOcrBestRusDelete.isVisible = isRusInstalled && !isRusDownloading
+        binding.btnOcrBestRusDownload.isEnabled = !isRusDownloading
+        binding.btnOcrBestRusDelete.isEnabled = !isRusDownloading
+
+        if (isRusInstalled) {
+            binding.tvOcrBestRusStatus.text = getString(R.string.ocr_best_model_installed)
+            binding.tvOcrBestRusStatus.alpha = 1.0f
+        } else if (!isRusDownloading) {
+            binding.tvOcrBestRusStatus.text = getString(R.string.ocr_best_model_size_mb, "15.0")
+            binding.tvOcrBestRusStatus.alpha = 0.7f
+        }
+
+        // Ukrainian model UI state
+        val isUkrDownloading = ukrDownloadJob?.isActive == true
+        binding.pbOcrBestUkrDownload.isVisible = isUkrDownloading
+        binding.btnOcrBestUkrDownload.isVisible = !isUkrInstalled && !isUkrDownloading
+        binding.btnOcrBestUkrDelete.isVisible = isUkrInstalled && !isUkrDownloading
+        binding.btnOcrBestUkrDownload.isEnabled = !isUkrDownloading
+        binding.btnOcrBestUkrDelete.isEnabled = !isUkrDownloading
+
+        if (isUkrInstalled) {
+            binding.tvOcrBestUkrStatus.text = getString(R.string.ocr_best_model_installed)
+            binding.tvOcrBestUkrStatus.alpha = 1.0f
+        } else if (!isUkrDownloading) {
+            binding.tvOcrBestUkrStatus.text = getString(R.string.ocr_best_model_size_mb, "11.6")
+            binding.tvOcrBestUkrStatus.alpha = 0.7f
+        }
+    }
+
+    private fun startDownload(language: String) {
+        val isRus = language == "rus"
+        val pb = if (isRus) binding.pbOcrBestRusDownload else binding.pbOcrBestUkrDownload
+        val tvStatus = if (isRus) binding.tvOcrBestRusStatus else binding.tvOcrBestUkrStatus
+
+        val job = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            pb.isVisible = true
+            pb.progress = 0
+            updateModelStates() // Disable buttons during download
+
+            val success = modelManager.downloadModel(language) { percent, bytes, total ->
+                // Callback runs on background thread, post back to Main
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                    if (_binding != null) {
+                        pb.progress = percent
+                        tvStatus.text = getString(
+                            R.string.ocr_best_model_downloading,
+                            percent,
+                            formatSizeProgress(bytes, total)
+                        )
+                        tvStatus.alpha = 1.0f
+                    }
+                }
+            }
+
+            if (isRus) rusDownloadJob = null else ukrDownloadJob = null
+            updateModelStates()
+
+            if (!success) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    R.string.ocr_best_download_error,
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        if (isRus) {
+            rusDownloadJob = job
+        } else {
+            ukrDownloadJob = job
+        }
+    }
+
+    private fun deleteModel(language: String) {
+        val deleted = modelManager.deleteModel(language)
+        if (deleted) {
+            updateModelStates()
+        }
+    }
+
+    private fun formatSizeProgress(bytes: Long, total: Long): String {
+        val totalMb = if (total > 0) total.toFloat() / (1024 * 1024) else 0f
+        val currentMb = bytes.toFloat() / (1024 * 1024)
+        val suffix = if (java.util.Locale.getDefault().language == "ru" || java.util.Locale.getDefault().language == "uk") "МБ" else "MB"
+
+        return if (totalMb > 0) {
+            "%.1f / %.1f %s".format(currentMb, totalMb, suffix)
+        } else {
+            "%.1f %s".format(currentMb, suffix)
+        }
     }
 
     private fun observeData() {

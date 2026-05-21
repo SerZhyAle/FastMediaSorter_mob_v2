@@ -214,6 +214,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **On-device offline translation**: Download specific language models for offline processing.
 - **Augmented Reality overlay**: Superimposes translated text into the precise coordinates of the original text.
 - **Result typography styling**: Configure font size and family for OCR readouts.
+- **High-quality Tesseract models on-demand**: Dynamically download large, high-quality language models (Russian and Ukrainian from the `tessdata_best` repository) directly from settings. This provides significantly higher offline OCR accuracy for Cyrillic, with automatic seamless fallback to built-in standard models on error.
 
 ## 15. Network Sources
 
@@ -277,10 +278,10 @@ This document is the canonical inventory of all user-facing features implemented
 - **MediaStore sync**: Pings central Android endpoints after operations to keep third-party galleries accurate.
 - **Database persistence & Caches**: Progress DB for media, scalable Thumbnail caches, and File metadata caches to discard repetitive network reads.
 - **Default player system hooks**: Integrate with Android intent routing for media viewing and share-sheet intake.
-- **Auto-download incoming links**: Fetches media directly from shared HTTP, HLS, or DASH URLs, utilizing in-app WebView auth for any host (Instagram, TikTok, and beyond).
-- **Background link download queue**: After auth is resolved, the app immediately returns the user to the source app (Instagram, browser…) and downloads the file in the background. A progress notification is shown during download; a result notification confirms the saved file name or reports failure. For sign-in-required hosts a "Sign in" action in the result notification re-opens the auth flow.
-- Instagram and Threads links: downloads the real video or carousel images instead of the preview thumbnail; if only a preview was found, offers sign-in (or re-sign-in) before saving anything. Threads links on `threads.com` are recognized alongside `threads.net`.
-- Multiple accounts per host: save separate sign-ins for the same site (e.g., a personal and a work Instagram account); the app asks which account to use before downloading; account sessions can be added, renamed, and removed individually in Settings → Authorizations.
+- **Auto-download incoming links**: Fetches media directly from shared HTTP, HLS, or DASH URLs, with in-app WebView auth for hosts that require sign-in.
+- **Background link download queue**: After auth is resolved, the app returns the user to the source app and finishes the download in the background. A progress notification is shown during transfer; a result notification confirms the saved file name or reports failure. For sign-in-required hosts a "Sign in" action in the result notification re-opens the auth flow.
+- Shared post links with multiple media: downloads the real video or carousel images instead of a preview thumbnail; if only a preview was found, offers sign-in (or re-sign-in) before saving anything. Equivalent host aliases are recognized automatically.
+- Multiple accounts per host: save separate sign-ins for the same host, for example personal and work accounts; the app asks which account to use before downloading; account sessions can be added, renamed, and removed individually in Settings → Authorizations.
 - When no sign-in exists for a host, the app offers to add one with three options: add now, skip this time, or never ask again for this site.
 - Sites where the offer was permanently declined appear in the authorization settings list and can be re-enabled by deleting the entry.
 - **Standalone player operations**: File actions (Rename, Delete, Favorite, Open in FMS) available directly when opening media from external apps. Includes robust audio focus management and UX parity.

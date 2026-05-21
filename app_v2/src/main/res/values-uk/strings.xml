@@ -661,7 +661,7 @@
     <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
     <string name="destinations_list">Швидке сортування (0-9)</string>
     <string name="destinations_description">До 10 тек швидкого сортування. Кожна має колір і номер (0-9).</string>
-    <string name="add_destination">Додати до швидкого сортування</string>
+    <string name="add_destination">+ Додати</string>
     <string name="destinations_list_header">Призначення швидкого сортування</string>
     <string name="add_resources_first_message">Спочатку додайте теки на головному екрані, перш ніж позначати їх для швидкого сортування.</string>
     <string name="register_as_destination">Швидке сортування</string>
@@ -2091,6 +2091,17 @@
     <string name="search_counter_default">0/0</string>
     <string name="syntax_highlighting">Syntax Highlighting</string>
     <string name="text_copied">Text copied to clipboard</string>
+
+    <!-- OCR Best Models Feature -->
+    <string name="ocr_best_models_title">Якісні офлайн-моделі</string>
+    <string name="ocr_best_rus_title">Російська модель</string>
+    <string name="ocr_best_ukr_title">Українська модель</string>
+    <string name="ocr_best_model_download">Завантажити</string>
+    <string name="ocr_best_model_delete">Видалити</string>
+    <string name="ocr_best_model_installed">Встановлена</string>
+    <string name="ocr_best_model_downloading">Завантаження: %1$d%% (%2$s)</string>
+    <string name="ocr_best_model_size_mb">Якісна модель (~%1$s МБ)</string>
+    <string name="ocr_best_download_error">Завантаження не вдалося. Перевірте підключення до мережі.</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
     <string name="text_style_bold">1</string>
     <string name="text_style_italic">2</string>
