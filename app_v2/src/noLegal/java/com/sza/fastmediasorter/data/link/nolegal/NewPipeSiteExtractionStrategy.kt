@@ -64,7 +64,7 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
         val linkType = try {
             service.getLinkTypeByUrl(url)
         } catch (error: ParsingException) {
-            Timber.w(error, "S0117: site link-type parse failed for %s", url)
+            Timber.w(error, "NewPipeSiteExtractionStrategy: link-type parse failed for %s", url)
             return@withContext OpenResult.NotFound("site_link_type_failed")
         }
 
@@ -242,7 +242,7 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
     private companion object {
         const val MAX_BATCH_ITEMS = 30
 
-        // S0117: keep the supported service surface explicit and compile-time bounded.
+        // Keep the supported service surface explicit and compile-time bounded.
         val ALLOWED_SERVICE_IDS = setOf(
             ServiceList.YouTube.serviceId,
             ServiceList.SoundCloud.serviceId,

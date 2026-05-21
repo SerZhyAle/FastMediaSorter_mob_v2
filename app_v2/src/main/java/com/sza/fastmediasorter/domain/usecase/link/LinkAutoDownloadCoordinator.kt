@@ -93,6 +93,23 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 if (resolvedHost == null) "no_resolved_host" else "no_cookies",
                 audioOnly,
             )
+            // S0260 (2026-05-21): even when there are no stored cookies / UA to apply,
+            // the audioOnly hint must still propagate so YtDlpExtractionStrategy picks an
+            // audio-only format. Before this branch existed, every YouTube Music share
+            // for a user who never logged in (which after S0281 is the only legal path
+            // for google-OAuth-only hosts) silently downloaded an MP4 and was then
+            // rejected by YtMusicAudioOnlyContract as a non-audio artifact. We seed the
+            // session with empty cookies and a null UA so the hint travels via the
+            // existing sessionContext channel without falsely claiming an authenticated
+            // session.
+            if (audioOnly) {
+                val sessionHost = resolvedHost ?: host
+                sessionContext.set(sessionHost, emptyList(), null, audioOnly = true)
+                Timber.d(
+                    "S0260: LinkAutoDownloadCoordinator.applySessionContext propagate audioOnly hint without cookies sessionHost=%s",
+                    sessionHost,
+                )
+            }
             return resolvedHost
         }
         // S0182: pull UA for the same (resolvedHost, accountId) the cookies came from.
@@ -180,7 +197,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     }
 
     suspend fun handleBatch(urls: List<String>, callbacks: Callbacks): Result {
-        Timber.d("S0140: pillar-Q + pillar-U handleBatch() entry urls=${urls.size}")
         val settings = settingsRepository.getSettings().first()
         if (!settings.linkAutoDownloadEnabled) {
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))

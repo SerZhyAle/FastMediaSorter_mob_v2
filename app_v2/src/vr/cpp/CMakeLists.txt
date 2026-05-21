@@ -30,6 +30,9 @@ if(FMS_BUILD_XR_RUNTIME)
     add_library(fms_diagnostic_xr SHARED
         diagnostic_xr_runtime.cpp
         xr_session.cpp
+        xr_input.cpp
+        xr_raycast.cpp
+        xr_hud_world.cpp
     )
 
     target_include_directories(fms_diagnostic_xr PRIVATE

@@ -1,0 +1,440 @@
+// S0283 world-space HUD implementation.
+
+#include "xr_hud_world.h"
+#include "xr_input.h"
+#include <android/log.h>
+#include <cmath>
+#include <vector>
+
+namespace fms::xr {
+
+namespace {
+constexpr const char* kLogTag = "S0283.XrHud";
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, kLogTag, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, kLogTag, __VA_ARGS__)
+
+GLuint g_colorProgram{0};
+GLint  g_locColorViewProj{-1};
+GLint  g_locColorVec{-1};
+GLuint g_lineVao{0};
+GLuint g_lineVbo{0};
+bool g_prevGripDown[2] = {false, false};
+XrTime g_lastGripClickTime[2] = {0, 0};
+
+XrVector3f rotate_vector(const XrQuaternionf& q, const XrVector3f& v) {
+    XrVector3f q_vec{q.x, q.y, q.z};
+    XrVector3f cross1{
+        q_vec.y * v.z - q_vec.z * v.y,
+        q_vec.z * v.x - q_vec.x * v.z,
+        q_vec.x * v.y - q_vec.y * v.x
+    };
+    XrVector3f temp{
+        cross1.x + q.w * v.x,
+        cross1.y + q.w * v.y,
+        cross1.z + q.w * v.z
+    };
+    XrVector3f cross2{
+        q_vec.y * temp.z - q_vec.z * temp.y,
+        q_vec.z * temp.x - q_vec.x * temp.z,
+        q_vec.x * temp.y - q_vec.y * temp.x
+    };
+    return XrVector3f{
+        v.x + 2.0f * cross2.x,
+        v.y + 2.0f * cross2.y,
+        v.z + 2.0f * cross2.z
+    };
+}
+
+inline float lerp(float a, float b, float t) {
+    return a + t * (b - a);
+}
+
+inline XrVector3f lerp(const XrVector3f& a, const XrVector3f& b, float t) {
+    return XrVector3f{
+        lerp(a.x, b.x, t),
+        lerp(a.y, b.y, t),
+        lerp(a.z, b.z, t)
+    };
+}
+
+XrQuaternionf slerp(const XrQuaternionf& a, const XrQuaternionf& b, float t) {
+    float dot = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+    
+    XrQuaternionf b_norm = b;
+    if (dot < 0.0f) {
+        dot = -dot;
+        b_norm.x = -b.x;
+        b_norm.y = -b.y;
+        b_norm.z = -b.z;
+        b_norm.w = -b.w;
+    }
+    
+    if (dot > 0.9995f) {
+        XrQuaternionf r{
+            a.x + t * (b_norm.x - a.x),
+            a.y + t * (b_norm.y - a.y),
+            a.z + t * (b_norm.z - a.z),
+            a.w + t * (b_norm.w - a.w)
+        };
+        float len = std::sqrt(r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w);
+        if (len > 0.0f) {
+            r.x /= len; r.y /= len; r.z /= len; r.w /= len;
+        }
+        return r;
+    }
+    
+    float theta_0 = std::acos(dot);
+    float theta = theta_0 * t;
+    float sin_theta = std::sin(theta);
+    float sin_theta_0 = std::sin(theta_0);
+    
+    float s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
+    float s1 = sin_theta / sin_theta_0;
+    
+    return XrQuaternionf{
+        s0 * a.x + s1 * b_norm.x,
+        s0 * a.y + s1 * b_norm.y,
+        s0 * a.z + s1 * b_norm.z,
+        s0 * a.w + s1 * b_norm.w
+    };
+}
+
+void matrix_from_pose(const XrVector3f& t, const XrQuaternionf& q, const XrVector3f& scale, float* m) {
+    float xx = q.x * q.x; float xy = q.x * q.y; float xz = q.x * q.z; float xw = q.x * q.w;
+    float yy = q.y * q.y; float yz = q.y * q.z; float yw = q.y * q.w;
+    float zz = q.z * q.z; float zw = q.z * q.w;
+
+    m[0]  = (1.0f - 2.0f * (yy + zz)) * scale.x;
+    m[1]  = (2.0f * (xy + zw)) * scale.x;
+    m[2]  = (2.0f * (xz - yw)) * scale.x;
+    m[3]  = 0.0f;
+
+    m[4]  = (2.0f * (xy - zw)) * scale.y;
+    m[5]  = (1.0f - 2.0f * (xx + zz)) * scale.y;
+    m[6]  = (2.0f * (yz + xw)) * scale.y;
+    m[7]  = 0.0f;
+
+    m[8]  = (2.0f * (xz + yw)) * scale.z;
+    m[9]  = (2.0f * (yz - xw)) * scale.z;
+    m[10] = (1.0f - 2.0f * (xx + yy)) * scale.z;
+    m[11] = 0.0f;
+
+    m[12] = t.x;
+    m[13] = t.y;
+    m[14] = t.z;
+    m[15] = 1.0f;
+}
+
+void multiply_matrices(const float* a, const float* b, float* r) {
+    float temp[16];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            temp[i * 4 + j] = a[i * 4 + 0] * b[0 * 4 + j] +
+                              a[i * 4 + 1] * b[1 * 4 + j] +
+                              a[i * 4 + 2] * b[2 * 4 + j] +
+                              a[i * 4 + 3] * b[3 * 4 + j];
+        }
+    }
+    std::memcpy(r, temp, 16 * sizeof(float));
+}
+
+GLuint compile_local_shader(GLenum type, const char* src) {
+    GLuint sh = glCreateShader(type);
+    glShaderSource(sh, 1, &src, nullptr);
+    glCompileShader(sh);
+    GLint ok = 0;
+    glGetShaderiv(sh, GL_COMPILE_STATUS, &ok);
+    if (!ok) {
+        char log[512];
+        glGetShaderInfoLog(sh, sizeof(log), nullptr, log);
+        LOGE("HUD Local Shader compilation failed: %s", log);
+        glDeleteShader(sh);
+        return 0;
+    }
+    return sh;
+}
+
+GLuint link_local_program(GLuint vs, GLuint fs) {
+    GLuint p = glCreateProgram();
+    glAttachShader(p, vs);
+    glAttachShader(p, fs);
+    glLinkProgram(p);
+    GLint ok = 0;
+    glGetProgramiv(p, GL_LINK_STATUS, &ok);
+    if (!ok) {
+        char log[512];
+        glGetProgramInfoLog(p, sizeof(log), nullptr, log);
+        LOGE("HUD Local Program link failed: %s", log);
+        glDeleteProgram(p);
+        return 0;
+    }
+    return p;
+}
+
+} // namespace
+
+HUDWorldState g_hudState;
+
+void xr_hud_init() {
+    LOGD("xr_hud_init: establishing 3D HUD world geometry");
+    g_hudState.quad.width = 1.2f;    // 1.2 meters wide
+    g_hudState.quad.height = 0.675f; // 0.675 meters high (16:9 aspect ratio)
+    
+    g_hudState.quad.center = {0.0f, -0.2f, -1.5f};
+    g_hudState.quad.rot = {0.0f, 0.0f, 0.0f, 1.0f};
+    
+    g_hudState.targetCenter = g_hudState.quad.center;
+    g_hudState.targetRot = g_hudState.quad.rot;
+    
+    g_hudState.visible = true;
+    
+    g_hudState.smoothedUv[0] = {0.5f, 0.5f};
+    g_hudState.smoothedUv[1] = {0.5f, 0.5f};
+    g_hudState.hasIntersection[0] = false;
+    g_hudState.hasIntersection[1] = false;
+}
+
+void xr_hud_update(const XrPosef& headPose, float deltaTime) {
+    if (!g_hudState.visible) return;
+
+    XrVector3f viewDir = rotate_vector(headPose.orientation, {0.0f, 0.0f, -1.0f});
+    
+    XrVector3f ergonomicOffset = rotate_vector(headPose.orientation, {0.0f, -0.15f, -1.5f});
+    
+    XrVector3f idealCenter{
+        headPose.position.x + ergonomicOffset.x,
+        headPose.position.y + ergonomicOffset.y,
+        headPose.position.z + ergonomicOffset.z
+    };
+    
+    XrQuaternionf idealRot = headPose.orientation;
+
+    if (g_hudState.recenterRequested) {
+        g_hudState.quad.center = idealCenter;
+        g_hudState.quad.rot = idealRot;
+        g_hudState.recenterRequested = false;
+        return;
+    }
+    if (g_hudState.dragging) return;
+
+    XrVector3f currentDir{
+        g_hudState.quad.center.x - headPose.position.x,
+        g_hudState.quad.center.y - headPose.position.y,
+        g_hudState.quad.center.z - headPose.position.z
+    };
+    float currentLen = std::sqrt(currentDir.x * currentDir.x + currentDir.y * currentDir.y + currentDir.z * currentDir.z);
+    if (currentLen > 0.0f) {
+        currentDir.x /= currentLen; currentDir.y /= currentLen; currentDir.z /= currentLen;
+    }
+
+    float dot = currentDir.x * viewDir.x + currentDir.y * viewDir.y + currentDir.z * viewDir.z;
+    float angleRad = std::acos(std::max(-1.0f, std::min(1.0f, dot)));
+    float angleDeg = angleRad * (180.0f / 3.14159265f);
+
+    float followSpeed = 0.03f; // Ultra smooth lazy follow
+    if (angleDeg > 20.0f) {
+        followSpeed = 0.12f; // Catch up immediately to avoid losing HUD out of FOV
+    }
+
+    g_hudState.quad.center = lerp(g_hudState.quad.center, idealCenter, followSpeed);
+    g_hudState.quad.rot = slerp(g_hudState.quad.rot, idealRot, followSpeed);
+}
+
+void xr_hud_process_rays(const XrSpace localSpace, XrTime predictedTime) {
+    bool anyGripDown = false;
+    for (int i = 0; i < 2; i++) {
+        if (!g_handInputStates[i].active) {
+            g_hudState.hasIntersection[i] = false;
+            continue;
+        }
+
+        Ray ray;
+        ray.pos = g_handInputStates[i].pointerPose.position;
+        ray.dir = rotate_vector(g_handInputStates[i].pointerPose.orientation, {0.0f, 0.0f, -1.0f});
+        const bool gripDown = g_handInputStates[i].gripDown;
+        if (gripDown && !g_prevGripDown[i]) {
+            if (g_lastGripClickTime[i] > 0 && predictedTime - g_lastGripClickTime[i] < 500000000) {
+                g_hudState.recenterRequested = true;
+            }
+            g_lastGripClickTime[i] = predictedTime;
+        }
+        g_prevGripDown[i] = gripDown;
+        if (gripDown) {
+            anyGripDown = true;
+            g_hudState.quad.center = {
+                ray.pos.x + ray.dir.x * 1.5f,
+                ray.pos.y + ray.dir.y * 1.5f,
+                ray.pos.z + ray.dir.z * 1.5f
+            };
+            g_hudState.targetCenter = g_hudState.quad.center;
+            g_hudState.quad.rot = g_handInputStates[i].pointerPose.orientation;
+            g_hudState.targetRot = g_hudState.quad.rot;
+        }
+
+        XrVector2f uv;
+        if (ray_quad_intersect(ray, g_hudState.quad, uv)) {
+            g_hudState.hasIntersection[i] = true;
+            g_hudState.smoothedUv[i] = filter_uv_jitter(uv, g_hudState.smoothedUv[i], 0.25f);
+        } else {
+            g_hudState.hasIntersection[i] = false;
+        }
+    }
+    g_hudState.dragging = anyGripDown;
+}
+
+void xr_hud_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuint shaderProgram, GLuint quadVao, GLuint hudTex, GLint locViewProj, GLint locTex, GLint locEye, GLint locStereo) {
+    if (!g_hudState.visible || hudTex == 0) return;
+
+    float modelMat[16];
+    matrix_from_pose(g_hudState.quad.center, g_hudState.quad.rot, {g_hudState.quad.width, g_hudState.quad.height, 1.0f}, modelMat);
+    
+    float mvMat[16];
+    multiply_matrices(viewMat, modelMat, mvMat);
+    float mvpMat[16];
+    multiply_matrices(proj, mvMat, mvpMat);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(shaderProgram);
+    glUniformMatrix4fv(locViewProj, 1, GL_FALSE, mvpMat);
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, hudTex);
+    glUniform1i(locTex, 0);
+    glUniform1i(locEye, (GLint)eyeIdx);
+    glUniform1i(locStereo, 0); // HUD is Mono texture
+    GLint locParallax = glGetUniformLocation(shaderProgram, "u_parallaxShift");
+    if (locParallax >= 0) glUniform1f(locParallax, 0.0f);
+
+    glBindVertexArray(quadVao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+
+    if (g_colorProgram == 0) {
+        const char* vsSrc = R"GLSL(#version 300 es
+            precision highp float;
+            layout(location=0) in vec3 a_pos;
+            uniform mat4 u_viewProj;
+            void main() {
+                gl_Position = u_viewProj * vec4(a_pos, 1.0);
+            }
+        )GLSL";
+        
+        const char* fsSrc = R"GLSL(#version 300 es
+            precision highp float;
+            uniform vec4 u_color;
+            out vec4 outColor;
+            void main() {
+                outColor = u_color;
+            }
+        )GLSL";
+        
+        GLuint vs = compile_local_shader(GL_VERTEX_SHADER, vsSrc);
+        GLuint fs = compile_local_shader(GL_FRAGMENT_SHADER, fsSrc);
+        g_colorProgram = link_local_program(vs, fs);
+        glDeleteShader(vs); glDeleteShader(fs);
+        
+        g_locColorViewProj = glGetUniformLocation(g_colorProgram, "u_viewProj");
+        g_locColorVec = glGetUniformLocation(g_colorProgram, "u_color");
+        
+        glGenVertexArrays(1, &g_lineVao);
+        glGenBuffers(1, &g_lineVbo);
+        glBindVertexArray(g_lineVao);
+        glBindBuffer(GL_ARRAY_BUFFER, g_lineVbo);
+        glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glBindVertexArray(0);
+    }
+
+    if (g_colorProgram != 0) {
+        glUseProgram(g_colorProgram);
+        float vpMat[16];
+        multiply_matrices(proj, viewMat, vpMat);
+        glUniformMatrix4fv(g_locColorViewProj, 1, GL_FALSE, vpMat);
+
+        for (int i = 0; i < 2; i++) {
+            if (!g_hudState.hasIntersection[i]) continue;
+
+            XrVector3f right  = rotate_vector(g_hudState.quad.rot, {1.0f, 0.0f, 0.0f});
+            XrVector3f up     = rotate_vector(g_hudState.quad.rot, {0.0f, 1.0f, 0.0f});
+            
+            float lx = (g_hudState.smoothedUv[i].x - 0.5f) * g_hudState.quad.width;
+            float ly = (g_hudState.smoothedUv[i].y - 0.5f) * g_hudState.quad.height;
+
+            XrVector3f hitPos{
+                g_hudState.quad.center.x + right.x * lx + up.x * ly,
+                g_hudState.quad.center.y + right.y * lx + up.y * ly,
+                g_hudState.quad.center.z + right.z * lx + up.z * ly
+            };
+
+            XrVector3f origin = g_handInputStates[i].pointerPose.position;
+
+            float lineVerts[6] = {
+                origin.x, origin.y, origin.z,
+                hitPos.x, hitPos.y, hitPos.z
+            };
+            
+            glBindVertexArray(g_lineVao);
+            glBindBuffer(GL_ARRAY_BUFFER, g_lineVbo);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * sizeof(float), lineVerts);
+            
+            if (i == 0) {
+                glUniform4f(g_locColorVec, 0.2f, 0.9f, 0.3f, 0.4f); // semi-transparent green
+            } else {
+                glUniform4f(g_locColorVec, 0.2f, 0.6f, 0.9f, 0.4f); // semi-transparent blue-cyan
+            }
+            glLineWidth(3.0f);
+            glDrawArrays(GL_LINES, 0, 2);
+            glBindVertexArray(0);
+
+            XrVector3f normal = rotate_vector(g_hudState.quad.rot, {0.0f, 0.0f, 1.0f});
+            XrVector3f dotPos{
+                hitPos.x + normal.x * 0.005f,
+                hitPos.y + normal.y * 0.005f,
+                hitPos.z + normal.z * 0.005f
+            };
+
+            float dotModel[16];
+            matrix_from_pose(dotPos, g_hudState.quad.rot, {0.018f, 0.018f, 1.0f}, dotModel);
+            
+            float dotMvp[16];
+            float dotMv[16];
+            multiply_matrices(viewMat, dotModel, dotMv);
+            multiply_matrices(proj, dotMv, dotMvp);
+
+            glUniformMatrix4fv(g_locColorViewProj, 1, GL_FALSE, dotMvp);
+            if (i == 0) {
+                glUniform4f(g_locColorVec, 0.1f, 1.0f, 0.2f, 0.9f); // Green dot
+            } else {
+                glUniform4f(g_locColorVec, 0.1f, 0.7f, 1.0f, 0.9f); // Blue-cyan dot
+            }
+
+            glBindVertexArray(quadVao);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+            glBindVertexArray(0);
+        }
+    }
+
+    glDisable(GL_BLEND);
+}
+
+void xr_hud_shutdown() {
+    LOGD("xr_hud_shutdown: cleaning up local GLES color programs");
+    if (g_colorProgram) {
+        glDeleteProgram(g_colorProgram);
+        g_colorProgram = 0;
+    }
+    if (g_lineVao) {
+        glDeleteVertexArrays(1, &g_lineVao);
+        g_lineVao = 0;
+    }
+    if (g_lineVbo) {
+        glDeleteBuffers(1, &g_lineVbo);
+        g_lineVbo = 0;
+    }
+}
+
+} // namespace fms::xr

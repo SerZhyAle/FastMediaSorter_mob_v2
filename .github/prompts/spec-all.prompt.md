@@ -242,7 +242,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 - **Specs are mutable inside `/spec-all`** - patch and continue. Status locks (`Implemented`, `Verified`) do not apply inside this skill.
 - **Build mandatory on code changes** - skip only for docs-only diffs.
 - **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
-- **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries only when this pipeline sets the status to `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (e.g. resume → `Implemented`, audit → `Verified`/`Partial`/`Broken`). See CLAUDE.md "Debug Verification Tags".
+- **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries only when this pipeline sets the status to `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (e.g. resume → `Implemented`, audit → `Verified`/`Partial`/`Broken`). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
 - **MANUAL items are not failures** - `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly - always via `.\scripts\add_to_dev_log.ps1`.
 - Read-only zones never touched: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.

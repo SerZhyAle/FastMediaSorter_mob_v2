@@ -37,6 +37,21 @@ class DiagnosticXrRenderThread(
 
     @Volatile private var exitSignalled: Boolean = false
 
+    /** S0283 Phase 03: current stereo parallax shift in normalized units (0.0 .. 1.0). */
+    @Volatile private var pendingParallaxShift: Float = 0.0f
+
+    /**
+     * S0283 §11.8 / §2.6: live OpenXR frame rate sampled in the native frame loop and exposed
+     * through JNI. Reads an atomic value on each access, so the HUD can call it once per UI tick
+     * without coordinating with the render thread.
+     */
+    val currentFps: Float get() = runtime.getCurrentFps()
+
+    fun setParallaxShift(value: Float) {
+        pendingParallaxShift = value.coerceIn(0.0f, 1.0f)
+        runtime.setParallaxShift(pendingParallaxShift)
+    }
+
     override fun run() {
         Timber.d("DiagnosticXrRenderThread: starting")
         try {

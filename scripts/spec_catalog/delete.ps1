@@ -4,6 +4,13 @@ param(
     [switch] $Confirm
 )
 
+# Convert terminating errors (Write-Error, throw, provider errors) into
+# the documented `exit 1` so callers can rely on $LASTEXITCODE.
+trap {
+    Write-Host $_ -ForegroundColor Red
+    exit 1
+}
+
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
@@ -25,7 +32,7 @@ if (-not $Confirm) {
 $old = $records[$idx]
 if ($old.status -eq 'Archived') {
     Write-Output "$Id already Archived (no-op)."
-    return
+    exit 0
 }
 
 $archived = [pscustomobject]@{
@@ -45,3 +52,4 @@ Assert-Record -Record $archived
 $records[$idx] = $archived
 Write-Catalog -Records $records.ToArray()
 Write-Output "$Id Archived."
+exit 0

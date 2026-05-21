@@ -199,51 +199,63 @@
                     <!-- S0200 Phase 06: Google Account card. Moved here under S0255. -->
                     <include layout="@layout/card_google_account" />
 
-                    <!-- S0255: saved authorizations sub-screen entry (always active per strategic §6.2). -->
-                    <LinearLayout
+                    <!-- S0255: saved authorizations sub-screen entry (always active per strategic §6.2).
+                         Wrapped in MaterialCardView so the row reads as a tappable action,
+                         visually paired with the Google Account card above. -->
+                    <com.google.android.material.card.MaterialCardView
                         android:id="@+id/row_saved_authorizations"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:background="?attr/selectableItemBackground"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
                         android:clickable="true"
                         android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:minHeight="@dimen/settings_item_min_height"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:id="@+id/iconHelpSavedAuthorizations"
-                            android:layout_width="@dimen/settings_help_icon_size"
-                            android:layout_height="@dimen/settings_help_icon_size"
-                            android:layout_marginEnd="@dimen/settings_help_icon_margin"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/tooltip_saved_authorizations_title"
-                            android:src="@drawable/ic_help_outline_24"
-                            app:tint="@color/text_color_secondary" />
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp">
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="@string/setting_saved_authorizations_title"
-                                android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="@string/setting_saved_authorizations_summary"
-                                android:textSize="@dimen/toggler_desc_text_size"
-                                android:textColor="@color/text_color_secondary" />
+                            android:gravity="center_vertical"
+                            android:minHeight="@dimen/settings_item_min_height"
+                            android:orientation="horizontal"
+                            android:padding="16dp">
+
+                            <ImageButton
+                                android:id="@+id/iconHelpSavedAuthorizations"
+                                android:layout_width="@dimen/settings_help_icon_size"
+                                android:layout_height="@dimen/settings_help_icon_size"
+                                android:layout_marginEnd="@dimen/settings_help_icon_margin"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/tooltip_saved_authorizations_title"
+                                android:src="@drawable/ic_help_outline_24"
+                                app:tint="@color/text_color_secondary" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="@string/setting_saved_authorizations_title"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="@string/setting_saved_authorizations_summary"
+                                    android:textSize="@dimen/toggler_desc_text_size"
+                                    android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_marginStart="@dimen/margin_small"
+                                android:src="@drawable/ic_chevron_right"
+                                android:importantForAccessibility="no"
+                                app:tint="?attr/colorPrimary" />
+
                         </LinearLayout>
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginStart="@dimen/margin_small"
-                            android:src="@drawable/ic_chevron_right"
-                            android:importantForAccessibility="no"
-                            app:tint="?attr/colorPrimary" />
-
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <!-- Default User and Password -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
@@ -472,7 +484,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Reset General Section button (moved out of the System collapsible group; sits between System and Debug sections). -->
-        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
 
         <!-- DEBUG SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">

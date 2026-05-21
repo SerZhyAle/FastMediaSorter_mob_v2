@@ -123,7 +123,7 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
     <constraint>ROOT_CLEANLINESS: MANDATORY. Never write files to root. Use `temp/`.</constraint>
     <constraint>FILE_SIZE: Max 1500ines. SPLIT large logic into `helpers/*.kt`.</constraint>
     <constraint>ACTIVITY_LOGIC: PROHIBITED. Delegate complex logic to `helpers/*Manager`.</constraint>
-    <constraint>LOGGING: Use `Timber`. `Log.d()` is PROHIBITED. Write physical output to `temp/*.log`.</constraint>
+    <constraint>LOGGING: Use `Timber`. `Log.d()` is PROHIBITED. Write physical output to `temp/*.log`. Persistent operational logs (`Timber.i/w/e` and any long-lived `Timber.d`) MUST NOT embed `Sxxxx` ticket ids; a ticket id inside log text is reserved for temporary `BlockNeedUserTest` probes only.</constraint>
     <constraint>READ_ONLY_ZONES: DO NOT MODIFY `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.</constraint>
     <constraint>SAFETY_BACKUP: IF modifying file > 500 lines, FIRST create backup in `temp/` with timestamp.</constraint>
     <constraint>COMMON_PITFALLS: NO player code in `PlayerActivity.kt`. Use `Dispatchers.IO` for Coroutines. FTP MUST handle timeouts. NO file saves in root.</constraint>

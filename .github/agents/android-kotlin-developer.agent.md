@@ -46,7 +46,7 @@ You are a senior Android (Kotlin) developer for the FastMediaSorter v2 project. 
 
 - Any `S\d{4}` token is a spec ticket id. Resolve current status / file via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` - never infer from a filename.
 - Never edit `PLAN/spec-catalog.jsonl` by hand; status transitions go through `scripts/spec_catalog/update.ps1`.
-- Debug verification tags: a `Timber.d("Sxxxx: <path>")` line exists in `.kt` code **iff** spec `Sxxxx` is currently in status `BlockNeedUserTest`. Do not add such a tag unless the ticket is moving into that status; do not remove one while the ticket is still in it. A tag whose spec is not `BlockNeedUserTest` is stale - remove it when you touch the file.
+- Debug verification tags: a `Timber.d("Sxxxx: <path>")` line exists in `.kt` code **iff** spec `Sxxxx` is currently in status `BlockNeedUserTest`. Do not add such a tag unless the ticket is moving into that status; do not remove one while the ticket is still in it. A tag whose spec is not `BlockNeedUserTest` is stale - remove it when you touch the file. Reserve the `Sxxxx:` prefix for these temporary probes only; never put ticket ids into persistent `Timber.i/w/e` or long-lived `Timber.d` messages.
 - No time / effort estimates in spec files or commit messages.
 - For very minor changes (typo, single resource value, color/padding tweak), use the `/quick` path - no spec, no docs, no build check, only `dev/CHANGELOG.md`.
 

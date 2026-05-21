@@ -1,0 +1,19 @@
+# One forbidden platform token per line.
+# Brand names stay case-sensitive; dotted hosts are matched case-insensitively.
+# S0286 intentionally excludes YouTube / youtube.com / youtu.be in the first rollout.
+
+Instagram
+TikTok
+Threads
+threads.com
+threads.net
+Facebook
+Snapchat
+Twitter
+X.com
+Reddit
+Pinterest
+LinkedIn
+Tumblr
+Vimeo
+Dailymotion

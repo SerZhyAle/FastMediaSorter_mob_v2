@@ -28,9 +28,9 @@ class NewPipeOkHttpDownloader @Inject constructor(
             if (initialized) return
             NewPipe.init(this)
             initialized = true
-            // S0117: one global Downloader instance keeps extractor requests on the
+            // One global Downloader instance keeps extractor requests on the
             // same OkHttp/cookie stack as the existing URL pipeline.
-            Timber.i("S0117: NewPipe extractor initialized with app OkHttp downloader")
+            Timber.i("NewPipeOkHttpDownloader: NewPipe extractor initialized with app OkHttp downloader")
         }
     }
 

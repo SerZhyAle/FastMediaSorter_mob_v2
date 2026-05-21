@@ -1,5 +1,7 @@
 # Memory Index
 
+- [spec_catalog exit-code contract](project_spec_catalog_exit_code_contract.md) - mutators need trap{exit 1}+exit 0 because _lib.ps1 sets Stop preference, making Write-Error terminating
+- [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare `pwsh` works in bash via /c/Users/serzh/bin/pwsh; no full path needed (since 2026-05-21)
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
 - [Build gotchas](project_build_gotchas.md) - build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
@@ -24,3 +26,4 @@
 - [Strategic spec Draft -> Approved owner gate](feedback_strategic_spec_owner_gate.md) - §3.3 "Owner inputs" is relevance-driven; /spec emits only bullets matching detected scope tags (UI/data/flavor/etc); check-owner-inputs.ps1 validates present bullets + universally requires Related tickets
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash `-Command "..."`, `\$LASTEXITCODE` collapses to empty and PowerShell parse fails silently inside `& {}`; use newline-separated -Command or single-quoted bash
 - [Verify spec id before announcing /spec-* pipeline](feedback_verify_spec_id_before_pipeline.md) - run select.ps1 first; match IDE-open Sxxxx; never narrate "Stage 0" on an unresolved id
+- [Persistent log lines must not contain Sxxxx](feedback_persistent_logs_no_ticket_id.md) - ticket id inside Timber.* is reserved for BlockNeedUserTest probes; permanent info/warn/error logs describe the subject in plain English, never embed a ticket id

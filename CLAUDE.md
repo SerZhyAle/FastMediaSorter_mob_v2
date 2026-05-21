@@ -48,6 +48,7 @@ Timber.d("Sxxxx: <short description of exercised path>")
 - A tag whose `Sxxxx` is **not** currently `BlockNeedUserTest` is stale. Any `/spec-fix`, `/spec-check`, or `/spec-arc` run that notices one removes it.
 - Never remove a tag while its spec is still `BlockNeedUserTest` - the tag is the operator's logcat probe for that round of device testing. Removal is a side effect of the status leaving `BlockNeedUserTest`, never a standalone "cleanup".
 - Tags are never present in `Verified`, `Implemented`, `Partial`, `Broken`, `Block*` other than `BlockNeedUserTest`, or `Archived` code.
+- Ticket ids inside log text are reserved for these temporary verification probes only. Any `Timber.i(...)`, `Timber.w(...)`, `Timber.e(...)`, or long-lived `Timber.d(...)` line that remains after the task is done must describe the subject in plain English and must **not** embed `Sxxxx`, otherwise grep-by-ticket stops being a reliable "spec still open" signal.
 
 ## Mandatory Skills (auto-trigger, do not handle manually)
 
@@ -214,7 +215,7 @@ Gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 
 Kotlin 1.9+ / Java 17 / `compileSdk 35` / `minSdk 26` (standard), `minSdk 23` (legacy).
 Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer Media3 1.2.1 · Glide 4.15.1 · SMBJ/SSHJ/Apache Commons Net · Google Drive/MSAL/Dropbox SDKs.
-**Logging: Timber only** - `Log.d()` is prohibited.
+**Logging: Timber only** - `Log.d()` is prohibited. Persistent operational logs must not embed `Sxxxx` ticket ids; ticket ids in log text are reserved for `BlockNeedUserTest` probes only.
 
 ## Strict Rules
 

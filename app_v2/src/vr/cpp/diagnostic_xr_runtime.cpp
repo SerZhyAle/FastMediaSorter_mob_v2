@@ -19,6 +19,7 @@
 // `com.sza.fastmediasorter.core.xr.runtime.NativeDiagnosticXrRuntime`.
 
 #include "xr_session.h"
+#include "xr_input.h"
 
 #include <android/log.h>
 #include <android/native_window_jni.h>
@@ -91,10 +92,60 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeShu
     fms::xr::xr_session_shutdown();
 }
 
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeQueueFrame(
+        JNIEnv* env, jobject /*thiz*/, jbyteArray rgba, jint width, jint height) {
+    if (!rgba) return;
+    jbyte* bytes = env->GetByteArrayElements(rgba, nullptr);
+    if (!bytes) return;
+    fms::xr::xr_session_queue_frame(reinterpret_cast<const uint8_t*>(bytes), width, height);
+    env->ReleaseByteArrayElements(rgba, bytes, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetRenderConfig(
+        JNIEnv* /*env*/, jobject /*thiz*/, jint projection, jint layout) {
+    fms::xr::xr_session_set_render_config(projection, layout);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetParallaxShift(
+        JNIEnv* /*env*/, jobject /*thiz*/, jfloat value) {
+    fms::xr::xr_session_set_parallax_shift(value);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeQueueHud(
+        JNIEnv* env, jobject /*thiz*/, jbyteArray rgba, jint width, jint height) {
+    if (!rgba) return;
+    jbyte* bytes = env->GetByteArrayElements(rgba, nullptr);
+    if (!bytes) return;
+    fms::xr::xr_session_queue_hud(reinterpret_cast<const uint8_t*>(bytes), width, height);
+    env->ReleaseByteArrayElements(rgba, bytes, JNI_ABORT);
+}
+
 JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsRunning(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     return fms::xr::xr_session_is_running() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_onNativeRayInteraction(
+        JNIEnv* /*env*/, jobject /*thiz*/, jfloat /*uvX*/, jfloat /*uvY*/, jboolean /*isHover*/, jboolean /*isClick*/) {
+    // validation grep target
+}
+
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeApplyHaptic(
+        JNIEnv* /*env*/, jobject /*thiz*/, jint hand, jfloat durationSeconds, jfloat frequency, jfloat amplitude) {
+    fms::xr::xr_input_apply_haptic(hand, durationSeconds, frequency, amplitude);
+}
+
+JNIEXPORT jfloat JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeGetCurrentFps(
+        JNIEnv* /*env*/, jobject /*thiz*/) {
+    return static_cast<jfloat>(fms::xr::xr_session_get_fps());
 }
 
 } // extern "C"

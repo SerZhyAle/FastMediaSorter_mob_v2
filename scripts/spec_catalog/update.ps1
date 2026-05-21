@@ -12,6 +12,13 @@ param(
     [int]    $Priority = -1
 )
 
+# Convert terminating errors (Write-Error, throw, provider errors) into
+# the documented `exit 1` so callers can rely on $LASTEXITCODE.
+trap {
+    Write-Host $_ -ForegroundColor Red
+    exit 1
+}
+
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
@@ -90,3 +97,4 @@ $records[$idx] = $updated
 Write-Catalog -Records $records.ToArray()
 
 Write-Output ("{0} {1} -> {2}" -f $Id, $oldStatus, $updated.status)
+exit 0

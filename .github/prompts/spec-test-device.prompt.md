@@ -160,7 +160,7 @@ Run the project's log analyser against the captured file:
 .\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Exceptions
 ```
 
-First grep for the spec's own debug verification tags - the primary "code path exercised" signal (the spec is in `BlockNeedUserTest`, so per CLAUDE.md "Debug Verification Tags" it carries `Timber.d("<Sxxxx>: …")` lines):
+First grep for the spec's own debug verification tags - the primary "code path exercised" signal (the spec is in `BlockNeedUserTest`, so per CLAUDE.md "Debug Verification Tags" it carries `Timber.d("<Sxxxx>: …")` lines). Only debug-level hits count as valid probes; `I/W/E` lines with `<Sxxxx>:` are invalid instrumentation and must be reported separately, not counted as exercised:
 
 ```powershell
 .\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly

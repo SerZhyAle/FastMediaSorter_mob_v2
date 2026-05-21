@@ -9,6 +9,8 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
+import java.util.Locale
 
 /**
  * Manages high-quality Tesseract offline language models (tessdata_best).
@@ -20,12 +22,18 @@ class TesseractModelManager(private val context: Context) {
         private const val TESS_DATA_DIR = "tessdata"
         private const val BEST_DIR_NAME = "tesseract_best"
         
-        // URL source for high quality models (tessdata_best)
-        private const val TESS_DATA_BEST_URL_BASE = "https://github.com/tesseract-ocr/tessdata_best/raw/main/"
+        // Pin the passive data files to the published release so checksum validation stays stable.
+        private const val TESS_DATA_BEST_URL_BASE =
+            "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/"
         
         // Minimum expected sizes for tessdata_best models to prevent corrupted/empty files
         private const val MIN_RUS_SIZE = 14_000_000L // rus.traineddata best is ~15 MB
         private const val MIN_UKR_SIZE = 10_000_000L // ukr.traineddata best is ~11.6 MB
+
+        private const val SHA256_RUS =
+            "b617eb6830ffabaaa795dd87ea7fd251adfe9cf0efe05eb9a2e8128b7728d6b6"
+        private const val SHA256_UKR =
+            "1277f6e3b6f707063a92d40e7678e7f57154e8414e328e340be9ee9275eea9c8"
     }
 
     /**
@@ -61,9 +69,9 @@ class TesseractModelManager(private val context: Context) {
             else -> 0L
         }
         
-        val isValid = fileSize >= minRequiredSize
+        val isValid = fileSize >= minRequiredSize && hasExpectedSha256(modelFile, language)
         if (!isValid) {
-            Timber.w("TesseractModelManager: Model $language is corrupted or too small (size: $fileSize bytes)")
+            Timber.w("TesseractModelManager: Model $language failed integrity validation (size: $fileSize bytes)")
         }
         return isValid
     }
@@ -161,8 +169,8 @@ class TesseractModelManager(private val context: Context) {
                 else -> 0L
             }
             
-            if (downloadedSize < minRequiredSize) {
-                Timber.e("TesseractModelManager: File size verification failed for $language. " +
+            if (downloadedSize < minRequiredSize || !hasExpectedSha256(tmpFile, language)) {
+                Timber.e("TesseractModelManager: Model integrity verification failed for $language. " +
                         "Downloaded: $downloadedSize bytes, expected at least: $minRequiredSize bytes")
                 if (tmpFile.exists()) {
                     tmpFile.delete()
@@ -200,6 +208,39 @@ class TesseractModelManager(private val context: Context) {
             false
         } finally {
             connection?.disconnect()
+        }
+    }
+
+    private fun hasExpectedSha256(file: File, language: String): Boolean {
+        val expected = expectedSha256(language) ?: return false
+        val actual = file.sha256()
+        val matches = actual.equals(expected, ignoreCase = true)
+        if (!matches) {
+            Timber.w("TesseractModelManager: SHA-256 mismatch for $language model")
+        }
+        return matches
+    }
+
+    private fun expectedSha256(language: String): String? {
+        return when (language) {
+            "rus" -> SHA256_RUS
+            "ukr" -> SHA256_UKR
+            else -> null
+        }
+    }
+
+    private fun File.sha256(): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        inputStream().use { input ->
+            val buffer = ByteArray(8192)
+            while (true) {
+                val read = input.read(buffer)
+                if (read <= 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString(separator = "") { byte ->
+            "%02x".format(Locale.US, byte.toInt() and 0xff)
         }
     }
 }

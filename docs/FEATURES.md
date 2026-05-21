@@ -214,7 +214,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **On-device offline translation**: Download specific language models for offline processing.
 - **Augmented Reality overlay**: Superimposes translated text into the precise coordinates of the original text.
 - **Result typography styling**: Configure font size and family for OCR readouts.
-- **High-quality Tesseract models on-demand**: Dynamically download large, high-quality language models (Russian and Ukrainian from the `tessdata_best` repository) directly from settings. This provides significantly higher offline OCR accuracy for Cyrillic, with automatic seamless fallback to built-in standard models on error.
+- **High-quality Tesseract models on-demand**: Dynamically download large, high-quality language models (Russian and Ukrainian from the `tessdata_best` repository) directly from settings. Files are stored as passive app-private data with SHA-256 validation and no dynamic executable code loading; OCR falls back to built-in standard models on error.
 
 ## 15. Network Sources
 

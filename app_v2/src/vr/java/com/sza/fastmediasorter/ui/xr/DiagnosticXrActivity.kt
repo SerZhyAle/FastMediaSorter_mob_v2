@@ -2,7 +2,18 @@ package com.sza.fastmediasorter.ui.xr
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.Typeface
+import android.media.ImageReader
+import android.graphics.PixelFormat
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -11,41 +22,47 @@ import android.view.SurfaceView
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.Keep
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
+import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
+import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
+import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 import java.nio.ByteBuffer
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+enum class ProjectionType(val value: Int) {
+    SPHERE_360(0),
+    HEMISPHERE_180(1),
+    FLAT(2)
+}
+
+enum class StereoLayout(val value: Int) {
+    MONO(0),
+    TOP_BOTTOM(1),
+    SIDE_BY_SIDE(2)
+}
+
+data class RenderConfig(
+    val projection: ProjectionType,
+    val layout: StereoLayout
+)
+
 /**
- * S0249 Phase 02 step 02.6: dedicated OpenXR session host Activity.
- *
- * Launched by `XrEntryGatewayImpl.enterDiagnosticImage` via an Intent (so HorizonOS picks up
- * the `com.oculus.intent.category.VR` intent-filter and starts us in headset mode). Lifecycle:
- *
- * - `onCreate`: load the bundled diagnostic asset, decode it on the main thread to an RGBA
- *   `ByteArray` (the texture upload happens on the render thread later). Build a SurfaceView
- *   and add the holder callback.
- * - SurfaceView callback `surfaceCreated`: spin up [DiagnosticXrRenderThread] passing the
- *   Surface, runtime, and decoded RGBA bytes. The render thread blocks inside the OpenXR
- *   frame loop until any input triggers exit.
- * - Input handling: every `onKeyDown` / `onTouchEvent` is forwarded to
- *   [DiagnosticXrInputExitHandler]; the same handler is observed and any emitted `ExitReason`
- *   triggers `renderThread.requestExit()`. The grace-period gate prevents stray events from
- *   the launching gesture immediately dismissing the session.
- * - When the render thread finishes (loop returned + shutdown done) it calls
- *   [onRenderThreadExit] which calls `finish()` on the UI thread.
- *
- * The Activity intentionally uses a plain [SurfaceView] (not GLSurfaceView): OpenXR owns the
- * frame timing (`xrWaitFrame` -> render -> `xrEndFrame`) and a GLSurfaceView's renderer thread
- * would compete with ours.
+ * S0282: dedicated OpenXR session host Activity with dynamic playlist.
  */
 @AndroidEntryPoint
 class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
@@ -57,6 +74,27 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var renderThread: DiagnosticXrRenderThread? = null
     private lateinit var surfaceView: SurfaceView
 
+    // Dynamic Playlist
+    private var mediaPlaylist: List<File> = emptyList()
+    private var currentPlaylistIndex: Int = -1
+
+    // Video playback resources
+    private var exoPlayer: ExoPlayer? = null
+    private var imageReader: ImageReader? = null
+    private var videoBackgroundThread: HandlerThread? = null
+    private var videoBackgroundHandler: Handler? = null
+
+    // VR HUD Helpers
+    private lateinit var hudRenderer: HudCanvasRenderer
+    private lateinit var interactionDispatcher: HudInteractionDispatcher
+    private lateinit var playbackController: HudPlaybackController
+    private lateinit var hapticBridge: HudHapticBridge
+
+    // Dynamic HUD Canvas buffers
+    private var hudBitmap: Bitmap? = null
+    private var hudCanvas: Canvas? = null
+    private var hudRgbaBytes: ByteArray = ByteArray(0)
+
     // Decoded asset, owned by the Activity until handed off to the render thread.
     private var textureBytes: ByteArray = ByteArray(0)
     private var textureWidth: Int = 0
@@ -64,19 +102,100 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S0249: DiagnosticXrActivity.onCreate - OpenXR session host launching")
-        // Keep the screen on for the duration of the immersive session. Required on Quest 3
-        // because the OpenXR runtime drives display refresh but the system may still trigger
-        // sleep if the Activity does not request it.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         if (!runtime.isNativeAvailable) {
             Timber.w("DiagnosticXrActivity: native runtime unavailable, finishing")
             finish(); return
         }
-        if (!decodeBundledAsset()) {
-            Timber.w("DiagnosticXrActivity: bundled asset decode failed, finishing")
-            finish(); return
+
+        checkHandTrackingPermission()
+    }
+
+    private fun checkHandTrackingPermission() {
+        val permission = "com.oculus.permission.HAND_TRACKING"
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, permission) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(
+                this,
+                arrayOf(permission),
+                REQUEST_CODE_HAND_TRACKING
+            )
+        } else {
+            proceedWithInitialization()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_HAND_TRACKING) {
+            if (grantResults.isEmpty() || grantResults[0] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                Timber.w("S0283: com.oculus.permission.HAND_TRACKING denied! Hand tracking might not work.")
+            }
+            proceedWithInitialization()
+        }
+    }
+
+    private fun proceedWithInitialization() {
+        // Initialize background video thread
+        initVideoThread()
+
+        // 1. Initialize VR HUD Canvas buffers and helpers (Step 03.2)
+        hudRenderer = HudCanvasRenderer()
+        hapticBridge = HudHapticBridge(runtime)
+        playbackController = HudPlaybackController(exoPlayer, ::navigateToNextMedia, ::navigateToPrevMedia)
+        interactionDispatcher = HudInteractionDispatcher(hudRenderer, object : HudInteractionDispatcher.InteractionListener {
+            override fun onPlayPauseClick() {
+                hapticBridge.triggerClickFeedback()
+                hudRenderer.isPlaying = !hudRenderer.isPlaying
+                if (hudRenderer.isPlaying) playbackController.play() else playbackController.pause()
+            }
+            override fun onNextClick() {
+                hapticBridge.triggerClickFeedback()
+                playbackController.next()
+            }
+            override fun onPrevClick() {
+                hapticBridge.triggerClickFeedback()
+                playbackController.prev()
+            }
+            override fun onVolumeChanged(volume: Float) {
+                playbackController.setVolume(volume)
+            }
+            override fun onDepthChanged(depth: Float) {
+                // S0283 Parallax Stereo-depth wiring (0.0 to 1.0 translates to horizontal shift in GLES uniform)
+                // Let's store this in a static/dynamic property. The rendering thread can read it or we set it.
+                // We will set this on the renderThread directly.
+                renderThread?.setParallaxShift(depth)
+            }
+            override fun onHoverStateChanged(isHovered: Boolean) {
+                hapticBridge.triggerHoverFeedback()
+            }
+        })
+
+        hudBitmap = Bitmap.createBitmap(HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT, Bitmap.Config.ARGB_8888)
+        hudCanvas = Canvas(hudBitmap!!)
+        hudRgbaBytes = ByteArray(HudCanvasRenderer.WIDTH * HudCanvasRenderer.HEIGHT * 4)
+
+        // Scan media files
+        mediaPlaylist = scanMediaFiles()
+        if (mediaPlaylist.isNotEmpty()) {
+            currentPlaylistIndex = 0
+            val firstFile = mediaPlaylist[0]
+            hudRenderer.currentFilename = firstFile.name
+            if (firstFile.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
+                if (!decodeImageToActivityBytes(firstFile)) {
+                    Timber.w("Failed to decode initial image ${firstFile.name}, falling back to bundled")
+                    decodeBundledAsset()
+                }
+            } else {
+                // First is a video, use bundled placeholder initially
+                decodeBundledAsset()
+            }
+        } else {
+            decodeBundledAsset()
         }
 
         surfaceView = SurfaceView(this).apply {
@@ -87,11 +206,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         setContentView(surfaceView)
         surfaceView.requestFocus()
 
-        // Safety net for the 2D fallback path: if the OpenXR session never reaches the
-        // immersive composition (driver mismatch, swapchain failure, etc.) and Android keeps
-        // the Activity in flat-screen mode, the system back button must still drop the user
-        // out. In a real immersive session HorizonOS routes the system back to itself and this
-        // callback is never invoked - that is fine.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 Timber.d("DiagnosticXrActivity: onBackPressed -> requesting exit")
@@ -99,8 +213,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
         })
 
-        // Observe the input handler exit flow. The Activity-side input methods feed it; the
-        // observer forwards exit requests to the render thread.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 exitHandler.exitRequested.collect { reason ->
@@ -111,7 +223,105 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
+    private fun scanMediaFiles(): List<File> {
+        val picturesDir = File("/sdcard/Pictures")
+        val moviesDir = File("/sdcard/Movies")
+        
+        val pictureExtensions = setOf("jpg", "jpeg", "png")
+        val movieExtensions = setOf("mp4", "mkv")
+        
+        val pictures = if (picturesDir.exists() && picturesDir.isDirectory) {
+            picturesDir.listFiles()?.filter { 
+                it.isFile && it.extension.lowercase() in pictureExtensions 
+            } ?: emptyList()
+        } else {
+            emptyList()
+        }
+        
+        val movies = if (moviesDir.exists() && moviesDir.isDirectory) {
+            moviesDir.listFiles()?.filter { 
+                it.isFile && it.extension.lowercase() in movieExtensions 
+            } ?: emptyList()
+        } else {
+            emptyList()
+        }
+        
+        return (pictures.sortedBy { it.name.lowercase() } + movies.sortedBy { it.name.lowercase() })
+    }
+
+    private fun parseFilenameConfig(filename: String): RenderConfig {
+        val name = filename.lowercase()
+        val projection = when {
+            name.contains("_360") || name.contains("360_") -> ProjectionType.SPHERE_360
+            name.contains("_180") || name.contains("180_") -> ProjectionType.HEMISPHERE_180
+            name.contains("_flat") || name.contains("flat_") -> ProjectionType.FLAT
+            else -> {
+                if (name.contains("panorama") || name.contains("panoramic") || name.contains("equirectangular")) {
+                    ProjectionType.SPHERE_360
+                } else {
+                    ProjectionType.FLAT
+                }
+            }
+        }
+        val layout = when {
+            name.contains("_tb") || name.contains("_topbottom") || name.contains("_stereo") || name.contains("stereo_tb") -> StereoLayout.TOP_BOTTOM
+            name.contains("_sbs") || name.contains("_sidebyside") -> StereoLayout.SIDE_BY_SIDE
+            name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
+            else -> {
+                if (name.contains("stereo")) {
+                    StereoLayout.TOP_BOTTOM
+                } else {
+                    StereoLayout.MONO
+                }
+            }
+        }
+        return RenderConfig(projection, layout)
+    }
+
+    private fun generateFilenameHudBytes(filename: String): ByteArray {
+        val w = 1024
+        val h = 128
+        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+        
+        val bgPaint = Paint().apply {
+            color = Color.argb(160, 10, 10, 15)
+            isAntiAlias = true
+            style = Paint.Style.FILL
+        }
+        val rect = RectF(40f, 20f, (w - 40).toFloat(), (h - 20).toFloat())
+        canvas.drawRoundRect(rect, 16f, 16f, bgPaint)
+        
+        val textPaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 32f
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        }
+        
+        val textBounds = Rect()
+        textPaint.getTextBounds(filename, 0, filename.length, textBounds)
+        val yOffset = (h / 2) - textBounds.exactCenterY()
+        
+        canvas.drawText(filename, (w / 2).toFloat(), yOffset, textPaint)
+        
+        val buf = ByteBuffer.allocateDirect(w * h * 4)
+        bitmap.copyPixelsToBuffer(buf)
+        buf.rewind()
+        val bytes = ByteArray(buf.remaining())
+        buf.get(bytes)
+        bitmap.recycle()
+        return bytes
+    }
+
     private fun decodeBundledAsset(): Boolean {
+        runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.TOP_BOTTOM.value)
+        val hudBytes = generateFilenameHudBytes("vr_diagnostic_stereo_tb.jpg")
+        runtime.queueHud(hudBytes, 1024, 128)
+
         val asset = assetProvider.load() ?: return false
         val options = BitmapFactory.Options().apply {
             inPreferredConfig = Bitmap.Config.ARGB_8888
@@ -126,7 +336,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             buf.rewind()
             val bytes = ByteArray(buf.remaining())
             buf.get(bytes)
-            // Bitmap.copyPixelsToBuffer for ARGB_8888 lays out R, G, B, A — matches GL_RGBA.
             textureBytes = bytes
             textureWidth = w
             textureHeight = h
@@ -134,6 +343,191 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             return true
         } finally {
             bitmap.recycle()
+        }
+    }
+
+    private fun decodeImageToActivityBytes(file: File): Boolean {
+        val config = parseFilenameConfig(file.name)
+        runtime.setRenderConfig(config.projection.value, config.layout.value)
+        val hudBytes = generateFilenameHudBytes(file.name)
+        runtime.queueHud(hudBytes, 1024, 128)
+
+        val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: return false
+        try {
+            val w = bitmap.width
+            val h = bitmap.height
+            val buf = ByteBuffer.allocateDirect(w * h * 4)
+            bitmap.copyPixelsToBuffer(buf)
+            buf.rewind()
+            val bytes = ByteArray(buf.remaining())
+            buf.get(bytes)
+            textureBytes = bytes
+            textureWidth = w
+            textureHeight = h
+            Timber.d("decoded initial image ${file.name} to RGBA: ${w}x${h}")
+            return true
+        } finally {
+            bitmap.recycle()
+        }
+    }
+
+    private fun initVideoThread() {
+        videoBackgroundThread = HandlerThread("FmsVideoDecoderThread").apply { start() }
+        videoBackgroundHandler = Handler(videoBackgroundThread!!.looper)
+    }
+
+    private fun releaseVideoThread() {
+        videoBackgroundThread?.quitSafely()
+        videoBackgroundThread = null
+        videoBackgroundHandler = null
+    }
+
+    private fun startVideoPlayback(file: File) {
+        releasePlaybackResources()
+        
+        val width = 2048
+        val height = 1024
+        imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2).apply {
+            setOnImageAvailableListener({ reader ->
+                val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
+                try {
+                    val plane = image.planes[0]
+                    val buffer = plane.buffer
+                    val rowStride = plane.rowStride
+                    val cleanSize = width * height * 4
+                    val frameBytes = ByteArray(cleanSize)
+                    
+                    if (rowStride == width * 4) {
+                        buffer.get(frameBytes)
+                    } else {
+                        val rowBytes = ByteArray(rowStride)
+                        for (i in 0 until height) {
+                            buffer.position(i * rowStride)
+                            buffer.get(rowBytes, 0, rowStride)
+                            System.arraycopy(rowBytes, 0, frameBytes, i * width * 4, width * 4)
+                        }
+                    }
+                    runtime.queueFrame(frameBytes, width, height)
+                } catch (t: Throwable) {
+                    Timber.e(t, "Error reading video frame")
+                } finally {
+                    image.close()
+                }
+            }, videoBackgroundHandler)
+        }
+        
+        exoPlayer = ExoPlayer.Builder(this).build().apply {
+            setVideoSurface(imageReader?.surface)
+            repeatMode = Player.REPEAT_MODE_ALL
+            playWhenReady = true
+            val mediaItem = androidx.media3.common.MediaItem.fromUri(android.net.Uri.fromFile(file))
+            setMediaItem(mediaItem)
+            prepare()
+        }
+        playbackController.updatePlayer(exoPlayer)
+        Timber.d("Started video playback for: ${file.name}")
+    }
+
+    private fun releasePlaybackResources() {
+        exoPlayer?.stop()
+        exoPlayer?.release()
+        exoPlayer = null
+        playbackController.updatePlayer(null)
+        
+        imageReader?.close()
+        imageReader = null
+    }
+
+    private fun navigateToNextMedia() {
+        if (mediaPlaylist.isEmpty()) return
+        currentPlaylistIndex = (currentPlaylistIndex + 1) % mediaPlaylist.size
+        loadCurrentMediaItem()
+    }
+
+    private fun navigateToPrevMedia() {
+        if (mediaPlaylist.isEmpty()) return
+        currentPlaylistIndex = if (currentPlaylistIndex - 1 < 0) {
+            mediaPlaylist.size - 1
+        } else {
+            currentPlaylistIndex - 1
+        }
+        loadCurrentMediaItem()
+    }
+
+    private fun loadCurrentMediaItem() {
+        val file = mediaPlaylist[currentPlaylistIndex]
+        Timber.d("Loading media item at index $currentPlaylistIndex: ${file.name}")
+        
+        hudRenderer.currentFilename = file.name
+        releasePlaybackResources()
+        
+        val config = parseFilenameConfig(file.name)
+        runtime.setRenderConfig(config.projection.value, config.layout.value)
+        val hudBytes = generateFilenameHudBytes(file.name)
+        runtime.queueHud(hudBytes, 1024, 128)
+        
+        if (file.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
+            lifecycleScope.launch(Dispatchers.Default) {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                if (bitmap != null) {
+                    try {
+                        val w = bitmap.width
+                        val h = bitmap.height
+                        val buf = ByteBuffer.allocateDirect(w * h * 4)
+                        bitmap.copyPixelsToBuffer(buf)
+                        buf.rewind()
+                        val bytes = ByteArray(buf.remaining())
+                        buf.get(bytes)
+                        runtime.queueFrame(bytes, w, h)
+                        Timber.d("Loaded and queued image: ${file.name}")
+                    } catch (t: Throwable) {
+                        Timber.e(t, "Failed to copy bitmap buffer for ${file.name}")
+                    } finally {
+                        bitmap.recycle()
+                    }
+                } else {
+                    Timber.w("Failed to decode image: ${file.name}")
+                }
+            }
+        } else {
+            startVideoPlayback(file)
+        }
+    }
+
+    @Keep
+    fun onNativeInputEvent(eventType: Int) {
+        runOnUiThread {
+            if (isFinishing || isDestroyed || mediaPlaylist.isEmpty()) return@runOnUiThread
+            when (eventType) {
+                1 -> navigateToNextMedia()
+                2 -> navigateToPrevMedia()
+            }
+        }
+    }
+
+    @Keep
+    fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean) {
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            
+            // Dispatch the interaction to virtual Canvas pixels (Step 03.2)
+            interactionDispatcher.dispatch(uvX, uvY, isHover, isClick)
+
+            // Calculate current real-time FPS from renderThread if running
+            hudRenderer.fps = renderThread?.currentFps ?: 60.0f
+
+            // Redraw HUD Canvas (Step 03.2)
+            val bitmap = hudBitmap ?: return@runOnUiThread
+            val canvas = hudCanvas ?: return@runOnUiThread
+            hudRenderer.render(canvas)
+
+            // Copy to raw RGBA bytes (Step 03.2)
+            val buf = ByteBuffer.wrap(hudRgbaBytes)
+            buf.rewind()
+            bitmap.copyPixelsToBuffer(buf)
+
+            // Upload head-locked texture to C++ (Step 03.2)
+            runtime.queueHud(hudRgbaBytes, HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT)
         }
     }
 
@@ -151,18 +545,23 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             onStartFailed = ::onRenderThreadStartFailed,
         ).also {
             it.start()
-            // Mark the first-frame timestamp now — the grace period for input dismissal starts
-            // from session bring-up, not from the actual first present (which we can't observe
-            // cheaply from Kotlin). For diagnostic purposes the 400 ms gate is more than enough
-            // either way.
             exitHandler.markFirstFramePresented(SystemClock.elapsedRealtime())
+            
+            // If first media item is video, launch ExoPlayer now
+            if (mediaPlaylist.isNotEmpty() && currentPlaylistIndex == 0) {
+                val file = mediaPlaylist[0]
+                if (file.extension.lowercase() in setOf("mp4", "mkv")) {
+                    val config = parseFilenameConfig(file.name)
+                    runtime.setRenderConfig(config.projection.value, config.layout.value)
+                    val hudBytes = generateFilenameHudBytes(file.name)
+                    runtime.queueHud(hudBytes, 1024, 128)
+                    startVideoPlayback(file)
+                }
+            }
         }
     }
 
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        // No-op: the OpenXR swapchains are fixed per-eye dimensions and the SurfaceView is just
-        // a window-shell so HorizonOS does not collapse the Activity to a 2D panel.
-    }
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Timber.d("surfaceDestroyed; requesting exit")
@@ -171,8 +570,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
-        // HorizonOS may pause the Activity if the user takes off the headset or invokes the
-        // system UI. Bail out cleanly so we don't leave a half-driven session in the runtime.
         renderThread?.requestExit()
     }
 
@@ -180,6 +577,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         renderThread?.requestExit()
         renderThread?.join(SHUTDOWN_TIMEOUT_MS)
         renderThread = null
+        releasePlaybackResources()
+        releaseVideoThread()
         super.onDestroy()
     }
 
@@ -209,5 +608,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private companion object {
         const val SHUTDOWN_TIMEOUT_MS = 3_000L
+        private const val REQUEST_CODE_HAND_TRACKING = 1001
     }
 }

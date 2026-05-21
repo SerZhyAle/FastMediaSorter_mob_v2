@@ -8,6 +8,12 @@
          `com.oculus.intent.category.VR` on the DiagnosticXrActivity's intent-filter to launch it
          in headset mode; non-VR launchers ignore the category. -->
 
+    <!-- Quest Hand Tracking Permission & Feature -->
+    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+    <uses-feature
+        android:name="oculus.software.handtracking"
+        android:required="false" />
+
     <!-- Quest -->
     <uses-feature
         android:name="android.hardware.vr.headtracking"

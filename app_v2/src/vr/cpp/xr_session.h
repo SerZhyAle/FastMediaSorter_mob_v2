@@ -66,10 +66,27 @@ NativeResult xr_session_start();
 // byte buffer in `GL_RGBA` / `GL_UNSIGNED_BYTE` format (sRGB encoded image data).
 NativeResult xr_session_upload_texture(const uint8_t* rgba, int width, int height);
 
+// Queue a dynamic frame update thread-safely for the next frame render.
+NativeResult xr_session_queue_frame(const uint8_t* rgba, int width, int height);
+
+// Set render configuration (projection and layout).
+void xr_session_set_render_config(int projection, int layout);
+
+// Set the stereo parallax shift used by the diagnostic fragment shader.
+void xr_session_set_parallax_shift(float value);
+
+// Queue a new HUD frame (text overlay).
+void xr_session_queue_hud(const uint8_t* rgba, int width, int height);
+
 // Stage 5: blocking frame loop. Returns Ok when the loop exits cleanly (user requested exit
 // or runtime asked the session to stop), or an error code if the loop aborted on a hard
 // failure. The render thread should call this once per session.
 NativeResult xr_session_run_frame_loop();
+
+// Returns the current smoothed frame rate (FPS) measured from the OpenXR frame loop's
+// `predictedDisplayTime` deltas. Updated every frame using an EMA filter (~10-frame window).
+// Returns 0.0 before the second frame has been delivered. Thread-safe.
+float xr_session_get_fps();
 
 // UI-thread safe: signal the render thread to leave the frame loop. Idempotent.
 void xr_session_request_exit();

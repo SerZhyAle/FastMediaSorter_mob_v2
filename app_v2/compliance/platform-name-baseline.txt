@@ -1,0 +1,23 @@
+# Temporary legacy suppressions for S0286.
+# Format: relative/path<TAB>trimmed line
+
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/AccountIdentityExtractor.kt	private const val PLATFORM_THREADS = "threads.net"
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/AccountIdentityExtractor.kt	private const val PLATFORM_X = "x.com"
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	displayName = "Instagram",
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	displayName = "Threads",
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	host = "threads.net",
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	loginUrl = "https://www.threads.net/login",
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	host = "threads.com",
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	loginUrl = "https://www.threads.com/login",
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("TikTok", "tiktok.com", "https://www.tiktok.com/login", previewOnlyMeansLogin = true),
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login", previewOnlyMeansLogin = true),
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("Reddit", "reddit.com", "https://www.reddit.com/login/"),
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("Tumblr", "tumblr.com", "https://www.tumblr.com/login"),
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	displayName = "Facebook",
+app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceScanManager.kt	R.id.btnInstagram to "/storage/emulated/0/Android/media/com.instagram.android/Instagram"
+app_v2/src/main/res/values/strings.xml	<string name="folder_instagram">Instagram</string>
+app_v2/src/main/res/values/strings.xml	<string name="rec_threads">Threads</string>
+app_v2/src/main/res/values/strings.xml	<string name="speed_test_complete">Speed Test Complete: Read: %1$s Mbps, Write: %2$s Mbps (Threads: %3$d)</string>
+app_v2/src/main/res/values-ru/strings.xml	<string name="folder_instagram">Instagram</string>
+app_v2/src/main/res/values-uk/strings.xml	<string name="folder_instagram">Instagram</string>

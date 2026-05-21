@@ -1,26 +1,8 @@
-// S0249 Phase 02 step 02.6: OpenXR diagnostic session implementation.
-//
-// Owns the entire OpenXR + EGL + GLES pipeline that renders one stereo top-bottom equirect
-// image on the bundled diagnostic asset. Architectural notes:
-//
-//   - Composition strategy: an application-side sphere mesh (32x64 UV grid, ~2k tris) is
-//     rendered to a per-eye swapchain image. The fragment shader samples the upper half of
-//     the texture for the left eye and the lower half for the right eye (StereoLayout.TopBottom).
-//     This works on every OpenXR runtime irrespective of XR_KHR_composition_layer_equirect2
-//     availability.
-//   - Reference space: XR_REFERENCE_SPACE_TYPE_LOCAL with identity pose (universal; Stage is
-//     optional and not always supported on Quest emulator).
-//   - Action set: two actions ("any_button" boolean + "any_analog" float) with suggested bindings
-//     across both controller hands for every face / menu / thumbstick click plus trigger/squeeze
-//     value (analog threshold = 0.4f). This is the ONLY input path that actually works inside an
-//     immersive HorizonOS session - the Activity-level Android KeyEvent / MotionEvent handlers
-//     never fire while the OpenXR session is active. ADR-4 of S0249 ("any input event closes the
-//     session") relies on the breadth of these bindings.
-//
-// The file deliberately keeps everything in one translation unit to stay under the LOC budget
-// while exposing only a minimal symbol surface via xr_session.h.
+// OpenXR diagnostic session host. S0283 owns input, haptics, raycasting, and HUD placement.
 
 #include "xr_session.h"
+#include "xr_input.h"
+#include "xr_hud_world.h"
 
 #include <android/log.h>
 #include <android/native_window.h>
@@ -44,6 +26,14 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+#ifndef XR_EXT_HAND_INTERACTION_EXTENSION_NAME
+#define XR_EXT_HAND_INTERACTION_EXTENSION_NAME "XR_EXT_hand_interaction"
+#endif
+
+#ifndef XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME
+#define XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME "XR_FB_hand_tracking_aim"
+#endif
+
 namespace fms::xr {
 
 namespace {
@@ -58,8 +48,6 @@ constexpr int   kSphereLatSegments = 32;
 constexpr int   kSphereLonSegments = 64;
 constexpr float kSphereRadius      = 10.0f;
 
-// GLSL programs. Vertex shader emits view-projected position + raw UV. Fragment shader maps
-// UV to the correct half of the stereo top-bottom texture using a uniform eye index.
 constexpr const char* kVertexShader = R"GLSL(#version 300 es
 precision highp float;
 layout(location=0) in vec3 a_pos;
@@ -76,12 +64,20 @@ constexpr const char* kFragmentShader = R"GLSL(#version 300 es
 precision highp float;
 in vec2 v_uv;
 uniform sampler2D u_tex;
-uniform int u_eyeIndex; // 0 = left (top half), 1 = right (bottom half)
+uniform int u_eyeIndex; // 0 = left, 1 = right
+uniform int u_stereoLayout; // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
+uniform float u_parallaxShift;
 out vec4 outColor;
 void main() {
-    // Stereo top-bottom: left eye samples y in [0, 0.5], right eye samples y in [0.5, 1.0].
     vec2 uv = v_uv;
-    uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
+    if (u_stereoLayout == 1) {
+        uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
+        uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift);
+    } else if (u_stereoLayout == 2) {
+        uv.x = uv.x * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
+        uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift) * 0.5;
+    }
+    uv.x = clamp(uv.x, 0.0, 1.0);
     outColor = texture(u_tex, uv);
 }
 )GLSL";
@@ -101,7 +97,6 @@ struct State {
     std::atomic<bool> running{false};
     std::atomic<bool> exitRequested{false};
 
-    // OpenXR
     XrInstance instance{XR_NULL_HANDLE};
     XrSystemId systemId{XR_NULL_SYSTEM_ID};
     XrSession session{XR_NULL_HANDLE};
@@ -110,32 +105,66 @@ struct State {
     bool sessionRunning{false};
     std::vector<XrViewConfigurationView> viewConfigs;
     std::vector<EyeSwapchain> eyes;
-    XrActionSet actionSet{XR_NULL_HANDLE};
-    XrAction anyButtonAction{XR_NULL_HANDLE};   // boolean: A/B/X/Y/menu/select/thumbstick clicks (both hands)
-    XrAction anyAnalogAction{XR_NULL_HANDLE};   // float: trigger/squeeze value on both hands (threshold-checked)
 
-    // EGL
+    JavaVM* vm{nullptr};
+    jobject activity{nullptr};
+
+    int renderProjection{0}; // 0 = 360, 1 = 180, 2 = Flat
+    int stereoLayout{1};     // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
+    float parallaxShift{0.0f};
+
+    std::vector<uint8_t> pendingFrameData;
+    int pendingFrameWidth{0};
+    int pendingFrameHeight{0};
+    bool pendingFrameReady{false};
+    std::mutex frameMutex;
+
     EGLDisplay eglDisplay{EGL_NO_DISPLAY};
     EGLContext eglContext{EGL_NO_CONTEXT};
     EGLConfig  eglConfig{nullptr};
     EGLSurface eglSurface{EGL_NO_SURFACE};
     ANativeWindow* window{nullptr};
 
-    // GL assets
     GLuint program{0};
     GLuint texture{0};
+
     GLuint vao{0};
     GLuint vbo{0};
     GLuint ibo{0};
     GLsizei indexCount{0};
+
+    GLuint hemiVao{0};
+    GLuint hemiVbo{0};
+    GLuint hemiIbo{0};
+    GLsizei hemiIndexCount{0};
+
+    GLuint quadVao{0};
+    GLuint quadVbo{0};
+    GLuint quadIbo{0};
+    GLsizei quadIndexCount{0};
+
+    GLuint hudTexture{0};
+    std::vector<uint8_t> pendingHudData;
+    int pendingHudWidth{0};
+    int pendingHudHeight{0};
+    bool pendingHudReady{false};
+    std::mutex hudMutex;
+
     GLint locViewProj{-1};
     GLint locTex{-1};
     GLint locEye{-1};
+    GLint locStereoLayout{-1};
+    GLint locParallaxShift{-1};
 };
 
-State g; // single-session global
+State g;
 
-// ------------------------- helpers -------------------------
+// Smoothed frame rate (Hz) measured from `XrFrameState::predictedDisplayTime` deltas.
+// EMA with alpha = 0.1 -> effective 10-frame window. Updated only on the render thread,
+// read atomically by `xr_session_get_fps()` from any thread.
+std::atomic<float> g_currentFps{0.0f};
+// Previous predicted display time (nanoseconds, monotonic). 0 marks "no previous frame yet".
+int64_t g_prevPredictedDisplayTimeNs{0};
 
 bool checkGl(const char* tag) {
     GLenum e = glGetError();
@@ -166,8 +195,6 @@ GLuint linkProgram(GLuint vs, GLuint fs) {
     return p;
 }
 
-// Build a UV sphere: positions on a unit sphere (scaled to radius), UV from spherical mapping.
-// Render INSIDE the sphere — flip winding so front faces point inward.
 void buildSphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indices) {
     verts.clear(); indices.clear();
     const int lat = kSphereLatSegments;
@@ -181,13 +208,11 @@ void buildSphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indic
             float u = (float)x / (float)lon;
             float phi = u * 2.0f * kPI;
             float sinP = std::sin(phi), cosP = std::cos(phi);
-            // Equirect UV: x=longitude/2π, y=latitude/π.
-            // Position: standard spherical (Y up). Negate x to render seam behind viewer.
             float px = -sinT * cosP * kSphereRadius;
             float py = cosT * kSphereRadius;
             float pz = sinT * sinP * kSphereRadius;
             verts.push_back(px); verts.push_back(py); verts.push_back(pz);
-            verts.push_back(u);  verts.push_back(1.0f - v); // flip V (image origin top-left)
+            verts.push_back(u);  verts.push_back(v);
         }
     }
     indices.reserve(lat * lon * 6);
@@ -197,14 +222,57 @@ void buildSphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indic
             unsigned int i1 = i0 + 1;
             unsigned int i2 = i0 + (lon + 1);
             unsigned int i3 = i2 + 1;
-            // Inward-facing winding (camera is inside the sphere).
             indices.push_back(i0); indices.push_back(i2); indices.push_back(i1);
             indices.push_back(i1); indices.push_back(i2); indices.push_back(i3);
         }
     }
 }
 
-// Column-major 4x4 perspective from OpenXR FoV angles.
+void buildHemisphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indices) {
+    verts.clear(); indices.clear();
+    const int lat = kSphereLatSegments;
+    const int lon = kSphereLonSegments;
+    verts.reserve((lat + 1) * (lon + 1) * 5);
+    for (int y = 0; y <= lat; ++y) {
+        float v = (float)y / (float)lat;
+        float theta = v * kPI;
+        float sinT = std::sin(theta), cosT = std::cos(theta);
+        for (int x = 0; x <= lon; ++x) {
+            float u = (float)x / (float)lon;
+            float phi = kPI + u * kPI;
+            float sinP = std::sin(phi), cosP = std::cos(phi);
+            float px = -sinT * cosP * kSphereRadius;
+            float py = cosT * kSphereRadius;
+            float pz = sinT * sinP * kSphereRadius;
+            verts.push_back(px); verts.push_back(py); verts.push_back(pz);
+            verts.push_back(u);  verts.push_back(v);
+        }
+    }
+    indices.reserve(lat * lon * 6);
+    for (int y = 0; y < lat; ++y) {
+        for (int x = 0; x < lon; ++x) {
+            unsigned int i0 = y * (lon + 1) + x;
+            unsigned int i1 = i0 + 1;
+            unsigned int i2 = i0 + (lon + 1);
+            unsigned int i3 = i2 + 1;
+            indices.push_back(i0); indices.push_back(i2); indices.push_back(i1);
+            indices.push_back(i1); indices.push_back(i2); indices.push_back(i3);
+        }
+    }
+}
+
+void buildQuadMesh(std::vector<float>& verts, std::vector<unsigned int>& indices) {
+    verts = {
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,  1.0f, 1.0f,
+         0.5f,  0.5f, 0.0f,  1.0f, 0.0f
+    };
+    indices = {
+        0, 1, 2,
+        0, 2, 3
+    };
+}
 void perspectiveFromFov(const XrFovf& fov, float nearZ, float farZ, float* m) {
     const float tanL = std::tan(fov.angleLeft);
     const float tanR = std::tan(fov.angleRight);
@@ -222,26 +290,24 @@ void perspectiveFromFov(const XrFovf& fov, float nearZ, float farZ, float* m) {
     m[14] = -(2.0f * farZ * nearZ) / (farZ - nearZ);
 }
 
-// Inverse-of-pose view matrix. Builds R^T * T^-1 from XrPosef (column-major).
+// Keep R^T in column-major order; otherwise the world rotates with the head.
 void viewFromPose(const XrPosef& pose, float* m) {
     const float x = pose.orientation.x, y = pose.orientation.y, z = pose.orientation.z, w = pose.orientation.w;
     const float xx = x*x, yy = y*y, zz = z*z;
     const float xy = x*y, xz = x*z, yz = y*z;
     const float wx = w*x, wy = w*y, wz = w*z;
-    // Rotation transpose (so it inverts the camera rotation).
     float r[9] = {
         1 - 2*(yy+zz),     2*(xy+wz),       2*(xz-wy),
         2*(xy-wz),         1 - 2*(xx+zz),   2*(yz+wx),
         2*(xz+wy),         2*(yz-wx),       1 - 2*(xx+yy)
     };
     const float tx = pose.position.x, ty = pose.position.y, tz = pose.position.z;
-    // m = R^T then translate by -t in camera space.
-    m[0]=r[0]; m[1]=r[1]; m[2]=r[2]; m[3]=0;
-    m[4]=r[3]; m[5]=r[4]; m[6]=r[5]; m[7]=0;
-    m[8]=r[6]; m[9]=r[7]; m[10]=r[8]; m[11]=0;
-    m[12] = -(r[0]*tx + r[3]*ty + r[6]*tz);
-    m[13] = -(r[1]*tx + r[4]*ty + r[7]*tz);
-    m[14] = -(r[2]*tx + r[5]*ty + r[8]*tz);
+    m[0] = r[0]; m[1] = r[3]; m[2] = r[6]; m[3] = 0;
+    m[4] = r[1]; m[5] = r[4]; m[6] = r[7]; m[7] = 0;
+    m[8] = r[2]; m[9] = r[5]; m[10] = r[8]; m[11] = 0;
+    m[12] = -(r[0]*tx + r[1]*ty + r[2]*tz);
+    m[13] = -(r[3]*tx + r[4]*ty + r[5]*tz);
+    m[14] = -(r[6]*tx + r[7]*ty + r[8]*tz);
     m[15] = 1;
 }
 
@@ -283,13 +349,10 @@ void logInstanceExtensionSupport() {
     );
 }
 
-// ------------------------- pipeline stages -------------------------
-
 NativeResult createInstance(JavaVM* vm, jobject activity) {
     LOGD("createInstance: begin vm=%p activity=%p", (void*)vm, activity);
     logInstanceExtensionSupport();
 
-    // Android OpenXR loaders require explicit loader initialization before xrCreateInstance.
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
     XrResult r = xrGetInstanceProcAddr(
         XR_NULL_HANDLE,
@@ -316,7 +379,10 @@ NativeResult createInstance(JavaVM* vm, jobject activity) {
 
     std::vector<const char*> exts = {
         XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
-        XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME
+        XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME,
+        XR_EXT_HAND_TRACKING_EXTENSION_NAME,
+        XR_EXT_HAND_INTERACTION_EXTENSION_NAME,
+        XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME
     };
     XrInstanceCreateInfoAndroidKHR androidInfo{XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
     androidInfo.applicationVM = vm;
@@ -331,7 +397,7 @@ NativeResult createInstance(JavaVM* vm, jobject activity) {
     std::snprintf(info.applicationInfo.engineName, sizeof(info.applicationInfo.engineName), "FastMediaSorter");
     info.applicationInfo.engineVersion = 1;
     info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
-    LOGD("xrCreateInstance: enabling [%s, %s]", exts[0], exts[1]);
+    LOGD("xrCreateInstance: enabling %zu extensions", exts.size());
     r = xrCreateInstance(&info, &g.instance);
     if (XR_FAILED(r)) { LOGE("xrCreateInstance=%d", (int)r); return NativeResult::InstanceCreationFailed; }
 
@@ -382,7 +448,6 @@ NativeResult bindEglSurface() {
 }
 
 NativeResult createSessionAndSpaces() {
-    // OpenGL ES requirements check (must be called before xrCreateSession per spec).
     PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetReq = nullptr;
     xrGetInstanceProcAddr(g.instance, "xrGetOpenGLESGraphicsRequirementsKHR", (PFN_xrVoidFunction*)&pfnGetReq);
     if (pfnGetReq) {
@@ -400,6 +465,8 @@ NativeResult createSessionAndSpaces() {
     sci.systemId = g.systemId;
     XrResult r = xrCreateSession(g.instance, &sci, &g.session);
     if (XR_FAILED(r)) { LOGE("xrCreateSession=%d", (int)r); return NativeResult::SessionCreationFailed; }
+
+
 
     XrReferenceSpaceCreateInfo rsci{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
     rsci.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
@@ -458,18 +525,46 @@ NativeResult createGlAssets() {
     g.program = linkProgram(vs, fs);
     glDeleteShader(vs); glDeleteShader(fs);
     if (!g.program) return NativeResult::SessionCreationFailed;
-    g.locViewProj = glGetUniformLocation(g.program, "u_viewProj");
-    g.locTex      = glGetUniformLocation(g.program, "u_tex");
-    g.locEye      = glGetUniformLocation(g.program, "u_eyeIndex");
+    g.locViewProj     = glGetUniformLocation(g.program, "u_viewProj");
+    g.locTex          = glGetUniformLocation(g.program, "u_tex");
+    g.locEye          = glGetUniformLocation(g.program, "u_eyeIndex");
+    g.locStereoLayout = glGetUniformLocation(g.program, "u_stereoLayout");
+    g.locParallaxShift = glGetUniformLocation(g.program, "u_parallaxShift");
 
     std::vector<float> verts; std::vector<unsigned int> indices;
+
     buildSphereMesh(verts, indices);
     g.indexCount = (GLsizei)indices.size();
-
     glGenVertexArrays(1, &g.vao); glBindVertexArray(g.vao);
     glGenBuffers(1, &g.vbo); glBindBuffer(GL_ARRAY_BUFFER, g.vbo);
     glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
     glGenBuffers(1, &g.ibo); glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    buildHemisphereMesh(verts, indices);
+    g.hemiIndexCount = (GLsizei)indices.size();
+    glGenVertexArrays(1, &g.hemiVao); glBindVertexArray(g.hemiVao);
+    glGenBuffers(1, &g.hemiVbo); glBindBuffer(GL_ARRAY_BUFFER, g.hemiVbo);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
+    glGenBuffers(1, &g.hemiIbo); glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g.hemiIbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    buildQuadMesh(verts, indices);
+    g.quadIndexCount = (GLsizei)indices.size();
+    glGenVertexArrays(1, &g.quadVao); glBindVertexArray(g.quadVao);
+    glGenBuffers(1, &g.quadVbo); glBindBuffer(GL_ARRAY_BUFFER, g.quadVbo);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
+    glGenBuffers(1, &g.quadIbo); glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g.quadIbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -483,84 +578,82 @@ NativeResult createGlAssets() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // Allocate 1x1 placeholder until upload_texture replaces it.
     uint8_t pixel[4] = { 64, 64, 64, 255 };
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
+    glGenTextures(1, &g.hudTexture);
+    glBindTexture(GL_TEXTURE_2D, g.hudTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
     return checkGl("createGlAssets") ? NativeResult::Ok : NativeResult::SessionCreationFailed;
 }
 
-NativeResult createActions() {
-    XrActionSetCreateInfo asInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
-    std::snprintf(asInfo.actionSetName, sizeof(asInfo.actionSetName), "diagnostic_exit");
-    std::snprintf(asInfo.localizedActionSetName, sizeof(asInfo.localizedActionSetName), "Diagnostic exit");
-    XrResult r = xrCreateActionSet(g.instance, &asInfo, &g.actionSet);
-    if (XR_FAILED(r)) { LOGW("xrCreateActionSet=%d (continuing without actions)", (int)r); return NativeResult::Ok; }
-
-    // Boolean action: every face / menu / thumbstick click on either controller exits.
-    XrActionCreateInfo aiBtn{XR_TYPE_ACTION_CREATE_INFO};
-    std::snprintf(aiBtn.actionName, sizeof(aiBtn.actionName), "any_button");
-    std::snprintf(aiBtn.localizedActionName, sizeof(aiBtn.localizedActionName), "Any button");
-    aiBtn.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
-    xrCreateAction(g.actionSet, &aiBtn, &g.anyButtonAction);
-
-    // Analog action: triggers and grip squeezes (Touch reports floats, not booleans). Polled with
-    // a threshold so a light brush does not dismiss the session before the user even sees it.
-    XrActionCreateInfo aiAna{XR_TYPE_ACTION_CREATE_INFO};
-    std::snprintf(aiAna.actionName, sizeof(aiAna.actionName), "any_analog");
-    std::snprintf(aiAna.localizedActionName, sizeof(aiAna.localizedActionName), "Any trigger or grip");
-    aiAna.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
-    xrCreateAction(g.actionSet, &aiAna, &g.anyAnalogAction);
-
-    // Helper that submits one batch of suggested bindings for a given interaction profile.
-    auto suggestProfile = [&](const char* profilePath,
-                              const std::vector<std::pair<XrAction, const char*>>& items) {
-        XrPath profile; xrStringToPath(g.instance, profilePath, &profile);
-        std::vector<XrActionSuggestedBinding> bindings;
-        bindings.reserve(items.size());
-        for (const auto& [action, path] : items) {
-            XrPath p; xrStringToPath(g.instance, path, &p);
-            bindings.push_back({action, p});
-        }
-        XrInteractionProfileSuggestedBinding s{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        s.interactionProfile = profile;
-        s.countSuggestedBindings = (uint32_t)bindings.size();
-        s.suggestedBindings = bindings.data();
-        XrResult sr = xrSuggestInteractionProfileBindings(g.instance, &s);
-        if (XR_FAILED(sr)) LOGW("xrSuggestInteractionProfileBindings(%s)=%d", profilePath, (int)sr);
-    };
-
-    // Khronos Simple Controller: both hands, both available booleans (select + menu clicks).
-    suggestProfile("/interaction_profiles/khr/simple_controller", {
-        {g.anyButtonAction, "/user/hand/left/input/select/click"},
-        {g.anyButtonAction, "/user/hand/right/input/select/click"},
-        {g.anyButtonAction, "/user/hand/left/input/menu/click"},
-        {g.anyButtonAction, "/user/hand/right/input/menu/click"},
-    });
-
-    // Oculus Touch (Quest 2/3/Pro): every face button, both thumbstick clicks, left menu.
-    // Note: right "system" path is reserved by HorizonOS - must NOT be suggested. Triggers and
-    // grips are analog and go through anyAnalogAction.
-    suggestProfile("/interaction_profiles/oculus/touch_controller", {
-        {g.anyButtonAction,  "/user/hand/left/input/x/click"},
-        {g.anyButtonAction,  "/user/hand/left/input/y/click"},
-        {g.anyButtonAction,  "/user/hand/right/input/a/click"},
-        {g.anyButtonAction,  "/user/hand/right/input/b/click"},
-        {g.anyButtonAction,  "/user/hand/left/input/thumbstick/click"},
-        {g.anyButtonAction,  "/user/hand/right/input/thumbstick/click"},
-        {g.anyButtonAction,  "/user/hand/left/input/menu/click"},
-        {g.anyAnalogAction,  "/user/hand/left/input/trigger/value"},
-        {g.anyAnalogAction,  "/user/hand/right/input/trigger/value"},
-        {g.anyAnalogAction,  "/user/hand/left/input/squeeze/value"},
-        {g.anyAnalogAction,  "/user/hand/right/input/squeeze/value"},
-    });
-
-    XrSessionActionSetsAttachInfo attach{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
-    attach.countActionSets = 1; attach.actionSets = &g.actionSet;
-    XrResult ar = xrAttachSessionActionSets(g.session, &attach);
-    if (XR_FAILED(ar)) LOGW("xrAttachSessionActionSets=%d", (int)ar);
-    LOGD("S0249: createActions - %zu bindings attached across 2 profiles", (size_t)15);
-    return NativeResult::Ok;
+void scaleAndTranslate4x4(float sx, float sy, float sz, float tx, float ty, float tz, float* out) {
+    std::memset(out, 0, sizeof(float) * 16);
+    out[0] = sx;
+    out[5] = sy;
+    out[10] = sz;
+    out[12] = tx;
+    out[13] = ty;
+    out[14] = tz;
+    out[15] = 1.0f;
 }
+
+void triggerJniInputCallback(int eventType) {
+    if (!g.vm || !g.activity) return;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    jint res = g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+    if (res == JNI_EDETACHED) {
+        if (g.vm->AttachCurrentThread(&env, nullptr) == JNI_OK) {
+            attached = true;
+        }
+    }
+    if (env && g.activity) {
+        jclass clazz = env->GetObjectClass(g.activity);
+        if (clazz) {
+            jmethodID method = env->GetMethodID(clazz, "onNativeInputEvent", "(I)V");
+            if (method) {
+                env->CallVoidMethod(g.activity, method, eventType);
+            }
+            env->DeleteLocalRef(clazz);
+        }
+    }
+    if (attached) {
+        g.vm->DetachCurrentThread();
+    }
+}
+
+void triggerJniRayInteraction(float uvX, float uvY, bool isHover, bool isClick) {
+    if (!g.vm || !g.activity) return;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    jint res = g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+    if (res == JNI_EDETACHED) {
+        if (g.vm->AttachCurrentThread(&env, nullptr) == JNI_OK) {
+            attached = true;
+        }
+    }
+    if (env && g.activity) {
+        jclass clazz = env->GetObjectClass(g.activity);
+        if (clazz) {
+            jmethodID method = env->GetMethodID(clazz, "onNativeRayInteraction", "(FFZZ)V");
+            if (method) {
+                env->CallVoidMethod(g.activity, method, uvX, uvY, isHover ? JNI_TRUE : JNI_FALSE, isClick ? JNI_TRUE : JNI_FALSE);
+            }
+            env->DeleteLocalRef(clazz);
+        }
+    }
+    if (attached) {
+        g.vm->DetachCurrentThread();
+    }
+}
+
+
 
 void pollEvents() {
     XrEventDataBuffer ev{XR_TYPE_EVENT_DATA_BUFFER};
@@ -606,7 +699,27 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
 
     float proj[16]; perspectiveFromFov(view.fov, 0.05f, 100.0f, proj);
     float viewMat[16]; viewFromPose(view.pose, viewMat);
-    float mvp[16]; multiply4x4(proj, viewMat, mvp);
+
+    float mvp[16];
+    if (g.renderProjection == 2) {
+        float modelMat[16];
+        scaleAndTranslate4x4(8.0f, 4.5f, 1.0f, 0.0f, 0.0f, -5.0f, modelMat);
+        float temp[16];
+        multiply4x4(viewMat, modelMat, temp);
+        multiply4x4(proj, temp, mvp);
+    } else {
+        multiply4x4(proj, viewMat, mvp);
+    }
+
+    GLuint activeVao = g.vao;
+    GLsizei activeIndexCount = g.indexCount;
+    if (g.renderProjection == 1) {
+        activeVao = g.hemiVao;
+        activeIndexCount = g.hemiIndexCount;
+    } else if (g.renderProjection == 2) {
+        activeVao = g.quadVao;
+        activeIndexCount = g.quadIndexCount;
+    }
 
     glEnable(GL_DEPTH_TEST); glDisable(GL_CULL_FACE);
     glUseProgram(g.program);
@@ -615,9 +728,15 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
     glBindTexture(GL_TEXTURE_2D, g.texture);
     glUniform1i(g.locTex, 0);
     glUniform1i(g.locEye, (GLint)eyeIdx);
-    glBindVertexArray(g.vao);
-    glDrawElements(GL_TRIANGLES, g.indexCount, GL_UNSIGNED_INT, nullptr);
+    glUniform1i(g.locStereoLayout, g.stereoLayout);
+    if (g.locParallaxShift >= 0) glUniform1f(g.locParallaxShift, g.parallaxShift);
+    glBindVertexArray(activeVao);
+    glDrawElements(GL_TRIANGLES, activeIndexCount, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
+
+    // Render World Space HUD Quad, pointer rays, and low-latency cursor dots (Phase 02)
+    xr_hud_render(proj, viewMat, eyeIdx, g.program, g.quadVao, g.hudTexture, g.locViewProj, g.locTex, g.locEye, g.locStereoLayout);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     XrSwapchainImageReleaseInfo ri{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
@@ -631,49 +750,30 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
     return true;
 }
 
-void pollActions() {
-    if (g.actionSet == XR_NULL_HANDLE || !g.sessionRunning) return;
-    XrActiveActionSet aas{g.actionSet, XR_NULL_PATH};
-    XrActionsSyncInfo si{XR_TYPE_ACTIONS_SYNC_INFO};
-    si.countActiveActionSets = 1; si.activeActionSets = &aas;
-    if (XR_FAILED(xrSyncActions(g.session, &si))) return;
+void pollActions(XrTime predictedTime) {
+    if (!g.sessionRunning) return;
 
-    // Boolean: face / menu / thumbstick clicks - exit on rising edge of any binding.
-    if (g.anyButtonAction != XR_NULL_HANDLE) {
-        XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO}; gi.action = g.anyButtonAction;
-        XrActionStateBoolean st{XR_TYPE_ACTION_STATE_BOOLEAN};
-        if (xrGetActionStateBoolean(g.session, &gi, &st) == XR_SUCCESS && st.isActive &&
-            st.changedSinceLastSync && st.currentState) {
-            LOGD("S0249: pollActions native click -> exit");
-            g.exitRequested.store(true);
-            return;
-        }
+    xr_input_poll(g.localSpace, predictedTime);
+
+    if (g_handInputStates[0].active && g_handInputStates[0].triggerClicked) {
+        LOGD("S0283: Left select / pinch triggered -> navigating prev");
+        triggerJniInputCallback(2); // 2 = Previous
     }
-
-    // Float: trigger / squeeze - exit when value crosses the activation threshold. The threshold
-    // is intentionally generous (kAnalogActivateThreshold) so a passive resting finger does not
-    // dismiss the session before the user notices the image.
-    if (g.anyAnalogAction != XR_NULL_HANDLE) {
-        XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO}; gi.action = g.anyAnalogAction;
-        XrActionStateFloat st{XR_TYPE_ACTION_STATE_FLOAT};
-        constexpr float kAnalogActivateThreshold = 0.4f;
-        if (xrGetActionStateFloat(g.session, &gi, &st) == XR_SUCCESS && st.isActive &&
-            st.currentState >= kAnalogActivateThreshold) {
-            LOGD("S0249: pollActions native analog %.2f -> exit", st.currentState);
-            g.exitRequested.store(true);
-        }
+    if (g_handInputStates[1].active && g_handInputStates[1].triggerClicked) {
+        LOGD("S0283: Right select / pinch triggered -> navigating next");
+        triggerJniInputCallback(1); // 1 = Next
     }
 }
 
 } // namespace
-
-// ============================ public API ============================
 
 bool xr_session_is_running() { return g.running.load(); }
 
 NativeResult xr_session_init(JavaVM* vm, jobject_opaque activity) {
     std::lock_guard<std::mutex> lock(g.mutex);
     if (g.running.load()) return NativeResult::AlreadyRunning;
+    g.vm = vm;
+    g.activity = static_cast<jobject>(activity);
     NativeResult r = createInstance(vm, static_cast<jobject>(activity));
     if (r != NativeResult::Ok) return r;
     r = createEgl();
@@ -694,9 +794,13 @@ NativeResult xr_session_start() {
     NativeResult r = createSessionAndSpaces(); if (r != NativeResult::Ok) return r;
     r = createSwapchains();                    if (r != NativeResult::Ok) return r;
     r = createGlAssets();                      if (r != NativeResult::Ok) return r;
-    createActions(); // optional, never fatal
+    xr_input_init(g.instance, g.session);
+    xr_hud_init();
     g.running.store(true);
     g.exitRequested.store(false);
+    // Reset FPS accumulator so a previous session's value does not bleed into the new one.
+    g_currentFps.store(0.0f, std::memory_order_relaxed);
+    g_prevPredictedDisplayTimeNs = 0;
     LOGD("xr_session_start: complete");
     return NativeResult::Ok;
 }
@@ -711,6 +815,42 @@ NativeResult xr_session_upload_texture(const uint8_t* rgba, int width, int heigh
     LOGD("texture uploaded: %dx%d", width, height);
     return NativeResult::Ok;
 }
+
+NativeResult xr_session_queue_frame(const uint8_t* rgba, int width, int height) {
+    if (!rgba || width <= 0 || height <= 0) return NativeResult::UnexpectedRuntimeError;
+    std::lock_guard<std::mutex> lock(g.frameMutex);
+    size_t size = width * height * 4;
+    g.pendingFrameData.assign(rgba, rgba + size);
+    g.pendingFrameWidth = width;
+    g.pendingFrameHeight = height;
+    g.pendingFrameReady = true;
+    return NativeResult::Ok;
+}
+
+void xr_session_set_render_config(int projection, int layout) {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    g.renderProjection = projection;
+    g.stereoLayout = layout;
+    LOGD("set_render_config: projection=%d, layout=%d", projection, layout);
+}
+
+void xr_session_set_parallax_shift(float value) {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    float clamped = value < 0.0f ? 0.0f : (value > 1.0f ? 1.0f : value);
+    g.parallaxShift = (clamped - 0.5f) * 0.04f;
+}
+
+void xr_session_queue_hud(const uint8_t* rgba, int width, int height) {
+    if (!rgba || width <= 0 || height <= 0) return;
+    std::lock_guard<std::mutex> lock(g.hudMutex);
+    size_t size = width * height * 4;
+    g.pendingHudData.assign(rgba, rgba + size);
+    g.pendingHudWidth = width;
+    g.pendingHudHeight = height;
+    g.pendingHudReady = true;
+    LOGD("queue_hud: size=%dx%d queued", width, height);
+}
+
 
 NativeResult xr_session_run_frame_loop() {
     if (!g.running.load() || g.session == XR_NULL_HANDLE) return NativeResult::NotRunning;
@@ -727,7 +867,45 @@ NativeResult xr_session_run_frame_loop() {
         XrFrameBeginInfo fbi{XR_TYPE_FRAME_BEGIN_INFO};
         xrBeginFrame(g.session, &fbi);
 
-        pollActions();
+        // Smoothed FPS sampler: derive instantaneous frame rate from predictedDisplayTime delta,
+        // feed an EMA. `predictedDisplayTime` is monotonic in nanoseconds (XrTime).
+        {
+            const int64_t now = static_cast<int64_t>(fs.predictedDisplayTime);
+            if (g_prevPredictedDisplayTimeNs != 0 && now > g_prevPredictedDisplayTimeNs) {
+                const double dtSec = static_cast<double>(now - g_prevPredictedDisplayTimeNs) * 1e-9;
+                if (dtSec > 1e-6 && dtSec < 1.0) {
+                    const float instantaneousFps = static_cast<float>(1.0 / dtSec);
+                    const float prev = g_currentFps.load(std::memory_order_relaxed);
+                    const float alpha = 0.1f;
+                    const float smoothed = (prev <= 0.0f)
+                            ? instantaneousFps
+                            : alpha * instantaneousFps + (1.0f - alpha) * prev;
+                    g_currentFps.store(smoothed, std::memory_order_relaxed);
+                }
+            }
+            g_prevPredictedDisplayTimeNs = now;
+        }
+
+        pollActions(fs.predictedDisplayTime);
+
+        {
+            std::lock_guard<std::mutex> lock(g.frameMutex);
+            if (g.pendingFrameReady) {
+                glBindTexture(GL_TEXTURE_2D, g.texture);
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingFrameWidth, g.pendingFrameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingFrameData.data());
+                g.pendingFrameReady = false;
+            }
+        }
+        {
+            std::lock_guard<std::mutex> lock(g.hudMutex);
+            if (g.pendingHudReady) {
+                glBindTexture(GL_TEXTURE_2D, g.hudTexture);
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingHudWidth, g.pendingHudHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingHudData.data());
+                g.pendingHudReady = false;
+            }
+        }
 
         std::vector<XrCompositionLayerProjectionView> layerViews;
         XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
@@ -743,6 +921,28 @@ NativeResult xr_session_run_frame_loop() {
             if (XR_SUCCEEDED(xrLocateViews(g.session, &vli, &vs, (uint32_t)views.size(), &viewCount, views.data())) &&
                 (vs.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) &&
                 (vs.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT)) {
+                if (viewCount > 0) {
+                    xr_hud_update(views[0].pose, 0.013f);
+                    xr_hud_process_rays(g.localSpace, fs.predictedDisplayTime);
+
+                    // Step 03.1: Stream interaction data from C++ render loop up to JVM
+                    bool anyHover = false;
+                    float targetUvX = 0.5f;
+                    float targetUvY = 0.5f;
+                    bool anyClick = false;
+                    for (int i = 0; i < 2; i++) {
+                        if (g_hudState.hasIntersection[i]) {
+                            anyHover = true;
+                            targetUvX = g_hudState.smoothedUv[i].x;
+                            targetUvY = g_hudState.smoothedUv[i].y;
+                            if (g_handInputStates[i].triggerDown) {
+                                anyClick = true;
+                            }
+                            break;
+                        }
+                    }
+                    triggerJniRayInteraction(targetUvX, targetUvY, anyHover, anyClick);
+                }
                 layerViews.resize(viewCount);
                 for (uint32_t i = 0; i < viewCount; ++i) renderEye(i, views[i], layerViews[i]);
                 layer.viewCount = (uint32_t)layerViews.size();
@@ -766,6 +966,10 @@ void xr_session_request_exit() {
     g.exitRequested.store(true);
 }
 
+float xr_session_get_fps() {
+    return g_currentFps.load(std::memory_order_relaxed);
+}
+
 void xr_session_shutdown() {
     std::lock_guard<std::mutex> lock(g.mutex);
     for (auto& eye : g.eyes) {
@@ -774,14 +978,25 @@ void xr_session_shutdown() {
         if (eye.handle != XR_NULL_HANDLE) xrDestroySwapchain(eye.handle);
     }
     g.eyes.clear();
-    if (g.texture)  { glDeleteTextures(1, &g.texture);   g.texture = 0; }
-    if (g.vbo)      { glDeleteBuffers(1, &g.vbo);        g.vbo = 0; }
-    if (g.ibo)      { glDeleteBuffers(1, &g.ibo);        g.ibo = 0; }
-    if (g.vao)      { glDeleteVertexArrays(1, &g.vao);   g.vao = 0; }
-    if (g.program)  { glDeleteProgram(g.program);        g.program = 0; }
-    if (g.anyAnalogAction != XR_NULL_HANDLE) { xrDestroyAction(g.anyAnalogAction); g.anyAnalogAction = XR_NULL_HANDLE; }
-    if (g.anyButtonAction != XR_NULL_HANDLE) { xrDestroyAction(g.anyButtonAction); g.anyButtonAction = XR_NULL_HANDLE; }
-    if (g.actionSet != XR_NULL_HANDLE)       { xrDestroyActionSet(g.actionSet);    g.actionSet = XR_NULL_HANDLE; }
+    if (g.texture)    { glDeleteTextures(1, &g.texture);    g.texture = 0; }
+    if (g.hudTexture) { glDeleteTextures(1, &g.hudTexture);  g.hudTexture = 0; }
+    
+    if (g.vbo)        { glDeleteBuffers(1, &g.vbo);         g.vbo = 0; }
+    if (g.ibo)        { glDeleteBuffers(1, &g.ibo);         g.ibo = 0; }
+    if (g.vao)        { glDeleteVertexArrays(1, &g.vao);    g.vao = 0; }
+    
+    if (g.hemiVbo)    { glDeleteBuffers(1, &g.hemiVbo);     g.hemiVbo = 0; }
+    if (g.hemiIbo)    { glDeleteBuffers(1, &g.hemiIbo);     g.hemiIbo = 0; }
+    if (g.hemiVao)    { glDeleteVertexArrays(1, &g.hemiVao); g.hemiVao = 0; }
+    
+    if (g.quadVbo)    { glDeleteBuffers(1, &g.quadVbo);     g.quadVbo = 0; }
+    if (g.quadIbo)    { glDeleteBuffers(1, &g.quadIbo);     g.quadIbo = 0; }
+    if (g.quadVao)    { glDeleteVertexArrays(1, &g.quadVao); g.quadVao = 0; }
+    
+    if (g.program)    { glDeleteProgram(g.program);         g.program = 0; }
+
+    xr_input_shutdown();
+    xr_hud_shutdown();
     if (g.localSpace != XR_NULL_HANDLE)      { xrDestroySpace(g.localSpace);      g.localSpace = XR_NULL_HANDLE; }
     if (g.session != XR_NULL_HANDLE)         { xrDestroySession(g.session);       g.session = XR_NULL_HANDLE; }
     if (g.instance != XR_NULL_HANDLE)        { xrDestroyInstance(g.instance);     g.instance = XR_NULL_HANDLE; }
@@ -797,6 +1012,15 @@ void xr_session_shutdown() {
     g.sessionRunning = false;
     g.sessionState = XR_SESSION_STATE_UNKNOWN;
     g.running.store(false);
+    
+    if (g.vm && g.activity) {
+        JNIEnv* env = nullptr;
+        if (g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK && env) {
+            env->DeleteGlobalRef(g.activity);
+        }
+        g.activity = nullptr;
+        g.vm = nullptr;
+    }
     LOGD("session shutdown complete");
 }
 

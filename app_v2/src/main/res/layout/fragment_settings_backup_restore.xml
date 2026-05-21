@@ -28,14 +28,34 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBackup"
-                    style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/backup_to_google_drive"
-                    app:icon="@drawable/ic_cloud_upload"
-                    app:iconGravity="start" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBackup"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/backup_to_google_drive"
+                        app:icon="@drawable/ic_cloud_upload"
+                        app:iconGravity="start" />
+
+                    <ImageButton
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="@null"
+                        android:contentDescription="@null"
+                        android:focusable="false"
+                        android:clickable="false"
+                        android:importantForAccessibility="no"
+                        android:visibility="invisible" />
+
+                </LinearLayout>
 
                 <FrameLayout
                     android:layout_width="match_parent"

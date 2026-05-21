@@ -86,7 +86,6 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         url: String,
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
     ): OpenResult {
-        Timber.d("S0140: pillar-P dynamic invisible-WebView extractor open() entry")
         val httpUrl = url.toHttpUrlOrNull() ?: return OpenResult.Blocked(BlockedReason.NonHttpScheme)
 
         // YouTube (and youtu.be) are handled exclusively by yt-dlp and NewPipe. The WebView

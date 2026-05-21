@@ -295,7 +295,7 @@ Then run auto-summary on the slice.
 
 ### Spec verification tags (`Sxxxx:` debug probes)
 
-App log messages whose text begins with a ticket id and a colon - `S0043: …`, `S0127: …` - are **debug verification tags** placed by the spec pipeline (see CLAUDE.md "Debug Verification Tags"). A tag exists in code only while its spec is in status `BlockNeedUserTest`; its presence in the log proves that the spec's changed code path was exercised in this session.
+App log messages whose text begins with a ticket id and a colon - `S0043: …`, `S0127: …` - are **debug verification tags** placed by the spec pipeline (see CLAUDE.md "Debug Verification Tags"). The valid form is a temporary debug-level probe emitted by `Timber.d`; a tag exists in code only while its spec is in status `BlockNeedUserTest`. Its presence in the log proves that the spec's changed code path was exercised in this session.
 
 Find them:
 
@@ -307,9 +307,10 @@ What to do with them:
 
 - Group by id. For each `Sxxxx` report: hit count, first/last occurrence time, and the message text (it usually names the exercised flow, e.g. `S0054: TsPacketFormatDetector.detect probeSize=576 -> BD_192`).
 - Resolve each id to confirm it really is awaiting on-device test: `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Expected status `BlockNeedUserTest`. If the journal says anything else, flag the tag as **stale** (it should have been removed when the spec left `BlockNeedUserTest`) - note it so the next `/spec-check` / `/spec-fix` strips it.
+- If an `Sxxxx:` line appears at `I` / `W` / `E` level, or any form that is not the temporary `Timber.d("Sxxxx: …")` probe, flag it as **invalid instrumentation**. Ticket ids are reserved for temporary verification probes only and must not remain in persistent info/warn/error text after the task.
 - In the verdict line, state which `Sxxxx` probes fired this session - that is the signal the user needs before running `/spec-check Sxxxx` (which, on `Verified`, also deletes the tags).
 - If the user is testing a specific spec and its `Sxxxx:` probe is **absent** from the log, say so: the scenario did not reach that code path → on-device verification is incomplete, not failed.
-- Never treat a `Sxxxx:` line as an error or warning regardless of its level - it is an instrumentation probe.
+- Treat `Sxxxx:` as a valid instrumentation probe only when it matches the temporary debug-level pattern and the spec is currently `BlockNeedUserTest`. Otherwise call it out as stale/invalid instrumentation.
 
 ---
 
@@ -349,7 +350,7 @@ When reading log content, proactively flag these patterns:
 | `W  ExoPlayer` / `E  ExoPlayer` | Media playback failure |
 | `W  Glide` / `E  Glide` | Image loading failure |
 | `E  SMB` / `E  SFTP` / `E  FTP` | Network protocol failure |
-| message text matching `^S\d{4}: ` (e.g. `S0043: …`) | Spec verification probe - the spec is in `BlockNeedUserTest`; this line proves its code path ran. Not an error. Report the id; cross-ref `select.ps1 -Id Sxxxx`. See "Spec verification tags" mode. |
+| message text matching `^S\d{4}: ` (e.g. `S0043: …`) | Valid only as a temporary debug-level spec verification probe while the spec is in `BlockNeedUserTest`. If the line is `I/W/E` or the spec is in any other status, report it as stale/invalid instrumentation that must be removed or rewritten. See "Spec verification tags" mode. |
 
 For FastMediaSorter-specific tags, look for:
 

@@ -457,28 +457,30 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnAddScheduledOp"
-                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    style="@style/Widget.Material3.Button.IconButton.Outlined"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/scheduled_ops_btn_add"
-                                    android:textSize="@dimen/toggler_title_text_size" />
+                                    android:contentDescription="@string/scheduled_ops_btn_add"
+                                    app:icon="@drawable/ic_add"
+                                    app:iconTint="?attr/colorOnSurface" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnScheduledLog"
-                                    style="@style/Widget.FastMediaSorter.SettingsButton.Text"
+                                    style="@style/Widget.Material3.Button.IconButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/scheduled_ops_btn_log"
-                                    android:textSize="@dimen/toggler_title_text_size" />
+                                    android:contentDescription="@string/scheduled_ops_btn_log"
+                                    app:icon="@drawable/ic_history"
+                                    app:iconTint="?attr/colorOnSurface" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnClearAllScheduled"
-                                    style="@style/Widget.FastMediaSorter.SettingsButton.Text"
+                                    style="@style/Widget.Material3.Button.IconButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/scheduled_ops_btn_clear_all"
-                                    android:textColor="?attr/colorError"
-                                    android:textSize="@dimen/toggler_title_text_size" />
+                                    android:contentDescription="@string/scheduled_ops_btn_clear_all"
+                                    app:icon="@drawable/ic_delete_sweep"
+                                    app:iconTint="?attr/colorError" />
 
                             </LinearLayout>
 

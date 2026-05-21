@@ -116,11 +116,63 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
+    override fun queueFrame(rgba: ByteArray, width: Int, height: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeQueueFrame(rgba, width, height) }.onFailure {
+            Timber.w(it, "queueFrame: native call threw")
+        }
+    }
+
+    override fun setRenderConfig(projection: Int, layout: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetRenderConfig(projection, layout) }.onFailure {
+            Timber.w(it, "setRenderConfig: native call threw")
+        }
+    }
+
+    override fun setParallaxShift(value: Float) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetParallaxShift(value) }.onFailure {
+            Timber.w(it, "setParallaxShift: native call threw")
+        }
+    }
+
+    override fun queueHud(rgba: ByteArray, width: Int, height: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeQueueHud(rgba, width, height) }.onFailure {
+            Timber.w(it, "queueHud: native call threw")
+        }
+    }
+
+    override fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean) {
+        // Validation placeholder for phase 03 JNI pathway streaming
+    }
+
+    override fun applyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float) {
+        if (!isNativeAvailable) return
+        runCatching { nativeApplyHaptic(hand, durationSeconds, frequency, amplitude) }.onFailure {
+            Timber.w(it, "applyHaptic: native call threw")
+        }
+    }
+
+    override fun getCurrentFps(): Float {
+        if (!isNativeAvailable) return 0.0f
+        return runCatching { nativeGetCurrentFps() }.getOrElse {
+            Timber.w(it, "getCurrentFps: native call threw"); 0.0f
+        }
+    }
+
     // JNI surface. Method names must match the symbols emitted by `diagnostic_xr_runtime.cpp`.
     private external fun nativeInitSession(activity: Activity): Int
     private external fun nativeAttachSurface(surface: Surface): Int
     private external fun nativeStartSession(): Int
     private external fun nativeUploadTexture(rgba: ByteArray, width: Int, height: Int): Int
+    private external fun nativeQueueFrame(rgba: ByteArray, width: Int, height: Int)
+    private external fun nativeSetRenderConfig(projection: Int, layout: Int)
+    private external fun nativeSetParallaxShift(value: Float)
+    private external fun nativeQueueHud(rgba: ByteArray, width: Int, height: Int)
+    private external fun nativeApplyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
+    private external fun nativeGetCurrentFps(): Float
     private external fun nativeRunFrameLoop(): Int
     private external fun nativeRequestExit()
     private external fun nativeShutdown()

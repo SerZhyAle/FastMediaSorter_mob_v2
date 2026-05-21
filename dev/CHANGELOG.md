@@ -12771,3 +12771,13 @@ Format: | datetime | file | target | description |
 | 2026-05-21 16:31:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt` | `TesseractManager` | Updated Tesseract init to support fallback initialization and dynamic path redirection to tessdata_best [branch: DEBUG-v007] |
 | 2026-05-21 16:33:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `S0287` | Integrate high-quality Tesseract models downloading and management UI controls [branch: DEBUG-v007] |
 | 2026-05-21 16:35:38 | `docs/FEATURES_RU.md, docs/FEATURES_UK.md` | `documentation` | Update Russian and Ukrainian features documentation for high-quality Tesseract models integration (S0287) [branch: DEBUG-v007] |
+| 2026-05-21 16:47:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractModelManager.kt` | `TesseractModelManager` | Add pinned tessdata_best SHA-256 integrity validation for S0287 downloads [branch: DEBUG-v007] |
+| 2026-05-21 16:47:23 | `docs/FEATURES.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in EN features [branch: DEBUG-v007] |
+| 2026-05-21 16:47:23 | `docs/FEATURES_RU.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in RU features [branch: DEBUG-v007] |
+| 2026-05-21 16:47:23 | `docs/FEATURES_UK.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in UK features [branch: DEBUG-v007] |
+| 2026-05-21 16:48:05 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation.md` | `spec-check` | Audit S0287 -> Verified; PASS/WARN/FAIL 18/0/0 [branch: DEBUG-v007] |
+| 2026-05-21 16:48:05 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation/INDEX.md` | `S0287` | Mark tactical plan complete after implementation audit [branch: DEBUG-v007] |
+| 2026-05-21 16:48:06 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation/PHASE_03__ui-controls.md` | `S0287` | Mark UI controls phase complete after implementation audit [branch: DEBUG-v007] |
+| 2026-05-21 16:48:06 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation/PHASE_04__docs-catalog-cleanup.md` | `S0287` | Mark docs and catalog cleanup phase complete after implementation audit [branch: DEBUG-v007] |
+| 2026-05-21 16:49:28 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Mark TesseractModelManager role/status after S0287 checksum validation [branch: DEBUG-v007] |
+| 2026-05-21 16:49:42 | `PLAN/spec-catalog.jsonl` | `spec-check` | Refresh S0287 Verified closure timestamp after implementation audit [branch: DEBUG-v007] |
