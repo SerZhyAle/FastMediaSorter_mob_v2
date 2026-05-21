@@ -454,9 +454,14 @@ class ImageLoadingManager(
         animatedImageController.prepareForNewContent()
         binding.playerView.isVisible = false
         
-        // Always clear stale background at transition start so old strips never
-        // appear before the new image. New strips will be recomputed in onResourceReady.
-        dynamicBackgroundProcessor?.clear()
+        // Do NOT clear the dynamic background here. Clearing synchronously at the
+        // start of a transition produces a visible "draw -> erase -> draw" flash:
+        // old strips disappear immediately, then the screen has no strips while
+        // Glide decodes the new image and DynamicBackgroundProcessor builds the new
+        // bitmap on Dispatchers.Default. Keep the previous strips on screen and let
+        // applyBackground() swap them atomically when the new bitmap is ready.
+        // Hard clears for video/audio transitions and cleanup remain in
+        // clearForVideoTransition() / cleanup().
         
         // Hide audio-related views (including any active empty-state animation)
         Timber.d("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")

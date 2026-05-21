@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.link.auth
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -28,10 +29,15 @@ class KnownAuthResourcesTest {
     }
 
     @Test
-    fun `youtube and music youtube resolve to youtube entry`() {
-        assertEquals("youtube.com", KnownAuthResources.matchHost("youtube.com")?.host)
-        assertEquals("youtube.com", KnownAuthResources.matchHost("www.youtube.com")?.host)
-        assertEquals("youtube.com", KnownAuthResources.matchHost("music.youtube.com")?.host)
+    fun `youtube and music youtube no longer resolve to known social entry`() {
+        // S0281: YouTube was removed from KnownAuthResources because Google's OAuth
+        // policy mandates Chrome Custom Tabs (per S0200 ADR-4) and CCT cannot return
+        // cookies to the app. Routing of google-OAuth-only hosts is now centralized
+        // in GoogleDomainMatcher; matchHost must return null for these hosts so they
+        // fall through the unknown-host (silent) path in ReceiveShareActivity.
+        assertNull(KnownAuthResources.matchHost("youtube.com"))
+        assertNull(KnownAuthResources.matchHost("www.youtube.com"))
+        assertNull(KnownAuthResources.matchHost("music.youtube.com"))
         assertFalse(KnownAuthResources.isPreviewSensitiveHost("youtube.com"))
     }
 }

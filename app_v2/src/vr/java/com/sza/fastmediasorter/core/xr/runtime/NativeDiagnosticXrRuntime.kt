@@ -4,8 +4,6 @@ import android.app.Activity
 import android.view.Surface
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -23,11 +21,14 @@ import timber.log.Timber
  * points (so no `UnsatisfiedLinkError` storm appears in logcat when the gateway later asks
  * the runtime to start a session).
  *
- * Threading contract: all session lifecycle calls except [requestExit] must come from the
- * render thread owned by `DiagnosticXrActivity`. The Kotlin wrapper hops to `Dispatchers.Default`
- * for `suspend` setup methods, which is acceptable because they happen before the OpenXR loop
- * begins; once the loop runs the only legal entry point is [runFrameLoop] (blocking) and
- * [requestExit] (atomic flag).
+ * Threading contract: **all** session lifecycle calls except [requestExit] must come from the
+ * SAME thread - the render thread owned by `DiagnosticXrActivity`. EGL contexts and GL objects
+ * are thread-confined; OpenXR sessions inherit that confinement. The `suspend` modifier on the
+ * setup methods is purely an API artefact (kept so callers can mix them with coroutine code) -
+ * the methods execute synchronously on the caller's thread. Hopping to `Dispatchers.Default`
+ * would create EGL on a coroutine-pool thread and then leave the render thread without a current
+ * GL context, producing a featureless black composition layer (S0249 post-fix regression
+ * 2026-05-21).
  */
 @Singleton
 class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
@@ -57,46 +58,39 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override suspend fun initSession(activity: Activity): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeInitSession(activity) }.getOrElse {
-                Timber.e(it, "initSession: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        // Intentionally NO Dispatchers hop - see class KDoc threading contract.
+        val ordinal = runCatching { nativeInitSession(activity) }.getOrElse {
+            Timber.e(it, "initSession: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override suspend fun attachSurface(surface: Surface): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeAttachSurface(surface) }.getOrElse {
-                Timber.e(it, "attachSurface: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        val ordinal = runCatching { nativeAttachSurface(surface) }.getOrElse {
+            Timber.e(it, "attachSurface: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override suspend fun startSession(): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeStartSession() }.getOrElse {
-                Timber.e(it, "startSession: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        val ordinal = runCatching { nativeStartSession() }.getOrElse {
+            Timber.e(it, "startSession: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override suspend fun uploadTexture(rgba: ByteArray, width: Int, height: Int): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeUploadTexture(rgba, width, height) }.getOrElse {
-                Timber.e(it, "uploadTexture: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        val ordinal = runCatching { nativeUploadTexture(rgba, width, height) }.getOrElse {
+            Timber.e(it, "uploadTexture: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override fun runFrameLoop(): DiagnosticXrNativeResult {

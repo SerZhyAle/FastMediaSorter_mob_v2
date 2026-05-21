@@ -1,0 +1,27 @@
+# Memory Index
+
+- [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tag lifecycle is bound to the status; deletion is a side effect of leaving it, never speculative
+- [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - public FEATURES*.md is for standard/VR builds; noLegal docs live in the gitignored mirror
+- [Timestamp every chat message](feedback_timestamp_in_chat.md) - read injected `Current time:` from context, never spawn `date`/`Get-Date` to fetch it
+- [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code in src/<flavor>/java/; new BuildConfig flavor guards in src/main are forbidden (Rule 15)
+- [Build gotchas](project_build_gotchas.md) - daemon-stop is a retry, not a failure; dev/CATALOG/*.jsonl+.md are gitignored; chaquopy.enabled gates all non-noLegal variants
+- [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal manifest entries dropped silently; use addStaticManifestFile in onVariants
+- [Functionality log](project_functionality_log.md) - dev/FUNCTIONALITY.log written via scripts/add_to_functionality_log.ps1 for user-visible behaviour changes
+- [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash command-substitutes `text` inside double quotes and silently strips the word
+- [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) - verify own work via per-class XML reports; use assembleStandardDebug for compile checks
+- [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; new buckets must be added to $srcRoots before catalog_sync picks them up
+- [set.ps1 stops on error](project_catalog_set_ps1_stops_on_error.md) - wrap each call in try/catch for batch role/status fills; -Path uses package-root form
+- [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - new signingConfig requires a manifest <intent-filter> hash AND an Azure redirect URI
+- [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if the spec's flavor hierarchy/contracts already determine the answer, don't fabricate a "choice"
+- [Verify sub-agent build failures yourself](feedback_verify_subagent_build_failures.md) - retry .\a.ps1 dq after Hilt graph changes before flagging a hard stop; incremental kapt cache lies
+- [PowerShell efficiency: -NoProfile + batching + wrappers](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; use scripts/catalog_sync.ps1 for scan+render in one process
+- [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep real read sites before treating a field as a gate; PLAYER_ACTIVITY_CLASS is dead
+- [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never tail -N a gradle failure; FAILURE block sits in the middle, use a.ps1 bf or full capture
+- [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - noLegal is all-inclusive sideload-VR; vrUnlicensed archived; vrStub mounted in phone-only flavors
+- [Reserve Timber.e for real errors only](feedback_log_levels.md) - expected device-capability fallbacks log at Timber.i; ERROR is for things the dev must act on
+- [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if the headline button doesn't do its job, the phase stays open; don't invite device tests for a no-op
+- [Check generated binding field types before injecting compat views](feedback_check_generated_binding_types.md) - Button vs MaterialButton crashes silently after .bind(root); read FooBinding.java first
+- [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash -Command "...", `\$LASTEXITCODE` collapses to empty; use newline-separated -Command or single-quoted bash
+- [minSdk per flavor](project_minsdk_flavors.md) - standard/lite/photos = 26; legacy = 23; wear = 28; compileSdk = 35 everywhere
+- [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian where grammatically correct
+- [pwsh 7 path](feedback_pwsh_path.md) - PS7 is at /c/Program Files/PowerShell/7/pwsh.exe and is NOT on Bash PATH; use the full quoted path

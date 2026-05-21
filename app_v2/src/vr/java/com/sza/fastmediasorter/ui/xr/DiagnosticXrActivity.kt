@@ -10,6 +10,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -85,6 +86,18 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
         setContentView(surfaceView)
         surfaceView.requestFocus()
+
+        // Safety net for the 2D fallback path: if the OpenXR session never reaches the
+        // immersive composition (driver mismatch, swapchain failure, etc.) and Android keeps
+        // the Activity in flat-screen mode, the system back button must still drop the user
+        // out. In a real immersive session HorizonOS routes the system back to itself and this
+        // callback is never invoked - that is fine.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                Timber.d("DiagnosticXrActivity: onBackPressed -> requesting exit")
+                renderThread?.requestExit() ?: finish()
+            }
+        })
 
         // Observe the input handler exit flow. The Activity-side input methods feed it; the
         // observer forwards exit requests to the render thread.

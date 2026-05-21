@@ -1,0 +1,18 @@
+# FastMediaSorter — Pinned Release Signing Fingerprint
+#
+# Purpose: gate `scripts/release/publish-github-release.ps1` so that any
+# release uploaded to GitHub is signed with the same key as the previous
+# release. A mismatch silently breaks auto-update for every GitHub Store
+# user who has the app installed; the gate prevents accidental rotation.
+#
+# Captured: 2026-05-15 from FastMediaSorter_standard_v2.60.5150.150.apk
+#           and FastMediaSorter_vr_v2.60.5142.107-VR.apk (same key).
+# Captured by: spec S0214 — github-store-publication, Phase 04 Step 04.1.
+# Keystore alias: see local.properties / signing config (RELEASE_KEY_ALIAS).
+# Tool: `apksigner verify --print-certs <apk>`, SHA-256 line.
+#
+# Format: SHA-256, uppercase, colon-separated, single non-comment line.
+# Legitimate rotation: see docs/DEV_OPS.md "Release Signing Fingerprint
+# (GitHub Store)" section for the full procedure.
+
+6A:A6:EA:72:75:2A:E9:44:09:29:F1:E0:BA:F8:F2:AD:13:CC:21:CE:C4:60:6B:F6:22:9D:69:02:06:C4:35:A6

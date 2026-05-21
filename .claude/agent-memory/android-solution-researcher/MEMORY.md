@@ -1,0 +1,26 @@
+# Memory Index
+
+- [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
+- [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS]; never shell out to `date`
+- [Functionality log](project_functionality_log.md) - dev/FUNCTIONALITY.log: ADD/CHANGE/DELETE/FIX history of user-visible capability lifecycle; researcher consumes only, never writes
+- [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
+- [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; zero hits for a class you see on disk = catalog gap, fall back to direct grep
+- [set.ps1 stops on error](project_catalog_set_ps1_stops_on_error.md) - write-mode tool the researcher doesn't call; empty role/status in catalog may simply be a tooling-gap artefact
+- [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if flavor hierarchy/contracts/inheritance already mechanically determines the answer, don't fabricate a "choice" question in the Open Questions section
+- [PowerShell efficiency: -NoProfile + batching](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; chain related read-only queries in one process; researcher does not run catalog_sync.ps1
+- [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep usage before treating as gate; PLAYER_ACTIVITY_CLASS is a dead field
+- [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never trust tail-N-cropped build excerpts; FAILURE block sits in the middle
+- [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - S0240 architecture; noLegal inherits src/vr/; vrUnlicensed archived in S0250
+- [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - distinguish "contract exists" from "behavior works" in the Current Architecture vs Risks sections
+- [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash `-Command "..."`, `\$LASTEXITCODE` collapses to empty and PowerShell parse fails silently; use newline-separated or single-quoted forms
+- [minSdk per flavor](project_minsdk_flavors.md) - 26 standard/lite/photos, 23 legacy, 28 wear; compileSdk=35 universal; cite per-flavor in API Level Constraints
+- [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian; intentional style, not typos
+- [pwsh 7 path](feedback_pwsh_path.md) - pwsh 7 at `/c/Program Files/PowerShell/7/pwsh.exe`, not on bash PATH; full quoted path for PS7-only scripts
+- [Timber.d("Sxxxx:") tags are live test markers](feedback_timber_tags_before_test.md) - when grepping, cross-check spec status via select.ps1 before drawing conclusions
+- [Flavor isolation: src/<flavor>/java/ is canonical](feedback_flavor_isolation_strict.md) - BuildConfig.SUPPORT_* guards in src/main are legacy tech debt; report them under Risks, not as design
+- [Build gotchas - read-side interpretation](project_build_gotchas.md) - daemon-stopped = flaky transport not real failure; dev/CATALOG/*.jsonl+.md are gitignored local indexes (never cite as repo state)
+- [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal flavor's srcFile(vr-manifest) silently drops src/noLegal/AndroidManifest.xml; cite the trap when researching multi-flavor manifest merges
+- [Pre-existing test failures](feedback_build_pre_existing_test_failures.md) - never cite aggregate testStandardDebugUnitTest counts as regression; point to per-class XML reports
+- [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - each signingConfig produces a distinct BrowserTabActivity hash; surface the multiplicity in research, not a single value
+- [Verify sub-agent build failures](feedback_verify_subagent_build_failures.md) - re-read the cited file via Read/Grep before propagating "build failed" into the report; stale kapt cache produces false negatives
+- [Timber.e is a strong claim](feedback_log_levels.md) - flag Timber.e on expected device-capability paths as a log-level tone bug under Risks, not as a crash

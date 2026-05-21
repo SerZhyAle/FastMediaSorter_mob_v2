@@ -3545,4 +3545,5 @@ Close the player and try again.</string>
     <string name="setting_show_pdf_thumbnails_desc">Generates large preview images for PDFs (slower on remote sources)</string>
     <string name="file_operation_progress_preparing">Preparing..</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
+    <string name="s0281_google_oauth_only_note">Couldn\'t get this YouTube content. Sign-in isn\'t stored here..</string>
 </resources>

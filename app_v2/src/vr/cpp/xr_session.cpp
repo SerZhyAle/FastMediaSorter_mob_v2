@@ -10,9 +10,12 @@
 //     availability.
 //   - Reference space: XR_REFERENCE_SPACE_TYPE_LOCAL with identity pose (universal; Stage is
 //     optional and not always supported on Quest emulator).
-//   - Action set: one boolean action "any_button" suggested for both Khronos Simple and Oculus
-//     Touch profiles. The Activity-level input handler already covers Android KeyEvents, so the
-//     native action set is a safety net for controller buttons that bypass Android input.
+//   - Action set: two actions ("any_button" boolean + "any_analog" float) with suggested bindings
+//     across both controller hands for every face / menu / thumbstick click plus trigger/squeeze
+//     value (analog threshold = 0.4f). This is the ONLY input path that actually works inside an
+//     immersive HorizonOS session - the Activity-level Android KeyEvent / MotionEvent handlers
+//     never fire while the OpenXR session is active. ADR-4 of S0249 ("any input event closes the
+//     session") relies on the breadth of these bindings.
 //
 // The file deliberately keeps everything in one translation unit to stay under the LOC budget
 // while exposing only a minimal symbol surface via xr_session.h.
@@ -29,6 +32,7 @@
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #define XR_USE_PLATFORM_ANDROID
@@ -107,7 +111,8 @@ struct State {
     std::vector<XrViewConfigurationView> viewConfigs;
     std::vector<EyeSwapchain> eyes;
     XrActionSet actionSet{XR_NULL_HANDLE};
-    XrAction anyButtonAction{XR_NULL_HANDLE};
+    XrAction anyButtonAction{XR_NULL_HANDLE};   // boolean: A/B/X/Y/menu/select/thumbstick clicks (both hands)
+    XrAction anyAnalogAction{XR_NULL_HANDLE};   // float: trigger/squeeze value on both hands (threshold-checked)
 
     // EGL
     EGLDisplay eglDisplay{EGL_NO_DISPLAY};
@@ -490,26 +495,70 @@ NativeResult createActions() {
     std::snprintf(asInfo.localizedActionSetName, sizeof(asInfo.localizedActionSetName), "Diagnostic exit");
     XrResult r = xrCreateActionSet(g.instance, &asInfo, &g.actionSet);
     if (XR_FAILED(r)) { LOGW("xrCreateActionSet=%d (continuing without actions)", (int)r); return NativeResult::Ok; }
-    XrActionCreateInfo ai{XR_TYPE_ACTION_CREATE_INFO};
-    std::snprintf(ai.actionName, sizeof(ai.actionName), "any_button");
-    std::snprintf(ai.localizedActionName, sizeof(ai.localizedActionName), "Any button");
-    ai.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
-    xrCreateAction(g.actionSet, &ai, &g.anyButtonAction);
 
-    auto suggest = [&](const char* profilePath, const char* button) {
+    // Boolean action: every face / menu / thumbstick click on either controller exits.
+    XrActionCreateInfo aiBtn{XR_TYPE_ACTION_CREATE_INFO};
+    std::snprintf(aiBtn.actionName, sizeof(aiBtn.actionName), "any_button");
+    std::snprintf(aiBtn.localizedActionName, sizeof(aiBtn.localizedActionName), "Any button");
+    aiBtn.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+    xrCreateAction(g.actionSet, &aiBtn, &g.anyButtonAction);
+
+    // Analog action: triggers and grip squeezes (Touch reports floats, not booleans). Polled with
+    // a threshold so a light brush does not dismiss the session before the user even sees it.
+    XrActionCreateInfo aiAna{XR_TYPE_ACTION_CREATE_INFO};
+    std::snprintf(aiAna.actionName, sizeof(aiAna.actionName), "any_analog");
+    std::snprintf(aiAna.localizedActionName, sizeof(aiAna.localizedActionName), "Any trigger or grip");
+    aiAna.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+    xrCreateAction(g.actionSet, &aiAna, &g.anyAnalogAction);
+
+    // Helper that submits one batch of suggested bindings for a given interaction profile.
+    auto suggestProfile = [&](const char* profilePath,
+                              const std::vector<std::pair<XrAction, const char*>>& items) {
         XrPath profile; xrStringToPath(g.instance, profilePath, &profile);
-        XrPath btn; xrStringToPath(g.instance, button, &btn);
-        XrActionSuggestedBinding b{g.anyButtonAction, btn};
+        std::vector<XrActionSuggestedBinding> bindings;
+        bindings.reserve(items.size());
+        for (const auto& [action, path] : items) {
+            XrPath p; xrStringToPath(g.instance, path, &p);
+            bindings.push_back({action, p});
+        }
         XrInteractionProfileSuggestedBinding s{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        s.interactionProfile = profile; s.countSuggestedBindings = 1; s.suggestedBindings = &b;
-        xrSuggestInteractionProfileBindings(g.instance, &s);
+        s.interactionProfile = profile;
+        s.countSuggestedBindings = (uint32_t)bindings.size();
+        s.suggestedBindings = bindings.data();
+        XrResult sr = xrSuggestInteractionProfileBindings(g.instance, &s);
+        if (XR_FAILED(sr)) LOGW("xrSuggestInteractionProfileBindings(%s)=%d", profilePath, (int)sr);
     };
-    suggest("/interaction_profiles/khr/simple_controller", "/user/hand/right/input/select/click");
-    suggest("/interaction_profiles/oculus/touch_controller", "/user/hand/right/input/a/click");
+
+    // Khronos Simple Controller: both hands, both available booleans (select + menu clicks).
+    suggestProfile("/interaction_profiles/khr/simple_controller", {
+        {g.anyButtonAction, "/user/hand/left/input/select/click"},
+        {g.anyButtonAction, "/user/hand/right/input/select/click"},
+        {g.anyButtonAction, "/user/hand/left/input/menu/click"},
+        {g.anyButtonAction, "/user/hand/right/input/menu/click"},
+    });
+
+    // Oculus Touch (Quest 2/3/Pro): every face button, both thumbstick clicks, left menu.
+    // Note: right "system" path is reserved by HorizonOS - must NOT be suggested. Triggers and
+    // grips are analog and go through anyAnalogAction.
+    suggestProfile("/interaction_profiles/oculus/touch_controller", {
+        {g.anyButtonAction,  "/user/hand/left/input/x/click"},
+        {g.anyButtonAction,  "/user/hand/left/input/y/click"},
+        {g.anyButtonAction,  "/user/hand/right/input/a/click"},
+        {g.anyButtonAction,  "/user/hand/right/input/b/click"},
+        {g.anyButtonAction,  "/user/hand/left/input/thumbstick/click"},
+        {g.anyButtonAction,  "/user/hand/right/input/thumbstick/click"},
+        {g.anyButtonAction,  "/user/hand/left/input/menu/click"},
+        {g.anyAnalogAction,  "/user/hand/left/input/trigger/value"},
+        {g.anyAnalogAction,  "/user/hand/right/input/trigger/value"},
+        {g.anyAnalogAction,  "/user/hand/left/input/squeeze/value"},
+        {g.anyAnalogAction,  "/user/hand/right/input/squeeze/value"},
+    });
 
     XrSessionActionSetsAttachInfo attach{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
     attach.countActionSets = 1; attach.actionSets = &g.actionSet;
-    xrAttachSessionActionSets(g.session, &attach);
+    XrResult ar = xrAttachSessionActionSets(g.session, &attach);
+    if (XR_FAILED(ar)) LOGW("xrAttachSessionActionSets=%d", (int)ar);
+    LOGD("S0249: createActions - %zu bindings attached across 2 profiles", (size_t)15);
     return NativeResult::Ok;
 }
 
@@ -587,13 +636,32 @@ void pollActions() {
     XrActiveActionSet aas{g.actionSet, XR_NULL_PATH};
     XrActionsSyncInfo si{XR_TYPE_ACTIONS_SYNC_INFO};
     si.countActiveActionSets = 1; si.activeActionSets = &aas;
-    xrSyncActions(g.session, &si);
-    if (g.anyButtonAction == XR_NULL_HANDLE) return;
-    XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO}; gi.action = g.anyButtonAction;
-    XrActionStateBoolean st{XR_TYPE_ACTION_STATE_BOOLEAN};
-    if (xrGetActionStateBoolean(g.session, &gi, &st) == XR_SUCCESS && st.changedSinceLastSync && st.currentState) {
-        LOGD("native any-button -> exit");
-        g.exitRequested.store(true);
+    if (XR_FAILED(xrSyncActions(g.session, &si))) return;
+
+    // Boolean: face / menu / thumbstick clicks - exit on rising edge of any binding.
+    if (g.anyButtonAction != XR_NULL_HANDLE) {
+        XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO}; gi.action = g.anyButtonAction;
+        XrActionStateBoolean st{XR_TYPE_ACTION_STATE_BOOLEAN};
+        if (xrGetActionStateBoolean(g.session, &gi, &st) == XR_SUCCESS && st.isActive &&
+            st.changedSinceLastSync && st.currentState) {
+            LOGD("S0249: pollActions native click -> exit");
+            g.exitRequested.store(true);
+            return;
+        }
+    }
+
+    // Float: trigger / squeeze - exit when value crosses the activation threshold. The threshold
+    // is intentionally generous (kAnalogActivateThreshold) so a passive resting finger does not
+    // dismiss the session before the user notices the image.
+    if (g.anyAnalogAction != XR_NULL_HANDLE) {
+        XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO}; gi.action = g.anyAnalogAction;
+        XrActionStateFloat st{XR_TYPE_ACTION_STATE_FLOAT};
+        constexpr float kAnalogActivateThreshold = 0.4f;
+        if (xrGetActionStateFloat(g.session, &gi, &st) == XR_SUCCESS && st.isActive &&
+            st.currentState >= kAnalogActivateThreshold) {
+            LOGD("S0249: pollActions native analog %.2f -> exit", st.currentState);
+            g.exitRequested.store(true);
+        }
     }
 }
 
@@ -711,8 +779,9 @@ void xr_session_shutdown() {
     if (g.ibo)      { glDeleteBuffers(1, &g.ibo);        g.ibo = 0; }
     if (g.vao)      { glDeleteVertexArrays(1, &g.vao);   g.vao = 0; }
     if (g.program)  { glDeleteProgram(g.program);        g.program = 0; }
+    if (g.anyAnalogAction != XR_NULL_HANDLE) { xrDestroyAction(g.anyAnalogAction); g.anyAnalogAction = XR_NULL_HANDLE; }
     if (g.anyButtonAction != XR_NULL_HANDLE) { xrDestroyAction(g.anyButtonAction); g.anyButtonAction = XR_NULL_HANDLE; }
-    if (g.actionSet != XR_NULL_HANDLE)       { xrDestroyActionSet(g.actionSet);   g.actionSet = XR_NULL_HANDLE; }
+    if (g.actionSet != XR_NULL_HANDLE)       { xrDestroyActionSet(g.actionSet);    g.actionSet = XR_NULL_HANDLE; }
     if (g.localSpace != XR_NULL_HANDLE)      { xrDestroySpace(g.localSpace);      g.localSpace = XR_NULL_HANDLE; }
     if (g.session != XR_NULL_HANDLE)         { xrDestroySession(g.session);       g.session = XR_NULL_HANDLE; }
     if (g.instance != XR_NULL_HANDLE)        { xrDestroyInstance(g.instance);     g.instance = XR_NULL_HANDLE; }
