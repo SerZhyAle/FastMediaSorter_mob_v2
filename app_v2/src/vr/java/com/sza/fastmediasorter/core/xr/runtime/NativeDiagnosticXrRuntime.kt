@@ -64,7 +64,6 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override suspend fun initSession(activity: Activity): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        Timber.d("S0291: diagnostic XR initSession entry")
         val initialized = runCatching { nativeIsInitialized() }.getOrElse {
             Timber.w(it, "initSession: native initialized-state probe threw")
             false

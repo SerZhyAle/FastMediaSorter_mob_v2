@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.net.Uri
@@ -10,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -252,6 +254,19 @@ class CommandPanelController(
     }
 
     /**
+     * S0293: re-run command availability after the host Activity entered or left a multi-window /
+     * desktop-mode container. The OR-composition inside [updateCommandAvailability] reads the
+     * runtime capability flag on every pass, so calling this from [Activity.onMultiWindowModeChanged]
+     * (and [Activity.onConfigurationChanged]) brings inline buttons into sync without a recreate.
+     *
+     * Safe before the first state arrives (`cachedState == null`): no-op.
+     */
+    fun notifyMultiWindowModeChanged() {
+        val state = cachedState ?: return
+        updateCommandAvailability(state)
+    }
+
+    /**
      * Update command availability based on state
      */
     fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
@@ -341,7 +356,13 @@ class CommandPanelController(
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                val shouldAllowSeparateWindow = settings.allowSeparateWindow
+                // S0293: OR-compose persistent preference with runtime capability so DeX entry on phones
+                // exposes the player's "Open in new window" without flipping the setting.
+                val activity = binding.root.context as? Activity
+                val runtimeMultiWindow = activity?.let {
+                    MultiWindowCapabilityDetector.isMultiWindowActiveNow(it)
+                } ?: false
+                val shouldAllowSeparateWindow = settings.allowSeparateWindow || runtimeMultiWindow
                 withContext(Dispatchers.Main) {
                     val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
                     val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow
@@ -383,6 +404,9 @@ class CommandPanelController(
 
             getOverflowableButtons().forEach { it.isVisible = false }
             result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
+            // S0293 (ADR-2): pin "Open in new window" inline in big-buttons mode, mirroring landscape.
+            // The planner may keep it in overflow due to priority 610; this override takes precedence on the inline button.
+            safeViews.btnOpenInSeparateWindowCmd.isVisible = lastKnownAllowSeparateWindow
             safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
             safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
 
@@ -406,6 +430,10 @@ class CommandPanelController(
             // Hide all adaptive center buttons; planner result shows only bar commands
             getOverflowableButtons().forEach { it.isVisible = false }
             result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
+            // S0293 (ADR-2): pin "Open in new window" inline in portrait, mirroring landscape.
+            // The planner may keep it in overflow due to priority 610; this override takes precedence on the inline button.
+            Timber.d("S0293: player portrait pin - allowSeparateWindow=$lastKnownAllowSeparateWindow")
+            safeViews.btnOpenInSeparateWindowCmd.isVisible = lastKnownAllowSeparateWindow
 
             // RENAME isEnabled mirrors landscape rule (requires canRead)
             safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename

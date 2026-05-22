@@ -84,9 +84,14 @@ uniform sampler2D u_tex;
 uniform int u_eyeIndex; // 0 = left, 1 = right
 uniform int u_stereoLayout; // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
 uniform float u_parallaxShift;
+uniform float u_zoomUv; // S0291 round 5: zoom factor applied as UV scaling for sphere/hemi projections. 1.0 = no change. FLAT projection passes 1.0 here and scales via model matrix instead.
 out vec4 outColor;
 void main() {
     vec2 uv = v_uv;
+    if (u_zoomUv != 1.0) {
+        // Centre-anchored UV scaling: zoom > 1.0 sees a smaller portion of texture (zoom in).
+        uv = (uv - vec2(0.5)) / u_zoomUv + vec2(0.5);
+    }
     if (u_stereoLayout == 1) {
         uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift);
@@ -94,7 +99,7 @@ void main() {
         uv.x = uv.x * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift) * 0.5;
     }
-    uv.x = clamp(uv.x, 0.0, 1.0);
+    uv = clamp(uv, vec2(0.0), vec2(1.0));
     outColor = texture(u_tex, uv);
 }
 )GLSL";
@@ -108,9 +113,13 @@ uniform int u_eyeIndex; // 0 = left, 1 = right
 uniform int u_stereoLayout; // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
 uniform float u_parallaxShift;
 uniform mat4 u_texTransform;
+uniform float u_zoomUv; // S0291 round 5: zoom factor for sphere/hemi; FLAT passes 1.0.
 out vec4 outColor;
 void main() {
     vec2 uv = v_uv;
+    if (u_zoomUv != 1.0) {
+        uv = (uv - vec2(0.5)) / u_zoomUv + vec2(0.5);
+    }
     if (u_stereoLayout == 1) {
         uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift);
@@ -169,6 +178,11 @@ struct State {
     int renderProjection{0}; // 0 = 360, 1 = 180, 2 = Flat
     int stereoLayout{1};     // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
     float parallaxShift{0.0f};
+    // S0291 owner round 5 (2026-05-22 22:32): thumbstick-Y driven zoom factor. 1.0 = no
+    // change. Higher = image appears closer/bigger (zoom IN). Stick toward user accumulates
+    // zoom UP; stick away accumulates zoom DOWN. Clamped [0.3, 3.0]. For FLAT projection
+    // applied as model matrix scale; for 360/180 applied as UV scaling in the fragment shader.
+    float zoom{1.0f};
 
     std::vector<uint8_t> pendingFrameData;
     int pendingFrameWidth{0};
@@ -229,12 +243,14 @@ struct State {
     GLint locEye{-1};
     GLint locStereoLayout{-1};
     GLint locParallaxShift{-1};
+    GLint locZoomUv{-1};
     GLint videoLocViewProj{-1};
     GLint videoLocTex{-1};
     GLint videoLocEye{-1};
     GLint videoLocStereoLayout{-1};
     GLint videoLocParallaxShift{-1};
     GLint videoLocTexTransform{-1};
+    GLint videoLocZoomUv{-1};
 };
 
 State g;
@@ -808,12 +824,14 @@ NativeResult createGlAssets() {
     g.locEye          = glGetUniformLocation(g.program, "u_eyeIndex");
     g.locStereoLayout = glGetUniformLocation(g.program, "u_stereoLayout");
     g.locParallaxShift = glGetUniformLocation(g.program, "u_parallaxShift");
+    g.locZoomUv = glGetUniformLocation(g.program, "u_zoomUv");
     g.videoLocViewProj = glGetUniformLocation(g.videoProgram, "u_viewProj");
     g.videoLocTex = glGetUniformLocation(g.videoProgram, "u_tex");
     g.videoLocEye = glGetUniformLocation(g.videoProgram, "u_eyeIndex");
     g.videoLocStereoLayout = glGetUniformLocation(g.videoProgram, "u_stereoLayout");
     g.videoLocParallaxShift = glGetUniformLocation(g.videoProgram, "u_parallaxShift");
     g.videoLocTexTransform = glGetUniformLocation(g.videoProgram, "u_texTransform");
+    g.videoLocZoomUv = glGetUniformLocation(g.videoProgram, "u_zoomUv");
 
     std::vector<float> verts; std::vector<unsigned int> indices;
 
@@ -986,8 +1004,13 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
 
     float mvp[16];
     if (g.renderProjection == 2) {
+        // S0291 round 5: zoom for FLAT projection applied as proportional scale of the quad
+        // (width AND height multiplied by g.zoom). Quad stays at z=-5 so depth cues match the
+        // rest of the scene; only apparent size changes. This is the natural interpretation of
+        // "image приближается / удаляется" for a movie screen.
+        const float flatScale = g.zoom;
         float modelMat[16];
-        scaleAndTranslate4x4(8.0f, 4.5f, 1.0f, 0.0f, 0.0f, -5.0f, modelMat);
+        scaleAndTranslate4x4(8.0f * flatScale, 4.5f * flatScale, 1.0f, 0.0f, 0.0f, -5.0f, modelMat);
         float temp[16];
         multiply4x4(viewMat, modelMat, temp);
         multiply4x4(proj, temp, mvp);
@@ -1016,6 +1039,7 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
     GLint locEye = useVideoTexture ? g.videoLocEye : g.locEye;
     GLint locStereoLayout = useVideoTexture ? g.videoLocStereoLayout : g.locStereoLayout;
     GLint locParallaxShift = useVideoTexture ? g.videoLocParallaxShift : g.locParallaxShift;
+    GLint locZoomUv = useVideoTexture ? g.videoLocZoomUv : g.locZoomUv;
 
     glEnable(GL_DEPTH_TEST); glDisable(GL_CULL_FACE);
     glUseProgram(program);
@@ -1033,6 +1057,11 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
     glUniform1i(locEye, (GLint)eyeIdx);
     glUniform1i(locStereoLayout, g.stereoLayout);
     if (locParallaxShift >= 0) glUniform1f(locParallaxShift, g.parallaxShift);
+    // S0291 round 5: zoom applies as UV scaling for 360 / 180 sphere/hemi projections only.
+    // FLAT projection scales via model matrix instead (built above) and the shader gets 1.0
+    // so the FLAT quad's UV range stays exact.
+    const float effectiveZoomUv = (g.renderProjection == 2) ? 1.0f : g.zoom;
+    if (locZoomUv >= 0) glUniform1f(locZoomUv, effectiveZoomUv);
     glBindVertexArray(activeVao);
     glDrawElements(GL_TRIANGLES, activeIndexCount, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
@@ -1097,6 +1126,30 @@ void pollActions(XrTime predictedTime) {
         // Track trigger rising edge purely to keep the field reset in sync; no nav action.
         g_prevTriggerClicked[hand] = g_handInputStates[hand].triggerClicked;
     }
+
+    // S0291 owner round 5 (2026-05-22 22:32): thumbstick-Y drives zoom on the immersive
+    // image. Stick pulled toward the user (y < 0 in OpenXR thumbstick convention) zooms IN
+    // (image appears closer / larger). Stick pushed away (y > 0) zooms OUT. Either hand
+    // contributes. Deadzone 0.2 keeps neutral; outside deadzone we accumulate at a rate
+    // proportional to deflection and clamp to a sane range [0.3, 3.0].
+    constexpr float kZoomDeadzone = 0.2f;
+    constexpr float kZoomPerFrame = 0.012f; // ~1.2% size change at full deflection per frame; smooth at 72 Hz.
+    constexpr float kZoomMin = 0.3f;
+    constexpr float kZoomMax = 3.0f;
+    float zoomDelta = 0.0f;
+    for (int hand = 0; hand < 2; ++hand) {
+        const float y = g_handInputStates[hand].thumbstickY;
+        if (std::abs(y) > kZoomDeadzone) {
+            zoomDelta += -y * kZoomPerFrame;
+        }
+    }
+    if (zoomDelta != 0.0f) {
+        std::lock_guard<std::mutex> lock(g.mutex);
+        float nz = g.zoom + zoomDelta;
+        if (nz < kZoomMin) nz = kZoomMin;
+        if (nz > kZoomMax) nz = kZoomMax;
+        g.zoom = nz;
+    }
 }
 
 } // namespace
@@ -1105,11 +1158,11 @@ bool xr_session_is_running() { return g.running.load(); }
 
 bool xr_session_is_initialized() {
     std::lock_guard<std::mutex> lock(g.mutex);
-    // S0291 owner round 3 (2026-05-22): no longer treat g.activity as "session initialized"
-    // signal — g.activity now persists across sessions intentionally (see JNI bridge comment).
-    // True initialized state is the OpenXR instance + JavaVM combination, both of which DO
-    // get torn down in xr_session_shutdown.
-    return g.instance != XR_NULL_HANDLE || g.eglContext != EGL_NO_CONTEXT;
+    // S0291 owner round 4 (2026-05-22 21:51): "initialized" now means "session is active",
+    // not "instance exists". g.instance and g.eglContext are intentionally process-scoped
+    // (see xr_session_init / xr_session_shutdown comments) and persist across exit/re-enter.
+    // A fresh session is detected by g.session being XR_NULL_HANDLE.
+    return g.session != XR_NULL_HANDLE;
 }
 
 jobject_opaque g_activity_jobject() {
@@ -1124,13 +1177,45 @@ void xr_session_clear_activity_jobject() {
 
 NativeResult xr_session_init(JavaVM* vm, jobject_opaque activity) {
     std::lock_guard<std::mutex> lock(g.mutex);
-    if (g.running.load()) return NativeResult::AlreadyRunning;
+    if (g.running.load()) {
+        LOGW("xr_session_init: already running; rejecting");
+        return NativeResult::AlreadyRunning;
+    }
     g.vm = vm;
     g.activity = static_cast<jobject>(activity);
-    NativeResult r = createInstance(vm, static_cast<jobject>(activity));
-    if (r != NativeResult::Ok) return r;
-    r = createEgl();
-    if (r != NativeResult::Ok) return r;
+    // S0291 owner round 4 (2026-05-22 21:51): re-entry crashed with CheckJNI abort inside
+    // libopenxr_loader.so::xrEnumerateInstanceExtensionProperties (logcat 21:45 line 430-445
+    // stack trace). Quest 3's OpenXR loader holds an internal JNI global ref to the Activity
+    // it received during xrInitializeLoaderKHR; that ref is NOT released when we call
+    // xrDestroyInstance. After ANY shutdown, the loader's cached ref races with ART CheckJNI
+    // and the next xrEnumerate* call (re-init) aborts the whole process. Mitigation: keep
+    // the XrInstance + EGL context alive for the WHOLE process lifetime, only destroy the
+    // per-session pieces (session handle, swapchains, GL objects, hud, input) in shutdown.
+    // This matches the standard OpenXR pattern — instance is process-scoped, session is
+    // immersive-scoped. Logged transitions so we can verify the path in the next test.
+    LOGD("xr_session_init: g.instance=%p g.eglContext=%p (will reuse if non-null)",
+         (void*)g.instance, (void*)g.eglContext);
+    NativeResult r;
+    if (g.instance == XR_NULL_HANDLE) {
+        LOGD("xr_session_init: creating XrInstance (cold start)");
+        r = createInstance(vm, static_cast<jobject>(activity));
+        if (r != NativeResult::Ok) {
+            LOGE("xr_session_init: createInstance failed -> %d", (int)r);
+            return r;
+        }
+    } else {
+        LOGD("xr_session_init: reusing existing XrInstance %p", (void*)g.instance);
+    }
+    if (g.eglContext == EGL_NO_CONTEXT) {
+        LOGD("xr_session_init: creating EGL context (cold start)");
+        r = createEgl();
+        if (r != NativeResult::Ok) {
+            LOGE("xr_session_init: createEgl failed -> %d", (int)r);
+            return r;
+        }
+    } else {
+        LOGD("xr_session_init: reusing existing EGL context %p", (void*)g.eglContext);
+    }
     return NativeResult::Ok;
 }
 
@@ -1162,6 +1247,8 @@ NativeResult xr_session_start() {
     g_prevStickState[1] = 0;
     g_prevTriggerClicked[0] = false;
     g_prevTriggerClicked[1] = false;
+    // S0291 round 5: reset zoom on each new session so re-enter starts at 1.0 (no carry-over).
+    g.zoom = 1.0f;
     g_navigateCounter[0] = 0;
     g_navigateCounter[1] = 0;
     LOGD("xr_session_start: complete");
@@ -1199,7 +1286,11 @@ void xr_session_set_render_config(int projection, int layout) {
     std::lock_guard<std::mutex> lock(g.mutex);
     g.renderProjection = projection;
     g.stereoLayout = layout;
-    LOGD("set_render_config: projection=%d, layout=%d", projection, layout);
+    // S0291 owner round 8 (2026-05-22 22:53): reset zoom to 1.0 on every media
+    // switch so each new slide starts at default framing ("при переключении на
+    // следующую картинку/видео приближение/удаление сбрасывается к норме").
+    g.zoom = 1.0f;
+    LOGD("set_render_config: projection=%d, layout=%d, zoom reset to 1.0", projection, layout);
 }
 
 void xr_session_set_parallax_shift(float value) {
@@ -1389,16 +1480,18 @@ void xr_session_shutdown() {
     xr_hud_shutdown();
     if (g.localSpace != XR_NULL_HANDLE)      { xrDestroySpace(g.localSpace);      g.localSpace = XR_NULL_HANDLE; }
     if (g.session != XR_NULL_HANDLE)         { xrDestroySession(g.session);       g.session = XR_NULL_HANDLE; }
-    if (g.instance != XR_NULL_HANDLE)        { xrDestroyInstance(g.instance);     g.instance = XR_NULL_HANDLE; }
+    // S0291 owner round 4 (2026-05-22 21:51): keep XrInstance, XrSystemId, view configs,
+    // and the EGL context alive for the process lifetime. See xr_session_init for the
+    // rationale (Quest 3 OpenXR loader holds its own JNI globalref to Activity that does
+    // NOT survive re-create cleanly). We DO destroy the per-session EGLSurface because it
+    // is bound to a per-Activity ANativeWindow that legitimately changes across sessions.
+    LOGD("xr_session_shutdown: preserving XrInstance %p, EGL context %p across exit",
+         (void*)g.instance, (void*)g.eglContext);
     if (g.eglSurface != EGL_NO_SURFACE && g.eglDisplay != EGL_NO_DISPLAY) {
         eglMakeCurrent(g.eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         eglDestroySurface(g.eglDisplay, g.eglSurface); g.eglSurface = EGL_NO_SURFACE;
     }
-    if (g.eglContext != EGL_NO_CONTEXT) { eglDestroyContext(g.eglDisplay, g.eglContext); g.eglContext = EGL_NO_CONTEXT; }
-    if (g.eglDisplay != EGL_NO_DISPLAY) { eglTerminate(g.eglDisplay); g.eglDisplay = EGL_NO_DISPLAY; }
     if (g.window) { ANativeWindow_release(g.window); g.window = nullptr; }
-    g.systemId = XR_NULL_SYSTEM_ID;
-    g.viewConfigs.clear();
     g.sessionRunning = false;
     g.sessionState = XR_SESSION_STATE_UNKNOWN;
     // g.running already false (set at function top). Reset frame buffers too so a fresh

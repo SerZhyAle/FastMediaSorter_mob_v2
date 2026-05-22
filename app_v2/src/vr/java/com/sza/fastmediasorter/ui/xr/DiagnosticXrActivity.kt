@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.xr
 
+import android.app.PendingIntent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -9,6 +10,7 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
@@ -30,6 +32,7 @@ import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
 import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
@@ -37,6 +40,7 @@ import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,6 +96,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var hudBitmap: Bitmap? = null
     private var hudCanvas: Canvas? = null
     private var hudRgbaBytes: ByteArray = ByteArray(0)
+
+    // Quest Home may redispatch the panel PendingIntent during immersive teardown. Keep the
+    // flat-panel handoff idempotent so one exit cannot spawn multiple SettingsActivity instances.
+    private val panelReturnDispatched = AtomicBoolean(false)
 
     // Decoded asset, owned by the Activity until handed off to the render thread.
     private var textureBytes: ByteArray = ByteArray(0)
@@ -205,7 +213,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 Timber.d("DiagnosticXrActivity: onBackPressed -> requesting exit")
-                renderThread?.requestExit() ?: finish()
+                renderThread?.requestExit() ?: returnToSettingsTaskOrFinish()
             }
         })
 
@@ -578,7 +586,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private fun loadCurrentMediaItem() {
         val file = mediaPlaylist[currentPlaylistIndex]
-        Timber.d("S0291: diagnostic XR playlist load entry ${file.name}")
         Timber.d("Loading media item at index $currentPlaylistIndex: ${file.name}")
         
         hudRenderer.currentFilename = file.name
@@ -659,11 +666,30 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        if (renderThread != null) return
-        Timber.d("surfaceCreated; starting render thread")
+        maybeStartRenderThread("surfaceCreated")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::surfaceView.isInitialized && surfaceView.holder.surface.isValid) {
+            maybeStartRenderThread("onResume")
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
+    private fun maybeStartRenderThread(reason: String) {
+        if (renderThread != null || !::surfaceView.isInitialized) return
+        val surface = surfaceView.holder.surface
+        if (!surface.isValid) {
+            return
+        }
         renderThread = DiagnosticXrRenderThread(
             activity = this,
-            surface = holder.surface,
+            surface = surface,
             runtime = runtime,
             textureBytes = textureBytes,
             textureWidth = textureWidth,
@@ -730,11 +756,77 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         return super.onTouchEvent(event)
     }
 
+    /**
+     * Return to Home and ask HorizonOS to foreground the canonical panel task.
+     *
+     * Recent Quest logs show HorizonOS restoring this app as a launcher-rooted panel task whose
+     * base activity is MainActivity even when SettingsActivity is on top. Relaunching
+     * SettingsActivity directly competes with that restore path and duplicates the panel surface.
+     */
+    private fun returnToSettingsTaskOrFinish() {
+        if (!panelReturnDispatched.compareAndSet(false, true)) {
+            Timber.d("DiagnosticXrActivity: panel return already dispatched")
+            return
+        }
+        val returnedToFlatTask = launchPanelHostInHome() || launchPanelHostFallback()
+        Timber.d("DiagnosticXrActivity: returnToFlatTask -> $returnedToFlatTask")
+        if (!returnedToFlatTask) {
+            panelReturnDispatched.set(false)
+            finish()
+            return
+        }
+        scheduleHostFinish()
+    }
+
+    private fun launchPanelHostInHome(): Boolean {
+        val context = applicationContext
+        return runCatching {
+            val panelIntent = MainActivity.createReturnToSettingsIntent(context, MEDIA_SETTINGS_TAB_INDEX)
+            val pendingPanelIntent = PendingIntent.getActivity(
+                context,
+                0,
+                panelIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            val homeIntent = Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(EXTRA_LAUNCH_IN_HOME_PENDING_INTENT, pendingPanelIntent)
+            startActivity(homeIntent)
+            true
+        }.getOrElse {
+            Timber.w(it, "DiagnosticXrActivity: failed to return to launcher task through Home")
+            false
+        }
+    }
+
+    private fun launchPanelHostFallback(): Boolean {
+        val intent = MainActivity.createReturnToSettingsIntent(this, MEDIA_SETTINGS_TAB_INDEX)
+        return runCatching {
+            startActivity(intent)
+            true
+        }.getOrElse {
+            Timber.w(it, "DiagnosticXrActivity: failed to return to launcher task")
+            false
+        }
+    }
+
+    private fun scheduleHostFinish() {
+        // Meta's handoff sample stops at HOME + PendingIntent. Force-removing the XR task here
+        // made HorizonOS spin up FocusPlaceholderActivity and re-dispatch the panel launch,
+        // which recreated Settings and prevented a clean second immersive entry.
+        window.decorView.post {
+            if (!isFinishing && !isDestroyed) {
+                finish()
+            }
+        }
+    }
+
     private fun onRenderThreadExit() {
         runOnUiThread {
             if (!isFinishing && !isDestroyed) {
-                Timber.d("render thread done; finishing")
-                finish()
+                Timber.d("render thread done; returning to settings task")
+                returnToSettingsTaskOrFinish()
             }
         }
     }
@@ -757,10 +849,16 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private fun onRenderThreadStartFailed(result: DiagnosticXrNativeResult) {
         Timber.w("render thread start failed: $result")
-        runOnUiThread { if (!isFinishing && !isDestroyed) finish() }
+        runOnUiThread {
+            if (!isFinishing && !isDestroyed) {
+                returnToSettingsTaskOrFinish()
+            }
+        }
     }
 
     private companion object {
+        private const val EXTRA_LAUNCH_IN_HOME_PENDING_INTENT = "extra_launch_in_home_pending_intent"
+        private const val MEDIA_SETTINGS_TAB_INDEX = 1
         const val SHUTDOWN_TIMEOUT_MS = 3_000L
         // S0290 Phase 09: onPause runs on the main thread; keep the join wait shorter than the
         // standard ANR window so re-entry is responsive while still giving the render thread

@@ -331,8 +331,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
-                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
-                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: isFreshInstall, // S0253: fresh install suppresses one-time "ops moved to menu" Toast
+                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall).also {
+                        Timber.d("S0293: settings emission - fileOpsInOverflowMenu=${preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU]}, capabilityDefault=${MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context)}, freshInstall=$isFreshInstall")
+                    }, // S0293: capability-detected devices (VR/XR/ChromeOS) get ON; otherwise S0253 fresh install → ON; existing non-capable user → OFF
+                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall), // S0293: capability device or fresh install suppresses one-time "ops moved to menu" Toast (symmetric with fileOpsInOverflowMenu default)
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },

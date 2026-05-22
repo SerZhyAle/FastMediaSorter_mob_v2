@@ -40,13 +40,15 @@ class XrEntryGatewayImpl @Inject constructor(
             Timber.i("XrEntryGatewayImpl: native runtime unavailable on this ABI - returning UnavailableNoRuntime")
             return XrEntryResult.UnavailableNoRuntime
         }
-        if (runtime.isRunning()) {
-            Timber.w("XrEntryGatewayImpl: diagnostic session already active - InitializationFailed")
-            return XrEntryResult.InitializationFailed
-        }
         return try {
-            val intent = Intent(appContext, DiagnosticXrActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val intent = Intent(appContext, DiagnosticXrActivity::class.java).apply {
+                // Meta's hybrid-app sample launches immersive activities as ACTION_MAIN NEW_TASK.
+                // Avoid forcing CLEAR_TOP/SINGLE_TOP reuse here: after an immersive exit the old
+                // host can still be tearing down, and reusing that half-closing singleTask was
+                // the most plausible reason the second launch never reached ActivityTaskManager.
+                action = Intent.ACTION_MAIN
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             appContext.startActivity(intent)
             Timber.d("XrEntryGatewayImpl: DiagnosticXrActivity launched")
             XrEntryResult.Started

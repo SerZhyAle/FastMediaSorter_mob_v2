@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -501,8 +502,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         if (::windowId.isInitialized) outState.putString(EXTRA_WINDOW_ID, windowId)
     }
 
-    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+    // S0293: forward multi-window / desktop-mode transitions so the player command panel
+    // recomputes "Open in new window" visibility on its next render.
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        timber.log.Timber.d("S0293: player multi-window mode changed - isInMultiWindowMode=$isInMultiWindowMode")
+        if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)
         binding.topCommandPanel.post {
             binding.topCommandPanel.requestApplyInsets()

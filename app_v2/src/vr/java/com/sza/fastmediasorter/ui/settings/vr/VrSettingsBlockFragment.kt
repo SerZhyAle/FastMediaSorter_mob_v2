@@ -110,7 +110,13 @@ class VrSettingsBlockFragment : Fragment() {
             val result = entryGateway.enterDiagnosticImage()
             Timber.d("VrSettingsBlockFragment: enterDiagnosticImage -> $result")
             when (result) {
-                XrEntryResult.Started -> Unit  // session running; no UI feedback needed
+                XrEntryResult.Started -> {
+                    // Meta hybrid-app exclusive mode expects the panel activity to terminate once
+                    // the immersive activity is launched. Keeping Settings alive in the background
+                    // produced duplicate Settings panels when the immersive host later tried to
+                    // return to Home.
+                    activity?.finishAndRemoveTask()
+                }
                 XrEntryResult.InitializationFailed -> showToast(R.string.vr_settings_test_immersive_init_failure_toast)
                 XrEntryResult.UnavailableNoRuntime -> showToast(R.string.vr_settings_test_immersive_init_failure_toast)
                 XrEntryResult.UnavailableDisabledByUser -> Unit  // button should not be reachable in this state

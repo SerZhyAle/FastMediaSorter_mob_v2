@@ -28,6 +28,8 @@ interface XrEntryGateway {
      * stereoscopic top-bottom equirectangular diagnostic image. The session closes on any
      * controller input, keyboard key, or mouse click.
      *
+     * @param launchTaskId optional flat-task id to restore when the immersive Activity exits.
+     *
      * @return [XrEntryResult] describing what happened. Never throws.
      */
     suspend fun enterDiagnosticImage(): XrEntryResult

@@ -175,8 +175,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
 
+        val returnToSettingsRequested = isReturnToSettingsIntent(intent)
+        routeToSettingsIfRequested(intent)
+
         // If restart was triggered from SettingsActivity, return user there
-        if (LocaleHelper.consumeReturnToSettings(this)) {
+        if (!returnToSettingsRequested && LocaleHelper.consumeReturnToSettings(this)) {
             startActivity(Intent(this, SettingsActivity::class.java))
             finish()
             return
@@ -187,7 +190,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // service alive), restore the user to the player that is currently playing.
         // FLAG_ACTIVITY_REORDER_TO_FRONT: brings an existing PlayerActivity to the top of the
         // stack without creating a duplicate instance; creates a new one if not present.
-        if (intent?.action == Intent.ACTION_MAIN
+        if (!returnToSettingsRequested
+            && intent?.action == Intent.ACTION_MAIN
             && AudioPlaybackService.isRunning
             && AudioPlaybackService.currentResourceId > 0L) {
             Timber.d("MainActivity: service active on fresh launch - restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
@@ -328,11 +332,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
+        if (routeToSettingsIfRequested(intent)) {
+            return
+        }
         // Called when MainActivity is already running (singleTop/CLEAR_TOP) and receives a new intent.
         // Handles notification body tap while the app is in the foreground or background stack.
         if (intent.action == ACTION_RESUME_PLAYER) {
             openAudioPlayerFromNotification()
         }
+    }
+
+    private fun routeToSettingsIfRequested(intent: Intent?): Boolean {
+        if (!isReturnToSettingsIntent(intent)) {
+            return false
+        }
+        // XR exit must return through the canonical launcher task. Reopening Settings from here
+        // keeps MainActivity as the task root so HorizonOS can restore the same panel next time.
+        val settingsIntent = Intent(this, SettingsActivity::class.java)
+        val initialTab = intent.getIntExtra(EXTRA_RETURN_TO_SETTINGS_TAB, -1)
+        if (initialTab >= 0) {
+            settingsIntent.putExtra(SettingsActivity.EXTRA_INITIAL_TAB, initialTab)
+        }
+        startActivity(settingsIntent)
+        return true
+    }
+
+    private fun isReturnToSettingsIntent(intent: Intent?): Boolean {
+        return intent?.getBooleanExtra(EXTRA_RETURN_TO_SETTINGS, false) == true
     }
 
     /** Navigate to PlayerActivity for the currently playing audio resource.
@@ -1113,8 +1140,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"
         const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
+        const val EXTRA_RETURN_TO_SETTINGS = "extra_return_to_settings"
+        const val EXTRA_RETURN_TO_SETTINGS_TAB = "extra_return_to_settings_tab"
 
         /** S0289: saved-state key for the resource id last opened in PlayerActivity. */
         const val KEY_LAST_PLAYED_RESOURCE_ID = "s0289_last_played_resource_id"
+
+        fun createReturnToSettingsIntent(context: Context, initialTab: Int? = null): Intent {
+            return Intent(context, MainActivity::class.java).apply {
+                action = Intent.ACTION_MAIN
+                addCategory(Intent.CATEGORY_LAUNCHER)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                putExtra(EXTRA_RETURN_TO_SETTINGS, true)
+                if (initialTab != null) {
+                    putExtra(EXTRA_RETURN_TO_SETTINGS_TAB, initialTab)
+                }
+            }
+        }
     }
 }

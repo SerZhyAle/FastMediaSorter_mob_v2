@@ -290,6 +290,8 @@ function Invoke-Ffmpeg {
 # Use explicit WORD labels ("LEFT"/"RIGHT") instead of single letters — disambiguates eye
 # routing (you can tell "LEFT" vs mirrored "TFEL" at a glance) and confirms by reading.
 function Build-LabelFilter {
+    # S0291 owner round 4 (2026-05-22 21:51): h*0.10 still too large in headset; reduce to
+    # h*0.033 (3x smaller). Clear at one-eye-close inspection, no longer dominates FOV.
     param([string]$Letter, [string]$Color)
     $text = switch ($Letter) {
         'L' { 'LEFT' }
@@ -298,9 +300,9 @@ function Build-LabelFilter {
     }
     if ($labelFontFile) {
         $font = Format-FfmpegFilterPath $labelFontFile
-        return "drawtext=fontfile='${font}':text='${text}':fontcolor=${Color}:fontsize=h*0.10:x=(w-text_w)/2:y=(h-text_h)/2:box=1:boxcolor=black@0.75:boxborderw=10"
+        return "drawtext=fontfile='${font}':text='${text}':fontcolor=${Color}:fontsize=h*0.033:x=(w-text_w)/2:y=(h-text_h)/2:box=1:boxcolor=black@0.75:boxborderw=4"
     }
-    return "drawbox=x=(w-w*0.30)/2:y=(h-h*0.10)/2:w=w*0.30:h=h*0.10:color=black@0.75:t=fill,drawbox=x=(w-w*0.24)/2:y=(h-h*0.08)/2:w=w*0.24:h=h*0.08:color=${Color}@0.90:t=fill"
+    return "drawbox=x=(w-w*0.10)/2:y=(h-h*0.033)/2:w=w*0.10:h=h*0.033:color=black@0.75:t=fill,drawbox=x=(w-w*0.08)/2:y=(h-h*0.026)/2:w=w*0.08:h=h*0.026:color=${Color}@0.90:t=fill"
 }
 
 function Add-EyeLabelsStill {

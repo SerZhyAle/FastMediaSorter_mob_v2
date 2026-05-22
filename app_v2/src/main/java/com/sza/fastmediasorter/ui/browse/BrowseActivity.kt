@@ -496,6 +496,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         browseReconcilerManager.scheduleQuickVerify(resource.id, resource.type, result.updatedList)
     }
 
+    // S0293: forward Activity multi-window / desktop-mode transitions so the per-row overflow
+    // and resource-ops menus pick up the runtime capability flag on their next render.
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        timber.log.Timber.d("S0293: browse multi-window mode changed - isInMultiWindowMode=$isInMultiWindowMode")
+        if (::initializer.isInitialized) initializer.notifyMultiWindowModeChanged()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (::initializer.isInitialized) initializer.notifyMultiWindowModeChanged()
+    }
+
     override fun onPause() {
         super.onPause()
         if (::initializer.isInitialized) {
