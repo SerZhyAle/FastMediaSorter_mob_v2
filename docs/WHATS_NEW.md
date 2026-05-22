@@ -1,6 +1,26 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5202.303** (May 2026)
+**Current release: 2.60.5220.333** (May 2026)
+
+> Changes since version 2.60.5202.303
+
+---
+
+## What's New
+
+- **Cyrillic OCR** - Tesseract `tessdata_best` Cyrillic models with automatic fallback (S0287).
+- **Settings Search Expansion** - broader coverage of settings across standard, VR, photos, and noLegal flavors.
+- **VR Diagnostics Surface** - DiagnosticXR Activity with HUD canvas, raycast targeting, and input dispatch.
+- **TV Navigation Overhaul** - unified D-pad focus and mouse-wheel routing across screens (S0289).
+
+## What's Fixed
+
+- Finger taps unresponsive on Quest 3 and touchpad TVs (S0289).
+- OCR action could be re-triggered while recognition was in progress (S0288).
+
+---
+
+## Previous Release: 2.60.5202.303 (May 2026)
 
 > Changes since version 2.60.5180.136
 

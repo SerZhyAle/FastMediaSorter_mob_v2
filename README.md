@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5202.303 (May 2026)
+## What's New in v2.60.5220.333 (May 2026)
 
 **New:**
-16KB Page Alignment (aligns native libraries to 16KB boundaries for Android 15+ compatibility), AI Audit Dashboard (publishes consensus evaluation results to GitHub Pages), Landscape Layout Tuning (optimizes spacing and pairs setting rows on wide screens).
+Cyrillic OCR (Tesseract `tessdata_best` Cyrillic models with automatic fallback, S0287), Settings Search Expansion (broader coverage across standard, VR, photos, and noLegal flavors), VR Diagnostics Surface (DiagnosticXR Activity with HUD canvas, raycast targeting, and input dispatch), TV Navigation Overhaul (unified D-pad focus and mouse-wheel routing across screens, S0289).
 
 **Fixed:**
-Resolves MediaStore local copying regression on Android versions pre-Q (S0280).
+Finger taps unresponsive on Quest 3 and touchpad TVs (S0289), OCR action could be re-triggered while recognition was in progress (S0288).
 
 [Full release notes →](docs/WHATS_NEW.md)
 
