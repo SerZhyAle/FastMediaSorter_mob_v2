@@ -1111,7 +1111,7 @@ class CommandPanelController(
     /**
      * Big Buttons Mode total visible top-panel slot count.
      *
-     * Formula: `(panelWidthPx / minSlotWidthPx).coerceIn(5, 10)`.
+     * Formula: `(panelWidthPx / minSlotWidthPx).coerceIn(5, 9)`.
      * `panelWidthPx` is the laid-out width of `topCommandPanel`; falls back to
      * `displayMetrics.widthPixels` before the first layout pass.
      * `minSlotWidthPx` is `R.dimen.player_big_button_min_slot_width`.
@@ -1124,7 +1124,7 @@ class CommandPanelController(
         val minSlotWidthPx = binding.root.resources
             .getDimensionPixelSize(R.dimen.player_big_button_min_slot_width)
             .coerceAtLeast(1)
-        return (panelWidthPx / minSlotWidthPx).coerceIn(5, 10)
+        return (panelWidthPx / minSlotWidthPx).coerceIn(5, 9)
     }
 
     private fun isWifiConnected(context: android.content.Context): Boolean {

@@ -89,6 +89,8 @@ data class BackupSettings(
     val enableOcr: Boolean = true,
     val ocrDefaultFontSize: String = "AUTO",
     val ocrDefaultFontFamily: String = "DEFAULT",
+    val ocrEngineType: String = "TESSERACT",
+    val paddleOcrModel: String = "CYRILLIC",
     // Playback
     val defaultSortMode: String = "NAME_ASC",
     val slideshowInterval: Int = 10,

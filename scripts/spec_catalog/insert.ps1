@@ -13,6 +13,13 @@ param(
     [string] $Id
 )
 
+# Convert terminating errors (Write-Error, throw, provider errors) into
+# the documented `exit 1` so callers can rely on $LASTEXITCODE.
+trap {
+    Write-Host $_ -ForegroundColor Red
+    exit 1
+}
+
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 $records = Read-Catalog
@@ -55,3 +62,4 @@ $list.Add($record)
 Write-Catalog -Records $list.ToArray()
 
 Write-Output $Id
+exit 0

@@ -7,13 +7,22 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class OtherMediaSettingsFragment : BaseSettingsFragment() {
+
+    private val modelManager by lazy { TesseractModelManager(requireContext()) }
+    private var rusDownloadJob: Job? = null
+    private var ukrDownloadJob: Job? = null
 
     private var _binding: FragmentSettingsOtherBinding? = null
     private val binding get() = _binding!!
@@ -148,11 +157,28 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowEnableOcr) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableOcr = isChecked))
-            updateOcrVisibility(isChecked)
+            updateOcrVisibility(isChecked, current.ocrEngineType)
         }
 
         // OCR Font Settings
         setupOcrFontSpinners()
+
+        // OCR Engine Settings (S0288)
+        setupOcrEngineSpinners()
+
+        // OCR Best Models
+        binding.btnOcrBestRusDownload.setOnClickListener {
+            startDownload("rus")
+        }
+        binding.btnOcrBestRusDelete.setOnClickListener {
+            deleteModel("rus")
+        }
+        binding.btnOcrBestUkrDownload.setOnClickListener {
+            startDownload("ukr")
+        }
+        binding.btnOcrBestUkrDelete.setOnClickListener {
+            deleteModel("ukr")
+        }
     }
 
     private fun setupLanguageSpinners() {
@@ -377,9 +403,180 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
     }
 
-    private fun updateOcrVisibility(enabled: Boolean) {
+    private fun setupOcrEngineSpinners() {
+        if (!BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            binding.layoutOcrEngineType?.isVisible = false
+            binding.layoutPaddleOcrModel?.isVisible = false
+            return
+        }
+
+        // OCR Engine Type Spinner
+        val ocrEngines = arrayOf(
+            getString(R.string.ocr_engine_type_tesseract),
+            getString(R.string.ocr_engine_type_paddleocr)
+        )
+        val ocrEngineAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ocrEngines)
+        ocrEngineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerOcrEngineType?.adapter = ocrEngineAdapter
+
+        binding.spinnerOcrEngineType?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings) {
+                    val engineValue = when (position) {
+                        0 -> "TESSERACT"
+                        1 -> "PADDLE_OCR"
+                        else -> "TESSERACT"
+                    }
+                    timber.log.Timber.d("S0288: settings ocr engine selector picked engine=$engineValue")
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(ocrEngineType = engineValue))
+                    
+                    // Dynamically toggle visibility of paddle ocr model layout
+                    binding.layoutPaddleOcrModel?.isVisible = current.enableOcr && engineValue == "PADDLE_OCR"
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        // PaddleOCR Model Spinner
+        val paddleModels = arrayOf(
+            getString(R.string.paddle_ocr_model_cyrillic),
+            getString(R.string.paddle_ocr_model_eslav)
+        )
+        val paddleModelAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, paddleModels)
+        paddleModelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerPaddleOcrModel?.adapter = paddleModelAdapter
+
+        binding.spinnerPaddleOcrModel?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings) {
+                    val modelValue = when (position) {
+                        0 -> "CYRILLIC"
+                        1 -> "EAST_SLAVIC"
+                        else -> "CYRILLIC"
+                    }
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(paddleOcrModel = modelValue))
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+    }
+
+    private fun updateOcrVisibility(enabled: Boolean, ocrEngineType: String = viewModel.settings.value.ocrEngineType) {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
+        binding.layoutOcrBestModels?.isVisible = enabled
+        
+        val showNoLegalOcr = enabled && BuildConfig.IS_NO_LEGAL_FLAVOR
+        binding.layoutOcrEngineType?.isVisible = showNoLegalOcr
+        binding.layoutPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
+        
+        if (enabled) {
+            updateModelStates()
+        }
+    }
+
+    private fun updateModelStates() {
+        if (_binding == null) return
+
+        val isRusInstalled = modelManager.isModelInstalled("rus")
+        val isUkrInstalled = modelManager.isModelInstalled("ukr")
+
+        // Russian model UI state
+        val isRusDownloading = rusDownloadJob?.isActive == true
+        binding.pbOcrBestRusDownload.isVisible = isRusDownloading
+        binding.btnOcrBestRusDownload.isVisible = !isRusInstalled && !isRusDownloading
+        binding.btnOcrBestRusDelete.isVisible = isRusInstalled && !isRusDownloading
+        binding.btnOcrBestRusDownload.isEnabled = !isRusDownloading
+        binding.btnOcrBestRusDelete.isEnabled = !isRusDownloading
+
+        if (isRusInstalled) {
+            binding.tvOcrBestRusStatus.text = getString(R.string.ocr_best_model_installed)
+            binding.tvOcrBestRusStatus.alpha = 1.0f
+        } else if (!isRusDownloading) {
+            binding.tvOcrBestRusStatus.text = getString(R.string.ocr_best_model_size_mb, "15.0")
+            binding.tvOcrBestRusStatus.alpha = 0.7f
+        }
+
+        // Ukrainian model UI state
+        val isUkrDownloading = ukrDownloadJob?.isActive == true
+        binding.pbOcrBestUkrDownload.isVisible = isUkrDownloading
+        binding.btnOcrBestUkrDownload.isVisible = !isUkrInstalled && !isUkrDownloading
+        binding.btnOcrBestUkrDelete.isVisible = isUkrInstalled && !isUkrDownloading
+        binding.btnOcrBestUkrDownload.isEnabled = !isUkrDownloading
+        binding.btnOcrBestUkrDelete.isEnabled = !isUkrDownloading
+
+        if (isUkrInstalled) {
+            binding.tvOcrBestUkrStatus.text = getString(R.string.ocr_best_model_installed)
+            binding.tvOcrBestUkrStatus.alpha = 1.0f
+        } else if (!isUkrDownloading) {
+            binding.tvOcrBestUkrStatus.text = getString(R.string.ocr_best_model_size_mb, "11.6")
+            binding.tvOcrBestUkrStatus.alpha = 0.7f
+        }
+    }
+
+    private fun startDownload(language: String) {
+        val isRus = language == "rus"
+        val pb = if (isRus) binding.pbOcrBestRusDownload else binding.pbOcrBestUkrDownload
+        val tvStatus = if (isRus) binding.tvOcrBestRusStatus else binding.tvOcrBestUkrStatus
+
+        val job = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            pb.isVisible = true
+            pb.progress = 0
+            updateModelStates() // Disable buttons during download
+
+            val success = modelManager.downloadModel(language) { percent, bytes, total ->
+                // Callback runs on background thread, post back to Main
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                    if (_binding != null) {
+                        pb.progress = percent
+                        tvStatus.text = getString(
+                            R.string.ocr_best_model_downloading,
+                            percent,
+                            formatSizeProgress(bytes, total)
+                        )
+                        tvStatus.alpha = 1.0f
+                    }
+                }
+            }
+
+            if (isRus) rusDownloadJob = null else ukrDownloadJob = null
+            updateModelStates()
+
+            if (!success) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    R.string.ocr_best_download_error,
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        if (isRus) {
+            rusDownloadJob = job
+        } else {
+            ukrDownloadJob = job
+        }
+    }
+
+    private fun deleteModel(language: String) {
+        val deleted = modelManager.deleteModel(language)
+        if (deleted) {
+            updateModelStates()
+        }
+    }
+
+    private fun formatSizeProgress(bytes: Long, total: Long): String {
+        val totalMb = if (total > 0) total.toFloat() / (1024 * 1024) else 0f
+        val currentMb = bytes.toFloat() / (1024 * 1024)
+        val suffix = if (java.util.Locale.getDefault().language == "ru" || java.util.Locale.getDefault().language == "uk") "МБ" else "MB"
+
+        return if (totalMb > 0) {
+            "%.1f / %.1f %s".format(currentMb, totalMb, suffix)
+        } else {
+            "%.1f %s".format(currentMb, suffix)
+        }
     }
 
     private fun observeData() {
@@ -394,7 +591,24 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
                 setSwitchChecked(binding.rowEnableGoogleLens, settings.enableGoogleLens)
                 setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
-                updateOcrVisibility(settings.enableOcr)
+                updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
+
+                // OCR Engine settings (S0288)
+                if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+                    val ocrEnginePosition = when (settings.ocrEngineType) {
+                        "TESSERACT" -> 0
+                        "PADDLE_OCR" -> 1
+                        else -> 0
+                    }
+                    binding.spinnerOcrEngineType?.setSelection(ocrEnginePosition)
+
+                    val paddleOcrModelPosition = when (settings.paddleOcrModel) {
+                        "CYRILLIC" -> 0
+                        "EAST_SLAVIC" -> 1
+                        else -> 0
+                    }
+                    binding.spinnerPaddleOcrModel?.setSelection(paddleOcrModelPosition)
+                }
 
                 // OCR Font Settings
                 val fontSizePosition = when (settings.ocrDefaultFontSize) {

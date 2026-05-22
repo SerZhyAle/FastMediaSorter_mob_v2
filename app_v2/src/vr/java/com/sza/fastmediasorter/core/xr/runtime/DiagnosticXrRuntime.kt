@@ -49,6 +49,36 @@ interface DiagnosticXrRuntime {
     fun requestExit()
 
     fun shutdown()
+
+    /** Thread-safe: queue a new frame for upload on the render thread during the next frame loop cycle. */
+    fun queueFrame(rgba: ByteArray, width: Int, height: Int)
+
+    /** Returns the native GL-backed video surface for ExoPlayer output, or null before session start. */
+    fun getVideoSurface(): Surface?
+
+    /** Switch media rendering between uploaded RGBA/image texture and the native external video texture. */
+    fun setVideoSurfaceEnabled(enabled: Boolean)
+
+    /** Thread-safe: set projection type (0=360, 1=180, 2=Flat) and stereo layout (0=Mono, 1=TB, 2=SBS) */
+    fun setRenderConfig(projection: Int, layout: Int)
+
+    /** Thread-safe: set stereo parallax shift for the diagnostic shader. */
+    fun setParallaxShift(value: Float)
+
+    /** Thread-safe: queue a filename/text HUD overlay frame to be rendered head-locked */
+    fun queueHud(rgba: ByteArray, width: Int, height: Int)
+
+    /** JNI Pathway: stream interaction data from C++ render loop up to JVM */
+    fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean)
+
+    /** Apply haptic vibration to the specified controller (0 = left, 1 = right) */
+    fun applyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
+
+    /**
+     * Returns the current smoothed frame rate (Hz) measured by the native frame loop.
+     * 0.0 before the second frame has been delivered. Thread-safe; reads an atomic native value.
+     */
+    fun getCurrentFps(): Float
 }
 
 /**

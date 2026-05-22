@@ -3,6 +3,15 @@ param(
     [Parameter(Mandatory)][string] $Id
 )
 
+# Under _lib.ps1's $ErrorActionPreference = 'Stop', Write-Error/throw raise
+# terminating errors that abort the script before reaching `exit 1`. The trap
+# below converts any such terminating error into a proper exit-1 contract,
+# so callers can rely on $LASTEXITCODE.
+trap {
+    Write-Host $_ -ForegroundColor Red
+    exit 1
+}
+
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
@@ -123,3 +132,4 @@ Write-Catalog -Records $allRecords.ToArray()
 
 $movedStr = if ($moved.Count -gt 0) { $moved -join ', ' } else { '(no files found)' }
 Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> temp/done/")
+exit 0

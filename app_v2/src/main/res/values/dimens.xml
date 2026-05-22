@@ -120,6 +120,7 @@
     <!-- Player Activity -->
     <dimen name="player_cmd_button_size">40dp</dimen>
     <dimen name="player_big_button_height">100dp</dimen>
+    <dimen name="player_big_button_top_height">130dp</dimen>
     <!-- Big Buttons Mode: starting value - adjust per S0208 §6.1 / §6.4 device-verify. -->
     <dimen name="player_big_button_min_slot_width">50dp</dimen>
     <!-- Big Buttons Mode: overflow popup row height; visually half of player_big_button_height. -->
@@ -131,7 +132,7 @@
     <dimen name="player_cmd_padding_horizontal">0dp</dimen>
     <dimen name="player_button_padding">2dp</dimen>
     <dimen name="player_audio_overlay_padding">24dp</dimen>
-    <dimen name="player_audio_overlay_margin_bottom">140dp</dimen>
+    <dimen name="player_audio_overlay_margin_bottom">180dp</dimen>
     <dimen name="player_audio_filename_text_size">20sp</dimen>
     <dimen name="player_audio_filename_margin_bottom">16dp</dimen>
     <dimen name="player_audio_info_text_size">14sp</dimen>

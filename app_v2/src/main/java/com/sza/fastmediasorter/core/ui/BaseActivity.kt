@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -55,6 +57,18 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     // Activity.onResume() can fire BEFORE lateinit managers from setupViews() are initialised.
     private var viewsReady = false
     private var resumePending = false
+
+    private val activityMouseDispatchHelper by lazy(LazyThreadSafetyMode.NONE) {
+        ActivityMouseDispatchHelper(
+            rootViewProvider = { _binding?.root },
+            focusedViewProvider = { currentFocus },
+            scrollTargetProvider = { getMouseScrollTargetView() },
+            onContextClick = { view, x, y -> onMouseContextClick(view, x, y) },
+            onMiddleClick = { view -> onMouseMiddleClick(view) },
+            onNavigateBack = { view -> onMouseNavigateBack(view) },
+            onNavigateForward = { view -> onMouseNavigateForward(view) },
+        )
+    }
 
     override fun attachBaseContext(newBase: Context) {
         try {
@@ -113,8 +127,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 resumePending = false
                 onResumeWithViews()
             }
-            // S0230: on TV, set initial focus so the first D-pad press has a target.
-            if (isTvDevice()) {
+            // S0230 + S0289: set initial focus on any non-touch input device.
+            val needsInitialFocus = shouldRequestInitialFocus()
+            if (needsInitialFocus) {
                 getInitialFocusView()?.requestFocus()
             }
             showGmsWarningIfNeeded()
@@ -177,16 +192,25 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
     }
 
-    override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        // S0289 safety net: never route finger taps through the mouse helper. MouseEventHandler
+        // already filters by getToolType(), but adding the guard here makes any future helper
+        // method automatically safe against the same regression (emulator/Quest3/touchpad TVs
+        // can mark touch events with SOURCE_MOUSE in event.source, which used to consume UP
+        // and break click delivery to every interactive view in every Activity).
+        val isFinger = ev?.getToolType(0) == MotionEvent.TOOL_TYPE_FINGER
+        if (!isFinger && _binding != null && activityMouseDispatchHelper.handleTouchEvent(ev)) {
+            return true
+        }
         ev?.let {
-            if (it.action == android.view.MotionEvent.ACTION_DOWN) {
+            if (it.action == MotionEvent.ACTION_DOWN) {
                 com.sza.fastmediasorter.utils.UserActionLogger.logTouch(
-                    action = "DOWN", 
-                    x = it.x, 
-                    y = it.y, 
+                    action = "DOWN",
+                    x = it.x,
+                    y = it.y,
                     context = this::class.simpleName ?: "UnknownActivity"
                 )
-            } else if (it.action == android.view.MotionEvent.ACTION_UP) {
+            } else if (it.action == MotionEvent.ACTION_UP) {
                 com.sza.fastmediasorter.utils.UserActionLogger.logTouch(
                     action = "UP",
                     x = it.x,
@@ -196,6 +220,17 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             }
         }
         return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        // S0289 safety net: generic motion (wheel/hover) from a finger is impossible in
+        // practice, but the guard mirrors dispatchTouchEvent so a future regression cannot
+        // silently consume finger events here either.
+        val isFinger = event.getToolType(0) == MotionEvent.TOOL_TYPE_FINGER
+        if (!isFinger && _binding != null && activityMouseDispatchHelper.handleGenericMotionEvent(event)) {
+            return true
+        }
+        return super.dispatchGenericMotionEvent(event)
     }
 
     private fun showGmsWarningIfNeeded() {
@@ -273,6 +308,38 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     protected open fun getInitialFocusView(): View? = null
 
     /**
+     * Optional explicit target for mouse-wheel scrolling on simple screens.
+     * Default is null so complex surfaces can keep their bespoke wheel routing.
+     */
+    protected open fun getMouseScrollTargetView(): View? = null
+
+    /**
+     * Default context-click behaviour: long-click the current interaction target.
+     */
+    protected open fun onMouseContextClick(view: View, x: Float, y: Float) {
+        if (!view.performLongClick()) {
+            _binding?.root?.performLongClick()
+        }
+    }
+
+    /**
+     * Middle-click is a no-op by default; richer surfaces override it explicitly.
+     */
+    protected open fun onMouseMiddleClick(view: View) = Unit
+
+    /**
+     * Back-button mouse input maps to the Activity back stack by default.
+     */
+    protected open fun onMouseNavigateBack(view: View) {
+        onBackPressedDispatcher.onBackPressed()
+    }
+
+    /**
+     * Forward-button mouse input is screen-specific, so the base contract stays no-op.
+     */
+    protected open fun onMouseNavigateForward(view: View) = Unit
+
+    /**
      * True when the app is running on a TV device (Android TV / Google TV / Fire TV).
      *
      * Uses the dual-check recommended by `developer.android.com/training/tv/get-started/hardware`:
@@ -288,5 +355,26 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         val isTvUiMode = (resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
             Configuration.UI_MODE_TYPE_TELEVISION
         return hasLeanback || isTvUiMode
+    }
+
+    /**
+     * True when the Activity should auto-request initial focus on the view returned by
+     * [getInitialFocusView]. Broader than [isTvDevice] - also covers Quest3 controllers
+     * (which report touch-mode=false on D-pad input) and phones with a connected hardware
+     * keyboard.
+     *
+     * Trigger conditions (any one is enough):
+     * - [isTvDevice] returns true (Android TV / Google TV / Fire TV via Leanback or TV UI mode).
+     * - The window decor is not in touch mode (Quest3 controllers, gamepads, attached mice).
+     * - The active configuration reports a hardware keyboard present.
+     *
+     * Subclasses can override to opt out (return false) on screens where forced initial focus
+     * would be disruptive. S0289.
+     */
+    protected open fun shouldRequestInitialFocus(): Boolean {
+        if (isTvDevice()) return true
+        val notTouchMode = window?.decorView?.isInTouchMode == false
+        val hasHardwareKeyboard = resources.configuration.keyboard != Configuration.KEYBOARD_NOKEYS
+        return notTouchMode || hasHardwareKeyboard
     }
 }

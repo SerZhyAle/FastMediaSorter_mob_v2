@@ -12,7 +12,6 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -28,7 +27,6 @@ class StructuredMediaSniffer @Inject constructor(
 ) {
 
     suspend fun sniff(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> = withContext(Dispatchers.IO) {
-        Timber.d("S0140: pillar-R+S structured-media sniffer (JSON-LD + oEmbed) entry")
         try {
             sniffInternal(rawHtml = rawHtml, baseUri = baseUri)
         } catch (t: Throwable) {

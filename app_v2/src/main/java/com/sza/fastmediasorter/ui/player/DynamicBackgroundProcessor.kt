@@ -238,15 +238,20 @@ class DynamicBackgroundProcessor(
 
     private fun applyBackground(bgBitmap: Bitmap) {
         val previousBitmap = (backgroundView.drawable as? BitmapDrawable)?.bitmap
-        // Apply bitmap and make visible atomically - no GPU effect applied after the fact.
-        backgroundView.isVisible = false
+        // Atomic swap: setImageBitmap on an already-visible ImageView replaces the
+        // drawable in a single frame. Do NOT toggle isVisible false->true around
+        // setImageBitmap - that produces a one-frame gap that reads as a flicker
+        // ("draw, erase, draw"). Only flip visibility on if this is the first
+        // application after clear() / construction.
         backgroundView.setImageBitmap(bgBitmap)
         previousBitmap?.takeIf { !it.isRecycled }?.recycle()
         // Remove any leftover RenderEffect from a previous session
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             backgroundView.setRenderEffect(null)
         }
-        backgroundView.isVisible = true
+        if (!backgroundView.isVisible) {
+            backgroundView.isVisible = true
+        }
         Timber.d("DynamicBg: Background applied")
     }
 }

@@ -4,8 +4,6 @@ import android.app.Activity
 import android.view.Surface
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -23,11 +21,14 @@ import timber.log.Timber
  * points (so no `UnsatisfiedLinkError` storm appears in logcat when the gateway later asks
  * the runtime to start a session).
  *
- * Threading contract: all session lifecycle calls except [requestExit] must come from the
- * render thread owned by `DiagnosticXrActivity`. The Kotlin wrapper hops to `Dispatchers.Default`
- * for `suspend` setup methods, which is acceptable because they happen before the OpenXR loop
- * begins; once the loop runs the only legal entry point is [runFrameLoop] (blocking) and
- * [requestExit] (atomic flag).
+ * Threading contract: **all** session lifecycle calls except [requestExit] must come from the
+ * SAME thread - the render thread owned by `DiagnosticXrActivity`. EGL contexts and GL objects
+ * are thread-confined; OpenXR sessions inherit that confinement. The `suspend` modifier on the
+ * setup methods is purely an API artefact (kept so callers can mix them with coroutine code) -
+ * the methods execute synchronously on the caller's thread. Hopping to `Dispatchers.Default`
+ * would create EGL on a coroutine-pool thread and then leave the render thread without a current
+ * GL context, producing a featureless black composition layer (S0249 post-fix regression
+ * 2026-05-21).
  */
 @Singleton
 class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
@@ -57,46 +58,39 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override suspend fun initSession(activity: Activity): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeInitSession(activity) }.getOrElse {
-                Timber.e(it, "initSession: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        // Intentionally NO Dispatchers hop - see class KDoc threading contract.
+        val ordinal = runCatching { nativeInitSession(activity) }.getOrElse {
+            Timber.e(it, "initSession: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override suspend fun attachSurface(surface: Surface): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeAttachSurface(surface) }.getOrElse {
-                Timber.e(it, "attachSurface: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        val ordinal = runCatching { nativeAttachSurface(surface) }.getOrElse {
+            Timber.e(it, "attachSurface: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override suspend fun startSession(): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeStartSession() }.getOrElse {
-                Timber.e(it, "startSession: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        val ordinal = runCatching { nativeStartSession() }.getOrElse {
+            Timber.e(it, "startSession: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override suspend fun uploadTexture(rgba: ByteArray, width: Int, height: Int): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
-        return withContext(Dispatchers.Default) {
-            val ordinal = runCatching { nativeUploadTexture(rgba, width, height) }.getOrElse {
-                Timber.e(it, "uploadTexture: native call threw")
-                DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
-            }
-            DiagnosticXrNativeResult.fromOrdinal(ordinal)
+        val ordinal = runCatching { nativeUploadTexture(rgba, width, height) }.getOrElse {
+            Timber.e(it, "uploadTexture: native call threw")
+            DiagnosticXrNativeResult.UnexpectedRuntimeError.nativeOrdinal
         }
+        return DiagnosticXrNativeResult.fromOrdinal(ordinal)
     }
 
     override fun runFrameLoop(): DiagnosticXrNativeResult {
@@ -122,11 +116,79 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
+    override fun queueFrame(rgba: ByteArray, width: Int, height: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeQueueFrame(rgba, width, height) }.onFailure {
+            Timber.w(it, "queueFrame: native call threw")
+        }
+    }
+
+    override fun getVideoSurface(): Surface? {
+        if (!isNativeAvailable) return null
+        return runCatching { nativeGetVideoSurface() }.getOrElse {
+            Timber.w(it, "getVideoSurface: native call threw"); null
+        }
+    }
+
+    override fun setVideoSurfaceEnabled(enabled: Boolean) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetVideoSurfaceEnabled(enabled) }.onFailure {
+            Timber.w(it, "setVideoSurfaceEnabled: native call threw")
+        }
+    }
+
+    override fun setRenderConfig(projection: Int, layout: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetRenderConfig(projection, layout) }.onFailure {
+            Timber.w(it, "setRenderConfig: native call threw")
+        }
+    }
+
+    override fun setParallaxShift(value: Float) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetParallaxShift(value) }.onFailure {
+            Timber.w(it, "setParallaxShift: native call threw")
+        }
+    }
+
+    override fun queueHud(rgba: ByteArray, width: Int, height: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeQueueHud(rgba, width, height) }.onFailure {
+            Timber.w(it, "queueHud: native call threw")
+        }
+    }
+
+    override fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean) {
+        // Validation placeholder for phase 03 JNI pathway streaming
+    }
+
+    override fun applyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float) {
+        if (!isNativeAvailable) return
+        runCatching { nativeApplyHaptic(hand, durationSeconds, frequency, amplitude) }.onFailure {
+            Timber.w(it, "applyHaptic: native call threw")
+        }
+    }
+
+    override fun getCurrentFps(): Float {
+        if (!isNativeAvailable) return 0.0f
+        return runCatching { nativeGetCurrentFps() }.getOrElse {
+            Timber.w(it, "getCurrentFps: native call threw"); 0.0f
+        }
+    }
+
     // JNI surface. Method names must match the symbols emitted by `diagnostic_xr_runtime.cpp`.
     private external fun nativeInitSession(activity: Activity): Int
     private external fun nativeAttachSurface(surface: Surface): Int
     private external fun nativeStartSession(): Int
     private external fun nativeUploadTexture(rgba: ByteArray, width: Int, height: Int): Int
+    private external fun nativeQueueFrame(rgba: ByteArray, width: Int, height: Int)
+    private external fun nativeGetVideoSurface(): Surface?
+    private external fun nativeSetVideoSurfaceEnabled(enabled: Boolean)
+    private external fun nativeSetRenderConfig(projection: Int, layout: Int)
+    private external fun nativeSetParallaxShift(value: Float)
+    private external fun nativeQueueHud(rgba: ByteArray, width: Int, height: Int)
+    private external fun nativeApplyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
+    private external fun nativeGetCurrentFps(): Float
     private external fun nativeRunFrameLoop(): Int
     private external fun nativeRequestExit()
     private external fun nativeShutdown()

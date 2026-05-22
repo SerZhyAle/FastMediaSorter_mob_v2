@@ -31,11 +31,27 @@ class DiagnosticXrRenderThread(
     private val textureBytes: ByteArray,
     private val textureWidth: Int,
     private val textureHeight: Int,
+    private val onSessionReady: () -> Unit,
     private val onExitDelivered: () -> Unit,
     private val onStartFailed: (DiagnosticXrNativeResult) -> Unit,
 ) : Thread("S0249.DiagXrRenderThread") {
 
     @Volatile private var exitSignalled: Boolean = false
+
+    /** S0283 Phase 03: current stereo parallax shift in normalized units (0.0 .. 1.0). */
+    @Volatile private var pendingParallaxShift: Float = 0.0f
+
+    /**
+     * S0283 §11.8 / §2.6: live OpenXR frame rate sampled in the native frame loop and exposed
+     * through JNI. Reads an atomic value on each access, so the HUD can call it once per UI tick
+     * without coordinating with the render thread.
+     */
+    val currentFps: Float get() = runtime.getCurrentFps()
+
+    fun setParallaxShift(value: Float) {
+        pendingParallaxShift = value.coerceIn(0.0f, 1.0f)
+        runtime.setParallaxShift(pendingParallaxShift)
+    }
 
     override fun run() {
         Timber.d("DiagnosticXrRenderThread: starting")
@@ -58,6 +74,7 @@ class DiagnosticXrRenderThread(
                 // because the user is staring at a featureless globe in this state.
                 Timber.w("uploadTexture -> $uploadResult; proceeding with placeholder texture")
             }
+            onSessionReady()
             val loopResult = runtime.runFrameLoop()
             Timber.d("frame loop returned $loopResult")
         } catch (t: Throwable) {

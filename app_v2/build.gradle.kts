@@ -1,5 +1,153 @@
-import java.util.Properties
 import java.io.FileInputStream
+import java.io.File
+import java.util.Properties
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+
+@CacheableTask
+abstract class VerifyNoPlatformNamesTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val denyListFile: RegularFileProperty
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val baselineFile: RegularFileProperty
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val sourceFiles: ConfigurableFileCollection
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val projectRootMarker: RegularFileProperty
+
+    @get:OutputFile
+    abstract val reportFile: RegularFileProperty
+
+    @TaskAction
+    fun verify() {
+        val tokens = denyListFile.asFile.get().readLines()
+            .map(String::trim)
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .map { token -> token to buildPattern(token) }
+
+        val baseline = baselineFile.asFile.get().readLines()
+            .map(String::trimEnd)
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .map { entry ->
+                val tabIndex = entry.indexOf('\t')
+                require(tabIndex > 0) {
+                    "Invalid baseline entry in ${baselineFile.asFile.get()}: $entry"
+                }
+                val path = entry.substring(0, tabIndex).replace('\\', '/')
+                val line = entry.substring(tabIndex + 1)
+                path to line
+            }
+            .toSet()
+
+        val violations = mutableListOf<String>()
+        var scannedFilesCount = 0
+
+        val projectRoot = projectRootMarker.asFile.get().parentFile.canonicalFile
+
+        sourceFiles.files
+            .filter(File::exists)
+            .sortedBy { normalizePath(projectRoot, it) }
+            .forEach { file ->
+                scannedFilesCount += 1
+                val relativePath = normalizePath(projectRoot, file)
+                var previousNonEmptyTrimmed = ""
+
+                file.readLines().forEachIndexed { index, rawLine ->
+                    val trimmed = rawLine.trim()
+                    val suppressed = trimmed.contains(SUPPRESSION_MARKER) ||
+                        previousNonEmptyTrimmed.contains(SUPPRESSION_MARKER)
+                    val commentOnly = isCommentOnly(file.extension.lowercase(), trimmed)
+
+                    if (!suppressed && !commentOnly) {
+                        val matches = tokens.mapNotNull { (token, pattern) ->
+                            token.takeIf { pattern.containsMatchIn(rawLine) }
+                        }
+
+                        if (matches.isNotEmpty()) {
+                            val baselineKey = relativePath to trimmed
+                            if (!baseline.contains(baselineKey)) {
+                                violations += "$relativePath:${index + 1} -> ${matches.joinToString(", ")} :: $trimmed"
+                            }
+                        }
+                    }
+
+                    if (trimmed.isNotEmpty()) {
+                        previousNonEmptyTrimmed = trimmed
+                    }
+                }
+            }
+
+        val report = reportFile.asFile.get()
+        report.parentFile.mkdirs()
+
+        if (violations.isNotEmpty()) {
+            report.writeText(violations.joinToString(System.lineSeparator()))
+            throw GradleException(
+                buildString {
+                    appendLine("Forbidden platform literals detected in market sources or public FEATURES docs.")
+                    appendLine("Remove the literal, add an inline '$SUPPRESSION_MARKER <reason>' marker, or add a reviewed legacy entry to app_v2/compliance/platform-name-baseline.txt.")
+                    appendLine()
+                    violations.take(MAX_PRINTED_VIOLATIONS).forEach { appendLine(it) }
+                    val remaining = violations.size - MAX_PRINTED_VIOLATIONS
+                    if (remaining > 0) {
+                        appendLine(".. and $remaining more. Full report: ${report.invariantSeparatorsPath}")
+                    }
+                }
+            )
+        }
+
+        report.writeText("OK scanned=$scannedFilesCount tokens=${tokens.size}${System.lineSeparator()}")
+    }
+
+    private fun buildPattern(token: String): Regex {
+        val escaped = Regex.escape(token)
+        val options = if (token.contains('.')) {
+            setOf(RegexOption.IGNORE_CASE)
+        } else {
+            emptySet()
+        }
+        return Regex("(?<![A-Za-z0-9_])$escaped(?![A-Za-z0-9_])", options)
+    }
+
+    private fun isCommentOnly(extension: String, trimmed: String): Boolean {
+        if (trimmed.isBlank()) {
+            return false
+        }
+        return when (extension) {
+            "kt", "java", "kts" -> trimmed.startsWith("//") ||
+                trimmed.startsWith("/*") ||
+                trimmed.startsWith("*") ||
+                trimmed.startsWith("*/")
+            "xml" -> trimmed.startsWith("<!--")
+            else -> false
+        }
+    }
+
+    private fun normalizePath(projectRoot: File, file: File): String =
+        projectRoot.toPath().relativize(file.canonicalFile.toPath()).toString().replace('\\', '/')
+
+    companion object {
+        const val SUPPRESSION_MARKER = "allow-platform-literal:"
+        private const val MAX_PRINTED_VIOLATIONS = 20
+    }
+}
 
 plugins {
     id("com.android.application")
@@ -37,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260520230
-        versionName = "2.60.5202.303"
+        versionCode = 260522032
+        versionName = "2.60.5220.322"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -607,6 +755,45 @@ android {
         xmlReport = true
         xmlOutput = file("build/reports/lint-results.xml")
     }
+}
+
+val complianceSourceRoots = listOf(
+    "src/main",
+    "src/legacy",
+    "src/lite",
+    "src/photos",
+    "src/vr",
+)
+
+val verifyNoPlatformNames = tasks.register<VerifyNoPlatformNamesTask>("verifyNoPlatformNames") {
+    group = "verification"
+    description = "Fails the build when a new forbidden platform literal appears in market sources or public FEATURES docs."
+    denyListFile.set(layout.projectDirectory.file("compliance/platform-name-denylist.txt"))
+    baselineFile.set(layout.projectDirectory.file("compliance/platform-name-baseline.txt"))
+    projectRootMarker.set(rootProject.layout.projectDirectory.file("settings.gradle.kts"))
+    sourceFiles.from(
+        complianceSourceRoots
+            .map { layout.projectDirectory.dir(it).asFile }
+            .filter(File::exists)
+            .map { root ->
+                project.fileTree(root) {
+                    include("**/*.kt")
+                    include("**/*.java")
+                    include("**/*.xml")
+                    include("**/*.kts")
+                }
+            }
+    )
+    sourceFiles.from(
+        rootProject.layout.projectDirectory.file("docs/FEATURES.md"),
+        rootProject.layout.projectDirectory.file("docs/FEATURES_RU.md"),
+        rootProject.layout.projectDirectory.file("docs/FEATURES_UK.md"),
+    )
+    reportFile.set(layout.buildDirectory.file("reports/compliance/verifyNoPlatformNames.txt"))
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(verifyNoPlatformNames)
 }
 
 // Replaces the legacy applicationVariants.all { } block (removed in AGP 10.0).

@@ -238,7 +238,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     private fun refreshSaveButtonState() {
         val cookieCount = currentCookies().size
-        Timber.d("S0140: pillar-V auth-flow save-button gate cookies=$cookieCount")
         saveButton?.isEnabled = cookieCount > 0
     }
 

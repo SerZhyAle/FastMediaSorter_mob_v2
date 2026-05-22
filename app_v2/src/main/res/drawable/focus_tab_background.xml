@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0289: Focus-state selector for TabLayout items.
+  Same 2dp stroke as focus_button_background; default state transparent so the host
+  TabLayout indicator/text styling renders normally.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="@color/focus_button_stroke" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <item android:state_hovered="true">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="@color/focus_button_stroke" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+</selector>

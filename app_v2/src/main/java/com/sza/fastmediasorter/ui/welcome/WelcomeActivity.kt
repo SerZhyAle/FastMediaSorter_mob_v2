@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -543,11 +545,21 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         }
     }
 
+    /** S0289 Phase 09: multimodal surface marker - first-run / welcome flow. */
+    @Suppress("unused")
+    private val multimodalInputSurface: InputSurface = InputSurface.WELCOME
+
     /**
      * On TV, set initial focus to the primary forward-action button so the first D-pad
      * press is immediately actionable without a random "focus init" key press.
      */
-    override fun getInitialFocusView(): View = binding.btnNext
+    override fun getInitialFocusView(): View {
+        Timber.d("S0289: welcome initial-focus / wheel viewPager step=$currentPage")
+        return binding.btnNext
+    }
+
+    /** S0289 Phase 09: route mouse wheel onto the onboarding pager. */
+    override fun getMouseScrollTargetView(): View? = binding.viewPager
 
     companion object {
         private const val KEY_CURRENT_PAGE = "key_current_page"

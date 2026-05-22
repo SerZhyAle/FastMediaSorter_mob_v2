@@ -123,9 +123,17 @@ class MouseEventHandler(
     }
 
     private fun isMouseEvent(event: MotionEvent): Boolean {
-        val source = event.source
-        return (source and InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE ||
-            (source and InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS ||
+        // S0289: do NOT rely on event.source - on the Android emulator, Quest3 controller
+        // pointer and TV/Chromebook devices with touchpad the touchscreen-injected events
+        // can carry SOURCE_MOUSE in event.source while still being finger taps. Misclassifying
+        // them as mouse-up consumes the UP and breaks click delivery to MaterialButton etc.
+        // getToolType(pointerIndex) reports the real input tool per pointer and is the only
+        // reliable discriminator across these devices.
+        val tool = event.getToolType(0)
+        if (tool == MotionEvent.TOOL_TYPE_FINGER) return false
+        return tool == MotionEvent.TOOL_TYPE_MOUSE ||
+            tool == MotionEvent.TOOL_TYPE_STYLUS ||
+            tool == MotionEvent.TOOL_TYPE_ERASER ||
             event.buttonState != 0
     }
 
@@ -170,40 +178,67 @@ class MouseEventHandler(
 
     /**
      * Dispatch a secondary button press via [keyBindingManager] (resolver path) or
-     * return false when no binding is found.
+     * fall back to the shared legacy defaults when the current surface has not
+     * been migrated onto the resolver path yet.
      * Wheel is not remappable in v1 (see spec §7 + §10 "analog threshold UX" item).
      */
     private fun dispatchSecondaryButton(view: View, event: MotionEvent, button: Int): Boolean {
-        val manager = keyBindingManager ?: return false
-        val trigger = InputTrigger.MouseButton(button)
-        val commandId = manager.resolve(trigger, surface) ?: return false
-        Timber.d("%s: mouse button=%d resolved → %s", TAG, button, commandId)
-        return when (commandId) {
-            CommandId.NEXT_FILE -> {
-                callbacks.onNavigateForward(view)
-                callbacks.onInputAction(view, InputAction.MouseNavigateForward)
-                true
+        val manager = keyBindingManager
+        if (manager != null) {
+            val trigger = InputTrigger.MouseButton(button)
+            val commandId = manager.resolve(trigger, surface) ?: return false
+            Timber.d("%s: mouse button=%d resolved → %s", TAG, button, commandId)
+            return when (commandId) {
+                CommandId.NEXT_FILE -> {
+                    callbacks.onNavigateForward(view)
+                    callbacks.onInputAction(view, InputAction.MouseNavigateForward)
+                    true
+                }
+                CommandId.PREVIOUS_FILE -> {
+                    callbacks.onNavigateBack(view)
+                    callbacks.onInputAction(view, InputAction.MouseNavigateBack)
+                    true
+                }
+                CommandId.FAVOURITE -> {
+                    callbacks.onMiddleClick(view)
+                    callbacks.onInputAction(view, InputAction.ToggleFavourite)
+                    true
+                }
+                CommandId.FILE_OPS -> {
+                    callbacks.onRightClick(view, event.x, event.y)
+                    callbacks.onInputAction(view, InputAction.ShowContextMenuAt(event.x, event.y))
+                    true
+                }
+                else -> {
+                    // Resolved but no specific legacy bridge - action consumed; callers may
+                    // intercept via onInputAction(view, ShowContextMenu) for catch-all right-click.
+                    true
+                }
             }
-            CommandId.PREVIOUS_FILE -> {
-                callbacks.onNavigateBack(view)
-                callbacks.onInputAction(view, InputAction.MouseNavigateBack)
-                true
-            }
-            CommandId.FAVOURITE -> {
-                callbacks.onMiddleClick(view)
-                callbacks.onInputAction(view, InputAction.ToggleFavourite)
-                true
-            }
-            CommandId.FILE_OPS -> {
+        }
+
+        return when (button) {
+            MotionEvent.BUTTON_SECONDARY -> {
                 callbacks.onRightClick(view, event.x, event.y)
                 callbacks.onInputAction(view, InputAction.ShowContextMenuAt(event.x, event.y))
                 true
             }
-            else -> {
-                // Resolved but no specific legacy bridge - action consumed; callers may
-                // intercept via onInputAction(view, ShowContextMenu) for catch-all right-click.
+            MotionEvent.BUTTON_TERTIARY -> {
+                callbacks.onMiddleClick(view)
+                callbacks.onInputAction(view, InputAction.ToggleFavourite)
                 true
             }
+            MotionEvent.BUTTON_BACK -> {
+                callbacks.onNavigateBack(view)
+                callbacks.onInputAction(view, InputAction.MouseNavigateBack)
+                true
+            }
+            MotionEvent.BUTTON_FORWARD -> {
+                callbacks.onNavigateForward(view)
+                callbacks.onInputAction(view, InputAction.MouseNavigateForward)
+                true
+            }
+            else -> false
         }
     }
 

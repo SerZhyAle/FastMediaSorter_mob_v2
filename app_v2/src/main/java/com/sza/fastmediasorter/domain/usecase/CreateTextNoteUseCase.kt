@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -57,8 +58,12 @@ class CreateTextNoteUseCase @Inject constructor(
         // Append .txt if the name has no extension
         val finalName = if (trimmedName.contains('.')) trimmedName else "$trimmedName.txt"
 
+        val resolvedParentPath = TextNoteTargetPolicy.resolveParentPath(resource, parentPath)
+        TextNoteTargetPolicy.ensureFallbackDirectoryIfNeeded(resource, resolvedParentPath)
+            .onFailure { return@withContext Result.failure(it) }
+
         fileOperationHandler.executeCreateTextFile(
-            parentPath = parentPath,
+            parentPath = resolvedParentPath,
             fileName = finalName,
             resourceId = resource.id,
             content = content

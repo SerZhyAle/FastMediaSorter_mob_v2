@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
+import com.sza.fastmediasorter.data.browser.GoogleDomainMatcher
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -213,6 +214,16 @@ class ReceiveShareActivity : AppCompatActivity() {
             processLinkAutoDownload(url, accountId = null)
             return
         }
+        // S0281: Google OAuth-only hosts (google.com, accounts.google.com, youtube.com,
+        // music.youtube.com and subdomains) cannot store cookies in the local auth store
+        // because S0200 ADR-4 mandates Chrome Custom Tabs (no cookie-return channel) and
+        // Google's OAuth policy forbids WebView. The auth-offer dialog is architecturally
+        // useless for these hosts - route them through the silent unknown-host path.
+        if (GoogleDomainMatcher.isGoogleAuthHost(Uri.parse(url))) {
+            Timber.d("S0281: ReceiveShareActivity.maybeOfferAuthThenDownload skip auth for google host=%s", host)
+            enqueueLinkDownloadSilent(url)
+            return
+        }
         val resource = KnownAuthResources.matchHost(host)
         lifecycleScope.launch {
             if (authSessionRepository.isDismissedForHost(host)) {
@@ -370,6 +381,15 @@ class ReceiveShareActivity : AppCompatActivity() {
      */
     private fun handleReAuthFromNotification(url: String) {
         val host = Uri.parse(url).host.orEmpty()
+        // S0281: same rationale as the share path - google-OAuth-only hosts cannot
+        // store cookies (CCT has no return channel, Google forbids WebView), so the
+        // "Sign in" notification action must not open the auth-offer dialog either.
+        // Re-enqueue silently and let the worker run its standard pipeline.
+        if (GoogleDomainMatcher.isGoogleAuthHost(Uri.parse(url))) {
+            Timber.d("S0281: ReceiveShareActivity.handleReAuthFromNotification skip google host=%s", host)
+            processLinkAutoDownload(url, accountId = null)
+            return
+        }
         lifecycleScope.launch {
             val dismissed = host.isNotBlank() && authSessionRepository.isDismissedForHost(host)
             if (dismissed) {
@@ -480,6 +500,21 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
         val hostForEscalation = Uri.parse(url).host.orEmpty()
         if (hostForEscalation.isBlank() || KnownAuthResources.matchHost(hostForEscalation) != null) {
+            cleanupAndFinish()
+            return
+        }
+        // S0281: google-OAuth-only hosts must not escalate to auth-offer for the same
+        // reason as the share path (no cookie-return channel via CCT). Defense-in-depth
+        // alongside Step 02.5 KnownAuthResources cleanup - this branch survives even if
+        // a future change re-adds google entries to the known-social list.
+        if (GoogleDomainMatcher.isGoogleAuthHost(Uri.parse(url))) {
+            Timber.d("S0281: ReceiveShareActivity.handleNoMediaFoundEscalation skip google host=%s", hostForEscalation)
+            // S0281 Q2 (owner decision: once-per-failed-extract): inform the user why
+            // we did not offer "add authorization" when the extractor returned no media
+            // for a google-domain URL. authOfferShown is already true if any prior path
+            // showed a dialog, so this toast is naturally one-shot per Activity.
+            Timber.d("S0281: ReceiveShareActivity show oauth-only note variant=once-per-failed-extract")
+            Toast.makeText(this, R.string.s0281_google_oauth_only_note, Toast.LENGTH_LONG).show()
             cleanupAndFinish()
             return
         }

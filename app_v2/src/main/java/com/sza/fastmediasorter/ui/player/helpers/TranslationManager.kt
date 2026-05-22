@@ -17,10 +17,21 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import com.sza.fastmediasorter.domain.model.AppSettings
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface TranslationOcrEntryPoint {
+    fun offlineOcrEngineProvider(): OfflineOcrEngineProvider
+}
 
 /**
  * Manages ML Kit clients for translation and OCR:
@@ -33,10 +44,15 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 class TranslationManager(
     private val context: Context,
     private val callback: TranslationCallback,
-    private val settingsRepository: com.sza.fastmediasorter.domain.repository.SettingsRepository
+    private val settingsRepository: com.sza.fastmediasorter.domain.repository.SettingsRepository,
+    private val providedOfflineOcrEngineProvider: OfflineOcrEngineProvider? = null
 ) {
-    
-    private val tesseractManager = TesseractManager(context)
+
+    private val offlineOcrEngineProvider: OfflineOcrEngineProvider by lazy {
+        providedOfflineOcrEngineProvider
+            ?: EntryPointAccessors.fromApplication(context.applicationContext, TranslationOcrEntryPoint::class.java)
+                .offlineOcrEngineProvider()
+    }
     
     /**
      * Data class representing a text block with position and translation
@@ -698,16 +714,19 @@ class TranslationManager(
     suspend fun recognizeText(bitmap: Bitmap, sourceLangCode: String = "auto"): String? {
         // Try Tesseract for Cyrillic languages first, or if auto
         if (sourceLangCode in CYRILLIC_LANGUAGES || sourceLangCode == "auto") {
+            val settings = settingsRepository.getSettings().first()
             val tessLang = mlKitToTesseractLang(sourceLangCode)
-            Timber.d("TranslationManager.recognizeText: Trying Tesseract for $sourceLangCode (tess=$tessLang)")
-            val tesseractResult = tesseractManager.recognizeText(bitmap, tessLang)
-            Timber.d("Tesseract raw result: ${tesseractResult?.take(100)} (length=${tesseractResult?.length})")
-            if (!tesseractResult.isNullOrBlank()) {
-                val cleanedText = cleanOcrText(tesseractResult)
-                Timber.d("Tesseract recognition successful: ${cleanedText.length} chars (cleaned from ${tesseractResult.length})")
+            val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLangCode)
+            Timber.d("S0288: TranslationManager.recognizeText entered engine=${settings.ocrEngineType} source=$sourceLangCode")
+            Timber.d("TranslationManager.recognizeText: Trying offline OCR engine=${settings.ocrEngineType} for $sourceLangCode")
+            val ocrResult = offlineOcrEngineProvider.recognizeTextWithFallback(settings, bitmap, sourceLangCode, tessLang, ocrEngine)
+            Timber.d("Offline OCR raw result: ${ocrResult?.take(100)} (length=${ocrResult?.length})")
+            if (!ocrResult.isNullOrBlank()) {
+                val cleanedText = cleanOcrText(ocrResult)
+                Timber.d("Offline OCR recognition successful: ${cleanedText.length} chars (cleaned from ${ocrResult.length})")
                 return cleanedText
             }
-            Timber.w("Tesseract failed or returned empty, falling back to ML Kit")
+            Timber.w("Offline OCR failed or returned empty, falling back to ML Kit")
         }
 
         return try {
@@ -804,13 +823,16 @@ class TranslationManager(
         val shouldUseTesseract = sourceLang in CYRILLIC_LANGUAGES || sourceLang == "auto"
 
         if (shouldUseTesseract) {
+            val settings = settingsRepository.getSettings().first()
             val tessLang = mlKitToTesseractLang(sourceLang)
-            Timber.d("TranslationManager.recognizeAndTranslateBlocks: Trying Tesseract (source=$sourceLang, tess=$tessLang, target=$targetLang)")
-            val tesseractBlocks = tesseractManager.recognizeTextBlocks(bitmap, tessLang)
+            val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLang)
+            Timber.d("S0288: TranslationManager.recognizeAndTranslateBlocks entered engine=${settings.ocrEngineType} source=$sourceLang target=$targetLang")
+            Timber.d("TranslationManager.recognizeAndTranslateBlocks: Trying offline OCR engine=${settings.ocrEngineType} (source=$sourceLang, target=$targetLang)")
+            val ocrBlocks = offlineOcrEngineProvider.recognizeTextBlocksWithFallback(settings, bitmap, sourceLang, tessLang, ocrEngine)
             
-            if (!tesseractBlocks.isNullOrEmpty()) {
+            if (!ocrBlocks.isNullOrEmpty()) {
                 // Filter out low-quality blocks before translation
-                val filteredBlocks = tesseractBlocks.filter { block ->
+                val filteredBlocks = ocrBlocks.filter { block ->
                     // 1. Minimum confidence threshold
                     if (block.confidence < 30f) {
                         Timber.d("Filtered block (low confidence ${block.confidence}): '${block.text.take(20)}...'")
@@ -843,7 +865,7 @@ class TranslationManager(
                     true
                 }
                 
-                Timber.d("Tesseract: ${tesseractBlocks.size} raw blocks → ${filteredBlocks.size} after filtering")
+                Timber.d("Offline OCR: ${ocrBlocks.size} raw blocks → ${filteredBlocks.size} after filtering")
                 
                 val translatedBlocks = mutableListOf<TranslatedTextBlock>()
                 for (block in filteredBlocks) {
@@ -860,11 +882,11 @@ class TranslationManager(
                     }
                 }
                 if (translatedBlocks.isNotEmpty()) {
-                    Timber.d("Tesseract block recognition successful: ${translatedBlocks.size} blocks")
+                    Timber.d("Offline OCR block recognition successful: ${translatedBlocks.size} blocks")
                     return translatedBlocks
                 }
             }
-            Timber.w("Tesseract failed or returned empty blocks, falling back to ML Kit")
+            Timber.w("Offline OCR failed or returned empty blocks, falling back to ML Kit")
         }
 
         return try {
@@ -957,6 +979,6 @@ class TranslationManager(
         textRecognizer?.close()
         textRecognizer = null
 
-        tesseractManager.release()
+        offlineOcrEngineProvider.release()
     }
 }

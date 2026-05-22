@@ -42,6 +42,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     // S0245: flavor-supplied extra Settings tabs (currently only the VR flavor adds an entry).
     @Inject lateinit var settingsTabExtensions: Set<@JvmSuppressWildcards SettingsTabExtension>
 
+    // S0284: auto-indexed settings search registry (replaces the static SettingsSearchRegistry object).
+    @Inject lateinit var settingsSearchRegistry: com.sza.fastmediasorter.ui.settings.search.SettingsSearchRegistry
+
     private val viewModel: SettingsViewModel by viewModels()
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
@@ -186,7 +189,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         })
 
         setupGlobalSearch()
-        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${SettingsSearchRegistry.entries.size} search entries)")
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${settingsSearchRegistry.entries.size} search entries)")
 
         // S0196 Phase 04 measurement hook: posted AFTER the conditional setCurrentItem posts
         // above, so it fires once the initial tab fragment is laid out - "primary content
@@ -305,7 +308,13 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * toolbar. ViewPager2 forwards the focus request to the currently-bound fragment's first
      * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
      */
-    override fun getInitialFocusView(): View? = binding.viewPager
+    override fun getInitialFocusView(): View? {
+        Timber.d("S0289: settings initial-focus / wheel viewPager")
+        return binding.viewPager
+    }
+
+    /** S0289 Phase 09: route mouse wheel onto the settings pager so each tab fragment scrolls naturally. */
+    override fun getMouseScrollTargetView(): View? = binding.viewPager
 
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)
@@ -324,11 +333,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             searchDebounceJob?.cancel()
             searchDebounceJob = lifecycleScope.launch {
                 delay(250)
-                updateSearchResults(SettingsSearchRegistry.search(query))
+                updateSearchResults(settingsSearchRegistry.search(query))
             }
         }
 
-        updateSearchResults(SettingsSearchRegistry.entries)
+        updateSearchResults(settingsSearchRegistry.entries)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -353,11 +362,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun openSearchOverlay() {
+        Timber.d("S0284: open settings search overlay")
         binding.searchOverlay.isVisible = true
         if (binding.searchInput.text?.isNotEmpty() == true) {
             binding.searchInput.setText("")
         }
-        updateSearchResults(SettingsSearchRegistry.entries)
+        updateSearchResults(settingsSearchRegistry.entries)
         binding.searchInput.requestFocus()
     }
 

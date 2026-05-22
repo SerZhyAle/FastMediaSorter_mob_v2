@@ -8,9 +8,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.net.Uri
-import android.view.InputDevice
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -234,11 +232,51 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     // S0230 Phase 02 - TV initial focus on the file list so the first D-pad press lands on a row.
-    override fun getInitialFocusView(): android.view.View = binding.rvMediaFiles
+    // S0289: when list is empty, fall back to btnBack so D-pad has a visible target.
+    override fun getInitialFocusView(): android.view.View {
+        Timber.d("S0289: browse initial-focus / wheel target rvMediaFiles")
+        val state = viewModel.state.value
+        return if (state.mediaFiles.isNotEmpty()) binding.rvMediaFiles else binding.btnBack
+    }
+
+    /** S0289 Phase 08: route mouse wheel through the shared activity helper. */
+    override fun getMouseScrollTargetView(): android.view.View? = binding.rvMediaFiles
+
+    /**
+     * S0289: rebuild the horizontal focus chain across only the currently-visible control buttons.
+     * Skipped (View.GONE) buttons drop out of nextFocusLeft / nextFocusRight so the chain stays
+     * contiguous after a state-driven visibility flip.
+     */
+    private fun restitchBrowseControlChain() {
+        val candidates = listOf(
+            binding.btnBack,
+            binding.btnSort,
+            binding.btnFilter,
+            binding.btnRefresh,
+            binding.btnToggleView,
+            binding.btnSelectAll,
+            binding.btnDeselectAll,
+            binding.btnCreateFolder,
+            binding.btnCreateTextFile,
+            binding.btnCreateDrawing,
+            binding.btnResourceOps,
+            binding.btnMicRecord,
+            binding.btnPlayRandom,
+            binding.btnPlay
+        ).filter { it.visibility == android.view.View.VISIBLE }
+        if (candidates.isEmpty()) return
+        candidates.forEachIndexed { i, btn ->
+            val prev = if (i > 0) candidates[i - 1].id else android.view.View.NO_ID
+            val next = if (i < candidates.lastIndex) candidates[i + 1].id else android.view.View.NO_ID
+            btn.nextFocusLeftId = prev
+            btn.nextFocusRightId = next
+        }
+    }
 
     override fun setupViews() {
         com.sza.fastmediasorter.ui.browse.managers.BrowseEdgeToEdgeHelper.apply(binding)
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()
+        restitchBrowseControlChain()
         passwordManager = ResourcePasswordManager(context = this, layoutInflater = layoutInflater)
         Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")
 
@@ -413,18 +451,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             is GamepadAction.BrowserAction.SwitchTab -> binding.btnToggleView.performClick()
         }
         return true
-    }
-
-    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_SCROLL && event.isFromSource(InputDevice.SOURCE_CLASS_POINTER)) {
-            val vScroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-            if (vScroll != 0f) {
-                val scrollFactor = binding.rvMediaFiles.context.resources.displayMetrics.density * 64f
-                binding.rvMediaFiles.scrollBy(0, (-vScroll * scrollFactor).toInt())
-                return true
-            }
-        }
-        return super.onGenericMotionEvent(event)
     }
 
     override fun onResumeWithViews() {

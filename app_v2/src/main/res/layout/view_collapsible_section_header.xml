@@ -8,6 +8,7 @@
         android:background="?attr/colorSurfaceVariant"
         android:clickable="true"
         android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="@dimen/settings_padding_vertical">

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.graphics.Color
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -51,7 +52,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
     // ── Top command panel ─────────────────────────────────────────────────────────────────────
 
     /**
-     * Scales [topCommandPanel] to 2× its current measured height and distributes
+     * Scales [topCommandPanel] to the Big Buttons top-panel height and distributes
      * [visibleButtons] + [overflowButton] equally across the full panel width.
      * Each ImageButton is wrapped in a vertical LinearLayout that includes a short-label TextView.
      * Idempotent: second call with the same panel is a no-op.
@@ -65,8 +66,8 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         if (!bigButtonsMode) return
         if (topPanelSavedStates.isNotEmpty()) return // already applied
 
-        // S0158/S0208: fixed dimen prevents runaway growth on restore→apply cycles.
-        val buttonHeight = topCommandPanel.resources.getDimensionPixelSize(R.dimen.player_big_button_height)
+        // S0158/S0208: fixed dimen prevents runaway growth on restore/apply cycles.
+        val buttonHeight = topCommandPanel.resources.getDimensionPixelSize(R.dimen.player_big_button_top_height)
 
         val panelParams = topCommandPanel.layoutParams
         topPanelOriginalHeight = topPanelOriginalHeight ?: panelParams.height
@@ -133,9 +134,10 @@ class PlayerBigButtonsModeManager(private val context: Context) {
                         LinearLayout.LayoutParams.MATCH_PARENT, 0, 3f
                     )
                     text = getShortLabel(button)
-                    textSize = context.resources.getDimension(
-                        R.dimen.player_big_button_top_label_text_size
-                    ) / context.resources.displayMetrics.scaledDensity
+                    setTextSize(
+                        TypedValue.COMPLEX_UNIT_PX,
+                        context.resources.getDimension(R.dimen.player_big_button_top_label_text_size)
+                    )
                     gravity = Gravity.CENTER
                     setTextColor(Color.WHITE)
                     maxLines = 1

@@ -561,7 +561,7 @@ Close the player and try again.</string>
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
     <string name="destinations_list">Quick Sort (0-9)</string>
     <string name="destinations_description">Up to 30 quick sort folders. Each has a color and number.</string>
-    <string name="add_destination">Add to Quick Sort</string>
+    <string name="add_destination">+ Add</string>
     <string name="destinations_list_header">Quick Sort destinations</string>
     <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
     <string name="register_as_destination">Mark for quick sort</string>
@@ -1061,7 +1061,7 @@ Close the player and try again.</string>
     <string name="big_buttons_mode_title">Big Buttons Mode</string>
     <string name="big_buttons_mode_summary">Enlarges player buttons and expands controls to full width - ideal for car head units</string>
     <string name="tooltip_big_buttons_mode_title">Big Buttons Mode</string>
-    <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 10 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
+    <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 9 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
     <string name="big_btn_short_playback_order">Order</string>
     <string name="big_btn_short_delete">Delete</string>
     <string name="big_btn_short_favorite">Fav</string>
@@ -1946,6 +1946,25 @@ Close the player and try again.</string>
     <string name="ocr_error">Could not recognize the text.</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="text_copied">Text copied to clipboard</string>
+
+    <!-- OCR Engine and PaddleOCR Models (S0288) -->
+    <string name="ocr_engine_type">OCR Engine</string>
+    <string name="ocr_engine_type_tesseract">Tesseract (Default)</string>
+    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
+    <string name="paddle_ocr_model">PaddleOCR Model</string>
+    <string name="paddle_ocr_model_cyrillic">Cyrillic (PP-OCRv5 Mobile)</string>
+    <string name="paddle_ocr_model_eslav">East Slavic (PP-OCRv5 Mobile, More Accurate)</string>
+
+    <!-- OCR Best Models Feature -->
+    <string name="ocr_best_models_title">High-Quality Offline Models</string>
+    <string name="ocr_best_rus_title">Russian Model</string>
+    <string name="ocr_best_ukr_title">Ukrainian Model</string>
+    <string name="ocr_best_model_download">Download</string>
+    <string name="ocr_best_model_delete">Delete</string>
+    <string name="ocr_best_model_installed">Installed</string>
+    <string name="ocr_best_model_downloading">Downloading: %1$d%% (%2$s)</string>
+    <string name="ocr_best_model_size_mb">High-quality best model (~%1$s MB)</string>
+    <string name="ocr_best_download_error">Download failed. Check network connection.</string>
 
     <!-- Media Settings Categories -->
     <string name="media_category_images">Images</string>
@@ -3545,4 +3564,5 @@ Close the player and try again.</string>
     <string name="setting_show_pdf_thumbnails_desc">Generates large preview images for PDFs (slower on remote sources)</string>
     <string name="file_operation_progress_preparing">Preparing..</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
+    <string name="s0281_google_oauth_only_note">Couldn\'t get this YouTube content. Sign-in isn\'t stored here..</string>
 </resources>

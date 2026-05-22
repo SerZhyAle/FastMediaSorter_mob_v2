@@ -661,7 +661,7 @@
     <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
     <string name="destinations_list">Швидке сортування (0-9)</string>
     <string name="destinations_description">До 10 тек швидкого сортування. Кожна має колір і номер (0-9).</string>
-    <string name="add_destination">Додати до швидкого сортування</string>
+    <string name="add_destination">+ Додати</string>
     <string name="destinations_list_header">Призначення швидкого сортування</string>
     <string name="add_resources_first_message">Спочатку додайте теки на головному екрані, перш ніж позначати їх для швидкого сортування.</string>
     <string name="register_as_destination">Швидке сортування</string>
@@ -917,7 +917,7 @@
     <string name="big_buttons_mode_title">Режим великі кнопки</string>
     <string name="big_buttons_mode_summary">Збільшує кнопки плеєра й розтягує керування на всю ширину - зручно для автомагнітол</string>
     <string name="tooltip_big_buttons_mode_title">Режим великі кнопки</string>
-    <string name="tooltip_big_buttons_mode_message">Кнопки керування плеєром стають більшими й займають всю ширину екрана. На верхній панелі міститься від 5 до 10 кнопок залежно від доступної ширини; решта переходять до меню. У горизонтальній орієнтації висока нижня панель може зменшити область відтворення.</string>
+    <string name="tooltip_big_buttons_mode_message">Кнопки керування плеєром стають більшими й займають всю ширину екрана. На верхній панелі міститься від 5 до 9 кнопок залежно від доступної ширини; решта переходять до меню. У горизонтальній орієнтації висока нижня панель може зменшити область відтворення.</string>
     <string name="big_btn_short_playback_order">Порядок</string>
     <string name="big_btn_short_delete">Видалити</string>
     <string name="big_btn_short_favorite">Вибр.</string>
@@ -2091,6 +2091,25 @@
     <string name="search_counter_default">0/0</string>
     <string name="syntax_highlighting">Syntax Highlighting</string>
     <string name="text_copied">Text copied to clipboard</string>
+
+    <!-- OCR Engine and PaddleOCR Models (S0288) -->
+    <string name="ocr_engine_type">Двигун OCR</string>
+    <string name="ocr_engine_type_tesseract">Tesseract (за замовчуванням)</string>
+    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
+    <string name="paddle_ocr_model">Модель PaddleOCR</string>
+    <string name="paddle_ocr_model_cyrillic">Кирилична (PP-OCRv5 Mobile)</string>
+    <string name="paddle_ocr_model_eslav">Східнословʼянська (PP-OCRv5 Mobile, точніша)</string>
+
+    <!-- OCR Best Models Feature -->
+    <string name="ocr_best_models_title">Якісні офлайн-моделі</string>
+    <string name="ocr_best_rus_title">Російська модель</string>
+    <string name="ocr_best_ukr_title">Українська модель</string>
+    <string name="ocr_best_model_download">Завантажити</string>
+    <string name="ocr_best_model_delete">Видалити</string>
+    <string name="ocr_best_model_installed">Встановлена</string>
+    <string name="ocr_best_model_downloading">Завантаження: %1$d%% (%2$s)</string>
+    <string name="ocr_best_model_size_mb">Якісна модель (~%1$s МБ)</string>
+    <string name="ocr_best_download_error">Завантаження не вдалося. Перевірте підключення до мережі.</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
     <string name="text_style_bold">1</string>
     <string name="text_style_italic">2</string>
@@ -3458,4 +3477,5 @@
     <string name="setting_show_pdf_thumbnails_desc">Створює великі прев\'ю для PDF (повільніше для віддалених джерел)</string>
     <string name="file_operation_progress_preparing">Підготовка..</string>
     <string name="s0266_apk_download_preparing">Готується встановлення..</string>
+    <string name="s0281_google_oauth_only_note">Не вдалося скачати з YouTube. Вхід у Google тут не зберігається..</string>
 </resources>

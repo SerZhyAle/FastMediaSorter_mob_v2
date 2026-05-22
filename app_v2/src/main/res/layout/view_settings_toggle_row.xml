@@ -50,8 +50,10 @@
                 android:tint="@color/text_color_secondary"
                 android:visibility="gone" />
 
-            <!-- Spacer fills remaining width so the helper sits next to the title, not pushed right. -->
+            <!-- Spacer fills remaining width so the helper sits next to the title, not pushed right.
+                 Identified so setHugsTextContent() can collapse it when the row must wrap its label. -->
             <View
+                android:id="@+id/str_titleLineSpacer"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />

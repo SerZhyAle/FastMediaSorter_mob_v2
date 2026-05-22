@@ -73,6 +73,8 @@ data class AppSettings(
     val enableOcr: Boolean = true, // Enable OCR text recognition (extract text from images/PDF for copying)
     val ocrDefaultFontSize: String = "AUTO", // Default font size for OCR results (AUTO, MINIMUM, SMALL, MEDIUM, LARGE, HUGE)
     val ocrDefaultFontFamily: String = "DEFAULT", // Default font family for OCR results (DEFAULT, SERIF, MONOSPACE)
+    val ocrEngineType: String = "TESSERACT",
+    val paddleOcrModel: String = "CYRILLIC",
     
     // Playback and Sorting settings
     val defaultSortMode: SortMode = SortMode.NAME_ASC,

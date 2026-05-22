@@ -89,6 +89,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_OCR = booleanPreferencesKey("enable_ocr")
         private val KEY_OCR_DEFAULT_FONT_SIZE = stringPreferencesKey("ocr_default_font_size")
         private val KEY_OCR_DEFAULT_FONT_FAMILY = stringPreferencesKey("ocr_default_font_family")
+        private val KEY_OCR_ENGINE_TYPE = stringPreferencesKey("ocr_engine_type")
+        private val KEY_PADDLE_OCR_MODEL = stringPreferencesKey("paddle_ocr_model")
 
         private val KEY_DEFAULT_SORT_MODE = stringPreferencesKey("default_sort_mode")
         private val KEY_SLIDESHOW_INTERVAL = intPreferencesKey("slideshow_interval")
@@ -312,6 +314,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     enableOcr = preferences[KEY_ENABLE_OCR] ?: true,
                     ocrDefaultFontSize = preferences[KEY_OCR_DEFAULT_FONT_SIZE] ?: "AUTO",
                     ocrDefaultFontFamily = preferences[KEY_OCR_DEFAULT_FONT_FAMILY] ?: "DEFAULT",
+                    ocrEngineType = preferences[KEY_OCR_ENGINE_TYPE] ?: "TESSERACT",
+                    paddleOcrModel = preferences[KEY_PADDLE_OCR_MODEL] ?: "CYRILLIC",
                     defaultSortMode = SortMode.valueOf(
                         preferences[KEY_DEFAULT_SORT_MODE] ?: SortMode.NAME_ASC.name
                     ),
@@ -497,6 +501,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_OCR] = settings.enableOcr
             preferences[KEY_OCR_DEFAULT_FONT_SIZE] = settings.ocrDefaultFontSize
             preferences[KEY_OCR_DEFAULT_FONT_FAMILY] = settings.ocrDefaultFontFamily
+            preferences[KEY_OCR_ENGINE_TYPE] = settings.ocrEngineType
+            preferences[KEY_PADDLE_OCR_MODEL] = settings.paddleOcrModel
             preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
             preferences[KEY_SLIDESHOW_INTERVAL] = settings.slideshowInterval
             preferences.setOrRemove(KEY_SLIDESHOW_MUSIC_URI, settings.slideshowMusicUri)

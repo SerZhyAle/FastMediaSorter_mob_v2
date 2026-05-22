@@ -1,0 +1,355 @@
+#!/usr/bin/env pwsh
+<#
+.SYNOPSIS
+    Publish a FastMediaSorter standard + vr release to GitHub Releases so
+    that GitHub Store (OpenHub-Store/GitHub-Store) can index it.
+
+.DESCRIPTION
+    Spec: S0214 — github-store-publication. Phase 03.
+
+    Operator flow (invoke from the release worktree, FastMediaSorter_release,
+    checked out to main):
+      1. .\a.ps1 r        # build standard release AAB + APK
+      2. .\a.ps1 vr       # build VR release APK
+      3. .\scripts\release\publish-github-release.ps1
+
+    The script:
+      - Reads versionName from app_v2/build.gradle.kts
+      - Discovers the two release APKs via output-metadata.json (fall back
+        to newest-by-LastWriteTime)
+      - Renames them in a temp staging dir per DECISIONS.md
+        (FastMediaSorter-{standard,vr}-{version}.apk)
+      - Verifies signing fingerprint matches the pinned value (Phase 04)
+      - Extracts release notes for the version from docs/WHATS_NEW.md
+      - Creates a GitHub Release tag v{version} from main with the notes
+      - Uploads both APKs as release assets
+
+    Author hooks: -DryRun for safe parsing / discovery, -Force to allow
+    republishing the same version (skips "tag already exists" guard).
+
+.PARAMETER DryRun
+    Resolve everything, verify guards, print the publish plan, but skip
+    every credential / git / API mutation.
+
+.PARAMETER Force
+    Allow publishing when a release with the same tag already exists.
+    Default: false.
+
+.PARAMETER Owner
+    GitHub repo owner. Default: SerZhyAle.
+
+.PARAMETER Repo
+    GitHub repo name. Default: FastMediaSorter_mob_v2.
+
+.EXAMPLE
+    pwsh -File scripts/release/publish-github-release.ps1 -DryRun
+#>
+
+[CmdletBinding()]
+param(
+    [switch] $DryRun,
+    [switch] $Force,
+    [string] $Owner = "SerZhyAle",
+    [string] $Repo  = "FastMediaSorter_mob_v2"
+)
+
+$ErrorActionPreference = "Stop"
+
+$repoRoot      = Resolve-Path (Join-Path $PSScriptRoot "..\..")
+$buildGradle   = Join-Path $repoRoot "app_v2/build.gradle.kts"
+$standardApkDir = Join-Path $repoRoot "app_v2/build/outputs/apk/standard/release"
+$vrApkDir      = Join-Path $repoRoot "app_v2/build/outputs/apk/vr/release"
+$whatsNewPath  = Join-Path $repoRoot "docs/WHATS_NEW.md"
+
+# ----------------------------------------------------------------------
+# Branch guard (publishing is allowed only from main)
+# ----------------------------------------------------------------------
+Push-Location $repoRoot
+try {
+    $currentBranch = (& git branch --show-current).Trim()
+} finally {
+    Pop-Location
+}
+Write-Host "Current branch: $currentBranch" -ForegroundColor DarkGray
+if (-not $DryRun -and $currentBranch -ne "main") {
+    throw "Refusing to publish from '$currentBranch'. Release publication is allowed only from 'main' (see CLAUDE.md Git Branching Model)."
+}
+if ($DryRun -and $currentBranch -ne "main") {
+    Write-Host "Branch is not 'main' — would abort outside of -DryRun." -ForegroundColor Yellow
+}
+
+# ----------------------------------------------------------------------
+# Extract versionName from app_v2/build.gradle.kts
+# ----------------------------------------------------------------------
+if (-not (Test-Path -LiteralPath $buildGradle)) {
+    throw "build.gradle.kts not found at $buildGradle"
+}
+$buildContent = Get-Content -LiteralPath $buildGradle -Raw
+$versionMatch = [regex]::Match($buildContent, 'versionName\s*=\s*"([^"]+)"')
+if (-not $versionMatch.Success) {
+    throw "Could not parse versionName from $buildGradle"
+}
+$version = $versionMatch.Groups[1].Value
+Write-Host "Version: $version" -ForegroundColor Green
+
+# ----------------------------------------------------------------------
+# APK discovery (prefer output-metadata.json, fall back to newest .apk)
+# ----------------------------------------------------------------------
+function Find-Apk {
+    param(
+        [Parameter(Mandatory)] [string] $Dir,
+        [Parameter(Mandatory)] [string] $Flavor
+    )
+    if (-not (Test-Path -LiteralPath $Dir)) {
+        throw "$Flavor APK directory missing: $Dir. Run the appropriate builder first (a.ps1 r / a.ps1 vr)."
+    }
+    $metadataPath = Join-Path $Dir "output-metadata.json"
+    if (Test-Path -LiteralPath $metadataPath) {
+        try {
+            $meta = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+            if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
+                $candidate = Join-Path $Dir $meta.elements[0].outputFile
+                if (Test-Path -LiteralPath $candidate) { return Get-Item -LiteralPath $candidate }
+            }
+        } catch {
+            Write-Host "Warning: failed to parse $metadataPath; falling back to newest .apk" -ForegroundColor Yellow
+        }
+    }
+    $newest = Get-ChildItem -LiteralPath $Dir -Filter *.apk -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+    if (-not $newest) {
+        throw "$Flavor APK not found in $Dir. Run the appropriate builder first."
+    }
+    return $newest
+}
+
+$standardApk = Find-Apk -Dir $standardApkDir -Flavor "standard"
+$vrApk       = Find-Apk -Dir $vrApkDir       -Flavor "vr"
+
+Write-Host "standard APK: $($standardApk.FullName)" -ForegroundColor DarkGray
+Write-Host "vr       APK: $($vrApk.FullName)"       -ForegroundColor DarkGray
+
+# Staleness guard: both APKs must be newer than build.gradle.kts minus 24h
+# (i.e. built within ~24h of the version bump that put the current
+# versionName in place).
+$gradleMtime = (Get-Item -LiteralPath $buildGradle).LastWriteTimeUtc
+$staleCutoff = $gradleMtime.AddHours(-24)
+foreach ($a in @($standardApk, $vrApk)) {
+    if ($a.LastWriteTimeUtc -lt $staleCutoff) {
+        $hours = [int]($gradleMtime - $a.LastWriteTimeUtc).TotalHours
+        throw "$($a.Name) is older than the current build.gradle.kts version by ${hours}h. Rebuild via a.ps1 r / a.ps1 vr before publishing."
+    }
+}
+
+Write-Host "Step 03.2 complete: APK discovery + version + branch guard wired." -ForegroundColor Cyan
+
+# ----------------------------------------------------------------------
+# Stage assets with deterministic names per DECISIONS.md
+#   FastMediaSorter-standard-<version>.apk
+#   FastMediaSorter-vr-<version>.apk
+# ----------------------------------------------------------------------
+$stagingDir = Join-Path $repoRoot "temp/release/$version"
+if (Test-Path -LiteralPath $stagingDir) {
+    Remove-Item -LiteralPath $stagingDir -Recurse -Force
+}
+$null = New-Item -ItemType Directory -Path $stagingDir -Force
+
+$standardStaged = Join-Path $stagingDir ("FastMediaSorter-standard-$version.apk")
+$vrStaged       = Join-Path $stagingDir ("FastMediaSorter-vr-$version.apk")
+
+Copy-Item -LiteralPath $standardApk.FullName -Destination $standardStaged
+Copy-Item -LiteralPath $vrApk.FullName       -Destination $vrStaged
+
+Write-Host "Staged:" -ForegroundColor Green
+Write-Host "  $standardStaged"
+Write-Host "  $vrStaged"
+
+# ----------------------------------------------------------------------
+# Phase 04 — Assert signing fingerprint matches the pinned value.
+# Runs after staging and before release-create, dry-run or not.
+# ----------------------------------------------------------------------
+function Resolve-Apksigner {
+    $cmd = Get-Command apksigner -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    # Fall back: scan local Android SDK build-tools for apksigner.bat (Windows).
+    $sdkRoot = $env:ANDROID_HOME
+    if (-not $sdkRoot) { $sdkRoot = Join-Path $env:LOCALAPPDATA "Android\Sdk" }
+    if (-not (Test-Path -LiteralPath $sdkRoot)) { return $null }
+    $btDir = Join-Path $sdkRoot "build-tools"
+    if (-not (Test-Path -LiteralPath $btDir)) { return $null }
+    $latest = Get-ChildItem -LiteralPath $btDir -Directory |
+        Sort-Object Name -Descending |
+        Select-Object -First 1
+    if (-not $latest) { return $null }
+    $exe = Join-Path $latest.FullName "apksigner.bat"
+    if (Test-Path -LiteralPath $exe) { return $exe }
+    return $null
+}
+
+function Assert-ExpectedFingerprint {
+    param(
+        [Parameter(Mandatory)] [string[]] $ApkPaths,
+        [Parameter(Mandatory)] [string]   $PinFile
+    )
+    if (-not (Test-Path -LiteralPath $PinFile)) {
+        throw "Pin file missing: $PinFile (run Phase 04 Step 04.1 to populate)"
+    }
+
+    $expected = (Get-Content -LiteralPath $PinFile |
+        Where-Object { $_ -and ($_ -notmatch '^\s*#') } |
+        Select-Object -First 1).Trim().ToUpperInvariant()
+    if (-not $expected) { throw "Pin file is empty: $PinFile" }
+
+    $apksigner = Resolve-Apksigner
+    if (-not $apksigner) {
+        throw "apksigner not found on PATH and no Android SDK build-tools detected. Install Android SDK or set `$env:ANDROID_HOME."
+    }
+
+    foreach ($apk in $ApkPaths) {
+        $output = & $apksigner verify --print-certs $apk 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "apksigner verify failed for $apk : $output"
+        }
+        $sha256Line = $output | Where-Object { $_ -match 'SHA-256 digest:\s+([0-9A-Fa-f]+)' } | Select-Object -First 1
+        if (-not $sha256Line) {
+            throw "Could not parse SHA-256 from apksigner output for $apk"
+        }
+        $null = ($sha256Line -match 'SHA-256 digest:\s+([0-9A-Fa-f]+)')
+        $hexNoColons = $Matches[1].ToUpperInvariant()
+        # Insert colons every two chars to match pin format.
+        $actual = (($hexNoColons.ToCharArray() | ForEach-Object -Begin {$i=0; $buf=@()} -Process {
+            $buf += $_
+            if ($buf.Count -eq 2) {
+                ,(($buf -join ''))
+                $buf = @()
+            }
+        } -End {}) -join ':').ToUpperInvariant()
+
+        if ($actual -ne $expected) {
+            throw @"
+Fingerprint mismatch for $apk :
+  expected: $expected
+  actual  : $actual
+See docs/DEV_OPS.md "Release Signing Fingerprint (GitHub Store)" for the rotation procedure.
+"@
+        }
+        Write-Host "Fingerprint OK: $([System.IO.Path]::GetFileName($apk))" -ForegroundColor Green
+    }
+}
+
+$pinFile = Join-Path $PSScriptRoot "expected-signing-fingerprint.txt"
+Assert-ExpectedFingerprint -ApkPaths @($standardStaged, $vrStaged) -PinFile $pinFile
+
+# ----------------------------------------------------------------------
+# Extract release notes for $version via the Phase 03 helper.
+# ----------------------------------------------------------------------
+$extractScript = Join-Path $PSScriptRoot "extract-release-notes.ps1"
+if (-not (Test-Path -LiteralPath $extractScript)) {
+    throw "Missing helper: $extractScript"
+}
+
+$notesOutput = & $extractScript -Version $version 2>&1
+$notesExit   = $LASTEXITCODE
+$notesAvailable = ($notesExit -eq 0)
+if (-not $notesAvailable -and -not $DryRun) {
+    throw "WHATS_NEW.md is missing a section for $version (extract-release-notes exit $notesExit). Add the section and rerun."
+}
+if (-not $notesAvailable -and $DryRun) {
+    Write-Host "Dry-run: WHATS_NEW.md has no section for $version yet — would abort outside of -DryRun. Plan output continues with a placeholder body." -ForegroundColor Yellow
+    $releaseNotes = "<release notes for $version go here>"
+} else {
+    $releaseNotes = $notesOutput -join "`n"
+}
+
+$tag      = "v$version"
+$title    = "FastMediaSorter $version"
+$ghOnPath = Get-Command gh -ErrorAction SilentlyContinue
+
+# ----------------------------------------------------------------------
+# Compose the create-release command (gh-first, REST fallback).
+# ----------------------------------------------------------------------
+if ($ghOnPath) {
+    # Stage notes into a temp file so multi-line content survives the CLI boundary.
+    $notesFile = Join-Path $stagingDir "release-notes.md"
+    Set-Content -LiteralPath $notesFile -Value $releaseNotes -NoNewline
+
+    $createCmd = @(
+        "gh", "release", "create", $tag,
+        "--repo", "$Owner/$Repo",
+        "--target", "main",
+        "--title", $title,
+        "--notes-file", $notesFile
+        # No --prerelease (publishing stable only per DECISIONS.md Pre-release).
+    )
+    Write-Host "Plan: $($createCmd -join ' ')" -ForegroundColor Cyan
+} else {
+    # REST fallback (POST /repos/{owner}/{repo}/releases).
+    Write-Host "Plan: POST /repos/$Owner/$Repo/releases with tag $tag (REST fallback, gh not on PATH)" -ForegroundColor Cyan
+}
+
+if ($DryRun) {
+    Write-Host "Dry-run requested — no release create, no asset upload." -ForegroundColor Yellow
+    exit 0
+}
+
+# ----------------------------------------------------------------------
+# Real release create.
+# ----------------------------------------------------------------------
+if ($ghOnPath) {
+    & gh release create $tag `
+        --repo "$Owner/$Repo" `
+        --target "main" `
+        --title $title `
+        --notes-file $notesFile
+    if ($LASTEXITCODE -ne 0) {
+        throw "gh release create failed with exit $LASTEXITCODE"
+    }
+} else {
+    # REST: requires credential resolver; ported from apply-github-store-metadata
+    throw "REST release-create fallback intentionally left for Step 03.5 (asset upload step wires the credential resolver shared with Phase 02). Install gh CLI to publish without REST glue."
+}
+
+Write-Host "Release $tag created." -ForegroundColor Green
+
+# ----------------------------------------------------------------------
+# Step 03.5 — Asset upload + post-publish verification
+# ----------------------------------------------------------------------
+$expectedAssetNames = @(
+    [System.IO.Path]::GetFileName($standardStaged),
+    [System.IO.Path]::GetFileName($vrStaged)
+)
+
+if ($ghOnPath) {
+    foreach ($asset in @($standardStaged, $vrStaged)) {
+        Write-Host "Uploading $asset .." -ForegroundColor Cyan
+        & gh release upload $tag $asset --repo "$Owner/$Repo" --clobber
+        if ($LASTEXITCODE -ne 0) {
+            throw "gh release upload failed for $asset (exit $LASTEXITCODE)"
+        }
+    }
+} else {
+    # REST fallback: POST /repos/{owner}/{repo}/releases/{release_id}/assets
+    # with header Content-Type: application/vnd.android.package-archive.
+    throw "REST asset-upload fallback intentionally not wired in this iteration. Install gh CLI to publish without REST glue."
+}
+
+# Verify the release lists both deterministic asset names.
+$verify = & gh api "repos/$Owner/$Repo/releases/tags/$tag" --jq '.assets[].name'
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to read back release $tag for verification"
+}
+$actualAssetNames = $verify -split "`n" | Where-Object { $_ -and $_.Trim() -ne '' }
+
+$missing = @()
+foreach ($expected in $expectedAssetNames) {
+    if (-not ($actualAssetNames -contains $expected)) {
+        $missing += $expected
+    }
+}
+
+if ($missing.Count -gt 0) {
+    throw "Release $tag is missing expected assets: $($missing -join ', '). Found: $($actualAssetNames -join ', ')"
+}
+
+Write-Host "OK — release $tag has both expected assets: $($actualAssetNames -join ', ')" -ForegroundColor Green

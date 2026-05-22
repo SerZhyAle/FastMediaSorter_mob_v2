@@ -2,10 +2,14 @@
 <!-- S0249 Phase 04: VR controls block content rendered inside the Media settings screen.
      Children:
        - xrUnavailableAdvisory: shown only when XrDetectionFacade reports no XR runtime.
-             - masterToggleRow: canonical SettingsToggleRow for the "Включить 3D VR" switch.
-                                                 isEnabled = false on non-XR devices (toggle visible but inactive).
-       - testImmersiveRow: visible only when master toggle = ON; tap routes through
-                           XrEntryGateway.enterDiagnosticImage().
+       - masterRowContainer: horizontal container that places the master "Включить 3D VR"
+         toggle (wrap_content, hugs its label via setHugsTextContent) and the trailing
+         "Test Immersive" button immediately to its right - so on wide landscape screens
+         the button stays adjacent to the toggle instead of flying to the right edge.
+             - masterToggleRow: canonical SettingsToggleRow in compact "hug" mode.
+               isEnabled=false on non-XR devices.
+             - testImmersiveRow: wrap_content button visible only when master toggle = ON; tap
+               routes through XrEntryGateway.enterDiagnosticImage().
      All rows respect the project's existing Trigger Row dimensions
      (toggler_title_text_size + toggler_desc_text_size) per docs/ARCHITECTURE.md. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -26,49 +30,29 @@
         android:textStyle="italic"
         android:visibility="gone" />
 
-    <!-- Master toggle row (reused S0245 semantics). isEnabled is set in code. -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/masterToggleRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:str_title="@string/vr_settings_master_toggle_label"
-        app:str_subtitle="@string/vr_settings_master_toggle_summary" />
-
-    <!-- Test Immersive button row. visibility=gone unless master toggle = ON.
-         The invisible switch reserves the same left gutter as SettingsToggleRow so the
-         label starts on the same vertical line as the master toggle text block. -->
+    <!-- Master toggle row + trailing Test Immersive button share one horizontal line. -->
     <LinearLayout
-        android:id="@+id/testImmersiveRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:contentDescription="@string/vr_settings_test_immersive_content_description"
-        android:focusable="true"
         android:gravity="center_vertical"
-        android:minHeight="48dp"
-        android:orientation="horizontal"
-        android:padding="@dimen/settings_padding_vertical"
-        android:visibility="gone">
+        android:orientation="horizontal">
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/masterToggleRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="@dimen/settings_switch_margin_end"
-            android:clickable="false"
-            android:duplicateParentState="true"
-            android:focusable="false"
-            android:importantForAccessibility="no"
-            android:visibility="invisible" />
+            app:str_title="@string/vr_settings_master_toggle_label"
+            app:str_subtitle="@string/vr_settings_master_toggle_summary" />
 
-        <TextView
-            android:id="@+id/testImmersiveLabel"
-            android:layout_width="0dp"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/testImmersiveRow"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginStart="@dimen/settings_switch_margin_end"
+            android:contentDescription="@string/vr_settings_test_immersive_content_description"
             android:text="@string/vr_settings_test_immersive_label"
-            android:textSize="@dimen/toggler_title_text_size" />
+            android:visibility="gone" />
     </LinearLayout>
 
 </LinearLayout>

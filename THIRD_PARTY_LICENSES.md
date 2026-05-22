@@ -6,36 +6,28 @@ Source-code dependencies are managed through Gradle and their licenses are track
 
 ---
 
-## VR diagnostic image — Stage 1A test asset (S0249)
+## VR diagnostic image — 360° monoscopic sphere fallback
 
-**Asset:** `app_v2/src/vr/res/drawable-nodpi/vr_diagnostic_stereo_tb.jpg`
-**Source:** [Navier8 / Godot-Simple-Stereoscopic-360VR-Panorama](https://github.com/Navier8/Godot-Simple-Stereoscopic-360VR-Panorama) — file `blender_test.jpg`.
-**License:** MIT.
+**Asset:** `app_v2/src/vr/res/drawable-nodpi/vr_diagnostic_360_mono.jpg`
+**Source:** [Poly Haven — Lakeside HDRI](https://polyhaven.com/a/lakeside) — 8K tonemapped JPG export, equirectangular 8192×4096.
+**Author:** Greg Zaal (Poly Haven).
+**License:** CC0 1.0 Universal (public domain dedication). No attribution required for usage; attribution is included here as a courtesy and as documentation of provenance.
 **Used in flavors:** `vr`, `noLegal`. Not bundled in `standard` / `lite` / `photos` / `legacy`.
 
 ### License text
 
 ```
-MIT License
+Creative Commons Legal Code
 
-Copyright (c) Navier8 and contributors to the
-Godot-Simple-Stereoscopic-360VR-Panorama project.
+CC0 1.0 Universal
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+The person who associated a work with this deed has dedicated the work to the
+public domain by waiving all of his or her rights to the work worldwide under
+copyright law, including all related and neighboring rights, to the extent
+allowed by law.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+You can copy, modify, distribute and perform the work, even for commercial
+purposes, all without asking permission.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Full text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
 ```

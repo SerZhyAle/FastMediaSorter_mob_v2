@@ -99,7 +99,6 @@ class HtmlPageExtractionStrategy @Inject constructor(
         if (candidates.isEmpty()) {
             val loginWallEnabled = settingsRepository.getSettings().first().linkDownloadLoginWallHeuristicEnabled
             if (loginWallEnabled && looksLikeSoftLoginWall(rawHtml, finalUrl)) {
-                Timber.d("S0140: pillar-T soft login-wall heuristic hit -> AuthRequired")
                 LinkDownloadTrace.verbose(
                     "auth-required soft-login-wall for ${LinkDownloadTrace.truncateUrl(finalUrl)} strategy=$id",
                 )

@@ -70,7 +70,6 @@ class MediaStoreLocalDestinationWriter @Inject constructor(
         destination: LocalDestinationCategory.PublicCollection,
         overwrite: Boolean
     ): Result<LocalSink> {
-        Timber.d("S0280: pre-Q public collection routed to FileSystemSink collection=${destination.collection} displayName=${destination.displayName}")
         val externalRoot = runCatching { Environment.getExternalStorageDirectory() }.getOrNull()
         if (externalRoot == null) {
             Timber.w("MediaStoreLocalDestinationWriter: external storage dir unavailable on pre-Q for ${destination.displayName}")

@@ -33,8 +33,13 @@
     <!-- RECORD_AUDIO implicitly requires hardware.microphone on Google Play; opt out so TVs / mic-less devices stay eligible -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
-    <!-- Keep screen on -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
+         by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).
+         Without this remove, the merged manifest caps WAKE_LOCK at API 25 and
+         WorkManager.startForeground crashes on API 26+ trying to acquire a WakeLock
+         (SecurityException: "Neither user … nor current process has WAKE_LOCK"). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"
+        tools:remove="android:maxSdkVersion" />
 
     <!-- Haptic feedback on Wear sync success (BeamAnimationDialog) -->
     <uses-permission android:name="android.permission.VIBRATE" />

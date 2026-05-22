@@ -92,7 +92,7 @@ After reading context, score the task against the primitive checklist:
    - `## Approach` - bullet list: one bullet per file → what changes.
    - `## Done criteria` - one observable check per changed file.
 3. Implement the changes directly in the source files.
-4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
+4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line. The `Sxxxx:` prefix is reserved for these temporary probes only; do not reuse it in `Timber.i/w/e` or any message meant to remain after the task.
 5. Run post-change mandatory steps: `add_to_dev_log.ps1`, catalog sync via `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render), strings audit if applicable.
 6. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-4 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
 7. Chat output: `<Sxxxx> - Primitive. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`

@@ -10,6 +10,13 @@ param(
     [int]    $Priority = -1
 )
 
+# Convert terminating errors (Write-Error, throw, provider errors) into
+# the documented `exit 1` so callers can rely on $LASTEXITCODE.
+trap {
+    Write-Host $_ -ForegroundColor Red
+    exit 1
+}
+
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 if (-not $PSBoundParameters.ContainsKey('Status') -and $Priority -lt 0) {
@@ -86,3 +93,4 @@ if ($errors.Count -gt 0) {
 Write-Catalog -Records $allRecords.ToArray()
 
 foreach ($line in $results) { Write-Output $line }
+exit 0

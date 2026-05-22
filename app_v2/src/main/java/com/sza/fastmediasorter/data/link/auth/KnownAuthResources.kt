@@ -53,14 +53,12 @@ object KnownAuthResources {
             // treat SocialPreviewOnly as an auth signal to prompt WebView login.
             previewOnlyMeansLogin = true,
         ),
-        KnownAuthResource(
-            displayName = "YouTube",
-            host = "youtube.com",
-            loginUrl = "https://accounts.google.com/ServiceLogin?service=youtube",
-            // S0187: youtube.com and music.youtube.com covered via subdomain matching.
-            // YouTube videos are publicly accessible - SocialPreviewOnly signals
-            // age-restriction or private content, not a mandatory login wall.
-        ),
+        // S0281: the historical YouTube entry (added by S0187) was removed because
+        // S0200 ADR-4 mandates Chrome Custom Tabs for all Google OAuth domains and
+        // CCT has no cookie-return channel. The previous entry made the auth-offer
+        // dialog architecturally unreachable - the dialog appeared but no cookies
+        // could ever be saved. Google-domain handling is now centralized in
+        // `GoogleDomainMatcher` (see ReceiveShareActivity guards inserted by S0281).
     )
 
     fun isPreviewSensitiveHost(host: String?): Boolean = matchHost(host)?.previewOnlyMeansLogin == true

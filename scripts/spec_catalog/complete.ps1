@@ -6,6 +6,13 @@ param(
     [switch] $SkipValidate
 )
 
+# Convert terminating errors (Write-Error, throw, provider errors) into
+# the documented `exit 1` so callers can rely on $LASTEXITCODE.
+trap {
+    Write-Host $_ -ForegroundColor Red
+    exit 1
+}
+
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
@@ -58,3 +65,4 @@ if (Test-Path $changelogPath) {
 # 3. Close
 Write-Host "[3/3] closing $Id -> $Status..." -ForegroundColor Cyan
 & (Join-Path $PSScriptRoot 'close.ps1') -Id $Id -Status $Status
+exit $LASTEXITCODE

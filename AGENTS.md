@@ -30,6 +30,7 @@ When files disagree, prefer the stricter rule. For agent-specific execution, `AG
 - Generated outputs, logs, backups, and scratch artifacts go to `temp/`.
 - Activity logic is prohibited. Delegate complex logic to `helpers/*Manager`.
 - Use `Timber`; `Log.d()` is prohibited.
+- Persistent `Timber.i/w/e` messages and any log line that remains after task completion must not contain `Sxxxx`; a ticket id in log text is reserved for active spec debug probes while the spec is not closed.
 - Before editing code, read inline comments/KDoc/Javadoc in the affected area.
 - For string updates, prefer `scripts/utils/set-android-string.ps1` for single Android string keys.
 - For any layout edit, check the matching `res/layout-land/` file and update it when present.
