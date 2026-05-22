@@ -102,6 +102,19 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeQue
     env->ReleaseByteArrayElements(rgba, bytes, JNI_ABORT);
 }
 
+JNIEXPORT jobject JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeGetVideoSurface(
+        JNIEnv* env, jobject /*thiz*/) {
+    jobject surface = static_cast<jobject>(fms::xr::xr_session_get_video_surface());
+    return surface ? env->NewLocalRef(surface) : nullptr;
+}
+
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetVideoSurfaceEnabled(
+        JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled) {
+    fms::xr::xr_session_set_video_surface_enabled(enabled == JNI_TRUE);
+}
+
 JNIEXPORT void JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetRenderConfig(
         JNIEnv* /*env*/, jobject /*thiz*/, jint projection, jint layout) {

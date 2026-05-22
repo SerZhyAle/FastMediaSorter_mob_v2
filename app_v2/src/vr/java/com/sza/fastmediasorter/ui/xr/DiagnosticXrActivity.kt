@@ -9,11 +9,7 @@ import android.graphics.RectF
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.Typeface
-import android.media.ImageReader
-import android.graphics.PixelFormat
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -80,9 +76,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     // Video playback resources
     private var exoPlayer: ExoPlayer? = null
-    private var imageReader: ImageReader? = null
-    private var videoBackgroundThread: HandlerThread? = null
-    private var videoBackgroundHandler: Handler? = null
+    @Volatile private var sessionReady: Boolean = false
 
     // VR HUD Helpers
     private lateinit var hudRenderer: HudCanvasRenderer
@@ -125,6 +119,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -133,16 +128,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_HAND_TRACKING) {
             if (grantResults.isEmpty() || grantResults[0] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                Timber.w("S0283: com.oculus.permission.HAND_TRACKING denied! Hand tracking might not work.")
+                Timber.w("DiagnosticXrActivity: com.oculus.permission.HAND_TRACKING denied; hand tracking may not work")
             }
             proceedWithInitialization()
         }
     }
 
     private fun proceedWithInitialization() {
-        // Initialize background video thread
-        initVideoThread()
-
         // 1. Initialize VR HUD Canvas buffers and helpers (Step 03.2)
         hudRenderer = HudCanvasRenderer()
         hapticBridge = HudHapticBridge(runtime)
@@ -224,29 +216,21 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun scanMediaFiles(): List<File> {
-        val picturesDir = File("/sdcard/Pictures")
-        val moviesDir = File("/sdcard/Movies")
-        
-        val pictureExtensions = setOf("jpg", "jpeg", "png")
-        val movieExtensions = setOf("mp4", "mkv")
-        
-        val pictures = if (picturesDir.exists() && picturesDir.isDirectory) {
-            picturesDir.listFiles()?.filter { 
-                it.isFile && it.extension.lowercase() in pictureExtensions 
-            } ?: emptyList()
-        } else {
-            emptyList()
+        val pictureDir = File("/sdcard/Pictures/FastMediaSorterVrTest")
+        val movieDir = File("/sdcard/Movies/FastMediaSorterVrTest")
+
+        val playlist = VR_TEST_MEDIA_ORDER.mapNotNull { filename ->
+            val dir = if (isVideoFilename(filename)) movieDir else pictureDir
+            File(dir, filename).takeIf { file -> file.isFile }
         }
-        
-        val movies = if (moviesDir.exists() && moviesDir.isDirectory) {
-            moviesDir.listFiles()?.filter { 
-                it.isFile && it.extension.lowercase() in movieExtensions 
-            } ?: emptyList()
-        } else {
-            emptyList()
-        }
-        
-        return (pictures.sortedBy { it.name.lowercase() } + movies.sortedBy { it.name.lowercase() })
+
+        Timber.d("DiagnosticXrActivity: VR test playlist contains ${playlist.size} files: ${playlist.joinToString { it.name }}")
+        return playlist
+    }
+
+    private fun isVideoFilename(filename: String): Boolean {
+        val extension = filename.substringAfterLast('.', missingDelimiterValue = "").lowercase()
+        return extension in VIDEO_EXTENSIONS
     }
 
     private fun parseFilenameConfig(filename: String): RenderConfig {
@@ -318,16 +302,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun decodeBundledAsset(): Boolean {
-        runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.TOP_BOTTOM.value)
-        val hudBytes = generateFilenameHudBytes("vr_diagnostic_stereo_tb.jpg")
+        runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.MONO.value)
+        val hudBytes = generateFilenameHudBytes("vr_diagnostic_360_mono.jpg")
         runtime.queueHud(hudBytes, 1024, 128)
 
         val asset = assetProvider.load() ?: return false
-        val options = BitmapFactory.Options().apply {
-            inPreferredConfig = Bitmap.Config.ARGB_8888
-            inMutable = false
-        }
-        val bitmap = BitmapFactory.decodeByteArray(asset.bytes, 0, asset.bytes.size, options) ?: return false
+        val bitmap = decodeByteArrayWithOomFallback(asset.bytes) ?: return false
         try {
             val w = bitmap.width
             val h = bitmap.height
@@ -339,7 +319,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             textureBytes = bytes
             textureWidth = w
             textureHeight = h
-            Timber.d("decoded asset to RGBA: ${w}x${h}, bytes=${bytes.size}")
+            Timber.d("decoded bundled mono 360 asset to RGBA: ${w}x${h}, bytes=${bytes.size}")
             return true
         } finally {
             bitmap.recycle()
@@ -352,7 +332,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         val hudBytes = generateFilenameHudBytes(file.name)
         runtime.queueHud(hudBytes, 1024, 128)
 
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: return false
+        val bitmap = decodeFileWithOomFallback(file) ?: return false
         try {
             val w = bitmap.width
             val h = bitmap.height
@@ -371,71 +351,100 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
-    private fun initVideoThread() {
-        videoBackgroundThread = HandlerThread("FmsVideoDecoderThread").apply { start() }
-        videoBackgroundHandler = Handler(videoBackgroundThread!!.looper)
+    /**
+     * Decode a JPEG byte array as ARGB_8888 with progressive `inSampleSize` fallback on
+     * [OutOfMemoryError]. Used for the bundled 8192x4096 equirectangular sphere image and any
+     * comparably large playlist source — naive `BitmapFactory.decodeByteArray` would peak around
+     * 128 MB heap on a fresh 8K decode and risk OOM on Quest 3 once ExoPlayer buffers are also
+     * resident.
+     */
+    private fun decodeByteArrayWithOomFallback(bytes: ByteArray): Bitmap? {
+        var sample = 1
+        while (sample <= MAX_DECODE_SAMPLE) {
+            val options = BitmapFactory.Options().apply {
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+                inMutable = false
+                inSampleSize = sample
+            }
+            try {
+                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                if (bmp != null) {
+                    if (sample > 1) {
+                        Timber.w("decodeByteArrayWithOomFallback: succeeded at inSampleSize=$sample")
+                    }
+                    return bmp
+                }
+                Timber.w("decodeByteArrayWithOomFallback: decode returned null at inSampleSize=$sample")
+                return null
+            } catch (oom: OutOfMemoryError) {
+                Timber.w(oom, "decodeByteArrayWithOomFallback: OOM at inSampleSize=$sample; retrying with larger sample")
+                sample *= 2
+            }
+        }
+        Timber.e("decodeByteArrayWithOomFallback: exhausted sample steps, decode failed")
+        return null
     }
 
-    private fun releaseVideoThread() {
-        videoBackgroundThread?.quitSafely()
-        videoBackgroundThread = null
-        videoBackgroundHandler = null
+    /**
+     * File counterpart of [decodeByteArrayWithOomFallback]. User-pushed playlist items may be
+     * arbitrarily large; we degrade resolution rather than crash.
+     */
+    private fun decodeFileWithOomFallback(file: File): Bitmap? {
+        var sample = 1
+        while (sample <= MAX_DECODE_SAMPLE) {
+            val options = BitmapFactory.Options().apply {
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+                inMutable = false
+                inSampleSize = sample
+            }
+            try {
+                val bmp = BitmapFactory.decodeFile(file.absolutePath, options)
+                if (bmp != null) {
+                    if (sample > 1) {
+                        Timber.w("decodeFileWithOomFallback: ${file.name} succeeded at inSampleSize=$sample")
+                    }
+                    return bmp
+                }
+                Timber.w("decodeFileWithOomFallback: ${file.name} decode returned null at inSampleSize=$sample")
+                return null
+            } catch (oom: OutOfMemoryError) {
+                Timber.w(oom, "decodeFileWithOomFallback: OOM on ${file.name} at inSampleSize=$sample; retrying with larger sample")
+                sample *= 2
+            }
+        }
+        Timber.e("decodeFileWithOomFallback: exhausted sample steps for ${file.name}")
+        return null
     }
 
     private fun startVideoPlayback(file: File) {
         releasePlaybackResources()
-        
-        val width = 2048
-        val height = 1024
-        imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2).apply {
-            setOnImageAvailableListener({ reader ->
-                val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
-                try {
-                    val plane = image.planes[0]
-                    val buffer = plane.buffer
-                    val rowStride = plane.rowStride
-                    val cleanSize = width * height * 4
-                    val frameBytes = ByteArray(cleanSize)
-                    
-                    if (rowStride == width * 4) {
-                        buffer.get(frameBytes)
-                    } else {
-                        val rowBytes = ByteArray(rowStride)
-                        for (i in 0 until height) {
-                            buffer.position(i * rowStride)
-                            buffer.get(rowBytes, 0, rowStride)
-                            System.arraycopy(rowBytes, 0, frameBytes, i * width * 4, width * 4)
-                        }
-                    }
-                    runtime.queueFrame(frameBytes, width, height)
-                } catch (t: Throwable) {
-                    Timber.e(t, "Error reading video frame")
-                } finally {
-                    image.close()
-                }
-            }, videoBackgroundHandler)
+        val videoSurface = runtime.getVideoSurface()
+        if (videoSurface == null) {
+            Timber.w("DiagnosticXrActivity: native video surface is not ready for ${file.name}")
+            hudRenderer.isPlaying = false
+            return
         }
-        
+
         exoPlayer = ExoPlayer.Builder(this).build().apply {
-            setVideoSurface(imageReader?.surface)
+            setVideoSurface(videoSurface)
             repeatMode = Player.REPEAT_MODE_ALL
             playWhenReady = true
             val mediaItem = androidx.media3.common.MediaItem.fromUri(android.net.Uri.fromFile(file))
             setMediaItem(mediaItem)
             prepare()
         }
+        runtime.setVideoSurfaceEnabled(true)
         playbackController.updatePlayer(exoPlayer)
         Timber.d("Started video playback for: ${file.name}")
     }
 
     private fun releasePlaybackResources() {
+        runtime.setVideoSurfaceEnabled(false)
+        exoPlayer?.clearVideoSurface()
         exoPlayer?.stop()
         exoPlayer?.release()
         exoPlayer = null
         playbackController.updatePlayer(null)
-        
-        imageReader?.close()
-        imageReader = null
     }
 
     private fun navigateToNextMedia() {
@@ -467,8 +476,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         runtime.queueHud(hudBytes, 1024, 128)
         
         if (file.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
+            runtime.setVideoSurfaceEnabled(false)
             lifecycleScope.launch(Dispatchers.Default) {
-                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                val bitmap = decodeFileWithOomFallback(file)
                 if (bitmap != null) {
                     try {
                         val w = bitmap.width
@@ -479,7 +489,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                         val bytes = ByteArray(buf.remaining())
                         buf.get(bytes)
                         runtime.queueFrame(bytes, w, h)
-                        Timber.d("Loaded and queued image: ${file.name}")
+                        Timber.d("Loaded and queued image: ${file.name} at ${w}x${h}")
                     } catch (t: Throwable) {
                         Timber.e(t, "Failed to copy bitmap buffer for ${file.name}")
                     } finally {
@@ -490,7 +500,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 }
             }
         } else {
-            startVideoPlayback(file)
+            if (sessionReady) {
+                startVideoPlayback(file)
+            } else {
+                Timber.d("DiagnosticXrActivity: deferring video playback until native session is ready")
+            }
         }
     }
 
@@ -541,23 +555,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             textureBytes = textureBytes,
             textureWidth = textureWidth,
             textureHeight = textureHeight,
+            onSessionReady = ::onRenderThreadSessionReady,
             onExitDelivered = ::onRenderThreadExit,
             onStartFailed = ::onRenderThreadStartFailed,
         ).also {
             it.start()
             exitHandler.markFirstFramePresented(SystemClock.elapsedRealtime())
-            
-            // If first media item is video, launch ExoPlayer now
-            if (mediaPlaylist.isNotEmpty() && currentPlaylistIndex == 0) {
-                val file = mediaPlaylist[0]
-                if (file.extension.lowercase() in setOf("mp4", "mkv")) {
-                    val config = parseFilenameConfig(file.name)
-                    runtime.setRenderConfig(config.projection.value, config.layout.value)
-                    val hudBytes = generateFilenameHudBytes(file.name)
-                    runtime.queueHud(hudBytes, 1024, 128)
-                    startVideoPlayback(file)
-                }
-            }
         }
     }
 
@@ -578,7 +581,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         renderThread?.join(SHUTDOWN_TIMEOUT_MS)
         renderThread = null
         releasePlaybackResources()
-        releaseVideoThread()
         super.onDestroy()
     }
 
@@ -601,6 +603,22 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
+    private fun onRenderThreadSessionReady() {
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            sessionReady = true
+            if (mediaPlaylist.isEmpty() || currentPlaylistIndex !in mediaPlaylist.indices) return@runOnUiThread
+            val file = mediaPlaylist[currentPlaylistIndex]
+            if (isVideoFilename(file.name)) {
+                val config = parseFilenameConfig(file.name)
+                runtime.setRenderConfig(config.projection.value, config.layout.value)
+                val hudBytes = generateFilenameHudBytes(file.name)
+                runtime.queueHud(hudBytes, 1024, 128)
+                startVideoPlayback(file)
+            }
+        }
+    }
+
     private fun onRenderThreadStartFailed(result: DiagnosticXrNativeResult) {
         Timber.w("render thread start failed: $result")
         runOnUiThread { if (!isFinishing && !isDestroyed) finish() }
@@ -609,5 +627,20 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private companion object {
         const val SHUTDOWN_TIMEOUT_MS = 3_000L
         private const val REQUEST_CODE_HAND_TRACKING = 1001
+        // Upper bound for inSampleSize escalation in decodeByteArrayWithOomFallback /
+        // decodeFileWithOomFallback. 8 means we will not decode below 1/8 of the source side,
+        // which for the bundled 8K asset is still 1024x512 — well above usable VR quality.
+        private const val MAX_DECODE_SAMPLE = 8
+        private val VIDEO_EXTENSIONS = setOf("mp4", "mkv")
+        private val VR_TEST_MEDIA_ORDER = listOf(
+            "diagnostic_360_mono.jpg",
+            "diagnostic_360_stereo_tb.jpg",
+            "moraine_lake_flat_mono.jpg",
+            "colosseum_flat_mono.jpg",
+            "video_360_mono.mp4",
+            "video_360_stereo_tb.mp4",
+            "video_180_stereo_tb.mp4",
+            "big_buck_bunny_flat_mono.mp4"
+        )
     }
 }

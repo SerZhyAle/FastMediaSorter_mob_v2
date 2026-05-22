@@ -22,6 +22,11 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
         return ActivityResourceEditorBinding.inflate(layoutInflater)
     }
 
+    /** S0289 §2.4: initial focus on the fragment container - inner fragment delegates to first focusable child. */
+    override fun getInitialFocusView(): android.view.View? {
+        return binding.fragmentContainer
+    }
+
     override fun setupViews() {
         // Apply edge-to-edge insets: fragment toolbar below status bar, content above nav bar
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.fragmentContainer) { view, insets ->

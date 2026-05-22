@@ -2,12 +2,15 @@ package com.sza.fastmediasorter.ui.duplicates
 
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.View
+import androidx.core.view.children
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDuplicatesBinding
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
@@ -42,6 +45,19 @@ class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
     }
 
     override fun observeData() {}
+
+    override fun getInitialFocusView(): View? {
+        val duplicatesList = binding.fragmentContainer.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvDuplicates)
+        val firstDuplicateItem = duplicatesList?.findViewHolderForAdapterPosition(0)?.itemView
+        val startScanButton = binding.fragmentContainer.findViewById<View>(R.id.btnStartScan)
+        val cancelScanButton = binding.fragmentContainer.findViewById<View>(R.id.btnCancelScan)
+        return firstDuplicateItem
+            ?: startScanButton
+            ?: cancelScanButton
+            ?: binding.toolbar.children.firstOrNull { it.isClickable }
+            ?: duplicatesList
+            ?: binding.toolbar
+    }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {

@@ -1,4 +1,4 @@
-// S0283 Phase 01: XR Input module header.
+// XR input module header.
 // Manages OpenXR controllers, actions, haptic feedback, and hand tracking lifecycles.
 
 #pragma once
@@ -26,6 +26,8 @@ struct HandInputState {
     bool active{false};           // True if the controller or hand is tracked and active
     bool isHand{false};           // True if using hand tracking, false if controller
     XrPosef pointerPose;          // Ray pointer origin and orientation
+    XrPosef gripPose;             // Physical controller/hand grip pose used as visible ray origin
+    bool gripPoseActive{false};   // True when gripPose is valid for the current frame
     bool triggerClicked{false};   // Click event (edge triggered transition to pressed)
     bool triggerDown{false};      // Current state of trigger/pinch select
     float triggerValue{0.0f};     // Analog click value

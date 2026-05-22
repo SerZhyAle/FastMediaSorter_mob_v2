@@ -12781,3 +12781,230 @@ Format: | datetime | file | target | description |
 | 2026-05-21 16:48:06 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation/PHASE_04__docs-catalog-cleanup.md` | `S0287` | Mark docs and catalog cleanup phase complete after implementation audit [branch: DEBUG-v007] |
 | 2026-05-21 16:49:28 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Mark TesseractModelManager role/status after S0287 checksum validation [branch: DEBUG-v007] |
 | 2026-05-21 16:49:42 | `PLAN/spec-catalog.jsonl` | `spec-check` | Refresh S0287 Verified closure timestamp after implementation audit [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `spec-tech` | Create tactical plan for S0288 [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_01__ocr-abstraction-foundations.md` | `spec-tech` | Phase 01: ocr-abstraction-foundations [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_02__settings-ui-extension.md` | `spec-tech` | Phase 02: settings-ui-extension [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_03__paddle-lite-runtime.md` | `spec-tech` | Phase 03: paddle-lite-runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_04__paddle-ocr-engine.md` | `spec-tech` | Phase 04: paddle-ocr-engine [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_05__paddle-ocr-model-manager.md` | `spec-tech` | Phase 05: paddle-ocr-model-manager [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_06__translation-manager-integration.md` | `spec-tech` | Phase 06: translation-manager-integration [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup [branch: DEBUG-v007] |
+| 2026-05-21 17:10:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v007] |
+| 2026-05-21 17:12:40 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `S0288` | Updated strategic spec with progress animation requirement and closed research questions. [branch: DEBUG-v007] |
+| 2026-05-21 17:12:41 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288` | Unlocked spec blockers: model conversion completed, latency research skipped per user request. [branch: DEBUG-v007] |
+| 2026-05-21 17:12:41 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_06__translation-manager-integration.md` | `S0288` | Added Step 06.4 to phase 6 plan for progress animation integration in PlayerImageTranslationManager. [branch: DEBUG-v007] |
+| 2026-05-21 17:28:07 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `S0288 strategic spec` | Fix duplicate sections 5/6 and concatenation corruption in sections 1/6.2; consolidate Research items as Closed (resolved + skipped with progress animation) [branch: DEBUG-v007] |
+| 2026-05-21 17:30:11 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/OfflineOcrEngine.kt` | `OfflineOcrEngine` | Create OfflineOcrEngine interface [branch: DEBUG-v007] |
+| 2026-05-21 17:30:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_01__ocr-abstraction-foundations.md` | `PHASE_01` | Mark Step 01.1 done [branch: DEBUG-v007] |
+| 2026-05-21 17:30:46 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `INDEX.md` | Update INDEX step count [branch: DEBUG-v007] |
+| 2026-05-21 17:31:03 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/OcrTextBlock.kt` | `OcrTextBlock` | Create OcrTextBlock data class [branch: DEBUG-v007] |
+| 2026-05-21 17:31:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_01__ocr-abstraction-foundations.md` | `PHASE_01` | Mark Step 01.2 done [branch: DEBUG-v007] |
+| 2026-05-21 17:31:37 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `INDEX.md` | Update INDEX step count to 2/4 [branch: DEBUG-v007] |
+| 2026-05-21 17:32:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt` | `TesseractManager` | Refactor TesseractManager to implement OfflineOcrEngine [branch: DEBUG-v007] |
+| 2026-05-21 17:32:48 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_01__ocr-abstraction-foundations.md` | `PHASE_01` | Mark Step 01.3 done [branch: DEBUG-v007] |
+| 2026-05-21 17:32:49 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `INDEX.md` | Update INDEX step count to 3/4 [branch: DEBUG-v007] |
+| 2026-05-21 17:33:09 | `app_v2/src/main/java/com/sza/fastmediasorter/di/OcrModule.kt` | `OcrModule` | Create Hilt OcrModule [branch: DEBUG-v007] |
+| 2026-05-21 17:33:43 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_01__ocr-abstraction-foundations.md` | `PHASE_01` | Mark Step 01.4 done [branch: DEBUG-v007] |
+| 2026-05-21 17:33:44 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `INDEX.md` | Update INDEX step count to 4/4 [branch: DEBUG-v007] |
+| 2026-05-21 17:34:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt` | `TesseractManager` | Add override modifier to release method [branch: DEBUG-v007] |
+| 2026-05-21 17:38:47 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_01__ocr-abstraction-foundations.md` | `PHASE_01` | Mark Phase 01 as completed [branch: DEBUG-v007] |
+| 2026-05-21 17:38:47 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `INDEX.md` | Mark Phase 01 as completed in INDEX [branch: DEBUG-v007] |
+| 2026-05-21 17:41:12 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `fragment_settings_other_land_layout` | Add ocrEngineType and paddleOcrModel spinners to landscape layout [branch: DEBUG-v007] |
+| 2026-05-21 17:41:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `OtherMediaSettingsFragment` | Implement ocrEngineType and paddleOcrModel spinners and visibility logic [branch: DEBUG-v007] |
+| 2026-05-21 17:57:42 | `PLAN/S0002_decompose-giant-files.md` | `spec-update` | Refinement (Antigravity, focus: language, structure, verifiability) [branch: DEBUG-v007] |
+| 2026-05-21 17:57:59 | `app_v2/src/noLegal/java/com/baidu/paddle/lite` | `Paddle-Lite Java wrappers` | Add official Paddle-Lite Java API wrappers for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:57:59 | `app_v2/src/noLegal/jniLibs/arm64-v8a/libpaddle_light_api_shared.so` | `Paddle-Lite native runtime` | Add 16 KB-aligned Paddle-Lite light API native runtime for noLegal [branch: DEBUG-v007] |
+| 2026-05-21 17:57:59 | `app_v2/src/noLegal/jniLibs/arm64-v8a/libpaddle_lite_jni.so` | `Paddle-Lite JNI runtime` | Add 16 KB-aligned Paddle-Lite Java JNI runtime for noLegal [branch: DEBUG-v007] |
+| 2026-05-21 17:58:00 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_03__paddle-lite-runtime.md` | `S0288 Phase 03` | Record Paddle-Lite runtime artifact import evidence [branch: DEBUG-v007] |
+| 2026-05-21 17:58:00 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Unblock Paddle-Lite runtime phase after artifact import [branch: DEBUG-v007] |
+| 2026-05-21 17:59:03 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/ConfigBase.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:03 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/CxxConfig.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:03 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/MobileConfig.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:04 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/PaddlePredictor.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:04 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/Tensor.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:04 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/Place.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:04 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/PowerMode.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:05 | `app_v2/src/noLegal/java/com/baidu/paddle/lite/PaddleLiteInitializer.java` | `Paddle-Lite Java API` | Add official Paddle-Lite Java wrapper source for noLegal OCR runtime [branch: DEBUG-v007] |
+| 2026-05-21 17:59:43 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `S0288 strategic spec` | Resume spec after resolving Paddle-Lite runtime blocker [branch: DEBUG-v007] |
+| 2026-05-21 17:59:43 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_03__paddle-lite-runtime.md` | `S0288 Phase 03` | Close Paddle-Lite runtime phase after build and APK verification [branch: DEBUG-v007] |
+| 2026-05-21 17:59:43 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Mark Paddle-Lite runtime phase done [branch: DEBUG-v007] |
+| 2026-05-21 18:01:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDrawingSaveHelper.kt` | `PlayerDrawingSaveHelper` | Created helper and extracted draw overlay/save logic S0107 from PlayerActivity to reduce its size to ~1220 LOC. [branch: DEBUG-v007] |
+| 2026-05-21 20:26:38 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/PaddleOcrModelManager.kt` | `PaddleOcrModelManager` | Add noLegal PaddleOCR model file presence manager [branch: DEBUG-v007] |
+| 2026-05-21 20:28:32 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `S0288 strategic spec` | Block spec on missing PaddleOCR nb model hosting and hashes [branch: DEBUG-v007] |
+| 2026-05-21 20:28:32 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Record PaddleOCR model artifact blocker [branch: DEBUG-v007] |
+| 2026-05-21 20:28:32 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_05__paddle-ocr-model-manager.md` | `S0288 Phase 05` | Record model manager step and missing nb artifact blocker [branch: DEBUG-v007] |
+| 2026-05-21 20:49:07 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/PaddleOcrModelManager.kt` | `PaddleOcrModelManager` | Add verified PaddleX-Lite model download and checksum validation [branch: DEBUG-v007] |
+| 2026-05-21 20:49:58 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `S0288 strategic spec` | Resume spec after resolving PaddleX-Lite model download blocker [branch: DEBUG-v007] |
+| 2026-05-21 20:49:58 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Unblock PaddleOCR model download step [branch: DEBUG-v007] |
+| 2026-05-21 20:49:59 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_05__paddle-ocr-model-manager.md` | `S0288 Phase 05` | Close PaddleOCR model download step with verified artifacts [branch: DEBUG-v007] |
+| 2026-05-21 20:52:52 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/domain/ocr/PaddleOcrEngine.kt` | `PaddleOcrEngine` | Add noLegal PaddleOCR engine shell with model initialization [branch: DEBUG-v007] |
+| 2026-05-21 20:52:52 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_04__paddle-ocr-engine.md` | `S0288 Phase 04` | Record PaddleOCR engine creation step [branch: DEBUG-v007] |
+| 2026-05-21 20:52:52 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Advance PaddleOCR engine phase cursor [branch: DEBUG-v007] |
+| 2026-05-21 20:55:34 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/domain/ocr/PaddleOcrEngine.kt` | `PaddleOcrEngine` | Run PaddleOCR detector classifier and recognizer predictors [branch: DEBUG-v007] |
+| 2026-05-21 20:55:34 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_04__paddle-ocr-engine.md` | `S0288 Phase 04` | Record PaddleOCR predictor sequence step [branch: DEBUG-v007] |
+| 2026-05-21 20:55:34 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Advance PaddleOCR engine predictor sequence cursor [branch: DEBUG-v007] |
+| 2026-05-21 20:58:18 | `app_v2/src/main` | `Player big buttons UI` | Adjust big-buttons player layout and audio info overlay [branch: DEBUG-v007] |
+| 2026-05-21 20:58:25 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/PaddleOcrModule.kt` | `PaddleOcrModule` | Add qualified noLegal PaddleOCR Hilt binding [branch: DEBUG-v007] |
+| 2026-05-21 20:58:26 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_04__paddle-ocr-engine.md` | `S0288 Phase 04` | Close PaddleOCR engine phase [branch: DEBUG-v007] |
+| 2026-05-21 20:58:26 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Mark PaddleOCR engine phase done [branch: DEBUG-v007] |
+| 2026-05-21 20:59:52 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_05__paddle-ocr-model-manager.md` | `S0288 Phase 05` | Close PaddleOCR model manager phase [branch: DEBUG-v007] |
+| 2026-05-21 20:59:52 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `S0288 tactical index` | Mark PaddleOCR model manager phase done [branch: DEBUG-v007] |
+| 2026-05-21 21:01:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBigButtonsModeManager.kt` | `PlayerBigButtonsModeManager` | Remove deprecated scaledDensity use in big button labels [branch: DEBUG-v007] |
+| 2026-05-21 21:08:27 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/OcrEngineContributor.kt` | `OcrEngineContributor` | Add flavor OCR engine contributor contract [branch: DEBUG-v007] |
+| 2026-05-21 21:09:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/OfflineOcrEngineProvider.kt` | `OfflineOcrEngineProvider` | Add runtime OCR engine selection with default fallback [branch: DEBUG-v007] |
+| 2026-05-21 21:09:51 | `app_v2/src/main/java/com/sza/fastmediasorter/di/OcrContributorModule.kt` | `OcrContributorModule` | Declare empty OCR contributor multibinding set [branch: DEBUG-v007] |
+| 2026-05-21 21:10:33 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/domain/ocr/PaddleOcrEngineContributor.kt` | `PaddleOcrEngineContributor` | Contribute Paddle OCR engine for noLegal Cyrillic selection [branch: DEBUG-v007] |
+| 2026-05-21 21:11:15 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/PaddleOcrModule.kt` | `PaddleOcrModule` | Register Paddle OCR contributor in noLegal Hilt multibinding [branch: DEBUG-v007] |
+| 2026-05-21 21:12:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `TranslationManager` | Route offline OCR through selected engine provider [branch: DEBUG-v007] |
+| 2026-05-21 21:13:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImageTranslationManager.kt` | `PlayerImageTranslationManager` | Show OCR translation progress while image translation runs [branch: DEBUG-v007] |
+| 2026-05-21 21:28:02 | `docs/FEATURES_noLegal.md` | `spec-dev` | S0288 phase 07.1: add Offline PaddleOCR (PP-OCRv5 + Paddle-Lite) section to noLegal feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 21:28:02 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | S0288 phase 07.1: mirror Offline PaddleOCR section in RU noLegal feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 21:28:03 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | S0288 phase 07.1: mirror Offline PaddleOCR section in UK noLegal feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `spec-dev` | S0288 finalize: all 7 phases done; status In Progress -> BlockNeedUserTest pending on-device verification [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `spec-dev` | S0288 phase counter 7/7; Phase 06 and 07 rows flipped to Done; completion gate ticked [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_06__translation-manager-integration.md` | `spec-dev` | S0288 phase 06 closed: standardDebug + noLegalDebug builds pass after TranslationManager OCR engine routing [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_07__docs-catalog-cleanup.md` | `spec-dev` | S0288 phase 07 closed: trilingual noLegal docs, catalog sync, 5 BlockNeedUserTest probes inserted [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `spec-dev` | S0288 phase 07.4: add BlockNeedUserTest Timber probe at OCR engine selector entry [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `spec-dev` | S0288 phase 07.4: add BlockNeedUserTest Timber probes at recognizeText and recognizeAndTranslateBlocks entries [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImageTranslationManager.kt` | `spec-dev` | S0288 phase 07.4: add BlockNeedUserTest Timber probe at translateCurrentImage entry [branch: DEBUG-v007] |
+| 2026-05-21 21:35:45 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/domain/ocr/PaddleOcrEngine.kt` | `spec-dev` | S0288 phase 07.4: add BlockNeedUserTest Timber probe at PaddleOcrEngine.recognizeTextBlocks entry [branch: DEBUG-v007] |
+| 2026-05-21 22:17:33 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec` | Add strategic spec S0289 for TV keyboard/D-pad navigation in MainActivity and PlayerActivity [branch: DEBUG-v007] |
+| 2026-05-21 22:29:49 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec` | Broaden S0289 scope to all in-house user-facing Activities (15 screens), resolve owner UX inputs [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/INDEX.md` | `spec-tech` | Create tactical plan for S0289 [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_01__foundations.md` | `spec-tech` | Phase 01: foundations [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_02__main-activity-focus.md` | `spec-tech` | Phase 02: main-activity-focus [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_03__player-focus.md` | `spec-tech` | Phase 03: player-focus [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_04__browse-focus.md` | `spec-tech` | Phase 04: browse-focus [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_05__forms-group.md` | `spec-tech` | Phase 05: forms-group [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_06__lists-group.md` | `spec-tech` | Phase 06: lists-group [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup [branch: DEBUG-v007] |
+| 2026-05-21 22:39:02 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec-tech` | S0289 Status -> Tactical [branch: DEBUG-v007] |
+| 2026-05-21 22:40:48 | `app_v2/src/main/res/drawable/focus_button_background.xml` | `S0289 phase-01.1` | Add focus_button_background selector drawable (S0289) [branch: DEBUG-v007] |
+| 2026-05-21 22:40:48 | `app_v2/src/main/res/values/colors.xml` | `S0289 phase-01.1` | Add focus_button_stroke color key (light) [branch: DEBUG-v007] |
+| 2026-05-21 22:40:48 | `app_v2/src/main/res/values-night/colors.xml` | `S0289 phase-01.1` | Add focus_button_stroke color key (dark) [branch: DEBUG-v007] |
+| 2026-05-21 22:41:28 | `app_v2/src/main/res/drawable/focus_tab_background.xml` | `S0289 phase-01.2` | Add focus_tab_background selector drawable (S0289) [branch: DEBUG-v007] |
+| 2026-05-21 22:42:45 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `S0289 phase-01.3-01.4` | Add shouldRequestInitialFocus() and S0289 Timber probe in BaseActivity [branch: DEBUG-v007] |
+| 2026-05-21 22:48:23 | `app_v2/src/main/java/com/sza/fastmediasorter/util/TextNoteTargetPolicy.kt` | `TextNoteTargetPolicy` | Allow creating text notes from All Documents via public Documents fallback [branch: DEBUG-v007] |
+| 2026-05-21 22:49:27 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Guard VR diagnostic video frame bridge against incompatible decoder output [branch: DEBUG-v007] |
+| 2026-05-21 22:50:07 | `app_v2/src/main/res/layout/activity_main.xml` | `S0289 phase-02.2` | Wire focus chain in activity_main.xml portrait (focusable, nextFocus*, focus_button_background foreground) [branch: DEBUG-v007] |
+| 2026-05-21 22:51:24 | `app_v2/src/main/res/layout-land/activity_main.xml` | `S0289 phase-02.3` | Mirror focus chain to landscape activity_main.xml [branch: DEBUG-v007] |
+| 2026-05-21 22:52:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Suppress deprecated Quest permission callback warning after VR frame bridge guard [branch: DEBUG-v007] |
+| 2026-05-21 22:55:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0289 phase-02.4` | MainActivity: initial focus on btnStartPlayer, restitch control-bar chain, restore focus to last-played resource on resume [branch: DEBUG-v007] |
+| 2026-05-21 22:56:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsToggleRow.kt;app_v2/src/main/res/layout/view_settings_toggle_row.xml;app_v2/src/vr/res/layout/fragment_vr_settings_block.xml;app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `VR settings 3DVR row - landscape test-immersive button placement` | SettingsToggleRow: add setHugsTextContent() to collapse text-group weights so a trailing sibling sits next to the label. VR media settings 3DVR block uses it so the Test Immersive button stops flying to the right edge in landscape. [branch: DEBUG-v007] |
+| 2026-05-21 22:58:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt` | `S0289 phase-02.5` | KeyboardNavigationHandler: propagate UP from row 0 to layout nextFocusUp target [branch: DEBUG-v007] |
+| 2026-05-21 22:59:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Remove ineffective open modifiers from final helper methods [branch: DEBUG-v007] |
+| 2026-05-21 23:03:56 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0289 phase-03.3` | Wire focus chain on primary HUD buttons in activity_player_unified.xml portrait [branch: DEBUG-v007] |
+| 2026-05-21 23:05:12 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0289 phase-03.4` | Mirror focus chain to landscape activity_player_unified.xml [branch: DEBUG-v007] |
+| 2026-05-21 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0289 phase-03.5` | PlayerActivity: getInitialFocusView, isHudFocused helper, EXTRA_LAST_PLAYED_RESOURCE_ID propagation [branch: DEBUG-v007] |
+| 2026-05-21 23:11:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0289 phase-03.6` | StandalonePlayerActivity: getInitialFocusView returns btnPlayPause with S0289 probe [branch: DEBUG-v007] |
+| 2026-05-21 23:14:33 | `app_v2/src/vr/cpp/xr_input.cpp` | `DiagnosticXrInput` | Declare OpenXR controller actions with left/right subaction paths and poll buttons independently from aim pose [branch: DEBUG-v007] |
+| 2026-05-21 23:14:33 | `app_v2/src/vr/cpp/xr_session.cpp` | `DiagnosticXrSession` | Handle left/right trigger navigation without requiring active aim pose [branch: DEBUG-v007] |
+| 2026-05-21 23:14:33 | `app_v2/src/vr/cpp/xr_hud_world.cpp` | `DiagnosticXrHud` | Remove closed spec id from persistent HUD log tag [branch: DEBUG-v007] |
+| 2026-05-21 23:14:33 | `app_v2/src/vr/cpp/xr_input.h` | `DiagnosticXrInput` | Remove closed spec id from XR input header comment [branch: DEBUG-v007] |
+| 2026-05-21 23:14:41 | `app_v2\src\vr\java\com\sza\fastmediasorter\ui\xr\DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Render bundled diagnostic asset as mono 360 and keep VR video bridge guarded [branch: DEBUG-v007] |
+| 2026-05-21 23:27:20 | `app_v2/src/main/res/layout/activity_browse.xml` | `S0289 phase-04.2` | Wire focus chain in activity_browse.xml portrait [branch: DEBUG-v007] |
+| 2026-05-21 23:27:20 | `app_v2/src/main/res/layout-land/activity_browse.xml` | `S0289 phase-04.2` | Mirror focus chain to landscape activity_browse.xml [branch: DEBUG-v007] |
+| 2026-05-21 23:28:26 | `app_v2/src/vr/res/layout/fragment_vr_settings_block.xml` | `VR settings 3DVR row - Test Immersive looks like a button` | fragment_vr_settings_block: Test Immersive switched from TextView+selectableItemBackground to MaterialButton with Widget.FastMediaSorter.SettingsButton.Outlined style, matching btnShareLogs/btnSaveLogs/btnClearStreamingCache pattern. [branch: DEBUG-v007] |
+| 2026-05-21 23:28:27 | `app_v2/src/main/res/layout/view_collapsible_section_header.xml` | `csh_headerRow focus highlight` | Add focus_button_background foreground to CollapsibleSectionHeader row so keyboard and TV-remote focus is visible (2dp blue stroke per S0289 pattern) [branch: DEBUG-v007] |
+| 2026-05-21 23:33:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0289 phase-04.3` | BrowseActivity: getInitialFocusView fallback to btnBack, restitchBrowseControlChain, S0289 probe [branch: DEBUG-v007] |
+| 2026-05-21 23:40:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `S0289 phase-05.1` | Settings: Timber probe in getInitialFocusView [branch: DEBUG-v007] |
+| 2026-05-21 23:41:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0289 phase-05.2` | AddResource: getInitialFocusView -> btnAddToResources [branch: DEBUG-v007] |
+| 2026-05-21 23:41:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorActivity.kt` | `S0289 phase-05.3` | ResourceEditor: getInitialFocusView -> fragmentContainer [branch: DEBUG-v007] |
+| 2026-05-21 23:42:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingRemapActivity.kt` | `S0289 phase-05.5` | KeybindingRemap: getInitialFocusView -> recyclerView [branch: DEBUG-v007] |
+| 2026-05-21 23:42:35 | `app_v2/src/vr/cpp/xr_session.cpp` | `DiagnosticXrSession` | Debounce controller media navigation to prevent trigger-repeat playlist skipping [branch: DEBUG-v007] |
+| 2026-05-21 23:42:35 | `app_v2/src/vr/cpp/xr_input.cpp` | `DiagnosticXrInput` | Add controller grip pose action for visible ray origins [branch: DEBUG-v007] |
+| 2026-05-21 23:42:35 | `app_v2/src/vr/cpp/xr_input.h` | `DiagnosticXrInput` | Expose grip pose validity for HUD ray rendering [branch: DEBUG-v007] |
+| 2026-05-21 23:42:35 | `app_v2/src/vr/cpp/xr_hud_world.cpp` | `DiagnosticXrHud` | Render HUD head-locked above media and use grip pose as ray origin [branch: DEBUG-v007] |
+| 2026-05-21 23:42:35 | `app_v2/src/vr/cpp/xr_hud_world.h` | `DiagnosticXrHud` | Remove closed spec id from HUD header comment [branch: DEBUG-v007] |
+| 2026-05-21 23:42:35 | `app_v2\src\vr\java\com\sza\fastmediasorter\ui\xr\DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Use software video frame pump for VR diagnostic playback and preserve detected render modes [branch: DEBUG-v007] |
+| 2026-05-21 23:42:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0289 phase-05.6` | Welcome: Timber probe + Timber import [branch: DEBUG-v007] |
+| 2026-05-21 23:43:15 | `app_v2/src/main/res/layout/activity_welcome.xml` | `S0289 phase-05.6` | Welcome: focus chain on nav buttons [branch: DEBUG-v007] |
+| 2026-05-21 23:44:20 | `app_v2/src/vr/cpp/xr_hud_world.cpp` | `DiagnosticXrHud` | Remove unused HUD interpolation helpers after head-locked diagnostic HUD change [branch: DEBUG-v007] |
+| 2026-05-21 23:46:44 | `app_v2/src/vr/cpp/xr_session.cpp` | `DiagnosticXrSession` | Remove per-frame HUD queue debug log spam [branch: DEBUG-v007] |
+| 2026-05-22 00:05:18 | `app_v2\src\vr\java\com\sza\fastmediasorter\ui\xr\DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Restrict VR diagnostic playlist to setup_test_vr sample files [branch: DEBUG-v007] |
+| 2026-05-22 00:05:18 | `scripts\utils\setup_test_vr.ps1` | `setup_test_vr.ps1` | Deploy VR diagnostic media into dedicated test folders and ignore stale local harvest files [branch: DEBUG-v007] |
+| 2026-05-22 00:22:01 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Route VR test videos through native GL video surface and restrict playlist to VR test folders [branch: DEBUG-v007] |
+| 2026-05-22 00:22:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrRenderThread.kt` | `DiagnosticXrRenderThread` | Signal native session readiness before starting video playback [branch: DEBUG-v007] |
+| 2026-05-22 00:22:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/DiagnosticXrRuntime.kt` | `DiagnosticXrRuntime` | Expose native GL-backed video surface controls [branch: DEBUG-v007] |
+| 2026-05-22 00:22:50 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `NativeDiagnosticXrRuntime` | Bridge video surface controls to JNI [branch: DEBUG-v007] |
+| 2026-05-22 00:22:50 | `app_v2/src/vr/cpp/xr_session.cpp` | `xr_session` | Render ExoPlayer video through SurfaceTexture external texture [branch: DEBUG-v007] |
+| 2026-05-22 00:22:50 | `app_v2/src/vr/cpp/xr_session.h` | `xr_session` | Declare native video surface API [branch: DEBUG-v007] |
+| 2026-05-22 00:22:51 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `diagnostic_xr_runtime` | Expose native video surface JNI methods [branch: DEBUG-v007] |
+| 2026-05-22 01:12:10 | `PLAN/S0282_vr_test_immerse_improvement.md` | `spec-arc` | Archive S0282 (VR Test Immerse Improvement) -> temp/done/; superseded by new strategic spec covering bundle-first playlist + auto-detect stereo + render-quality overhaul + bug fixes [branch: DEBUG-v007] |
+| 2026-05-22 01:14:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsActivity.kt` | `S0289` | Add TV initial focus hook to auth sessions activity [branch: DEBUG-v007] |
+| 2026-05-22 01:15:05 | `app_v2/src/main/res/layout/activity_auth_sessions.xml` | `S0289` | Wire auth sessions layout focus links for TV navigation [branch: DEBUG-v007] |
+| 2026-05-22 01:16:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesActivity.kt` | `S0289` | Add TV initial focus target to duplicates activity [branch: DEBUG-v007] |
+| 2026-05-22 01:16:49 | `app_v2/src/main/res/layout/fragment_duplicates.xml` | `S0289` | Add focus styling to duplicates controls [branch: DEBUG-v007] |
+| 2026-05-22 01:17:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesActivity.kt` | `S0289` | Flatten duplicates initial-focus debug probe to single-line grep target [branch: DEBUG-v007] |
+| 2026-05-22 01:17:54 | `PLAN/S0290_vr_test_quality_overhaul.md` | `spec` | Add strategic spec S0290 for VR Test Mode Quality Overhaul (bundle-first cyclic playlist + auto-detect stereo + render-quality + 4 known bug fixes) [branch: DEBUG-v007] |
+| 2026-05-22 01:18:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/GoogleDriveFolderPickerActivity.kt` | `S0289` | Add TV initial focus handling to Google Drive folder picker [branch: DEBUG-v007] |
+| 2026-05-22 01:19:43 | `app_v2/src/main/res/layout/activity_google_drive_folder_picker.xml` | `S0289` | Add focus chain to Google Drive folder picker controls [branch: DEBUG-v007] |
+| 2026-05-22 01:20:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/DropboxFolderPickerActivity.kt` | `S0289` | Add TV initial focus handling to Dropbox folder picker [branch: DEBUG-v007] |
+| 2026-05-22 01:21:10 | `app_v2/src/main/res/layout/activity_dropbox_folder_picker.xml` | `S0289` | Add focus chain to Dropbox folder picker controls [branch: DEBUG-v007] |
+| 2026-05-22 01:21:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerActivity.kt` | `S0289` | Add TV initial focus handling to OneDrive folder picker [branch: DEBUG-v007] |
+| 2026-05-22 01:22:36 | `app_v2/src/main/res/layout/activity_onedrive_folder_picker.xml` | `S0289` | Add focus chain to OneDrive folder picker controls [branch: DEBUG-v007] |
+| 2026-05-22 01:24:03 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetConfigActivity.kt` | `S0289` | Add TV initial focus handling to widget config compose host [branch: DEBUG-v007] |
+| 2026-05-22 01:24:54 | `app_v2/src/main/res/layout/activity_resource_launch_widget_config.xml` | `S0289` | Add ComposeView host layout for widget config focus integration [branch: DEBUG-v007] |
+| 2026-05-22 01:26:55 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetConfigActivity.kt` | `S0289` | Fix Compose focusable import for widget config build [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/INDEX.md` | `spec-tech` | Create tactical plan for S0290 [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_01__render-correctness-fixes.md` | `spec-tech` | Phase 01: render-correctness-fixes [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_02__bundle-first-playlist.md` | `spec-tech` | Phase 02: bundle-first-playlist [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_03__filename-parser-extension.md` | `spec-tech` | Phase 03: filename-parser-extension [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_04__metadata-strategies.md` | `spec-tech` | Phase 04: metadata-strategies [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_05__test-asset-coverage.md` | `spec-tech` | Phase 05: test-asset-coverage [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_06__render-quality.md` | `spec-tech` | Phase 06: render-quality [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_07__equirect2-and-ffr-experiment.md` | `spec-tech` | Phase 07: equirect2-and-ffr-experiment [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs-catalog-cleanup [branch: DEBUG-v007] |
+| 2026-05-22 01:27:36 | `PLAN/S0290_vr_test_quality_overhaul.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v007] |
+| 2026-05-22 01:30:43 | `dev/S0289_multimodal_input_task_definition.md` | `S0289` | Document multimodal input clarification gate and unresolved scope decisions [branch: DEBUG-v007] |
+| 2026-05-22 01:33:15 | `PLAN/S0280_bugfix-local-copy-mediastore-pre-q-regression.md` | `spec-arc` | Archive S0280 (bugfix-local-copy-mediastore-pre-q-regression) -> temp/done/ [branch: DEBUG-v007] |
+| 2026-05-22 01:33:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/local/MediaStoreLocalDestinationWriter.kt` | `spec-arc` | Remove Timber.d S0280 verification tag on archive [branch: DEBUG-v007] |
+| 2026-05-22 01:34:29 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec` | S0289 status BlockNeedUserTest after Phase 07 [branch: DEBUG-v007] |
+| 2026-05-22 01:34:54 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_05__forms-group.md` | `spec` | Mark S0289 Phase 05 done after final validation [branch: DEBUG-v007] |
+| 2026-05-22 01:34:55 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_06__lists-group.md` | `spec` | Mark S0289 Phase 06 done after final validation [branch: DEBUG-v007] |
+| 2026-05-22 01:34:55 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_07__docs-catalog-cleanup.md` | `spec` | Track S0289 Phase 07 completion [branch: DEBUG-v007] |
+| 2026-05-22 01:34:55 | `PLAN/S0289_tv-keyboard-dpad-navigation/INDEX.md` | `spec` | Refresh S0289 tactical index progress [branch: DEBUG-v007] |
+| 2026-05-22 01:35:37 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_07__docs-catalog-cleanup.md` | `spec` | Finalize S0289 Phase 07 verification notes [branch: DEBUG-v007] |
+| 2026-05-22 01:35:37 | `PLAN/S0289_tv-keyboard-dpad-navigation/INDEX.md` | `spec` | Set S0289 tactical index to BlockNeedUserTest [branch: DEBUG-v007] |
+| 2026-05-22 01:45:32 | `dev/S0289_multimodal_input_task_definition.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:45:33 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:45:33 | `PLAN/S0289_tv-keyboard-dpad-navigation/INDEX.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:45:34 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_07__multimodal-foundation.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:45:35 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_08__complex-surfaces-multimodal.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:45:35 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_09__remaining-activities-multimodal.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:45:36 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_10__docs-catalog-cleanup.md` | `S0289` | Expand S0289 to multimodal input execution plan [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/INDEX.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_01__render-correctness-fixes.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_02__bundle-first-playlist.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_03__filename-parser-extension.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_04__metadata-strategies.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_05__test-asset-coverage.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_06__render-quality.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_07__equirect2-and-ffr-experiment.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:47:52 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_08__docs-catalog-cleanup.md` | `spec-update` | Refinement (GPT-5.4, focus: consistency/completeness/verifiability/stability) [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetConfigActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/GoogleDriveFolderPickerActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/DropboxFolderPickerActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingRemapActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0289` | Remove stale S0289 BlockNeedUserTest probe after reopening the ticket [branch: DEBUG-v007] |
+| 2026-05-22 01:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `S0289` | Phase 07 multimodal mouse foundation [branch: DEBUG-v007] |
+| 2026-05-22 01:54:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MouseEventHandler.kt` | `S0289` | Phase 07 multimodal mouse foundation [branch: DEBUG-v007] |
+| 2026-05-22 01:55:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ActivityMouseDispatchHelper.kt` | `S0289` | Phase 07 multimodal mouse foundation [branch: DEBUG-v007] |
+| 2026-05-22 01:56:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0289` | Fix generic motion override signature after BaseActivity mouse foundation [branch: DEBUG-v007] |
+| 2026-05-22 01:56:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0289` | Fix generic motion override signature after BaseActivity mouse foundation [branch: DEBUG-v007] |
+| 2026-05-22 01:57:04 | `PLAN/S0289_tv-keyboard-dpad-navigation/PHASE_07__multimodal-foundation.md` | `S0289` | Update tactical tracking after Phase 07 completion [branch: DEBUG-v007] |
+| 2026-05-22 01:57:04 | `PLAN/S0289_tv-keyboard-dpad-navigation/INDEX.md` | `S0289` | Update tactical tracking after Phase 07 completion [branch: DEBUG-v007] |
+| 2026-05-22 02:21:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `spec-dev` | S0289 Phase 08.1: route wheel scroll via shared ActivityMouseDispatchHelper (drop ad-hoc onGenericMotionEvent override) [branch: DEBUG-v007] |
+| 2026-05-22 02:23:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `spec-dev` | S0289 Phase 08.2: route wheel scroll via shared ActivityMouseDispatchHelper; gamepad/keyboard routing preserved [branch: DEBUG-v007] |

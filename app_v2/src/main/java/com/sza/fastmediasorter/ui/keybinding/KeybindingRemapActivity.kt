@@ -28,6 +28,11 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
     override fun getViewBinding(): ActivityKeybindingRemapBinding =
         ActivityKeybindingRemapBinding.inflate(layoutInflater)
 
+    /** S0289 §2.4: initial focus on the bindings list. */
+    override fun getInitialFocusView(): android.view.View? {
+        return binding.recyclerView
+    }
+
     override fun setupViews() {
         binding.backButton.setOnClickListener { finish() }
 

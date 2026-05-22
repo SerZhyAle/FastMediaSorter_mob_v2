@@ -1,4 +1,4 @@
-// S0283 Phase 02: XR World HUD module header.
+// XR world HUD module header.
 // Manages World Space 3D Quad rendering, lazy-follow gaze updates, rays, and visual cursors.
 
 #pragma once

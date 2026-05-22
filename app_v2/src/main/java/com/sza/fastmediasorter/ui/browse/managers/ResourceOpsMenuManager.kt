@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
+import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
 import timber.log.Timber
@@ -61,13 +62,8 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible = canCreateFolder
 
-        // Create text note (S0189): writable + non-virtual + documents-flavored library
-        // (allFiles OR supportedMediaTypes includes TEXT/PDF/EPUB). Hidden for audio/video/photo-only
-        // libraries where a created .txt would not appear in the file list.
-        val canCreateTextNote = resource != null
-                && !resource.isReadOnly
-                && !VirtualPathUtils.isVirtualPath(resource.path)
-                && resource.supportsDocuments()
+        // S0189: virtual "All Documents" writes new notes to the public Documents folder.
+        val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
         popup.menu.findItem(R.id.action_create_text_file)?.isVisible = canCreateTextNote
 
         val canCreateDrawing = resource != null
@@ -399,11 +395,7 @@ class ResourceOpsMenuManager @Inject constructor(
         // S0189: defend the keyboard-shortcut entry point with the same gate the toolbar/menu use
         // (toolbar button + popup menu hide themselves, but a bound key still reaches this method).
         val resource = viewModel.state.value.resource
-        if (resource == null
-            || resource.isReadOnly
-            || VirtualPathUtils.isVirtualPath(resource.path)
-            || !resource.supportsDocuments()
-        ) {
+        if (!TextNoteTargetPolicy.canCreateTextNote(resource)) {
             return
         }
 

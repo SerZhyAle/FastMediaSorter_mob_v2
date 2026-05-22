@@ -232,6 +232,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     // Player layout has its own immersive insets handling - skip global edge-to-edge
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
+    /** S0289 §2.2: initial focus on play-pause when the standalone player opens on a non-touch device. */
+    override fun getInitialFocusView(): View? {
+        val target = binding.btnPlayPause
+        return target
+    }
+
     override fun setupViews() {
         val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         setupWindowAndInsets()
@@ -383,7 +389,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         return super.onKeyDown(keyCode, event)
     }
 
-    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean {
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true
         return super.dispatchGenericMotionEvent(event)

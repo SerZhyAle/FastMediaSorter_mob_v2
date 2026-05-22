@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
@@ -138,14 +139,8 @@ class BrowseStateUiUpdater(
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
 
-        // Create text note (S0189): writable + non-virtual + documents-flavored library
-        // (allFiles OR supportedMediaTypes includes TEXT/PDF/EPUB). Hidden for audio/video/photo-only
-        // libraries where a created .txt would not appear in the file list.
-        val canCreateTextNote = resource != null
-                && !resource.isReadOnly
-                && !VirtualPathUtils.isVirtualPath(resource.path)
-                && resource.supportsDocuments()
-        binding.btnCreateTextFile?.isVisible = canCreateTextNote
+        // S0189: virtual "All Documents" writes new notes to the public Documents folder.
+        binding.btnCreateTextFile?.isVisible = TextNoteTargetPolicy.canCreateTextNote(resource)
 
         val canCreateDrawing = resource != null
             && !resource.isReadOnly

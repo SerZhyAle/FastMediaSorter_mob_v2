@@ -52,6 +52,7 @@
     <color name="item_alternate">#FF181818</color>    <!-- Slightly lighter than bg (#121212) for striping -->
     <color name="item_pressed">#FF0D47A1</color>    <!-- Deep blue for pressed -->
     <color name="focus_indicator">#FF64B5F6</color>    <!-- Light blue for focus rings -->
+    <color name="focus_button_stroke">#FF64B5F6</color>    <!-- S0289: button/tab focus ring (aliases focus_indicator) -->
     <!-- Action button background -->
     <color name="action_button_bg">#20FFFFFF</color>
 

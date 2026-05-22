@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.ui.cloudfolders
 
 import android.content.Intent
 import android.view.KeyEvent
+import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -28,6 +30,7 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
     private lateinit var folderAdapter: CloudFolderAdapter
     // S0196 Phase 04: one-shot tag on the first non-empty folder list bind.
     private var firstListBoundLogged = false
+    private var initialFolderFocusTransferred = false
     private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
         override fun activateFocused(): Boolean {
             // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
@@ -44,7 +47,13 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
     }
 
     // S0230 Phase 02 - TV initial focus on the folder list.
-    override fun getInitialFocusView(): android.view.View = binding.rvFolders
+    override fun getInitialFocusView(): View? {
+        val firstFolderItem = binding.rvFolders.findViewHolderForAdapterPosition(0)?.itemView
+        val folderCount = if (::folderAdapter.isInitialized) folderAdapter.itemCount else -1
+        return firstFolderItem
+            ?: binding.toolbar.children.firstOrNull { it.isClickable }
+            ?: binding.cbAddAsDestination
+    }
 
     override fun setupViews() {
         // Guard: Cloud storage is not supported by this flavor
@@ -108,6 +117,7 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
     override fun observeData() {
         collectOnLifecycle(viewModel.state) { state ->
             folderAdapter.submitList(state.folders)
+            requestFirstFolderFocusIfNeeded(state.folders.isNotEmpty())
 
             binding.progressBar.isVisible = state.isLoading && !binding.swipeRefresh.isRefreshing
             binding.swipeRefresh.isRefreshing = state.isLoading && binding.swipeRefresh.isRefreshing
@@ -145,6 +155,16 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
                     startActivity(intent)
                     finish()
                 }
+            }
+        }
+    }
+
+    private fun requestFirstFolderFocusIfNeeded(hasFolders: Boolean) {
+        if (!hasFolders || initialFolderFocusTransferred || !shouldRequestInitialFocus()) return
+        binding.rvFolders.post {
+            val firstFolderItem = binding.rvFolders.findViewHolderForAdapterPosition(0)?.itemView
+            if (firstFolderItem?.requestFocus() == true) {
+                initialFolderFocusTransferred = true
             }
         }
     }

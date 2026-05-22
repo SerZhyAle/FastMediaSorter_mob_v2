@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0289: Focus-state selector for control-bar buttons.
+  Default state is transparent so the host button's own background / ripple keeps rendering;
+  only the 2dp stroke is added when the button is keyboard-focused (and on hover for mouse parity).
+  Pattern matches @drawable/item_focus_selector but for buttons rather than list items.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="@color/focus_button_stroke" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <item android:state_hovered="true">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="@color/focus_button_stroke" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+</selector>

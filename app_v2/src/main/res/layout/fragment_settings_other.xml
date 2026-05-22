@@ -124,6 +124,60 @@
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
+        <!-- OCR Engine Type (S0288) -->
+        <LinearLayout
+            android:id="@+id/layoutOcrEngineType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/settings_item_min_height"
+            android:visibility="gone"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/ocr_engine_type"
+                android:textSize="@dimen/toggler_title_text_size" />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinnerOcrEngineType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/settings_spinner_min_width"
+                android:contentDescription="@string/ocr_engine_type" />
+        </LinearLayout>
+
+        <!-- PaddleOCR Model Selection (S0288) -->
+        <LinearLayout
+            android:id="@+id/layoutPaddleOcrModel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/settings_item_min_height"
+            android:visibility="gone"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/paddle_ocr_model"
+                android:textSize="@dimen/toggler_title_text_size" />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinnerPaddleOcrModel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/settings_spinner_min_width"
+                android:contentDescription="@string/paddle_ocr_model" />
+        </LinearLayout>
+
         <!-- OCR Font Size -->
         <LinearLayout
             android:id="@+id/layoutOcrFontSize"

@@ -308,7 +308,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * toolbar. ViewPager2 forwards the focus request to the currently-bound fragment's first
      * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
      */
-    override fun getInitialFocusView(): View? = binding.viewPager
+    override fun getInitialFocusView(): View? {
+        return binding.viewPager
+    }
 
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)

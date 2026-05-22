@@ -88,6 +88,8 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <enableOcr>${settings.enableOcr}</enableOcr>")
                 appendLine("    <ocrDefaultFontSize>${settings.ocrDefaultFontSize.escapeXml()}</ocrDefaultFontSize>")
                 appendLine("    <ocrDefaultFontFamily>${settings.ocrDefaultFontFamily.escapeXml()}</ocrDefaultFontFamily>")
+                appendLine("    <ocrEngineType>${settings.ocrEngineType.escapeXml()}</ocrEngineType>")
+                appendLine("    <paddleOcrModel>${settings.paddleOcrModel.escapeXml()}</paddleOcrModel>")
 
                 // Playback and Sorting settings
                 appendLine("    <defaultSortMode>${settings.defaultSortMode.name}</defaultSortMode>")

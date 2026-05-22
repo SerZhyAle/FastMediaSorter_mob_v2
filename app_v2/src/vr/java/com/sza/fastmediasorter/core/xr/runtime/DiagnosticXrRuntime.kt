@@ -53,6 +53,12 @@ interface DiagnosticXrRuntime {
     /** Thread-safe: queue a new frame for upload on the render thread during the next frame loop cycle. */
     fun queueFrame(rgba: ByteArray, width: Int, height: Int)
 
+    /** Returns the native GL-backed video surface for ExoPlayer output, or null before session start. */
+    fun getVideoSurface(): Surface?
+
+    /** Switch media rendering between uploaded RGBA/image texture and the native external video texture. */
+    fun setVideoSurfaceEnabled(enabled: Boolean)
+
     /** Thread-safe: set projection type (0=360, 1=180, 2=Flat) and stereo layout (0=Mono, 1=TB, 2=SBS) */
     fun setRenderConfig(projection: Int, layout: Int)
 

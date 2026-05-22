@@ -69,6 +69,12 @@ NativeResult xr_session_upload_texture(const uint8_t* rgba, int width, int heigh
 // Queue a dynamic frame update thread-safely for the next frame render.
 NativeResult xr_session_queue_frame(const uint8_t* rgba, int width, int height);
 
+// Returns the Java Surface backed by the native GL external texture, or null before GL assets exist.
+jobject_opaque xr_session_get_video_surface();
+
+// Enables or disables rendering from the native GL external texture.
+void xr_session_set_video_surface_enabled(bool enabled);
+
 // Set render configuration (projection and layout).
 void xr_session_set_render_config(int projection, int layout);
 

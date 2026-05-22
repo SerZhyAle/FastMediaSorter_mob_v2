@@ -197,6 +197,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         enableOcr = data["enableOcr"]?.toBoolean() ?: false,
                                         ocrDefaultFontSize = data["ocrDefaultFontSize"] ?: "AUTO",
                                         ocrDefaultFontFamily = data["ocrDefaultFontFamily"] ?: "DEFAULT",
+                                        ocrEngineType = data["ocrEngineType"] ?: "TESSERACT",
+                                        paddleOcrModel = data["paddleOcrModel"] ?: "CYRILLIC",
                                         
                                         defaultSortMode = SortMode.valueOf(data["defaultSortMode"] ?: "NAME_ASC"),
                                         slideshowInterval = data["slideshowInterval"]?.toInt() ?: 10,

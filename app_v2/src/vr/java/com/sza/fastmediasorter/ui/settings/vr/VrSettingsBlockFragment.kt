@@ -61,6 +61,10 @@ class VrSettingsBlockFragment : Fragment() {
         val masterRow = view.findViewById<SettingsToggleRow>(R.id.masterToggleRow)
         val testRow = view.findViewById<View>(R.id.testImmersiveRow)
 
+        // Compact layout so the "Test Immersive" button sits next to the master toggle,
+        // not at the right edge of the landscape screen.
+        masterRow.setHugsTextContent(true)
+
         masterRow.setOnCheckedChangeListener { isChecked ->
             viewLifecycleOwner.lifecycleScope.launch {
                 preferences.setEnabled(isChecked)

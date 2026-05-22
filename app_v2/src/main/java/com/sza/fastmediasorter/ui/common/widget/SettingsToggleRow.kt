@@ -41,6 +41,8 @@ class SettingsToggleRow @JvmOverloads constructor(
     private val subtitleView: TextView
     private val helpIcon: ImageButton
     private val trailingSlot: FrameLayout
+    private val textGroup: LinearLayout
+    private val titleLineSpacer: View
 
     private var helpTitleText: CharSequence? = null
     private var helpMessageText: CharSequence? = null
@@ -81,6 +83,8 @@ class SettingsToggleRow @JvmOverloads constructor(
         subtitleView = findViewById(R.id.str_subtitle)
         helpIcon = findViewById(R.id.str_iconHelp)
         trailingSlot = findViewById(R.id.str_trailingSlot)
+        textGroup = findViewById(R.id.str_textGroup)
+        titleLineSpacer = findViewById(R.id.str_titleLineSpacer)
 
         bindRowClicks()
         bindHelpClick()
@@ -170,6 +174,34 @@ class SettingsToggleRow @JvmOverloads constructor(
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
+    }
+
+    /**
+     * Switches the row between the default "stretch-to-parent" layout and a compact layout
+     * that hugs the title/subtitle so a trailing sibling (placed outside this row) sits
+     * immediately next to the label rather than at the far right edge of the container.
+     *
+     * Default (`false`) keeps the canonical Trigger Row look: the text group has `weight=1`
+     * and the title-line spacer pushes the helper icon next to the title. Setting `true`
+     * collapses both weights, forces text to `wrap_content`, and lets the host LinearLayout
+     * arrange this row plus a sibling button on a single tight line.
+     *
+     * Used by VR settings (S0249) where the "Test Immersive" button must sit next to the
+     * master toggle row, not at the right edge in landscape.
+     */
+    fun setHugsTextContent(hug: Boolean) {
+        val textGroupParams = textGroup.layoutParams as LayoutParams
+        textGroupParams.width = if (hug) LayoutParams.WRAP_CONTENT else 0
+        textGroupParams.weight = if (hug) 0f else 1f
+        textGroup.layoutParams = textGroupParams
+
+        val spacerParams = titleLineSpacer.layoutParams as LayoutParams
+        spacerParams.weight = if (hug) 0f else 1f
+        titleLineSpacer.layoutParams = spacerParams
+
+        val subtitleParams = subtitleView.layoutParams as LayoutParams
+        subtitleParams.width = if (hug) LayoutParams.WRAP_CONTENT else LayoutParams.MATCH_PARENT
+        subtitleView.layoutParams = subtitleParams
     }
 
     /**

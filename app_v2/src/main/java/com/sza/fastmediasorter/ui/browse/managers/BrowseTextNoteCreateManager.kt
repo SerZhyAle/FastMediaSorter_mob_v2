@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.usecase.CreateTextNoteUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.create.BrowseCreateEntityCommand
+import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +67,7 @@ class BrowseTextNoteCreateManager(
     fun createTextNote(name: String) {
         scope.launch(ioDispatcher) {
             val resource = stateFlow.value.resource ?: return@launch
-            val currentPath = stateFlow.value.currentPath ?: resource.path
+            val currentPath = TextNoteTargetPolicy.resolveParentPath(resource, stateFlow.value.currentPath)
             dispatchCreate(resource, currentPath, name)
         }
     }

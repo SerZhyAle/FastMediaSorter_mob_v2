@@ -50,6 +50,7 @@
     <color name="item_alternate">#FFF5F5F5</color>    <!-- Same as hover for now, very light grey -->
     <color name="item_pressed">#FFE1F5FE</color>    <!-- Light Blue 50 -->
     <color name="focus_indicator">#FF1976D2</color>    <!-- Primary blue for focus rings -->
+    <color name="focus_button_stroke">#FF1976D2</color>    <!-- S0289: button/tab focus ring (aliases focus_indicator) -->
     <!-- Thumbnail backgrounds -->
     <color name="thumbnail_doc_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
     <color name="thumbnail_video_bg">#F48FB1</color>    <!-- Pink 200 -->
@@ -100,8 +101,8 @@
     <color name="activity_player_unified_translationOverlay_cardBackgroundColor">@color/player_overlay_translucent</color>
     <color name="activity_player_unified_etTextContent_background">@color/player_overlay_standard</color>
     <color name="activity_player_unified_pdfFullscreenOverlay_background">@color/player_overlay_solid</color>
-    <color name="activity_player_audioInfoOverlay_background">@color/player_overlay_standard</color>
-    <color name="activity_player_unified_audioInfoOverlay_background">@color/player_overlay_standard</color>
+    <color name="activity_player_audioInfoOverlay_background">@color/player_overlay_translucent</color>
+    <color name="activity_player_unified_audioInfoOverlay_background">@color/player_overlay_translucent</color>
     <color name="custom_player_controls_exo_bottom_bar_background">@color/player_overlay_light</color>
     <color name="activity_player_controlsOverlay_background">@color/player_overlay_light</color>
     <color name="activity_player_unified_searchPanel_background">@color/player_overlay_heavy</color>
@@ -181,5 +182,4 @@
     <!-- TV launcher banner background (dark navy) - used by res/drawable/tv_banner.xml -->
     <color name="tv_banner_bg">#1A1A2E</color>
 </resources>
-
 

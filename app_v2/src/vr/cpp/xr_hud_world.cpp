@@ -1,4 +1,4 @@
-// S0283 world-space HUD implementation.
+// World-space HUD implementation.
 
 #include "xr_hud_world.h"
 #include "xr_input.h"
@@ -9,7 +9,7 @@
 namespace fms::xr {
 
 namespace {
-constexpr const char* kLogTag = "S0283.XrHud";
+constexpr const char* kLogTag = "DiagnosticXrHud";
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, kLogTag, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, kLogTag, __VA_ARGS__)
 
@@ -42,60 +42,6 @@ XrVector3f rotate_vector(const XrQuaternionf& q, const XrVector3f& v) {
         v.x + 2.0f * cross2.x,
         v.y + 2.0f * cross2.y,
         v.z + 2.0f * cross2.z
-    };
-}
-
-inline float lerp(float a, float b, float t) {
-    return a + t * (b - a);
-}
-
-inline XrVector3f lerp(const XrVector3f& a, const XrVector3f& b, float t) {
-    return XrVector3f{
-        lerp(a.x, b.x, t),
-        lerp(a.y, b.y, t),
-        lerp(a.z, b.z, t)
-    };
-}
-
-XrQuaternionf slerp(const XrQuaternionf& a, const XrQuaternionf& b, float t) {
-    float dot = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-    
-    XrQuaternionf b_norm = b;
-    if (dot < 0.0f) {
-        dot = -dot;
-        b_norm.x = -b.x;
-        b_norm.y = -b.y;
-        b_norm.z = -b.z;
-        b_norm.w = -b.w;
-    }
-    
-    if (dot > 0.9995f) {
-        XrQuaternionf r{
-            a.x + t * (b_norm.x - a.x),
-            a.y + t * (b_norm.y - a.y),
-            a.z + t * (b_norm.z - a.z),
-            a.w + t * (b_norm.w - a.w)
-        };
-        float len = std::sqrt(r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w);
-        if (len > 0.0f) {
-            r.x /= len; r.y /= len; r.z /= len; r.w /= len;
-        }
-        return r;
-    }
-    
-    float theta_0 = std::acos(dot);
-    float theta = theta_0 * t;
-    float sin_theta = std::sin(theta);
-    float sin_theta_0 = std::sin(theta_0);
-    
-    float s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
-    float s1 = sin_theta / sin_theta_0;
-    
-    return XrQuaternionf{
-        s0 * a.x + s1 * b_norm.x,
-        s0 * a.y + s1 * b_norm.y,
-        s0 * a.z + s1 * b_norm.z,
-        s0 * a.w + s1 * b_norm.w
     };
 }
 
@@ -195,9 +141,8 @@ void xr_hud_init() {
 }
 
 void xr_hud_update(const XrPosef& headPose, float deltaTime) {
+    (void)deltaTime;
     if (!g_hudState.visible) return;
-
-    XrVector3f viewDir = rotate_vector(headPose.orientation, {0.0f, 0.0f, -1.0f});
     
     XrVector3f ergonomicOffset = rotate_vector(headPose.orientation, {0.0f, -0.15f, -1.5f});
     
@@ -209,38 +154,15 @@ void xr_hud_update(const XrPosef& headPose, float deltaTime) {
     
     XrQuaternionf idealRot = headPose.orientation;
 
-    if (g_hudState.recenterRequested) {
-        g_hudState.quad.center = idealCenter;
-        g_hudState.quad.rot = idealRot;
-        g_hudState.recenterRequested = false;
-        return;
-    }
     if (g_hudState.dragging) return;
 
-    XrVector3f currentDir{
-        g_hudState.quad.center.x - headPose.position.x,
-        g_hudState.quad.center.y - headPose.position.y,
-        g_hudState.quad.center.z - headPose.position.z
-    };
-    float currentLen = std::sqrt(currentDir.x * currentDir.x + currentDir.y * currentDir.y + currentDir.z * currentDir.z);
-    if (currentLen > 0.0f) {
-        currentDir.x /= currentLen; currentDir.y /= currentLen; currentDir.z /= currentLen;
-    }
-
-    float dot = currentDir.x * viewDir.x + currentDir.y * viewDir.y + currentDir.z * viewDir.z;
-    float angleRad = std::acos(std::max(-1.0f, std::min(1.0f, dot)));
-    float angleDeg = angleRad * (180.0f / 3.14159265f);
-
-    float followSpeed = 0.03f; // Ultra smooth lazy follow
-    if (angleDeg > 20.0f) {
-        followSpeed = 0.12f; // Catch up immediately to avoid losing HUD out of FOV
-    }
-
-    g_hudState.quad.center = lerp(g_hudState.quad.center, idealCenter, followSpeed);
-    g_hudState.quad.rot = slerp(g_hudState.quad.rot, idealRot, followSpeed);
+    g_hudState.quad.center = idealCenter;
+    g_hudState.quad.rot = idealRot;
+    g_hudState.recenterRequested = false;
 }
 
 void xr_hud_process_rays(const XrSpace localSpace, XrTime predictedTime) {
+    (void)localSpace;
     bool anyGripDown = false;
     for (int i = 0; i < 2; i++) {
         if (!g_handInputStates[i].active) {
@@ -249,7 +171,9 @@ void xr_hud_process_rays(const XrSpace localSpace, XrTime predictedTime) {
         }
 
         Ray ray;
-        ray.pos = g_handInputStates[i].pointerPose.position;
+        ray.pos = g_handInputStates[i].gripPoseActive
+            ? g_handInputStates[i].gripPose.position
+            : g_handInputStates[i].pointerPose.position;
         ray.dir = rotate_vector(g_handInputStates[i].pointerPose.orientation, {0.0f, 0.0f, -1.0f});
         const bool gripDown = g_handInputStates[i].gripDown;
         if (gripDown && !g_prevGripDown[i]) {
@@ -293,7 +217,7 @@ void xr_hud_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuin
     float mvpMat[16];
     multiply_matrices(proj, mvMat, mvpMat);
 
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -370,7 +294,9 @@ void xr_hud_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuin
                 g_hudState.quad.center.z + right.z * lx + up.z * ly
             };
 
-            XrVector3f origin = g_handInputStates[i].pointerPose.position;
+            XrVector3f origin = g_handInputStates[i].gripPoseActive
+                ? g_handInputStates[i].gripPose.position
+                : g_handInputStates[i].pointerPose.position;
 
             float lineVerts[6] = {
                 origin.x, origin.y, origin.z,
@@ -419,6 +345,7 @@ void xr_hud_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuin
     }
 
     glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void xr_hud_shutdown() {

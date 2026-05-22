@@ -31,6 +31,7 @@ class DiagnosticXrRenderThread(
     private val textureBytes: ByteArray,
     private val textureWidth: Int,
     private val textureHeight: Int,
+    private val onSessionReady: () -> Unit,
     private val onExitDelivered: () -> Unit,
     private val onStartFailed: (DiagnosticXrNativeResult) -> Unit,
 ) : Thread("S0249.DiagXrRenderThread") {
@@ -73,6 +74,7 @@ class DiagnosticXrRenderThread(
                 // because the user is staring at a featureless globe in this state.
                 Timber.w("uploadTexture -> $uploadResult; proceeding with placeholder texture")
             }
+            onSessionReady()
             val loopResult = runtime.runFrameLoop()
             Timber.d("frame loop returned $loopResult")
         } catch (t: Throwable) {

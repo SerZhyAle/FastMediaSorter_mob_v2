@@ -1061,7 +1061,7 @@ Close the player and try again.</string>
     <string name="big_buttons_mode_title">Big Buttons Mode</string>
     <string name="big_buttons_mode_summary">Enlarges player buttons and expands controls to full width - ideal for car head units</string>
     <string name="tooltip_big_buttons_mode_title">Big Buttons Mode</string>
-    <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 10 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
+    <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 9 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
     <string name="big_btn_short_playback_order">Order</string>
     <string name="big_btn_short_delete">Delete</string>
     <string name="big_btn_short_favorite">Fav</string>
@@ -1946,6 +1946,14 @@ Close the player and try again.</string>
     <string name="ocr_error">Could not recognize the text.</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="text_copied">Text copied to clipboard</string>
+
+    <!-- OCR Engine and PaddleOCR Models (S0288) -->
+    <string name="ocr_engine_type">OCR Engine</string>
+    <string name="ocr_engine_type_tesseract">Tesseract (Default)</string>
+    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
+    <string name="paddle_ocr_model">PaddleOCR Model</string>
+    <string name="paddle_ocr_model_cyrillic">Cyrillic (PP-OCRv5 Mobile)</string>
+    <string name="paddle_ocr_model_eslav">East Slavic (PP-OCRv5 Mobile, More Accurate)</string>
 
     <!-- OCR Best Models Feature -->
     <string name="ocr_best_models_title">High-Quality Offline Models</string>

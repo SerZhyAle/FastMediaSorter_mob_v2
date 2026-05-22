@@ -123,6 +123,20 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
+    override fun getVideoSurface(): Surface? {
+        if (!isNativeAvailable) return null
+        return runCatching { nativeGetVideoSurface() }.getOrElse {
+            Timber.w(it, "getVideoSurface: native call threw"); null
+        }
+    }
+
+    override fun setVideoSurfaceEnabled(enabled: Boolean) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetVideoSurfaceEnabled(enabled) }.onFailure {
+            Timber.w(it, "setVideoSurfaceEnabled: native call threw")
+        }
+    }
+
     override fun setRenderConfig(projection: Int, layout: Int) {
         if (!isNativeAvailable) return
         runCatching { nativeSetRenderConfig(projection, layout) }.onFailure {
@@ -168,6 +182,8 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
     private external fun nativeStartSession(): Int
     private external fun nativeUploadTexture(rgba: ByteArray, width: Int, height: Int): Int
     private external fun nativeQueueFrame(rgba: ByteArray, width: Int, height: Int)
+    private external fun nativeGetVideoSurface(): Surface?
+    private external fun nativeSetVideoSurfaceEnabled(enabled: Boolean)
     private external fun nativeSetRenderConfig(projection: Int, layout: Int)
     private external fun nativeSetParallaxShift(value: Float)
     private external fun nativeQueueHud(rgba: ByteArray, width: Int, height: Int)

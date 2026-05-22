@@ -9,19 +9,26 @@ import javax.inject.Singleton
 import timber.log.Timber
 
 /**
- * Bundled-asset provider for the S0249 Stage 1A diagnostic image.
+ * Bundled-asset provider for the VR diagnostic 360° fallback image.
  *
- * Reads the stereoscopic top-bottom equirectangular JPEG from `vr` flavor resources and
- * exposes its raw bytes + layout metadata to [com.sza.fastmediasorter.core.xr.runtime.NativeDiagnosticXrRuntime].
+ * Reads the monoscopic equirectangular JPEG from `vr` flavor resources and exposes its raw bytes
+ * + layout metadata to [com.sza.fastmediasorter.core.xr.runtime.NativeDiagnosticXrRuntime]. The
+ * image is rendered on a full sphere so the user can rotate the head and see the scene from any
+ * direction.
  *
  * The provider is VR-flavor only — phone-only flavors never inject this class because the
  * `XrEntryGateway` no-op path short-circuits before the runtime is consulted.
  *
- * Asset facts (kept in sync with `temp/S0249_asset_dimensions.txt`):
- * - Source: Navier8 `blender_test.jpg` (MIT license).
- * - Format: JPEG, 4096 x 4096 (stereo TB; 4096 x 2048 per eye).
- * - Layout: top half = left eye, bottom half = right eye (Blender convention).
- * - File size: ~651 KB.
+ * Asset facts (kept in sync with `THIRD_PARTY_LICENSES.md`):
+ * - Source: Poly Haven `lakeside` HDRI (8K tonemapped JPG).
+ * - Format: JPEG, 8192 x 4096 (equirectangular, 2:1).
+ * - Layout: monoscopic full sphere (360° x 180°).
+ * - License: CC0 / public domain (no attribution required).
+ * - File size: ~4.5 MB.
+ *
+ * Caller must be aware that decoding the full 8192x4096 frame as ARGB_8888 needs ~128 MB of heap.
+ * The callers in [com.sza.fastmediasorter.ui.xr.DiagnosticXrActivity] therefore use a sample-size
+ * fallback if the first ARGB_8888 decode fails with [OutOfMemoryError].
  */
 @Singleton
 class DiagnosticXrAssetProvider @Inject constructor(
@@ -43,21 +50,20 @@ class DiagnosticXrAssetProvider @Inject constructor(
     )
 
     /**
-     * Loads the bundled diagnostic asset into memory. The image is small enough (~651 KB) to
-     * be fully decoded as raw JPEG bytes; the native runtime decodes via stb_image or
-     * equivalent (Phase 03 leaves decoding to the native side to avoid Bitmap->byte[] copies
-     * across the JNI boundary for large textures).
+     * Loads the bundled diagnostic asset into memory. The image is small enough on disk
+     * (~4.5 MB) to be fully decoded as raw JPEG bytes; downstream decode/upload is handled by
+     * the activity to keep this provider stateless.
      *
      * @return [DiagnosticAsset] with raw JPEG bytes + dimensions, or null on IO failure.
      */
     fun load(): DiagnosticAsset? {
         return try {
-            val bytes = context.resources.openRawResource(R.drawable.vr_diagnostic_stereo_tb).use { it.readBytes() }
+            val bytes = context.resources.openRawResource(R.drawable.vr_diagnostic_360_mono).use { it.readBytes() }
             DiagnosticAsset(
                 bytes = bytes,
                 widthPx = NATIVE_WIDTH_PX,
                 heightPx = NATIVE_HEIGHT_PX,
-                layout = StereoLayout.TopBottom
+                layout = StereoLayout.Mono
             )
         } catch (t: IOException) {
             Timber.e(t, "DiagnosticXrAssetProvider: failed to read bundled diagnostic asset")
@@ -69,7 +75,7 @@ class DiagnosticXrAssetProvider @Inject constructor(
     }
 
     private companion object {
-        const val NATIVE_WIDTH_PX = 4096
+        const val NATIVE_WIDTH_PX = 8192
         const val NATIVE_HEIGHT_PX = 4096
     }
 }

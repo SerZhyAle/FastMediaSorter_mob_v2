@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -547,7 +548,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * On TV, set initial focus to the primary forward-action button so the first D-pad
      * press is immediately actionable without a random "focus init" key press.
      */
-    override fun getInitialFocusView(): View = binding.btnNext
+    override fun getInitialFocusView(): View {
+        return binding.btnNext
+    }
 
     companion object {
         private const val KEY_CURRENT_PAGE = "key_current_page"

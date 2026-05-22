@@ -1,4 +1,4 @@
-// OpenXR diagnostic session host. S0283 owns input, haptics, raycasting, and HUD placement.
+// OpenXR diagnostic session host. Owns input, haptics, raycasting, and HUD placement.
 
 #include "xr_session.h"
 #include "xr_input.h"
@@ -23,6 +23,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
+#include <GLES2/gl2ext.h>
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
@@ -42,6 +43,7 @@ constexpr const char* kLogTag = "S0249.XrSession";
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, kLogTag, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  kLogTag, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, kLogTag, __VA_ARGS__)
+constexpr XrDuration kNavigateDebounceDuration = 350000000;
 
 constexpr float kPI = 3.14159265358979323846f;
 constexpr int   kSphereLatSegments = 32;
@@ -79,6 +81,31 @@ void main() {
     }
     uv.x = clamp(uv.x, 0.0, 1.0);
     outColor = texture(u_tex, uv);
+}
+)GLSL";
+
+constexpr const char* kExternalVideoFragmentShader = R"GLSL(#version 300 es
+#extension GL_OES_EGL_image_external_essl3 : require
+precision highp float;
+in vec2 v_uv;
+uniform samplerExternalOES u_tex;
+uniform int u_eyeIndex; // 0 = left, 1 = right
+uniform int u_stereoLayout; // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
+uniform float u_parallaxShift;
+uniform mat4 u_texTransform;
+out vec4 outColor;
+void main() {
+    vec2 uv = v_uv;
+    if (u_stereoLayout == 1) {
+        uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
+        uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift);
+    } else if (u_stereoLayout == 2) {
+        uv.x = uv.x * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
+        uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift) * 0.5;
+    }
+    uv = clamp(uv, vec2(0.0), vec2(1.0));
+    vec4 transformed = u_texTransform * vec4(uv, 0.0, 1.0);
+    outColor = texture(u_tex, transformed.xy);
 }
 )GLSL";
 
@@ -127,6 +154,23 @@ struct State {
 
     GLuint program{0};
     GLuint texture{0};
+    GLuint videoProgram{0};
+    GLuint videoTexture{0};
+    std::atomic<bool> videoTextureEnabled{false};
+    jobject videoSurfaceTexture{nullptr};
+    jobject videoSurface{nullptr};
+    jclass surfaceTextureClass{nullptr};
+    jmethodID surfaceTextureUpdateTexImage{nullptr};
+    jmethodID surfaceTextureGetTransformMatrix{nullptr};
+    jmethodID surfaceTextureRelease{nullptr};
+    jclass surfaceClass{nullptr};
+    jmethodID surfaceRelease{nullptr};
+    float videoTextureTransform[16]{
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
 
     GLuint vao{0};
     GLuint vbo{0};
@@ -155,6 +199,12 @@ struct State {
     GLint locEye{-1};
     GLint locStereoLayout{-1};
     GLint locParallaxShift{-1};
+    GLint videoLocViewProj{-1};
+    GLint videoLocTex{-1};
+    GLint videoLocEye{-1};
+    GLint videoLocStereoLayout{-1};
+    GLint videoLocParallaxShift{-1};
+    GLint videoLocTexTransform{-1};
 };
 
 State g;
@@ -165,6 +215,7 @@ State g;
 std::atomic<float> g_currentFps{0.0f};
 // Previous predicted display time (nanoseconds, monotonic). 0 marks "no previous frame yet".
 int64_t g_prevPredictedDisplayTimeNs{0};
+XrTime g_lastNavigateActionTime[2] = {0, 0};
 
 bool checkGl(const char* tag) {
     GLenum e = glGetError();
@@ -193,6 +244,144 @@ GLuint linkProgram(GLuint vs, GLuint fs) {
         LOGE("Program link failed: %.*s", (int)n, log); glDeleteProgram(p); return 0;
     }
     return p;
+}
+
+JNIEnv* getAttachedEnv(bool& attached) {
+    attached = false;
+    if (!g.vm) return nullptr;
+    JNIEnv* env = nullptr;
+    jint res = g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+    if (res == JNI_EDETACHED) {
+        if (g.vm->AttachCurrentThread(&env, nullptr) == JNI_OK) {
+            attached = true;
+        }
+    }
+    return env;
+}
+
+void clearJniException(JNIEnv* env, const char* label) {
+    if (!env || !env->ExceptionCheck()) return;
+    env->ExceptionDescribe();
+    env->ExceptionClear();
+    LOGW("%s threw; cleared JNI exception", label);
+}
+
+bool createVideoSurfaceObjects() {
+    if (!g.vm || g.videoTexture != 0 || g.videoSurfaceTexture || g.videoSurface) return true;
+
+    glGenTextures(1, &g.videoTexture);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, g.videoTexture);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (!checkGl("createVideoSurfaceObjects.texture")) return false;
+
+    bool attached = false;
+    JNIEnv* env = getAttachedEnv(attached);
+    if (!env) return false;
+
+    jclass localSurfaceTextureClass = env->FindClass("android/graphics/SurfaceTexture");
+    if (!localSurfaceTextureClass) {
+        clearJniException(env, "FindClass(SurfaceTexture)");
+        if (attached) g.vm->DetachCurrentThread();
+        return false;
+    }
+    g.surfaceTextureClass = static_cast<jclass>(env->NewGlobalRef(localSurfaceTextureClass));
+    jmethodID surfaceTextureCtor = env->GetMethodID(localSurfaceTextureClass, "<init>", "(I)V");
+    g.surfaceTextureUpdateTexImage = env->GetMethodID(localSurfaceTextureClass, "updateTexImage", "()V");
+    g.surfaceTextureGetTransformMatrix = env->GetMethodID(localSurfaceTextureClass, "getTransformMatrix", "([F)V");
+    g.surfaceTextureRelease = env->GetMethodID(localSurfaceTextureClass, "release", "()V");
+    jobject localSurfaceTexture = surfaceTextureCtor
+        ? env->NewObject(localSurfaceTextureClass, surfaceTextureCtor, static_cast<jint>(g.videoTexture))
+        : nullptr;
+    clearJniException(env, "SurfaceTexture.<init>");
+    env->DeleteLocalRef(localSurfaceTextureClass);
+    if (!localSurfaceTexture) {
+        if (attached) g.vm->DetachCurrentThread();
+        return false;
+    }
+    g.videoSurfaceTexture = env->NewGlobalRef(localSurfaceTexture);
+
+    jclass localSurfaceClass = env->FindClass("android/view/Surface");
+    if (!localSurfaceClass) {
+        clearJniException(env, "FindClass(Surface)");
+        env->DeleteLocalRef(localSurfaceTexture);
+        if (attached) g.vm->DetachCurrentThread();
+        return false;
+    }
+    g.surfaceClass = static_cast<jclass>(env->NewGlobalRef(localSurfaceClass));
+    jmethodID surfaceCtor = env->GetMethodID(localSurfaceClass, "<init>", "(Landroid/graphics/SurfaceTexture;)V");
+    g.surfaceRelease = env->GetMethodID(localSurfaceClass, "release", "()V");
+    jobject localSurface = surfaceCtor ? env->NewObject(localSurfaceClass, surfaceCtor, localSurfaceTexture) : nullptr;
+    clearJniException(env, "Surface.<init>");
+    env->DeleteLocalRef(localSurfaceClass);
+    env->DeleteLocalRef(localSurfaceTexture);
+    if (!localSurface) {
+        if (attached) g.vm->DetachCurrentThread();
+        return false;
+    }
+    g.videoSurface = env->NewGlobalRef(localSurface);
+    env->DeleteLocalRef(localSurface);
+
+    if (attached) g.vm->DetachCurrentThread();
+    LOGD("native video surface created");
+    return g.videoSurfaceTexture && g.videoSurface;
+}
+
+void updateVideoTextureIfNeeded() {
+    if (!g.videoTextureEnabled.load(std::memory_order_relaxed) || !g.videoSurfaceTexture) return;
+    bool attached = false;
+    JNIEnv* env = getAttachedEnv(attached);
+    if (!env) return;
+
+    env->CallVoidMethod(g.videoSurfaceTexture, g.surfaceTextureUpdateTexImage);
+    if (env->ExceptionCheck()) {
+        clearJniException(env, "SurfaceTexture.updateTexImage");
+        if (attached) g.vm->DetachCurrentThread();
+        return;
+    }
+
+    jfloatArray matrix = env->NewFloatArray(16);
+    if (matrix) {
+        env->CallVoidMethod(g.videoSurfaceTexture, g.surfaceTextureGetTransformMatrix, matrix);
+        if (!env->ExceptionCheck()) {
+            env->GetFloatArrayRegion(matrix, 0, 16, g.videoTextureTransform);
+        } else {
+            clearJniException(env, "SurfaceTexture.getTransformMatrix");
+        }
+        env->DeleteLocalRef(matrix);
+    }
+
+    if (attached) g.vm->DetachCurrentThread();
+}
+
+void releaseVideoSurfaceObjects(JNIEnv* env) {
+    if (!env) return;
+    if (g.videoSurface && g.surfaceRelease) {
+        env->CallVoidMethod(g.videoSurface, g.surfaceRelease);
+        clearJniException(env, "Surface.release");
+        env->DeleteGlobalRef(g.videoSurface);
+        g.videoSurface = nullptr;
+    }
+    if (g.videoSurfaceTexture && g.surfaceTextureRelease) {
+        env->CallVoidMethod(g.videoSurfaceTexture, g.surfaceTextureRelease);
+        clearJniException(env, "SurfaceTexture.release");
+        env->DeleteGlobalRef(g.videoSurfaceTexture);
+        g.videoSurfaceTexture = nullptr;
+    }
+    if (g.surfaceTextureClass) {
+        env->DeleteGlobalRef(g.surfaceTextureClass);
+        g.surfaceTextureClass = nullptr;
+    }
+    if (g.surfaceClass) {
+        env->DeleteGlobalRef(g.surfaceClass);
+        g.surfaceClass = nullptr;
+    }
+    g.surfaceTextureUpdateTexImage = nullptr;
+    g.surfaceTextureGetTransformMatrix = nullptr;
+    g.surfaceTextureRelease = nullptr;
+    g.surfaceRelease = nullptr;
 }
 
 void buildSphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indices) {
@@ -523,13 +712,25 @@ NativeResult createGlAssets() {
     GLuint fs = compileShader(GL_FRAGMENT_SHADER, kFragmentShader);
     if (!vs || !fs) return NativeResult::SessionCreationFailed;
     g.program = linkProgram(vs, fs);
+    GLuint videoFs = compileShader(GL_FRAGMENT_SHADER, kExternalVideoFragmentShader);
+    if (videoFs) {
+        g.videoProgram = linkProgram(vs, videoFs);
+        glDeleteShader(videoFs);
+    }
     glDeleteShader(vs); glDeleteShader(fs);
     if (!g.program) return NativeResult::SessionCreationFailed;
+    if (!g.videoProgram) return NativeResult::SessionCreationFailed;
     g.locViewProj     = glGetUniformLocation(g.program, "u_viewProj");
     g.locTex          = glGetUniformLocation(g.program, "u_tex");
     g.locEye          = glGetUniformLocation(g.program, "u_eyeIndex");
     g.locStereoLayout = glGetUniformLocation(g.program, "u_stereoLayout");
     g.locParallaxShift = glGetUniformLocation(g.program, "u_parallaxShift");
+    g.videoLocViewProj = glGetUniformLocation(g.videoProgram, "u_viewProj");
+    g.videoLocTex = glGetUniformLocation(g.videoProgram, "u_tex");
+    g.videoLocEye = glGetUniformLocation(g.videoProgram, "u_eyeIndex");
+    g.videoLocStereoLayout = glGetUniformLocation(g.videoProgram, "u_stereoLayout");
+    g.videoLocParallaxShift = glGetUniformLocation(g.videoProgram, "u_parallaxShift");
+    g.videoLocTexTransform = glGetUniformLocation(g.videoProgram, "u_texTransform");
 
     std::vector<float> verts; std::vector<unsigned int> indices;
 
@@ -588,6 +789,8 @@ NativeResult createGlAssets() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
+    if (!createVideoSurfaceObjects()) return NativeResult::SessionCreationFailed;
 
     return checkGl("createGlAssets") ? NativeResult::Ok : NativeResult::SessionCreationFailed;
 }
@@ -721,15 +924,34 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
         activeIndexCount = g.quadIndexCount;
     }
 
+    const bool useVideoTexture =
+        g.videoTextureEnabled.load(std::memory_order_relaxed) &&
+        g.videoTexture != 0 &&
+        g.videoProgram != 0;
+
+    GLuint program = useVideoTexture ? g.videoProgram : g.program;
+    GLint locViewProj = useVideoTexture ? g.videoLocViewProj : g.locViewProj;
+    GLint locTex = useVideoTexture ? g.videoLocTex : g.locTex;
+    GLint locEye = useVideoTexture ? g.videoLocEye : g.locEye;
+    GLint locStereoLayout = useVideoTexture ? g.videoLocStereoLayout : g.locStereoLayout;
+    GLint locParallaxShift = useVideoTexture ? g.videoLocParallaxShift : g.locParallaxShift;
+
     glEnable(GL_DEPTH_TEST); glDisable(GL_CULL_FACE);
-    glUseProgram(g.program);
-    glUniformMatrix4fv(g.locViewProj, 1, GL_FALSE, mvp);
+    glUseProgram(program);
+    glUniformMatrix4fv(locViewProj, 1, GL_FALSE, mvp);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g.texture);
-    glUniform1i(g.locTex, 0);
-    glUniform1i(g.locEye, (GLint)eyeIdx);
-    glUniform1i(g.locStereoLayout, g.stereoLayout);
-    if (g.locParallaxShift >= 0) glUniform1f(g.locParallaxShift, g.parallaxShift);
+    if (useVideoTexture) {
+        glBindTexture(GL_TEXTURE_EXTERNAL_OES, g.videoTexture);
+        if (g.videoLocTexTransform >= 0) {
+            glUniformMatrix4fv(g.videoLocTexTransform, 1, GL_FALSE, g.videoTextureTransform);
+        }
+    } else {
+        glBindTexture(GL_TEXTURE_2D, g.texture);
+    }
+    glUniform1i(locTex, 0);
+    glUniform1i(locEye, (GLint)eyeIdx);
+    glUniform1i(locStereoLayout, g.stereoLayout);
+    if (locParallaxShift >= 0) glUniform1f(locParallaxShift, g.parallaxShift);
     glBindVertexArray(activeVao);
     glDrawElements(GL_TRIANGLES, activeIndexCount, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
@@ -755,12 +977,20 @@ void pollActions(XrTime predictedTime) {
 
     xr_input_poll(g.localSpace, predictedTime);
 
-    if (g_handInputStates[0].active && g_handInputStates[0].triggerClicked) {
-        LOGD("S0283: Left select / pinch triggered -> navigating prev");
+    const bool leftNavigationAllowed =
+        g_lastNavigateActionTime[0] == 0 ||
+        predictedTime - g_lastNavigateActionTime[0] >= kNavigateDebounceDuration;
+    if (g_handInputStates[0].triggerClicked && leftNavigationAllowed) {
+        g_lastNavigateActionTime[0] = predictedTime;
+        LOGD("Left select / pinch triggered -> navigating prev");
         triggerJniInputCallback(2); // 2 = Previous
     }
-    if (g_handInputStates[1].active && g_handInputStates[1].triggerClicked) {
-        LOGD("S0283: Right select / pinch triggered -> navigating next");
+    const bool rightNavigationAllowed =
+        g_lastNavigateActionTime[1] == 0 ||
+        predictedTime - g_lastNavigateActionTime[1] >= kNavigateDebounceDuration;
+    if (g_handInputStates[1].triggerClicked && rightNavigationAllowed) {
+        g_lastNavigateActionTime[1] = predictedTime;
+        LOGD("Right select / pinch triggered -> navigating next");
         triggerJniInputCallback(1); // 1 = Next
     }
 }
@@ -801,6 +1031,8 @@ NativeResult xr_session_start() {
     // Reset FPS accumulator so a previous session's value does not bleed into the new one.
     g_currentFps.store(0.0f, std::memory_order_relaxed);
     g_prevPredictedDisplayTimeNs = 0;
+    g_lastNavigateActionTime[0] = 0;
+    g_lastNavigateActionTime[1] = 0;
     LOGD("xr_session_start: complete");
     return NativeResult::Ok;
 }
@@ -827,6 +1059,14 @@ NativeResult xr_session_queue_frame(const uint8_t* rgba, int width, int height) 
     return NativeResult::Ok;
 }
 
+jobject_opaque xr_session_get_video_surface() {
+    return static_cast<jobject_opaque>(g.videoSurface);
+}
+
+void xr_session_set_video_surface_enabled(bool enabled) {
+    g.videoTextureEnabled.store(enabled, std::memory_order_relaxed);
+}
+
 void xr_session_set_render_config(int projection, int layout) {
     std::lock_guard<std::mutex> lock(g.mutex);
     g.renderProjection = projection;
@@ -848,7 +1088,6 @@ void xr_session_queue_hud(const uint8_t* rgba, int width, int height) {
     g.pendingHudWidth = width;
     g.pendingHudHeight = height;
     g.pendingHudReady = true;
-    LOGD("queue_hud: size=%dx%d queued", width, height);
 }
 
 
@@ -944,6 +1183,7 @@ NativeResult xr_session_run_frame_loop() {
                     triggerJniRayInteraction(targetUvX, targetUvY, anyHover, anyClick);
                 }
                 layerViews.resize(viewCount);
+                updateVideoTextureIfNeeded();
                 for (uint32_t i = 0; i < viewCount; ++i) renderEye(i, views[i], layerViews[i]);
                 layer.viewCount = (uint32_t)layerViews.size();
                 layer.views = layerViews.data();
@@ -972,6 +1212,12 @@ float xr_session_get_fps() {
 
 void xr_session_shutdown() {
     std::lock_guard<std::mutex> lock(g.mutex);
+    bool attached = false;
+    JNIEnv* env = getAttachedEnv(attached);
+    releaseVideoSurfaceObjects(env);
+    if (attached && g.vm) g.vm->DetachCurrentThread();
+    g.videoTextureEnabled.store(false, std::memory_order_relaxed);
+
     for (auto& eye : g.eyes) {
         if (eye.fbo) glDeleteFramebuffers(1, &eye.fbo);
         if (eye.depthRb) glDeleteRenderbuffers(1, &eye.depthRb);
@@ -979,6 +1225,7 @@ void xr_session_shutdown() {
     }
     g.eyes.clear();
     if (g.texture)    { glDeleteTextures(1, &g.texture);    g.texture = 0; }
+    if (g.videoTexture) { glDeleteTextures(1, &g.videoTexture); g.videoTexture = 0; }
     if (g.hudTexture) { glDeleteTextures(1, &g.hudTexture);  g.hudTexture = 0; }
     
     if (g.vbo)        { glDeleteBuffers(1, &g.vbo);         g.vbo = 0; }
@@ -994,6 +1241,7 @@ void xr_session_shutdown() {
     if (g.quadVao)    { glDeleteVertexArrays(1, &g.quadVao); g.quadVao = 0; }
     
     if (g.program)    { glDeleteProgram(g.program);         g.program = 0; }
+    if (g.videoProgram) { glDeleteProgram(g.videoProgram);  g.videoProgram = 0; }
 
     xr_input_shutdown();
     xr_hud_shutdown();

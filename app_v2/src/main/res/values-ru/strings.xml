@@ -923,7 +923,7 @@
     <string name="big_buttons_mode_title">Режим большие кнопки</string>
     <string name="big_buttons_mode_summary">Увеличивает кнопки плеера и растягивает управление на всю ширину - удобно для автомагнитол</string>
     <string name="tooltip_big_buttons_mode_title">Режим большие кнопки</string>
-    <string name="tooltip_big_buttons_mode_message">Кнопки управления плеером становятся крупнее и занимают всю ширину экрана. На верхней панели помещается от 5 до 10 кнопок в зависимости от доступной ширины; остальные переходят в меню. В горизонтальной ориентации высокая нижняя панель может уменьшить область воспроизведения.</string>
+    <string name="tooltip_big_buttons_mode_message">Кнопки управления плеером становятся крупнее и занимают всю ширину экрана. На верхней панели помещается от 5 до 9 кнопок в зависимости от доступной ширины; остальные переходят в меню. В горизонтальной ориентации высокая нижняя панель может уменьшить область воспроизведения.</string>
     <string name="big_btn_short_playback_order">Порядок</string>
     <string name="big_btn_short_delete">Удалить</string>
     <string name="big_btn_short_favorite">Избр.</string>
@@ -2084,6 +2084,14 @@
     <string name="settings_general_system">Network and System</string>
     <string name="syntax_highlighting">Syntax Highlighting</string>
     <string name="text_copied">Text copied to clipboard</string>
+
+    <!-- OCR Engine and PaddleOCR Models (S0288) -->
+    <string name="ocr_engine_type">Движок OCR</string>
+    <string name="ocr_engine_type_tesseract">Tesseract (по умолчанию)</string>
+    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
+    <string name="paddle_ocr_model">Модель PaddleOCR</string>
+    <string name="paddle_ocr_model_cyrillic">Кириллическая (PP-OCRv5 Mobile)</string>
+    <string name="paddle_ocr_model_eslav">Восточнославянская (PP-OCRv5 Mobile, более точная)</string>
 
     <!-- OCR Best Models Feature -->
     <string name="ocr_best_models_title">Качественные офлайн-модели</string>

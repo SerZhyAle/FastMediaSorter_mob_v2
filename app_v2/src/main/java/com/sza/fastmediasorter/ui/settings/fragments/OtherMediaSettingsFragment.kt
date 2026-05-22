@@ -157,11 +157,14 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowEnableOcr) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableOcr = isChecked))
-            updateOcrVisibility(isChecked)
+            updateOcrVisibility(isChecked, current.ocrEngineType)
         }
 
         // OCR Font Settings
         setupOcrFontSpinners()
+
+        // OCR Engine Settings (S0288)
+        setupOcrEngineSpinners()
 
         // OCR Best Models
         binding.btnOcrBestRusDownload.setOnClickListener {
@@ -400,10 +403,75 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
     }
 
-    private fun updateOcrVisibility(enabled: Boolean) {
+    private fun setupOcrEngineSpinners() {
+        if (!BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            binding.layoutOcrEngineType?.isVisible = false
+            binding.layoutPaddleOcrModel?.isVisible = false
+            return
+        }
+
+        // OCR Engine Type Spinner
+        val ocrEngines = arrayOf(
+            getString(R.string.ocr_engine_type_tesseract),
+            getString(R.string.ocr_engine_type_paddleocr)
+        )
+        val ocrEngineAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ocrEngines)
+        ocrEngineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerOcrEngineType?.adapter = ocrEngineAdapter
+
+        binding.spinnerOcrEngineType?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings) {
+                    val engineValue = when (position) {
+                        0 -> "TESSERACT"
+                        1 -> "PADDLE_OCR"
+                        else -> "TESSERACT"
+                    }
+                    timber.log.Timber.d("S0288: settings ocr engine selector picked engine=$engineValue")
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(ocrEngineType = engineValue))
+                    
+                    // Dynamically toggle visibility of paddle ocr model layout
+                    binding.layoutPaddleOcrModel?.isVisible = current.enableOcr && engineValue == "PADDLE_OCR"
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        // PaddleOCR Model Spinner
+        val paddleModels = arrayOf(
+            getString(R.string.paddle_ocr_model_cyrillic),
+            getString(R.string.paddle_ocr_model_eslav)
+        )
+        val paddleModelAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, paddleModels)
+        paddleModelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerPaddleOcrModel?.adapter = paddleModelAdapter
+
+        binding.spinnerPaddleOcrModel?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings) {
+                    val modelValue = when (position) {
+                        0 -> "CYRILLIC"
+                        1 -> "EAST_SLAVIC"
+                        else -> "CYRILLIC"
+                    }
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(paddleOcrModel = modelValue))
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+    }
+
+    private fun updateOcrVisibility(enabled: Boolean, ocrEngineType: String = viewModel.settings.value.ocrEngineType) {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
         binding.layoutOcrBestModels?.isVisible = enabled
+        
+        val showNoLegalOcr = enabled && BuildConfig.IS_NO_LEGAL_FLAVOR
+        binding.layoutOcrEngineType?.isVisible = showNoLegalOcr
+        binding.layoutPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
+        
         if (enabled) {
             updateModelStates()
         }
@@ -523,7 +591,24 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
                 setSwitchChecked(binding.rowEnableGoogleLens, settings.enableGoogleLens)
                 setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
-                updateOcrVisibility(settings.enableOcr)
+                updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
+
+                // OCR Engine settings (S0288)
+                if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+                    val ocrEnginePosition = when (settings.ocrEngineType) {
+                        "TESSERACT" -> 0
+                        "PADDLE_OCR" -> 1
+                        else -> 0
+                    }
+                    binding.spinnerOcrEngineType?.setSelection(ocrEnginePosition)
+
+                    val paddleOcrModelPosition = when (settings.paddleOcrModel) {
+                        "CYRILLIC" -> 0
+                        "EAST_SLAVIC" -> 1
+                        else -> 0
+                    }
+                    binding.spinnerPaddleOcrModel?.setSelection(paddleOcrModelPosition)
+                }
 
                 // OCR Font Settings
                 val fontSizePosition = when (settings.ocrDefaultFontSize) {

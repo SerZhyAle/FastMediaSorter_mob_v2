@@ -7,6 +7,8 @@ $ErrorActionPreference = "Stop"
 # Paths
 $workspaceRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $localMediaDir = Join-Path $workspaceRoot "temp\test_vr_media"
+$remotePictureDir = "/sdcard/Pictures/FastMediaSorterVrTest"
+$remoteMovieDir = "/sdcard/Movies/FastMediaSorterVrTest"
 
 # Ensure target directory exists
 if (-not (Test-Path $localMediaDir)) {
@@ -18,11 +20,14 @@ if (-not (Test-Path $localMediaDir)) {
 $assets = @(
     @{
         Url = "https://upload.wikimedia.org/wikipedia/commons/e/e0/Fisheye_view_of_inside_the_colosseum_in_Rome%2C_Italy.jpg"
-        LocalName = "colosseum_360_mono.jpg"
+        LocalName = "colosseum_flat_mono.jpg"
         Type = "Picture"
     },
     @{
-        Url = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"
+        # High-resolution Moraine Lake source (7742x5327, Nikon D850, CC BY-SA 4.0 by DXR).
+        # Replaces the previous 2048x1536 Wikimedia file that caused visible magnification
+        # blockiness on the FLAT quad at VR viewing distance.
+        Url = "https://upload.wikimedia.org/wikipedia/commons/7/7f/Moraine_Lake%2C_view_from_south_shore_20240823_2.jpg"
         LocalName = "moraine_lake_flat_mono.jpg"
         Type = "Picture"
     },
@@ -60,12 +65,15 @@ foreach ($asset in $assets) {
     }
 }
 
-# Step 2: Copy the built-in VR diagnostic stereo image and duplicate stereo video for 180° testing
-$builtinSrc = Join-Path $workspaceRoot "app_v2\src\vr\res\drawable-nodpi\vr_diagnostic_stereo_tb.jpg"
-$builtinDst = Join-Path $localMediaDir "diagnostic_360_stereo_tb.jpg"
+# Step 2: Copy the built-in VR diagnostic 360 mono image into the harvest pool so adb push below
+# delivers it under the playlist filename. The bundled asset is already monoscopic equirectangular
+# (8192x4096) — no cropping needed. The stereo TB playlist slot has no built-in source after the
+# Polyhaven CC0 swap; the corresponding playlist entry is silently skipped on device.
+$builtinSrc = Join-Path $workspaceRoot "app_v2\src\vr\res\drawable-nodpi\vr_diagnostic_360_mono.jpg"
+$builtinMonoDst = Join-Path $localMediaDir "diagnostic_360_mono.jpg"
 if (Test-Path $builtinSrc) {
-    Copy-Item -Path $builtinSrc -Destination $builtinDst -Force
-    Write-Host "Copied built-in diagnostic stereo image to harvest pool" -ForegroundColor Green
+    Copy-Item -Path $builtinSrc -Destination $builtinMonoDst -Force
+    Write-Host "Copied built-in mono 360 diagnostic image to harvest pool" -ForegroundColor Green
 } else {
     Write-Warning "Built-in diagnostic image not found at $builtinSrc"
 }
@@ -98,16 +106,34 @@ if (-not $deviceConnected) {
 }
 
 Write-Host "Device detected! Pushing harvested samples to storage.." -ForegroundColor Green
+adb shell "mkdir -p $remotePictureDir $remoteMovieDir"
 
 # Pushing files
-foreach ($file in Get-ChildItem $localMediaDir) {
+$deployNames = @(
+    "diagnostic_360_mono.jpg",
+    "diagnostic_360_stereo_tb.jpg",
+    "moraine_lake_flat_mono.jpg",
+    "colosseum_flat_mono.jpg",
+    "video_360_mono.mp4",
+    "video_360_stereo_tb.mp4",
+    "video_180_stereo_tb.mp4",
+    "big_buck_bunny_flat_mono.mp4"
+)
+
+foreach ($name in $deployNames) {
+    $file = Get-Item (Join-Path $localMediaDir $name) -ErrorAction SilentlyContinue
+    if ($null -eq $file) {
+        Write-Warning "Skipping missing harvested sample: $name"
+        continue
+    }
+
     if ($file.Extension -match "jpg|jpeg|png") {
-        $remotePath = "/sdcard/Pictures/$($file.Name)"
-        Write-Host "Pushing $($file.Name) to Pictures.." -ForegroundColor Cyan
+        $remotePath = "$remotePictureDir/$($file.Name)"
+        Write-Host "Pushing $($file.Name) to VR test Pictures.." -ForegroundColor Cyan
         adb push $file.FullName $remotePath
     } elseif ($file.Extension -match "mp4|mkv") {
-        $remotePath = "/sdcard/Movies/$($file.Name)"
-        Write-Host "Pushing $($file.Name) to Movies.." -ForegroundColor Cyan
+        $remotePath = "$remoteMovieDir/$($file.Name)"
+        Write-Host "Pushing $($file.Name) to VR test Movies.." -ForegroundColor Cyan
         adb push $file.FullName $remotePath
     }
 }

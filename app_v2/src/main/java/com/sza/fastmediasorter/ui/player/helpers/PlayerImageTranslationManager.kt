@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,6 +40,7 @@ class PlayerImageTranslationManager(
         safeViews.translationOverlayBackground.isVisible = false
         binding.translationLensOverlay.isVisible = false
         binding.translationLensOverlay.clear()
+        binding.progressBar.isVisible = false
 
         if (binding.photoView.isVisible) {
             binding.photoView.setOnMatrixChangeListener(null)
@@ -52,6 +54,7 @@ class PlayerImageTranslationManager(
     }
 
     fun translateCurrentImage() {
+        Timber.d("S0288: PlayerImageTranslationManager.translateCurrentImage entered (progress bar gate)")
         val currentFile = activity.viewModel.state.value.currentFile
         val binding = activity.activityBinding
         val safeViews = activity.safeViews
@@ -95,6 +98,7 @@ class PlayerImageTranslationManager(
 
         safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFF44336.toInt())
         binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFF44336.toInt())
+        binding.progressBar.isVisible = true
 
         val viewWidth = if (binding.photoView.isVisible) binding.photoView.width else binding.imageView.width
         val viewHeight = if (binding.photoView.isVisible) binding.photoView.height else binding.imageView.height
@@ -135,6 +139,7 @@ class PlayerImageTranslationManager(
                         viewHeight = viewHeight,
                         displayRect = displayRect,
                         onSuccess = { _ ->
+                            binding.progressBar.isVisible = false
                             safeViews.translationOverlay.isVisible = false
                             if (binding.photoView.isVisible) {
                                 binding.photoView.setOnMatrixChangeListener { rect ->
@@ -148,6 +153,7 @@ class PlayerImageTranslationManager(
                             safeViews.btnTranslationFontIncrease?.visibility = View.VISIBLE
                         },
                         onEmpty = {
+                            binding.progressBar.isVisible = false
                             safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             safeViews.btnTranslationFontDecrease?.visibility = View.GONE
@@ -155,6 +161,7 @@ class PlayerImageTranslationManager(
                             activity.showError(activity.getString(R.string.translation_no_text_found))
                         },
                         onError = { message ->
+                            binding.progressBar.isVisible = false
                             safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             Timber.w("PlayerImageTranslationManager: Lens translation failed: $message")
@@ -169,6 +176,7 @@ class PlayerImageTranslationManager(
                         targetLang = targetLang
                     )
                     withContext(Dispatchers.Main) {
+                        binding.progressBar.isVisible = false
                         if (result != null) {
                             val (_, translated) = result
                             if (activity._textViewerManager != null) {
@@ -189,8 +197,13 @@ class PlayerImageTranslationManager(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 withContext(Dispatchers.Main) {
+                    binding.progressBar.isVisible = false
                     stopTranslation()
                     activity.showError(activity.getString(R.string.translation_error))
+                }
+            } finally {
+                withContext(Dispatchers.Main + NonCancellable) {
+                    binding.progressBar.isVisible = false
                 }
             }
         }

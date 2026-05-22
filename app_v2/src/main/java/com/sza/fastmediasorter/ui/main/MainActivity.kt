@@ -3,9 +3,7 @@ package com.sza.fastmediasorter.ui.main
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.InputDevice
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -204,6 +202,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     skipAvailabilityCheck = true
                 )
                 playerIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                recordLastPlayedResource(AudioPlaybackService.currentResourceId)
                 startActivity(playerIntent)
             }
             // MainActivity continues loading as the back-stack root; do NOT finish().
@@ -350,6 +349,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // intent explicit at call sites. All flavors open PlayerActivity directly
         // (immersive VR removed in S0241).
         val playerIntent = PlayerActivity.createPanelIntent(this, resourceId, index, skipAvailabilityCheck = true)
+        recordLastPlayedResource(resourceId)
         startActivity(playerIntent)
     }
 
@@ -359,6 +359,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.root.post {
                 reportFullyDrawn()
             }
+        }
+
+        // S0289: if returning from PlayerActivity on a non-touch device, restore focus
+        // to the resource row that was being played.
+        if (isReturningFromAnotherActivity) {
+            restoreFocusToLastPlayedResource()
         }
 
         // Restore previous tab if returning from Favorites Browse - keeps the active tab
@@ -421,9 +427,90 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     private var isReturningFromAnotherActivity = false
 
+    // S0289: id of the resource that was last opened in PlayerActivity from this MainActivity
+    // instance. Used by onResumeWithViews() to restore focus to the matching list row when
+    // the user returns from the player on a TV / Quest3 / keyboard-controlled device.
+    private var lastPlayedResourceId: Long? = null
+
+    /** S0289 §2.1: initial focus on the big Play button when the Activity opens on a non-touch device. */
+    override fun getInitialFocusView(): View? = binding.btnStartPlayer
+
+    /** S0289 Phase 08: route mouse wheel through the shared activity helper. */
+    override fun getMouseScrollTargetView(): View? = binding.rvResources
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lastPlayedResourceId?.let { outState.putLong(KEY_LAST_PLAYED_RESOURCE_ID, it) }
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if (savedInstanceState.containsKey(KEY_LAST_PLAYED_RESOURCE_ID)) {
+            lastPlayedResourceId = savedInstanceState.getLong(KEY_LAST_PLAYED_RESOURCE_ID)
+        }
+    }
+
+    /**
+     * S0289: record the resource id whenever a PlayerActivity launch is initiated from MainActivity.
+     * Called from every `startActivity(playerIntent)` site to give onResumeWithViews() enough
+     * context to restore focus on return.
+     */
+    private fun recordLastPlayedResource(resourceId: Long) {
+        if (resourceId > 0L) lastPlayedResourceId = resourceId
+    }
+
+    /**
+     * S0289: rebuild the horizontal focus chain across only the currently-visible control-bar
+     * buttons. Skipped buttons (View.GONE) drop out of nextFocusLeft / nextFocusRight so the
+     * chain stays contiguous after a state-driven visibility flip.
+     */
+    private fun restitchControlBarFocusChain() {
+        val candidates = listOf(
+            binding.btnExit,
+            binding.btnAddResource,
+            binding.btnFilter,
+            binding.btnRefresh,
+            binding.btnSettings,
+            binding.btnToggleView,
+            binding.btnFavorites,
+            binding.btnStartPlayer
+        ).filter { it.visibility == View.VISIBLE }
+        if (candidates.isEmpty()) return
+        candidates.forEachIndexed { i, btn ->
+            val prev = if (i > 0) candidates[i - 1].id else View.NO_ID
+            val next = if (i < candidates.lastIndex) candidates[i + 1].id else View.NO_ID
+            btn.nextFocusLeftId = prev
+            btn.nextFocusRightId = next
+        }
+    }
+
+    /**
+     * S0289 §2: when the Activity resumes on a non-touch device with a known last-played
+     * resource id, request focus on the matching RecyclerView row so the user lands back
+     * where they came from after exiting the player.
+     */
+    private fun restoreFocusToLastPlayedResource() {
+        if (!shouldRequestInitialFocus()) return
+        val id = lastPlayedResourceId ?: return
+        val resources = viewModel.state.value.resources
+        val position = resources.indexOfFirst { it.id == id }
+        if (position < 0) {
+            Timber.d("MainActivity.restoreFocusToLastPlayedResource: resourceId=$id absent from current list, skipping")
+            return
+        }
+        binding.rvResources.post {
+            binding.rvResources.scrollToPosition(position)
+            val holder = binding.rvResources.findViewHolderForAdapterPosition(position)
+            val view = holder?.itemView
+            val restored = view?.requestFocus() == true
+        }
+    }
+
     override fun setupViews() {
         // Apply edge-to-edge insets: RecyclerView bottom padding for nav bar
         applyEdgeToEdgeInsets()
+
+        restitchControlBarFocusChain()
 
         resourceAdapter = ResourceAdapter(
             onItemClick = { resource ->
@@ -722,6 +809,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     ).apply {
                         putExtra("slideshow_mode", true)
                     }
+                    recordLastPlayedResource(event.resourceId)
                     startActivity(intent)
                     @Suppress("DEPRECATION")
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
@@ -738,6 +826,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         isPlaying = true,
                         shuffleOnStart = true
                     )
+                    recordLastPlayedResource(event.resourceId)
                     startActivity(intent)
                     @Suppress("DEPRECATION")
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
@@ -995,22 +1084,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun getTabIndexForResourceTab(tab: ResourceTab): Int =
         tabsManager.getTabIndexForResourceTab(tab)
 
-    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
-        // Forward mouse wheel scroll events to the resource list.
-        if (event.action == MotionEvent.ACTION_SCROLL &&
-            event.isFromSource(InputDevice.SOURCE_CLASS_POINTER)
-        ) {
-            val vScroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-            if (vScroll != 0f) {
-                val rv = binding.rvResources
-                val scrollFactor = rv.context.resources.displayMetrics.density * 64f
-                rv.scrollBy(0, (-vScroll * scrollFactor).toInt())
-                return true
-            }
-        }
-        return super.onGenericMotionEvent(event)
-    }
-
     /**
      * Stop AudioPlaybackService before exiting the app.
      * Prevents OS from restarting the process due to foreground service being alive.
@@ -1037,5 +1110,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"
         const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
+
+        /** S0289: saved-state key for the resource id last opened in PlayerActivity. */
+        const val KEY_LAST_PLAYED_RESOURCE_ID = "s0289_last_played_resource_id"
     }
 }

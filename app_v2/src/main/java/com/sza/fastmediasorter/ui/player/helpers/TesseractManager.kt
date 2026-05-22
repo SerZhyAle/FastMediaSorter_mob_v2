@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.googlecode.tesseract.android.TessBaseAPI
+import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngine
+import com.sza.fastmediasorter.domain.ocr.OcrTextBlock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -16,7 +18,7 @@ import java.net.URL
  * Provides better support for Cyrillic than ML Kit's Latin recognizer.
  * Automatically downloads traineddata files from GitHub (tessdata_fast) if missing.
  */
-class TesseractManager(private val context: Context) {
+class TesseractManager(private val context: Context) : OfflineOcrEngine {
 
     private var tessApi: TessBaseAPI? = null
     private var isInitialized = false
@@ -138,11 +140,11 @@ class TesseractManager(private val context: Context) {
     /**
      * Recognize text from bitmap using Tesseract.
      * @param bitmap Image to process
-     * @param language Language code: "rus", "eng", etc.
+     * @param languageCode Language code: "rus", "eng", etc.
      * @return Recognized text or null
      */
-    suspend fun recognizeText(bitmap: Bitmap, language: String = "rus"): String? {
-        val success = init(language)
+    override suspend fun recognizeText(bitmap: Bitmap, languageCode: String): String? {
+        val success = init(languageCode)
         if (!success) return null
 
         return withContext(Dispatchers.Default) {
@@ -170,19 +172,13 @@ class TesseractManager(private val context: Context) {
         }
     }
 
-    data class OcrBlock(
-        val text: String,
-        val boundingBox: Rect,
-        val confidence: Float
-    )
-
     /**
      * Recognize text blocks with coordinates.
      * @param bitmap Image to process
-     * @param language Language code: "rus", "eng", etc.
+     * @param languageCode Language code: "rus", "eng", etc.
      */
-    suspend fun recognizeTextBlocks(bitmap: Bitmap, language: String = "rus"): List<OcrBlock>? {
-        val success = init(language)
+    override suspend fun recognizeTextBlocks(bitmap: Bitmap, languageCode: String): List<OcrTextBlock>? {
+        val success = init(languageCode)
         if (!success) return null
 
         return withContext(Dispatchers.Default) {
@@ -203,7 +199,7 @@ class TesseractManager(private val context: Context) {
                     return@withContext null
                 }
                 
-                val blocks = mutableListOf<OcrBlock>()
+                val blocks = mutableListOf<OcrTextBlock>()
                 
                 Timber.d("TRANSLATION_DEBUG: Tesseract iteration START")
                 var blockCount = 0
@@ -219,7 +215,7 @@ class TesseractManager(private val context: Context) {
                         Timber.d("TRANSLATION_DEBUG: Block $blockCount - box=$box, confidence=$confidence")
                         Timber.d("TRANSLATION_DEBUG: Block $blockCount - text='${text.take(50)}'")
                         if (box != null) {
-                            blocks.add(OcrBlock(text, box, confidence))
+                            blocks.add(OcrTextBlock(text, box, confidence))
                         } else {
                             Timber.d("TRANSLATION_DEBUG: Block $blockCount - box is NULL!")
                         }
@@ -264,7 +260,7 @@ class TesseractManager(private val context: Context) {
         return error is RuntimeException && message.contains("Failed to read bitmap", ignoreCase = true)
     }
 
-    fun release() {
+    override fun release() {
         try {
             tessApi?.stop()
             tessApi?.recycle()
@@ -280,10 +276,10 @@ class TesseractManager(private val context: Context) {
      * Filter duplicate and overlapping text blocks.
      * Removes blocks with identical or very similar text that overlap significantly.
      */
-    private fun filterDuplicateAndOverlappingBlocks(blocks: List<OcrBlock>): List<OcrBlock> {
+    private fun filterDuplicateAndOverlappingBlocks(blocks: List<OcrTextBlock>): List<OcrTextBlock> {
         if (blocks.isEmpty()) return blocks
         
-        val result = mutableListOf<OcrBlock>()
+        val result = mutableListOf<OcrTextBlock>()
         val processed = mutableSetOf<Int>()
         
         for (i in blocks.indices) {

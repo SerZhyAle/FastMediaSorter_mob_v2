@@ -80,6 +80,11 @@
                         android:id="@+id/cbAddAsDestination"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="@drawable/focus_button_background"
+                        android:nextFocusDown="@id/rvFolders"
+                        android:nextFocusRight="@id/cbScanSubdirectories"
                         android:text="@string/add_as_destination" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -99,7 +104,12 @@
                         android:id="@+id/cbScanSubdirectories"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="@drawable/focus_button_background"
                         android:checked="true"
+                        android:nextFocusDown="@id/rvFolders"
+                        android:nextFocusLeft="@id/cbAddAsDestination"
                         android:text="@string/scan_subdirectories" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -118,6 +128,7 @@
                 android:layout_height="0dp"
                 android:clipToPadding="false"
                 android:descendantFocusability="afterDescendants"
+                android:nextFocusUp="@id/cbAddAsDestination"
                 android:paddingBottom="@dimen/padding_large"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintBottom_toBottomOf="parent"

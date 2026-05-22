@@ -115,6 +115,10 @@ class KeyboardNavigationHandler(
             is InputAction.MoveFocus -> {
                 if (action.direction == FocusDirection.NEXT || action.direction == FocusDirection.PREVIOUS) {
                     false
+                } else if (action.direction == FocusDirection.UP && getCurrentFocusPosition() == 0) {
+                    // S0289: at the top of the list, propagate UP to the layout's nextFocusUp
+                    // target (TabLayout / control bar) instead of swallowing the event.
+                    false
                 } else {
                     focusManager.applyAction(action)
                 }

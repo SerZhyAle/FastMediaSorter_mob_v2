@@ -298,8 +298,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.imageDrawOverlayManager.baseBitmapProvider = { activity.viewModel.currentDisplayedBitmap }
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
+        activity.playerDrawingSaveHelper = com.sza.fastmediasorter.ui.player.helpers.PlayerDrawingSaveHelper(activity)
         activity.setupDrawOverlaySaveCallback()
         activity.setupDrawOverlayActionCallbacks()
+        activity.setupDrawOverlayInPlaceSaveCallback()
         activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
             activity = activity,
             safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)
