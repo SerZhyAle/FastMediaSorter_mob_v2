@@ -13131,3 +13131,4 @@ Format: | datetime | file | target | description |
 | 2026-05-22 18:52:00 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_05__docs-catalog-cleanup.md` | `S0291 phase 05` | Mark docs and catalog cleanup phase done [branch: DEBUG-v008] |
 | 2026-05-22 19:03:13 | `scripts/utils/setup_test_vr.ps1` | `S0291` | Remove stale remote VR diagnostic samples before device push [branch: DEBUG-v008] |
 | 2026-05-22 19:03:13 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `S0291` | Record researched answers for VR diagnostic open questions [branch: DEBUG-v008] |
+| 2026-05-22 21:02:55 | `.gitignore` | `.gitignore` | Ignore root logs folder and stop tracking logs [branch: DEBUG-v008] |
