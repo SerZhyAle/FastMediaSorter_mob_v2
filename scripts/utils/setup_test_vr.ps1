@@ -84,7 +84,10 @@ $assets = @(
     }
 )
 
-$canonicalSampleNames = @(
+# Authoritative on-device playlist for the Test Immersive button.
+# DiagnosticXrActivity keeps the same order in Kotlin for deterministic rotation, so this
+# script validates exact sync before it downloads / regenerates anything.
+$playlistMediaNames = @(
     "diagnostic_360_mono.jpg",
     "diagnostic_360_stereo_tb.jpg",
     "diagnostic_360_stereo_sbs.jpg",
@@ -95,7 +98,6 @@ $canonicalSampleNames = @(
     "moraine_lake_flat_tb.jpg",
     "moraine_lake_flat_sbs.jpg",
     "lakeside_flat_mono.jpg",
-    ("colosseum" + "_flat_mono.jpg"),
     "video_360_mono.mp4",
     "video_360_stereo_tb.mp4",
     "video_360_stereo_sbs.mp4",
@@ -104,7 +106,10 @@ $canonicalSampleNames = @(
     "video_180_stereo_sbs.mp4",
     "big_buck_bunny_flat_mono.mp4",
     "big_buck_bunny_flat_tb.mp4",
-    "big_buck_bunny_flat_sbs.mp4",
+    "big_buck_bunny_flat_sbs.mp4"
+)
+
+$intermediateSampleNames = @(
     "_tmp_pano180.jpg",
     "_tmp_360_stereo_tb_raw.jpg",
     "_tmp_360_stereo_tb_raw.mp4",
@@ -112,7 +117,67 @@ $canonicalSampleNames = @(
     "_tmp_180_stereo_sbs_raw.mp4"
 )
 
-foreach ($name in $canonicalSampleNames) {
+$legacyCleanupMediaNames = @(
+    # Old local / remote artefacts that must not survive once the current 19-file playlist is active.
+    ("colosseum" + "_flat_mono.jpg"),
+    "video_180_lr.mp4"
+)
+
+function Get-DiagnosticActivityPlaylistFromSource {
+    param([Parameter(Mandatory)] [string]$WorkspaceRoot)
+
+    $activityPath = Join-Path $WorkspaceRoot "app_v2\src\vr\java\com\sza\fastmediasorter\ui\xr\DiagnosticXrActivity.kt"
+    if (-not (Test-Path $activityPath)) {
+        throw "Diagnostic XR activity not found at $activityPath"
+    }
+
+    $source = Get-Content -LiteralPath $activityPath -Raw
+    $match = [regex]::Match(
+        $source,
+        'private\s+val\s+VR_TEST_MEDIA_ORDER\s*=\s*listOf\((?<body>.*?)\n\s*\)',
+        [System.Text.RegularExpressions.RegexOptions]::Singleline
+    )
+    if (-not $match.Success) {
+        throw "Failed to parse VR_TEST_MEDIA_ORDER from $activityPath"
+    }
+
+    $entries = [regex]::Matches($match.Groups['body'].Value, '"([^"]+)"') | ForEach-Object {
+        $_.Groups[1].Value
+    }
+    if ($entries.Count -eq 0) {
+        throw "VR_TEST_MEDIA_ORDER in $activityPath is empty"
+    }
+
+    return @($entries)
+}
+
+function Assert-DiagnosticPlaylistSync {
+    param(
+        [Parameter(Mandatory)] [string[]]$ScriptPlaylist,
+        [Parameter(Mandatory)] [string]$WorkspaceRoot
+    )
+
+    $activityPlaylist = Get-DiagnosticActivityPlaylistFromSource -WorkspaceRoot $WorkspaceRoot
+    $maxCount = [Math]::Max($ScriptPlaylist.Count, $activityPlaylist.Count)
+    $mismatches = @()
+    for ($index = 0; $index -lt $maxCount; $index++) {
+        $scriptName = if ($index -lt $ScriptPlaylist.Count) { $ScriptPlaylist[$index] } else { '<missing>' }
+        $activityName = if ($index -lt $activityPlaylist.Count) { $activityPlaylist[$index] } else { '<missing>' }
+        if ($scriptName -ne $activityName) {
+            $mismatches += "[$index] script=$scriptName | activity=$activityName"
+        }
+    }
+
+    if ($mismatches.Count -gt 0) {
+        throw "Test Immersive playlist drift detected between setup_test_vr.ps1 and DiagnosticXrActivity.kt: $($mismatches -join '; ')"
+    }
+
+    Write-Host "Verified Test Immersive playlist sync ($($ScriptPlaylist.Count) items)." -ForegroundColor DarkGray
+}
+
+Assert-DiagnosticPlaylistSync -ScriptPlaylist $playlistMediaNames -WorkspaceRoot $workspaceRoot
+
+foreach ($name in ($playlistMediaNames + $intermediateSampleNames + $legacyCleanupMediaNames)) {
     $path = Join-Path $localMediaDir $name
     if (Test-Path $path) {
         Write-Host "Removing stale generated sample cache: $name" -ForegroundColor DarkYellow
@@ -220,15 +285,22 @@ function Invoke-Ffmpeg {
     }
 }
 
-# Build a readable per-eye marker. S0291 owner feedback: the old color box was not visible
-# enough in the headset, so drawtext is preferred when a known Windows font is available.
+# Build a readable per-eye marker. S0291 owner round 2 feedback (2026-05-22 20:51):
+# h*0.48 was ~5x too large (filled FOV). New size h*0.10 puts marker on ~10% of half-frame.
+# Use explicit WORD labels ("LEFT"/"RIGHT") instead of single letters — disambiguates eye
+# routing (you can tell "LEFT" vs mirrored "TFEL" at a glance) and confirms by reading.
 function Build-LabelFilter {
     param([string]$Letter, [string]$Color)
+    $text = switch ($Letter) {
+        'L' { 'LEFT' }
+        'R' { 'RIGHT' }
+        default { $Letter }
+    }
     if ($labelFontFile) {
         $font = Format-FfmpegFilterPath $labelFontFile
-        return "drawtext=fontfile='${font}':text='${Letter}':fontcolor=${Color}:fontsize=h*0.48:x=(w-text_w)/2:y=(h-text_h)/2:box=1:boxcolor=black@0.75:boxborderw=24"
+        return "drawtext=fontfile='${font}':text='${text}':fontcolor=${Color}:fontsize=h*0.10:x=(w-text_w)/2:y=(h-text_h)/2:box=1:boxcolor=black@0.75:boxborderw=10"
     }
-    return "drawbox=x=w*0.25:y=h*0.20:w=w*0.50:h=h*0.60:color=black@0.75:t=fill,drawbox=x=w*0.30:y=h*0.25:w=w*0.40:h=h*0.50:color=${Color}@0.90:t=fill"
+    return "drawbox=x=(w-w*0.30)/2:y=(h-h*0.10)/2:w=w*0.30:h=h*0.10:color=black@0.75:t=fill,drawbox=x=(w-w*0.24)/2:y=(h-h*0.08)/2:w=w*0.24:h=h*0.08:color=${Color}@0.90:t=fill"
 }
 
 function Add-EyeLabelsStill {
@@ -724,33 +796,13 @@ if (-not $deviceConnected) {
 Write-Host "Device detected — pushing harvested samples.." -ForegroundColor Green
 & $adbExe shell "mkdir -p $remotePictureDir $remoteMovieDir"
 
-# Full playlist (in the canonical display order)
-$deployNames = @(
-    "diagnostic_360_mono.jpg",
-    "diagnostic_360_stereo_tb.jpg",
-    "diagnostic_360_stereo_sbs.jpg",
-    "diagnostic_180_mono.jpg",
-    "diagnostic_180_stereo_tb.jpg",
-    "diagnostic_180_stereo_sbs.jpg",
-    "moraine_lake_flat_mono.jpg",
-    "moraine_lake_flat_tb.jpg",
-    "moraine_lake_flat_sbs.jpg",
-    "lakeside_flat_mono.jpg",
-    "video_360_mono.mp4",
-    "video_360_stereo_tb.mp4",
-    "video_360_stereo_sbs.mp4",
-    "video_180_mono.mp4",
-    "video_180_stereo_tb.mp4",
-    "video_180_stereo_sbs.mp4",
-    "big_buck_bunny_flat_mono.mp4",
-    "big_buck_bunny_flat_tb.mp4",
-    "big_buck_bunny_flat_sbs.mp4"
-)
+# Full playlist (in the canonical display order used by Test Immersive rotation)
+$deployNames = $playlistMediaNames
 
 $remotePictureCleanupNames = @(
     $deployNames | Where-Object { $_ -match "\.(jpg|jpeg|png)$" }
 )
-$remotePictureCleanupNames += ("colosseum" + "_flat_mono.jpg")
+$remotePictureCleanupNames += (("colosseum" + "_flat_mono.jpg"))
 
 $remoteMovieCleanupNames = @(
     $deployNames | Where-Object { $_ -match "\.(mp4|mkv)$" }
@@ -763,6 +815,15 @@ foreach ($name in $remotePictureCleanupNames) {
 }
 foreach ($name in $remoteMovieCleanupNames) {
     & $adbExe shell "rm -f $remoteMovieDir/$name"
+}
+
+function Get-RemoteFileSize {
+    param([string]$AdbExe, [string]$RemotePath)
+    $output = & $AdbExe shell "stat -c %s '$RemotePath' 2>/dev/null" 2>&1
+    if ($LASTEXITCODE -ne 0) { return $null }
+    $trimmed = ($output | Out-String).Trim()
+    if ($trimmed -match '^\d+$') { return [long]$trimmed }
+    return $null
 }
 
 foreach ($name in $deployNames) {
@@ -779,7 +840,20 @@ foreach ($name in $deployNames) {
         Write-Warning "Skipping unknown extension: $name"
         continue
     }
-    Write-Host "Pushing $($file.Name).." -ForegroundColor Cyan
+    # S0291 owner round 2: skip push only when remote already matches local size byte-for-byte.
+    # Earlier runs blindly skipped on existence; that left stale large files on the device
+    # after the script regenerated smaller variants locally.
+    $localSize = $file.Length
+    $remoteSize = Get-RemoteFileSize -AdbExe $adbExe -RemotePath $remotePath
+    if ($null -ne $remoteSize -and $remoteSize -eq $localSize) {
+        Write-Host "Skipping $($file.Name) (remote already matches $localSize bytes).." -ForegroundColor DarkGray
+        continue
+    }
+    if ($null -ne $remoteSize) {
+        Write-Host "Re-pushing $($file.Name) (remote $remoteSize, local $localSize bytes).." -ForegroundColor Yellow
+    } else {
+        Write-Host "Pushing $($file.Name).." -ForegroundColor Cyan
+    }
     & $adbExe push $file.FullName $remotePath
 }
 

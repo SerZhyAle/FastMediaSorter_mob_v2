@@ -466,7 +466,16 @@ void buildSphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indic
         float sinT = std::sin(theta), cosT = std::cos(theta);
         for (int x = 0; x <= lon; ++x) {
             float u = (float)x / (float)lon;
-            float phi = u * 2.0f * kPI;
+            // S0291 owner round 3 fix (2026-05-22 21:26): owner observed "LEFT" text rendered
+            // as "TFEL" (horizontally mirrored) on diagnostic_360_stereo_tb.jpg. Root cause:
+            // for sphere viewed from inside, the azimuth-vs-texture-U direction was inverted —
+            // as user turned LEFT, texture U DECREASED instead of INCREASED, producing a
+            // mirror image. Same bug was present on bundled landscape pano but masked because
+            // the lake scene has no readable text. Reverse phi direction so texture U=0
+            // appears behind user and increases counter-clockwise (standard equirect viewer
+            // convention) — front-of-user now at u=0.25 (was 0.75) and turning RIGHT scrolls
+            // toward larger u.
+            float phi = (1.0f - u) * 2.0f * kPI;
             float sinP = std::sin(phi), cosP = std::cos(phi);
             float px = -sinT * cosP * kSphereRadius;
             float py = cosT * kSphereRadius;
@@ -499,7 +508,10 @@ void buildHemisphereMesh(std::vector<float>& verts, std::vector<unsigned int>& i
         float sinT = std::sin(theta), cosT = std::cos(theta);
         for (int x = 0; x <= lon; ++x) {
             float u = (float)x / (float)lon;
-            float phi = kPI + u * kPI;
+            // S0291: same U-axis mirror fix as sphere (see comment above). For the 180° forward
+            // hemisphere, phi spans pi..2pi originally — reverse so the texture's natural
+            // left-to-right reads correctly when viewed from inside the half-shell.
+            float phi = kPI + (1.0f - u) * kPI;
             float sinP = std::sin(phi), cosP = std::cos(phi);
             float px = -sinT * cosP * kSphereRadius;
             float py = cosT * kSphereRadius;
@@ -1093,7 +1105,21 @@ bool xr_session_is_running() { return g.running.load(); }
 
 bool xr_session_is_initialized() {
     std::lock_guard<std::mutex> lock(g.mutex);
-    return g.instance != XR_NULL_HANDLE || g.vm != nullptr || g.activity != nullptr;
+    // S0291 owner round 3 (2026-05-22): no longer treat g.activity as "session initialized"
+    // signal — g.activity now persists across sessions intentionally (see JNI bridge comment).
+    // True initialized state is the OpenXR instance + JavaVM combination, both of which DO
+    // get torn down in xr_session_shutdown.
+    return g.instance != XR_NULL_HANDLE || g.eglContext != EGL_NO_CONTEXT;
+}
+
+jobject_opaque g_activity_jobject() {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    return static_cast<jobject_opaque>(g.activity);
+}
+
+void xr_session_clear_activity_jobject() {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    g.activity = nullptr;
 }
 
 NativeResult xr_session_init(JavaVM* vm, jobject_opaque activity) {
@@ -1392,20 +1418,16 @@ void xr_session_shutdown() {
         g.pendingHudHeight = 0;
     }
 
-    if (g.vm && g.activity) {
-        JNIEnv* env = nullptr;
-        if (g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK && env) {
-            env->DeleteGlobalRef(g.activity);
-            LOGD("xr_session_shutdown: DeleteGlobalRef(activity) done");
-        }
-        g.activity = nullptr;
-        g.vm = nullptr;
-    } else {
-        // Either already detached (idempotent re-call) or activity ref was never created.
-        g.activity = nullptr;
-        g.vm = nullptr;
-    }
-    LOGD("xr_session_shutdown: complete");
+    // S0291 owner round 3 (2026-05-22 21:19): do NOT DeleteGlobalRef on g.activity at
+    // shutdown. The Activity global ref must persist across the immersive enter/exit
+    // boundary for the lifetime of the process — see the load-bearing rationale in
+    // diagnostic_xr_runtime.cpp::nativeInitSession (CheckJNI "stale reference with
+    // serial number" crash on re-entry when the ref was deleted between sessions).
+    // g.activity is reused by the JNI bridge on next nativeInitSession via IsSameObject;
+    // it is released only if a truly different Activity instance arrives, or implicitly
+    // when the process dies. g.vm is cleared because it has no associated allocation.
+    g.vm = nullptr;
+    LOGD("xr_session_shutdown: complete (activity globalref intentionally retained for process lifetime)");
 }
 
 } // namespace fms::xr

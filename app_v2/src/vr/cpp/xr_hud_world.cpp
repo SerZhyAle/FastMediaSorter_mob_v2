@@ -132,8 +132,11 @@ HUDWorldState g_hudState;
 
 void xr_hud_init() {
     LOGD("xr_hud_init: establishing 3D HUD world geometry");
-    g_hudState.quad.width = 1.2f;    // 1.2 meters wide
-    g_hudState.quad.height = 0.675f; // 0.675 meters high (16:9 aspect ratio)
+    // S0291 owner round 3 (2026-05-22 21:33): halved from 1.2x0.675m to 0.6x0.3375m per
+    // owner request — previous size dominated FOV when HUD became actually visible after
+    // the multiply_matrices MVP fix. Aspect ratio preserved (16:9 quad).
+    g_hudState.quad.width = 0.6f;
+    g_hudState.quad.height = 0.3375f;
     
     // S0290 (owner round 3 2026-05-22): HUD centered in front of head so screenshots
     // show the filename + stereo type banner clearly. Was {0, -0.2, -1.5} (below center).
