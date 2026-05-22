@@ -380,6 +380,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject
     lateinit var gamepadInputManager: GamepadInputManager
 
+    /** S0289 Phase 08: surface marker for gamepad routing in the player. */
+    private val gamepadSurface = GamepadInputManager.Surface.PLAYER
+
     @Inject
     lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 
@@ -874,7 +877,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal fun stopVideoPlayback() = lifecycleManager.stopVideoPlayback()
 
     /** S0289 §2.2: initial focus on play-pause when the player opens on a non-touch device. */
-    override fun getInitialFocusView(): View? = binding.btnPlayPause
+    override fun getInitialFocusView(): View? {
+        Timber.d("S0289: player initial-focus / HUD btnPlayPause")
+        return binding.btnPlayPause
+    }
 
     /**
      * S0289: true when the currently-focused view is a HUD control button. Used to arbitrate
@@ -1028,7 +1034,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val action = gamepadInputManager.handleMotionEvent(event, GamepadInputManager.Surface.PLAYER)
+        // S0289 Phase 08: gamepad analog stays player-specific; pointer events fall through to the
+        // bespoke player-mouse handler first, then to the shared BaseActivity foundation.
+        if (event.isFromSource(android.view.InputDevice.SOURCE_JOYSTICK)) {
+            Timber.d("S0289: player gamepad-analog dispatchGenericMotionEvent")
+        }
+        val action = gamepadInputManager.handleMotionEvent(event, gamepadSurface)
         if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
         return keyboardHandler.handlePointerEvent(window.decorView, event) || super.dispatchGenericMotionEvent(event)
     }

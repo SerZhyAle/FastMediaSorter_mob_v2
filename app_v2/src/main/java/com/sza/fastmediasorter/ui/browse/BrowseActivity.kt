@@ -234,6 +234,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0230 Phase 02 - TV initial focus on the file list so the first D-pad press lands on a row.
     // S0289: when list is empty, fall back to btnBack so D-pad has a visible target.
     override fun getInitialFocusView(): android.view.View {
+        Timber.d("S0289: browse initial-focus / wheel target rvMediaFiles")
         val state = viewModel.state.value
         return if (state.mediaFiles.isNotEmpty()) binding.rvMediaFiles else binding.btnBack
     }

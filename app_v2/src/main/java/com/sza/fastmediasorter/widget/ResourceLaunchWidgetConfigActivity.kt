@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
@@ -52,9 +53,17 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
 
     override fun shouldKeepScreenAwake(): Boolean = false
 
+    /** S0289 Phase 09: multimodal surface marker - widget config activity. */
+    @Suppress("unused")
+    private val multimodalInputSurface: InputSurface = InputSurface.WIDGET_CONFIG
+
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: widget-config initial-focus / wheel composeView")
         return binding.widgetConfigComposeView
     }
+
+    /** S0289 Phase 09: route mouse wheel onto the Compose host that owns the LazyColumn list. */
+    override fun getMouseScrollTargetView(): View? = binding.widgetConfigComposeView
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_ESCAPE) { finish(); return true }

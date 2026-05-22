@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -67,22 +68,34 @@ class ImageOcrManager(
         
         // Get bitmap from current image view (including GIF first frame)
         val bitmap = extractBitmapFromImageView()
-        
+
         if (bitmap == null) {
             callback.showError(callback.getString(R.string.ocr_extract_image_failed))
             return
         }
-        
+
+        // Show progress + disable the OCR button so the user gets immediate visual feedback.
+        // First-call PaddleOCR/Tesseract init can take seconds (cold native library + model load);
+        // without this the UI looks frozen even though the IO coroutine is running.
+        binding.progressBar.isVisible = true
+        binding.btnOcrImageCmd.isEnabled = false
+        Timber.d("S0288: ImageOcrManager launching OCR coroutine (Dispatchers.IO)")
+
         // Perform OCR in background
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                Timber.d("S0288: ImageOcrManager reading settings via Flow.first()")
                 val settings = settingsRepository.getSettings().first()
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-                
+                Timber.d("S0288: ImageOcrManager settings read, sourceLang=$sourceLang, calling extractTextOnly")
+
                 // Extract text using OCR
                 val recognizedText = translationManager.extractTextOnly(bitmap, sourceLang)
-                
+                Timber.d("S0288: ImageOcrManager extractTextOnly returned len=${recognizedText?.length}")
+
                 withContext(Dispatchers.Main) {
+                    binding.progressBar.isVisible = false
+                    binding.btnOcrImageCmd.isEnabled = true
                     if (recognizedText != null && recognizedText.isNotBlank()) {
                         textViewerManagerProvider().displayOcrText(recognizedText)
                     } else {
@@ -90,7 +103,11 @@ class ImageOcrManager(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Timber.e(e, "S0288: ImageOcrManager OCR pipeline failed")
                 withContext(Dispatchers.Main) {
+                    binding.progressBar.isVisible = false
+                    binding.btnOcrImageCmd.isEnabled = true
                     callback.showError(callback.getString(R.string.ocr_error))
                 }
             }

@@ -64,12 +64,16 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
 
     // S0230 Phase 02 - TV initial focus on the folder list.
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: gdrive-picker initial-focus / wheel rvFolders")
         val firstFolderItem = binding.rvFolders.findViewHolderForAdapterPosition(0)?.itemView
         val folderCount = if (::folderAdapter.isInitialized) folderAdapter.itemCount else -1
         return firstFolderItem
             ?: binding.toolbar.children.firstOrNull { it.isClickable }
             ?: binding.cbAddAsDestination
     }
+
+    /** S0289 Phase 09: route mouse wheel onto the cloud-folders RecyclerView. */
+    override fun getMouseScrollTargetView(): View? = binding.rvFolders
 
     override fun setupViews() {
         // Guard: Cloud storage is not supported by this flavor

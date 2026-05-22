@@ -433,7 +433,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var lastPlayedResourceId: Long? = null
 
     /** S0289 §2.1: initial focus on the big Play button when the Activity opens on a non-touch device. */
-    override fun getInitialFocusView(): View? = binding.btnStartPlayer
+    override fun getInitialFocusView(): View? {
+        Timber.d("S0289: main initial-focus / wheel target rvResources")
+        return binding.btnStartPlayer
+    }
 
     /** S0289 Phase 08: route mouse wheel through the shared activity helper. */
     override fun getMouseScrollTargetView(): View? = binding.rvResources

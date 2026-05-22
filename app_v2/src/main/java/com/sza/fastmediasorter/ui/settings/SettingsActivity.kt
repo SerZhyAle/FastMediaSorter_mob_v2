@@ -309,8 +309,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
      */
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: settings initial-focus / wheel viewPager")
         return binding.viewPager
     }
+
+    /** S0289 Phase 09: route mouse wheel onto the settings pager so each tab fragment scrolls naturally. */
+    override fun getMouseScrollTargetView(): View? = binding.viewPager
 
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)

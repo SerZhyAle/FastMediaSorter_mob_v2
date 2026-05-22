@@ -234,6 +234,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     /** S0289 §2.2: initial focus on play-pause when the standalone player opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: standalone-player initial-focus / HUD btnPlayPause")
         val target = binding.btnPlayPause
         return target
     }
@@ -383,12 +384,23 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         )
     }
 
+    /**
+     * S0289 Phase 08: keep the standalone player aligned with PlayerActivity's multimodal
+     * baseline - bespoke `keyboardHandler` consumes its keys first, then `super.onKeyDown`
+     * lets BaseActivity's TV / back / context defaults take over. No duplicate gamepad-analog
+     * helper is required here; the standalone surface does not own a media-resource list.
+     */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
             keyboardHandler.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)
     }
 
+    /**
+     * S0289 Phase 08: pointer events route through the player's bespoke handler first; if it
+     * does not consume them, the call falls through to BaseActivity, which delegates to the
+     * shared `ActivityMouseDispatchHelper` (wheel scroll, back/context, etc.).
+     */
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true

@@ -123,9 +123,17 @@ class MouseEventHandler(
     }
 
     private fun isMouseEvent(event: MotionEvent): Boolean {
-        val source = event.source
-        return (source and InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE ||
-            (source and InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS ||
+        // S0289: do NOT rely on event.source - on the Android emulator, Quest3 controller
+        // pointer and TV/Chromebook devices with touchpad the touchscreen-injected events
+        // can carry SOURCE_MOUSE in event.source while still being finger taps. Misclassifying
+        // them as mouse-up consumes the UP and breaks click delivery to MaterialButton etc.
+        // getToolType(pointerIndex) reports the real input tool per pointer and is the only
+        // reliable discriminator across these devices.
+        val tool = event.getToolType(0)
+        if (tool == MotionEvent.TOOL_TYPE_FINGER) return false
+        return tool == MotionEvent.TOOL_TYPE_MOUSE ||
+            tool == MotionEvent.TOOL_TYPE_STYLUS ||
+            tool == MotionEvent.TOOL_TYPE_ERASER ||
             event.buttonState != 0
     }
 

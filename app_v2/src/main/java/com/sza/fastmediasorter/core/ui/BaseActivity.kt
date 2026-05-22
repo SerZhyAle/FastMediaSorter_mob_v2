@@ -193,15 +193,21 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (_binding != null && activityMouseDispatchHelper.handleTouchEvent(ev)) {
+        // S0289 safety net: never route finger taps through the mouse helper. MouseEventHandler
+        // already filters by getToolType(), but adding the guard here makes any future helper
+        // method automatically safe against the same regression (emulator/Quest3/touchpad TVs
+        // can mark touch events with SOURCE_MOUSE in event.source, which used to consume UP
+        // and break click delivery to every interactive view in every Activity).
+        val isFinger = ev?.getToolType(0) == MotionEvent.TOOL_TYPE_FINGER
+        if (!isFinger && _binding != null && activityMouseDispatchHelper.handleTouchEvent(ev)) {
             return true
         }
         ev?.let {
             if (it.action == MotionEvent.ACTION_DOWN) {
                 com.sza.fastmediasorter.utils.UserActionLogger.logTouch(
-                    action = "DOWN", 
-                    x = it.x, 
-                    y = it.y, 
+                    action = "DOWN",
+                    x = it.x,
+                    y = it.y,
                     context = this::class.simpleName ?: "UnknownActivity"
                 )
             } else if (it.action == MotionEvent.ACTION_UP) {
@@ -217,7 +223,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (_binding != null && activityMouseDispatchHelper.handleGenericMotionEvent(event)) {
+        // S0289 safety net: generic motion (wheel/hover) from a finger is impossible in
+        // practice, but the guard mirrors dispatchTouchEvent so a future regression cannot
+        // silently consume finger events here either.
+        val isFinger = event.getToolType(0) == MotionEvent.TOOL_TYPE_FINGER
+        if (!isFinger && _binding != null && activityMouseDispatchHelper.handleGenericMotionEvent(event)) {
             return true
         }
         return super.dispatchGenericMotionEvent(event)

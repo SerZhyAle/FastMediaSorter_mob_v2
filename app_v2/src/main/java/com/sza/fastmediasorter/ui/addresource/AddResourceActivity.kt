@@ -129,6 +129,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     /** S0289 §2.4: initial focus on the primary "Add to resources" action button. */
     override fun getInitialFocusView(): android.view.View? {
+        Timber.d("S0289: add-resource initial-focus / btnAddToResources")
         return binding.btnAddToResources
     }
 
