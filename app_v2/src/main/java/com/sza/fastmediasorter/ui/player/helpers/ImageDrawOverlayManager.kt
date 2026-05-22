@@ -122,7 +122,6 @@ class ImageDrawOverlayManager(
 
     private var drawCanvasView: DrawCanvasView? = null
     private var toolbarRoot: View? = null
-    private var shareActionsVisible: Boolean = true
     private val cleanToolbarColor = 0xCC000000.toInt()
     private val dirtyToolbarColor = 0xCC6B2C00.toInt()
 
@@ -234,8 +233,9 @@ class ImageDrawOverlayManager(
      * Layout contract (portrait + landscape mirror each other):
      *   btn_draw_tool_selector - opens R.menu.menu_draw_tool_selector
      *   color_black / color_white / color_red / color_custom - 4 swatches
-     *   btn_draw_save / btn_draw_save_close / btn_draw_save_share / btn_draw_share /
-     *       btn_draw_close - direct session actions from S0191
+     *   btn_draw_save / btn_draw_save_close / btn_draw_close - direct session
+     *       actions from S0191; "Save & send" and "Share" moved to the overflow
+     *       menu so the strip stays narrow on phones (see menu_draw_overflow).
      *   btn_draw_overflow - opens R.menu.menu_draw_overflow (Save as.. / Undo last /
      *       Undo all / Settings / Send to Google Keep)
      */
@@ -306,16 +306,6 @@ class ImageDrawOverlayManager(
                 val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
                 actionCallback?.onSaveAndCloseRequested(overlay)
             }
-        root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_save_share)
-            ?.setOnClickListener {
-                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
-                actionCallback?.onSaveAndShareRequested(overlay)
-            }
-        root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_share)
-            ?.setOnClickListener {
-                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
-                actionCallback?.onShareRequested(overlay)
-            }
 
         // ── Close button (X) ─────────────────────────────────────────────
         root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btn_draw_close)
@@ -363,13 +353,18 @@ class ImageDrawOverlayManager(
         }
 
         updateToolbarSelection(root)
-        updateShareActionVisibility(root)
         updateToolbarDirtyState()
     }
 
+    /**
+     * S0192 Phase 05 - retained for binary compatibility with older PlayerDrawingSaveHelper
+     * call sites. The Save & send / Share buttons no longer live on the toolbar (moved to
+     * the overflow menu), so toggling visibility on the toolbar is a no-op now. Kept as a
+     * no-op so removing the helper call can happen in a separate change.
+     */
+    @Suppress("UNUSED_PARAMETER")
     fun setShareActionsVisible(visible: Boolean) {
-        shareActionsVisible = visible
-        toolbarRoot?.let(::updateShareActionVisibility)
+        // no-op: share actions live in R.menu.menu_draw_overflow now.
     }
 
     fun markCurrentStateSaved() {
@@ -444,12 +439,6 @@ class ImageDrawOverlayManager(
         selectedColorArgb = argb
         DrawEditorPrefs.setLastColor(activity, argb)
         toolbarRoot?.let { updateToolbarSelection(it) }
-    }
-
-    private fun updateShareActionVisibility(root: View) {
-        val visibility = if (shareActionsVisible) View.VISIBLE else View.GONE
-        root.findViewById<View>(com.sza.fastmediasorter.R.id.btn_draw_save_share)?.visibility = visibility
-        root.findViewById<View>(com.sza.fastmediasorter.R.id.btn_draw_share)?.visibility = visibility
     }
 
     private fun updateToolbarDirtyState() {

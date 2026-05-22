@@ -97,30 +97,6 @@
         android:tint="#FFFFFFFF" />
 
     <ImageButton
-        android:id="@+id/btn_draw_save_share"
-        android:layout_width="@dimen/player_cmd_button_size"
-        android:layout_height="@dimen/player_cmd_button_size"
-        android:layout_marginTop="4dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/text_editor_action_save_send"
-        android:padding="8dp"
-        android:src="@drawable/ic_text_save_send"
-        android:tint="#FFFFFFFF"
-        android:visibility="gone" />
-
-    <ImageButton
-        android:id="@+id/btn_draw_share"
-        android:layout_width="@dimen/player_cmd_button_size"
-        android:layout_height="@dimen/player_cmd_button_size"
-        android:layout_marginTop="4dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/share"
-        android:padding="8dp"
-        android:src="@drawable/ic_share"
-        android:tint="#FFFFFFFF"
-        android:visibility="gone" />
-
-    <ImageButton
         android:id="@+id/btn_draw_overflow"
         android:layout_width="@dimen/player_cmd_button_size"
         android:layout_height="@dimen/player_cmd_button_size"
