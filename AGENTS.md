@@ -54,6 +54,7 @@ When files disagree, prefer the stricter rule. For agent-specific execution, `AG
 Load the matching `.github/prompts/*.prompt.md` before doing the task:
 
 - `/quick`: very small fix, typo, one string, small color/padding/XML tweak.
+- `/skill-fix`: narrow fast patch for an existing bug/regression/crash/UI issue; skip spec/docs/dev-log/build/git and keep validation local.
 - `/spec`: create or update `PLAN/Sxxxx_*.md`.
 - `/spec-all`: full spec pipeline, idea to verified implementation.
 - `/spec-tech`: approved strategic spec to tactical phases.
@@ -90,6 +91,7 @@ Prompt files are imported from `.github/prompts/`:
 - `log-reader.prompt.md`
 - `quick.prompt.md`
 - `research.prompt.md`
+- `skill-fix.prompt.md`
 - `spec-all.prompt.md`
 - `spec-arc.prompt.md`
 - `spec-check.prompt.md`
@@ -119,7 +121,7 @@ Use the narrowest fitting agent profile.
 - For tasks larger than a single-file fix, read `dev/AGENT_WORKFLOW.md` and follow the 5-step process.
 - No coding before required clarification/design gates.
 - For `.kt` changes, run catalog sync via `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render in a single process).
-- After code/config changes, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`.
+- After code/config changes, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`, except under `/skill-fix`, which explicitly skips logs and other closure bureaucracy.
 - For user-visible behavior changes, evaluate feature docs and functionality log requirements from `CLAUDE.md`.
 
 ## 9. PowerShell Efficiency

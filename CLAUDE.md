@@ -55,6 +55,7 @@ Timber.d("Sxxxx: <short description of exercised path>")
 | Situation | Skill |
 |-----------|-------|
 | **Очень незначительная** правка (коррекция дизайна, опечатка, цвет/отступ, одна строка ресурса) | `/quick` (без спеки/доков/билда; только `dev/CHANGELOG.md`) |
+| Точечный фикс бага / UI-неполадки в существующем коде без спеки, журналов, доков, билда и git | `/skill-fix` (anti-bureaucracy: только диагноз → правка → отчёт; всё остальное на пользователе) |
 | Creating or updating any `PLAN/Sxxxx_*.md` strategic spec | `/spec` |
 | Full spec pipeline from idea to verified implementation, unattended | `/spec-all` |
 | Breaking an approved strategic spec into a tactical phase plan | `/spec-tech` |
@@ -298,6 +299,7 @@ Skill-owned decisions stay outside `post-change.ps1`:
 Notes:
 
 - `post-change.ps1` covers only the mechanical closure steps. Build, test, and compile gates still follow the `Validation Requirements` table above.
+- `/skill-fix` is the explicit fast-patch exception: skip dev log, functionality log, feature docs, spec/catalog writes, full builds, and git inspection; keep only focused local validation and core safety rules.
 - `add_to_dev_log.ps1` already records the current branch - no separate branch step is needed.
 - `dev/CATALOG/<module>.jsonl` and `<module>.md` are local gitignored indexes. Regenerate them via `scripts/catalog_sync.ps1`; do not expect or require a git commit for them.
 

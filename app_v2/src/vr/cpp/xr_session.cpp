@@ -27,6 +27,14 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#endif
+
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
 #ifndef XR_EXT_HAND_INTERACTION_EXTENSION_NAME
 #define XR_EXT_HAND_INTERACTION_EXTENSION_NAME "XR_EXT_hand_interaction"
 #endif
@@ -43,7 +51,14 @@ constexpr const char* kLogTag = "S0249.XrSession";
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, kLogTag, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  kLogTag, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, kLogTag, __VA_ARGS__)
-constexpr XrDuration kNavigateDebounceDuration = 350000000;
+// S0290 Phase 10 / ADR-6: race-guard only against pathological double-callback from
+// xrWaitFrame on Quest 3 timewarp. Main debounce = application-side rising-edge detection
+// on triggerClicked (Step 10.1) plus the Meta runtime's own hysteresis on the
+// pinch_ext/ready_ext boolean input. Bumped 100 ms -> 500 ms after owner feedback round 2
+// (2026-05-22): user reported "still jumping" even with stick remap + edge-detection. The
+// half-second cooldown guarantees one navigation per deliberate gesture even if the stick
+// drifts back across the deflection threshold during a single intentional push.
+constexpr XrDuration kNavigateDebounceDuration = 500000000;
 
 constexpr float kPI = 3.14159265358979323846f;
 constexpr int   kSphereLatSegments = 32;
@@ -104,8 +119,23 @@ void main() {
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift) * 0.5;
     }
     uv = clamp(uv, vec2(0.0), vec2(1.0));
+    // S0290 (owner feedback 2026-05-22): video shown upside-down on Quest 3 because the
+    // SurfaceTexture transform from MediaCodec expects GL bottom-left convention UV, but
+    // our quad mesh is bitmap top-down. Convert just before the transform so stereo math
+    // above stays in bitmap convention (correct for TB / SBS half-splits) and the OES
+    // sampler sees the orientation it expects. See strategic spec §5.1.B.2.
+    uv.y = 1.0 - uv.y;
     vec4 transformed = u_texTransform * vec4(uv, 0.0, 1.0);
-    outColor = texture(u_tex, transformed.xy);
+    vec4 sampled = texture(u_tex, transformed.xy);
+    // S0290 ADR-5 v2: OES external returns RGB in source colorspace - the spec
+    // (https://registry.khronos.org/OpenGL/extensions/OES/OES_EGL_image_external.txt)
+    // says "no gamma encode or decode" happens on sample. H.264 / HEVC video out of
+    // MediaCodec is BT.709 gamma-encoded RGB, and the sRGB swapchain re-encodes on
+    // write. Without a decode here, the chain runs gamma TWICE -> over-bright video
+    // (Big Buck Bunny visibly brighter than desktop player, observed 2026-05-22).
+    // Decode to linear here so the swapchain's encode round-trips correctly.
+    outColor.rgb = pow(sampled.rgb, vec3(2.2));
+    outColor.a = sampled.a;
 }
 )GLSL";
 
@@ -216,11 +246,52 @@ std::atomic<float> g_currentFps{0.0f};
 // Previous predicted display time (nanoseconds, monotonic). 0 marks "no previous frame yet".
 int64_t g_prevPredictedDisplayTimeNs{0};
 XrTime g_lastNavigateActionTime[2] = {0, 0};
+// S0290 Phase 10 (revised 2026-05-22 by owner): navigation moved off trigger/pinch
+// (those collide with Quest 3 system gestures like screenshot) to the thumbstick X axis.
+// Per-hand last-known stick deflection state: -1 = pushed left, 0 = neutral, +1 = right.
+// A transition 0 -> ±1 is the navigate event; we re-arm when stick returns to neutral.
+// triggerClicked is preserved as the kept-as-default-mapping signal for ray interaction
+// (HUD click) — only the prev/next navigation is moved to the stick.
+int g_prevStickState[2] = {0, 0};
+bool g_prevTriggerClicked[2] = {false, false};
+// S0290 Phase 10 Step 10.3: running count of accepted navigations per hand for in-log
+// self-diagnosis. The count appears in the LOGD navigation line so the operator can
+// distinguish "system saw 5 distinct gestures" vs "system saw 1 gesture but I think I
+// did 5". Reset alongside the time stamps in xr_session_start.
+int g_navigateCounter[2] = {0, 0};
 
 bool checkGl(const char* tag) {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR) { LOGE("GL error at %s: 0x%x", tag, e); return false; }
     return true;
+}
+
+bool hasGlExtension(const char* needle) {
+    const char* extensions = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+    return extensions && std::strstr(extensions, needle) != nullptr;
+}
+
+void configureStaticTextureFiltering() {
+    LOGD("S0291: static texture filtering entry");
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (hasGlExtension("GL_EXT_texture_filter_anisotropic")) {
+        GLfloat maxAnisotropy = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+        const GLfloat chosen = std::fmin(maxAnisotropy, 8.0f);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, chosen);
+        LOGD("static texture anisotropy enabled: %.1f", chosen);
+    }
+}
+
+bool uploadStaticTexturePixels(const uint8_t* rgba, int width, int height, const char* tag) {
+    glBindTexture(GL_TEXTURE_2D, g.texture);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return checkGl(tag);
 }
 
 GLuint compileShader(GLenum type, const char* src) {
@@ -775,12 +846,10 @@ NativeResult createGlAssets() {
 
     glGenTextures(1, &g.texture);
     glBindTexture(GL_TEXTURE_2D, g.texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    configureStaticTextureFiltering();
     uint8_t pixel[4] = { 64, 64, 64, 255 };
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     glGenTextures(1, &g.hudTexture);
     glBindTexture(GL_TEXTURE_2D, g.hudTexture);
@@ -977,27 +1046,55 @@ void pollActions(XrTime predictedTime) {
 
     xr_input_poll(g.localSpace, predictedTime);
 
-    const bool leftNavigationAllowed =
-        g_lastNavigateActionTime[0] == 0 ||
-        predictedTime - g_lastNavigateActionTime[0] >= kNavigateDebounceDuration;
-    if (g_handInputStates[0].triggerClicked && leftNavigationAllowed) {
-        g_lastNavigateActionTime[0] = predictedTime;
-        LOGD("Left select / pinch triggered -> navigating prev");
-        triggerJniInputCallback(2); // 2 = Previous
-    }
-    const bool rightNavigationAllowed =
-        g_lastNavigateActionTime[1] == 0 ||
-        predictedTime - g_lastNavigateActionTime[1] >= kNavigateDebounceDuration;
-    if (g_handInputStates[1].triggerClicked && rightNavigationAllowed) {
-        g_lastNavigateActionTime[1] = predictedTime;
-        LOGD("Right select / pinch triggered -> navigating next");
-        triggerJniInputCallback(1); // 1 = Next
+    // S0290 Phase 10 (owner feedback round 2 2026-05-22): tighten thresholds to combat
+    // over-sensitivity reports — user sees "still jumping" even with edge-detection because
+    // a 0.6 deflect is easy to hit incidentally on Quest 3 sticks. Bumped to 0.85 (firm push
+    // required) and re-arm to ±0.40 (clear release required). Race-guard duration upgraded
+    // to a navigation-cooldown of 500 ms (kNavigateDebounceDuration) so a quick re-flick
+    // cannot fire a second navigation within half a second of the previous one. Triggers
+    // remain free for Quest 3 system gestures (screenshot, recenter).
+    constexpr float kStickDeflectThreshold = 0.85f;
+    constexpr float kStickReturnThreshold = 0.40f;
+    for (int hand = 0; hand < 2; ++hand) {
+        const float x = g_handInputStates[hand].thumbstickX;
+        int newState = g_prevStickState[hand];
+        if (g_prevStickState[hand] == 0) {
+            if (x >  kStickDeflectThreshold) newState = +1;
+            else if (x < -kStickDeflectThreshold) newState = -1;
+        } else {
+            if (std::abs(x) < kStickReturnThreshold) newState = 0;
+        }
+        if (newState != g_prevStickState[hand] && newState != 0) {
+            const bool raceGuardOk =
+                g_lastNavigateActionTime[hand] == 0 ||
+                predictedTime - g_lastNavigateActionTime[hand] >= kNavigateDebounceDuration;
+            if (raceGuardOk) {
+                g_lastNavigateActionTime[hand] = predictedTime;
+                if (newState > 0) {
+                    LOGD("hand=%d thumbstick deflect right -> navigating next (count=%d, x=%.2f)",
+                         hand, ++g_navigateCounter[hand], x);
+                    triggerJniInputCallback(1); // 1 = Next
+                } else {
+                    LOGD("hand=%d thumbstick deflect left -> navigating prev (count=%d, x=%.2f)",
+                         hand, ++g_navigateCounter[hand], x);
+                    triggerJniInputCallback(2); // 2 = Previous
+                }
+            }
+        }
+        g_prevStickState[hand] = newState;
+        // Track trigger rising edge purely to keep the field reset in sync; no nav action.
+        g_prevTriggerClicked[hand] = g_handInputStates[hand].triggerClicked;
     }
 }
 
 } // namespace
 
 bool xr_session_is_running() { return g.running.load(); }
+
+bool xr_session_is_initialized() {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    return g.instance != XR_NULL_HANDLE || g.vm != nullptr || g.activity != nullptr;
+}
 
 NativeResult xr_session_init(JavaVM* vm, jobject_opaque activity) {
     std::lock_guard<std::mutex> lock(g.mutex);
@@ -1033,6 +1130,14 @@ NativeResult xr_session_start() {
     g_prevPredictedDisplayTimeNs = 0;
     g_lastNavigateActionTime[0] = 0;
     g_lastNavigateActionTime[1] = 0;
+    // S0290 Phase 10: clear per-hand edge-detection snapshot and per-hand counters so a
+    // freshly started session does not inherit stale state from the previous one.
+    g_prevStickState[0] = 0;
+    g_prevStickState[1] = 0;
+    g_prevTriggerClicked[0] = false;
+    g_prevTriggerClicked[1] = false;
+    g_navigateCounter[0] = 0;
+    g_navigateCounter[1] = 0;
     LOGD("xr_session_start: complete");
     return NativeResult::Ok;
 }
@@ -1040,10 +1145,7 @@ NativeResult xr_session_start() {
 NativeResult xr_session_upload_texture(const uint8_t* rgba, int width, int height) {
     std::lock_guard<std::mutex> lock(g.mutex);
     if (g.texture == 0 || !rgba || width <= 0 || height <= 0) return NativeResult::NotRunning;
-    glBindTexture(GL_TEXTURE_2D, g.texture);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
-    if (!checkGl("upload_texture")) return NativeResult::FramePresentFailed;
+    if (!uploadStaticTexturePixels(rgba, width, height, "upload_texture")) return NativeResult::FramePresentFailed;
     LOGD("texture uploaded: %dx%d", width, height);
     return NativeResult::Ok;
 }
@@ -1081,13 +1183,18 @@ void xr_session_set_parallax_shift(float value) {
 }
 
 void xr_session_queue_hud(const uint8_t* rgba, int width, int height) {
-    if (!rgba || width <= 0 || height <= 0) return;
+    if (!rgba || width <= 0 || height <= 0) {
+        LOGW("xr_session_queue_hud REJECTED: rgba=%p w=%d h=%d", rgba, width, height);
+        return;
+    }
     std::lock_guard<std::mutex> lock(g.hudMutex);
     size_t size = width * height * 4;
     g.pendingHudData.assign(rgba, rgba + size);
     g.pendingHudWidth = width;
     g.pendingHudHeight = height;
     g.pendingHudReady = true;
+    LOGD("xr_session_queue_hud STORED %dx%d (%zu bytes); first pixel RGBA=%d,%d,%d,%d",
+         width, height, size, (int)rgba[0], (int)rgba[1], (int)rgba[2], (int)rgba[3]);
 }
 
 
@@ -1130,9 +1237,11 @@ NativeResult xr_session_run_frame_loop() {
         {
             std::lock_guard<std::mutex> lock(g.frameMutex);
             if (g.pendingFrameReady) {
-                glBindTexture(GL_TEXTURE_2D, g.texture);
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingFrameWidth, g.pendingFrameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingFrameData.data());
+                uploadStaticTexturePixels(
+                    g.pendingFrameData.data(),
+                    g.pendingFrameWidth,
+                    g.pendingFrameHeight,
+                    "pending_frame_upload");
                 g.pendingFrameReady = false;
             }
         }
@@ -1142,6 +1251,7 @@ NativeResult xr_session_run_frame_loop() {
                 glBindTexture(GL_TEXTURE_2D, g.hudTexture);
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingHudWidth, g.pendingHudHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingHudData.data());
+                LOGD("hud upload: %dx%d to texture=%u", g.pendingHudWidth, g.pendingHudHeight, g.hudTexture);
                 g.pendingHudReady = false;
             }
         }
@@ -1212,6 +1322,12 @@ float xr_session_get_fps() {
 
 void xr_session_shutdown() {
     std::lock_guard<std::mutex> lock(g.mutex);
+    LOGD("xr_session_shutdown: begin (instance=%p session=%p activity=%p)",
+         (void*)g.instance, (void*)g.session, (void*)g.activity);
+    // Drop running flag FIRST so any concurrent render-thread iteration observes the change
+    // and exits the frame loop before we tear down GL/EGL/OpenXR resources underneath it.
+    g.running.store(false);
+    g.exitRequested.store(true);
     bool attached = false;
     JNIEnv* env = getAttachedEnv(attached);
     releaseVideoSurfaceObjects(env);
@@ -1259,17 +1375,37 @@ void xr_session_shutdown() {
     g.viewConfigs.clear();
     g.sessionRunning = false;
     g.sessionState = XR_SESSION_STATE_UNKNOWN;
-    g.running.store(false);
-    
+    // g.running already false (set at function top). Reset frame buffers too so a fresh
+    // session does not inherit stale pendingFrameReady from the previous one.
+    {
+        std::lock_guard<std::mutex> fl(g.frameMutex);
+        g.pendingFrameReady = false;
+        g.pendingFrameData.clear();
+        g.pendingFrameWidth = 0;
+        g.pendingFrameHeight = 0;
+    }
+    {
+        std::lock_guard<std::mutex> hl(g.hudMutex);
+        g.pendingHudReady = false;
+        g.pendingHudData.clear();
+        g.pendingHudWidth = 0;
+        g.pendingHudHeight = 0;
+    }
+
     if (g.vm && g.activity) {
         JNIEnv* env = nullptr;
         if (g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK && env) {
             env->DeleteGlobalRef(g.activity);
+            LOGD("xr_session_shutdown: DeleteGlobalRef(activity) done");
         }
         g.activity = nullptr;
         g.vm = nullptr;
+    } else {
+        // Either already detached (idempotent re-call) or activity ref was never created.
+        g.activity = nullptr;
+        g.vm = nullptr;
     }
-    LOGD("session shutdown complete");
+    LOGD("xr_session_shutdown: complete");
 }
 
 } // namespace fms::xr

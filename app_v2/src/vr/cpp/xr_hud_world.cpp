@@ -71,14 +71,23 @@ void matrix_from_pose(const XrVector3f& t, const XrQuaternionf& q, const XrVecto
     m[15] = 1.0f;
 }
 
+// S0290 (owner round 3 — HUD invisibility fix 2026-05-22 16:35): the previous version of
+// this helper computed B*A instead of A*B on column-major data, because it used row-major
+// indexing `temp[i*4+j] = sum a[i*4+k] * b[k*4+j]`. For column-major matrices (which matrix_from_pose
+// emits, and which OpenGL expects via glUniformMatrix4fv transpose=GL_FALSE), the correct
+// indexing is `out[col*4+row] = sum a[k*4+row] * b[col*4+k]`. Bug masked itself: native logs
+// confirmed queueHud + upload + xr_hud_render fired with correct quad.center / texture id,
+// but the HUD quad never appeared in headset because the wrong MVP placed the geometry far
+// outside the user FOV. xr_session.cpp::multiply4x4 already does the correct math; this is
+// the same formula relocated locally so xr_hud_world stays self-contained.
 void multiply_matrices(const float* a, const float* b, float* r) {
     float temp[16];
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            temp[i * 4 + j] = a[i * 4 + 0] * b[0 * 4 + j] +
-                              a[i * 4 + 1] * b[1 * 4 + j] +
-                              a[i * 4 + 2] * b[2 * 4 + j] +
-                              a[i * 4 + 3] * b[3 * 4 + j];
+    for (int c = 0; c < 4; ++c) {
+        for (int row = 0; row < 4; ++row) {
+            temp[c * 4 + row] = a[0 * 4 + row] * b[c * 4 + 0] +
+                                a[1 * 4 + row] * b[c * 4 + 1] +
+                                a[2 * 4 + row] * b[c * 4 + 2] +
+                                a[3 * 4 + row] * b[c * 4 + 3];
         }
     }
     std::memcpy(r, temp, 16 * sizeof(float));
@@ -126,7 +135,9 @@ void xr_hud_init() {
     g_hudState.quad.width = 1.2f;    // 1.2 meters wide
     g_hudState.quad.height = 0.675f; // 0.675 meters high (16:9 aspect ratio)
     
-    g_hudState.quad.center = {0.0f, -0.2f, -1.5f};
+    // S0290 (owner round 3 2026-05-22): HUD centered in front of head so screenshots
+    // show the filename + stereo type banner clearly. Was {0, -0.2, -1.5} (below center).
+    g_hudState.quad.center = {0.0f, 0.0f, -1.5f};
     g_hudState.quad.rot = {0.0f, 0.0f, 0.0f, 1.0f};
     
     g_hudState.targetCenter = g_hudState.quad.center;
@@ -144,7 +155,9 @@ void xr_hud_update(const XrPosef& headPose, float deltaTime) {
     (void)deltaTime;
     if (!g_hudState.visible) return;
     
-    XrVector3f ergonomicOffset = rotate_vector(headPose.orientation, {0.0f, -0.15f, -1.5f});
+    // S0290 (owner round 3): HUD centered in front of head (y=0) instead of below (y=-0.15)
+    // so the filename banner is visible directly on the user's screenshots without head tilt.
+    XrVector3f ergonomicOffset = rotate_vector(headPose.orientation, {0.0f, 0.0f, -1.5f});
     
     XrVector3f idealCenter{
         headPose.position.x + ergonomicOffset.x,
@@ -207,7 +220,20 @@ void xr_hud_process_rays(const XrSpace localSpace, XrTime predictedTime) {
 }
 
 void xr_hud_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuint shaderProgram, GLuint quadVao, GLuint hudTex, GLint locViewProj, GLint locTex, GLint locEye, GLint locStereo) {
-    if (!g_hudState.visible || hudTex == 0) return;
+    static int s_renderCallCount = 0;
+    if (!g_hudState.visible || hudTex == 0) {
+        if ((s_renderCallCount++ % 90) == 0) {
+            LOGE("xr_hud_render EARLY RETURN: visible=%d hudTex=%u eye=%zu",
+                 g_hudState.visible ? 1 : 0, hudTex, eyeIdx);
+        }
+        return;
+    }
+    if ((s_renderCallCount++ % 180) == 0) {
+        LOGD("xr_hud_render ok: eye=%zu hudTex=%u quad.center=(%.2f,%.2f,%.2f) wh=%.2fx%.2f",
+             eyeIdx, hudTex,
+             g_hudState.quad.center.x, g_hudState.quad.center.y, g_hudState.quad.center.z,
+             g_hudState.quad.width, g_hudState.quad.height);
+    }
 
     float modelMat[16];
     matrix_from_pose(g_hudState.quad.center, g_hudState.quad.rot, {g_hudState.quad.width, g_hudState.quad.height, 1.0f}, modelMat);

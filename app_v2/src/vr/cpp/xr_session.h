@@ -48,6 +48,14 @@ enum class NativeResult : int {
 // gateway probe).
 bool xr_session_is_running();
 
+// Returns true if native runtime state (XrInstance, JavaVM, or Activity globalRef) is still
+// allocated from a previous init that has not yet been torn down by xr_session_shutdown.
+// The JNI bridge consults this BEFORE calling NewGlobalRef on a fresh Activity to avoid
+// allocating a second globalRef when the previous one is still owned by the runtime
+// (re-entry race seen on Quest 3 between Activity onResume and prior render-thread shutdown
+// completing). Thread-safe (snapshot read of pointer fields guarded by g.mutex).
+bool xr_session_is_initialized();
+
 // Stage 1: bring up XrInstance + XrSystem + EGL display/config/context (no surface yet).
 // `vm` and `activity` are the JavaVM and the Activity jobject passed across JNI.
 NativeResult xr_session_init(JavaVM* vm, jobject_opaque activity);

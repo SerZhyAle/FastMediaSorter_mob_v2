@@ -3,11 +3,11 @@ package com.sza.fastmediasorter.ui.xr
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
-import android.graphics.Color
-import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.SystemClock
@@ -24,6 +24,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.bumptech.glide.Glide
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
@@ -38,6 +40,8 @@ import java.nio.ByteBuffer
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 enum class ProjectionType(val value: Int) {
@@ -247,67 +251,126 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 }
             }
         }
+        // S0290 (owner feedback 2026-05-22): SPECIFIC markers (_sbs, _tb, _lr, _ou) MUST be
+        // checked BEFORE the generic `_stereo` fallback. The old order matched `_stereo` first
+        // and routed `video_360_stereo_sbs.mp4` to TOP_BOTTOM — observed in logs/current.log
+        // at 13:38:53 (index 6 SBS file landed in layout=1). New order: SBS family first, then
+        // TB family, then explicit MONO marker, then generic `_stereo` defaults to TB.
         val layout = when {
-            name.contains("_tb") || name.contains("_topbottom") || name.contains("_stereo") || name.contains("stereo_tb") -> StereoLayout.TOP_BOTTOM
-            name.contains("_sbs") || name.contains("_sidebyside") -> StereoLayout.SIDE_BY_SIDE
-            name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
-            else -> {
-                if (name.contains("stereo")) {
+            // Side-by-side family (specific markers, capture-oriented and renderer-oriented).
+            name.contains("_sbs") || name.contains("_sidebyside") || name.contains("_hsbs") ||
+                name.contains("_fsbs") || name.contains("_lr") || name.contains("_rl") ->
+                    StereoLayout.SIDE_BY_SIDE
+            // Top-bottom family (specific markers).
+            name.contains("_tb") || name.contains("_topbottom") || name.contains("_ou") ||
+                name.contains("_overunder") || name.contains("stereo_tb") ->
                     StereoLayout.TOP_BOTTOM
-                } else {
-                    StereoLayout.MONO
-                }
-            }
+            // Explicit mono marker wins over generic `_stereo` fallback below.
+            name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
+            // Generic `_stereo` with no specific layout marker defaults to TB (industry default).
+            name.contains("_stereo") || name.contains("stereo") -> StereoLayout.TOP_BOTTOM
+            else -> StereoLayout.MONO
         }
+        Timber.d("parseFilenameConfig: $filename -> projection=$projection, layout=$layout")
         return RenderConfig(projection, layout)
     }
 
-    private fun generateFilenameHudBytes(filename: String): ByteArray {
-        val w = 1024
-        val h = 128
+    /**
+     * S0290 (owner feedback round 3 2026-05-22): the previous attempt to render the full
+     * [HudCanvasRenderer] panel as the always-on HUD produced an invisible result on Quest 3
+     * (user reported "I see no HUD"). The simple 1024x128 strip used pre-refactor was visible.
+     * This restores that working path and additionally includes the resolved projection and
+     * stereo layout next to the filename so the operator can see what the parser decided.
+     */
+    private fun queueFilenameHud(filename: String, projection: ProjectionType, layout: StereoLayout) {
+        val bytes = generateFilenameHudBytes(filename, projection, layout)
+        runtime.queueHud(bytes, HUD_BANNER_WIDTH, HUD_BANNER_HEIGHT)
+    }
+
+    private fun generateFilenameHudBytes(filename: String, projection: ProjectionType, layout: StereoLayout): ByteArray {
+        val w = HUD_BANNER_WIDTH
+        val h = HUD_BANNER_HEIGHT
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        
+
+        // Dark opaque background — solid black w/ slight alpha so any wrong sampling stays
+        // diagnosable in the headset. Full-banner fill (not just rounded rect) so the entire
+        // 1024x128 texture has known pixels.
+        canvas.drawColor(Color.argb(220, 8, 8, 16))
+
+        // Rounded panel inside the banner — gives the HUD a clean edge.
         val bgPaint = Paint().apply {
-            color = Color.argb(160, 10, 10, 15)
+            color = Color.argb(255, 12, 16, 30)
             isAntiAlias = true
             style = Paint.Style.FILL
         }
-        val rect = RectF(40f, 20f, (w - 40).toFloat(), (h - 20).toFloat())
-        canvas.drawRoundRect(rect, 16f, 16f, bgPaint)
-        
-        val textPaint = Paint().apply {
+        val rect = RectF(12f, 10f, (w - 12).toFloat(), (h - 10).toFloat())
+        canvas.drawRoundRect(rect, 18f, 18f, bgPaint)
+
+        // Filename on the left, large white monospace bold.
+        val namePaint = Paint().apply {
             color = Color.WHITE
-            textSize = 32f
+            textSize = 46f
             isAntiAlias = true
-            textAlign = Paint.Align.CENTER
+            textAlign = Paint.Align.LEFT
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         }
-        
-        val textBounds = Rect()
-        textPaint.getTextBounds(filename, 0, filename.length, textBounds)
-        val yOffset = (h / 2) - textBounds.exactCenterY()
-        
-        canvas.drawText(filename, (w / 2).toFloat(), yOffset, textPaint)
-        
+        // Projection/Layout config on the right, smaller cyan-ish accent.
+        val configPaint = Paint().apply {
+            color = Color.argb(255, 140, 210, 255)
+            textSize = 38f
+            isAntiAlias = true
+            textAlign = Paint.Align.RIGHT
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        }
+
+        val truncated = if (filename.length > 32) filename.take(30) + ".." else filename
+        val nameBounds = Rect()
+        namePaint.getTextBounds(truncated, 0, truncated.length, nameBounds)
+        val nameY = (h / 2f) - nameBounds.exactCenterY()
+        canvas.drawText(truncated, 36f, nameY, namePaint)
+
+        val configLabel = "${projectionLabel(projection)} ${layoutLabel(layout)}"
+        val configBounds = Rect()
+        configPaint.getTextBounds(configLabel, 0, configLabel.length, configBounds)
+        val configY = (h / 2f) - configBounds.exactCenterY()
+        canvas.drawText(configLabel, (w - 36).toFloat(), configY, configPaint)
+
+        // Use a DIRECT ByteBuffer (allocateDirect) — Bitmap.copyPixelsToBuffer is reliable
+        // with direct buffers; the previous ByteBuffer.wrap(ByteArray) heap-buffer path
+        // produced all-zero output (confirmed in logcat 16:29 round 2).
         val buf = ByteBuffer.allocateDirect(w * h * 4)
         bitmap.copyPixelsToBuffer(buf)
         buf.rewind()
         val bytes = ByteArray(buf.remaining())
         buf.get(bytes)
         bitmap.recycle()
+        Timber.d("HUD bytes ${bytes.size}; first pixel R=${bytes[0].toInt() and 0xFF} G=${bytes[1].toInt() and 0xFF} B=${bytes[2].toInt() and 0xFF} A=${bytes[3].toInt() and 0xFF}; filename=$filename layout=${projection.name}/${layout.name}")
         return bytes
+    }
+
+    private fun projectionLabel(p: ProjectionType): String = when (p) {
+        ProjectionType.SPHERE_360 -> "360"
+        ProjectionType.HEMISPHERE_180 -> "180"
+        ProjectionType.FLAT -> "FLAT"
+    }
+
+    private fun layoutLabel(l: StereoLayout): String = when (l) {
+        StereoLayout.MONO -> "MONO"
+        StereoLayout.TOP_BOTTOM -> "TB"
+        StereoLayout.SIDE_BY_SIDE -> "SBS"
     }
 
     private fun decodeBundledAsset(): Boolean {
         runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.MONO.value)
-        val hudBytes = generateFilenameHudBytes("vr_diagnostic_360_mono.jpg")
-        runtime.queueHud(hudBytes, 1024, 128)
+        hudRenderer.currentFilename = "vr_diagnostic_360_mono.jpg (bundled)"
+        queueFilenameHud("vr_diagnostic_360_mono.jpg (bundled)", ProjectionType.SPHERE_360, StereoLayout.MONO)
 
-        val asset = assetProvider.load() ?: return false
-        val bitmap = decodeByteArrayWithOomFallback(asset.bytes) ?: return false
+        // S0290 Phase 11: decode via Glide BitmapPool on Dispatchers.IO. runBlocking is used only
+        // for the initial-load path which fires before the immersive UI is visible — main-thread
+        // jank here is invisible to the user. Subsequent slide changes (loadCurrentMediaItem) use
+        // the pool through a real coroutine launch.
+        val bitmap = runBlocking { decodeBundledPooled() } ?: return false
         try {
             val w = bitmap.width
             val h = bitmap.height
@@ -322,17 +385,19 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             Timber.d("decoded bundled mono 360 asset to RGBA: ${w}x${h}, bytes=${bytes.size}")
             return true
         } finally {
-            bitmap.recycle()
+            // S0290 Phase 11: return bitmap to Glide pool so the second session reuses the
+            // 128 MB ARGB_8888 allocation instead of re-allocating. Pool drives recycle by LRU.
+            returnToPool(bitmap)
         }
     }
 
     private fun decodeImageToActivityBytes(file: File): Boolean {
         val config = parseFilenameConfig(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
-        val hudBytes = generateFilenameHudBytes(file.name)
-        runtime.queueHud(hudBytes, 1024, 128)
+        hudRenderer.currentFilename = file.name
+        queueFilenameHud(file.name, config.projection, config.layout)
 
-        val bitmap = decodeFileWithOomFallback(file) ?: return false
+        val bitmap = runBlocking { decodeFilePooled(file) } ?: return false
         try {
             val w = bitmap.width
             val h = bitmap.height
@@ -347,73 +412,122 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             Timber.d("decoded initial image ${file.name} to RGBA: ${w}x${h}")
             return true
         } finally {
-            bitmap.recycle()
+            returnToPool(bitmap)
         }
     }
 
     /**
-     * Decode a JPEG byte array as ARGB_8888 with progressive `inSampleSize` fallback on
-     * [OutOfMemoryError]. Used for the bundled 8192x4096 equirectangular sphere image and any
-     * comparably large playlist source — naive `BitmapFactory.decodeByteArray` would peak around
-     * 128 MB heap on a fresh 8K decode and risk OOM on Quest 3 once ExoPlayer buffers are also
-     * resident.
+     * S0290 Phase 11 Step 11.1 / ADR-5 v2: decode the bundled 8K equirectangular JPEG via
+     * Glide BitmapPool on Dispatchers.IO. The Glide pool is LRU, thread-safe, and already in
+     * the project (`com.github.bumptech.glide:glide:4.16.0`). One 8K ARGB_8888 entry can be
+     * reused by any smaller decode of the same Config (API 19+).
+     *
+     * On OOM with `inBitmap` (pool entry too small / GC pressure), retry with `inSampleSize=2`.
+     * That halves each axis → quarter pixel count → 32 MB heap, which always succeeds.
      */
-    private fun decodeByteArrayWithOomFallback(bytes: ByteArray): Bitmap? {
-        var sample = 1
-        while (sample <= MAX_DECODE_SAMPLE) {
-            val options = BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-                inMutable = false
-                inSampleSize = sample
+    private suspend fun decodeBundledPooled(): Bitmap? = withContext(Dispatchers.IO) {
+        val pool = Glide.get(this@DiagnosticXrActivity).bitmapPool
+        val reusable = pool.getDirty(BUNDLED_WIDTH, BUNDLED_HEIGHT, Bitmap.Config.ARGB_8888)
+        val opts = BitmapFactory.Options().apply {
+            inBitmap = reusable
+            inMutable = true
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        try {
+            resources.openRawResource(R.drawable.vr_diagnostic_360_mono).use {
+                BitmapFactory.decodeStream(it, null, opts)
             }
+        } catch (oom: OutOfMemoryError) {
+            Timber.w(oom, "VR bundled asset decode OOM with inBitmap; retry with inSampleSize=2")
+            opts.inBitmap = null
+            opts.inSampleSize = 2
             try {
-                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
-                if (bmp != null) {
-                    if (sample > 1) {
-                        Timber.w("decodeByteArrayWithOomFallback: succeeded at inSampleSize=$sample")
-                    }
-                    return bmp
+                resources.openRawResource(R.drawable.vr_diagnostic_360_mono).use {
+                    BitmapFactory.decodeStream(it, null, opts)
                 }
-                Timber.w("decodeByteArrayWithOomFallback: decode returned null at inSampleSize=$sample")
-                return null
-            } catch (oom: OutOfMemoryError) {
-                Timber.w(oom, "decodeByteArrayWithOomFallback: OOM at inSampleSize=$sample; retrying with larger sample")
-                sample *= 2
+            } catch (oom2: OutOfMemoryError) {
+                Timber.e(oom2, "VR bundled asset decode OOM even with inSampleSize=2; giving up")
+                null
             }
         }
-        Timber.e("decodeByteArrayWithOomFallback: exhausted sample steps, decode failed")
-        return null
     }
 
     /**
-     * File counterpart of [decodeByteArrayWithOomFallback]. User-pushed playlist items may be
-     * arbitrarily large; we degrade resolution rather than crash.
+     * S0290 Phase 11 Step 11.1: external-file counterpart of [decodeBundledPooled]. Uses
+     * `inJustDecodeBounds` preflight to discover dimensions, picks an [inSampleSize] that
+     * keeps the ARGB_8888 footprint under [MAX_EXTERNAL_DECODE_BYTES], then asks the Glide
+     * pool for a matching reusable bitmap.
+     *
+     * Bounds-driven preflight avoids the first OOM that the original implementation took
+     * before falling back — observed on Quest 3 with `moraine_lake_flat_mono.jpg`
+     * (7742x5327 = 165 MB) which crashed `BitmapFactory` before the catch ran.
      */
-    private fun decodeFileWithOomFallback(file: File): Bitmap? {
-        var sample = 1
-        while (sample <= MAX_DECODE_SAMPLE) {
-            val options = BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-                inMutable = false
-                inSampleSize = sample
-            }
+    private suspend fun decodeFilePooled(file: File): Bitmap? = withContext(Dispatchers.IO) {
+        val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, boundsOpts)
+        if (boundsOpts.outWidth <= 0 || boundsOpts.outHeight <= 0) {
+            Timber.w("decodeFilePooled: bounds preflight failed for ${file.name}")
+            return@withContext null
+        }
+
+        val preflightSample = pickSampleSizeForBudget(boundsOpts.outWidth, boundsOpts.outHeight)
+        val sampledW = boundsOpts.outWidth / preflightSample
+        val sampledH = boundsOpts.outHeight / preflightSample
+        if (preflightSample > 1) {
+            Timber.i(
+                "decodeFilePooled: ${file.name} bounds ${boundsOpts.outWidth}x${boundsOpts.outHeight}" +
+                    " exceeds ${MAX_EXTERNAL_DECODE_BYTES / (1024 * 1024)} MB budget;" +
+                    " preflight inSampleSize=$preflightSample -> ${sampledW}x${sampledH}"
+            )
+        }
+
+        val pool = Glide.get(this@DiagnosticXrActivity).bitmapPool
+        val reusable = pool.getDirty(sampledW, sampledH, Bitmap.Config.ARGB_8888)
+        val opts = BitmapFactory.Options().apply {
+            inBitmap = reusable
+            inMutable = true
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+            inSampleSize = preflightSample
+        }
+        try {
+            BitmapFactory.decodeFile(file.absolutePath, opts)
+        } catch (oom: OutOfMemoryError) {
+            Timber.w(oom, "decodeFilePooled: ${file.name} OOM with inBitmap; retry with inSampleSize=${preflightSample * 2}")
+            opts.inBitmap = null
+            opts.inSampleSize = preflightSample * 2
             try {
-                val bmp = BitmapFactory.decodeFile(file.absolutePath, options)
-                if (bmp != null) {
-                    if (sample > 1) {
-                        Timber.w("decodeFileWithOomFallback: ${file.name} succeeded at inSampleSize=$sample")
-                    }
-                    return bmp
-                }
-                Timber.w("decodeFileWithOomFallback: ${file.name} decode returned null at inSampleSize=$sample")
-                return null
-            } catch (oom: OutOfMemoryError) {
-                Timber.w(oom, "decodeFileWithOomFallback: OOM on ${file.name} at inSampleSize=$sample; retrying with larger sample")
-                sample *= 2
+                BitmapFactory.decodeFile(file.absolutePath, opts)
+            } catch (oom2: OutOfMemoryError) {
+                Timber.e(oom2, "decodeFilePooled: ${file.name} OOM even with inSampleSize=${opts.inSampleSize}; giving up")
+                null
             }
         }
-        Timber.e("decodeFileWithOomFallback: exhausted sample steps for ${file.name}")
-        return null
+    }
+
+    /**
+     * Picks the smallest power-of-2 sample size such that the ARGB_8888 footprint of the
+     * resulting bitmap is at most [MAX_EXTERNAL_DECODE_BYTES]. Capped at 8 — beyond that the
+     * picture is below usable VR-quality anyway and we surface the failure.
+     */
+    private fun pickSampleSizeForBudget(width: Int, height: Int): Int {
+        var sample = 1
+        var bytes = width.toLong() * height.toLong() * 4L
+        while (bytes > MAX_EXTERNAL_DECODE_BYTES && sample < 8) {
+            sample *= 2
+            bytes /= 4
+        }
+        return sample
+    }
+
+    /**
+     * S0290 Phase 11 Step 11.2: return a bitmap to the Glide pool so the next decode of matching
+     * dimensions/Config reuses this allocation. Do NOT call `bitmap.recycle()` — Glide handles
+     * LRU eviction internally.
+     */
+    private fun returnToPool(bitmap: Bitmap) {
+        runCatching { Glide.get(this).bitmapPool.put(bitmap) }
+            .onFailure { Timber.w(it, "returnToPool: bitmapPool.put threw; falling back to recycle") }
+            .onFailure { bitmap.recycle() }
     }
 
     private fun startVideoPlayback(file: File) {
@@ -424,7 +538,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             hudRenderer.isPlaying = false
             return
         }
-
         exoPlayer = ExoPlayer.Builder(this).build().apply {
             setVideoSurface(videoSurface)
             repeatMode = Player.REPEAT_MODE_ALL
@@ -465,20 +578,24 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private fun loadCurrentMediaItem() {
         val file = mediaPlaylist[currentPlaylistIndex]
+        Timber.d("S0291: diagnostic XR playlist load entry ${file.name}")
         Timber.d("Loading media item at index $currentPlaylistIndex: ${file.name}")
         
         hudRenderer.currentFilename = file.name
         releasePlaybackResources()
-        
+
         val config = parseFilenameConfig(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
-        val hudBytes = generateFilenameHudBytes(file.name)
-        runtime.queueHud(hudBytes, 1024, 128)
-        
+        queueFilenameHud(file.name, config.projection, config.layout)
+
         if (file.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
             runtime.setVideoSurfaceEnabled(false)
-            lifecycleScope.launch(Dispatchers.Default) {
-                val bitmap = decodeFileWithOomFallback(file)
+            // S0290 Phase 11: decode off-main via Glide pool. After native consumes RGBA bytes
+            // (queueFrame copies into the native pendingFrameData vector), return the bitmap to
+            // the pool so the next slide's decode reuses this allocation — main thread sees no
+            // GC pause from the 128 MB bundled-sized bitmap being recreated each slide change.
+            lifecycleScope.launch(Dispatchers.IO) {
+                val bitmap = decodeFilePooled(file)
                 if (bitmap != null) {
                     try {
                         val w = bitmap.width
@@ -493,7 +610,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     } catch (t: Throwable) {
                         Timber.e(t, "Failed to copy bitmap buffer for ${file.name}")
                     } finally {
-                        bitmap.recycle()
+                        returnToPool(bitmap)
                     }
                 } else {
                     Timber.w("Failed to decode image: ${file.name}")
@@ -521,27 +638,23 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     @Keep
     fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean) {
+        // S0290 (owner round 3 — HUD bug fix 2026-05-22 16:30): the previous implementation
+        // re-rendered the full HudCanvasRenderer panel here on every native-driven ray-tick
+        // (~12 ms cadence) and pushed `hudRgbaBytes` to native via
+        // `runtime.queueHud(hudRgbaBytes, 1024, 512)`. Two problems with that path:
+        //   1. ByteBuffer.wrap(ByteArray) + Bitmap.copyPixelsToBuffer does not reliably fill
+        //      a heap-backed buffer on Android — the resulting hudRgbaBytes stayed all-zero,
+        //      which was visible in logcat as `xr_session_queue_hud STORED 1024x512 first
+        //      pixel RGBA=0,0,0,0` every frame.
+        //   2. Even if the buffer wrote correctly, blasting the HUD texture every frame
+        //      OVERWROTE the filename banner queued by queueFilenameHud on slide change,
+        //      so the user never saw the banner content (transparent zeros texture).
+        // The hover dispatch stays so panel buttons keep getting click events. The HUD
+        // visual is now owned solely by queueFilenameHud, which runs on slide load and on
+        // session resume.
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
-            
-            // Dispatch the interaction to virtual Canvas pixels (Step 03.2)
             interactionDispatcher.dispatch(uvX, uvY, isHover, isClick)
-
-            // Calculate current real-time FPS from renderThread if running
-            hudRenderer.fps = renderThread?.currentFps ?: 60.0f
-
-            // Redraw HUD Canvas (Step 03.2)
-            val bitmap = hudBitmap ?: return@runOnUiThread
-            val canvas = hudCanvas ?: return@runOnUiThread
-            hudRenderer.render(canvas)
-
-            // Copy to raw RGBA bytes (Step 03.2)
-            val buf = ByteBuffer.wrap(hudRgbaBytes)
-            buf.rewind()
-            bitmap.copyPixelsToBuffer(buf)
-
-            // Upload head-locked texture to C++ (Step 03.2)
-            runtime.queueHud(hudRgbaBytes, HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT)
         }
     }
 
@@ -573,15 +686,38 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
-        renderThread?.requestExit()
+        // S0290 Phase 09 + owner round 3 (2026-05-22): order matters. Release ExoPlayer FIRST
+        // so it lets go of the Surface it received from runtime.getVideoSurface(); only then
+        // tear down the native side which destroys the underlying SurfaceTexture / GL texture.
+        // The reverse order caused VideoFrameReleaseHelper to call Surface.setFrameRate on an
+        // already-released Surface (logcat: "Surface has already been released") and
+        // MediaCodec.flush on a Released codec at every immersive exit.
+        releasePlaybackResources()
+        shutdownRenderThreadSync(PAUSE_SHUTDOWN_TIMEOUT_MS)
     }
 
     override fun onDestroy() {
-        renderThread?.requestExit()
-        renderThread?.join(SHUTDOWN_TIMEOUT_MS)
-        renderThread = null
+        // onPause normally already tore everything down (Phase 09); this is the belt-and-braces
+        // path for the rare process-death-after-pause case where onPause did not get to finish.
+        // Same ordering rule: ExoPlayer release before native shutdown.
         releasePlaybackResources()
+        shutdownRenderThreadSync(SHUTDOWN_TIMEOUT_MS)
         super.onDestroy()
+    }
+
+    /**
+     * S0290 Phase 09: synchronously request exit, wait up to [timeoutMs] for the render thread
+     * to finish, and null the reference so the next [surfaceCreated] starts a fresh thread.
+     */
+    private fun shutdownRenderThreadSync(timeoutMs: Long) {
+        val thread = renderThread ?: return
+        thread.requestExit()
+        thread.join(timeoutMs)
+        if (thread.isAlive) {
+            Timber.w("DiagnosticXrActivity: render thread did not exit within ${timeoutMs}ms")
+        }
+        renderThread = null
+        sessionReady = false
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -612,8 +748,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             if (isVideoFilename(file.name)) {
                 val config = parseFilenameConfig(file.name)
                 runtime.setRenderConfig(config.projection.value, config.layout.value)
-                val hudBytes = generateFilenameHudBytes(file.name)
-                runtime.queueHud(hudBytes, 1024, 128)
+                hudRenderer.currentFilename = file.name
+                queueFilenameHud(file.name, config.projection, config.layout)
                 startVideoPlayback(file)
             }
         }
@@ -626,21 +762,58 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private companion object {
         const val SHUTDOWN_TIMEOUT_MS = 3_000L
+        // S0290 Phase 09: onPause runs on the main thread; keep the join wait shorter than the
+        // standard ANR window so re-entry is responsive while still giving the render thread
+        // time to release EGL/OpenXR resources.
+        const val PAUSE_SHUTDOWN_TIMEOUT_MS = 2_000L
         private const val REQUEST_CODE_HAND_TRACKING = 1001
-        // Upper bound for inSampleSize escalation in decodeByteArrayWithOomFallback /
-        // decodeFileWithOomFallback. 8 means we will not decode below 1/8 of the source side,
-        // which for the bundled 8K asset is still 1024x512 — well above usable VR quality.
-        private const val MAX_DECODE_SAMPLE = 8
+        // S0290 Phase 11: known dimensions of the bundled equirectangular asset. Used as the
+        // pool key for Glide BitmapPool so the second + subsequent sessions reuse the same
+        // 128 MB ARGB_8888 allocation instead of re-allocating (root cause of the 2nd-launch
+        // OOM observed 2026-05-22).
+        private const val BUNDLED_WIDTH = 8192
+        private const val BUNDLED_HEIGHT = 4096
+        // S0290 (owner round 3): always-on HUD banner dimensions. Wide banner with the
+        // filename on the left and the resolved projection/stereo layout on the right —
+        // visible from the moment a slide loads, no ray pointing required.
+        private const val HUD_BANNER_WIDTH = 1024
+        private const val HUD_BANNER_HEIGHT = 128
+        // S0290 Phase 11.1 reinforcement: heap budget for ANY single external bitmap decode.
+        // Anything above this gets a preflight inSampleSize so we never even try the OOM
+        // allocation. 96 MB leaves headroom for the bundled pool entry (128 MB), ExoPlayer
+        // buffers, and OpenXR swapchain copies. 96 MB at ARGB_8888 covers ~4900x4900 source.
+        private const val MAX_EXTERNAL_DECODE_BYTES = 96L * 1024L * 1024L
         private val VIDEO_EXTENSIONS = setOf("mp4", "mkv")
+        // S0290 (owner round 3 2026-05-22): full coverage matrix — 3 projections × 3 stereo
+        // layouts × {image, video} = 18 entries plus the original FLAT mono (moraine lake).
+        // Stereo variants ship with diagnostic L/R overlays (see setup_test_vr.ps1) so the
+        // viewer can verify per-eye routing by closing one eye in the headset.
         private val VR_TEST_MEDIA_ORDER = listOf(
+            // 360° images
             "diagnostic_360_mono.jpg",
             "diagnostic_360_stereo_tb.jpg",
+            "diagnostic_360_stereo_sbs.jpg",
+            // 180° images
+            "diagnostic_180_mono.jpg",
+            "diagnostic_180_stereo_tb.jpg",
+            "diagnostic_180_stereo_sbs.jpg",
+            // Flat images
             "moraine_lake_flat_mono.jpg",
-            "colosseum_flat_mono.jpg",
+            "moraine_lake_flat_tb.jpg",
+            "moraine_lake_flat_sbs.jpg",
+            "lakeside_flat_mono.jpg",
+            // 360° videos
             "video_360_mono.mp4",
             "video_360_stereo_tb.mp4",
+            "video_360_stereo_sbs.mp4",
+            // 180° videos
+            "video_180_mono.mp4",
             "video_180_stereo_tb.mp4",
-            "big_buck_bunny_flat_mono.mp4"
+            "video_180_stereo_sbs.mp4",
+            // Flat videos
+            "big_buck_bunny_flat_mono.mp4",
+            "big_buck_bunny_flat_tb.mp4",
+            "big_buck_bunny_flat_sbs.mp4"
         )
     }
 }

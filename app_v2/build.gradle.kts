@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260522130
-        versionName = "2.60.5221.302"
+        versionCode = 260522203
+        versionName = "2.60.5222.039"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -718,6 +718,9 @@ android {
             // 16 KB page size alignment for Android 15+ compatibility (required for Google Play since Nov 1, 2025)
             // Ensures all native libraries (.so) have LOAD segments aligned to 16 KB boundaries
             // Affects Tesseract OCR libraries: libjpeg.so, libleptonica.so, libpng.so, libtesseract.so
+            // Windows NDK linker can leave locked sibling temp files (*.tmp) next to the
+            // final shared library in intermediates/cxx; mergeNativeLibs must ignore them.
+            excludes += "**/*.tmp"
             useLegacyPackaging = false
         }
     }
@@ -754,6 +757,14 @@ android {
         htmlOutput = file("build/reports/lint-results.html")
         xmlReport = true
         xmlOutput = file("build/reports/lint-results.xml")
+    }
+}
+
+// Gradle 9.4.1 on Windows can try to hash linker temp files like
+// libfms_diagnostic_xr.so<hash>.tmp before the native toolchain releases them.
+tasks.configureEach {
+    if (name.startsWith("buildCMake")) {
+        doNotTrackState("Windows native linker temp outputs can remain unreadable during Gradle output hashing")
     }
 }
 

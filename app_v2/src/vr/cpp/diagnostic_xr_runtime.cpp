@@ -37,16 +37,26 @@ extern "C" {
 JNIEXPORT jint JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeInitSession(
         JNIEnv* env, jobject /*thiz*/, jobject activity) {
+    LOGD("S0291: native initSession entry");
     JavaVM* vm = nullptr;
     if (env->GetJavaVM(&vm) != JNI_OK || !vm) {
         LOGE("nativeInitSession: GetJavaVM failed");
         return static_cast<jint>(fms::xr::NativeResult::UnexpectedRuntimeError);
     }
+    if (fms::xr::xr_session_is_initialized()) {
+        if (fms::xr::xr_session_is_running()) {
+            LOGW("nativeInitSession: session already running; rejecting concurrent init");
+            return static_cast<jint>(fms::xr::NativeResult::AlreadyRunning);
+        }
+        LOGW("nativeInitSession: stale initialized state detected; forcing shutdown before NewGlobalRef");
+        fms::xr::xr_session_shutdown();
+        if (fms::xr::xr_session_is_initialized()) {
+            LOGE("nativeInitSession: stale native state survived forced shutdown");
+            return static_cast<jint>(fms::xr::NativeResult::UnexpectedRuntimeError);
+        }
+    }
     jobject globalActivity = env->NewGlobalRef(activity);
     auto r = fms::xr::xr_session_init(vm, static_cast<void*>(globalActivity));
-    // Note: the global ref intentionally leaks for the session's lifetime; xr_session_shutdown
-    // tears the OpenXR instance down but does not free this ref. The Activity is in foreground
-    // until the user exits — JNI cleanup happens implicitly when the process is torn down.
     return static_cast<jint>(r);
 }
 
@@ -141,6 +151,12 @@ JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsRunning(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     return fms::xr::xr_session_is_running() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsInitialized(
+        JNIEnv* /*env*/, jobject /*thiz*/) {
+    return fms::xr::xr_session_is_initialized() ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL
