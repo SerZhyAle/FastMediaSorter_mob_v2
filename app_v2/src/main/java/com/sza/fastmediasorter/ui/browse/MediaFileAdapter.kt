@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import java.io.File
@@ -63,6 +64,7 @@ class MediaFileAdapter(
     private val onOverflowMenuClick: (MediaFile, android.view.View) -> Unit = { _, _ -> },
     private val onFolderClick: (MediaFile) -> Unit = {}, // Callback for folder navigation
     private val onBinaryFileClick: (MediaFile) -> Unit = {}, // Callback for binary files (Task 6)
+    private val apkTileBadgeBinder: BrowseApkTileBadgeBinder,
     private var isGridMode: Boolean = false,
     private var thumbnailSize: Int = 96, // Default size in dp
     private var useCompactElements: Boolean = false, // Global 0.5x scaling mode
@@ -484,6 +486,7 @@ class MediaFileAdapter(
             }
             is GridViewHolder -> holder.clearImage()
         }
+        apkTileBadgeBinder.onViewRecycled(holder.itemView)
     }
 
     inner class ListViewHolder(
@@ -718,6 +721,8 @@ class MediaFileAdapter(
                 // so file name/details shift to the left and take its space
                 val audioOnlyFile = isAudioOnlyMode && !isFolder
                 ivThumbnail.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
+                val thumbnailFrame = root.findViewById<android.view.View?>(R.id.flThumbnailFrame)
+                thumbnailFrame?.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
 
                 if (!audioOnlyFile) {
                     // Apply thumbnail size from settings for list mode (halved if compact mode enabled)
@@ -727,6 +732,13 @@ class MediaFileAdapter(
                         (dSize * root.resources.displayMetrics.density).toInt()
                     } else {
                         (effectiveBaseSize * root.resources.displayMetrics.density).toInt()
+                    }
+                    // noLegal wraps the thumbnail in a frame so the badge stays anchored to the
+                    // same box the adapter resizes in standard list mode.
+                    thumbnailFrame?.layoutParams?.let { frameParams ->
+                        frameParams.width = thumbnailSizePx
+                        frameParams.height = thumbnailSizePx
+                        thumbnailFrame.layoutParams = frameParams
                     }
                     ivThumbnail.layoutParams.width = thumbnailSizePx
                     ivThumbnail.layoutParams.height = thumbnailSizePx
@@ -836,6 +848,9 @@ class MediaFileAdapter(
 
                 // Drag handle: visible only in MANUAL sort mode (set via showDragHandles)
                 ivDragHandle.isVisible = dragController.showHandles && !isFolder
+
+                // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
+                apkTileBadgeBinder.bind(root, file)
             }
         }
 
@@ -1093,6 +1108,9 @@ class MediaFileAdapter(
                 } else {
                     operationsContainer?.isVisible = false
                 }
+
+                // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
+                apkTileBadgeBinder.bind(root, file)
             }
         }
         

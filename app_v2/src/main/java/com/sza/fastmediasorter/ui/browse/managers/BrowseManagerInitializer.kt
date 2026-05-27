@@ -94,6 +94,7 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
     // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
     private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
+    private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
 ) {
@@ -208,6 +209,7 @@ class BrowseManagerInitializer(
             },
             onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
             onOverflowMenuClick = { file, anchor -> showPerFileOverflowMenu(anchor, file) },
+            apkTileBadgeBinder = browseApkTileBadgeBinder,
             getShowVideoThumbnails = showVideoThumbnailsGetter,
             getShowPdfThumbnails = showPdfThumbnailsGetter
         )
