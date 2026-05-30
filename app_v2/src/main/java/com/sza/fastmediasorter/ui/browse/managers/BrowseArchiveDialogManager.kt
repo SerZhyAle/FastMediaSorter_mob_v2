@@ -28,6 +28,7 @@ class BrowseArchiveDialogManager(
     private val onArchiveRequested: (archiveName: String, destinationPath: String) -> Unit,
     private val onCancelArchive: () -> Unit,
     private val onExtractArchive: (MediaFile) -> Unit,
+    private val onExtractArchiveWithPassword: (MediaFile, CharArray) -> Unit,
     private val onCancelExtraction: () -> Unit,
     private val onNavigateToFolder: (String) -> Unit
 ) {
@@ -128,6 +129,47 @@ class BrowseArchiveDialogManager(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    fun showArchivePasswordDialog(mediaFile: MediaFile, targetDirName: String) {
+        val dp16 = (16 * context.resources.displayMetrics.density).toInt()
+        val dp64 = dp16 * 4
+
+        val root = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp64, dp16, dp64, dp16)
+        }
+
+        root.addView(TextView(context).apply {
+            text = context.getString(R.string.protected_archive_password_message, mediaFile.name)
+            textSize = 14f
+        })
+
+        val passwordInput = EditText(context).apply {
+            hint = context.getString(R.string.protected_archive_password_hint)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            isSingleLine = true
+        }
+        root.addView(passwordInput)
+
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.protected_archive_password_title)
+            .setView(root)
+            .setPositiveButton(android.R.string.ok, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val passwordText = passwordInput.text?.toString().orEmpty()
+            if (passwordText.isEmpty()) {
+                passwordInput.error = context.getString(R.string.protected_archive_password_empty)
+                return@setOnClickListener
+            }
+
+            dialog.dismiss()
+            showExtractProgressDialog()
+            onExtractArchiveWithPassword(mediaFile, passwordText.toCharArray())
+        }
     }
 
     fun showExtractProgressDialog() {

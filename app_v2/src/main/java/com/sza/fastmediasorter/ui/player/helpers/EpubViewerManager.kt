@@ -372,7 +372,12 @@ class EpubViewerManager(
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             binding.progressBar.isVisible = false
-                            callback.showError(context.getString(R.string.epub_parse_failed))
+                            val messageRes = if (isProtectedEpubError(e)) {
+                                R.string.protected_file_unsupported
+                            } else {
+                                R.string.epub_parse_failed
+                            }
+                            callback.showError(context.getString(messageRes))
                         }
                     }
                 }
@@ -386,6 +391,18 @@ class EpubViewerManager(
     }
 
     // ── Chapter rendering ────────────────────────────────────────────────────
+
+    private fun isProtectedEpubError(error: Throwable): Boolean {
+        // DRM-protected EPUBs require a licensed reader path; this app must not attempt bypass.
+        val message = generateSequence(error) { it.cause }
+            .mapNotNull { it.message }
+            .joinToString(" ")
+            .lowercase()
+        return message.contains("password") ||
+            message.contains("encrypted") ||
+            message.contains("encryption") ||
+            message.contains("drm")
+    }
 
     /** Show specific chapter by index */
     private suspend fun showChapter(chapterIndex: Int) {

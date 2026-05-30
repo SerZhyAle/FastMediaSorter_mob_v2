@@ -21,6 +21,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types.
 - **Hidden files & filter bypass** `[Standard / VR]`: Toggle visibility of system-hidden files, or activate File Manager Mode to bypass media filters and manage any file or archive (ZIP, APK, EXE, etc.).
 - **Office document handoff** `[Standard / VR]`: Open DOC, DOCX, RTF, and ODT files in an installed external application, with full integration in media filters across local, network, and cloud resources.
+- **Protected document fallback** `[Standard / VR]`: Detect protected PDF, Office, and EPUB cases the internal viewer cannot decrypt and route to a clear message or external-open fallback; passwords are not stored.
 - **Intelligent thumbnails** `[Standard / VR]`: Previews for photos and video frames. Video thumbnails automatically skip a black initial frame (checking offsets at 5 s, 15 s, and 30 s).
 - **Random file selection** `[Standard / VR]`: Quickly jump to a random file inside a folder using a dedicated dice button without changing playback order.
 - **Multi-window & DeX** `[Standard Only]`: Open folders or players in a separate parallel window on supported platforms (Chromebook, Samsung DeX).
@@ -30,7 +31,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Flexible deleting & Undo** `[Standard / VR]`: Move files to a recoverable Trash bin (recoverable for up to 5 minutes) or permanently delete them immediately with the option to undo the last operation.
 - **Batch processing** `[Standard / VR]`: Multi-select items for batch copying, moving, deleting, or sharing.
 - **Duplicate file finder** `[Standard / VR]`: Locate and remove identical files across all storage using a 3-phase scanning engine (Size -> Hash -> SHA-256) with review and auto-delete modes.
-- **Archive management** `[Standard / VR]`: Pack selected files into a single background ZIP archive; extract archives into the current folder with percentage progress.
+- **Archive management** `[Standard / VR]`: Pack selected files into a single background ZIP archive; extract archives into the current folder with percentage progress, including password-protected ZIPs after a one-time password prompt.
 - **Camera & Mic capture** `[Standard / VR]`: Take photos or record audio directly into the current folder (local, network, or cloud).
 - **Smooth progress indication** `[Standard / VR]`: Progress bar displays byte percentage, transfer speed, and estimated time remaining (ETA) for all operations.
 

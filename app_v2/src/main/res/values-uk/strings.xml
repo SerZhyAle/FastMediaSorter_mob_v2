@@ -2823,6 +2823,13 @@
     <string name="unarchive_error_generic">Помилка розпакування: %1$s</string>
     <string name="unarchive_network_not_supported">Розпакування підтримується лише для локальних ресурсів і SD-карти.</string>
     <string name="unarchive_only_zip_supported">Підтримуються лише ZIP-архіви.</string>
+    <string name="protected_archive_password_title">Потрібен пароль</string>
+    <string name="protected_archive_password_message">"%1$s" захищено паролем.</string>
+    <string name="protected_archive_password_hint">Пароль</string>
+    <string name="protected_archive_password_empty">Введіть пароль</string>
+    <string name="protected_archive_password_wrong">Пароль не підійшов.</string>
+    <string name="protected_file_unsupported">Файл захищено, і його не можна відкрити в застосунку.</string>
+    <string name="protected_file_open_external">Відкрити в іншому застосунку</string>
     <string name="action_open">Відкрити</string>
     <string name="app_updated_to">Оновлено до %1$s</string>
 

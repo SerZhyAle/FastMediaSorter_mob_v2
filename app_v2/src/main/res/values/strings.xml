@@ -2897,6 +2897,13 @@ Close the player and try again.</string>
     <string name="unarchive_error_generic">Extraction failed: %1$s</string>
     <string name="unarchive_network_not_supported">Extraction is only supported for local and SD-card resources.</string>
     <string name="unarchive_only_zip_supported">Only ZIP archives are supported.</string>
+    <string name="protected_archive_password_title">Password required</string>
+    <string name="protected_archive_password_message">"%1$s" is password-protected.</string>
+    <string name="protected_archive_password_hint">Password</string>
+    <string name="protected_archive_password_empty">Enter password</string>
+    <string name="protected_archive_password_wrong">Password did not work.</string>
+    <string name="protected_file_unsupported">This file is protected and cannot be opened inside the app.</string>
+    <string name="protected_file_open_external">Open externally</string>
     <string name="action_open">Open</string>
     <string name="app_updated_to">Updated to %1$s</string>
 

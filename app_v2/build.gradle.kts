@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260530211
-        versionName = "2.60.5302.117"
+        versionCode = 260531000
+        versionName = "2.60.5310.001"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -1112,6 +1112,9 @@ dependencies {
         exclude(group = "net.sf.kxml", module = "kxml2")
     }
     implementation("org.jsoup:jsoup:1.17.2")
+
+    // Document Support - encrypted ZIP archives
+    implementation("net.lingala.zip4j:zip4j:2.11.5")
     // S0117: GPL extractor is linked only into the sideload-only noLegal flavor.
     // S0175: bumped v0.24.0 -> v0.26.1; no wrapper changes needed (breaking changes in v0.25/v0.26 don't touch our API surface).
     "noLegalImplementation"("com.github.TeamNewPipe:NewPipeExtractor:v0.26.1")

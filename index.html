@@ -87,108 +87,325 @@
 
         <!-- Usage Scenarios -->
         <h2 class="section-title">💡 Usage Scenarios</h2>
+        <p class="section-lead">Each block starts with a quick answer and opens into practical detail when you need the setup path.</p>
         <div class="cards-grid">
-            <div class="card">
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🖼️</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Digital Photo Frame</h3>
-                    <p>Turn any Android tablet into an always-on digital photo frame. Stream photos from home PC (SMB) or cloud storage with zero local space used. Set slide intervals, add background music and enjoy.</p>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Turn an Android tablet into an always-on frame that streams photos from SMB/NAS or cloud without filling local storage.</p>
                 </div>
-                <a href="docs/howto/scenario-photo-frame.html" class="card-footer" target="_blank">Guide</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Add a photo source from SMB/NAS, local storage, or cloud.</li>
+                        <li>Enable slideshow intervals and optional background music.</li>
+                        <li>Use an old tablet, TV box, or desk device as the display.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-photo-frame.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🚗</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>In-Car Music</h3>
-                    <p>Install FMS on your Android car stereo. The built-in «All Music» resource gives immediate access to your collection, and steering wheel buttons integrate via background audio services.</p>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span><span class="scenario-badge">Legacy</span></div>
+                    <p class="card-summary">Use an Android head unit as a focused music player for local, USB, or network libraries.</p>
                 </div>
-                <a href="docs/howto/scenario-car-music.html" class="card-footer" target="_blank">Guide</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Create or open an audio resource for the full collection.</li>
+                        <li>Keep playback alive through the background audio service.</li>
+                        <li>Use large controls, steering-wheel buttons, and notification playback controls where supported.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-car-music.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🍿</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Home Cinema &amp; VR</h3>
-                    <p>Watch series from PC or cloud directly on your phone and VR headset (Quest/Pico). Auto-advance starts the next episode automatically, and VR edition opens a giant cinema screen.</p>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Watch films and series from a PC, NAS, or cloud on phone, TV box, or VR headset without copying files first.</p>
                 </div>
-                <a href="docs/howto/scenario-home-cinema.html" class="card-footer" target="_blank">Guide</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Connect the video library over SMB, SFTP, FTP, local storage, or cloud.</li>
+                        <li>Use session restore and auto-advance for serial playback.</li>
+                        <li>Open supported 3D and 360° media in flat mode or the VR edition.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-home-cinema.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🧹</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Download Organizer</h3>
-                    <p>Sort files on your device or remote server. Set up custom destination buttons and organize files into their proper target folders with a single tap.</p>
+                    <div class="card-badges"><span class="scenario-badge common">All editions</span></div>
+                    <p class="card-summary">Clear a messy Downloads folder by sending files to prepared destinations in one tap.</p>
                 </div>
-                <a href="docs/howto/scenario-download-organizer.html" class="card-footer" target="_blank">Guide</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Create destination buttons for work, photos, archives, music, and temp files.</li>
+                        <li>Use copy or move depending on how much risk you want.</li>
+                        <li>Undo protects the last operation when a file lands in the wrong place.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-download-organizer.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">📷</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Scheduled Camera Backup</h3>
-                    <p>Automatically copy new camera photos and videos from your phone to a home computer or NAS over Wi-Fi (SMB) during night charging or at any set interval.</p>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span></div>
+                    <p class="card-summary">Copy new camera photos and videos to a PC or NAS over Wi-Fi during night charging.</p>
                 </div>
-                <a href="docs/howto/scenario-camera-backup.html" class="card-footer" target="_blank">Guide</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Use SMB as the destination and choose the camera folder as the source.</li>
+                        <li>Set skip-existing copy mode to avoid duplicate uploads.</li>
+                        <li>Run it on a schedule that matches Wi-Fi and charging availability.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-camera-backup.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">📡</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>SMB Network Setup</h3>
-                    <p>Step-by-step guide for sharing folders on Windows/macOS/Linux and connecting to them instantly from your mobile devices in a single Wi-Fi network.</p>
+                    <div class="card-badges"><span class="scenario-badge common">All editions</span></div>
+                    <p class="card-summary">Connect Android devices to a Windows, macOS, Linux, or NAS shared folder over the local network.</p>
                 </div>
-                <a href="docs/howto/scenario-smb-setup.html" class="card-footer" target="_blank">Guide</a>
-            </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Share the folder on the computer or NAS and keep both devices on one Wi-Fi network.</li>
+                        <li>Use network scan when possible, or enter the IP address manually.</li>
+                        <li>Run Test Connection before using the resource in daily workflows.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-smb-setup.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🧳</span>
+                    <span class="card-kicker">Simple-short</span>
+                    <h3>Offline Travel Folder</h3>
+                    <div class="card-badges"><span class="scenario-badge common">All editions</span></div>
+                    <p class="card-summary">Prepare one local folder with media, PDFs, EPUBs, screenshots, and notes before unreliable internet starts.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Copy the travel set while Wi-Fi is stable.</li>
+                        <li>Open the folder once to warm thumbnails and remembered positions.</li>
+                        <li>Use filters to jump between documents, images, audio, and video offline.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.html#prepare-a-folder-for-travel-without-stable-internet" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">📚</span>
+                    <span class="card-kicker">Simple-short</span>
+                    <h3>Cloud Documents &amp; EPUB</h3>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard for cloud</span><span class="scenario-badge common">All editions locally</span></div>
+                    <p class="card-summary">Read PDFs and EPUBs from cloud storage or local folders with reader-friendly controls.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Open Google Drive, Dropbox, OneDrive, or a local document folder.</li>
+                        <li>Use PDF themes, EPUB formatting, and reading-position restore.</li>
+                        <li>Send niche formats to specialist apps when Android has a better viewer.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.html#read-cloud-documents-and-epubs-on-the-go" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🔎</span>
+                    <span class="card-kicker">Simple-short</span>
+                    <h3>OCR Translation</h3>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Extract and translate text from images, scans, screenshots, and PDFs without leaving the viewer.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Open an image, PDF, or text file and run Translate/OCR.</li>
+                        <li>Use ML Kit for fast recognition and Tesseract models when quality matters.</li>
+                        <li>Review the translated overlay directly on the original content.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.html#translate-signs-scans-and-screenshots-with-ocr" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🛋️</span>
+                    <span class="card-kicker">Simple-short</span>
+                    <h3>NAS Media Shelf for TV</h3>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span class="scenario-badge">Lite / Photos</span></div>
+                    <p class="card-summary">Use a NAS as the shared media shelf for an Android TV box, tablet, or living-room phone.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Create one SMB resource for family media and split it into clear subfolders.</li>
+                        <li>Use network speed checks when streaming feels slow.</li>
+                        <li>Pair a remote, keyboard, or gamepad for couch navigation.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.html#turn-a-nas-into-a-living-room-media-shelf" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🧬</span>
+                    <span class="card-kicker">Simple-short</span>
+                    <h3>Duplicate Cleanup</h3>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Find identical files across storage before a photo archive or download folder grows out of control.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Scan by size, partial hash, and full SHA-256 to avoid risky name-only matching.</li>
+                        <li>Review matches before removal, or use auto-delete for trusted sets.</li>
+                        <li>Use it after imports, backups, and manual folder merges.</li>
+                    </ul>
+                    <a href="docs/FEATURES.html#3-file-operations" class="card-footer" target="_blank">Open feature details</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">📺</span>
+                    <span class="card-kicker">Simple-short</span>
+                    <h3>Chromecast Playback</h3>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
+                    <p class="card-summary">Send audio, images, and local video from the phone to a Cast receiver in the room.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detailed setup</summary>
+                    <ul class="detail-list">
+                        <li>Use a Cast-compatible receiver on the same network.</li>
+                        <li>Stream local media and supported audio/image sessions directly.</li>
+                        <li>Keep VR separate: Cast support depends on Google Play Services on the device.</li>
+                    </ul>
+                    <a href="docs/FEATURES.html#9-audio-player" class="card-footer" target="_blank">Open feature details</a>
+                </details>
+            </article>
         </div>
 
         <!-- User Guides -->
         <h2 class="section-title">🚀 User Guides</h2>
         <div class="cards-grid">
-            <a href="docs/WHATS_NEW.html" class="card" target="_blank">
+            <article class="card">
                 <div>
                     <span class="card-icon">🆕</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>What's New in v2.x</h3>
-                    <p>Overview of the latest features: Office document handoff, Send to Telegram client support, MIDI file playback, File Manager Mode, and DeX multitasking.</p>
+                    <p class="card-summary">A compact release overview for the latest user-visible changes.</p>
                 </div>
-                <div class="card-footer">See changes history</div>
-            </a>
-            <a href="docs/QUICK_START.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Tracks recent features, fixes, and behavioural changes.</li>
+                        <li>Useful before updating, testing, or checking what changed since the last build.</li>
+                    </ul>
+                    <a href="docs/WHATS_NEW.html" class="card-footer" target="_blank">See changes history</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">⚡</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Quick Start Guide</h3>
-                    <p>Get started in 5 minutes. Simple step-by-step walkthrough for beginners with a clear interactive touch zones diagram for the player.</p>
+                    <p class="card-summary">First successful setup in about five minutes.</p>
                 </div>
-                <div class="card-footer">Open guide</div>
-            </a>
-            <a href="docs/FAQ.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Covers first resource setup, opening files, and the core player controls.</li>
+                        <li>Best starting point for new users before reading the full manual.</li>
+                    </ul>
+                    <a href="docs/QUICK_START.html" class="card-footer" target="_blank">Open guide</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">❓</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>FAQ</h3>
-                    <p>More than 25 detailed answers to common questions about file sorting, network resources, hotkeys, PIN codes, and gesture controls.</p>
+                    <p class="card-summary">Direct answers for common setup and usage questions.</p>
                 </div>
-                <div class="card-footer">Read FAQ</div>
-            </a>
-            <a href="docs/TROUBLESHOOTING.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Explains sorting, network resources, hotkeys, PIN codes, and gestures.</li>
+                        <li>Use it when you know what you want but need the exact behaviour clarified.</li>
+                    </ul>
+                    <a href="docs/FAQ.html" class="card-footer" target="_blank">Read FAQ</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">🔧</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Troubleshooting</h3>
-                    <p>Proven solutions for 15+ common technical issues: authentication failures, network lag, video decode errors, and playback stutters.</p>
+                    <p class="card-summary">Known fixes for network, auth, decode, and playback problems.</p>
                 </div>
-                <div class="card-footer">Fix issue</div>
-            </a>
-            <a href="docs/howto/" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Targets failures that users can usually diagnose without logs.</li>
+                        <li>Use it before filing an issue or resetting a resource.</li>
+                    </ul>
+                    <a href="docs/TROUBLESHOOTING.html" class="card-footer" target="_blank">Fix issue</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📖</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>How-To &amp; Scenarios</h3>
-                    <p>Walkthrough index for building media servers, setup instructions for NAS, and comprehensive help articles for advanced features.</p>
+                    <p class="card-summary">A practical index of workflows, not just feature descriptions.</p>
                 </div>
-                <div class="card-footer">View guides map</div>
-            </a>
-            <a href="docs/DOWNLOADS_EN.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Includes scenario guides for SMB, backups, cinema, photo frame, car music, and sorting.</li>
+                        <li>Pairs naturally with the scenario cards at the top of this page.</li>
+                    </ul>
+                    <a href="docs/howto/" class="card-footer" target="_blank">View guides map</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📦</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Download APK Builds</h3>
-                    <p>Download compiled installation packages: Standard, Legacy, and other specialized APK versions from Google Drive.</p>
+                    <p class="card-summary">Get compiled installation packages for supported builds.</p>
                 </div>
-                <div class="card-footer">Download APK</div>
-            </a>
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Lists public APK download options and edition notes.</li>
+                        <li>Use it when installing outside Google Play.</li>
+                    </ul>
+                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">Download APK</a>
+                </details>
+            </article>
         </div>
 
         <!-- Interactive Feature Explorer Dashboard -->
@@ -221,82 +438,154 @@
 
         <h2 class="section-title">📚 Technical Documentation</h2>
         <div class="cards-grid">
-            <a href="docs/DOCS_MAP.html" class="card" target="_blank">
+            <article class="card">
                 <div>
                     <span class="card-icon">🗺️</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Documentation Map</h3>
-                    <p>Easy-to-use directory indexing all help files, tutorials, specific technical notes, and developer guides.</p>
+                    <p class="card-summary">One index for help, tutorials, technical notes, and developer docs.</p>
                 </div>
-                <div class="card-footer">View docs map</div>
-            </a>
-            <a href="docs/README.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Use it when you need the right document but do not know its file name.</li>
+                        <li>Groups user help, project docs, status pages, and technical references.</li>
+                    </ul>
+                    <a href="docs/DOCS_MAP.html" class="card-footer" target="_blank">View docs map</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📖</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>User Manual</h3>
-                    <p>Full reference covering system requirements, installation, detailed network protocols, cloud connections, and advanced players.</p>
+                    <p class="card-summary">The full user-facing reference for setup and daily operation.</p>
                 </div>
-                <div class="card-footer">Read manual</div>
-            </a>
-            <a href="docs/V2_Specification.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Covers requirements, installation, network protocols, cloud resources, and players.</li>
+                        <li>Best for a complete pass after the quick start.</li>
+                    </ul>
+                    <a href="docs/README.html" class="card-footer" target="_blank">Read manual</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📋</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Technical Specification</h3>
-                    <p>Deep dive into application components, databases, caching mechanisms, and background thread sync schemas.</p>
+                    <p class="card-summary">Implementation-level product and architecture reference.</p>
                 </div>
-                <div class="card-footer">Open specs</div>
-            </a>
-            <a href="docs/V2_architecture_overview.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Explains components, persistence, caching, and background processing.</li>
+                        <li>Useful for maintainers and advanced contributors.</li>
+                    </ul>
+                    <a href="docs/V2_Specification.html" class="card-footer" target="_blank">Open specs</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">🏗️</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Architecture Overview</h3>
-                    <p>Structural blueprint of Clean Architecture, MVVM design pattern, Hilt dependency injection, and Room database layers.</p>
+                    <p class="card-summary">A higher-level map of the app structure.</p>
                 </div>
-                <div class="card-footer">Learn more</div>
-            </a>
-            <a href="docs/V2_TERMS.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Summarizes Clean Architecture, MVVM, Hilt, and Room responsibilities.</li>
+                        <li>Good first read before touching implementation code.</li>
+                    </ul>
+                    <a href="docs/V2_architecture_overview.html" class="card-footer" target="_blank">Learn more</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📝</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Terminology Reference</h3>
-                    <p>Definitions of key terminology: distinguishing Resources (sources) and Destinations (action folders) in the app.</p>
+                    <p class="card-summary">Definitions for the project vocabulary.</p>
                 </div>
-                <div class="card-footer">Open glossary</div>
-            </a>
-            <a href="docs/TODO_V2.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Clarifies concepts such as Resources, Destinations, and action folders.</li>
+                        <li>Useful when reading specs, settings, or workflow guides.</li>
+                    </ul>
+                    <a href="docs/V2_TERMS.html" class="card-footer" target="_blank">Open glossary</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">✅</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Development Roadmap</h3>
-                    <p>Active task checklist, planned features roadmap, latest fixes status, and tracked known issue logs.</p>
+                    <p class="card-summary">Current work, planned features, and known issue status.</p>
                 </div>
-                <div class="card-footer">Open roadmap</div>
-            </a>
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Tracks active tasks and future areas rather than user instructions.</li>
+                        <li>Useful when checking whether a behaviour is planned or still in progress.</li>
+                    </ul>
+                    <a href="docs/TODO_V2.html" class="card-footer" target="_blank">Open roadmap</a>
+                </details>
+            </article>
         </div>
 
         <h2 class="section-title">⚙️ Resources &amp; Legal</h2>
         <div class="cards-grid">
-            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
+            <article class="card">
                 <div>
                     <span class="card-icon">💻</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>GitHub Repository</h3>
-                    <p>Access the open-source repository. Report issues, submit features, contribute code, and review commits activity.</p>
+                    <p class="card-summary">Source code, issues, and contribution history.</p>
                 </div>
-                <div class="card-footer">GitHub Code</div>
-            </a>
-            <a href="docs/PRIVACY_POLICY.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Use it to review source code, report bugs, or follow project activity.</li>
+                        <li>Public pages describe only the public Standard and VR surfaces.</li>
+                    </ul>
+                    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card-footer" target="_blank">GitHub Code</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">🔒</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Privacy Policy</h3>
-                    <p>Official privacy policy document, outlining permissions required, data security policies, and privacy protection.</p>
+                    <p class="card-summary">How permissions, local files, and privacy-sensitive data are handled.</p>
                 </div>
-                <div class="card-footer">Read policy</div>
-            </a>
-            <a href="docs/TERMS_OF_SERVICE.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Explains storage, network, and cloud-related permission expectations.</li>
+                        <li>Read it before distributing the app in managed environments.</li>
+                    </ul>
+                    <a href="docs/PRIVACY_POLICY.html" class="card-footer" target="_blank">Read policy</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📄</span>
+                    <span class="card-kicker">Simple-short</span>
                     <h3>Terms of Service</h3>
-                    <p>End User License Agreement, usage limitations, copyright terms, disclaimers, and liability rules.</p>
+                    <p class="card-summary">Usage terms, licensing notes, limitations, and disclaimers.</p>
                 </div>
-                <div class="card-footer">Read terms</div>
-            </a>
+                <details class="card-details">
+                    <summary>Detailed notes</summary>
+                    <ul class="detail-list">
+                        <li>Defines user responsibilities and project liability boundaries.</li>
+                        <li>Useful for redistribution, publication, and compliance checks.</li>
+                    </ul>
+                    <a href="docs/TERMS_OF_SERVICE.html" class="card-footer" target="_blank">Read terms</a>
+                </details>
+            </article>
         </div>
 
     </div>
@@ -420,6 +709,24 @@
                 if (text.indexOf('download') !== -1 || text.indexOf('organizer') !== -1 || text.indexOf('delete') !== -1 || text.indexOf('move') !== -1) {
                     links.push({ url: 'docs/howto/scenario-download-organizer.html', label: '🧹 Download Organizer' });
                 }
+                if (text.indexOf('offline') !== -1 || text.indexOf('travel') !== -1 || text.indexOf('local folder') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#prepare-a-folder-for-travel-without-stable-internet', label: '🧳 Offline Travel Folder' });
+                }
+                if (text.indexOf('document') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('reading') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#read-cloud-documents-and-epubs-on-the-go', label: '📚 Cloud Documents' });
+                }
+                if (text.indexOf('ocr') !== -1 || text.indexOf('translation') !== -1 || text.indexOf('translate') !== -1 || text.indexOf('tesseract') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#translate-signs-scans-and-screenshots-with-ocr', label: '🔎 OCR Translation' });
+                }
+                if (text.indexOf('tv') !== -1 || text.indexOf('living-room') !== -1 || text.indexOf('living room') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#turn-a-nas-into-a-living-room-media-shelf', label: '🛋️ NAS Media Shelf' });
+                }
+                if (text.indexOf('duplicate') !== -1 || text.indexOf('sha-256') !== -1) {
+                    links.push({ url: 'docs/FEATURES.html#3-file-operations', label: '🧬 Duplicate Cleanup' });
+                }
+                if (text.indexOf('chromecast') !== -1 || text.indexOf('cast ') !== -1 || text.indexOf('cast-compatible') !== -1) {
+                    links.push({ url: 'docs/FEATURES.html#9-audio-player', label: '📺 Chromecast Playback' });
+                }
                 
                 return links;
             }
@@ -472,13 +779,13 @@
                     
                     card.className += ' ' + tagClass;
                     
-                    var headerHtml = '<div class="feature-header">' +
+                    var headerHtml = '<span class="feature-header">' +
                         '<span class="feature-title">' + f.title + '</span>' +
-                        '<div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
+                        '<span style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
                         '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
                         '<span class="toggle-icon">▼</span>' +
-                        '</div>' +
-                        '</div>';
+                        '</span>' +
+                        '</span>';
                     
                     var descHtml = '<div class="feature-desc">' + f.desc + '</div>';
                     
@@ -492,14 +799,10 @@
                         linksHtml += '</div>';
                     }
                     
-                    card.innerHTML = headerHtml + descHtml + linksHtml;
-                    
-                    card.addEventListener('click', function(e) {
-                        if (e.target.closest('.feature-link')) {
-                            return;
-                        }
-                        card.classList.toggle('expanded');
-                    });
+                    card.innerHTML = '<details class="feature-details">' +
+                        '<summary>' + headerHtml + '</summary>' +
+                        descHtml + linksHtml +
+                        '</details>';
                     
                     grid.appendChild(card);
                 });

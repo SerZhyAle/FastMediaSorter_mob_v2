@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="FastMediaSorter noLegal edition - the sideload-only build that extends the VR edition with capabilities that cannot ship to app stores: universal media extraction, offline PaddleOCR, APK install from Browse and an embedded Office viewer.">
+    <meta name="keywords"
+        content="FastMediaSorter noLegal, sideload Android build, yt-dlp Android, universal media downloader Android, offline OCR Android, PaddleOCR Android, APK install from file manager, embedded office viewer Android, Meta Quest sideload media app">
+    <meta name="author" content="SerZhyAle">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#070512">
+    <title>FastMediaSorter noLegal Edition - Sideload-only Build (VR + Unpublishable Capabilities)</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- SEO: Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
+    <meta property="og:title" content="FastMediaSorter noLegal Edition - Sideload-only Build">
+    <meta property="og:description"
+        content="The sideload-only build that extends the VR edition with store-incompatible capabilities: universal media extraction, offline PaddleOCR, APK install from Browse, embedded Office viewer.">
+    <meta property="og:image"
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ru_RU">
+    <meta property="og:locale:alternate" content="uk_UA">
+    <meta property="og:site_name" content="FastMediaSorter v2">
+
+    <!-- SEO: Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FastMediaSorter noLegal Edition - Sideload-only Build">
+    <meta name="twitter:description"
+        content="VR edition plus capabilities that cannot ship to app stores. Sideload-only.">
+    <meta name="twitter:image"
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+
+    <!-- SEO: Canonical & hreflang (noLegal triplet only - isolated from the main site) -->
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- GitHub Corner -->
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+        aria-label="View source on GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250"
+            style="fill:var(--color-nolegal); color:#070512; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        </svg>
+    </a>
+
+    <header>
+        <canvas id="headerCanvas"></canvas>
+        <div class="lang-switcher">
+            <a href="nolegal.html" class="lang-btn active">EN</a>
+            <a href="nolegal-ru.html" class="lang-btn">RU</a>
+            <a href="nolegal-uk.html" class="lang-btn">UK</a>
+        </div>
+        <h1><img src="icon.png" alt="FastMediaSorter"> FastMediaSorter <span class="nolegal-tag">noLegal</span></h1>
+        <div class="subtitle">Sideload-only Edition - VR build plus capabilities that cannot ship to app stores</div>
+        <div class="version-badge nolegal-badge">Sideload-only • Not on Google Play or Meta Horizon Store</div>
+    </header>
+
+    <div class="container">
+
+        <div class="nolegal-intro">
+            <p>This page documents the <strong>noLegal</strong> build of FastMediaSorter - a personal,
+            sideload-only edition. It is built on top of the VR edition and adds features that cannot be
+            distributed through Google Play or the Meta Horizon Store because of redistribution licenses,
+            store policies, patent constraints, or heavy on-device runtimes.</p>
+            <p>It is not advertised from the main site and there is no download link here for the general
+            public - this page exists to describe what the build does and why these capabilities stay
+            outside the published flavors.</p>
+        </div>
+
+        <h2 class="section-title">🧩 How noLegal Relates to the Other Builds</h2>
+        <p class="topology-lead">FastMediaSorter ships in layered builds. Each layer is a superset of the one
+        before it: <strong>noLegal = VR + sideload-only capabilities</strong>, and VR itself already contains
+        everything in the Standard build.</p>
+
+        <div class="tier-grid">
+            <div class="tier-card tier-standard">
+                <div class="tier-head"><span class="tier-icon">📱</span><h3>Standard</h3></div>
+                <p class="tier-scope">Mobile · TV · Car · published to Google Play</p>
+                <p>The full media-sorting core: local / SMB / SFTP / FTP / cloud browsing, the player and
+                slideshow, EPUB reader, OCR translation, batch file operations, Wear OS companion.</p>
+            </div>
+            <div class="tier-arrow">⊂</div>
+            <div class="tier-card tier-vr">
+                <div class="tier-head"><span class="tier-icon">🥽</span><h3>VR Edition</h3></div>
+                <p class="tier-scope">Meta Quest / XR · sideload</p>
+                <p>Everything in Standard, plus the immersive VR player surface, 3D / 180° / 360° playback,
+                spatial HUD, controller and head-tracking input, and the VR-specific browse experience.</p>
+            </div>
+            <div class="tier-arrow">⊂</div>
+            <div class="tier-card tier-nolegal">
+                <div class="tier-head"><span class="tier-icon">🔓</span><h3>noLegal</h3></div>
+                <p class="tier-scope">Sideload-only · not on any store</p>
+                <p>Everything in the VR edition, plus the capabilities below - kept out of every published
+                flavor because their dependencies, permissions, or runtime weight are incompatible with
+                store distribution.</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">🔓 noLegal-only Capabilities</h2>
+        <p class="topology-lead">Each capability below is implemented and isolated to the noLegal source set.
+        For every one, the "Why not in stores" note states the concrete blocker.</p>
+
+        <div class="nolegal-features">
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">1</span> Universal Media Extractor (yt-dlp + Chaquopy)</h3>
+                <p>Downloads media from 1800+ sites (YouTube, Instagram, TikTok, Facebook, Threads, X and more)
+                through the yt-dlp Python library running on-device via Chaquopy. Auth cookies saved through a
+                WebView login are forwarded to yt-dlp automatically, so re-authentication is not needed.</p>
+                <ul>
+                    <li>Instagram single posts, full carousels, Reels and Stories (with auth cookies).</li>
+                    <li>TikTok watermark-free video via an explicit format filter, with fallback to best available.</li>
+                    <li>Facebook public videos with auth cookies.</li>
+                    <li>Carousels / playlists expand into a batch where every element re-enters the extraction chain.</li>
+                    <li>First in the extraction chain; falls through to NewPipe and a WebView extractor when not applicable.</li>
+                    <li>ABI: <code>arm64-v8a</code> and <code>x86_64</code> only (Python 3.12 wheel availability).</li>
+                </ul>
+                <p class="nl-why"><strong>Why not in stores:</strong> Chaquopy ships under a non-commercial /
+                open-source community license; the yt-dlp dependency <code>mutagen</code> is GPL-2.0; the bundle
+                adds ~12-16 MB per ABI slice and is incompatible with the Google Play 16 KB page-size requirement
+                on Android 15.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">2</span> Native Site Extractors (ArtStation, DeviantArt, Vimeo, Dailymotion, Telegram)</h3>
+                <p>Pure-Kotlin extractors that resolve direct media URLs without rendering a browser, usually in
+                under a second. They sit ahead of yt-dlp for their own platforms; yt-dlp stays the fallback.</p>
+                <ul>
+                    <li>ArtStation: internal projects JSON API to resolve the original image or video clip.</li>
+                    <li>DeviantArt: parses the page initial-state JSON, with an oEmbed fallback on parse failure.</li>
+                    <li>Vimeo: reads the player config JSON to pick the highest-resolution progressive MP4 or HLS.</li>
+                    <li>Dailymotion: extracts a time-limited HLS stream and downloads immediately (tokens expire fast).</li>
+                    <li>Telegram public posts: parses the public embed page for photo and video attachments; a single
+                    attachment downloads directly, an album returns a batch. Private / invite links are rejected.</li>
+                    <li>No new dependencies - Kotlin plus the JSON library already in the APK.</li>
+                </ul>
+                <p class="nl-why"><strong>Why not in stores:</strong> part of the unpublished noLegal extraction
+                surface; bundled with the yt-dlp chain that already blocks store distribution.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">3</span> APK Install from Browse</h3>
+                <p>Tap any <code>.apk</code> file in Browse to get an "Install" action that launches the system
+                package installer - the user always sees and confirms the standard install dialog.</p>
+                <ul>
+                    <li>Checks the install-packages permission and routes to system Settings when it is missing.</li>
+                    <li>Reports install success, cancellation or failure via a toast.</li>
+                    <li>Installs directly from Google Drive / Dropbox / OneDrive: the file is fetched silently into
+                    the cache under its real name, then the system installer opens.</li>
+                    <li>Browse marks APK tiles with a compact VR badge when the package declares Quest / VR support.</li>
+                </ul>
+                <p class="nl-why"><strong>Why not in stores:</strong> the <code>REQUEST_INSTALL_PACKAGES</code>
+                permission triggers Google Play high-risk review and is rejected for general file-manager use
+                without an MDM / enterprise context.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">4</span> YouTube &amp; YouTube Music Extraction Recovery</h3>
+                <p>Reliable YouTube and YouTube Music share downloads: NewPipe and yt-dlp work together so format
+                mismatches no longer break the share.</p>
+                <ul>
+                    <li>When yt-dlp hits a YouTube format error (PoToken / JS challenge) the cascade falls through to
+                    the NewPipe (Innertube) strategy.</li>
+                    <li>YouTube is a known auth resource - the account picker appears and stored session cookies apply.</li>
+                    <li>URL canonicalization rewrites <code>music.youtube.com</code> and <code>shorts</code> links to the
+                    regular watch form that resolvers accept reliably.</li>
+                    <li>Audio-only format selection for YouTube Music; range-chunked transfer for Shorts and long videos.</li>
+                </ul>
+                <p class="nl-why"><strong>Why not in stores:</strong> built on the same yt-dlp / NewPipe extraction
+                stack that is excluded from published builds.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">5</span> Offline PaddleOCR (PP-OCRv5 + Paddle-Lite)</h3>
+                <p>A deep-learning offline OCR engine selectable from Settings alongside Tesseract. It handles
+                real-world photos - perspective skew, shadows, glare, noisy backgrounds - substantially better than
+                Tesseract, fully on-device with no network calls during inference.</p>
+                <ul>
+                    <li>Pipeline: text detection → textline orientation classification → text recognition (PP-OCRv5 mobile).</li>
+                    <li>Native runtime is Paddle-Lite, 16 KB-page aligned for Android 15; ABI <code>arm64-v8a</code> only.</li>
+                    <li>Models download lazily on first use over HTTPS and are SHA-256 validated before activation;
+                    a failed download or hash mismatch falls back to Tesseract for that call.</li>
+                    <li>Compile-time isolation: all PaddleOCR code lives in the noLegal source set; published APKs
+                    contain zero Paddle-Lite bytes.</li>
+                </ul>
+                <p class="nl-why"><strong>Why not in stores:</strong> ~20+ MB of arm64 native libraries and heavy
+                predictor warm-up are incompatible with the size and runtime budget of the published flavors.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">6</span> Embedded Office Document Viewer (read-only)</h3>
+                <p>Opens Office documents inside the player as a read-only preview instead of always handing off to
+                an external app.</p>
+                <ul>
+                    <li>Supports Word (<code>.docx</code> / <code>.odt</code>), spreadsheets (<code>.xlsx</code> /
+                    <code>.ods</code>), presentations (<code>.pptx</code> / <code>.odp</code>) and RTF.</li>
+                    <li>In-tree, dependency-free engine: OOXML / ODF containers are unzipped and parsed into normalized
+                    HTML rendered in a locked-down WebView; RTF uses a control-word stripper.</li>
+                    <li>Parity with the PDF / EPUB surface: fullscreen, print, translate, OCR, swipe / keyboard
+                    navigation and touch zones. Editing is intentionally unavailable.</li>
+                    <li>Legacy binary <code>.doc</code> / <code>.xls</code> / <code>.ppt</code> are out of scope; an
+                    explicit fallback dialog (open elsewhere / share / cancel) appears when a file can't be rendered.</li>
+                    <li>Compile-time isolation: the engine ships only in the noLegal source set.</li>
+                </ul>
+                <p class="nl-why"><strong>Why not in stores:</strong> kept inside the unpublished noLegal surface to
+                keep published builds free of the embedded viewer seam.</p>
+            </article>
+
+        </div>
+
+        <h2 class="section-title">🔗 More on the Main Site</h2>
+        <div class="cards-grid">
+            <a href="index.html" class="card">
+                <div>
+                    <span class="card-icon">🏠</span>
+                    <h3>Main Site</h3>
+                    <p>Back to the FastMediaSorter home page: the Standard and VR feature explorer, usage
+                    scenarios and full documentation.</p>
+                </div>
+                <div class="card-footer">Open home</div>
+            </a>
+            <a href="docs/VR_EDITION.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">🥽</span>
+                    <h3>VR Edition</h3>
+                    <p>What the VR build adds over Standard - the base that noLegal extends.</p>
+                </div>
+                <div class="card-footer">Read about VR</div>
+            </a>
+            <a href="docs/VR_SIDELOAD.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">📥</span>
+                    <h3>VR Sideload Guide</h3>
+                    <p>How to sideload the headset build onto Meta Quest.</p>
+                </div>
+                <div class="card-footer">Sideload steps</div>
+            </a>
+            <a href="docs/VR_CONTROLS.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">🎮</span>
+                    <h3>VR Controls</h3>
+                    <p>Controller and head-tracking input reference for the VR player.</p>
+                </div>
+                <div class="card-footer">Open controls</div>
+            </a>
+            <a href="docs/DOWNLOADS_EN.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">📦</span>
+                    <h3>Downloads</h3>
+                    <p>Compiled APK builds for the published flavors.</p>
+                </div>
+                <div class="card-footer">Download APK</div>
+            </a>
+            <a href="docs/FAQ.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">❓</span>
+                    <h3>FAQ</h3>
+                    <p>Answers to common questions about sorting, networks, hotkeys and gestures.</p>
+                </div>
+                <div class="card-footer">Read FAQ</div>
+            </a>
+            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">💻</span>
+                    <h3>GitHub Repository</h3>
+                    <p>Open-source code, issues and commit activity.</p>
+                </div>
+                <div class="card-footer">GitHub Code</div>
+            </a>
+        </div>
+
+    </div>
+
+    <footer>
+        <p><strong>FastMediaSorter noLegal</strong> — Sideload-only edition (VR + unpublishable capabilities)</p>
+        <p style="margin: 0.5rem 0;">
+            <a href="index.html">Main Site</a>
+            &bull;
+            <a href="docs/VR_EDITION.html">VR Edition</a>
+            &bull;
+            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
+        </p>
+        <p style="font-size: 0.85em; opacity: 0.7;">
+            Created by <a href="mailto:sza@ukr.net">sza@ukr.net</a>
+        </p>
+        <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5;">&copy; 2024-2026 FastMediaSorter Project.</p>
+    </footer>
+
+    <!-- Animated Canvas Sinusoids (shared with main site header) -->
+    <script>
+        (function () {
+            var canvas = document.getElementById('headerCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var header = canvas.parentElement;
+            var width, height, animId;
+
+            function resize() {
+                width = canvas.width = header.offsetWidth;
+                height = canvas.height = header.offsetHeight;
+            }
+
+            var time = 0;
+            function draw() {
+                ctx.fillStyle = 'rgba(7, 5, 18, 0.15)';
+                ctx.fillRect(0, 0, width, height);
+                time += 0.002;
+                ctx.lineWidth = 1.5;
+                for (var j = 0; j < 4; j++) {
+                    ctx.beginPath();
+                    var phaseShift = j * 20;
+                    for (var i = 0; i <= width; i += 20) {
+                        var y = height / 2 +
+                            Math.sin(i * 0.0025 + time + phaseShift) * height * 0.3 *
+                            Math.sin(time * 0.3 + j * 0.25);
+                        if (i === 0) ctx.moveTo(i, y);
+                        else ctx.lineTo(i, y);
+                    }
+                    ctx.strokeStyle = 'hsla(' + (350 + j * 8) + ', 80%, 62%, 0.22)';
+                    ctx.stroke();
+                }
+                animId = requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', function () { resize(); });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
+            });
+            resize();
+            draw();
+        }());
+    </script>
+
+</body>
+
+</html>

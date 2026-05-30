@@ -87,108 +87,325 @@
 
         <!-- Сценарии использования -->
         <h2 class="section-title">💡 Сценарии использования</h2>
+        <p class="section-lead">Каждый блок сначала даёт короткий ответ, а подробности раскрываются только когда нужен маршрут настройки.</p>
         <div class="cards-grid">
-            <div class="card">
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🖼️</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Цифровая Фоторамка</h3>
-                    <p>Превратите планшет в фоторамку. Стриминг фото с домашнего ПК (SMB) или облака без затрат локальной памяти. Настройте интервалы, добавьте фоновую музыку и наслаждайтесь.</p>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Планшет показывает фото из SMB/NAS или облака без копирования всей коллекции в локальную память.</p>
                 </div>
-                <a href="docs/howto/scenario-photo-frame-ru.html" class="card-footer" target="_blank">Инструкция</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Добавьте источник фото из SMB/NAS, локальной папки или облака.</li>
+                        <li>Включите слайд-шоу, интервал смены кадров и фоновую музыку.</li>
+                        <li>Используйте старый планшет, TV box или настольное Android-устройство как экран.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-photo-frame-ru.html" class="card-footer" target="_blank">Открыть инструкцию</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🚗</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Музыка в Автомобиле</h3>
-                    <p>Установите на Android-магнитолу. Виртуальный ресурс «Вся музыка» обеспечивает мгновенный доступ ко всей коллекции, а управление кнопками руля работает в фоновом режиме.</p>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span><span class="scenario-badge">Legacy</span></div>
+                    <p class="card-summary">Android-магнитола становится удобным плеером для локальной, USB или сетевой музыкальной коллекции.</p>
                 </div>
-                <a href="docs/howto/scenario-car-music-ru.html" class="card-footer" target="_blank">Инструкция</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Создайте или откройте аудиоресурс для всей коллекции.</li>
+                        <li>Фоновая аудиослужба сохраняет воспроизведение вне экрана приложения.</li>
+                        <li>Используйте крупные кнопки, кнопки руля и управление из уведомлений, где это поддерживается.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-car-music-ru.html" class="card-footer" target="_blank">Открыть инструкцию</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🍿</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Домашний Кинотеатр и VR</h3>
-                    <p>Смотрите сериалы с ПК или облака на телефоне и в VR-шлеме (Quest/Pico). Функция автоперехода сама запустит следующую серию, а VR-версия развернёт гигантский кинозал.</p>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Фильмы и сериалы идут с ПК, NAS или облака на телефон, TV box или VR-шлем без предварительного копирования.</p>
                 </div>
-                <a href="docs/howto/scenario-home-cinema-ru.html" class="card-footer" target="_blank">Инструкция</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Подключите видеотеку через SMB, SFTP, FTP, локальную папку или облако.</li>
+                        <li>Восстановление сеанса и автопереход помогают смотреть сериалы без ручного запуска каждой серии.</li>
+                        <li>3D и 360°-медиа можно открыть в плоском плеере или VR-редакции.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-home-cinema-ru.html" class="card-footer" target="_blank">Открыть инструкцию</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">🧹</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Порядок в Загрузках</h3>
-                    <p>Наведите полный порядок в загрузках на устройстве или удалённом ПК. Настройте кнопки назначений и раскидывайте файлы по каталогам в одно касание.</p>
+                    <div class="card-badges"><span class="scenario-badge common">Все редакции</span></div>
+                    <p class="card-summary">Захламлённая папка загрузок быстро раскладывается по заранее настроенным назначениям.</p>
                 </div>
-                <a href="docs/howto/scenario-download-organizer-ru.html" class="card-footer" target="_blank">Инструкция</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Создайте кнопки назначений для работы, фото, архивов, музыки и временных файлов.</li>
+                        <li>Выберите копирование или перемещение в зависимости от нужной осторожности.</li>
+                        <li>Undo помогает вернуть последнюю операцию, если файл ушёл не туда.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-download-organizer-ru.html" class="card-footer" target="_blank">Открыть инструкцию</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">📷</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Автобэкап по Расписанию</h3>
-                    <p>Автоматически копируйте новые фотографии и видеозаписи с камеры смартфона на домашний компьютер или NAS по Wi-Fi (SMB) во время ночной зарядки устройства.</p>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span></div>
+                    <p class="card-summary">Новые фото и видео с камеры уходят на ПК или NAS по Wi-Fi во время ночной зарядки.</p>
                 </div>
-                <a href="docs/howto/scenario-camera-backup-ru.html" class="card-footer" target="_blank">Инструкция</a>
-            </div>
-            <div class="card">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Назначьте SMB-папку как место назначения и папку камеры как источник.</li>
+                        <li>Режим пропуска существующих файлов снижает риск дубликатов.</li>
+                        <li>Расписание лучше привязать к Wi-Fi и зарядке.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-camera-backup-ru.html" class="card-footer" target="_blank">Открыть инструкцию</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
                 <div>
                     <span class="card-icon">📡</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Настройка Сети SMB</h3>
-                    <p>Пошаговое руководство по созданию общих папок на Windows/macOS/Linux и быстрому подключению к ним мобильных устройств в единой Wi-Fi сети.</p>
+                    <div class="card-badges"><span class="scenario-badge common">Все редакции</span></div>
+                    <p class="card-summary">Android подключается к общей папке Windows, macOS, Linux или NAS в локальной сети.</p>
                 </div>
-                <a href="docs/howto/scenario-smb-setup-ru.html" class="card-footer" target="_blank">Инструкция</a>
-            </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Откройте общий доступ к папке и оставьте устройства в одной Wi-Fi сети.</li>
+                        <li>Используйте сканирование сети или введите IP-адрес вручную.</li>
+                        <li>Перед ежедневным использованием проверьте ресурс через Test Connection.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-smb-setup-ru.html" class="card-footer" target="_blank">Открыть инструкцию</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🧳</span>
+                    <span class="card-kicker">Просто-коротко</span>
+                    <h3>Офлайн-папка для поездки</h3>
+                    <div class="card-badges"><span class="scenario-badge common">Все редакции</span></div>
+                    <p class="card-summary">Медиа, PDF, EPUB, скриншоты и заметки заранее собираются в одну локальную папку.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Скопируйте дорожный набор, пока Wi-Fi стабилен.</li>
+                        <li>Откройте папку один раз, чтобы подготовить миниатюры и позиции просмотра.</li>
+                        <li>Офлайн-фильтры помогают быстро переключаться между документами, фото, аудио и видео.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.html#подготовьте-папку-для-поездки-без-стабильного-интернета" class="card-footer" target="_blank">Открыть связанный гайд</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">📚</span>
+                    <span class="card-kicker">Просто-коротко</span>
+                    <h3>Документы и EPUB из облака</h3>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard для облака</span><span class="scenario-badge common">Локально во всех редакциях</span></div>
+                    <p class="card-summary">PDF и EPUB читаются из облака или локальной папки с удобными настройками просмотра.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Откройте Google Drive, Dropbox, OneDrive или локальную папку документов.</li>
+                        <li>Используйте темы PDF, форматирование EPUB и восстановление позиции чтения.</li>
+                        <li>Нишевые форматы можно передать во внешние приложения через Android chooser.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.html#читайте-облачные-документы-и-epub-в-дороге" class="card-footer" target="_blank">Открыть связанный гайд</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🔎</span>
+                    <span class="card-kicker">Просто-коротко</span>
+                    <h3>OCR-перевод</h3>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Текст на фото, сканах, скриншотах и PDF распознаётся и переводится прямо в просмотрщике.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Откройте изображение, PDF или текстовый файл и запустите Translate/OCR.</li>
+                        <li>ML Kit используется для скорости, Tesseract - когда важнее качество распознавания.</li>
+                        <li>Перевод можно смотреть поверх исходного содержимого.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.html#переводите-вывески-сканы-и-скриншоты-через-ocr" class="card-footer" target="_blank">Открыть связанный гайд</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🛋️</span>
+                    <span class="card-kicker">Просто-коротко</span>
+                    <h3>NAS-медиаполка для TV</h3>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span class="scenario-badge">Lite / Photos</span></div>
+                    <p class="card-summary">NAS становится общей медиаполкой для Android TV box, планшета или телефона в гостиной.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Создайте один SMB-ресурс для семейной медиатеки и разделите его по подпапкам.</li>
+                        <li>Если стриминг медленный, проверьте скорость сети из приложения.</li>
+                        <li>Для диванного сценария подключите пульт, клавиатуру или геймпад.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.html#превратите-nas-в-медиаполку-для-гостиной" class="card-footer" target="_blank">Открыть связанный гайд</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">🧬</span>
+                    <span class="card-kicker">Просто-коротко</span>
+                    <h3>Очистка дубликатов</h3>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Одинаковые файлы находятся до того, как фотоархив или загрузки окончательно разрастутся.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Проверка идёт по размеру, частичному хэшу и полному SHA-256.</li>
+                        <li>Совпадения можно просмотреть перед удалением или обработать в авто-режиме.</li>
+                        <li>Особенно полезно после импортов, бэкапов и ручного объединения папок.</li>
+                    </ul>
+                    <a href="docs/FEATURES_RU.html#3-файловые-операции" class="card-footer" target="_blank">Открыть описание функции</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <span class="card-icon">📺</span>
+                    <span class="card-kicker">Просто-коротко</span>
+                    <h3>Воспроизведение на Chromecast</h3>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
+                    <p class="card-summary">Аудио, изображения и локальное видео отправляются с телефона на Cast-приёмник в комнате.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Нужен Cast-совместимый приёмник в той же сети.</li>
+                        <li>Локальные медиа и поддерживаемые аудио/фото-сессии можно стримить напрямую.</li>
+                        <li>VR отдельно: Cast зависит от Google Play Services на конкретном устройстве.</li>
+                    </ul>
+                    <a href="docs/FEATURES_RU.html#9-аудиоплеер" class="card-footer" target="_blank">Открыть описание функции</a>
+                </details>
+            </article>
         </div>
 
         <!-- Руководства пользователя -->
         <h2 class="section-title">🚀 Руководства пользователя</h2>
         <div class="cards-grid">
-            <a href="docs/WHATS_NEW_RU.html" class="card" target="_blank">
+            <article class="card">
                 <div>
                     <span class="card-icon">🆕</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Что нового в версии 2.x</h3>
-                    <p>Обзор последних нововведений: передача офисных документов во внешние просмотрщики, поддержка проигрывания MIDI-файлов, режим файлового менеджера и Dex.</p>
+                    <p class="card-summary">Короткий обзор последних пользовательских изменений.</p>
                 </div>
-                <div class="card-footer">Посмотреть историю изменений</div>
-            </a>
-            <a href="docs/QUICK_START_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Показывает новые функции, исправления и изменения поведения.</li>
+                        <li>Полезно перед обновлением, тестированием или сравнением сборок.</li>
+                    </ul>
+                    <a href="docs/WHATS_NEW_RU.html" class="card-footer" target="_blank">Посмотреть историю изменений</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">⚡</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Быстрый старт</h3>
-                    <p>Начните работу за 5 минут. Пошаговое иллюстрированное руководство для новичков, включая интерактивную схему сенсорных зон плеера.</p>
+                    <p class="card-summary">Первый рабочий результат примерно за пять минут.</p>
                 </div>
-                <div class="card-footer">Открыть гайд</div>
-            </a>
-            <a href="docs/FAQ_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Покрывает первый ресурс, открытие файлов и базовое управление плеером.</li>
+                        <li>Лучшее начало для нового пользователя до полного руководства.</li>
+                    </ul>
+                    <a href="docs/QUICK_START_RU.html" class="card-footer" target="_blank">Открыть гайд</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">❓</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Часто задаваемые вопросы</h3>
-                    <p>Более 25 детализированных ответов на вопросы по работе с файлами, сетевым шарам, горячим клавишам, ПИН-кодам и управлению жестами.</p>
+                    <p class="card-summary">Прямые ответы на частые вопросы по настройке и использованию.</p>
                 </div>
-                <div class="card-footer">Читать FAQ</div>
-            </a>
-            <a href="docs/TROUBLESHOOTING_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Объясняет сортировку, сетевые ресурсы, горячие клавиши, ПИН-коды и жесты.</li>
+                        <li>Подходит, когда цель понятна, но нужно уточнить точное поведение.</li>
+                    </ul>
+                    <a href="docs/FAQ_RU.html" class="card-footer" target="_blank">Читать FAQ</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">🔧</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Решение проблем</h3>
-                    <p>Решения для 15+ распространённых технических проблем: сбои авторизации, сетевые задержки, ошибки декодирования видео и воспроизведения.</p>
+                    <p class="card-summary">Известные решения для сети, авторизации, декодирования и воспроизведения.</p>
                 </div>
-                <div class="card-footer">Решить проблему</div>
-            </a>
-            <a href="docs/howto/index-ru.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Помогает с ошибками, которые обычно можно разобрать без логов.</li>
+                        <li>Стоит открыть перед issue или сбросом ресурса.</li>
+                    </ul>
+                    <a href="docs/TROUBLESHOOTING_RU.html" class="card-footer" target="_blank">Решить проблему</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📖</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Инструкции и сценарии</h3>
-                    <p>Сборник пошаговых сценариев развёртывания медиацентра для новичков, подробные технические справки по всем функциям приложения.</p>
+                    <p class="card-summary">Практический индекс workflows, а не просто перечень функций.</p>
                 </div>
-                <div class="card-footer">Перейти в оглавление</div>
-            </a>
-            <a href="docs/DOWNLOADS_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Собирает сценарии SMB, бэкапа, кинотеатра, фоторамки, музыки в авто и сортировки.</li>
+                        <li>Логично продолжает карточки сценариев в верхней части страницы.</li>
+                    </ul>
+                    <a href="docs/howto/index-ru.html" class="card-footer" target="_blank">Перейти в оглавление</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📦</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Скачать сборки APK</h3>
-                    <p>Загрузка скомпилированных пакетов приложения: Standard, Legacy, а также специализированных сборок с Google Диска.</p>
+                    <p class="card-summary">Готовые установочные пакеты для поддерживаемых сборок.</p>
                 </div>
-                <div class="card-footer">Скачать APK</div>
-            </a>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Содержит публичные варианты загрузки APK и примечания по редакциям.</li>
+                        <li>Нужно, если установка идёт вне Google Play.</li>
+                    </ul>
+                    <a href="docs/DOWNLOADS_RU.html" class="card-footer" target="_blank">Скачать APK</a>
+                </details>
+            </article>
         </div>
 
         <!-- Интерактивный дашборд возможностей -->
@@ -221,82 +438,154 @@
 
         <h2 class="section-title">📚 Техническая документация</h2>
         <div class="cards-grid">
-            <a href="docs/DOCS_MAP.html" class="card" target="_blank">
+            <article class="card">
                 <div>
                     <span class="card-icon">🗺️</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Карта документации</h3>
-                    <p>Удобный интерактивный индекс всех файлов справки, инструкций, спецификаций и технических описаний проекта.</p>
+                    <p class="card-summary">Один индекс для справки, инструкций, технических заметок и dev-документов.</p>
                 </div>
-                <div class="card-footer">Посмотреть карту</div>
-            </a>
-            <a href="docs/README_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Помогает найти нужный документ, если неизвестно имя файла.</li>
+                        <li>Группирует пользовательскую справку, статусные страницы и технические ссылки.</li>
+                    </ul>
+                    <a href="docs/DOCS_MAP.html" class="card-footer" target="_blank">Посмотреть карту</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📖</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Руководство пользователя</h3>
-                    <p>Полный справочник по установке, детальное описание сетевых протоколов, облачных авторизаций и внутреннего плеера.</p>
+                    <p class="card-summary">Полная пользовательская справка по настройке и повседневной работе.</p>
                 </div>
-                <div class="card-footer">Читать руководство</div>
-            </a>
-            <a href="docs/V2_Specification_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Описывает требования, установку, сетевые протоколы, облака и плееры.</li>
+                        <li>Подходит для полного чтения после быстрого старта.</li>
+                    </ul>
+                    <a href="docs/README_RU.html" class="card-footer" target="_blank">Читать руководство</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📋</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Техническая спецификация</h3>
-                    <p>Глубокое описание внутренней структуры проекта, баз данных, схемы кэширования и технических модулей.</p>
+                    <p class="card-summary">Техническая опора для продукта и архитектуры.</p>
                 </div>
-                <div class="card-footer">Открыть спеку</div>
-            </a>
-            <a href="docs/V2_architecture_overview_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Раскрывает компоненты, хранение данных, кэширование и фоновые процессы.</li>
+                        <li>Полезна мейнтейнерам и продвинутым участникам проекта.</li>
+                    </ul>
+                    <a href="docs/V2_Specification_RU.html" class="card-footer" target="_blank">Открыть спеку</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">🏗️</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Обзор архитектуры</h3>
-                    <p>Архитектурные принципы Clean Architecture, реализация паттерна MVVM, внедрение зависимостей через Hilt и Room DB.</p>
+                    <p class="card-summary">Высокоуровневая карта внутренней структуры приложения.</p>
                 </div>
-                <div class="card-footer">Подробнее</div>
-            </a>
-            <a href="docs/V2_TERMS_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Кратко объясняет роли Clean Architecture, MVVM, Hilt и Room.</li>
+                        <li>Хорошее первое чтение перед изменением кода.</li>
+                    </ul>
+                    <a href="docs/V2_architecture_overview_RU.html" class="card-footer" target="_blank">Подробнее</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📝</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Словарь терминов</h3>
-                    <p>Определения ключевых концепций приложения: разделение понятий Источников (Resources) и Назначений (Destinations).</p>
+                    <p class="card-summary">Короткие определения проектных терминов.</p>
                 </div>
-                <div class="card-footer">Открыть глоссарий</div>
-            </a>
-            <a href="docs/TODO_V2_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Разъясняет Resources, Destinations, папки действий и другие базовые понятия.</li>
+                        <li>Полезно при чтении спецификаций, настроек и сценариев.</li>
+                    </ul>
+                    <a href="docs/V2_TERMS_RU.html" class="card-footer" target="_blank">Открыть глоссарий</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">✅</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Дорожная карта разработки</h3>
-                    <p>Список активных задач, запланированные к реализации возможности, статус известных ошибок и отчёты о тестировании.</p>
+                    <p class="card-summary">Активные работы, планы и статус известных проблем.</p>
                 </div>
-                <div class="card-footer">Открыть дорожную карту</div>
-            </a>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Отслеживает задачи и будущие направления, а не пользовательские инструкции.</li>
+                        <li>Помогает понять, запланировано ли поведение или оно ещё в работе.</li>
+                    </ul>
+                    <a href="docs/TODO_V2_RU.html" class="card-footer" target="_blank">Открыть дорожную карту</a>
+                </details>
+            </article>
         </div>
 
         <h2 class="section-title">⚙️ Ресурсы и Правовая информация</h2>
         <div class="cards-grid">
-            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
+            <article class="card">
                 <div>
                     <span class="card-icon">💻</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Репозиторий GitHub</h3>
-                    <p>Доступ к открытому исходному коду проекта, отправка сообщений об ошибках (Issues) и участие в совместной разработке.</p>
+                    <p class="card-summary">Исходный код, issues и история разработки.</p>
                 </div>
-                <div class="card-footer">Код на GitHub</div>
-            </a>
-            <a href="docs/PRIVACY_POLICY.ru.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Используйте для просмотра кода, сообщений об ошибках и активности проекта.</li>
+                        <li>Публичные страницы описывают только публичные поверхности Standard и VR.</li>
+                    </ul>
+                    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card-footer" target="_blank">Код на GitHub</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">🔒</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Конфиденциальность</h3>
-                    <p>Официальная политика обработки персональных данных, описание необходимых локальных и сетевых разрешений Android.</p>
+                    <p class="card-summary">Как обрабатываются разрешения, локальные файлы и чувствительные данные.</p>
                 </div>
-                <div class="card-footer">Читать политику</div>
-            </a>
-            <a href="docs/TERMS_OF_SERVICE_RU.html" class="card" target="_blank">
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Объясняет ожидания по доступу к хранилищу, сети и облачным ресурсам.</li>
+                        <li>Стоит прочитать перед распространением приложения в управляемой среде.</li>
+                    </ul>
+                    <a href="docs/PRIVACY_POLICY.ru.html" class="card-footer" target="_blank">Читать политику</a>
+                </details>
+            </article>
+            <article class="card">
                 <div>
                     <span class="card-icon">📄</span>
+                    <span class="card-kicker">Просто-коротко</span>
                     <h3>Условия использования</h3>
-                    <p>Пользовательское соглашение, условия предоставления лицензии, отказ от ответственности и правила использования кода.</p>
+                    <p class="card-summary">Условия, лицензирование, ограничения и отказ от ответственности.</p>
                 </div>
-                <div class="card-footer">Открыть соглашение</div>
-            </a>
+                <details class="card-details">
+                    <summary>Детально-подробно</summary>
+                    <ul class="detail-list">
+                        <li>Фиксирует ответственность пользователя и границы ответственности проекта.</li>
+                        <li>Полезно для публикации, распространения и compliance-проверок.</li>
+                    </ul>
+                    <a href="docs/TERMS_OF_SERVICE_RU.html" class="card-footer" target="_blank">Открыть соглашение</a>
+                </details>
+            </article>
         </div>
 
     </div>
@@ -420,6 +709,24 @@
                 if (text.indexOf('загруз') !== -1 || text.indexOf('козин') !== -1 || text.indexOf('удален') !== -1 || text.indexOf('перемещ') !== -1) {
                     links.push({ url: 'docs/howto/scenario-download-organizer-ru.html', label: '🧹 Органайзер' });
                 }
+                if (text.indexOf('офлайн') !== -1 || text.indexOf('поезд') !== -1 || text.indexOf('локальн') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.html#подготовьте-папку-для-поездки-без-стабильного-интернета', label: '🧳 Офлайн-папка' });
+                }
+                if (text.indexOf('документ') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('чтен') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.html#читайте-облачные-документы-и-epub-в-дороге', label: '📚 Документы из облака' });
+                }
+                if (text.indexOf('ocr') !== -1 || text.indexOf('перевод') !== -1 || text.indexOf('tesseract') !== -1 || text.indexOf('распознав') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.html#переводите-вывески-сканы-и-скриншоты-через-ocr', label: '🔎 OCR-перевод' });
+                }
+                if (text.indexOf('tv') !== -1 || text.indexOf('гостин') !== -1 || text.indexOf('телевиз') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.html#превратите-nas-в-медиаполку-для-гостиной', label: '🛋️ NAS для TV' });
+                }
+                if (text.indexOf('дублик') !== -1 || text.indexOf('sha-256') !== -1) {
+                    links.push({ url: 'docs/FEATURES_RU.html#3-файловые-операции', label: '🧬 Очистка дубликатов' });
+                }
+                if (text.indexOf('chromecast') !== -1 || text.indexOf('cast') !== -1) {
+                    links.push({ url: 'docs/FEATURES_RU.html#9-аудиоплеер', label: '📺 Chromecast' });
+                }
                 
                 return links;
             }
@@ -472,13 +779,13 @@
                     
                     card.className += ' ' + tagClass;
                     
-                    var headerHtml = '<div class="feature-header">' +
+                    var headerHtml = '<span class="feature-header">' +
                         '<span class="feature-title">' + f.title + '</span>' +
-                        '<div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
+                        '<span style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
                         '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
                         '<span class="toggle-icon">▼</span>' +
-                        '</div>' +
-                        '</div>';
+                        '</span>' +
+                        '</span>';
                     
                     var descHtml = '<div class="feature-desc">' + f.desc + '</div>';
                     
@@ -492,14 +799,10 @@
                         linksHtml += '</div>';
                     }
                     
-                    card.innerHTML = headerHtml + descHtml + linksHtml;
-                    
-                    card.addEventListener('click', function(e) {
-                        if (e.target.closest('.feature-link')) {
-                            return;
-                        }
-                        card.classList.toggle('expanded');
-                    });
+                    card.innerHTML = '<details class="feature-details">' +
+                        '<summary>' + headerHtml + '</summary>' +
+                        descHtml + linksHtml +
+                        '</details>';
                     
                     grid.appendChild(card);
                 });

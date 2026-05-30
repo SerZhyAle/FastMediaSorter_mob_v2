@@ -394,6 +394,7 @@ class BrowseManagerInitializer(
             onArchiveRequested = { name, dir -> viewModel.archiveSelectedFiles(name, dir) },
             onCancelArchive = { viewModel.cancelArchive() },
             onExtractArchive = { viewModel.extractArchive(it) },
+            onExtractArchiveWithPassword = { file, password -> viewModel.extractArchiveWithPassword(file, password) },
             onCancelExtraction = { viewModel.cancelExtraction() },
             onNavigateToFolder = { viewModel.navigateToFolder(it) }
         )

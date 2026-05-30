@@ -5,6 +5,7 @@ import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import timber.log.Timber
 import java.io.File
+import java.util.zip.ZipException
 import java.util.zip.ZipFile
 
 /**
@@ -41,6 +42,9 @@ class OfficeDocumentEngineBridge {
                 else -> null
             }
             body?.let { wrapDocument(file.name, it) }
+        } catch (e: ZipException) {
+            Timber.w(e, "OfficeDocumentEngineBridge: protected or unreadable Office ZIP container: ${file.name}")
+            null
         } catch (e: Exception) {
             Timber.w(e, "OfficeDocumentEngineBridge: failed to render ${file.name}")
             null

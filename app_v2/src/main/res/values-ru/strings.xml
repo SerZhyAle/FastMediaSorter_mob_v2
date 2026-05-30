@@ -2815,6 +2815,13 @@
     <string name="unarchive_error_generic">Ошибка распаковки: %1$s</string>
     <string name="unarchive_network_not_supported">Распаковка поддерживается только для локальных ресурсов и SD-карты.</string>
     <string name="unarchive_only_zip_supported">Поддерживаются только ZIP-архивы.</string>
+    <string name="protected_archive_password_title">Нужен пароль</string>
+    <string name="protected_archive_password_message">"%1$s" защищён паролем.</string>
+    <string name="protected_archive_password_hint">Пароль</string>
+    <string name="protected_archive_password_empty">Введите пароль</string>
+    <string name="protected_archive_password_wrong">Пароль не подошёл.</string>
+    <string name="protected_file_unsupported">Файл защищён и не может быть открыт в приложении.</string>
+    <string name="protected_file_open_external">Открыть во внешнем приложении</string>
     <string name="action_open">Открыть</string>
     <string name="app_updated_to">Обновлено до %1$s</string>
 
