@@ -14,7 +14,7 @@ import timber.log.Timber
 internal class EpubWebViewLifecycle(
     private val binding: ActivityPlayerUnifiedBinding,
     private val resourceContentHelper: EpubResourceContentHelper,
-    private val selectionBridge: Any,
+    private val selectionBridge: EpubViewerManager.EpubSelectionBridge,
     private val onPageRendered: () -> Unit,
     private val swipeGestureProvider: () -> android.view.GestureDetector,
     private val bookProvider: () -> Book?,

@@ -159,7 +159,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.sza.fastmediasorter" android:path="/oauth2redirect" />
+                <!-- Custom-scheme AppAuth redirect: com.sza.fastmediasorter:/oauth2redirect has no
+                     host by design, so AppLinkUrlError's "host required" check does not apply. -->
+                <data android:scheme="com.sza.fastmediasorter" android:path="/oauth2redirect" tools:ignore="AppLinkUrlError" />
             </intent-filter>
         </activity>
 
