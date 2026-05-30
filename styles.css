@@ -85,7 +85,7 @@ h1 {
     font-family: 'Outfit', sans-serif;
     font-size: 3.2rem;
     font-weight: 800;
-    letter-spacing: -1px;
+    letter-spacing: 0;
     background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -320,7 +320,7 @@ h1 img {
     padding: 0.2rem 0.5rem;
     border-radius: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
     white-space: nowrap;
 }
 
@@ -382,10 +382,18 @@ h1 img {
 }
 
 /* Feature explorer collapses */
-.feature-card {
+.feature-card details {
+    width: 100%;
+}
+
+.feature-card summary {
     cursor: pointer;
+    list-style: none;
     user-select: none;
-    justify-content: flex-start;
+}
+
+.feature-card summary::-webkit-details-marker {
+    display: none;
 }
 
 .feature-card .toggle-icon {
@@ -395,35 +403,18 @@ h1 img {
     transform: rotate(0deg);
 }
 
-.feature-card.expanded .toggle-icon {
+.feature-card details[open] .toggle-icon {
     transform: rotate(180deg);
     color: var(--text-highlight);
 }
 
-.feature-card .feature-desc,
-.feature-card .feature-links {
-    max-height: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-}
-
-.feature-card.expanded .feature-desc {
-    max-height: 250px;
+.feature-card details[open] .feature-desc {
     margin-top: 0.8rem;
     margin-bottom: 0.8rem;
-    opacity: 1;
 }
 
-.feature-card.expanded .feature-links {
-    max-height: 120px;
+.feature-card details[open] .feature-links {
     margin-top: 0.8rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-    opacity: 1;
 }
 
 /* Hide SEO-reserve for users to avoid duplicate content clutter */
@@ -437,6 +428,12 @@ h1 img {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
     margin-bottom: 4rem;
+}
+
+.section-lead {
+    color: var(--text-muted);
+    margin: -1rem 0 2rem 0;
+    max-width: 760px;
 }
 
 .card {
@@ -493,6 +490,47 @@ h1 img {
     margin-bottom: 0.8rem;
 }
 
+.card-kicker {
+    color: var(--color-standard);
+    display: inline-flex;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+}
+
+.card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.scenario-badge {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+}
+
+.scenario-badge.standard {
+    border-color: rgba(102, 126, 234, 0.28);
+    color: #a5b4fc;
+}
+
+.scenario-badge.common {
+    border-color: rgba(217, 70, 239, 0.28);
+    color: #f0abfc;
+}
+
+.scenario-badge.vr {
+    border-color: rgba(0, 229, 255, 0.28);
+    color: #67e8f9;
+}
+
 .card p {
     color: var(--text-muted);
     font-size: 0.95rem;
@@ -501,11 +539,66 @@ h1 img {
     margin-bottom: 1.5rem;
 }
 
+.card-summary {
+    min-height: 4.6rem;
+}
+
+.card-details {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 0.4rem;
+    padding-top: 1rem;
+}
+
+.card-details summary {
+    align-items: center;
+    color: var(--text-highlight);
+    cursor: pointer;
+    display: flex;
+    font-weight: 700;
+    gap: 0.45rem;
+    list-style: none;
+    user-select: none;
+}
+
+.card-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.card-details summary::after {
+    color: var(--text-muted);
+    content: '▼';
+    font-size: 0.72rem;
+    margin-left: auto;
+    transition: var(--transition-smooth);
+}
+
+.card-details[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.detail-list {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin: 1rem 0 1.2rem 0;
+    padding-left: 1.1rem;
+}
+
+.detail-list li {
+    margin-bottom: 0.55rem;
+}
+
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+}
+
 .card-footer {
     color: var(--color-standard);
     font-weight: 600;
     font-size: 0.9rem;
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
     display: flex;
     align-items: center;
     gap: 0.4rem;

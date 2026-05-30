@@ -894,6 +894,8 @@ class BrowseViewModel @Inject constructor(
     fun cancelArchive() = archiveManager.cancelArchive()
     fun prepareExtraction(file: MediaFile) = archiveManager.prepareExtraction(file)
     fun extractArchive(file: MediaFile) = archiveManager.extractArchive(file)
+    fun extractArchiveWithPassword(file: MediaFile, password: CharArray) =
+        archiveManager.extractArchiveWithPassword(file, password)
     fun cancelExtraction() = archiveManager.cancelExtraction()
     fun addCurrentResourceAsDestination() = resourceStateManager.addCurrentResourceAsDestination()
 }

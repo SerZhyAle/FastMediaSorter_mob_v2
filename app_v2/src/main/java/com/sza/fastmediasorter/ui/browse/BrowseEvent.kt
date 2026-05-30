@@ -29,6 +29,7 @@ sealed class BrowseEvent {
     /** Archive failed or had a fatal error. */
     data class ArchiveError(val message: String, val exception: Throwable? = null) : BrowseEvent()
     data class ShowExtractConfirmDialog(val file: MediaFile, val targetDirName: String) : BrowseEvent()
+    data class ShowArchivePasswordDialog(val file: MediaFile, val targetDirName: String) : BrowseEvent()
     data class ExtractionProgress(
         val entryName: String,
         val done: Int,

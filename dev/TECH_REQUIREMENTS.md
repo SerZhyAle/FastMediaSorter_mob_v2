@@ -183,6 +183,7 @@
 | `epub4j-core`                   | 4.2        | EPUB parsing                       |
 | `jsoup`                         | 1.17.2     | HTML parsing (EPUB content)        |
 | `markwon-core`                  | 4.6.2      | Markdown rendering                 |
+| `zip4j`                         | 2.11.5     | Password-protected ZIP extraction  |
 | PdfRenderer                      | built-in   | PDF rendering (API 21+)            |
 
 ### 4.13 Logging & Debugging

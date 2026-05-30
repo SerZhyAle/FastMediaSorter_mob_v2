@@ -389,6 +389,13 @@ class PdfViewerManager(
                                 binding.tvPdfPageIndicator?.text = binding.root.context.getString(R.string.pdf_empty)
                             }
                         }
+                    } catch (e: SecurityException) {
+                        Timber.w(e, "Protected PDF cannot be opened by the platform renderer")
+                        withContext(Dispatchers.Main) {
+                            loadingToastJob.cancel()
+                            binding.progressBar.isVisible = false
+                            callback.showError(binding.root.context.getString(R.string.protected_file_unsupported))
+                        }
                     } catch (e: Exception) {
                         Timber.e(e, "Error initializing PDF renderer")
                         withContext(Dispatchers.Main) {

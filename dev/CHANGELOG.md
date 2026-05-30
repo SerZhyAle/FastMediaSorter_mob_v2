@@ -13929,3 +13929,61 @@ Format: | datetime | file | target | description |
 | 2026-05-30 23:18:07 | `index-ru.html` | `index-ru.html` | Apply accordion toggles and click listeners to feature explorer [branch: DEBUG-v009] |
 | 2026-05-30 23:18:07 | `index.html` | `index.html` | Apply accordion toggles and click listeners to feature explorer [branch: DEBUG-v009] |
 | 2026-05-30 23:18:08 | `index-uk.html` | `index-uk.html` | Apply accordion toggles and click listeners to feature explorer [branch: DEBUG-v009] |
+| 2026-05-30 23:27:16 | `PLAN/S0310_nolegal-edition-landing-page/INDEX.md` | `spec-tech` | Create tactical plan for S0310 (noLegal public page) [branch: DEBUG-v009] |
+| 2026-05-30 23:27:17 | `PLAN/S0310_nolegal-edition-landing-page/PHASE_01__en-page.md` | `spec-tech` | Phase 01: en-page [branch: DEBUG-v009] |
+| 2026-05-30 23:27:17 | `PLAN/S0310_nolegal-edition-landing-page/PHASE_02__ru-uk-pages.md` | `spec-tech` | Phase 02: ru-uk-pages [branch: DEBUG-v009] |
+| 2026-05-30 23:27:17 | `PLAN/S0310_nolegal-edition-landing-page/PHASE_03__sitemap-seo-isolation.md` | `spec-tech` | Phase 03: sitemap-seo-isolation [branch: DEBUG-v009] |
+| 2026-05-30 23:27:18 | `PLAN/S0310_nolegal-edition-landing-page/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v009] |
+| 2026-05-30 23:27:18 | `PLAN/S0310_nolegal-edition-landing-page.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v009] |
+| 2026-05-30 23:32:39 | `nolegal.html` | `site` | S0310 Phase 01: English noLegal edition page (topology, full feature catalog, outbound links, indexed SEO) [branch: DEBUG-v009] |
+| 2026-05-30 23:32:39 | `styles.css` | `site` | S0310 Phase 01: append-only noLegal accent styles [branch: DEBUG-v009] |
+| 2026-05-30 23:34:20 | `PLAN/S0308_password-protected-files.md` | `spec-update/S0308` | Resolve S0308 implementation research decisions [branch: DEBUG-v009] |
+| 2026-05-30 23:36:35 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-tech/S0308` | Create tactical plan for S0308 [branch: DEBUG-v009] |
+| 2026-05-30 23:36:35 | `PLAN/S0308_password-protected-files/PHASE_01__zip-domain.md` | `spec-tech/S0308` | Create S0308 phase 01 zip domain [branch: DEBUG-v009] |
+| 2026-05-30 23:36:35 | `PLAN/S0308_password-protected-files/PHASE_02__browse-password-ui.md` | `spec-tech/S0308` | Create S0308 phase 02 browse password UI [branch: DEBUG-v009] |
+| 2026-05-30 23:36:35 | `PLAN/S0308_password-protected-files/PHASE_03__document-fallbacks.md` | `spec-tech/S0308` | Create S0308 phase 03 document fallbacks [branch: DEBUG-v009] |
+| 2026-05-30 23:36:36 | `PLAN/S0308_password-protected-files/PHASE_04__docs-catalog-cleanup.md` | `spec-tech/S0308` | Create S0308 phase 04 docs catalog cleanup [branch: DEBUG-v009] |
+| 2026-05-30 23:36:36 | `PLAN/S0308_password-protected-files.md` | `spec-tech/S0308` | Move S0308 strategic spec to Tactical [branch: DEBUG-v009] |
+| 2026-05-30 23:37:19 | `app_v2/build.gradle.kts` | `spec-dev/S0308/phase-01` | Add zip4j dependency for encrypted ZIP extraction [branch: DEBUG-v009] |
+| 2026-05-30 23:37:19 | `PLAN/S0308_password-protected-files.md` | `spec-dev/S0308` | Mark S0308 implementation in progress [branch: DEBUG-v009] |
+| 2026-05-30 23:37:19 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-01` | Mark S0308 phase 01 in progress [branch: DEBUG-v009] |
+| 2026-05-30 23:37:20 | `PLAN/S0308_password-protected-files/PHASE_01__zip-domain.md` | `spec-dev/S0308/phase-01` | Complete S0308 phase 01 dependency step [branch: DEBUG-v009] |
+| 2026-05-30 23:37:23 | `nolegal-ru.html` | `site` | S0310 Phase 02: Russian noLegal edition page mirror [branch: DEBUG-v009] |
+| 2026-05-30 23:37:24 | `nolegal-uk.html` | `site` | S0310 Phase 02: Ukrainian noLegal edition page mirror [branch: DEBUG-v009] |
+| 2026-05-30 23:38:50 | `sitemap.xml` | `site` | S0310 Phase 03: register noLegal triplet in sitemap (indexed, hreflang isolated) [branch: DEBUG-v009] |
+| 2026-05-30 23:39:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExtractArchiveUseCase.kt` | `spec-dev/S0308/phase-01` | Add password-aware ZIP extraction contract [branch: DEBUG-v009] |
+| 2026-05-30 23:40:11 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ExtractArchiveUseCaseTest.kt` | `spec-dev/S0308/phase-01` | Add encrypted ZIP extraction tests [branch: DEBUG-v009] |
+| 2026-05-30 23:42:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExtractArchiveUseCase.kt` | `spec-dev/S0308/phase-01` | Fix password ZIP compile helpers [branch: DEBUG-v009] |
+| 2026-05-30 23:45:47 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-01` | Mark S0308 phase 01 done [branch: DEBUG-v009] |
+| 2026-05-30 23:45:47 | `PLAN/S0308_password-protected-files/PHASE_01__zip-domain.md` | `spec-dev/S0308/phase-01` | Record S0308 phase 01 validation evidence [branch: DEBUG-v009] |
+| 2026-05-30 23:46:37 | `PLAN/S0310_nolegal-edition-landing-page.md` | `spec-dev` | All phases done; published noLegal page to main 566e43e9; status -> Implemented [branch: DEBUG-v009] |
+| 2026-05-30 23:48:01 | `PLAN/S0310_nolegal-edition-landing-page.md` | `spec-check` | Audit S0310 -> Verified; PASS/WARN/FAIL 12/0/0; published main 566e43e9 [branch: DEBUG-v009] |
+| 2026-05-30 23:48:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseEvent.kt` | `spec-dev/S0308/phase-02` | Add archive password prompt event [branch: DEBUG-v009] |
+| 2026-05-30 23:48:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `spec-dev/S0308/phase-02` | Add archive password extraction entry point [branch: DEBUG-v009] |
+| 2026-05-30 23:49:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveManager.kt` | `spec-dev/S0308/phase-02` | Route protected ZIP extraction through password preflight [branch: DEBUG-v009] |
+| 2026-05-30 23:49:37 | `index.html` | `landing` | Restructure English landing cards with short/detail blocks and expanded scenarios [branch: DEBUG-v009] |
+| 2026-05-30 23:49:37 | `index-ru.html` | `landing` | Restructure Russian landing cards with short/detail blocks and expanded scenarios [branch: DEBUG-v009] |
+| 2026-05-30 23:49:37 | `index-uk.html` | `landing` | Restructure Ukrainian landing cards with short/detail blocks and expanded scenarios [branch: DEBUG-v009] |
+| 2026-05-30 23:49:37 | `styles.css` | `landing` | Add shared short/detail card styling for landing pages [branch: DEBUG-v009] |
+| 2026-05-30 23:50:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveDialogManager.kt` | `spec-dev/S0308/phase-02` | Add archive password prompt dialog [branch: DEBUG-v009] |
+| 2026-05-30 23:50:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `spec-dev/S0308/phase-02` | Handle archive password prompt event [branch: DEBUG-v009] |
+| 2026-05-30 23:51:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-dev/S0308/phase-02` | Wire archive password extraction callback [branch: DEBUG-v009] |
+| 2026-05-30 23:51:49 | `app_v2/src/main/res/values/strings.xml` | `spec-dev/S0308/phase-02` | Add protected archive strings [branch: DEBUG-v009] |
+| 2026-05-30 23:51:50 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev/S0308/phase-02` | Add Russian protected archive strings [branch: DEBUG-v009] |
+| 2026-05-30 23:51:51 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev/S0308/phase-02` | Add Ukrainian protected archive strings [branch: DEBUG-v009] |
+| 2026-05-30 23:53:15 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-02` | Mark S0308 phase 02 done [branch: DEBUG-v009] |
+| 2026-05-30 23:53:16 | `PLAN/S0308_password-protected-files/PHASE_02__browse-password-ui.md` | `spec-dev/S0308/phase-02` | Record S0308 phase 02 validation evidence [branch: DEBUG-v009] |
+| 2026-05-30 23:54:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `spec-dev/S0308/phase-03` | Classify protected PDF renderer failures [branch: DEBUG-v009] |
+| 2026-05-30 23:55:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `spec-dev/S0308/phase-03` | Classify protected EPUB parse failures [branch: DEBUG-v009] |
+| 2026-05-30 23:55:38 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentEngineBridge.kt` | `spec-dev/S0308/phase-03` | Classify protected Office ZIP container failures [branch: DEBUG-v009] |
+| 2026-05-30 23:57:35 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-03` | Mark S0308 phase 03 done [branch: DEBUG-v009] |
+| 2026-05-30 23:57:35 | `PLAN/S0308_password-protected-files/PHASE_03__document-fallbacks.md` | `spec-dev/S0308/phase-03` | Record S0308 phase 03 validation evidence [branch: DEBUG-v009] |
+| 2026-05-30 23:58:27 | `docs/FEATURES.md` | `doc-update/S0308` | Document protected archive and document fallback support [branch: DEBUG-v009] |
+| 2026-05-30 23:58:27 | `docs/FEATURES_RU.md` | `doc-update/S0308` | Document Russian protected archive and document fallback support [branch: DEBUG-v009] |
+| 2026-05-30 23:58:27 | `docs/FEATURES_UK.md` | `doc-update/S0308` | Document Ukrainian protected archive and document fallback support [branch: DEBUG-v009] |
+| 2026-05-30 23:58:27 | `docs/TECH_STACK.md` | `doc-update/S0308` | Document zip4j dependency [branch: DEBUG-v009] |
+| 2026-05-30 23:58:28 | `dev/TECH_REQUIREMENTS.md` | `doc-update/S0308` | Add zip4j to dependency inventory [branch: DEBUG-v009] |
+| 2026-05-31 00:01:07 | `PLAN/S0308_password-protected-files.md` | `spec-dev/S0308` | Mark S0308 implemented [branch: DEBUG-v009] |
+| 2026-05-31 00:01:07 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-04` | Mark S0308 tactical plan done [branch: DEBUG-v009] |
+| 2026-05-31 00:01:08 | `PLAN/S0308_password-protected-files/PHASE_04__docs-catalog-cleanup.md` | `spec-dev/S0308/phase-04` | Record S0308 phase 04 validation evidence [branch: DEBUG-v009] |
+| 2026-05-31 00:08:40 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5310.007 - plateau merge from DEBUG-v009 [branch: DEBUG-v009] |

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.ArchiveProgress
+import com.sza.fastmediasorter.domain.usecase.ArchiveAccessResult
 import com.sza.fastmediasorter.domain.usecase.CreateDirectoryUseCase
 import com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase
 import com.sza.fastmediasorter.domain.usecase.ExtractProgress
@@ -142,8 +143,25 @@ class BrowseArchiveManager(
         scope.launch(ioDispatcher) {
             val parentPath = stateFlow.value.currentPath ?: resource.path
             val targetDirName = resolveUniqueExtractionDirName(file.name, parentPath)
+            val isProtected = runCatching { extractArchiveUseCase.isPasswordRequired(file.path) }
+                .getOrElse { error ->
+                    Timber.e(error, "prepareExtraction: failed to inspect archive protection")
+                    sendEvent(
+                        BrowseEvent.ExtractionFailed(
+                            context.getString(
+                                R.string.unarchive_error_generic,
+                                context.getString(R.string.error_reason_unknown)
+                            )
+                        )
+                    )
+                    return@launch
+                }
             withContext(Dispatchers.Main) {
-                sendEvent(BrowseEvent.ShowExtractConfirmDialog(file, targetDirName))
+                if (isProtected) {
+                    sendEvent(BrowseEvent.ShowArchivePasswordDialog(file, targetDirName))
+                } else {
+                    sendEvent(BrowseEvent.ShowExtractConfirmDialog(file, targetDirName))
+                }
             }
         }
     }
@@ -151,7 +169,11 @@ class BrowseArchiveManager(
     /**
      * Phase 2: create target directory and stream-extract the ZIP archive.
      */
-    fun extractArchive(file: MediaFile) {
+    fun extractArchive(file: MediaFile) = extractArchiveInternal(file, password = null)
+
+    fun extractArchiveWithPassword(file: MediaFile, password: CharArray) = extractArchiveInternal(file, password)
+
+    private fun extractArchiveInternal(file: MediaFile, password: CharArray?) {
         val resource = stateFlow.value.resource ?: return
         if (resource.type != ResourceType.LOCAL) {
             sendEvent(BrowseEvent.ExtractionFailed(context.getString(R.string.unarchive_network_not_supported)))
@@ -166,103 +188,115 @@ class BrowseArchiveManager(
         extractionCancelRequested = false
 
         extractionJob = scope.launch(ioDispatcher) {
-            val parentPath = stateFlow.value.currentPath ?: resource.path
-            val targetDirName = resolveUniqueExtractionDirName(file.name, parentPath)
+            try {
+                val parentPath = stateFlow.value.currentPath ?: resource.path
+                val targetDirName = resolveUniqueExtractionDirName(file.name, parentPath)
 
-            val createdDirPath = createDirectoryUseCase(resource, parentPath, targetDirName).getOrElse { error ->
-                sendEvent(BrowseEvent.ExtractionFailed(
-                    context.getString(R.string.unarchive_error_create_dir)
-                ))
-                return@launch
-            }
+                val accessResult = validateArchiveAccess(file, password, targetDirName)
+                if (accessResult != ArchiveAccessResult.Accessible) {
+                    return@launch
+                }
 
-            updateState {
-                it.copy(
-                    extractionState = ExtractionState(
-                        isExtracting = true,
-                        currentEntry = "",
-                        progressPercent = 0,
-                        doneEntries = 0,
-                        totalEntries = 0,
-                        targetPath = createdDirPath
-                    )
-                )
-            }
+                val createdDirPath = createDirectoryUseCase(resource, parentPath, targetDirName).getOrElse {
+                    sendEvent(BrowseEvent.ExtractionFailed(
+                        context.getString(R.string.unarchive_error_create_dir)
+                    ))
+                    return@launch
+                }
 
-            extractArchiveUseCase.invoke(
-                archivePath = file.path,
-                targetDirPath = createdDirPath,
-                onCancel = { extractionCancelRequested }
-            ).collect { progress ->
-                when (progress) {
-                    is ExtractProgress.Started -> {
-                        updateState {
-                            it.copy(
-                                extractionState = it.extractionState.copy(
-                                    isExtracting = true,
-                                    totalEntries = progress.totalEntries,
-                                    doneEntries = 0,
-                                    progressPercent = 0
-                                )
-                            )
-                        }
-                    }
-
-                    is ExtractProgress.EntryDone -> {
-                        updateState {
-                            it.copy(
-                                extractionState = it.extractionState.copy(
-                                    isExtracting = true,
-                                    currentEntry = progress.entryName,
-                                    doneEntries = progress.done,
-                                    totalEntries = progress.total,
-                                    progressPercent = progress.percent
-                                )
-                            )
-                        }
-                        sendEvent(
-                            BrowseEvent.ExtractionProgress(
-                                entryName = progress.entryName,
-                                done = progress.done,
-                                total = progress.total,
-                                percent = progress.percent
-                            )
+                updateState {
+                    it.copy(
+                        extractionState = ExtractionState(
+                            isExtracting = true,
+                            currentEntry = "",
+                            progressPercent = 0,
+                            doneEntries = 0,
+                            totalEntries = 0,
+                            targetPath = createdDirPath
                         )
-                    }
+                    )
+                }
 
-                    is ExtractProgress.Success -> {
-                        updateState {
-                            it.copy(
-                                extractionState = it.extractionState.copy(
-                                    isExtracting = false,
-                                    progressPercent = 100,
-                                    targetPath = progress.targetPath
-                                )
-                            )
-                        }
-                        reloadFiles(false)
-                        sendEvent(BrowseEvent.ExtractionSuccess(progress.targetPath, progress.extractedCount))
-                    }
-
-                    is ExtractProgress.Failure -> {
-                        updateState {
-                            it.copy(
-                                extractionState = it.extractionState.copy(isExtracting = false)
-                            )
-                        }
-                        if (progress.error != "cancelled") {
-                            val message = when (progress.error) {
-                                "zip_bomb" -> context.getString(R.string.unarchive_error_zip_bomb)
-                                "no_space"  -> context.getString(R.string.unarchive_error_no_space)
-                                else        -> context.getString(
-                                    R.string.unarchive_error_generic,
-                                    context.getString(R.string.error_reason_unknown)
+                extractArchiveUseCase.invoke(
+                    archivePath = file.path,
+                    targetDirPath = createdDirPath,
+                    password = password,
+                    onCancel = { extractionCancelRequested }
+                ).collect { progress ->
+                    when (progress) {
+                        is ExtractProgress.Started -> {
+                            updateState {
+                                it.copy(
+                                    extractionState = it.extractionState.copy(
+                                        isExtracting = true,
+                                        totalEntries = progress.totalEntries,
+                                        doneEntries = 0,
+                                        progressPercent = 0
+                                    )
                                 )
                             }
-                            sendEvent(BrowseEvent.ExtractionFailed(message))
+                        }
+
+                        is ExtractProgress.EntryDone -> {
+                            updateState {
+                                it.copy(
+                                    extractionState = it.extractionState.copy(
+                                        isExtracting = true,
+                                        currentEntry = progress.entryName,
+                                        doneEntries = progress.done,
+                                        totalEntries = progress.total,
+                                        progressPercent = progress.percent
+                                    )
+                                )
+                            }
+                            sendEvent(
+                                BrowseEvent.ExtractionProgress(
+                                    entryName = progress.entryName,
+                                    done = progress.done,
+                                    total = progress.total,
+                                    percent = progress.percent
+                                )
+                            )
+                        }
+
+                        is ExtractProgress.Success -> {
+                            updateState {
+                                it.copy(
+                                    extractionState = it.extractionState.copy(
+                                        isExtracting = false,
+                                        progressPercent = 100,
+                                        targetPath = progress.targetPath
+                                    )
+                                )
+                            }
+                            reloadFiles(false)
+                            sendEvent(BrowseEvent.ExtractionSuccess(progress.targetPath, progress.extractedCount))
+                        }
+
+                        is ExtractProgress.Failure -> {
+                            updateState {
+                                it.copy(
+                                    extractionState = it.extractionState.copy(isExtracting = false)
+                                )
+                            }
+                            if (progress.error != "cancelled") {
+                                val message = when (progress.error) {
+                                    "zip_bomb" -> context.getString(R.string.unarchive_error_zip_bomb)
+                                    "no_space"  -> context.getString(R.string.unarchive_error_no_space)
+                                    "password_required" -> context.getString(R.string.protected_archive_password_wrong)
+                                    "password_invalid" -> context.getString(R.string.protected_archive_password_wrong)
+                                    else        -> context.getString(
+                                        R.string.unarchive_error_generic,
+                                        context.getString(R.string.error_reason_unknown)
+                                    )
+                                }
+                                sendEvent(BrowseEvent.ExtractionFailed(message))
+                            }
                         }
                     }
                 }
+            } finally {
+                password?.fill('\u0000')
             }
         }
     }
@@ -301,6 +335,30 @@ class BrowseArchiveManager(
                 File(parentPath, folderName).exists()
             }
         }
+
+    private fun validateArchiveAccess(
+        file: MediaFile,
+        password: CharArray?,
+        targetDirName: String
+    ): ArchiveAccessResult {
+        val accessResult = extractArchiveUseCase.validateArchiveAccess(file.path, password)
+        when (accessResult) {
+            ArchiveAccessResult.Accessible -> Unit
+            ArchiveAccessResult.PasswordRequired -> sendEvent(BrowseEvent.ShowArchivePasswordDialog(file, targetDirName))
+            ArchiveAccessResult.InvalidPassword -> sendEvent(
+                BrowseEvent.ExtractionFailed(context.getString(R.string.protected_archive_password_wrong))
+            )
+            ArchiveAccessResult.Unreadable -> sendEvent(
+                BrowseEvent.ExtractionFailed(
+                    context.getString(
+                        R.string.unarchive_error_generic,
+                        context.getString(R.string.error_reason_unknown)
+                    )
+                )
+            )
+        }
+        return accessResult
+    }
 
     private fun isZipArchive(file: MediaFile): Boolean {
         if (file.type != MediaType.BINARY_ARCHIVE) return false

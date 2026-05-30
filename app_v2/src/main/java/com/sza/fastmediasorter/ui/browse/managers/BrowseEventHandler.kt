@@ -166,6 +166,8 @@ class BrowseEventHandler(
             }
             is BrowseEvent.ShowExtractConfirmDialog ->
                 archiveDialogManager.showUnarchiveConfirmDialog(event.file, event.targetDirName)
+            is BrowseEvent.ShowArchivePasswordDialog ->
+                archiveDialogManager.showArchivePasswordDialog(event.file, event.targetDirName)
             is BrowseEvent.ExtractionProgress ->
                 archiveDialogManager.updateExtractProgress(event)
             is BrowseEvent.ExtractionSuccess ->
