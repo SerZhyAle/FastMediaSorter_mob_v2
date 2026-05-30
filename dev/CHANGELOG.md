@@ -13831,3 +13831,86 @@ Format: | datetime | file | target | description |
 | 2026-05-30 17:49:15 | `app_v2/src/main/res/values-ru/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
 | 2026-05-30 17:49:16 | `app_v2/src/main/res/values-uk/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
 | 2026-05-30 17:49:16 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.1` | Mark link auth resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:51:27 | `app_v2/src/main/res/values/strings_google_account.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:27 | `app_v2/src/main/res/values-ru/strings_google_account.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:28 | `app_v2/src/main/res/values-uk/strings_google_account.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:28 | `app_v2/src/main/res/values/strings_s0200.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:28 | `app_v2/src/main/res/values-ru/strings_s0200.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values-uk/strings_s0200.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values/strings_s0294.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values-ru/strings_s0294.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values-uk/strings_s0294.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:30 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.2` | Mark Google account resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:52:11 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-check` | Re-audit S0305 after MIME fallback fix; PASS/WARN/FAIL 61/0/0 [branch: DEBUG-v008] |
+| 2026-05-30 17:52:17 | `app_v2/src/main/res/values/strings_vr.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:18 | `app_v2/src/main/res/values-ru/strings_vr.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:18 | `app_v2/src/main/res/values-uk/strings_vr.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:18 | `app_v2/src/main/res/values/strings_s0292.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:19 | `app_v2/src/main/res/values-ru/strings_s0292.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:19 | `app_v2/src/main/res/values-uk/strings_s0292.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:19 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.3` | Mark VR resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:53:05 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec` | Add strategic spec S0307 for emulator user-test sweep [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values/strings_resource_operations.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values-ru/strings_resource_operations.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values-uk/strings_resource_operations.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values/strings_s0160.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:08 | `app_v2/src/main/res/values-ru/strings_s0160.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:08 | `app_v2/src/main/res/values-uk/strings_s0160.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:08 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.4` | Mark resource operations resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:54:54 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Phase 01` | Mark resource regroup phase done [branch: DEBUG-v008] |
+| 2026-05-30 17:54:54 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `S0306 Phase 01` | Update Phase 01 completion in tactical index [branch: DEBUG-v008] |
+| 2026-05-30 17:54:54 | `app_v2/build.gradle.kts` | `S0306 Phase 01 build validation` | Record auto-version update from standard debug build [branch: DEBUG-v008] |
+| 2026-05-30 17:55:58 | `PLAN/S0306_thematic-string-resource-files.md` | `S0306 Step 02.1` | Record resource-only implementation handoff [branch: DEBUG-v008] |
+| 2026-05-30 17:55:58 | `PLAN/S0306_thematic-string-resource-files/PHASE_02__docs-catalog-cleanup.md` | `S0306 Phase 02` | Mark docs catalog cleanup phase done [branch: DEBUG-v008] |
+| 2026-05-30 17:55:59 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `S0306 Phase 02` | Update Phase 02 completion in tactical index [branch: DEBUG-v008] |
+| 2026-05-30 17:56:11 | `PLAN/S0306_thematic-string-resource-files.md` | `S0306 implementation` | Mark S0306 implemented [branch: DEBUG-v008] |
+| 2026-05-30 17:57:27 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec` | Add owner inputs gate for S0307 spec-all continuation [branch: DEBUG-v008] |
+| 2026-05-30 17:57:38 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-check` | Audit S0306 to Verified; PASS/WARN/FAIL 38/0/0 [branch: DEBUG-v008] |
+| 2026-05-30 17:57:54 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `S0306 spec-check` | Mark S0306 completion gate verified [branch: DEBUG-v008] |
+| 2026-05-30 17:59:50 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:50 | `PLAN/S0307_emulator-user-test-sweep/PHASE_01__bootstrap-discovery.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:51 | `PLAN/S0307_emulator-user-test-sweep/PHASE_02__route-matrix.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:51 | `PLAN/S0307_emulator-user-test-sweep/PHASE_03__fixtures-build-plan.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:52 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:52 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:53 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 18:00:35 | `PLAN/S0307_emulator-user-test-sweep/PHASE_01__bootstrap-discovery.md` | `spec-dev` | Mark S0307 Phase 01 discovery complete [branch: DEBUG-v008] |
+| 2026-05-30 18:00:35 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 tactical index after Phase 01 [branch: DEBUG-v008] |
+| 2026-05-30 18:00:49 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Set S0307 implementation status in progress [branch: DEBUG-v008] |
+| 2026-05-30 18:02:01 | `PLAN/S0307_emulator-user-test-sweep/PHASE_02__route-matrix.md` | `spec-dev` | Mark S0307 Phase 02 route matrix complete [branch: DEBUG-v008] |
+| 2026-05-30 18:02:01 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 tactical index after Phase 02 [branch: DEBUG-v008] |
+| 2026-05-30 18:02:43 | `PLAN/S0307_emulator-user-test-sweep/PHASE_03__fixtures-build-plan.md` | `spec-dev` | Mark S0307 Phase 03 fixtures plan complete [branch: DEBUG-v008] |
+| 2026-05-30 18:02:43 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 tactical index after Phase 03 [branch: DEBUG-v008] |
+| 2026-05-30 18:03:29 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Block S0307 Phase 04 because emulator is offline [branch: DEBUG-v008] |
+| 2026-05-30 18:03:29 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Record S0307 emulator execution blocker [branch: DEBUG-v008] |
+| 2026-05-30 18:03:39 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Set S0307 strategic status to BlockExternal [branch: DEBUG-v008] |
+| 2026-05-30 18:04:22 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Update S0307 Last Audit after blocked sweep [branch: DEBUG-v008] |
+| 2026-05-30 18:04:23 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `spec-dev` | Mark S0307 Phase 05 report complete [branch: DEBUG-v008] |
+| 2026-05-30 18:04:23 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Mark S0307 tactical plan blocked after report [branch: DEBUG-v008] |
+| 2026-05-30 18:11:45 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Resume S0307 after emulator became online [branch: DEBUG-v008] |
+| 2026-05-30 18:11:46 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Mark S0307 Phase 04 device ready [branch: DEBUG-v008] |
+| 2026-05-30 18:11:47 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Resume S0307 tactical Phase 04 [branch: DEBUG-v008] |
+| 2026-05-30 18:15:41 | `app_v2/build.gradle.kts` | `build` | Auto-version standard debug build for S0307 emulator sweep [branch: DEBUG-v008] |
+| 2026-05-30 18:16:17 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Mark S0307 Phase 04 build install complete [branch: DEBUG-v008] |
+| 2026-05-30 18:16:18 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 index after build install [branch: DEBUG-v008] |
+| 2026-05-30 18:17:07 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Mark S0307 Phase 04 fixture push complete [branch: DEBUG-v008] |
+| 2026-05-30 18:17:07 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 index after fixture push [branch: DEBUG-v008] |
+| 2026-05-30 18:38:43 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Update emulator sweep audit after partial standardDebug verification run [branch: DEBUG-v008] |
+| 2026-05-30 18:45:06 | `.claude/commands/spec-sweep.md` | `spec-sweep` | New /spec-sweep skill: batch device-test sweep over BlockNeedUserTest tickets (operationalizes S0307); wired auto device-test gate into /spec-dev, /spec-all, /spec-next; registered in CLAUDE.md [branch: DEBUG-v008] |
+| 2026-05-30 18:46:22 | `.github/prompts/spec-sweep.prompt.md` | `spec-sweep.prompt.md` | Add /spec-sweep skill prompt file [branch: DEBUG-v008] |
+| 2026-05-30 18:46:23 | `AGENTS.md` | `AGENTS.md` | Register /spec-sweep skill in mandatory routing and imported skills lists [branch: DEBUG-v008] |
+| 2026-05-30 18:54:30 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Mark emulator execution phase complete after partial standardDebug sweep [branch: DEBUG-v008] |
+| 2026-05-30 18:54:30 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Update verdict phase for candidate-only partial execution report [branch: DEBUG-v008] |
+| 2026-05-30 18:54:31 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Synchronize tactical index with partial emulator sweep completion [branch: DEBUG-v008] |
+| 2026-05-30 18:56:56 | `PLAN/S0254_settings-grid-to-interface.md` | `S0254` | Mark settings grid relocation verification broken after emulator evidence [branch: DEBUG-v008] |
+| 2026-05-30 18:56:56 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Record S0254 broken transition in sweep audit [branch: DEBUG-v008] |
+| 2026-05-30 18:56:57 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Record applied S0254 transition in verdict phase [branch: DEBUG-v008] |
+| 2026-05-30 18:56:57 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Record S0254 broken transition in tactical index [branch: DEBUG-v008] |
+| 2026-05-30 18:59:21 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Record S0281 share-alias blocker in sweep audit [branch: DEBUG-v008] |
+| 2026-05-30 18:59:21 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Update evidence counters after S0281 share attempt [branch: DEBUG-v008] |
+| 2026-05-30 19:08:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0165` | Remove S0165 debug verification probe after emulator pass [branch: DEBUG-v008] |
+| 2026-05-30 19:10:34 | `PLAN/S0165_browse-create-folder.md` | `S0165` | Record emulator verification for browse create folder [branch: DEBUG-v008] |
+| 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Record S0165 verified result in sweep audit [branch: DEBUG-v008] |
+| 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Update sweep completion notes for S0165 [branch: DEBUG-v008] |
+| 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Update Phase 04 S0165 evidence summary [branch: DEBUG-v008] |
+| 2026-05-30 19:12:37 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Update Phase 05 mutation count for S0165 [branch: DEBUG-v008] |

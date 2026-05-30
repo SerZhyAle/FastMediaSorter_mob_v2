@@ -515,7 +515,6 @@ class BrowseManagerInitializer(
                 Toast.makeText(activity, activity.getString(R.string.scan_stopped, viewModel.state.value.mediaFiles.size), Toast.LENGTH_SHORT).show()
             }
             override fun onCreateFolderClicked() {
-                Timber.d("S0165: btnCreateFolder clicked → showCreateFolderDialog")
                 resourceOpsMenuManager.showCreateFolderDialog(viewModel)
             }
             override fun onCreateTextNoteClicked() {

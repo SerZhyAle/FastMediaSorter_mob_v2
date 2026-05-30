@@ -64,6 +64,7 @@ Load the matching `.github/prompts/*.prompt.md` before doing the task:
 - `/spec-update`: refine an existing strategic or tactical spec.
 - `/spec-arc`: archive a spec.
 - `/spec-test-device`: on-device spec verification.
+- `/spec-sweep`: batch device-test sweep over BlockNeedUserTest tickets.
 - `/ui-clarify`: UI/UX placement, visibility, layout, command, menu, empty/error, confirmation, orientation, or accessibility decisions.
 - `/catalog`: class lookup, feature lookup, refactor planning, class catalog refresh.
 - `/doc-update`: docs or feature inventory updates.
@@ -99,6 +100,7 @@ Prompt files are imported from `.github/prompts/`:
 - `spec-fix.prompt.md`
 - `spec-tech.prompt.md`
 - `spec-test-device.prompt.md`
+- `spec-sweep.prompt.md`
 - `spec-update.prompt.md`
 - `spec.prompt.md`
 - `ui-clarify.prompt.md`

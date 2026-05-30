@@ -140,7 +140,7 @@ Record the final status. Possible terminations for one round:
 | `Verified` | Closed ✅ | Continue loop |
 | `Implemented` | Audit deferred / max iterations hit | Continue loop (won't re-pick - Stage 1 includes `Implemented`, but `/spec-all` already ran F5 on it; if priority still tops the list, the audit was likely capped - skip via "round memory" below) |
 | `Partial` / `Broken` | Audit incomplete | Continue loop (same skip rule as `Implemented`) |
-| `BlockNeedUserTest` | Manual gate set | Continue loop |
+| `BlockNeedUserTest` | Manual gate set (the `/spec-all` round already auto-ran `/spec-test-device` + `/spec-check` via its Device-test gate if a device was online; reaching this row means no device was attached) | Continue loop |
 | `BlockByOtherTask` | Blocked by new dependency | Continue loop |
 | `BlockExternal` / `BlockQuestions` | Hard external block | Continue loop |
 | `Archived` | Aborted as archived | Continue loop |
@@ -169,6 +169,8 @@ Waiting on human (not picked):
   Syyyy <slug> - BlockQuestions
   ...
 ```
+
+If the "Waiting on human" list contains any `BlockNeedUserTest` entries, append one line: `Tip: attach a device and run /spec-sweep to drain the BlockNeedUserTest backlog.`
 
 Run dev log once for the session:
 

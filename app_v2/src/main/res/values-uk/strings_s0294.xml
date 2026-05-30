@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="s0294_google_drive_browser_required_message">Для входу в Google потрібен браузер. Встановіть його і спробуйте ще раз.</string>
-    <string name="s0294_google_drive_browser_launch_failed_message">Не вдалося відкрити вхід через Google. Спробуйте ще раз.</string>
-    <string name="s0294_google_drive_browser_auth_failed_message">Не вдалося завершити вхід через Google. Спробуйте ще раз.</string>
-</resources>

@@ -65,6 +65,7 @@ Timber.d("Sxxxx: <short description of exercised path>")
 | Applying mechanical fixes after a spec-check audit | `/spec-fix` |
 | Archiving a spec - move `PLAN/Sxxxx_*` files to `temp/done/` and mark the journal record `Archived` | `/spec-arc` |
 | End-to-end on-device verification of a spec (build → install → drive UI → harvest logcat → patch spec's Manual block) | `/spec-test-device` |
+| Batch device-test sweep over all `BlockNeedUserTest` tickets to drain the manual-verification backlog (operationalizes S0307) | `/spec-sweep` |
 | Lightweight on-device smoke ("does it launch / click / not crash?") without touching specs, journal, or dev log | `/verify` (pre-flight via `scripts/devtest/device-ready.ps1`; outputs land in `temp/verify_*` only) |
 | Locating a Kotlin class or feature before grepping, planning a refactor/decomposition, auditing who injects a type, or refreshing class-catalog metadata | `/catalog` (query `dev/CATALOG/scripts/query.ps1` before global grep; run `scripts/catalog_sync.ps1` after every `.kt` change) |
 | UI/UX change touching layout, menus, visibility, orientation, empty/error states, overflow | `/ui-clarify` (blocks impl until ambiguities resolved) |

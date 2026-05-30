@@ -110,7 +110,16 @@ After all phases done:
 
   Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `add_to_functionality_log.ps1` + `catalog_sync.ps1` only when a separate catalog repair is still needed) remains valid when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process.
 
-- **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` - in that case note: `→ Awaiting on-device test. Debug tags inserted: N. Run /spec-check <Sxxxx> after verification (it removes the tags on the Verified transition).`
+- **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` - in that case apply the **Device-test gate** below instead.
+
+- **Device-test gate (on `BlockNeedUserTest`).** When the status was flipped to `BlockNeedUserTest`, do not just stop - probe for a device and auto-run the on-device verification when one is attached:
+
+  ```powershell
+  pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
+  ```
+
+  - **Exit 0 (device online):** auto-chain `/spec-test-device <Sxxxx>` (full evidence run) → then `/spec-check <Sxxxx>`. `/spec-check` converts the harvested evidence into `Verified` / `Partial` / `Broken` and, on a transition out of `BlockNeedUserTest`, removes the `Timber.d("Sxxxx:` tags. Note in chat: `→ Device online: ran /spec-test-device + /spec-check. End status: <new>.`
+  - **Exit 2/1/3/6 (no usable device):** do not run. Note: `→ Awaiting on-device test. Debug tags inserted: N. No device attached - run /spec-sweep (or /spec-test-device <Sxxxx>) when a device is online; /spec-check removes the tags on the Verified transition.` Leave the ticket in `BlockNeedUserTest`.
 
 **Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. [verify-smoke PASS/SKIPPED/FAIL when --verify-smoke]. → Running /spec-check…`
 

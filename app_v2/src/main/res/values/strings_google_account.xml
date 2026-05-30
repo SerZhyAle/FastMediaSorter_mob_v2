@@ -35,4 +35,9 @@
     <string name="s0234_card_state_error_unknown_summary">Sign-in failed for an unexpected reason. Try again - if it keeps failing, send the error report from the dialog.</string>
     <string name="s0234_card_state_error_unknown_cta">Try again</string>
     <string name="s0234_card_state_error_diag_details_prefix">Failure reason: %1$s</string>
+
+    <!-- S0294 - Google Drive browser auth -->
+    <string name="s0294_google_drive_browser_required_message">Google sign-in needs a browser. Install one and try again.</string>
+    <string name="s0294_google_drive_browser_launch_failed_message">Could not open Google sign-in. Try again.</string>
+    <string name="s0294_google_drive_browser_auth_failed_message">Could not finish Google sign-in. Try again.</string>
 </resources>

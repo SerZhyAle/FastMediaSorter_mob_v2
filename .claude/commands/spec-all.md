@@ -167,7 +167,7 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 4. Still failing → hard-stop → jump to final report as Blocked.
 5. If any `src/vr/` file modified: also run `vr debug` after standard passes.
 
-**MANUAL-REQUIRED stop:** tick as `[manual - deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, at end of pipeline insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry (CLAUDE.md "Debug Verification Tags"), then set status `BlockNeedUserTest`.
+**MANUAL-REQUIRED stop:** tick as `[manual - deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, at end of pipeline insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry (CLAUDE.md "Debug Verification Tags"), then set status `BlockNeedUserTest` and apply the **Device-test gate** (see Finalization) - auto-run `/spec-test-device` + `/spec-check` when a device is online.
 
 **Hard stop - attempt inline resolution:**
 
@@ -243,6 +243,17 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
 
 Sub-skills (`/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`) call this script internally. Use it directly from `/spec-all` only when the orchestrator itself owns the closing step (rare - usually a sub-skill ran last).
 
+**Device-test gate.** Whenever this pipeline sets a ticket to `BlockNeedUserTest` (resume-mode MANUAL-REQUIRED stop, or the `Device/hardware verification required` hard-stop row), do not just continue with the block parked - probe for an attached device and auto-run the on-device verification when one is present. This keeps `/spec-all` unattended: it adds a device test only when a device happens to be online, and is a silent no-op otherwise.
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
+```
+
+- **Exit 0 (device online):** the `Timber.d("Sxxxx:` tags are already inserted and the status is `BlockNeedUserTest`; auto-chain `/spec-test-device <Sxxxx>` (full evidence) → `/spec-check <Sxxxx>`. `/spec-check` converts the evidence into `Verified` / `Partial` / `Broken` and removes the tags on the transition out of `BlockNeedUserTest`. Record the resulting status in the final report instead of `BlockNeedUserTest`.
+- **Exit 2/1/3/6 (no usable device):** silent no-op. Leave the ticket in `BlockNeedUserTest`, keep the tags, and add a one-line `Manual / unresolved` note: `device-test deferred (no device) - run /spec-sweep when a device is online`.
+
+This gate is non-blocking: a failed device-ready probe never stops the pipeline. The batch drain for tickets parked here is `/spec-sweep`.
+
 ---
 
 ## Hard-Stop Conditions
@@ -259,7 +270,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 | Read-only zone reference | Stop - hard boundary, no exceptions |
 | MAX_FIX_ITERATIONS exhausted | Final report - Incomplete |
 | Stage F3 unresolvable after 2 inline attempts | Add to deferred list, continue remaining steps |
-| Device/hardware verification required | Defer to manual items, insert `Timber.d("Sxxxx: …")` debug tags at changed flow entries, set status `BlockNeedUserTest`, continue pipeline |
+| Device/hardware verification required | Defer to manual items, insert `Timber.d("Sxxxx: …")` debug tags at changed flow entries, set status `BlockNeedUserTest`, then apply the **Device-test gate** (auto-run `/spec-test-device` + `/spec-check` if a device is online; silent no-op otherwise), continue pipeline |
 | External dependency missing | Add to deferred list, set status `BlockExternal`, final report - Blocked |
 | `Archived` status | Abort - spec is archived, create new one |
 | `$ARGUMENTS` blank | Abort - no input |
