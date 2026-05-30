@@ -13918,3 +13918,10 @@ Format: | datetime | file | target | description |
 | 2026-05-30 21:48:58 | `PLAN/S0308_password-protected-files.md` | `spec/S0308` | Add strategic spec S0308 for password-protected files [branch: DEBUG-v009] |
 | 2026-05-30 21:51:36 | `index.html` | `GitHub Pages site` | Update landing What's New cards (EN/RU/UK) and sitemap lastmod for v2.60.5302.057 release - standard features only [branch: DEBUG-v009] |
 | 2026-05-30 21:57:42 | `index.html` | `GitHub Pages site` | Fix image lib Coil->Glide, add Office/Telegram/MIDI/File Manager Mode to Key Features, bump section count and schema dateModified (EN/RU/UK) [branch: DEBUG-v009] |
+| 2026-05-30 22:08:54 | `docs/FEATURES_RU.md` | `docs/FEATURES*.md` | consolidate public features, classify standard vs VR, hide noLegal [branch: DEBUG-v009] |
+| 2026-05-30 22:08:55 | `index-ru.html` | `index*.html` | redesign landing pages with dark ambient, responsive grids, and interactive feature explorer [branch: DEBUG-v009] |
+| 2026-05-30 22:08:55 | `styles.css` | `styles.css` | add dark ambient theme colors, variables, animations, and glassmorphic card styles [branch: DEBUG-v009] |
+| 2026-05-30 22:13:36 | `PLAN/S0308_password-protected-files.md` | `spec-update/S0308` | Refine S0308 owner inputs for password-protected files [branch: DEBUG-v009] |
+| 2026-05-30 22:15:08 | `PLAN/S0310_nolegal-edition-landing-page.md` | `spec` | Add strategic spec S0310 for noLegal edition public GitHub page (EN/RU/UK, indexed, no inbound link from index) [branch: DEBUG-v009] |
+| 2026-05-30 23:09:10 | `index-uk.html` | `index-uk.html` | Rearrange usage scenarios and user guides to the beginning of the container in Ukrainian locale [branch: DEBUG-v009] |
+| 2026-05-30 23:09:10 | `index.html` | `index.html` | Rearrange usage scenarios and user guides to the beginning of the container in English locale [branch: DEBUG-v009] |

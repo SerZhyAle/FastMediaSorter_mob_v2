@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -11,16 +11,17 @@
         content="Android file manager, media sorter Android, photo organizer app, video sorter Android, SMB client Android, NAS browser Android, SFTP client Android, FTP client Android, cloud file manager Android, Google Drive manager Android, Dropbox Android, photo slideshow app, digital photo frame tablet, audio player Android, EPUB reader Android, OCR translation Android, car stereo Android media player, Android head unit app, file organizer Android, batch file operations Android, Android TV box media player, set-top box player Android, smart TV media app, Kodi alternative Android">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#667eea">
-    <title>FastMediaSorter v2 - Android Media Sorter: SMB, Cloud, Local &amp; Player</title>
+    <meta name="theme-color" content="#070512">
+    <title>FastMediaSorter v2 - Android Media Organizer: SMB, Cloud, Local &amp; Player</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
     <!-- SEO: Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
-    <meta property="og:title" content="FastMediaSorter v2 - Android Media Sorter: SMB, Cloud &amp; Player">
+    <meta property="og:title" content="FastMediaSorter v2 - Android Media Organizer: SMB, Cloud &amp; Player">
     <meta property="og:description"
         content="Sort photos, videos &amp; audio from local storage, SMB/NAS, SFTP and cloud. Free Android app with player, slideshow, EPUB reader and OCR translation.">
     <meta property="og:image"
@@ -31,19 +32,22 @@
     <meta property="og:locale:alternate" content="ru_RU">
     <meta property="og:locale:alternate" content="uk_UA">
     <meta property="og:site_name" content="FastMediaSorter v2">
+    
     <!-- SEO: Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FastMediaSorter v2 - Android Media Sorter: SMB, Cloud &amp; Player">
+    <meta name="twitter:title" content="FastMediaSorter v2 - Android Media Organizer: SMB, Cloud &amp; Player">
     <meta name="twitter:description"
         content="Sort photos, videos &amp; audio from local storage, SMB/NAS, SFTP and cloud. Free Android app with player, slideshow, EPUB reader and OCR translation.">
     <meta name="twitter:image"
         content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+    
     <!-- SEO: Canonical & hreflang -->
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html">
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
+    
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3615067087450824"
@@ -56,7 +60,7 @@
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
         aria-label="View source on GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
-            style="fill:#667eea; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            style="fill:var(--color-standard); color:#070512; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
             <path
                 d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
@@ -74,365 +78,246 @@
             <a href="index-ru.html" class="lang-btn">RU</a>
             <a href="index-uk.html" class="lang-btn">UK</a>
         </div>
-        <h1><img src="icon.png" alt="FastMediaSorter" style="height: 1em; vertical-align: middle; margin-right: 0.3em;">
-            FastMediaSorter v2</h1>
-        <div class="subtitle">Professional Media Organization for Android</div>
-        <div class="version-badge">Version 2.x • Open Source</div>
+        <h1><img src="icon.png" alt="FastMediaSorter"> FastMediaSorter v2</h1>
+        <div class="subtitle">Smart Media Management and Playback for Android &amp; VR</div>
+        <div class="version-badge">Release v2.x • Open Source</div>
     </header>
 
     <div class="container">
 
-        <div class="feature-list">
-            <h3>✨ Key Features</h3>
-            <ul>
-                <li>Local storage management</li>
-                <li>SMB/CIFS network shares support</li>
-                <li>SFTP & FTP protocol support</li>
-                <li>Cloud storage support (Google Drive, Dropbox, OneDrive)</li>
-                <li>EPUB E-Book Reader support</li>
-                <li>Advanced video player with ExoPlayer</li>
-                <li>High-performance image viewer (Glide)</li>
-                <li>Batch file operations (copy/move/delete)</li>
-                <li>Favorites system</li>
-                <li>Slideshow mode with configurable intervals</li>
-                <li>Slideshow Background Music</li>
-                <li>Audio Player with Photo Background</li>
-                <li>Now Playing UI: mini bar + bottom sheet with queue</li>
-                <li>Binary Files Support (ZIP, APK, thumbnails)</li>
-                <li>Keyboard & Mouse Support</li>
-                <li>Lyrics Support</li>
-                <li>Image Editing (Filters, adjustments)</li>
-                <li>Hidden Files Support</li>
-                <li>Thumbnail caching (2GB default, up to 16GB)</li>
-                <li>Pagination for large folders (1000+ files)</li>
-                <li>Auto-Translation (OCR) for Images/PDFs</li>
-                <li>Office document handoff (DOC, DOCX, RTF, ODT)</li>
-                <li>Send to Telegram from Browse and player</li>
-                <li>MID/MIDI playback as regular music</li>
-                <li>File Manager Mode (manage all file types)</li>
-                <li>Widget Support for HomeScreen (Resource Shortcut &amp; Continue Reading)</li>
-                <li>Predefined Virtual Resources: All Music, All Videos, All Photos</li>
-                <li>Hardware Button Support (steering wheel, headset, media keys)</li>
-                <li>Clean Architecture + MVVM pattern</li>
-                <li>Advanced Touch Gestures</li>
-            </ul>
-        </div>
-
-        <!-- Full Feature List (auto-loaded from docs/FEATURES.md) -->
-        <details class="full-features-panel" open>
-            <summary>📋 Complete Feature List (24 sections)</summary>
-            <div id="full-features-content" class="full-features-content">
-                <em>Loading feature list…</em>
-            </div>
-            <a class="full-features-link" href="docs/FEATURES.html" target="_blank">Open as full page →</a>
-        </details>
-
+        <!-- Usage Scenarios -->
         <h2 class="section-title">💡 Usage Scenarios</h2>
         <div class="cards-grid">
             <div class="card">
-                <div class="card-icon">🖼️</div>
                 <div>
-                    <h3>Digital Photo Frame on Tablet</h3>
-                    <p>Turn any Android tablet into a beautiful always-on digital photo frame. Stream from home PC (SMB)
-                        or cloud - zero local storage used. Add background music, set slide interval, enjoy memories.
-                    </p>
+                    <span class="card-icon">🖼️</span>
+                    <h3>Digital Photo Frame</h3>
+                    <p>Turn any Android tablet into an always-on digital photo frame. Stream photos from home PC (SMB) or cloud storage with zero local space used. Set slide intervals, add background music and enjoy.</p>
                 </div>
+                <a href="docs/howto/scenario-photo-frame.html" class="card-footer" target="_blank">Guide</a>
             </div>
             <div class="card">
-                <div class="card-icon">🚗</div>
                 <div>
-                    <h3>In-Car Music (Android Head Unit)</h3>
-                    <p>Install on your Android car stereo. Use the built-in <strong>All Music</strong> resource for
-                        instant access to your entire collection. Steering wheel buttons work via the background audio
-                        service - no screen touch needed.</p>
+                    <span class="card-icon">🚗</span>
+                    <h3>In-Car Music</h3>
+                    <p>Install FMS on your Android car stereo. The built-in «All Music» resource gives immediate access to your collection, and steering wheel buttons integrate via background audio services.</p>
                 </div>
+                <a href="docs/howto/scenario-car-music.html" class="card-footer" target="_blank">Guide</a>
             </div>
             <div class="card">
-                <div class="card-icon">📺</div>
                 <div>
-                    <h3>Android TV Box &amp; Smart TV</h3>
-                    <p>Turn any Android TV box (Xiaomi Mi Box, Nvidia Shield, generic boxes) into a full media station.
-                        Browse NAS or cloud, sort downloads, run a slideshow - all controlled by a remote or keyboard,
-                        no touchscreen required. Works on Smart TVs with Android OS out of the box.</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-icon">🍿</div>
-                <div>
+                    <span class="card-icon">🍿</span>
                     <h3>Home Cinema &amp; VR</h3>
-                    <p>Watch series from PC or cloud directly on your phone or VR headset. No copying needed - just
-                        press play, and the next episode starts automatically. On Android-based VR headsets (Meta Quest,
-                        Pico): giant virtual cinema screen, immersive music player with hardware button support, or a
-                        wall-sized VR photo frame with background music - all streamed directly from your home network.
-                    </p>
+                    <p>Watch series from PC or cloud directly on your phone and VR headset (Quest/Pico). Auto-advance starts the next episode automatically, and VR edition opens a giant cinema screen.</p>
                 </div>
+                <a href="docs/howto/scenario-home-cinema.html" class="card-footer" target="_blank">Guide</a>
             </div>
             <div class="card">
-                <div class="card-icon">🧹</div>
                 <div>
+                    <span class="card-icon">🧹</span>
                     <h3>Download Organizer</h3>
-                    <p>Sort clutter on your device or remote computer. Set up destination buttons and organize files
-                        into folders with a single tap.</p>
+                    <p>Sort files on your device or remote server. Set up custom destination buttons and organize files into their proper target folders with a single tap.</p>
                 </div>
+                <a href="docs/howto/scenario-download-organizer.html" class="card-footer" target="_blank">Guide</a>
             </div>
             <div class="card">
-                <div class="card-icon">📷</div>
                 <div>
-                    <h3>Scheduled Camera Backup to PC</h3>
-                    <p>Automatically copy new camera photos to your home computer over Wi-Fi using SMB. Set a schedule
-                        - backups run at night or on any interval you choose, with no manual transfer needed.</p>
+                    <span class="card-icon">📷</span>
+                    <h3>Scheduled Camera Backup</h3>
+                    <p>Automatically copy new camera photos and videos from your phone to a home computer or NAS over Wi-Fi (SMB) during night charging or at any set interval.</p>
                 </div>
+                <a href="docs/howto/scenario-camera-backup.html" class="card-footer" target="_blank">Guide</a>
             </div>
             <div class="card">
-                <div class="card-icon">⏱️</div>
                 <div>
-                    <h3>Auto-Clean Downloads</h3>
-                    <p>Automatically delete outdated or already-sorted files from Downloads on a set schedule. Keep
-                        device storage clean without lifting a finger.</p>
+                    <span class="card-icon">📡</span>
+                    <h3>SMB Network Setup</h3>
+                    <p>Step-by-step guide for sharing folders on Windows/macOS/Linux and connecting to them instantly from your mobile devices in a single Wi-Fi network.</p>
                 </div>
+                <a href="docs/howto/scenario-smb-setup.html" class="card-footer" target="_blank">Guide</a>
             </div>
         </div>
 
+        <!-- User Guides -->
         <h2 class="section-title">🚀 User Guides</h2>
         <div class="cards-grid">
-
             <a href="docs/WHATS_NEW.html" class="card" target="_blank">
-                <div class="card-icon">🆕</div>
                 <div>
-                    <h3>What's New - v2.60.5302.057</h3>
-                    <p>New features and fixes since the previous release: Office document handoff, Send to Telegram,
-                        MIDI playback, File Manager Mode, and multi-window/DeX file operations.</p>
+                    <span class="card-icon">🆕</span>
+                    <h3>What's New in v2.x</h3>
+                    <p>Overview of the latest features: Office document handoff, Send to Telegram client support, MIDI file playback, File Manager Mode, and DeX multitasking.</p>
                 </div>
-                <div class="card-footer">See changes →</div>
+                <div class="card-footer">See changes history</div>
             </a>
-
             <a href="docs/QUICK_START.html" class="card" target="_blank">
-                <div class="card-icon">⚡</div>
                 <div>
+                    <span class="card-icon">⚡</span>
                     <h3>Quick Start Guide</h3>
-                    <p>Get started in 5 minutes! Simple step-by-step guide for beginners with touch zones diagram and
-                        practical tips.</p>
+                    <p>Get started in 5 minutes. Simple step-by-step walkthrough for beginners with a clear interactive touch zones diagram for the player.</p>
                 </div>
-                <div class="card-footer">Start →</div>
+                <div class="card-footer">Open guide</div>
             </a>
-
             <a href="docs/FAQ.html" class="card" target="_blank">
-                <div class="card-icon">❓</div>
                 <div>
+                    <span class="card-icon">❓</span>
                     <h3>FAQ</h3>
-                    <p>25+ frequently asked questions covering file operations, network setup, Quick Sort, touch zones,
-                        and more.</p>
+                    <p>More than 25 detailed answers to common questions about file sorting, network resources, hotkeys, PIN codes, and gesture controls.</p>
                 </div>
-                <div class="card-footer">Read →</div>
+                <div class="card-footer">Read FAQ</div>
             </a>
-
             <a href="docs/TROUBLESHOOTING.html" class="card" target="_blank">
-                <div class="card-icon">🔧</div>
                 <div>
+                    <span class="card-icon">🔧</span>
                     <h3>Troubleshooting</h3>
-                    <p>Solutions for 15+ common issues: connection problems, performance, file operations, and app
-                        crashes.</p>
+                    <p>Proven solutions for 15+ common technical issues: authentication failures, network lag, video decode errors, and playback stutters.</p>
                 </div>
-                <div class="card-footer">Fix →</div>
+                <div class="card-footer">Fix issue</div>
             </a>
-
             <a href="docs/howto/" class="card" target="_blank">
-                <div class="card-icon">📖</div>
                 <div>
-                    <h3>How-To Guides &amp; Scenarios</h3>
-                    <p>6 real-world walkthroughs (photo frame, car music, home cinema, NAS setup and more) plus
-                        reference guides for all features. Step by step, beginner-friendly.</p>
+                    <span class="card-icon">📖</span>
+                    <h3>How-To &amp; Scenarios</h3>
+                    <p>Walkthrough index for building media servers, setup instructions for NAS, and comprehensive help articles for advanced features.</p>
                 </div>
-                <div class="card-footer">Learn →</div>
+                <div class="card-footer">View guides map</div>
             </a>
-
             <a href="docs/DOWNLOADS_EN.html" class="card" target="_blank">
-                <div class="card-icon">📦</div>
                 <div>
+                    <span class="card-icon">📦</span>
                     <h3>Download APK Builds</h3>
-                    <p>Access all compiled APK files from Google Drive. Includes Standard, Lite, Photos, and Legacy
-                        variants.</p>
+                    <p>Download compiled installation packages: Standard, Legacy, and other specialized APK versions from Google Drive.</p>
                 </div>
-                <div class="card-footer">Download →</div>
+                <div class="card-footer">Download APK</div>
             </a>
-
         </div>
 
-        <h2 class="section-title">📚 Documentation</h2>
-        <div class="cards-grid">
+        <!-- Interactive Feature Explorer Dashboard -->
+        <h2 class="section-title">✨ Application Features</h2>
+        <div class="explorer-panel">
+            <div class="explorer-controls">
+                <div class="explorer-tabs">
+                    <button class="tab-btn active" id="tab-all">🌟 All Features</button>
+                    <button class="tab-btn" id="tab-standard">📱 Standard (Mobile / TV / Car)</button>
+                    <button class="tab-btn vr-tab" id="tab-vr">🥽 VR Edition (Meta Quest / XR)</button>
+                </div>
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="featureSearch" class="search-input" placeholder="Search features..">
+                </div>
+            </div>
+            <div class="feature-grid" id="featureExplorerGrid">
+                <!-- Grid items generated dynamically from FEATURES.md -->
+            </div>
+        </div>
 
+        <!-- Full Feature List (SEO fallback details panel) -->
+        <details class="full-features-panel">
+            <summary>📋 Canonical Feature Inventory (Jekyll Markdown)</summary>
+            <div id="full-features-content" class="full-features-content">
+                <em>Loading canonical feature list…</em>
+            </div>
+            <a class="full-features-link" href="docs/FEATURES.html" target="_blank">Open full page in a new tab →</a>
+        </details>
+
+        <h2 class="section-title">📚 Technical Documentation</h2>
+        <div class="cards-grid">
             <a href="docs/DOCS_MAP.html" class="card" target="_blank">
-                <div class="card-icon">🗺️</div>
                 <div>
+                    <span class="card-icon">🗺️</span>
                     <h3>Documentation Map</h3>
-                    <p>Index of all available documentation files in the project.</p>
+                    <p>Easy-to-use directory indexing all help files, tutorials, specific technical notes, and developer guides.</p>
                 </div>
-                <div class="card-footer">View Map</div>
+                <div class="card-footer">View docs map</div>
             </a>
-
             <a href="docs/README.html" class="card" target="_blank">
-                <div class="card-icon">📖</div>
                 <div>
-                    <h3>User Guide</h3>
-                    <p>Complete installation guide, feature overview, and usage instructions for all supported storage
-                        types.</p>
+                    <span class="card-icon">📖</span>
+                    <h3>User Manual</h3>
+                    <p>Full reference covering system requirements, installation, detailed network protocols, cloud connections, and advanced players.</p>
                 </div>
-                <div class="card-footer">Read Guide</div>
+                <div class="card-footer">Read manual</div>
             </a>
-
             <a href="docs/V2_Specification.html" class="card" target="_blank">
-                <div class="card-icon">📋</div>
                 <div>
+                    <span class="card-icon">📋</span>
                     <h3>Technical Specification</h3>
-                    <p>Detailed technical documentation covering architecture, components, and implementation details.
-                    </p>
+                    <p>Deep dive into application components, databases, caching mechanisms, and background thread sync schemas.</p>
                 </div>
-                <div class="card-footer">View Specs</div>
+                <div class="card-footer">Open specs</div>
             </a>
-
             <a href="docs/V2_architecture_overview.html" class="card" target="_blank">
-                <div class="card-icon">🏗️</div>
                 <div>
+                    <span class="card-icon">🏗️</span>
                     <h3>Architecture Overview</h3>
-                    <p>Clean Architecture implementation with MVVM pattern, Hilt DI, and modular structure explanation.
-                    </p>
+                    <p>Structural blueprint of Clean Architecture, MVVM design pattern, Hilt dependency injection, and Room database layers.</p>
                 </div>
-                <div class="card-footer">Learn More</div>
+                <div class="card-footer">Learn more</div>
             </a>
-
             <a href="docs/V2_TERMS.html" class="card" target="_blank">
-                <div class="card-icon">📝</div>
                 <div>
+                    <span class="card-icon">📝</span>
                     <h3>Terminology Reference</h3>
-                    <p>Definitions of key terms and concepts used throughout the project (Resources, Destinations, etc).
-                    </p>
+                    <p>Definitions of key terminology: distinguishing Resources (sources) and Destinations (action folders) in the app.</p>
                 </div>
-                <div class="card-footer">View Terms</div>
+                <div class="card-footer">Open glossary</div>
             </a>
-
             <a href="docs/TODO_V2.html" class="card" target="_blank">
-                <div class="card-icon">✅</div>
                 <div>
+                    <span class="card-icon">✅</span>
                     <h3>Development Roadmap</h3>
-                    <p>Current development tasks, planned features, recent fixes, and known issues tracking.</p>
+                    <p>Active task checklist, planned features roadmap, latest fixes status, and tracked known issue logs.</p>
                 </div>
-                <div class="card-footer">View Roadmap</div>
+                <div class="card-footer">Open roadmap</div>
             </a>
-
-            <a href="docs/TEST_SCENARIOS.html" class="card" target="_blank">
-                <div class="card-icon">🧪</div>
-                <div>
-                    <h3>Test Scenarios</h3>
-                    <p>Comprehensive test cases for all features including network protocols and edge cases.</p>
-                </div>
-                <div class="card-footer">View Tests</div>
-            </a>
-
-            <a href="docs/FEATURES.html" class="card" target="_blank">
-                <div class="card-icon">📋</div>
-                <div>
-                    <h3>Complete Feature List</h3>
-                    <p>Full inventory of all user-facing features: viewers, players, file operations, network sources,
-                        cloud, Wear OS, and more.</p>
-                </div>
-                <div class="card-footer">View Features</div>
-            </a>
-
         </div>
 
-        <h2 class="section-title">⚙️ Project Resources</h2>
+        <h2 class="section-title">⚙️ Resources &amp; Legal</h2>
         <div class="cards-grid">
-
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
-                <div class="card-icon">💻</div>
                 <div>
+                    <span class="card-icon">💻</span>
                     <h3>GitHub Repository</h3>
-                    <p>Access source code, report issues, contribute to development, and track project activity.</p>
+                    <p>Access the open-source repository. Report issues, submit features, contribute code, and review commits activity.</p>
                 </div>
-                <div class="card-footer">View Code</div>
+                <div class="card-footer">GitHub Code</div>
             </a>
-
-            <a href="https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing" class="card"
-                target="_blank">
-                <div class="card-icon">📦</div>
-                <div>
-                    <h3>Releases & Downloads</h3>
-                    <p>Download the latest APK builds with version history and release notes.</p>
-                </div>
-                <div class="card-footer">Get App</div>
-            </a>
-
-            <a href="mailto:sza@ukr.net" class="card" target="_blank">
-                <div class="card-icon"><img src="logo-dark.png" alt="SZA"
-                        style="width: 48px; height: 48px; object-fit: contain;"></div>
-                <div>
-                    <h3>Issues & Support</h3>
-                    <p>Report bugs, request features, or get help with installation and configuration problems.</p>
-                </div>
-                <div class="card-footer">Get Help</div>
-            </a>
-
-        </div>
-
-        <h2 class="section-title">⚖️ Legal</h2>
-        <div class="cards-grid">
-
             <a href="docs/PRIVACY_POLICY.html" class="card" target="_blank">
-                <div class="card-icon">🔒</div>
                 <div>
+                    <span class="card-icon">🔒</span>
                     <h3>Privacy Policy</h3>
-                    <p>Detailed information on data handling, permissions, security practices, and user privacy
-                        protection.</p>
+                    <p>Official privacy policy document, outlining permissions required, data security policies, and privacy protection.</p>
                 </div>
-                <div class="card-footer">Read Policy</div>
+                <div class="card-footer">Read policy</div>
             </a>
-
             <a href="docs/TERMS_OF_SERVICE.html" class="card" target="_blank">
-                <div class="card-icon">📄</div>
                 <div>
+                    <span class="card-icon">📄</span>
                     <h3>Terms of Service</h3>
-                    <p>User agreement, terms of use, disclaimers, and legal information for application usage.</p>
+                    <p>End User License Agreement, usage limitations, copyright terms, disclaimers, and liability rules.</p>
                 </div>
-                <div class="card-footer">Read Terms</div>
-            </a>
-
-            <a href="docs/OPEN_SOURCE.html" class="card" target="_blank">
-                <div class="card-icon">🐧</div>
-                <div>
-                    <h3>Open Source</h3>
-                    <p>Information about open source libraries used (SMBJ, epub4j), their licenses (LGPL-2.1), and
-                        source code.</p>
-                </div>
-                <div class="card-footer">View Notices</div>
-            </a>
-            <a href="https://youtube.com/shorts/hxMUsW3354g" class="card" target="_blank">
-                <div class="card-icon">▶️</div>
-                <div>
-                    <h3>App Preview</h3>
-                    <p>Watch a quick short video preview of FastMediaSorter v2 in action on YouTube.</p>
-                </div>
-                <div class="card-footer">Watch Video</div>
+                <div class="card-footer">Read terms</div>
             </a>
         </div>
 
     </div>
 
     <footer>
-        <p><strong>FastMediaSorter v2</strong> - Open Source Media Management for Android</p>
-        <p style="margin-top: 0.5rem;">
-            <a href="docs/PRIVACY_POLICY.html">Privacy</a> &bull;
-            <a href="docs/TERMS_OF_SERVICE.html">Terms</a> &bull;
+        <p><strong>FastMediaSorter v2</strong> — Smart Media Management for Android and VR</p>
+        <p style="margin: 0.5rem 0;">
+            <a href="docs/PRIVACY_POLICY.html">Privacy</a>
+            &bull;
+            <a href="docs/TERMS_OF_SERVICE.html">Terms</a>
+            &bull;
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
         </p>
-        <p style="margin-top: 0.5rem; font-size: 0.9em; opacity: 0.8;">
-            <img src="logo-dark.png" alt=""
-                style="height: 18px; vertical-align: middle; margin-right: 5px; opacity: 0.75;">
+        <p style="font-size: 0.85em; opacity: 0.7;">
+            <img src="logo-dark.png" alt="" style="height: 16px; vertical-align: middle; margin-right: 5px; opacity: 0.7;">
             Created by <a href="mailto:sza@ukr.net">sza@ukr.net</a>
         </p>
-        <p style="margin-top: 1rem; font-size: 0.85rem;">&copy; 2024-2026 FastMediaSorter Project. Built with Kotlin,
-            Jetpack, and ❤️</p>
+        <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5;">&copy; 2024-2026 FastMediaSorter Project. Built with Kotlin, Jetpack, and ❤️</p>
     </footer>
 
+    <!-- Animated Canvas Sinusoids -->
     <script>
         (function () {
             var canvas = document.getElementById('headerCanvas');
@@ -447,7 +332,7 @@
             }
 
             var particles = [];
-            var PARTICLE_COUNT = 55;
+            var PARTICLE_COUNT = 40;
 
             function initParticles() {
                 particles = [];
@@ -455,30 +340,31 @@
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
-                        radius: Math.random() * 2 + 0.5,
-                        vx: (Math.random() - 0.5) * 0.3,
-                        vy: (Math.random() - 0.5) * 0.3,
+                        radius: Math.random() * 1.5 + 0.5,
+                        vx: (Math.random() - 0.5) * 0.2,
+                        vy: (Math.random() - 0.5) * 0.2,
                         hue: Math.random() * 60 + 200
                     });
                 }
             }
 
+            var time = 0;
             function draw() {
-                ctx.fillStyle = 'rgba(8, 6, 22, 0.15)';
+                ctx.fillStyle = 'rgba(7, 5, 18, 0.15)';
                 ctx.fillRect(0, 0, width, height);
-                time += 0.003;
+                time += 0.002;
                 ctx.lineWidth = 1.5;
-                for (var j = 0; j < 6; j++) {
+                for (var j = 0; j < 4; j++) {
                     ctx.beginPath();
-                    var phaseShift = j * 15;
+                    var phaseShift = j * 20;
                     for (var i = 0; i <= width; i += 20) {
                         var y = height / 2 +
-                            Math.sin(i * 0.003 + time + phaseShift) * height * 0.38 *
-                            Math.sin(time * 0.4 + j * 0.2);
+                            Math.sin(i * 0.0025 + time + phaseShift) * height * 0.3 *
+                            Math.sin(time * 0.3 + j * 0.25);
                         if (i === 0) ctx.moveTo(i, y);
                         else ctx.lineTo(i, y);
                     }
-                    ctx.strokeStyle = 'hsla(' + (210 + j * 12) + ', 80%, 65%, 0.4)';
+                    ctx.strokeStyle = 'hsla(' + (210 + j * 15) + ', 75%, 60%, 0.25)';
                     ctx.stroke();
                 }
                 particles.forEach(function (p) {
@@ -488,13 +374,12 @@
                     if (p.y < 0 || p.y > height) p.vy *= -1;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, 70%, 0.7)';
+                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, 70%, 0.5)';
                     ctx.fill();
                 });
                 animId = requestAnimationFrame(draw);
             }
 
-            var time = 0;
             window.addEventListener('resize', function () { resize(); initParticles(); });
             document.addEventListener('visibilitychange', function () {
                 if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
@@ -505,49 +390,202 @@
         }());
     </script>
 
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "FastMediaSorter v2",
-      "alternateName": "FastMediaSorter",
-      "applicationCategory": "MultimediaApplication",
-      "applicationSubCategory": "FileManager",
-      "operatingSystem": "Android 8+",
-      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
-      "downloadUrl": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
-      "softwareVersion": "2.6",
-      "dateModified": "2026-05-30",
-      "description": "Free Android app for sorting, viewing and playing photos, videos and audio across local storage, SMB/NAS, SFTP, FTP and cloud (Google Drive, Dropbox, OneDrive). Built-in player, slideshow, EPUB reader, OCR translation, hardware button support, home screen widgets, Wear OS companion.",
-      "keywords": "Android file manager, media sorter, photo organizer, SMB client, NAS browser, SFTP Android, slideshow app, digital photo frame, audio player, EPUB reader, OCR translator, car stereo Android, head unit app",
-      "featureList": "Local file management, SMB/CIFS network shares, SFTP, FTP, Google Drive, Dropbox, OneDrive, video player, audio player with hardware button support, image slideshow, digital photo frame mode, EPUB reader, OCR translation, photo editing, predefined virtual resources (All Music/Videos/Photos), home screen widgets, Wear OS companion app",
-      "screenshot": "https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "url": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
-      },
-      "author": {
-        "@type": "Person",
-        "name": "SerZhyAle",
-        "email": "sza@ukr.net"
-      },
-      "inLanguage": ["en", "ru", "uk"]
-    }
-    </script>
-
+    <!-- Interactive Feature Explorer JS -->
     <script>
-        // Load full feature list from docs/FEATURES.md
-        fetch('docs/FEATURES.md')
-            .then(function (r) { return r.text(); })
-            .then(function (text) {
-                document.getElementById('full-features-content').innerHTML = marked.parse(text);
-            })
-            .catch(function () {
-                document.getElementById('full-features-content').innerHTML =
-                    '<em>Could not load feature list. <a href="docs/FEATURES.html">Open directly</a>.</em>';
+        (function() {
+            var allFeatures = [];
+            var activeFilter = 'all'; // 'all', 'standard', 'vr'
+            var searchQuery = '';
+
+            // Scenario Links Mapper
+            function getScenarioLinks(title, desc) {
+                var text = (title + ' ' + desc).toLowerCase();
+                var links = [];
+                
+                if (text.indexOf('slideshow') !== -1 || text.indexOf('photo') !== -1 || text.indexOf('frame') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-photo-frame.html', label: '🖼️ Scenario: Photo Frame' });
+                }
+                if (text.indexOf('music') !== -1 || text.indexOf('audio') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('wheel') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-car-music.html', label: '🚗 Scenario: In-Car Music' });
+                }
+                if (text.indexOf('video') !== -1 || text.indexOf('movie') !== -1 || text.indexOf('exoplayer') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('cinema') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-home-cinema.html', label: '🍿 Scenario: Home Cinema' });
+                }
+                if (text.indexOf('smb') !== -1 || text.indexOf('network') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('host') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-smb-setup.html', label: '📡 SMB Setup Guide' });
+                }
+                if (text.indexOf('backup') !== -1 || text.indexOf('copy') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-camera-backup.html', label: '📷 Camera Backup' });
+                }
+                if (text.indexOf('download') !== -1 || text.indexOf('organizer') !== -1 || text.indexOf('delete') !== -1 || text.indexOf('move') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-download-organizer.html', label: '🧹 Download Organizer' });
+                }
+                
+                return links;
+            }
+
+            function renderExplorer() {
+                var grid = document.getElementById('featureExplorerGrid');
+                grid.innerHTML = '';
+                
+                var filtered = allFeatures.filter(function(f) {
+                    // Platform Filter
+                    if (activeFilter === 'standard') {
+                        if (f.tag !== 'Standard' && f.tag !== 'Standard / VR') return false;
+                    } else if (activeFilter === 'vr') {
+                        if (f.tag !== 'VR Only' && f.tag !== 'Standard / VR') return false;
+                    }
+                    
+                    // Text Search Filter
+                    if (searchQuery) {
+                        var q = searchQuery.toLowerCase();
+                        return f.title.toLowerCase().indexOf(q) !== -1 || 
+                               f.desc.toLowerCase().indexOf(q) !== -1 || 
+                               f.category.toLowerCase().indexOf(q) !== -1;
+                    }
+                    
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No features found matching your criteria.</div>';
+                    return;
+                }
+
+                filtered.forEach(function(f) {
+                    var card = document.createElement('div');
+                    card.className = 'feature-card';
+                    
+                    var tagClass = 'tag-common';
+                    var badgeClass = 'badge-common';
+                    var badgeLabel = 'Standard / VR';
+                    
+                    if (f.tag === 'Standard Only' || f.tag === 'Standard') {
+                        tagClass = 'tag-standard';
+                        badgeClass = 'badge-standard';
+                        badgeLabel = 'Standard';
+                    } else if (f.tag === 'VR Only') {
+                        tagClass = 'tag-vr';
+                        badgeClass = 'badge-vr';
+                        badgeLabel = 'VR Only';
+                    }
+                    
+                    card.className += ' ' + tagClass;
+                    
+                    var headerHtml = '<div class="feature-header">' +
+                        '<span class="feature-title">' + f.title + '</span>' +
+                        '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+                        '</div>';
+                    
+                    var descHtml = '<div class="feature-desc">' + f.desc + '</div>';
+                    
+                    var linksHtml = '';
+                    var scLinks = getScenarioLinks(f.title, f.desc);
+                    if (scLinks.length > 0) {
+                        linksHtml = '<div class="feature-links">';
+                        scLinks.forEach(function(l) {
+                            linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank">' + l.label + '</a>';
+                        });
+                        linksHtml += '</div>';
+                    }
+                    
+                    card.innerHTML = headerHtml + descHtml + linksHtml;
+                    grid.appendChild(card);
+                });
+            }
+
+            // Fetch and parse canonical FEATURES.md
+            fetch('docs/FEATURES.md')
+                .then(function (r) { return r.text(); })
+                .then(function (text) {
+                    // Fallback block loading
+                    document.getElementById('full-features-content').innerHTML = marked.parse(text);
+                    
+                    // Parse markdown lines
+                    var lines = text.split('\n');
+                    var currentCategory = 'General';
+                    
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i].trim();
+                        if (line.indexOf('## ') === 0) {
+                            var catName = line.substring(3).trim();
+                            if (catName.toLowerCase().indexOf('table of contents') === -1) {
+                                currentCategory = catName;
+                            }
+                        } else if (line.indexOf('- **') === 0) {
+                            // Format: - **Title** `[Tag]`: Description
+                            var titleMatch = line.match(/\*\*(.*?)\*\*/);
+                            var tagMatch = line.match(/`\[(.*?)\]`/);
+                            
+                            if (titleMatch) {
+                                var title = titleMatch[1];
+                                var tag = tagMatch ? tagMatch[1] : 'Standard / VR';
+                                
+                                var descIndex = line.indexOf('`:');
+                                var desc = '';
+                                if (descIndex !== -1) {
+                                    desc = line.substring(descIndex + 2).trim();
+                                } else {
+                                    var normalColonIndex = line.indexOf('** :');
+                                    if (normalColonIndex !== -1) {
+                                        desc = line.substring(normalColonIndex + 4).trim();
+                                    } else {
+                                        var plainColonIndex = line.indexOf(':');
+                                        if (plainColonIndex !== -1) {
+                                            desc = line.substring(plainColonIndex + 1).trim();
+                                        } else {
+                                            desc = line.replace(/-\s*\*\*.*?\*\*\s*(`\[.*?\]`)?/, '').trim();
+                                        }
+                                    }
+                                }
+                                
+                                desc = desc.replace(/`\[.*?\]`\s*/g, '').trim();
+                                
+                                allFeatures.push({
+                                    category: currentCategory,
+                                    title: title,
+                                    tag: tag,
+                                    desc: desc
+                                });
+                            }
+                        }
+                    }
+                    
+                    renderExplorer();
+                })
+                .catch(function () {
+                    document.getElementById('featureExplorerGrid').innerHTML =
+                        '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Failed to load feature inventory. Please refresh the page.</div>';
+                });
+
+            // Tabs events wiring
+            document.getElementById('tab-all').addEventListener('click', function(e) {
+                document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                activeFilter = 'all';
+                renderExplorer();
             });
+
+            document.getElementById('tab-standard').addEventListener('click', function(e) {
+                document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                activeFilter = 'standard';
+                renderExplorer();
+            });
+
+            document.getElementById('tab-vr').addEventListener('click', function(e) {
+                document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                activeFilter = 'vr';
+                renderExplorer();
+            });
+
+            // Search input wiring
+            document.getElementById('featureSearch').addEventListener('input', function(e) {
+                searchQuery = e.target.value;
+                renderExplorer();
+            });
+        }());
     </script>
 
 </body>
