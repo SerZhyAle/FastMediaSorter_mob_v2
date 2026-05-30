@@ -107,7 +107,15 @@ class MediaMuxerRemuxer @Inject constructor() {
                         info.offset = 0
                         info.size = sampleSize
                         info.presentationTimeUs = extractor.sampleTime
-                        info.flags = extractor.sampleFlags
+                        // MediaExtractor.sampleFlags reports SAMPLE_FLAG_* constants, but
+                        // MediaCodec.BufferInfo.flags expects BUFFER_FLAG_* constants. Translate the
+                        // only one that matters for a sample-copy mux: keyframe. SAMPLE_FLAG_ENCRYPTED
+                        // and SAMPLE_FLAG_PARTIAL_FRAME have no muxer equivalent and are dropped.
+                        info.flags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
+                            MediaCodec.BUFFER_FLAG_KEY_FRAME
+                        } else {
+                            0
+                        }
                         muxer.writeSampleData(muxerTrack, buffer, info)
                         sampleCount++
                         extractor.advance()
