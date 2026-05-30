@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="FastMediaSorter, версія noLegal - збірка лише для sideload, яка розширює VR-версію можливостями, недоступними в магазинах: універсальне завантаження медіа, офлайн-OCR PaddleOCR, встановлення APK з браузера файлів і вбудований перегляд Office-документів.">
+    <meta name="keywords"
+        content="FastMediaSorter noLegal, sideload збірка Android, yt-dlp Android, універсальне завантаження медіа Android, офлайн OCR Android, PaddleOCR Android, встановлення APK з файлового менеджера, вбудований перегляд office Android, Meta Quest sideload">
+    <meta name="author" content="SerZhyAle">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#070512">
+    <title>FastMediaSorter noLegal - збірка лише для sideload (VR + можливості поза магазинами)</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- SEO: Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html">
+    <meta property="og:title" content="FastMediaSorter noLegal - збірка лише для sideload">
+    <meta property="og:description"
+        content="Збірка лише для sideload, що розширює VR-версію можливостями поза магазинами: універсальне завантаження медіа, офлайн-OCR, встановлення APK з браузера, вбудований перегляд Office.">
+    <meta property="og:image"
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ru_RU">
+    <meta property="og:site_name" content="FastMediaSorter v2">
+
+    <!-- SEO: Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FastMediaSorter noLegal - збірка лише для sideload">
+    <meta name="twitter:description" content="VR-версія плюс можливості, які не можна опублікувати в магазинах. Лише sideload.">
+    <meta name="twitter:image"
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+
+    <!-- SEO: Canonical & hreflang (лише триплет noLegal - ізольований від основного сайту) -->
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+        aria-label="Вихідний код на GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250"
+            style="fill:var(--color-nolegal); color:#070512; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        </svg>
+    </a>
+
+    <header>
+        <canvas id="headerCanvas"></canvas>
+        <div class="lang-switcher">
+            <a href="nolegal.html" class="lang-btn">EN</a>
+            <a href="nolegal-ru.html" class="lang-btn">RU</a>
+            <a href="nolegal-uk.html" class="lang-btn active">UK</a>
+        </div>
+        <h1><img src="icon.png" alt="FastMediaSorter"> FastMediaSorter <span class="nolegal-tag">noLegal</span></h1>
+        <div class="subtitle">Версія лише для sideload - VR-збірка плюс можливості, які не можна публікувати в магазинах</div>
+        <div class="version-badge nolegal-badge">Лише sideload • Немає в Google Play і Meta Horizon Store</div>
+    </header>
+
+    <div class="container">
+
+        <div class="nolegal-intro">
+            <p>Ця сторінка описує збірку <strong>noLegal</strong> застосунку FastMediaSorter - особисту версію
+            лише для sideload. Вона побудована поверх VR-версії та додає можливості, які не можна поширювати
+            через Google Play або Meta Horizon Store через ліцензії на перерозповсюдження, політики магазинів,
+            патентні обмеження чи важкий рантайм на пристрої.</p>
+            <p>Ця сторінка не рекламується з основного сайту, і тут немає посилання на завантаження для широкого
+            загалу - вона існує, щоб показати, що вміє збірка та чому ці можливості лишаються поза опублікованими
+            флейворами.</p>
+        </div>
+
+        <h2 class="section-title">🧩 Як noLegal співвідноситься з іншими збірками</h2>
+        <p class="topology-lead">FastMediaSorter виходить у вигляді вкладених збірок. Кожен рівень - надмножина
+        попереднього: <strong>noLegal = VR + можливості лише для sideload</strong>, а сама VR уже містить усе зі
+        Standard.</p>
+
+        <div class="tier-grid">
+            <div class="tier-card tier-standard">
+                <div class="tier-head"><span class="tier-icon">📱</span><h3>Standard</h3></div>
+                <p class="tier-scope">Мобільні · ТБ · Авто · публікується в Google Play</p>
+                <p>Повне ядро сортування медіа: перегляд локально / SMB / SFTP / FTP / хмара, плеєр і слайдшоу,
+                читання EPUB, переклад через OCR, пакетні операції з файлами, компаньйон для Wear OS.</p>
+            </div>
+            <div class="tier-arrow">⊂</div>
+            <div class="tier-card tier-vr">
+                <div class="tier-head"><span class="tier-icon">🥽</span><h3>VR-версія</h3></div>
+                <p class="tier-scope">Meta Quest / XR · sideload</p>
+                <p>Усе зі Standard плюс імерсивний VR-плеєр, відтворення 3D / 180° / 360°, просторовий HUD, ввід з
+                контролерів і трекінг голови, окремий VR-режим браузера файлів.</p>
+            </div>
+            <div class="tier-arrow">⊂</div>
+            <div class="tier-card tier-nolegal">
+                <div class="tier-head"><span class="tier-icon">🔓</span><h3>noLegal</h3></div>
+                <p class="tier-scope">Лише sideload · немає в жодному магазині</p>
+                <p>Усе з VR-версії плюс можливості нижче - вони лишаються поза кожним опублікованим флейвором, бо
+                їхні залежності, дозволи чи вага рантайму несумісні з поширенням через магазини.</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">🔓 Можливості лише noLegal</h2>
+        <p class="topology-lead">Кожна можливість нижче реалізована й ізольована у вихідниках noLegal. Для кожної
+        блок «Чому не в магазинах» називає конкретну причину.</p>
+
+        <div class="nolegal-features">
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">1</span> Універсальний завантажувач медіа (yt-dlp + Chaquopy)</h3>
+                <p>Завантажує медіа з 1800+ сайтів (YouTube, Instagram, TikTok, Facebook, Threads, X та інших) через
+                Python-бібліотеку yt-dlp, що працює на пристрої через Chaquopy. Cookie авторизації, збережені після
+                входу через WebView, автоматично передаються в yt-dlp - повторний вхід не потрібен.</p>
+                <ul>
+                    <li>Instagram: окремі пости, цілі каруселі, Reels і Stories (з cookie авторизації).</li>
+                    <li>TikTok: відео без водяного знака через явний фільтр формату, з відкатом до найкращого доступного.</li>
+                    <li>Facebook: публічні відео з cookie авторизації.</li>
+                    <li>Каруселі / плейлисти розгортаються в пакет, де кожен елемент знову входить у ланцюг видобування.</li>
+                    <li>Перший у ланцюгу видобування; за неможливості відкочується до NewPipe і WebView-екстрактора.</li>
+                    <li>ABI: лише <code>arm64-v8a</code> та <code>x86_64</code> (доступність wheel для Python 3.12).</li>
+                </ul>
+                <p class="nl-why"><strong>Чому не в магазинах:</strong> Chaquopy постачається за
+                некомерційною / open-source community-ліцензією; залежність yt-dlp <code>mutagen</code> під GPL-2.0;
+                пакет додає ~12-16 МБ на кожен ABI-зріз і несумісний з вимогою Google Play щодо сторінок 16 КБ на
+                Android 15.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">2</span> Нативні екстрактори сайтів (ArtStation, DeviantArt, Vimeo, Dailymotion, Telegram)</h3>
+                <p>Екстрактори на чистому Kotlin, які отримують прямі посилання на медіа без рендерингу браузера,
+                зазвичай менш ніж за секунду. Для своїх майданчиків вони йдуть попереду yt-dlp; yt-dlp лишається запасним.</p>
+                <ul>
+                    <li>ArtStation: внутрішній JSON-API проєктів для отримання оригінального зображення або кліпу.</li>
+                    <li>DeviantArt: розбір початкового стану сторінки, з відкатом на oEmbed за помилки розбору.</li>
+                    <li>Vimeo: читання JSON-конфігу плеєра для вибору найвищого прогресивного MP4 або HLS.</li>
+                    <li>Dailymotion: видобуває тимчасовий HLS-потік і одразу завантажує (токени швидко спливають).</li>
+                    <li>Публічні пости Telegram: розбір публічної embed-сторінки для фото й відео; одне вкладення
+                    завантажується напряму, альбом повертає пакет. Приватні / invite-посилання відхиляються.</li>
+                    <li>Без нових залежностей - Kotlin і вже включена в APK бібліотека JSON.</li>
+                </ul>
+                <p class="nl-why"><strong>Чому не в магазинах:</strong> частина неопублікованої поверхні видобування
+                noLegal; іде в зв'язці з ланцюгом yt-dlp, який і так блокує публікацію в магазинах.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">3</span> Встановлення APK з браузера файлів</h3>
+                <p>Натисніть на будь-який файл <code>.apk</code> у браузері, щоб отримати дію «Встановити», яка
+                запускає системний інсталятор - користувач завжди бачить і підтверджує стандартний діалог встановлення.</p>
+                <ul>
+                    <li>Перевіряє дозвіл на встановлення пакетів і спрямовує в системні налаштування, якщо його немає.</li>
+                    <li>Повідомляє про успіх, скасування чи помилку встановлення через тост.</li>
+                    <li>Встановлення прямо з Google Drive / Dropbox / OneDrive: файл тихо завантажується в кеш під своїм
+                    реальним іменем, потім відкривається системний інсталятор.</li>
+                    <li>Браузер позначає APK-плитки компактним VR-значком, якщо пакет заявляє підтримку Quest / VR.</li>
+                </ul>
+                <p class="nl-why"><strong>Чому не в магазинах:</strong> дозвіл
+                <code>REQUEST_INSTALL_PACKAGES</code> викликає перевірку високого ризику в Google Play і відхиляється
+                для звичайних файлових менеджерів без MDM / корпоративного контексту.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">4</span> Відновлення видобування YouTube і YouTube Music</h3>
+                <p>Надійне завантаження за посиланнями YouTube і YouTube Music: NewPipe і yt-dlp працюють разом, тож
+                розбіжності форматів більше не ламають завантаження.</p>
+                <ul>
+                    <li>Коли yt-dlp ловить помилку формату YouTube (PoToken / JS-челендж), ланцюг відкочується до
+                    стратегії NewPipe (Innertube).</li>
+                    <li>YouTube - відомий ресурс авторизації: з'являється вибір акаунта, застосовуються збережені cookie.</li>
+                    <li>Канонізація URL переписує посилання <code>music.youtube.com</code> і <code>shorts</code> у звичайну
+                    форму watch, яку резолвери приймають надійно.</li>
+                    <li>Вибір лише-аудіо формату для YouTube Music; передача чанками з діапазонами для Shorts і довгих відео.</li>
+                </ul>
+                <p class="nl-why"><strong>Чому не в магазинах:</strong> побудовано на тому ж стеку видобування
+                yt-dlp / NewPipe, який виключено з опублікованих збірок.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">5</span> Офлайн-OCR PaddleOCR (PP-OCRv5 + Paddle-Lite)</h3>
+                <p>Рушій офлайн-OCR на глибокому навчанні, що вибирається в налаштуваннях поряд з Tesseract. Він
+                впорається з реальними фото - перспективні спотворення, тіні, відблиски, шумний фон - помітно краще
+                за Tesseract, повністю на пристрої, без мережевих викликів під час розпізнавання.</p>
+                <ul>
+                    <li>Конвеєр: детекція тексту → класифікація орієнтації рядка → розпізнавання (PP-OCRv5 mobile).</li>
+                    <li>Нативний рантайм Paddle-Lite, вирівняний під сторінки 16 КБ для Android 15; ABI лише <code>arm64-v8a</code>.</li>
+                    <li>Моделі ліниво завантажуються при першому використанні по HTTPS і перевіряються за SHA-256 перед
+                    активацією; за збою завантаження чи розбіжності хешу відбувається відкат до Tesseract для цього виклику.</li>
+                    <li>Ізоляція на етапі компіляції: весь код PaddleOCR живе у вихідниках noLegal; опубліковані APK не
+                    містять жодного байта Paddle-Lite.</li>
+                </ul>
+                <p class="nl-why"><strong>Чому не в магазинах:</strong> ~20+ МБ нативних бібліотек arm64 і важкий
+                прогрів предиктора несумісні з бюджетом розміру й рантайму опублікованих флейворів.</p>
+            </article>
+
+            <article class="nl-feature">
+                <h3><span class="nl-num">6</span> Вбудований перегляд Office-документів (лише читання)</h3>
+                <p>Відкриває Office-документи прямо в плеєрі як попередній перегляд лише для читання замість постійної
+                передачі в зовнішній застосунок.</p>
+                <ul>
+                    <li>Підтримка Word (<code>.docx</code> / <code>.odt</code>), таблиць (<code>.xlsx</code> /
+                    <code>.ods</code>), презентацій (<code>.pptx</code> / <code>.odp</code>) і RTF.</li>
+                    <li>Вбудований рушій без залежностей: контейнери OOXML / ODF розпаковуються й розбираються в
+                    нормалізований HTML, що рендериться в ізольованому WebView; для RTF - стрипер керівних слів.</li>
+                    <li>Паритет з поверхнею PDF / EPUB: повний екран, друк, переклад, OCR, навігація свайпом /
+                    клавіатурою та зони дотику. Редагування навмисно недоступне.</li>
+                    <li>Бінарні формати <code>.doc</code> / <code>.xls</code> / <code>.ppt</code> поза областю; за
+                    неможливості відображення з'являється явний діалог відкату (відкрити в іншому / поділитися / скасувати).</li>
+                    <li>Ізоляція на етапі компіляції: рушій постачається лише у вихідниках noLegal.</li>
+                </ul>
+                <p class="nl-why"><strong>Чому не в магазинах:</strong> лишається всередині неопублікованої
+                поверхні noLegal, щоб в опублікованих збірках не було шва вбудованого переглядача.</p>
+            </article>
+
+        </div>
+
+        <h2 class="section-title">🔗 Докладніше на основному сайті</h2>
+        <div class="cards-grid">
+            <a href="index-uk.html" class="card">
+                <div>
+                    <span class="card-icon">🏠</span>
+                    <h3>Основний сайт</h3>
+                    <p>Назад на головну FastMediaSorter: огляд можливостей Standard і VR, сценарії використання та
+                    повна документація.</p>
+                </div>
+                <div class="card-footer">Відкрити головну</div>
+            </a>
+            <a href="docs/VR_EDITION_UK.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">🥽</span>
+                    <h3>VR-версія</h3>
+                    <p>Що VR-збірка додає до Standard - основа, яку розширює noLegal.</p>
+                </div>
+                <div class="card-footer">Про VR</div>
+            </a>
+            <a href="docs/VR_SIDELOAD_UK.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">📥</span>
+                    <h3>Sideload VR</h3>
+                    <p>Як завантажити збірку для гарнітури на Meta Quest.</p>
+                </div>
+                <div class="card-footer">Кроки sideload</div>
+            </a>
+            <a href="docs/VR_CONTROLS_UK.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">🎮</span>
+                    <h3>Керування у VR</h3>
+                    <p>Довідка щодо вводу з контролерів і трекінгу голови у VR-плеєрі.</p>
+                </div>
+                <div class="card-footer">Відкрити керування</div>
+            </a>
+            <a href="docs/DOWNLOADS_UK.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">📦</span>
+                    <h3>Завантаження</h3>
+                    <p>Зібрані APK для опублікованих флейворів.</p>
+                </div>
+                <div class="card-footer">Завантажити APK</div>
+            </a>
+            <a href="docs/FAQ_UK.html" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">❓</span>
+                    <h3>FAQ</h3>
+                    <p>Відповіді на часті питання про сортування, мережі, гарячі клавіші та жести.</p>
+                </div>
+                <div class="card-footer">Читати FAQ</div>
+            </a>
+            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
+                <div>
+                    <span class="card-icon">💻</span>
+                    <h3>Репозиторій GitHub</h3>
+                    <p>Відкритий код, issues та історія комітів.</p>
+                </div>
+                <div class="card-footer">Код на GitHub</div>
+            </a>
+        </div>
+
+    </div>
+
+    <footer>
+        <p><strong>FastMediaSorter noLegal</strong> — версія лише для sideload (VR + можливості поза магазинами)</p>
+        <p style="margin: 0.5rem 0;">
+            <a href="index-uk.html">Основний сайт</a>
+            &bull;
+            <a href="docs/VR_EDITION_UK.html">VR-версія</a>
+            &bull;
+            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
+        </p>
+        <p style="font-size: 0.85em; opacity: 0.7;">
+            Створено <a href="mailto:sza@ukr.net">sza@ukr.net</a>
+        </p>
+        <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5;">&copy; 2024-2026 FastMediaSorter Project.</p>
+    </footer>
+
+    <!-- Анімований canvas (спільний з основним сайтом) -->
+    <script>
+        (function () {
+            var canvas = document.getElementById('headerCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var header = canvas.parentElement;
+            var width, height, animId;
+
+            function resize() {
+                width = canvas.width = header.offsetWidth;
+                height = canvas.height = header.offsetHeight;
+            }
+
+            var time = 0;
+            function draw() {
+                ctx.fillStyle = 'rgba(7, 5, 18, 0.15)';
+                ctx.fillRect(0, 0, width, height);
+                time += 0.002;
+                ctx.lineWidth = 1.5;
+                for (var j = 0; j < 4; j++) {
+                    ctx.beginPath();
+                    var phaseShift = j * 20;
+                    for (var i = 0; i <= width; i += 20) {
+                        var y = height / 2 +
+                            Math.sin(i * 0.0025 + time + phaseShift) * height * 0.3 *
+                            Math.sin(time * 0.3 + j * 0.25);
+                        if (i === 0) ctx.moveTo(i, y);
+                        else ctx.lineTo(i, y);
+                    }
+                    ctx.strokeStyle = 'hsla(' + (350 + j * 8) + ', 80%, 62%, 0.22)';
+                    ctx.stroke();
+                }
+                animId = requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', function () { resize(); });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
+            });
+            resize();
+            draw();
+        }());
+    </script>
+
+</body>
+
+</html>
