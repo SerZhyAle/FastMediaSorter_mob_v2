@@ -13925,3 +13925,7 @@ Format: | datetime | file | target | description |
 | 2026-05-30 22:15:08 | `PLAN/S0310_nolegal-edition-landing-page.md` | `spec` | Add strategic spec S0310 for noLegal edition public GitHub page (EN/RU/UK, indexed, no inbound link from index) [branch: DEBUG-v009] |
 | 2026-05-30 23:09:10 | `index-uk.html` | `index-uk.html` | Rearrange usage scenarios and user guides to the beginning of the container in Ukrainian locale [branch: DEBUG-v009] |
 | 2026-05-30 23:09:10 | `index.html` | `index.html` | Rearrange usage scenarios and user guides to the beginning of the container in English locale [branch: DEBUG-v009] |
+| 2026-05-30 23:18:06 | `styles.css` | `styles.css` | Implement interactive collapsable accordion design for feature cards and hide duplicate full features details panel [branch: DEBUG-v009] |
+| 2026-05-30 23:18:07 | `index-ru.html` | `index-ru.html` | Apply accordion toggles and click listeners to feature explorer [branch: DEBUG-v009] |
+| 2026-05-30 23:18:07 | `index.html` | `index.html` | Apply accordion toggles and click listeners to feature explorer [branch: DEBUG-v009] |
+| 2026-05-30 23:18:08 | `index-uk.html` | `index-uk.html` | Apply accordion toggles and click listeners to feature explorer [branch: DEBUG-v009] |

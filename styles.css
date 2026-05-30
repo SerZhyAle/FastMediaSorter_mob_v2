@@ -381,6 +381,56 @@ h1 img {
     color: var(--text-highlight);
 }
 
+/* Feature explorer collapses */
+.feature-card {
+    cursor: pointer;
+    user-select: none;
+    justify-content: flex-start;
+}
+
+.feature-card .toggle-icon {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+    transform: rotate(0deg);
+}
+
+.feature-card.expanded .toggle-icon {
+    transform: rotate(180deg);
+    color: var(--text-highlight);
+}
+
+.feature-card .feature-desc,
+.feature-card .feature-links {
+    max-height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+}
+
+.feature-card.expanded .feature-desc {
+    max-height: 250px;
+    margin-top: 0.8rem;
+    margin-bottom: 0.8rem;
+    opacity: 1;
+}
+
+.feature-card.expanded .feature-links {
+    max-height: 120px;
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    opacity: 1;
+}
+
+/* Hide SEO-reserve for users to avoid duplicate content clutter */
+.full-features-panel {
+    display: none !important;
+}
+
 /* Scenarios & Guides Grid */
 .cards-grid {
     display: grid;

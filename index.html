@@ -474,7 +474,10 @@
                     
                     var headerHtml = '<div class="feature-header">' +
                         '<span class="feature-title">' + f.title + '</span>' +
+                        '<div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
                         '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+                        '<span class="toggle-icon">▼</span>' +
+                        '</div>' +
                         '</div>';
                     
                     var descHtml = '<div class="feature-desc">' + f.desc + '</div>';
@@ -490,6 +493,14 @@
                     }
                     
                     card.innerHTML = headerHtml + descHtml + linksHtml;
+                    
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.feature-link')) {
+                            return;
+                        }
+                        card.classList.toggle('expanded');
+                    });
+                    
                     grid.appendChild(card);
                 });
             }
