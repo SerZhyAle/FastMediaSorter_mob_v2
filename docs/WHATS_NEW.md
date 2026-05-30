@@ -1,6 +1,23 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5302.057** (May 2026)
+**Current release: 2.60.5310.007** (May 2026)
+
+> Changes since version 2.60.5302.057
+
+---
+
+## What's New
+
+- **Password-protected ZIPs** - extract encrypted archives after one-time prompt.
+- **Protected document fallback** - locked EPUB and Office files fail clearly.
+
+## What's Fixed
+
+- Protected PDF renderer failures now show a clear message.
+
+---
+
+## Previous Release: 2.60.5302.057 (May 2026)
 
 > Changes since version 2.60.5220.333
 

@@ -13986,3 +13986,4 @@ Format: | datetime | file | target | description |
 | 2026-05-31 00:01:07 | `PLAN/S0308_password-protected-files.md` | `spec-dev/S0308` | Mark S0308 implemented [branch: DEBUG-v009] |
 | 2026-05-31 00:01:07 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-04` | Mark S0308 tactical plan done [branch: DEBUG-v009] |
 | 2026-05-31 00:01:08 | `PLAN/S0308_password-protected-files/PHASE_04__docs-catalog-cleanup.md` | `spec-dev/S0308/phase-04` | Record S0308 phase 04 validation evidence [branch: DEBUG-v009] |
+| 2026-05-31 00:08:40 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5310.007 - plateau merge from DEBUG-v009 [branch: DEBUG-v009] |
