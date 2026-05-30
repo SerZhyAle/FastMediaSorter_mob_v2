@@ -47,12 +47,36 @@ class MediaStoreRepositoryImpl @Inject constructor(
             "OR LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.epub' " +
             "OR LOWER(${MediaStore.Files.FileColumns.DATA}) LIKE '%.epub')"
         )
+        if (allowedTypes.contains(MediaType.OFFICE_DOCUMENT)) {
+            val officeConditions = mutableListOf<String>()
+            if (MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES.isNotEmpty()) {
+                val mimeList = MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES.joinToString(",") { "'$it'" }
+                officeConditions.add("LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) IN ($mimeList)")
+            }
+            MediaTypeUtils.OFFICE_DOCUMENT_EXTENSIONS.forEach { extension ->
+                officeConditions.add("LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.$extension'")
+                officeConditions.add("LOWER(${MediaStore.Files.FileColumns.DATA}) LIKE '%.$extension'")
+            }
+            if (officeConditions.isNotEmpty()) {
+                mediaTypeConditions.add("(${officeConditions.joinToString(" OR ")})")
+            }
+        }
 
         if (mediaTypeConditions.isNotEmpty()) {
             selectionBuilder.append("(${mediaTypeConditions.joinToString(" OR ")})")
         }
 
-        val otherTypes = allowedTypes.filter { it !in setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.TEXT, MediaType.PDF, MediaType.EPUB) }
+        val otherTypes = allowedTypes.filter {
+            it !in setOf(
+                MediaType.IMAGE,
+                MediaType.VIDEO,
+                MediaType.AUDIO,
+                MediaType.TEXT,
+                MediaType.PDF,
+                MediaType.EPUB,
+                MediaType.OFFICE_DOCUMENT
+            )
+        }
         if (otherTypes.isNotEmpty()) {
             if (selectionBuilder.isNotEmpty()) selectionBuilder.append(" OR ")
             selectionBuilder.append("(${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_NONE})")
@@ -589,7 +613,15 @@ class MediaStoreRepositoryImpl @Inject constructor(
             try {
                 val path = android.os.Environment.getExternalStoragePublicDirectory(directory)
                 if (path != null) {
-                    val allTypes = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.GIF, MediaType.PDF, MediaType.TEXT)
+                    val allTypes = setOf(
+                        MediaType.IMAGE,
+                        MediaType.VIDEO,
+                        MediaType.AUDIO,
+                        MediaType.GIF,
+                        MediaType.PDF,
+                        MediaType.TEXT,
+                        MediaType.OFFICE_DOCUMENT
+                    )
                     val files = if (path.exists()) {
                         getFilesInFolder(path.absolutePath, allTypes, recursive = false, showHiddenFiles = false)
                     } else {

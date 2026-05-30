@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="s0294_google_drive_browser_required_message">Google sign-in needs a browser. Install one and try again.</string>
+    <string name="s0294_google_drive_browser_launch_failed_message">Could not open Google sign-in. Try again.</string>
+    <string name="s0294_google_drive_browser_auth_failed_message">Could not finish Google sign-in. Try again.</string>
+</resources>

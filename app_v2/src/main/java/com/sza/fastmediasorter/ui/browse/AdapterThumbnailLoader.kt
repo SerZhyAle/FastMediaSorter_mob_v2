@@ -99,8 +99,8 @@ class AdapterThumbnailLoader(
             return null
         }
 
-        // TEXT: extension bitmap
-        if (file.type == MediaType.TEXT) {
+        // TEXT and Office documents: extension bitmap
+        if (file.type == MediaType.TEXT || file.type == MediaType.OFFICE_DOCUMENT) {
             val ext = file.name.substringAfterLast('.', "").uppercase()
             imageView.setImageBitmap(createExtensionBitmap(ext))
             applyPlaceholderStyle(imageView, file.type)
@@ -180,7 +180,7 @@ class AdapterThumbnailLoader(
         val colorRes = when (type) {
             MediaType.VIDEO -> R.color.thumbnail_video_bg
             MediaType.AUDIO -> R.color.thumbnail_audio_bg
-            MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> R.color.thumbnail_doc_bg
+            MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> R.color.thumbnail_doc_bg
             else -> R.color.thumbnail_image_bg
         }
         imageView.setBackgroundColor(ContextCompat.getColor(imageView.context, colorRes))
@@ -210,6 +210,7 @@ class AdapterThumbnailLoader(
             MediaType.VIDEO -> "VID"
             MediaType.PDF -> "PDF"
             MediaType.EPUB -> "EPUB"
+            MediaType.OFFICE_DOCUMENT -> "DOC"
             MediaType.AUDIO -> "AUD"
             MediaType.TEXT -> "TXT"
             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,

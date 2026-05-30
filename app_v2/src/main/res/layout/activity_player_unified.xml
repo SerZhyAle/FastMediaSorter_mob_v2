@@ -202,6 +202,11 @@
              only when an EPUB is opened, avoiding Chromium native heap load at layout inflation time. -->
         <FrameLayout android:id="@+id/epubWebView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
 
+        <!-- S0301: neutral host slot for the embedded Office viewer. Stays GONE until a
+             flavor with an internal Office engine populates it; engine-specific widgets are
+             added programmatically by the flavor viewer manager, never declared here. -->
+        <FrameLayout android:id="@+id/officeDocumentViewerContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
+
         <ImageButton android:id="@+id/btnExitEpubFullscreen" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:src="@drawable/ic_fullscreen_exit" android:background="@drawable/bg_circle_dark" app:tint="@color/white" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:visibility="gone" android:contentDescription="@string/exit_fullscreen" />
 
         <include layout="@layout/player_epub_controls_overlay_content" />
@@ -285,6 +290,8 @@
             android:elevation="@dimen/elevation_player_overlay"
             android:visibility="gone" />
 
+        <include layout="@layout/player_vr_launch_overlay_content" />
+
         <!-- S0021: Diagnostic FPS overlay over the flat player. Visibility driven by
              AppSettings.playerShowFps + active-video gate; see PlayerActivity. -->
         <TextView
@@ -324,5 +331,4 @@
         layout="@layout/player_draw_overlay_toolbar_content" />
 
 </LinearLayout>
-
 

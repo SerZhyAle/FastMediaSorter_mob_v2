@@ -37,7 +37,6 @@ extern "C" {
 JNIEXPORT jint JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeInitSession(
         JNIEnv* env, jobject /*thiz*/, jobject activity) {
-    LOGD("S0291: native initSession entry");
     JavaVM* vm = nullptr;
     if (env->GetJavaVM(&vm) != JNI_OK || !vm) {
         LOGE("nativeInitSession: GetJavaVM failed");

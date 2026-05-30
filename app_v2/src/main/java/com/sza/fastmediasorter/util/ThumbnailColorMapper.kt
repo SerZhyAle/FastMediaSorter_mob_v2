@@ -64,7 +64,7 @@ object ThumbnailColorMapper {
         return when (mediaType) {
             MediaType.IMAGE, MediaType.GIF -> 0xFF81C784.toInt()
             MediaType.VIDEO -> 0xFF9575CD.toInt()
-            MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> 0xFF42A5F5.toInt()
+            MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> 0xFF42A5F5.toInt()
             MediaType.AUDIO -> 0xFFFFA726.toInt()
             MediaType.BINARY_ARCHIVE,
             MediaType.BINARY_DISK,

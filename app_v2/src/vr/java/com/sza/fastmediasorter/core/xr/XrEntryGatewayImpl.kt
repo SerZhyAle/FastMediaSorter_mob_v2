@@ -29,6 +29,24 @@ class XrEntryGatewayImpl @Inject constructor(
     private val runtime: DiagnosticXrRuntime,
 ) : XrEntryGateway {
 
+    override fun createImmersiveIntent(input: VrLaunchInput): Intent? {
+        if (!runtime.isNativeAvailable) {
+            Timber.i("XrEntryGatewayImpl: createImmersiveIntent -> native runtime unavailable")
+            return null
+        }
+        if (input.launchMode == VrLaunchMode.FILE_URI && input.fileUriString.isNullOrBlank()) {
+            Timber.w("XrEntryGatewayImpl: createImmersiveIntent -> missing fileUriString")
+            return null
+        }
+        return Intent(appContext, DiagnosticXrActivity::class.java).apply {
+            action = Intent.ACTION_MAIN
+            if (input.deliveryMode == VrLaunchDeliveryMode.LEGACY_PANEL_RETURN) {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            putExtra(VrLaunchInput.EXTRA_LAUNCH_INPUT, input)
+        }
+    }
+
     override suspend fun tryEnter(): Boolean {
         Timber.d("XrEntryGatewayImpl: legacy tryEnter() called - no-op until full VR entry lands")
         return false
@@ -36,19 +54,14 @@ class XrEntryGatewayImpl @Inject constructor(
 
     override suspend fun enterDiagnosticImage(): XrEntryResult {
         Timber.d("S0249: XrEntryGatewayImpl.enterDiagnosticImage - dispatching to DiagnosticXrActivity")
-        if (!runtime.isNativeAvailable) {
-            Timber.i("XrEntryGatewayImpl: native runtime unavailable on this ABI - returning UnavailableNoRuntime")
-            return XrEntryResult.UnavailableNoRuntime
-        }
+        val intent = createImmersiveIntent(
+            VrLaunchInput(
+                launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST,
+                mediaType = VrMediaType.IMAGE,
+                deliveryMode = VrLaunchDeliveryMode.LEGACY_PANEL_RETURN,
+            )
+        ) ?: return XrEntryResult.UnavailableNoRuntime
         return try {
-            val intent = Intent(appContext, DiagnosticXrActivity::class.java).apply {
-                // Meta's hybrid-app sample launches immersive activities as ACTION_MAIN NEW_TASK.
-                // Avoid forcing CLEAR_TOP/SINGLE_TOP reuse here: after an immersive exit the old
-                // host can still be tearing down, and reusing that half-closing singleTask was
-                // the most plausible reason the second launch never reached ActivityTaskManager.
-                action = Intent.ACTION_MAIN
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
             appContext.startActivity(intent)
             Timber.d("XrEntryGatewayImpl: DiagnosticXrActivity launched")
             XrEntryResult.Started

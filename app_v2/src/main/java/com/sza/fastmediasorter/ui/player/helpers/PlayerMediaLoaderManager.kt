@@ -42,20 +42,7 @@ import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import java.io.File
 
-/**
- * Coordinator for media loading operations in PlayerActivity.
- * Acts as a facade between PlayerActivity and specialized managers (ImageLoadingManager, VideoPlayerManager, etc.).
- * 
- * Responsibilities:
- * - Media type routing (image/video/audio/PDF/EPUB/text)
- * - UI visibility coordination for different media types
- * - Loading state management
- * - Coordination between image and video managers
- * - Image reload operations
- * 
- * This manager centralizes media loading logic to reduce PlayerActivity size while delegating
- * actual loading operations to specialized managers.
- */
+/** Facade between PlayerActivity and specialized managers. Routes media by type (image/video/audio/PDF/EPUB/text), coordinates visibility, loading state, and image reload. */
 class PlayerMediaLoaderManager(
     private val activity: PlayerActivity,
     private val binding: ActivityPlayerUnifiedBinding,
@@ -135,11 +122,7 @@ class PlayerMediaLoaderManager(
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
 
-    /**
-     * Display image (delegates to ImageLoadingManager).
-     * Runs still-image stereo detection first so that 3D / spherical images
-     * get the correct crop or XR layer selection and the 3D tab reflects the mode.
-     */
+    /** Delegates to ImageLoadingManager; runs still-image stereo detection first so 3D/spherical images get correct crop/XR layer and the 3D tab reflects the mode. */
     fun displayImage(path: String) {
         Timber.d("PlayerMediaLoaderManager.displayImage: path=$path")
 
@@ -173,9 +156,7 @@ class PlayerMediaLoaderManager(
 
     fun toggleAnimatedPlayback(): Boolean? = imageLoadingManager.toggleAnimatedPlayback()
 
-    /**
-     * Display text file (delegates to TextViewerManager)
-     */
+    /** Display text file (delegates to TextViewerManager) */
     fun displayText(mediaFile: MediaFile) {
         val resource = viewModel.state.value.resource
         Timber.d("PlayerMediaLoaderManager.displayText: file=${mediaFile.name}")
@@ -183,9 +164,7 @@ class PlayerMediaLoaderManager(
         textViewerManagerProvider().displayText(mediaFile, isWritable = resource?.isWritable == true)
     }
 
-    /**
-     * Play video or audio file with comprehensive media type routing
-     */
+    /** Play video or audio file with comprehensive media type routing */
     fun playVideo(path: String) {
         if (decoderFailureTracker.isInCooldown(path)) {
             val remainingSec = (decoderFailureTracker.cooldownRemainingMs(path) / 1000L).toInt()
@@ -282,12 +261,7 @@ class PlayerMediaLoaderManager(
         Timber.d("PlayerMediaLoaderManager.playVideo: END")
     }
 
-    /**
-     * Route audio playback through AudioPlaybackService.
-     * Local files: builds playlist from all local audio files.
-     * Network files (SMB/SFTP/FTP): pre-caches current file to local storage, then plays via service.
-     * Cloud files: pre-caches current file to local storage via CloudStorageClient, then plays via service.
-     */
+    /** Route audio playback through AudioPlaybackService. Local files: builds playlist from all local audio files. Network files (SMB/SFTP/FTP): pre-caches current file to local storage, then plays via service. Cloud files: pre-caches current file to local storage via CloudStorageClient, then plays via service. */
     private fun playAudioViaService(path: String) {
         val controller = audioServiceController ?: return
         val resourceType = determineResourceType(path, null)
@@ -578,10 +552,7 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    /**
-     * Download cloud audio file to UnifiedFileCache.
-     * Parses cloud:// path to determine provider and fileId, then downloads via CloudStorageClient.
-     */
+    /** Download cloud audio file to UnifiedFileCache. Parses cloud:// path to determine provider and fileId, then downloads via CloudStorageClient. */
     private suspend fun preCacheCloudAudio(path: String, mediaFile: MediaFile): File? = withContext(Dispatchers.IO) {
         val fileSize = mediaFile.size
 
@@ -653,11 +624,7 @@ class PlayerMediaLoaderManager(
         return if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
     }
 
-    /**
-     * Build playback URI for a local MediaFile.
-     * Prefers contentUri (content:// from MediaStore) over file:// to avoid EACCES on
-     * Android 10+ scoped storage when AudioPlaybackService opens files via FileDataSource.
-     */
+    /** Build playback URI for a local MediaFile. Prefers contentUri (content:// from MediaStore) over file:// to avoid EACCES on Android 10+ scoped storage when AudioPlaybackService opens files via FileDataSource. */
     private fun buildUriForMediaFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile): Uri {
         val contentUri = mediaFile.contentUri
         if (!contentUri.isNullOrBlank()) return Uri.parse(contentUri)
@@ -673,10 +640,7 @@ class PlayerMediaLoaderManager(
         Timber.d("PlayerMediaLoaderManager: service player bound to PlayerView")
     }
 
-    /**
-     * Re-attach PlayerView to the service MediaController after Activity resumes.
-     * Must be called in onResume() when service audio is active.
-     */
+    /** Re-attach PlayerView to the service MediaController after Activity resumes. Must be called in onResume() when service audio is active. */
     internal fun reattachServicePlayerToView() {
         val player = audioServiceController?.player ?: return
         if (isServiceAudioActive) {
@@ -714,9 +678,7 @@ class PlayerMediaLoaderManager(
         videoPlayerManager.setRepeatMode(repeatMode)
     }
 
-    /**
-     * Play local video file (legacy method for compatibility)
-     */
+    /** Play local video file (legacy method for compatibility) */
     fun playLocalVideo(path: String) {
         Timber.d("PlayerMediaLoaderManager.playLocalVideo: Delegating to VideoPlayerManager")
         videoPlayerManager.playLocalVideo(path, !viewModel.state.value.isPaused)
@@ -724,10 +686,7 @@ class PlayerMediaLoaderManager(
         exoPlayerControlsManager.updatePlaybackOrderButtonState()
     }
 
-    /**
-     * Reload current image after edit operation (rotation/flip/filter/adjustments).
-     * Clears both memory and disk cache, updates MediaFilesCache, and reloads.
-     */
+    /** Reload current image after edit operation (rotation/flip/filter/adjustments). Clears both memory and disk cache, updates MediaFilesCache, and reloads. */
     fun reloadCurrentImage() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resource = viewModel.state.value.resource
@@ -781,18 +740,12 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    /**
-     * Preload adjacent images for faster navigation
-     */
+    /** Preload adjacent images for faster navigation */
     fun preloadNextImageIfNeeded() {
         imageLoadingManager.preloadNextImageIfNeeded()
     }
 
-    /**
-     * Prefetch the next audio file into UnifiedFileCache.
-     * Called when the current audio reaches STATE_READY (playing).
-     * Only applies to network sources (SMB/SFTP/FTP) - local audio uses ExoPlayer playlist.
-     */
+    /** Prefetch the next audio file into UnifiedFileCache. Called when the current audio reaches STATE_READY (playing). Only applies to network sources (SMB/SFTP/FTP) - local audio uses ExoPlayer playlist. */
     fun prefetchNextAudio() {
         val nextFile = viewModel.getNextAudioFile() ?: return
         val path = nextFile.path
@@ -845,16 +798,12 @@ class PlayerMediaLoaderManager(
         audioPrefetchPath = null
     }
 
-    /**
-     * Show audio file info overlay
-     */
+    /** Show audio file info overlay */
     fun showAudioFileInfo(file: MediaFile?) {
         imageLoadingManager.showAudioFileInfo(file)
     }
 
-    /**
-     * Update audio touch zones visibility based on current state
-     */
+    /** Update audio touch zones visibility based on current state */
     fun updateAudioTouchZonesVisibility() {
         val state = viewModel.state.value
         val isAudioFile = state.currentFile?.type == MediaType.AUDIO
@@ -865,9 +814,7 @@ class PlayerMediaLoaderManager(
         Timber.d("PlayerMediaLoaderManager.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode")
     }
 
-    /**
-     * Update volume buttons visibility - show for audio and video files
-     */
+    /** Update volume buttons visibility - show for audio and video files */
     fun updateVolumeButtonsVisibility() {
         val fileType = viewModel.state.value.currentFile?.type
         val isMediaWithSound = fileType == MediaType.AUDIO || fileType == MediaType.VIDEO
@@ -875,13 +822,7 @@ class PlayerMediaLoaderManager(
         binding.btnVolumeUp.isVisible = isMediaWithSound
     }
 
-    /**
-     * Adjust touch zones for video/audio (disable in command panel mode)
-     * 
-     * CRITICAL: We now use TouchZoneGestureManager for ALL touch zone detection.
-     * The View-based overlays (touchZonesOverlay, touchZones3Overlay) are ALWAYS hidden
-     * to prevent conflicts with gesture-based zone detection.
-     */
+    /** Adjust touch zones for video/audio (disable in command panel mode) CRITICAL: We now use TouchZoneGestureManager for ALL touch zone detection. The View-based overlays (touchZonesOverlay, touchZones3Overlay) are ALWAYS hidden to prevent conflicts with gesture-based zone detection. */
     fun adjustTouchZonesForVideo(isVideo: Boolean, useTouchZones: Boolean) {
         val currentFile = viewModel.state.value.currentFile
         val isEpubOrPdf = currentFile?.type == MediaType.EPUB || currentFile?.type == MediaType.PDF

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.core.xr
 
+import android.content.Intent
+
 /**
  * Facade for "enter VR session" requests.
  *
@@ -14,6 +16,12 @@ package com.sza.fastmediasorter.core.xr
  *   OpenXR runtime starting in Phase 02 of S0249.
  */
 interface XrEntryGateway {
+
+    /**
+     * Shared transport seam for UI callers that launch immersive playback through an
+     * ActivityResultContract. Returning null means the launch is unavailable before dispatch.
+     */
+    fun createImmersiveIntent(input: VrLaunchInput): Intent?
 
     /**
      * Stage 0 legacy entry. Kept for binary-compatibility while no caller exists; will be

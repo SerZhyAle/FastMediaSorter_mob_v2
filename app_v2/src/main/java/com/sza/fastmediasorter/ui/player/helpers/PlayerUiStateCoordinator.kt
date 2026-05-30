@@ -53,6 +53,7 @@ class PlayerUiStateCoordinator(
             override fun displayText(file: MediaFile) = callback.displayText(file)
             override fun displayPdf(file: MediaFile) = callback.displayPdf(file)
             override fun displayEpub(file: MediaFile) = callback.displayEpub(file)
+            override fun displayOfficeDocument(file: MediaFile) = callback.displayOfficeDocument(file)
         }
     )
 
@@ -81,6 +82,7 @@ class PlayerUiStateCoordinator(
         fun displayText(file: MediaFile)
         fun displayPdf(file: MediaFile)
         fun displayEpub(file: MediaFile)
+        fun displayOfficeDocument(file: MediaFile)
 
         fun adjustTouchZonesForVideo(isVideo: Boolean)
         fun updatePanelVisibility(showCommandPanel: Boolean)
@@ -116,7 +118,7 @@ class PlayerUiStateCoordinator(
     ): TouchZoneHintType? {
         if (currentFile == null) return null
         // Documents have touch zones disabled - no hint needed
-        if (currentFile.type in listOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)) return null
+        if (currentFile.type.isDocumentFile()) return null
         if (showCommandPanel) return TouchZoneHintType.COMMAND_PANEL_3ZONE
         val isMedia = currentFile.type in listOf(MediaType.VIDEO, MediaType.AUDIO)
         return if (isMedia) TouchZoneHintType.MEDIA_BOTTOM_RESERVED
@@ -252,12 +254,12 @@ class PlayerUiStateCoordinator(
             // Touch zones DISABLED for:
             // - AUDIO: has ExoPlayer controls for Previous/Next
             // - VIDEO: has ExoPlayer controls for Previous/Next
-            // - EPUB/PDF/TEXT: have document-specific controls for navigation
+            // - Documents: have document-specific controls or an external handoff
             // Touch zones ENABLED for:
             // - GIF: treat as image - use touch zones for Previous/Next navigation
             // - IMAGE: use touch zones for Previous/Next navigation
             val isGif = file.type == MediaType.GIF
-            val isDocument = file.type == MediaType.EPUB || file.type == MediaType.PDF || file.type == MediaType.TEXT
+            val isDocument = file.type.isDocumentFile()
             val isVideoOrAudio = file.type == MediaType.AUDIO || (file.type == MediaType.VIDEO && !isGif)
             val shouldDisableTouchZones = isVideoOrAudio || isDocument
             callback.adjustTouchZonesForVideo(shouldDisableTouchZones)

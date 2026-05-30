@@ -31,6 +31,12 @@ class PlayerGestureCallbackImpl(
                 // EPUB: Swipe left = next chapter
                 epubViewerManagerProvider().showNextChapter()
             }
+            MediaType.OFFICE_DOCUMENT -> {
+                // S0301 Phase 05: the Office WebView owns vertical scrolling; a horizontal swipe
+                // navigates to the next file like other non-paged documents.
+                Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Swipe LEFT (Office)")
+                activity.navigationManager.navigateNextFromGesture()
+            }
             else -> {
                 // Other files: Swipe left = next file
                 Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Swipe LEFT (GestureHelper)")
@@ -49,6 +55,11 @@ class PlayerGestureCallbackImpl(
             MediaType.EPUB -> {
                 // EPUB: Swipe right = previous chapter
                 epubViewerManagerProvider().showPreviousChapter()
+            }
+            MediaType.OFFICE_DOCUMENT -> {
+                // S0301 Phase 05: horizontal swipe navigates files for the non-paged Office viewer.
+                Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: Swipe RIGHT (Office)")
+                activity.navigationManager.navigatePreviousFromGesture()
             }
             else -> {
                 // Other files: Swipe right = previous file

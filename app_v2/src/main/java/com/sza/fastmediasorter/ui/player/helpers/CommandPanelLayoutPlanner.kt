@@ -154,6 +154,8 @@ class CommandPanelLayoutPlanner {
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
+        OPEN_IN_VR(605, R.id.menu_open_in_vr, false,
+            R.string.player_vr_overflow_open, R.drawable.ic_vr_headset),
         // S0028: multi-window - overflow-only; shown only when VR+setting allows it
         OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, true,
             R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse),
@@ -189,7 +191,8 @@ class CommandPanelLayoutPlanner {
         isWifiConnected: Boolean,
         showFavorite: Boolean = true,
         showRandom: Boolean = false,
-        allowSeparateWindow: Boolean = false
+        allowSeparateWindow: Boolean = false,
+        allowVrLaunch: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -198,6 +201,9 @@ class CommandPanelLayoutPlanner {
         val isPdf = file.type == MediaType.PDF
         val isText = file.type == MediaType.TEXT
         val isEpub = file.type == MediaType.EPUB
+        // S0301 Phase 05: the embedded Office viewer is a read-only document surface. It gets the
+        // PDF/EPUB-style view + print parity, but never an EDIT command (no Office edit path).
+        val isOffice = file.type == MediaType.OFFICE_DOCUMENT
         val isReadOnly = state.resource?.isReadOnly == true
 
         return buildList {
@@ -206,7 +212,7 @@ class CommandPanelLayoutPlanner {
             if (showFavorite) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
             add(PlayerCommand.INFO)
-            if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub)) add(PlayerCommand.FULLSCREEN)
+            if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
 
             // ── Group 2 ──────────────────────────────────────────────────────────────
@@ -255,7 +261,8 @@ class CommandPanelLayoutPlanner {
             if (isPdf) add(PlayerCommand.PDF_THUMBNAILS)
             if (isEpub) add(PlayerCommand.EPUB_READER_SETTINGS)
             if (isEpub) add(PlayerCommand.EPUB_SEARCH_ALL)
-            if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
+            if (isPdf || isText || isImage || isOffice) add(PlayerCommand.PRINT)
+            if (allowVrLaunch) add(PlayerCommand.OPEN_IN_VR)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
             // S0028: multi-window tear-off - VR+setting guard already applied by controller

@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260523015
-        versionName = "2.60.5230.154"
+        versionCode = 260530020
+        versionName = "2.60.5300.206"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -539,6 +539,7 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/vrOnly/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -1071,6 +1072,7 @@ dependencies {
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
     implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("net.openid:appauth:0.11.1")
     
     // Network - Retrofit for iTunes Search API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

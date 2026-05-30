@@ -59,6 +59,12 @@
         android:title="@string/menu_print"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/menu_open_in_vr"
+        android:icon="@drawable/ic_vr_headset"
+        android:title="@string/player_vr_overflow_open"
+        app:showAsAction="never" />
+
     <!-- Save Frame (VIDEO only) - saves current frame as PNG to configured destination -->
     <item
         android:id="@+id/menu_save_frame"

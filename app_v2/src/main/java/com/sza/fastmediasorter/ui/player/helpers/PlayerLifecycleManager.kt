@@ -244,6 +244,9 @@ class PlayerLifecycleManager(
         // Release EpubViewerManager
         if (activity._epubViewerManager != null) activity.epubViewerManager.release()
 
+        // Release embedded Office viewer (S0301 Phase 03) - destroys the WebView, hides container.
+        if (activity._officeDocumentViewerManager != null) activity.officeDocumentViewerManager.release()
+
         // Release PdfViewerManager - closes PdfRenderer, cancels render jobs, clears caches (ML-001 fix)
         if (activity._pdfViewerManager != null) activity.pdfViewerManager.close()
         

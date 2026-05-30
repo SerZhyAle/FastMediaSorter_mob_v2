@@ -44,14 +44,18 @@ class ResourceAdapter(
     private val onDeleteClick: (MediaResource) -> Unit,
     private val onMoveUpClick: (MediaResource) -> Unit,
     private val onMoveDownClick: (MediaResource) -> Unit,
-    private val onScanClick: (MediaResource) -> Unit = {}
+    private val onScanClick: (MediaResource) -> Unit = {},
+    // S0293 Phase 08: per-resource "Open in new window" entry on the main list. Optional - when
+    // null, the menu item is hidden (e.g. on devices where allowSeparateWindow=false).
+    private val onOpenInNewWindowClick: ((MediaResource) -> Unit)? = null,
+    private val isOpenInNewWindowVisible: Boolean = false
 ) : ListAdapter<MediaResource, RecyclerView.ViewHolder>(ResourceDiffCallback()) {
 
     companion object {
         const val VIEW_TYPE_LIST = 0
         const val VIEW_TYPE_GRID = 1
 
-        private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB)
+        private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
         private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
 
         private data class SingleCategoryIndicator(
@@ -98,6 +102,7 @@ class ResourceAdapter(
                 if (MediaType.TEXT in types) append("T")
                 if (MediaType.PDF in types) append("P")
                 if (MediaType.EPUB in types) append("E")
+                if (MediaType.OFFICE_DOCUMENT in types) append("O")
             }
             
             if (text.isEmpty()) return ""
@@ -131,6 +136,10 @@ class ResourceAdapter(
             }
             if (MediaType.EPUB in types) {
                 spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.EPUB)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.OFFICE_DOCUMENT in types) {
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.OFFICE_DOCUMENT)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
             
             return spannable
@@ -387,6 +396,9 @@ class ResourceAdapter(
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
+                        // S0293 Phase 08: per-resource multi-window entry on main list
+                        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
+                            isOpenInNewWindowVisible && onOpenInNewWindowClick != null
                         popup.setForceShowIcon(true)
                         popup.setOnMenuItemClickListener { item ->
                             when (item.itemId) {
@@ -396,6 +408,9 @@ class ResourceAdapter(
                                 R.id.action_move_up -> { onMoveUpClick(resource); true }
                                 R.id.action_move_down -> { onMoveDownClick(resource); true }
                                 R.id.action_delete -> { onDeleteClick(resource); true }
+                                R.id.action_open_in_separate_window -> {
+                                    onOpenInNewWindowClick?.invoke(resource); true
+                                }
                                 else -> false
                             }
                         }
@@ -690,8 +705,11 @@ class ResourceAdapter(
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                             popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
+                            // S0293 Phase 08: per-resource multi-window entry on main list
+                            popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
+                                isOpenInNewWindowVisible && onOpenInNewWindowClick != null
                             popup.setForceShowIcon(true)
-                            
+
                             popup.setOnMenuItemClickListener { item ->
                                 when (item.itemId) {
                                     R.id.action_edit -> {
@@ -712,6 +730,10 @@ class ResourceAdapter(
                                     }
                                     R.id.action_move_down -> {
                                         onMoveDownClick(resource)
+                                        true
+                                    }
+                                    R.id.action_open_in_separate_window -> {
+                                        onOpenInNewWindowClick?.invoke(resource)
                                         true
                                     }
                                     R.id.action_delete -> {

@@ -1567,6 +1567,12 @@
     <!-- External Player Fallback -->
     <string name="open_in_external_player">Відкрити у зовнішньому програвачі</string>
     <string name="open_with">Відкрити за допомогою</string>
+    <!-- S0301 Office viewer fallback dialog (noLegal). Факти, без обіцянок щодо точності. -->
+    <string name="office_viewer_fallback_title">Цей документ не можна показати тут</string>
+    <string name="office_viewer_fallback_message">Вбудований переглядач не може відкрити цей файл Office. Оберіть, як його відкрити.</string>
+    <string name="office_viewer_fallback_open_external">Відкрити в іншому додатку</string>
+    <string name="office_viewer_fallback_share">Поділитися</string>
+    <string name="office_viewer_fallback_cancel">Скасувати</string>
     <string name="file_not_found">Файл не знайдено</string>
     <string name="file_not_found_name">Файл не знайдено: %1$s</string>
     <string name="cannot_read_file">Неможливо прочитати файл: %1$s</string>

@@ -60,6 +60,9 @@ class PlayerCommandPanelCallbackImpl(
             }
             MediaType.GIF -> activity.dialogAndUiStateManager.showGifEditDialog()
             MediaType.PDF -> activity.dialogAndUiStateManager.showPdfEditDialog()
+            // S0301 Phase 05: the embedded Office viewer is strictly read-only - no edit affordance
+            // is offered even when the underlying file is writable.
+            MediaType.OFFICE_DOCUMENT -> {}
             else -> {}
         }
     }
@@ -268,6 +271,10 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onBlackScreenClicked() {
         activity.blackScreenOverlayManager.show()
+    }
+
+    override fun onOpenInVrClicked() {
+        activity.playerVrLaunchManager?.launchFromOverflow()
     }
 
     override fun onOpenInSeparateWindowClicked() {

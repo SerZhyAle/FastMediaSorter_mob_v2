@@ -288,7 +288,6 @@ bool hasGlExtension(const char* needle) {
 }
 
 void configureStaticTextureFiltering() {
-    LOGD("S0291: static texture filtering entry");
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -524,7 +523,7 @@ void buildHemisphereMesh(std::vector<float>& verts, std::vector<unsigned int>& i
         float sinT = std::sin(theta), cosT = std::cos(theta);
         for (int x = 0; x <= lon; ++x) {
             float u = (float)x / (float)lon;
-            // S0291: same U-axis mirror fix as sphere (see comment above). For the 180° forward
+            // Same U-axis mirror fix as sphere (see comment above). For the 180° forward
             // hemisphere, phi spans pi..2pi originally — reverse so the texture's natural
             // left-to-right reads correctly when viewed from inside the half-shell.
             float phi = kPI + (1.0f - u) * kPI;

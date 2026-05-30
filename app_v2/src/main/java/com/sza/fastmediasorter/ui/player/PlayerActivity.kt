@@ -29,6 +29,8 @@ import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
+import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -89,25 +91,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var slideshowController: SlideshowController
     internal lateinit var gestureHelper: PlayerGestureHelper
     internal lateinit var dialogHelper: PlayerDialogHelper
-    // LAZY INITIALIZATION: Video player only created when VIDEO file opened
+    // LAZY INITIALIZATION: Video player only created when VIDEO file opened.
     internal var _videoPlayerManager: VideoPlayerManager? = null
     internal val videoPlayerManager: VideoPlayerManager
-        get() {
-            if (_videoPlayerManager == null) {
-                Timber.d("PERFORMANCE: Lazy initializing VideoPlayerManager")
-                _videoPlayerManager = PlayerViewerFactory(this).createVideoPlayerManager()
-            }
-            return _videoPlayerManager!!
-        }
+        get() = _videoPlayerManager ?: PlayerViewerFactory(this).createVideoPlayerManager().also { _videoPlayerManager = it }
 
     // S0021: lazy-initialised FPS meter for the flat 2D player overlay.
     internal val playerFpsMeter: PlayerFpsMeter = PlayerFpsMeter()
     private var playerFpsCollectorStarted: Boolean = false
-
-    // Tracks whether viewModel.togglePause() was called from onPause() due to lifecycle
-    // (not user action). Cleared and reversed in onResumeWithViews() to prevent isPaused
-    // from leaking across background/resume cycles and breaking playWhenReady on next load.
-    private var wasToggledPausedByLifecycle = false
+    internal var playerFpsCollectorStartedAccess: Boolean
+        get() = playerFpsCollectorStarted
+        set(value) { playerFpsCollectorStarted = value }
+    // Tracks lifecycle-induced togglePause() from onPause() so onResumeWithViews() can reverse it. Prevents isPaused from leaking across background/resume cycles and breaking playWhenReady on next load.
+    internal var wasToggledPausedByLifecycle = false
 
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var playerFileOperationQueue: com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
@@ -143,42 +139,34 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var observerManager: PlayerObserverManager
     internal lateinit var slideshowResourceAvailabilityManager: com.sza.fastmediasorter.ui.player.helpers.SlideshowResourceAvailabilityManager
 
-    // LAZY INITIALIZATION: Document viewers only created when needed
+    // LAZY INITIALIZATION: Document viewers only created when needed.
     internal var _pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager? = null
     internal val pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
-        get() {
-            if (_pdfViewerManager == null) {
-                Timber.d("PERFORMANCE: Lazy initializing PdfViewerManager")
-                _pdfViewerManager = PlayerViewerFactory(this).createPdfViewerManager()
-            }
-            return _pdfViewerManager!!
-        }
+        get() = _pdfViewerManager ?: PlayerViewerFactory(this).createPdfViewerManager().also { _pdfViewerManager = it }
 
-    /**
-     * Check if PdfViewerManager is initialized and PDF is active.
-     * Used by gesture handlers to route gestures without triggering lazy initialization.
-     */
+    /** True when PdfViewerManager is initialized AND PDF is active; lets gesture handlers route without triggering lazy init. */
     internal fun isPdfActive(): Boolean = _pdfViewerManager?.isPdfActive() == true
 
     internal var _epubViewerManager: com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager? = null
     internal val epubViewerManager: com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
-        get() {
-            if (_epubViewerManager == null) {
-                Timber.d("PERFORMANCE: Lazy initializing EpubViewerManager")
-                _epubViewerManager = PlayerViewerFactory(this).createEpubViewerManager()
-            }
-            return _epubViewerManager!!
-        }
+        get() = _epubViewerManager ?: PlayerViewerFactory(this).createEpubViewerManager().also { _epubViewerManager = it }
 
     internal var _textViewerManager: com.sza.fastmediasorter.ui.player.helpers.TextViewerManager? = null
     internal val textViewerManager: com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
-        get() {
-            if (_textViewerManager == null) {
-                Timber.d("PERFORMANCE: Lazy initializing TextViewerManager")
-                _textViewerManager = PlayerViewerFactory(this).createTextViewerManager()
-            }
-            return _textViewerManager!!
-        }
+        get() = _textViewerManager ?: PlayerViewerFactory(this).createTextViewerManager().also { _textViewerManager = it }
+
+    // S0301 Phase 02: flavor-safe Office viewer decision provider (market = external,
+    // noLegal = embedded viewer wired in Phase 03). Created once, no Activity side effects.
+    internal val officeDocumentViewerProvider: com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProvider by lazy {
+        PlayerViewerFactory(this).createOfficeDocumentViewerProvider()
+    }
+
+    // S0301 Phase 03: embedded Office viewer host. Market = no-op (external handoff stays),
+    // noLegal = engine-backed read-only in-app viewer. Lazily created on first internal open.
+    internal var _officeDocumentViewerManager: com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost? = null
+    internal val officeDocumentViewerManager: com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost
+        get() = _officeDocumentViewerManager
+            ?: PlayerViewerFactory(this).createOfficeDocumentViewerHost().also { _officeDocumentViewerManager = it }
     internal lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
     internal lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
     internal lateinit var playerSettingsManager: com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
@@ -208,6 +196,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var audioMetadataManager: com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
     internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
+    internal var playerVrLaunchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerVrLaunchManager? = null
 
     // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager replaces the
     // activity-result handshake. Drive sign-in goes through GoogleIdentityRepository.signInPrimary.
@@ -223,10 +212,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
                 op = queuedOperation,
             )
         } else {
-            // Do NOT pass currentFile here - the player may have already advanced to the next
-            // file via optimistic navigation before the dialog was shown. The correct source
-            // path was stored in lifecycleManager.storePendingBatchDeleteFilePath() at the
-            // moment the dialog was launched.
+            // Do NOT pass currentFile here - the player may have already advanced to the next file via optimistic navigation before the dialog was shown. The correct source path was stored in lifecycleManager.storePendingBatchDeleteFilePath() at the moment the dialog was launched.
             lifecycleManager.handleBatchDeleteResult(result.resultCode)
         }
     }
@@ -279,152 +265,79 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var playerGestureCallback: com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl
 
     // Injected dependencies for network playback
-    @Inject
-    lateinit var smbClient: SmbClient
+    @Inject lateinit var smbClient: SmbClient
+    @Inject lateinit var sftpClient: SftpClient
+    @Inject lateinit var ftpClient: FtpClient
+    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
+    @Inject lateinit var networkStateMonitor: NetworkStateMonitor
+    @Inject lateinit var xrDetectionFacade: XrDetectionFacade
+    @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
+    @Inject lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
+    @Inject lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+    @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
 
-    @Inject
-    lateinit var sftpClient: SftpClient
+    @Inject internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
 
-    @Inject
-    lateinit var ftpClient: FtpClient
+    @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
-    @Inject
-    lateinit var googleDriveClient: GoogleDriveRestClient
-
-    @Inject
-    lateinit var networkStateMonitor: NetworkStateMonitor
-
-    @Inject
-    lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
-
-    @Inject
-    lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
-
-    @Inject
-    internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
-
-    @Inject
-    internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
-
-    @Inject
-    internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
-
-    @Inject
-    lateinit var credentialsRepository: NetworkCredentialsRepository
-
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
-
-    @Inject
-    lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
-
-    @Inject
-    lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    @Inject lateinit var credentialsRepository: NetworkCredentialsRepository
+    @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
+    @Inject lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 
     // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
-    @Inject
-    lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
-
-    @Inject
-    lateinit var memoryProfileCoordinator: com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
+    @Inject lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
+    @Inject lateinit var memoryProfileCoordinator: com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 
     // S0213 Pillar A: passed to VideoPlayerManager and PlayerMediaLoaderManager for decoder-error cooldown.
-    @Inject
-    lateinit var recentDecoderFailureTracker: com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
+    @Inject lateinit var recentDecoderFailureTracker: com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
 
     // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
-    @Inject
-    lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
+    @Inject lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
 
     /** Per-Activity guard so the degradation snackbar is shown at most once per player session. */
     private var memoryAlertShownInSession: Boolean = false
+    internal var memoryAlertShownInSessionAccess: Boolean
+        get() = memoryAlertShownInSession
+        set(value) { memoryAlertShownInSession = value }
 
-    @Inject
-    lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
-
-    @Inject
-    lateinit var searchAudioCoverUseCase: com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
-
-    @Inject
-    lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
-
-    @Inject
-    lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
-
-    @Inject
-    lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
-
-    @Inject
-    lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
-
-    @Inject
-    lateinit var extractGifFramesUseCase: com.sza.fastmediasorter.domain.usecase.ExtractGifFramesUseCase
-
-    @Inject
-    lateinit var saveGifFirstFrameUseCase: com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
-
-    @Inject
-    lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
-
-    @Inject
-    lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
-
-    @Inject
-    lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
-
-    @Inject
-    lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
-
-    @Inject
-    lateinit var mediaFilesCacheManager: MediaFilesCacheManager
-
-    @Inject
-    lateinit var gamepadInputManager: GamepadInputManager
+    @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
+    @Inject lateinit var searchAudioCoverUseCase: com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
+    @Inject lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
+    @Inject lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
+    @Inject lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
+    @Inject lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
+    @Inject lateinit var extractGifFramesUseCase: com.sza.fastmediasorter.domain.usecase.ExtractGifFramesUseCase
+    @Inject lateinit var saveGifFirstFrameUseCase: com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
+    @Inject lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
+    @Inject lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
+    @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+    @Inject lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+    @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
+    @Inject lateinit var gamepadInputManager: GamepadInputManager
 
     /** S0289 Phase 08: surface marker for gamepad routing in the player. */
     private val gamepadSurface = GamepadInputManager.Surface.PLAYER
 
-    @Inject
-    lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-
-    @Inject
-    lateinit var sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-
-    @Inject
-    lateinit var ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-
-    @Inject
-    lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+    @Inject lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
+    @Inject lateinit var sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler
+    @Inject lateinit var ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+    @Inject lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 
     // S0242 Phase 02: passed to PlayerLifecycleManager so successful file ops are journaled
     // for the Browse Reconciler instead of returned via an Intent extra.
-    @Inject
-    lateinit var mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal
-
-    @Inject
-    lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
-
-    @Inject
-    lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-
+    @Inject lateinit var mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal
+    @Inject lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
+    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
     @Inject
     @com.sza.fastmediasorter.core.di.ApplicationScope
     lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
 
-    @Inject
-    lateinit var backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager
-
-    @Inject
-    lateinit var audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager
-
-    @Inject
-    lateinit var audioMetadataCacheRepository: com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
-
-    @Inject
-    lateinit var okHttpClient: okhttp3.OkHttpClient
-
-    @Inject
-    lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+    @Inject lateinit var backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager
+    @Inject lateinit var audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager
+    @Inject lateinit var audioMetadataCacheRepository: com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
+    @Inject lateinit var okHttpClient: okhttp3.OkHttpClient
+    @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
     internal val hideControlsRunnable = Runnable {
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) viewModel.toggleControls()
@@ -440,9 +353,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Apply the LargePlayerControls theme overlay (when "Compact elements" is OFF)
-        // BEFORE super.onCreate → setContentView. DefaultTimeBar reads bar/touch/scrubber
-        // sizes from XML once at inflate; switching layouts requires app restart.
+        // Apply the LargePlayerControls theme overlay (when "Compact elements" is OFF) BEFORE super.onCreate → setContentView. DefaultTimeBar reads bar/touch/scrubber sizes from XML once at inflate; switching layouts requires app restart.
         com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.applyControlsThemeOverlay(this)
         // PlayerActivity uses Edge-to-Edge ALWAYS to allow precise manual insets control.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -462,7 +373,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         slideshowModeRequested = lifecycleManager.isSlideshowModeRequested()
         if (!slideshowModeRequested && viewModel.resumeSlideshowEnabled) {
             slideshowModeRequested = true
-            Timber.d("PlayerActivity: Resume slideshow requested via resumeSlideshowEnabled")
         }
         initializeManagers()
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
@@ -506,7 +416,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // recomputes "Open in new window" visibility on its next render.
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        timber.log.Timber.d("S0293: player multi-window mode changed - isInMultiWindowMode=$isInMultiWindowMode")
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
     }
 
@@ -514,17 +423,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         super.onConfigurationChanged(newConfig)
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)
-        binding.topCommandPanel.post {
-            binding.topCommandPanel.requestApplyInsets()
-        }
+        binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
         binding.root.post {
-            val currentFile = viewModel.state.value.currentFile
-            if (currentFile != null && (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)) {
-                if (::imageLoadingManager.isInitialized) imageLoadingManager.reEvaluateScaleTypeOnRotation()
-                binding.imageView.setImageDrawable(null)
-                binding.photoView.setImageDrawable(null)
-                lifecycleScope.launch(Dispatchers.Main) { displayImage(currentFile.path) }
-            }
+            val currentFile = viewModel.state.value.currentFile ?: return@post
+            if (currentFile.type != MediaType.IMAGE && currentFile.type != MediaType.GIF) return@post
+            if (::imageLoadingManager.isInitialized) imageLoadingManager.reEvaluateScaleTypeOnRotation()
+            binding.imageView.setImageDrawable(null)
+            binding.photoView.setImageDrawable(null)
+            lifecycleScope.launch(Dispatchers.Main) { displayImage(currentFile.path) }
         }
     }
 
@@ -537,34 +443,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         lifecycleManager.setupBackPressHandler()
     }
 
-    override fun observeData() {
-        observerManager = PlayerObserverManager(this, settingsRepository)
-        observerManager.startObserving()
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state
-                    .map { it.currentFile?.type }
-                    .distinctUntilChanged()
-                    .collect { type ->
-                        val isAudioOrVideo = type == MediaType.AUDIO || type == MediaType.VIDEO
-                        blackScreenOverlayManager.onFileTypeChanged(isAudioOrVideo)
-                    }
-            }
-        }
-        // S0213 Pillar C: surface a one-shot snackbar with "Close player" CTA on memory FAIL.
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                memoryDegradationSignal.events.collect { event ->
-                    if (memoryAlertShownInSession) return@collect
-                    memoryAlertShownInSession = true
-                    dialogAndUiStateManager.showMemoryDegradationSnackbar {
-                        Timber.i("S0213 user closed player from memory alert; event=$event")
-                        finish()
-                    }
-                }
-            }
-        }
-    }
+    override fun observeData() = lifecycleBridge.observeData()
 
     internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
         lifecycleManager.exitPlayerWithAudioCheck(withTransition)
@@ -836,10 +715,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     internal fun populateDestinationButtons() = destinationButtonsManager.populateDestinationButtons()
 
-    /**
-     * S0162: Called by PlayerEventHandler when RotationSensorToggled fires.
-     * followSystem=false is guaranteed by the guard in PlayerViewModel.toggleRotationSensor().
-     */
+    /** S0162: Called by PlayerEventHandler when RotationSensorToggled fires. followSystem=false is guaranteed by the guard in PlayerViewModel.toggleRotationSensor(). */
     internal fun onRotationSensorToggled(sensorEnabled: Boolean) {
         screenRotationManager.apply(
             this,
@@ -871,9 +747,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     internal fun handleMediaLoadErrorAndSkip() {
         Toast.makeText(this, getString(R.string.error_loading_media), Toast.LENGTH_SHORT).show()
-        // In slideshow mode the player must continue without interruption. If isPaused=true
-        // reached this point (e.g., a background/resume lifecycle race before the toggle-reversal
-        // in onResumeWithViews() completes), force-unpause so the next file gets playWhenReady=true.
+        // In slideshow mode the player must continue without interruption. If isPaused=true reached this point (e.g., a background/resume lifecycle race before the toggle-reversal in onResumeWithViews() completes), force-unpause so the next file gets playWhenReady=true.
         if (viewModel.state.value.isSlideShowActive && viewModel.state.value.isPaused) {
             viewModel.setPaused(false)
         }
@@ -888,15 +762,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     /** S0289 §2.2: initial focus on play-pause when the player opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: player initial-focus / HUD btnPlayPause")
         return binding.btnPlayPause
     }
 
-    /**
-     * S0289: true when the currently-focused view is a HUD control button. Used to arbitrate
-     * arrow keys between focus traversal (HUD focused → system handles nextFocus*) and
-     * semantic player actions (HUD not focused → existing seek/next/prev logic).
-     */
+    /** S0289: true when the currently-focused view is a HUD control button. Used to arbitrate arrow keys between focus traversal (HUD focused → system handles nextFocus*) and semantic player actions (HUD not focused → existing seek/next/prev logic). */
     private fun isHudFocused(): Boolean {
         val focused = currentFocus ?: return false
         val id = focused.id
@@ -909,40 +778,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
             id == binding.btnDelete.id
     }
 
+    private val lifecycleBridge by lazy { PlayerActivityLifecycleBridge(this) }
+
     override fun onPause() {
         super.onPause()
         if (isInPictureInPictureMode) return
-        lifecycleManager.onPause()
-        // S0289: propagate parent resource id back so a future onActivityResult-based MainActivity
-        // can restore focus to the launched item.
-        val currentResourceId = viewModel.state.value.resourceId
-        if (currentResourceId > 0L && isFinishing) {
-            val resultIntent = Intent().putExtra(EXTRA_LAST_PLAYED_RESOURCE_ID, currentResourceId)
-            setResult(RESULT_OK, resultIntent)
-        }
-        val serviceAudioActiveOnPause = ::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive
-        if (serviceAudioActiveOnPause) {
-            binding.playerView.player = null
-        } else {
-            // Track that we toggled pause due to lifecycle so onResumeWithViews() can reverse it.
-            // Must be set before togglePause() to survive the state emission.
-            wasToggledPausedByLifecycle = true
-            viewModel.togglePause()
-            // When finishing, release ExoPlayer from the PlayerView Surface immediately.
-            // Without this, the CCodec (mp3/video decoder) keeps the Surface alive across
-            // the ATMS window transition, causing the transition to stall permanently
-            // (permanent black screen on back press when playing non-service audio/video).
-            // The serviceAudioActiveOnPause branch already does this correctly.
-            if (isFinishing) {
-                binding.playerView.player = null
-            }
-        }
-        audioEmptyStateController?.onPause()
-        lifecycleManager.saveCurrentPlaybackPosition()
-        // S0021: stop the FPS meter when the activity loses foreground; the overlay
-        // hides via updatePlayerFpsOverlay() once visibility is reconciled.
-        playerFpsMeter.stop()
-        binding.tvPlayerFpsOverlay.isVisible = false
+        lifecycleBridge.onPause()
     }
 
     override fun onUserLeaveHint() {
@@ -965,44 +806,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal fun extractTextFromCurrentImage() =
         imageOcrManager.extractTextFromCurrentImage(viewModel.state.value.currentFile)
 
-    override fun onResumeWithViews() {
-        lifecycleManager.onResume()
-        // Reverse the lifecycle-induced togglePause() from onPause() so that isPaused does not
-        // persist across a background/resume cycle. Without this, isPaused=true causes every
-        // subsequent video load (playVideoWithResourceType) to start with playWhenReady=false,
-        // which breaks slideshow continuity and requires the user to press PLAY after errors.
-        if (wasToggledPausedByLifecycle) {
-            wasToggledPausedByLifecycle = false
-            viewModel.togglePause()
-        }
-        // S0162: re-apply orientation on resume (re-reads OS auto-rotate state - ADR-1)
-        val rs = viewModel.state.value
-        screenRotationManager.apply(this, rs.followSystemRotation, rs.playerRotationSensorEnabled, hasAccelerometer)
-        audioEmptyStateController?.onResume()
-        nowPlayingManager?.onStart(
-            viewModel.state.value.currentFile?.type,
-            viewModel.state.value.showNowPlayingPanel
-        )
-        if (::mediaLoaderManager.isInitialized) mediaLoaderManager.reattachServicePlayerToView()
-        // S0021: start collecting FPS once per Activity lifetime; reconcile visibility.
-        if (!playerFpsCollectorStarted) {
-            playerFpsCollectorStarted = true
-            lifecycleScope.launch {
-                playerFpsMeter.fps.collect { fps ->
-                    binding.tvPlayerFpsOverlay.text = "$fps fps"
-                }
-            }
-            lifecycleScope.launch {
-                viewModel.settings.collect { updatePlayerFpsOverlay() }
-            }
-        }
-        updatePlayerFpsOverlay()
-    }
+    override fun onResumeWithViews() = lifecycleBridge.onResumeWithViews()
 
-    /**
-     * S0021: reconcile FPS overlay visibility against settings + current file type.
-     * Open: only visible when `playerShowFps` is on AND current file is VIDEO.
-     */
+    /** S0021: reconcile FPS overlay visibility against settings + current file type. Open: only visible when `playerShowFps` is on AND current file is VIDEO. */
     internal fun updatePlayerFpsOverlay() {
         val show = viewModel.settings.value.playerShowFps &&
             viewModel.state.value.currentFile?.type == MediaType.VIDEO
@@ -1010,68 +816,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         if (show) playerFpsMeter.start() else playerFpsMeter.stop()
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        UserActionLogger.logKey(keyCode, event?.action ?: KeyEvent.ACTION_DOWN, KeyEvent.keyCodeToString(keyCode), "PlayerActivity")
-        if ((keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE)
-            && pdfViewerManager.isInFullscreenMode()) {
-            pdfViewerManager.exitFullscreenMode()
-            return true
-        }
-        return keyboardHandler.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
-    }
+    private val inputDispatcher by lazy { PlayerInputDispatcher(this) }
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (blackScreenOverlayManager.isVisible) {
-            return when (event.keyCode) {
-                KeyEvent.KEYCODE_VOLUME_UP,
-                KeyEvent.KEYCODE_VOLUME_DOWN,
-                KeyEvent.KEYCODE_VOLUME_MUTE,
-                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-                KeyEvent.KEYCODE_MEDIA_NEXT,
-                KeyEvent.KEYCODE_MEDIA_PREVIOUS,
-                KeyEvent.KEYCODE_MEDIA_STOP -> super.dispatchKeyEvent(event)
-                else -> {
-                    blackScreenOverlayManager.hide()
-                    super.dispatchKeyEvent(event)
-                }
-            }
-        }
-        // Gamepad buttons are intercepted before onKeyDown to keep input routing in one place.
-        // BT keyboard / remote keys fall through to super → onKeyDown → keyboardHandler.
-        val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.PLAYER)
-        if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
-        return super.dispatchKeyEvent(event)
-    }
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean =
+        inputDispatcher.onKeyDown(keyCode, event) { kc, ev -> super.onKeyDown(kc, ev) }
 
-    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        // S0289 Phase 08: gamepad analog stays player-specific; pointer events fall through to the
-        // bespoke player-mouse handler first, then to the shared BaseActivity foundation.
-        if (event.isFromSource(android.view.InputDevice.SOURCE_JOYSTICK)) {
-            Timber.d("S0289: player gamepad-analog dispatchGenericMotionEvent")
-        }
-        val action = gamepadInputManager.handleMotionEvent(event, gamepadSurface)
-        if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
-        return keyboardHandler.handlePointerEvent(window.decorView, event) || super.dispatchGenericMotionEvent(event)
-    }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        inputDispatcher.dispatchKeyEvent(event) { super.dispatchKeyEvent(it) }
 
-    /** Routes a [GamepadAction.PlayerAction] to the same callbacks used by keyboard input. */
-    private fun routePlayerGamepadAction(action: GamepadAction.PlayerAction): Boolean {
-        val callback = keyboardHandler.callback
-        when (action) {
-            is GamepadAction.PlayerAction.PlayPause -> viewModel.togglePause()
-            is GamepadAction.PlayerAction.Next -> callback.onNextFile()
-            is GamepadAction.PlayerAction.Prev -> callback.onPreviousFile()
-            is GamepadAction.PlayerAction.Seek -> {
-                val seconds = (action.ms / 1000L).toInt()
-                if (action.ms >= 0L) callback.onSeekForward(seconds) else callback.onSeekBackward(-seconds)
-            }
-            is GamepadAction.PlayerAction.Volume -> callback.onChangeVolume(if (action.up) +1 else -1)
-            is GamepadAction.PlayerAction.ToggleHud -> callback.onToggleCommandPanel()
-            is GamepadAction.PlayerAction.ToggleHints -> callback.onShowHelp()
-            is GamepadAction.PlayerAction.Exit -> callback.onExitPlayer()
-        }
-        return true
-    }
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean =
+        inputDispatcher.dispatchGenericMotionEvent(event) { super.dispatchGenericMotionEvent(it) }
 
     fun advanceAudioBackgroundPhoto() = audioSlideshowPhotoModeManager.advancePhoto()
 
@@ -1107,9 +861,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         originatingPath: String
     ) {
         val current = viewModel.state.value.currentFile
-        Timber.d("S0265: onAudioMetadataLoaded originating=$originatingPath current=${current?.path}")
         if (current == null || current.path != originatingPath) {
-            Timber.d("PlayerActivity: stale audio metadata (originating=$originatingPath, current=${current?.path}) - dropped")
             return
         }
         audioMetadataManager.onMetadataLoaded(metadata, current)
@@ -1138,7 +890,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
 
     override fun setStereoMode(mode: StereoMode) {
-        Timber.d("VR_AUDIT/11: PlayerActivity.setStereoMode mode=%s (panel 3D-dialog selection)", mode)
         viewModel.setStereoMode(mode)
     }
     override fun rememberStereoModeForCurrentFile(mode: StereoMode) = viewModel.rememberStereoModeForCurrentFile(mode)
@@ -1192,24 +943,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
-        // S0242 Phase 02: the legacy "modified files" intent extra was removed - the
-        // Browse Reconciler reads the MutationJournal independently on its onResume.
-        // S0028: per-window resume state isolation
+        // S0242 Phase 02: the legacy "modified files" intent extra was removed - the Browse Reconciler reads the MutationJournal independently on its onResume. S0028: per-window resume state isolation
         const val EXTRA_WINDOW_ID = "extra_window_id"
         // S0159: pre-activate draw overlay mode when launched from Browse overflow menu
         const val EXTRA_ACTIVATE_DRAW_MODE = "activate_draw_mode"
         // S0189: open text file directly in edit mode (create-text-note flow)
         const val EXTRA_TEXT_EDIT_MODE_ON_OPEN = "s0189_edit_mode_on_open"
 
-        // S0026: detected stereo mode hint. Browse fills this when opening media; the flat
-        // player primes PlayerStereoModeCoordinator with this value before applying user-settings,
-        // so the route decision sees the actual file format instead of the default MONO.
+        // S0026: detected stereo mode hint. Browse fills this when opening media; the flat player primes PlayerStereoModeCoordinator with this value before applying user-settings, so the route decision sees the actual file format instead of the default MONO.
         const val EXTRA_DETECTED_STEREO_MODE = "extra_detected_stereo_mode"
 
-        // S0289: last-played resource id propagated back to MainActivity on player exit so
-        // focus restores to the corresponding list row (not just the launch resource).
-        // Future extension: MainActivity may consume this via onActivityResult if the launch
-        // path is migrated from startActivity to ActivityResultLauncher.
+        // S0289: last-played resource id propagated back to MainActivity on player exit so focus restores to the corresponding list row (not just the launch resource). Future extension: MainActivity may consume this via onActivityResult if the launch path is migrated from startActivity to ActivityResultLauncher.
         const val EXTRA_LAST_PLAYED_RESOURCE_ID = "s0289_last_played_resource_id"
 
         fun createIntent(
@@ -1222,6 +966,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
             isSlideshowEnabled: Boolean = false,
             shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
+            windowId: String? = null,
         ): Intent {
             // S0241 Phase 03: VR runtime detached from main player entry-point - every flavor now
             // routes to the flat PlayerActivity directly.
@@ -1234,17 +979,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
                 if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
                 if (shuffleOnStart) putExtra("shuffleOnStart", true)
                 detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
+                windowId?.let { putExtra(EXTRA_WINDOW_ID, it) }
             }
         }
 
-        /**
-         * Build an intent that targets the flat panel [PlayerActivity] directly.
-         * Historically (S0019 / S0038) this bypassed the per-flavor
-         * [BuildConfig.PLAYER_ACTIVITY_CLASS] override to escape the VR clone-window regression;
-         * after S0241 Phase 03 there is no per-flavor override and this is now equivalent to
-         * [createIntent]. The separate method is preserved so call-sites that explicitly want
-         * the 2D entry-point remain easy to identify.
-         */
+        /** Alias for [createIntent] kept so call-sites that explicitly want the flat-panel 2D entry-point remain searchable. Historically (S0019/S0038) bypassed `BuildConfig.PLAYER_ACTIVITY_CLASS` to escape a VR clone-window regression; after S0241 Phase 03 the per-flavor override is gone. */
         fun createPanelIntent(
             context: Context,
             resourceId: Long,
@@ -1255,15 +994,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
             isSlideshowEnabled: Boolean = false,
             shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
-        ): Intent = Intent(context, PlayerActivity::class.java).apply {
-            putExtra("resourceId", resourceId)
-            putExtra("initialIndex", initialIndex)
-            putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
-            initialFilePath?.let { putExtra("initialFilePath", it) }
-            isPlaying?.let { putExtra("resumeIsPlaying", it) }
-            if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
-            if (shuffleOnStart) putExtra("shuffleOnStart", true)
-            detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
-        }
+            windowId: String? = null,
+        ): Intent = createIntent(
+            context, resourceId, initialIndex, skipAvailabilityCheck, initialFilePath,
+            isPlaying, isSlideshowEnabled, shuffleOnStart, detectedStereoMode, windowId,
+        )
     }
 }

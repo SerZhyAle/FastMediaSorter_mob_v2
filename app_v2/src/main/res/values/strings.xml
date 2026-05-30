@@ -1868,6 +1868,12 @@ Close the player and try again.</string>
     <!-- External Player Fallback -->
     <string name="open_in_external_player">Open in External Player</string>
     <string name="open_with">Open with</string>
+    <!-- S0301 Office viewer fallback dialog (noLegal). Factual, no fidelity promises. -->
+    <string name="office_viewer_fallback_title">This document can\'t be shown here</string>
+    <string name="office_viewer_fallback_message">The built-in viewer can\'t display this Office file. Choose how to open it.</string>
+    <string name="office_viewer_fallback_open_external">Open in another app</string>
+    <string name="office_viewer_fallback_share">Share</string>
+    <string name="office_viewer_fallback_cancel">Cancel</string>
     <string name="file_not_found">File not found</string>
     <string name="file_not_found_name">File not found: %1$s</string>
     <string name="cannot_read_file">Cannot read file: %1$s</string>

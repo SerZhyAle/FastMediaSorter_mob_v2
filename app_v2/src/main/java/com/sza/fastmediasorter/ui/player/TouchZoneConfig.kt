@@ -207,7 +207,8 @@ object TouchZoneConfig {
             MediaType.VIDEO, MediaType.AUDIO -> {
                 if (isFullscreen) TouchZoneMap.REG_975 else TouchZoneMap.REG_375
             }
-            MediaType.PDF, MediaType.EPUB, MediaType.TEXT -> {
+            MediaType.PDF, MediaType.EPUB, MediaType.TEXT, MediaType.OFFICE_DOCUMENT -> {
+                // S0301 Phase 05: Office documents share the read-only document touch-zone map.
                 TouchZoneMap.REG_DOC
             }
             else -> {

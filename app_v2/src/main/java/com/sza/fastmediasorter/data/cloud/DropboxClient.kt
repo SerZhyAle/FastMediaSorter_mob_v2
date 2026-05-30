@@ -35,22 +35,7 @@ import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Dropbox implementation of CloudStorageClient
- * 
- * Uses Dropbox API v2 with OAuth 2.0 PKCE flow
- * 
- * Authentication flow:
- * 1. User calls authenticate() -> launches Dropbox OAuth in browser/app
- * 2. After authorization, credentials are retrieved via Auth.getDbxCredential()
- * 3. Credentials stored as JSON (access token, refresh token, expiry)
- * 
- * File operations:
- * - Uses Dropbox API v2
- * - Paths use "/" prefix (e.g., "/Photos/vacation.jpg")
- * - Empty string "" represents root folder
- * - All operations run on IO dispatcher
- */
+/** Dropbox API v2 client with OAuth 2.0 PKCE flow. Paths use "/" prefix; root = "". All ops on IO dispatcher. */
 @Singleton
 class DropboxClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -66,11 +51,7 @@ class DropboxClient @Inject constructor(
     @Volatile
     private var lastInitializationError: String? = null
     
-    /**
-     * Shared DbxRequestConfig using app-bundled OkHttp3 instead of system's
-     * com.android.okhttp (StandardHttpRequestor). Fixes TLS validation issues
-     * on devices with outdated system OkHttp or MITM-intercepting proxies.
-     */
+    // App-bundled OkHttp3 (not system StandardHttpRequestor) - fixes TLS issues on devices with outdated system OkHttp or MITM proxies.
     private val dbxRequestConfig by lazy {
         val okHttpClient = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -100,11 +81,8 @@ class DropboxClient @Inject constructor(
         }
     }
 
-    // Build-type resource overlays swap the Dropbox app key, so credential restore must
-    // use the same key that launched the PKCE flow for this installed variant.
-    private val dropboxAppKey by lazy {
-        context.getString(R.string.dropbox_app_key)
-    }
+    // Build-type overlays swap the Dropbox app key - credential restore must use the same key as PKCE flow.
+    private val dropboxAppKey by lazy { context.getString(R.string.dropbox_app_key) }
     
     companion object {
         private const val APP_NAME = "FastMediaSorter/2.0"
@@ -138,10 +116,7 @@ class DropboxClient @Inject constructor(
         // Common audio extensions
         private val AUDIO_EXTENSIONS = MediaExtensions.AUDIO
         
-        /**
-         * Normalize path for Dropbox API.
-         * Dropbox requires paths to start with "/" (except root which is "").
-         */
+        /** Normalize path for Dropbox API - paths must start with "/" (root = ""). */
         private fun normalizeDropboxPath(path: String?): String {
             if (path.isNullOrEmpty() || path == "/" || path == ROOT_PATH) {
                 return ROOT_PATH
@@ -151,10 +126,7 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Save credentials to encrypted storage.
-     * Saves both to the legacy single-account key and to the per-account key (keyed by accountEmail).
-     */
+    // Save to both the legacy single-account key and the per-account key (keyed by accountEmail).
     private fun saveCredentials(json: String) {
         val edit = encryptedPrefs.edit().putString(KEY_CREDENTIALS, json) // Always update legacy key
         accountEmail?.let { email ->
@@ -164,10 +136,7 @@ class DropboxClient @Inject constructor(
         Timber.d("Dropbox credentials saved (account: ${accountEmail ?: "unknown"})")
     }
 
-    /**
-     * Load credentials from encrypted storage.
-     * If [email] is provided, tries per-account key first, then falls back to legacy.
-     */
+    // Tries per-account key first when [email] is given, falls back to legacy single-account key.
     private fun loadStoredCredentials(email: String? = null): String? {
         if (email != null) {
             val perAccount = encryptedPrefs.getString("$KEY_CREDENTIALS_PREFIX$email", null)
@@ -176,12 +145,7 @@ class DropboxClient @Inject constructor(
         return encryptedPrefs.getString(KEY_CREDENTIALS, null)
     }
 
-    /**
-     * Try to restore the Dropbox client for a specific account (identified by email).
-     * Used for multi-account support when scanning cloud resources.
-     * Falls back to any stored credentials if no per-account key found.
-     */
-    /** S0195: trigger network lifecycle bootstrap on first Dropbox use. */
+    /** Restore client for [email] (multi-account scan); falls back to any stored credentials. Triggers network lifecycle bootstrap on first Dropbox use. */
     suspend fun tryRestoreForAccount(email: String): Boolean {
         if (dbxClient != null && accountEmail == email) return true // Already correct account
         lifecycleBootstrapper.get().ensureInitialized()
@@ -196,17 +160,11 @@ class DropboxClient @Inject constructor(
         return tryRestoreFromStorage() // Fallback to any stored credentials
     }
     
-    /**
-     * Clear stored credentials
-     */
     private fun clearStoredCredentials() {
         encryptedPrefs.edit().remove(KEY_CREDENTIALS).apply()
         Timber.d("Dropbox credentials cleared")
     }
     
-    /**
-     * Try to restore client from stored credentials
-     */
     suspend fun tryRestoreFromStorage(): Boolean {
         if (dbxClient != null) return true
         
@@ -221,10 +179,7 @@ class DropboxClient @Inject constructor(
         return false
     }
     
-    /**
-     * Start Dropbox OAuth 2.0 PKCE flow from an Activity.
-     * Replaces the legacy Auth.startOAuth2Authentication() to avoid Dropbox security alerts.
-     */
+    /** Start OAuth 2.0 PKCE flow - replaces legacy Auth.startOAuth2Authentication() that triggered Dropbox security alerts. */
     fun startPkceAuthentication(activity: android.app.Activity, appKey: String) {
         Timber.d("S0235: startPkceAuthentication scopes=$REQUIRED_PKCE_SCOPES appKey=$appKey")
         Auth.startOAuth2PKCE(
@@ -237,12 +192,7 @@ class DropboxClient @Inject constructor(
         )
     }
 
-    /**
-     * Start Dropbox OAuth 2.0 flow
-     * This launches browser/Dropbox app for user authentication
-     *
-     * After user authorizes, call finishAuthentication() to complete
-     */
+    /** Start OAuth 2.0 flow (browser/Dropbox app). Call [finishAuthentication] when the user returns. */
     override suspend fun authenticate(): AuthResult {
         return withContext(Dispatchers.Main) {
             try {
@@ -302,10 +252,7 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Complete authentication after OAuth flow
-     * Call this from Activity's onResume() after startPkceAuthentication()
-     */
+    /** Call from Activity.onResume() after startPkceAuthentication() to complete the OAuth flow. */
     suspend fun finishAuthentication(): AuthResult {
         return withContext(Dispatchers.Main) {
             try {
@@ -362,9 +309,6 @@ class DropboxClient @Inject constructor(
             .any { it.equals(REQUIRED_METADATA_SCOPE, ignoreCase = true) }
     }
     
-    /**
-     * Initialize Dropbox client with credential
-     */
     private suspend fun initializeWithCredential(credential: DbxCredential): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -392,9 +336,6 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Initialize Dropbox client with simple access token (legacy OAuth2)
-     */
     private suspend fun initializeWithAccessToken(accessToken: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -422,9 +363,6 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Serialize access token to JSON for storage
-     */
     private fun serializeAccessToken(accessToken: String): String =
         DropboxClientUtils.serializeAccessToken(accessToken)
 
@@ -485,9 +423,6 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Check if client is currently authenticated (has valid client)
-     */
     override fun isAuthenticated(): Boolean = dbxClient != null
     
     override suspend fun testConnection(): CloudResult<Boolean> {
@@ -512,10 +447,7 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Get current account email
-     * Returns cached email or fetches it if not available
-     */
+    /** Cached email when available; otherwise fetches from server. */
     suspend fun getAccountEmail(): String? {
         if (accountEmail != null) return accountEmail
         
@@ -885,10 +817,7 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Get input stream for file content (for streaming)
-     * Used by ExoPlayer's CloudDataSource for video/audio streaming
-     */
+    /** Streaming input - used by ExoPlayer's CloudDataSource for video/audio playback. */
     override suspend fun getFileInputStream(
         fileId: String,
         position: Long,
@@ -990,9 +919,6 @@ class DropboxClient @Inject constructor(
         }
     }
     
-    /**
-     * Convert Dropbox Metadata to CloudFile
-     */
     private fun metadataToCloudFile(metadata: Metadata, parentPath: String): CloudFile =
         DropboxClientUtils.metadataToCloudFile(metadata, parentPath)
 

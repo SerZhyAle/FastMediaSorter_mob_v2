@@ -30,7 +30,9 @@ enum class MediaType {
     BINARY_ARCHIVE,    // ZIP, RAR, 7z, TAR, GZ
     BINARY_DISK,       // ISO, DMG, IMG
     BINARY_EXECUTABLE, // APK, EXE, DLL, SO
-    BINARY_OTHER;      // Other binary files
+    BINARY_OTHER,      // Other binary files
+
+    OFFICE_DOCUMENT;   // DOC, DOCX, RTF, ODT files opened through an external viewer
 
     /**
      * Check if this is a binary file type
@@ -42,6 +44,10 @@ enum class MediaType {
             BINARY_EXECUTABLE,
             BINARY_OTHER
         )
+    }
+
+    fun isDocumentFile(): Boolean {
+        return this in listOf(TEXT, PDF, EPUB, OFFICE_DOCUMENT)
     }
 }
 
@@ -86,7 +92,7 @@ enum class ResourceProfile {
     AUDIO_LIBRARY, // Audio only + rememberFileList recommended
     VIDEO_LIBRARY, // Video + Audio
     PHOTO_STORAGE, // Image + GIF
-    DOCUMENTS,     // Text + PDF + EPUB
+    DOCUMENTS,     // Text + PDF + EPUB + Office documents
     ALL_FILES      // allFiles flag enabled (show everything)
 }
 
@@ -197,16 +203,14 @@ data class MediaResource(
     }
 
     /**
-     * True when the resource is documents-flavored - content may include any document type (TEXT, PDF or EPUB)
+     * True when the resource is documents-flavored - content may include any document type
      * or the catch-all `allFiles` mode is enabled. Used to gate document-authoring entry points (e.g. S0189
      * "Create text note") so they do not appear in audio/video/photo-only libraries where a freshly created
      * `.txt`/`.pdf`/`.epub` would not be listed anyway.
      */
     fun supportsDocuments(): Boolean {
         if (allFiles) return true
-        return MediaType.TEXT in supportedMediaTypes ||
-                MediaType.PDF in supportedMediaTypes ||
-                MediaType.EPUB in supportedMediaTypes
+        return supportedMediaTypes.any { it.isDocumentFile() }
     }
 
     /**
@@ -297,4 +301,3 @@ data class UndoOperation(
     val oldNames: List<Pair<String, String>>? = null, // (oldPath, newPath) for RENAME
     val timestamp: Long = System.currentTimeMillis()
 )
-

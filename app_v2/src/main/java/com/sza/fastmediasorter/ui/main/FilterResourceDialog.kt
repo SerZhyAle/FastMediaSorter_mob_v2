@@ -155,6 +155,7 @@ class FilterResourceDialog : DialogFragment() {
                 MediaType.TEXT -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.PDF -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.EPUB -> BuildConfig.ENABLE_EPUB
+                MediaType.OFFICE_DOCUMENT -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> false
             }
         }
@@ -169,6 +170,7 @@ class FilterResourceDialog : DialogFragment() {
                     MediaType.TEXT -> "Text (T)"
                     MediaType.PDF -> "PDF (P)"
                     MediaType.EPUB -> "EPUB (E)"
+                    MediaType.OFFICE_DOCUMENT -> "Office (O)"
                     MediaType.BINARY_ARCHIVE -> "Archive (AR)"
                     MediaType.BINARY_DISK -> "Disk (DI)"
                     MediaType.BINARY_EXECUTABLE -> "Executable (EX)"

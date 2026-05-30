@@ -140,6 +140,7 @@ class SftpMediaScanner @Inject constructor(
                             MediaType.TEXT -> true
                             MediaType.PDF -> true
                             MediaType.EPUB -> true
+                            MediaType.OFFICE_DOCUMENT -> true
                             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
                         }
                         if (!passesFilter) {
@@ -267,6 +268,7 @@ class SftpMediaScanner @Inject constructor(
                             MediaType.TEXT -> true
                             MediaType.PDF -> true
                             MediaType.EPUB -> true
+                            MediaType.OFFICE_DOCUMENT -> true
                             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
                         }
                         if (!passesFilter) {

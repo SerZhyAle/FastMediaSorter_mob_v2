@@ -72,7 +72,7 @@ fun ResourceFormData.applyProfile(profile: ResourceProfile): ResourceFormData = 
     )
     ResourceProfile.DOCUMENTS -> copy(
         profile = profile,
-        supportedMediaTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB),
+        supportedMediaTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT),
         allFiles = false
     )
     ResourceProfile.ALL_FILES -> copy(

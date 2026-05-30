@@ -18,6 +18,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import timber.log.Timber
 import java.io.File
 
@@ -44,7 +45,12 @@ object DefaultPlayerHelper {
         val packageName = context.packageName
         val pm = context.packageManager
 
-        val mimeTypesToProbe = listOf("audio/*", "video/*", "image/*", "application/pdf")
+        val mimeTypesToProbe = listOf(
+            "audio/*",
+            "video/*",
+            "image/*",
+            "application/pdf"
+        ) + MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES
         return mimeTypesToProbe.any { mime ->
             val probe = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(Uri.parse("content://"), mime)
@@ -215,6 +221,10 @@ object DefaultPlayerHelper {
             mimeType.startsWith("video") -> "mp4" to "video/mp4"
             mimeType.startsWith("image") -> "jpg" to "image/jpeg"
             mimeType == "application/pdf" -> "pdf" to "application/pdf"
+            mimeType == "application/vnd.ms-powerpoint" && mimeType in MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES ->
+                "ppt" to "application/vnd.ms-powerpoint"
+            MediaTypeUtils.officeProbeForMimeType(mimeType) != null ->
+                MediaTypeUtils.officeProbeForMimeType(mimeType)!!
             else -> return null
         }
 

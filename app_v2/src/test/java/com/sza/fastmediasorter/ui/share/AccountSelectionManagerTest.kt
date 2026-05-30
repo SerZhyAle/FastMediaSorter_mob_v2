@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -97,6 +98,7 @@ class AccountSelectionManagerTest {
         )
 
         assertEquals("onSelected should receive the single active account", active, selectedAccount)
+        coVerify(exactly = 1) { repository.markLastUsed(HOST, active.accountId) }
     }
 
     // ── Mixed active + dismissed (dismissal filtering) ───────────────────────

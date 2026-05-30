@@ -231,7 +231,6 @@ class TextViewerManager(
 
         // Click on background to close translation overlay
         safeViews.translationOverlayBackground.setOnClickListener {
-            Timber.d("BUTTON: translationOverlayBackground clicked - hiding translation overlay")
             translationOverlayManager.hideOverlay()
         }
 
@@ -282,125 +281,25 @@ class TextViewerManager(
             enterEditMode()
         }
 
-        // S0189: 5-action panel - replaces the former 2-button row
-        actionPanelManager.setup(com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks(
-            onSave = {
-                val flow = saveFlow
-                val localFile = currentLocalFile
-                val capturedContent = safeViews.etTextContent.text.toString()
-                if (flow != null && localFile != null) {
-                    flow.commit(
-                        currentLocalFile = localFile,
-                        currentName = saveDialogDefaultName(localFile),
-                        currentContent = capturedContent,
-                        afterSave = { outcome ->
-                            cacheNewlySavedNote(outcome, capturedContent)
-                            // S0189: reset dirty-state - Save & Close on a clean buffer must skip
-                            // the redundant re-save (which would orphan a file in the staging dir).
-                            dirtyTracker.rebaseline(capturedContent)
-                        }
-                    )
-                } else {
-                    saveEditedText()
-                    dirtyTracker.rebaseline(capturedContent)
-                }
-            },
-            onSaveAndClose = saveAndClose@{
-                val flow = saveFlow
-                val localFile = currentLocalFile
-                val capturedContent = safeViews.etTextContent.text.toString()
-                // S0189: if the buffer is already clean (user did Save then Save & Close), skip the
-                // duplicate save and just return to Browse. Avoids orphan staging files and the
-                // "blank viewer after save" state when the activity stayed open.
-                if (!dirtyTracker.isDirty.value) {
-                    callback.finishActivity()
-                    return@saveAndClose
-                }
-                if (flow != null && localFile != null) {
-                    flow.commit(
-                        currentLocalFile = localFile,
-                        currentName = saveDialogDefaultName(localFile),
-                        currentContent = capturedContent,
-                        afterSave = { outcome ->
-                            cacheNewlySavedNote(outcome, capturedContent)
-                            dirtyTracker.rebaseline(capturedContent)
-                            callback.finishActivity()
-                        }
-                    )
-                } else {
-                    saveEditedText()
-                    dirtyTracker.rebaseline(capturedContent)
-                    callback.finishActivity()
-                }
-            },
-            onSaveAndSend = {
-                val flow = saveFlow
-                val localFile = currentLocalFile
-                val capturedContent = safeViews.etTextContent.text.toString()
-                if (flow != null && localFile != null) {
-                    flow.commit(
-                        currentLocalFile = localFile,
-                        currentName = saveDialogDefaultName(localFile),
-                        currentContent = capturedContent,
-                        afterSave = { outcome ->
-                            cacheNewlySavedNote(outcome, capturedContent)
-                            val shareFile = java.io.File(outcome.finalPath)
-                            val uri = androidx.core.content.FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                shareFile
-                            )
-                            com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
-                                context = context,
-                                payload = com.sza.fastmediasorter.core.share.SharePayload.Text(
-                                    content = capturedContent,
-                                    streamUri = uri,
-                                    grantReadPermission = true,
-                                ),
-                                chooserTitle = context.getString(com.sza.fastmediasorter.R.string.share),
-                            )
-                        }
-                    )
-                } else {
-                    saveEditedText()
-                    com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
-                        context = context,
-                        payload = com.sza.fastmediasorter.core.share.SharePayload.Text(content = capturedContent),
-                        chooserTitle = context.getString(com.sza.fastmediasorter.R.string.share),
-                    )
-                }
-            },
-            onSendToKeep = sendKeep@{
-                val currentText = safeViews.etTextContent.text.toString()
-                val keepPackage = keepChecker.resolveTargetPackage() ?: run {
-                    android.widget.Toast.makeText(context, com.sza.fastmediasorter.R.string.text_editor_keep_unavailable, android.widget.Toast.LENGTH_SHORT).show()
-                    return@sendKeep
-                }
-                val sent = com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
-                    context = context,
-                    payload = com.sza.fastmediasorter.core.share.SharePayload.Text(content = currentText),
-                    preferredPackage = keepPackage,
-                )
-                if (!sent) {
-                    android.widget.Toast.makeText(context, com.sza.fastmediasorter.R.string.text_editor_keep_unavailable, android.widget.Toast.LENGTH_SHORT).show()
-                }
-            },
-            onCancel = {
-                // S0189: if this was a deferred new-note that auto-save already flushed to disk,
-                // delete the file and drop the registry entry so Cancel leaves no trace.
-                val localFile = currentLocalFile
-                if (localFile != null) {
-                    val stagedNote = textNoteStagingRegistry?.lookup(localFile)
-                    if (stagedNote != null) {
-                        if (localFile.exists()) {
-                            localFile.delete()
-                        }
-                        textNoteStagingRegistry.unregister(localFile)
-                    }
-                }
-                exitEditMode()
-            },
-        ))
+        // S0189: 5-action editor panel callbacks - extracted to TextEditorActionPanelCallbacks.
+        actionPanelManager.setup(
+            TextEditorActionPanelCallbacks(
+                context = context,
+                binding = binding,
+                safeViews = safeViews,
+                keepChecker = keepChecker,
+                getSaveFlow = { saveFlow },
+                getCurrentLocalFile = { currentLocalFile },
+                getTextNoteStagingRegistry = { textNoteStagingRegistry },
+                saveDialogDefaultName = ::saveDialogDefaultName,
+                cacheNewlySavedNote = ::cacheNewlySavedNote,
+                rebaselineDirtyTracker = dirtyTracker::rebaseline,
+                isDirty = { dirtyTracker.isDirty.value },
+                saveEditedText = ::saveEditedText,
+                finishActivity = callback::finishActivity,
+                exitEditMode = ::exitEditMode,
+            ).build()
+        )
 
         // Editor toolbar buttons - delegated
         findReplaceManager.setupEditorToolbar()
@@ -457,136 +356,31 @@ class TextViewerManager(
             )
     }
 
-    /**
-     * Setup gesture detectors for horizontal swipe to change font size
-     */
+    /** Setup gesture detectors for horizontal swipe to change font size + vertical swipe for page nav. Delegated to [TextViewerGestureDetectors]. */
     private fun setupGestureDetectors() {
-        // Gesture detector for text content (tvTextContent)
-        textGestureDetector =
-            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-                override fun onFling(
-                    e1: MotionEvent?,
-                    e2: MotionEvent,
-                    velocityX: Float,
-                    velocityY: Float
-                ): Boolean {
-                    if (e1 == null) return false
-
-                    val screenWidth = binding.root.width
-                    val screenHeight = binding.root.height
-                    val swipeThreshold =
-                        (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT)
-                            .toInt().coerceAtLeast(50)
-
-                    val diffX = e2.x - e1.x
-                    val diffY = e2.y - e1.y
-
-                    // Horizontal swipe → font size adjustment
-                    if (abs(diffX) > abs(diffY) &&
-                        abs(diffX) > swipeThreshold &&
-                        abs(velocityX) > SWIPE_VELOCITY_THRESHOLD
-                    ) {
-                        if (diffX > 0) increaseTextFontSize() else decreaseTextFontSize()
-                        return true
-                    }
-
-                    // In edit mode, vertical gestures must remain plain text scrolling.
-                    if (safeViews.textEditContainer.isVisible) {
-                        return false
-                    }
-
-                    // Vertical swipe → page navigation or fullscreen exit
-                    if (abs(diffY) > abs(diffX) &&
-                        abs(diffY) > swipeThreshold &&
-                        abs(velocityY) > SWIPE_VELOCITY_THRESHOLD
-                    ) {
-                        val scrollView = safeViews.textScrollView
-                        val isAtTop = !scrollView.canScrollVertically(-1)
-                        val isAtBottom = !scrollView.canScrollVertically(1)
-
-                        // For OCR text (currentFile is null) close only at scroll edges
-                        if (currentFile == null && safeViews.textViewerContainer.isVisible) {
-                            if (diffY < 0 && isAtBottom) {
-                                Timber.d("OCR text: Swipe up at bottom - closing OCR viewer")
-                                hideOcrText()
-                                return true
-                            } else if (diffY > 0 && isAtTop) {
-                                Timber.d("OCR text: Swipe down at top - closing OCR viewer")
-                                hideOcrText()
-                                return true
-                            }
-                            return false
-                        }
-
-                        val pager = textFilePager
-                        if (diffY < 0 && isAtBottom) {
-                            if (pager != null && pager.hasNextPage()) {
-                                Timber.d("Text: Swipe up at bottom - next page")
-                                nextPage()
-                                return true
-                            }
-                            Timber.d("Text: Swipe up at bottom - exit fullscreen")
-                            callback.exitFullscreenMode()
-                            return true
-                        } else if (diffY > 0 && isAtTop) {
-                            if (pager != null && pager.hasPreviousPage()) {
-                                Timber.d("Text: Swipe down at top - previous page")
-                                previousPage()
-                                return true
-                            }
-                            Timber.d("Text: Swipe down at top - exit fullscreen")
-                            callback.exitFullscreenMode()
-                            return true
-                        }
-                    }
-
-                    return false
-                }
-            })
-
-        // Gesture detector for translation overlay (tvTranslatedText)
-        translationGestureDetector =
-            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-                override fun onFling(
-                    e1: MotionEvent?,
-                    e2: MotionEvent,
-                    velocityX: Float,
-                    velocityY: Float
-                ): Boolean {
-                    if (e1 == null) return false
-
-                    val screenWidth = binding.root.width
-                    val screenHeight = binding.root.height
-                    val swipeThreshold =
-                        (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT)
-                            .toInt().coerceAtLeast(50)
-
-                    val diffX = e2.x - e1.x
-                    val diffY = e2.y - e1.y
-
-                    // Only handle horizontal swipes (ignore vertical scrolling)
-                    if (abs(diffX) > abs(diffY) &&
-                        abs(diffX) > swipeThreshold &&
-                        abs(velocityX) > SWIPE_VELOCITY_THRESHOLD
-                    ) {
-                        if (diffX > 0) increaseTranslationFontSize()
-                        else decreaseTranslationFontSize()
-                        return true
-                    }
-                    return false
-                }
-
-                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                    translationOverlayManager.toggleOverlaySize()
-                    return true
-                }
-            })
+        textGestureDetector = TextViewerGestureDetectors.buildTextDetector(
+            context = context,
+            binding = binding,
+            safeViews = safeViews,
+            getCurrentFile = { currentFile },
+            getTextFilePager = { textFilePager },
+            onIncreaseTextFontSize = ::increaseTextFontSize,
+            onDecreaseTextFontSize = ::decreaseTextFontSize,
+            onHideOcrText = ::hideOcrText,
+            onNextPage = ::nextPage,
+            onPreviousPage = ::previousPage,
+            onExitFullscreenMode = callback::exitFullscreenMode,
+        )
+        translationGestureDetector = TextViewerGestureDetectors.buildTranslationDetector(
+            context = context,
+            binding = binding,
+            onIncreaseTranslationFontSize = ::increaseTranslationFontSize,
+            onDecreaseTranslationFontSize = ::decreaseTranslationFontSize,
+            onToggleOverlaySize = translationOverlayManager::toggleOverlaySize,
+        )
     }
 
-    /**
-     * Apply font settings from session configuration.
-     * Called when user changes font settings in translation settings dialog.
-     */
+    /** Apply font settings from session configuration. Called when user changes font settings in translation settings dialog. */
     fun applyFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
         val baseTextSize = DEFAULT_TEXT_FONT_SIZE_SP
         val baseTranslationSize = DEFAULT_TRANSLATION_FONT_SIZE_SP
@@ -617,10 +411,6 @@ class TextViewerManager(
         safeViews.tvTextContent.typeface = currentTypeface
         safeViews.tvTranslatedText.typeface = currentTypeface
 
-        Timber.d(
-            "Applied font settings: size=${settings.fontSize.name} " +
-                    "(${textFontSizeSp}sp), family=${settings.fontFamily.name}"
-        )
     }
 
     private fun increaseTextFontSize() {
@@ -633,7 +423,6 @@ class TextViewerManager(
         applyTextFontSize()
         // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
         autoFitFontManager?.notifyManualOverride(textFontSizeSp)
-        Timber.d("Text font size increased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
 
@@ -647,7 +436,6 @@ class TextViewerManager(
         applyTextFontSize()
         // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
         autoFitFontManager?.notifyManualOverride(textFontSizeSp)
-        Timber.d("Text font size decreased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
 
@@ -660,7 +448,6 @@ class TextViewerManager(
         translationFontSizeSp =
             (translationFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
         applyTranslationFontSize()
-        Timber.d("Translation font size increased to ${translationFontSizeSp}sp")
         showFontSizeToast(translationFontSizeSp)
     }
 
@@ -668,7 +455,6 @@ class TextViewerManager(
         translationFontSizeSp =
             (translationFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
         applyTranslationFontSize()
-        Timber.d("Translation font size decreased to ${translationFontSizeSp}sp")
         showFontSizeToast(translationFontSizeSp)
     }
 
@@ -676,10 +462,7 @@ class TextViewerManager(
         safeViews.tvTranslatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, translationFontSizeSp)
     }
 
-    /**
-     * Apply translation font size (called from PlayerActivity for image translation).
-     * Uses the same font size setting as text translation to keep consistency.
-     */
+    /** Apply translation font size (called from PlayerActivity for image translation). Uses the same font size setting as text translation to keep consistency. */
     fun applyTranslationFontSizeForImageTranslation() {
         applyTranslationFontSize()
     }
@@ -689,202 +472,45 @@ class TextViewerManager(
         Toast.makeText(context, "${sizeSp.toInt()}sp", Toast.LENGTH_SHORT).show()
     }
 
+    private val viewerLoader by lazy {
+        TextViewerLoader(
+            context = context,
+            binding = binding,
+            safeViews = safeViews,
+            coroutineScope = coroutineScope,
+            settingsRepository = settingsRepository,
+            networkFileManager = networkFileManager,
+            textNoteStagingRegistry = textNoteStagingRegistry,
+            applyTextFontSize = ::applyTextFontSize,
+            closePager = ::closePager,
+            showError = callback::showError,
+            setCurrentLocalFile = { currentLocalFile = it },
+            setOriginalTextWithoutNumbers = { originalTextWithoutNumbers = it },
+            setMarkdownRendered = { markdownRendered = it },
+            setSyntaxHighlightingEnabled = { syntaxHighlightingEnabled = it },
+            setCurrentReaderTheme = { currentReaderTheme = it },
+            setCurrentCharset = { currentCharset = it },
+            setTextFilePager = { textFilePager = it },
+            resolveTheme = ::resolveTheme,
+            renderPageContent = ::renderPageContent,
+            updatePageIndicator = ::updatePageIndicator,
+            isAutoOpenEditMode = { autoOpenEditMode },
+            clearAutoOpenEditMode = { autoOpenEditMode = false },
+            enterEditMode = { autoOpen -> enterEditMode(autoOpen) },
+            onTextCopyClicked = {
+                val text = safeViews.tvTextContent.text.toString()
+                if (text.isNotEmpty()) {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("text", text))
+                    Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
+                }
+            },
+        )
+    }
+
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
         currentFile = mediaFile
-
-        // Close previous pager
-        closePager()
-
-        binding.imageView.isVisible = false
-        binding.photoView.isVisible = false
-        binding.playerView.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        safeViews.pdfControlsLayout.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
-
-        // Hide PDF action buttons (they are for PDF files only)
-        binding.btnGoogleLensPdfCmd.isVisible = false
-        binding.btnOcrPdfCmd.isVisible = false
-        binding.btnTranslatePdfCmd.isVisible = false
-        binding.btnSearchPdfCmd.isVisible = false
-
-        // Hide EPUB action buttons (they are for EPUB files only)
-        binding.btnSearchEpubCmd.isVisible = false
-        binding.btnTranslateEpubCmd.isVisible = false
-
-        // Hide EPUB WebView and controls (they are for EPUB files only)
-        binding.epubWebView.isVisible = false
-        safeViews.epubControlsLayout.isVisible = false
-        binding.btnExitEpubFullscreen.isVisible = false
-
-        safeViews.textViewerContainer.isVisible = true
-        safeViews.textScrollView.isVisible = true
-        safeViews.textEditContainer.isVisible = false
-        safeViews.tvTextContent.text = ""
-        binding.progressBar.isVisible = true
-
-        // Show text action buttons in command panel
-        binding.btnCopyTextCmd.isVisible = true
-        // Restore text-copy handler (may have been overridden by PdfViewerManager)
-        binding.btnCopyTextCmd.setOnClickListener {
-            val text = safeViews.tvTextContent.text.toString()
-            if (text.isNotEmpty()) {
-                val clipboard =
-                    context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("text", text)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
-            }
-        }
-        binding.btnSearchTextCmd.isVisible = true
-
-        // Apply saved font size (persists during session)
-        applyTextFontSize()
-
-        binding.btnEditTextCmd.isVisible = isWritable
-
-        coroutineScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-
-            withContext(Dispatchers.Main) {
-                // Show translate button only if translation is enabled in settings AND supported by flavor
-                binding.btnTranslateTextCmd.isVisible =
-                    BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
-            }
-            try {
-                // S0189: a new note may be registered as deferred - the file is created on first
-                // Save, not when the editor opens. Skip the not-found error in that case and
-                // render an empty buffer; auto-open edit mode is the next step.
-                val deferredStaged = textNoteStagingRegistry?.lookup(java.io.File(mediaFile.path))
-                val file = if (deferredStaged != null) {
-                    deferredStaged.localFile
-                } else {
-                    try {
-                        networkFileManager.prepareFileForRead(mediaFile)
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            binding.progressBar.isVisible = false
-                            callback.showError(context.getString(R.string.text_file_load_failed))
-                        }
-                        return@launch
-                    }
-                }
-
-                if (!file.exists() && deferredStaged == null) {
-                    withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
-                        callback.showError(context.getString(R.string.text_file_not_found))
-                    }
-                    return@launch
-                }
-
-                if (!file.exists()) {
-                    // Deferred new note - render an empty buffer without the pager (no bytes to page).
-                    currentLocalFile = file
-                    originalTextWithoutNumbers = ""
-                    val settings = settingsRepository.getSettings().first()
-                    markdownRendered = settings.markdownRendered
-                    syntaxHighlightingEnabled = settings.syntaxHighlighting
-                    currentReaderTheme = resolveTheme(settings.textReaderTheme)
-                    withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
-                        renderPageContent("", settings.showTextLineNumbers, 1)
-                        safeViews.textPageNavigation.isVisible = false
-                        safeViews.tvTextEncodingIndicator.text = Charsets.UTF_8.name()
-                        if (autoOpenEditMode) {
-                            autoOpenEditMode = false
-                            enterEditMode(autoOpen = true)
-                        }
-                    }
-                    return@launch
-                }
-
-                // Check file size against maximum (100MB)
-                if (file.length() > TextFilePager.MAX_FILE_SIZE) {
-                    val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
-                    val maxSizeMb =
-                        "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
-                    withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
-                        safeViews.tvTextContent.text =
-                            context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
-                        safeViews.textPageNavigation.isVisible = false
-                    }
-                    return@launch
-                }
-
-                // Detect charset
-                currentCharset = CharsetDetector.detect(file)
-                currentLocalFile = file
-
-                // Create pager and open file
-                val pager = TextFilePager(file, currentCharset)
-                pager.open()
-                textFilePager = pager
-
-                // Read first page
-                val pageText = pager.readPage(0)
-                originalTextWithoutNumbers = pageText
-
-                // Load rendering settings
-                markdownRendered = settings.markdownRendered
-                syntaxHighlightingEnabled = settings.syntaxHighlighting
-                currentReaderTheme = resolveTheme(settings.textReaderTheme)
-
-                val startLine = pager.getStartLineNumber(0)
-
-                withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
-
-                    // Render with Markwon/syntax/theme support
-                    renderPageContent(pageText, settings.showTextLineNumbers, startLine)
-
-                    // Show/hide page navigation
-                    val multiPage = !pager.isSinglePage()
-                    safeViews.textPageNavigation.isVisible = multiPage
-                    if (multiPage) {
-                        updatePageIndicator()
-                        // Add bottom padding so page bar doesn't cover content
-                        safeViews.textScrollView.setPadding(
-                            safeViews.textScrollView.paddingLeft,
-                            safeViews.textScrollView.paddingTop,
-                            safeViews.textScrollView.paddingRight,
-                            (48 * context.resources.displayMetrics.density).toInt()
-                        )
-                        // Disable edit for multi-page files
-                        binding.btnEditTextCmd.isVisible = false
-                    } else {
-                        safeViews.textScrollView.setPadding(
-                            safeViews.textScrollView.paddingLeft,
-                            safeViews.textScrollView.paddingTop,
-                            safeViews.textScrollView.paddingRight,
-                            0
-                        )
-                    }
-
-                    // Show encoding indicator
-                    safeViews.tvTextEncodingIndicator.text = currentCharset.name()
-
-                    Timber.d(
-                        "TextViewerManager: Displaying page 0, " +
-                                "${pageText.length} chars, charset=$currentCharset"
-                    )
-
-                    // S0189: auto-open edit mode when launched from the "create text note" flow
-                    if (autoOpenEditMode) {
-                        autoOpenEditMode = false
-                        enterEditMode(autoOpen = true)
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error loading text file")
-                withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
-                    callback.showError(context.getString(R.string.text_file_display_error))
-                }
-            }
-        }
+        viewerLoader.load(mediaFile, isWritable)
     }
 
     /**
@@ -954,9 +580,7 @@ class TextViewerManager(
         }
     }
 
-    /**
-     * Reopen current file with a different encoding.
-     */
+    /** Reopen current file with a different encoding. */
     fun reopenWithEncoding(charset: Charset) {
         val file = currentLocalFile ?: return
         currentFile ?: return
@@ -987,7 +611,6 @@ class TextViewerManager(
                 safeViews.textScrollView.scrollTo(0, 0)
                 safeViews.tvTextEncodingIndicator.text = charset.name()
                 updatePageIndicator()
-                Timber.d("TextViewerManager: Re-opened with charset=$charset")
             }
         }
     }
@@ -1021,9 +644,7 @@ class TextViewerManager(
         currentLocalFile = null
     }
 
-    /**
-     * Release all resources. Call from Activity onDestroy.
-     */
+    /** Release all resources. Call from Activity onDestroy. */
     fun release() {
         closePager()
         ttsManager?.release()
@@ -1034,12 +655,7 @@ class TextViewerManager(
         autoSaveManager = null
     }
 
-    /**
-     * Close text viewer triggered by back button press.
-     * Performs complete cleanup for text file viewer (NOT for OCR results).
-     * This ensures single back-press exits, not double.
-     * Called from PlayerLifecycleManager.setupBackPressHandler() when back is pressed while text viewer is active.
-     */
+    /** Close text viewer triggered by back button press. Performs complete cleanup for text file viewer (NOT for OCR results). This ensures single back-press exits, not double. Called from PlayerLifecycleManager.setupBackPressHandler() when back is pressed while text viewer is active. */
     fun closeTextViewerFromBackPress() {
         if (currentFile != null) {
             closePager()
@@ -1050,16 +666,12 @@ class TextViewerManager(
             currentFile = null
             // NOTE: Do NOT call exitFullscreenMode() here - it only adjusts UI state.
             // Back handler will call exitPlayerWithAudioCheck() to actually navigate back.
-            Timber.d("TextViewerManager: Text file closed via back button press")
         }
     }
 
     // ===== H.2: Rich rendering & reader UI methods =====
 
-    /**
-     * Toggle markdown rendering for .md files.
-     * Switches between raw text and Markwon-rendered view, then reloads current page.
-     */
+    /** Toggle markdown rendering for .md files. Switches between raw text and Markwon-rendered view, then reloads current page. */
     fun toggleMarkdownRendering() {
         markdownRendered = !markdownRendered
         coroutineScope.launch(Dispatchers.IO) {
@@ -1067,13 +679,9 @@ class TextViewerManager(
             settingsRepository.updateSettings(current.copy(markdownRendered = markdownRendered))
         }
         reloadCurrentPage()
-        Timber.d("TextViewerManager: Markdown rendering toggled to $markdownRendered")
     }
 
-    /**
-     * Apply reader theme (background & text color) to the text viewer.
-     * Saves preference to settings.
-     */
+    /** Apply reader theme (background & text color) to the text viewer. Saves preference to settings. */
     fun applyReaderTheme(theme: TextReaderTheme) {
         currentReaderTheme = theme
         coroutineScope.launch(Dispatchers.IO) {
@@ -1081,16 +689,12 @@ class TextViewerManager(
             settingsRepository.updateSettings(current.copy(textReaderTheme = theme.name))
         }
         applyThemeToViews()
-        Timber.d("TextViewerManager: Reader theme changed to ${theme.name}")
     }
 
     /** Get current reader theme. */
     fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
 
-    /**
-     * Resolve reader theme by name. "SYSTEM" picks DARK or LIGHT based on the device dark-mode
-     * setting; any unrecognized name also falls back to the system default.
-     */
+    /** Resolve reader theme by name. "SYSTEM" picks DARK or LIGHT based on the device dark-mode setting; any unrecognized name also falls back to the system default. */
     private fun resolveTheme(name: String): TextReaderTheme {
         if (name.equals("SYSTEM", ignoreCase = true)) {
             val isNight = (context.resources.configuration.uiMode
@@ -1101,13 +705,10 @@ class TextViewerManager(
             ?: resolveTheme("SYSTEM")
     }
 
-    /**
-     * Toggle TTS read-aloud for current page text.
-     */
+    /** Toggle TTS read-aloud for current page text. */
     fun toggleReadAloud() {
         if (ttsManager == null) {
             ttsManager = TtsReadAloudManager(context) { state ->
-                Timber.d("TextViewerManager: TTS state changed to $state")
             }
         }
         ttsManager?.toggle(originalTextWithoutNumbers)
@@ -1127,9 +728,7 @@ class TextViewerManager(
         safeViews.textScrollView.setBackgroundColor(currentReaderTheme.bgColor)
     }
 
-    /**
-     * Render page content with Markwon, syntax highlighting, and theme applied.
-     */
+    /** Render page content with Markwon, syntax highlighting, and theme applied. */
     private fun renderPageContent(
         pageText: String,
         showLineNumbers: Boolean,
@@ -1183,99 +782,44 @@ class TextViewerManager(
 
     // ===== H.3: Editor enter/exit/save =====
 
-    /**
-     * S0189: signal that edit mode should be activated automatically once text content loads.
-     * Called by [PlayerActivity] when launched with [PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN].
-     */
+    /** S0189: signal that edit mode should be activated automatically once text content loads. Called by [PlayerActivity] when launched with [PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN]. */
     fun setAutoOpenEditMode(enabled: Boolean) {
         autoOpenEditMode = enabled
     }
 
     /** Enter text edit mode. [autoOpen] distinguishes automatic (S0189 create flow) from manual entry. */
-    internal fun enterEditMode(autoOpen: Boolean = false) {
-        val pager = textFilePager
-        if (pager != null && !pager.isSinglePage()) {
-            Toast.makeText(context, R.string.text_editing_large_file, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        var textToEdit = originalTextWithoutNumbers.ifBlank {
-            safeViews.tvTextContent.text.toString()
-        }
-
-        // Check for auto-save draft
-        val filePath = currentFile?.path ?: ""
-        if (autoSaveManager == null) {
-            val tempDir = java.io.File(context.filesDir.parentFile, "temp")
-            autoSaveManager = TextEditorAutoSaveManager(tempDir, coroutineScope)
-        }
-        val draft = autoSaveManager?.restoreDraft(filePath)
-        if (draft != null && draft != textToEdit) {
-            textToEdit = draft
-            Toast.makeText(context, R.string.draft_restored, Toast.LENGTH_LONG).show()
-        }
-
-        safeViews.etTextContent.setText(textToEdit)
-
-        safeViews.textScrollView.isVisible = false
-        binding.btnCopyTextCmd.isVisible = false
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
-        safeViews.textEditContainer.isVisible = true
-        safeViews.etTextContent.requestFocus()
-
-        // S0189 Phase 09: bind dirty-state tracker to the EditText and reset panel tint.
-        // The text watcher pumps content into [editContentFlow]; the tracker compares against
-        // the baseline we just set via [rebaseline].
-        safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
-        editContentFlow.value = textToEdit
-        dirtyTracker.rebaseline(textToEdit)
-        safeViews.etTextContent.addTextChangedListener(dirtyTextWatcher)
-        actionPanelManager.onEnterEditMode()
-
-        // S0189 Phase 07: auto-fit font - uses max of persistent setting; locks on manual swipe
-        val maxFontSp = DEFAULT_TEXT_FONT_SIZE_SP *
-            com.sza.fastmediasorter.domain.models.TranslationFontSize.HUGE.multiplier
-        autoFitFontManager?.detach()
-        autoFitFontManager = TextEditorAutoFitFontManager(
-            editText = safeViews.etTextContent,
-            scrollView = safeViews.textEditScrollView,
-            maxSizeSp = maxFontSp
-        ).also {
-            it.attach()
-            it.reset()
-        }
-
-        // Detach previous undo/redo manager if exists (M-10 fix)
-        undoRedoManager?.detach()
-
-        undoRedoManager = TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
-            safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
-            safeViews.btnUndo.isEnabled = canUndo
-            safeViews.btnRedo.alpha = if (canRedo) 1f else 0.3f
-            safeViews.btnRedo.isEnabled = canRedo
-        }
-        undoRedoManager?.attach()
-
-        autoSaveManager?.startAutoSave(safeViews.etTextContent, filePath)
-
-        // Cursor position tracking - delegated
-        findReplaceManager.setupCursorPositionTracking()
-
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
+    private val editorModeController by lazy {
+        TextEditorModeController(
+            context = context,
+            binding = binding,
+            safeViews = safeViews,
+            coroutineScope = coroutineScope,
+            settingsRepository = settingsRepository,
+            networkFileManager = networkFileManager,
+            actionPanelManager = actionPanelManager,
+            findReplaceManager = findReplaceManager,
+            dirtyTracker = dirtyTracker,
+            editContentFlow = editContentFlow,
+            dirtyTextWatcher = dirtyTextWatcher,
+            defaultTextFontSizeSp = DEFAULT_TEXT_FONT_SIZE_SP,
+            getCurrentFile = { currentFile },
+            getOriginalTextWithoutNumbers = { originalTextWithoutNumbers },
+            setOriginalTextWithoutNumbers = { originalTextWithoutNumbers = it },
+            getTextFilePager = { textFilePager },
+            getAutoSaveManager = { autoSaveManager },
+            setAutoSaveManager = { autoSaveManager = it },
+            getAutoFitFontManager = { autoFitFontManager },
+            setAutoFitFontManager = { autoFitFontManager = it },
+            getUndoRedoManager = { undoRedoManager },
+            setUndoRedoManager = { undoRedoManager = it },
+            applyLineNumbers = ::applyLineNumbers,
+            showError = callback::showError,
+        )
     }
 
-    /**
-     * S0189: after a successful Save of a new note, append the resulting file directly to
-     * [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] for its resource. Browse's
-     * `onResume` Reconciler (S0242 Phase 03) sees no pending journal entry for the new
-     * note, so the cache append is the canonical signal - the new entry appears in the
-     * Browse list on next resume without triggering a full network rescan.
-     *
-     * Skipped for non-staged edits (the file already exists in the resource list).
-     */
+    internal fun enterEditMode(autoOpen: Boolean = false) = editorModeController.enterEditMode(autoOpen)
+
+    /** S0189: after a successful Save of a new note, append the resulting file directly to [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] for its resource. Browse's `onResume` Reconciler (S0242 Phase 03) sees no pending journal entry for the new note, so the cache append is the canonical signal - the new entry appears in the Browse list on next resume without triggering a full network rescan. Skipped for non-staged edits (the file already exists in the resource list). */
     private fun cacheNewlySavedNote(outcome: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome, content: String) {
         val resourceId = currentFile?.resourceId ?: return
         val previousLocalFile = currentLocalFile ?: return
@@ -1294,111 +838,15 @@ class TextViewerManager(
         com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.addFile(resourceId, newFile)
     }
 
-    /**
-     * S0189: pre-fill name for the save-with-rename dialog.
-     *
-     * Network staging files are stored on disk as `<resourceId>_<intendedName>` to keep entries
-     * unique inside the shared `Downloads/FastMediaSorter/notes/` directory; without this lookup
-     * the resource-id prefix leaks into the SMB/FTP/SFTP/Cloud upload as the final filename.
-     * Falls back to the on-disk name for non-registered (already-saved or arbitrary) text files.
-     */
+    /** S0189: pre-fill name for the save-with-rename dialog. Network staging files are stored on disk as `<resourceId>_<intendedName>` to keep entries unique inside the shared `Downloads/FastMediaSorter/notes/` directory; without this lookup the resource-id prefix leaks into the SMB/FTP/SFTP/Cloud upload as the final filename. Falls back to the on-disk name for non-registered (already-saved or arbitrary) text files. */
     private fun saveDialogDefaultName(localFile: java.io.File): String {
         val stagedNote = textNoteStagingRegistry?.lookup(localFile)
         return stagedNote?.intendedName ?: localFile.name
     }
 
-    private fun exitEditMode() {
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
+    private fun exitEditMode() = editorModeController.exitEditMode()
 
-        undoRedoManager?.detach()
-        undoRedoManager = null
-        autoSaveManager?.stopAutoSave()
-
-        // S0189 Phase 09: detach the text watcher (so subsequent EditText changes don't dirty
-        // the tracker once the editor is closed) and reset the panel tint.
-        safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
-        actionPanelManager.onExitEditMode()
-
-        // S0189 Phase 07: detach auto-fit font manager
-        autoFitFontManager?.detach()
-        autoFitFontManager = null
-
-        // Close find panel if open - delegated
-        findReplaceManager.closeFindPanel()
-
-        safeViews.textEditContainer.isVisible = false
-        safeViews.textScrollView.isVisible = true
-        binding.btnCopyTextCmd.isVisible = true
-        binding.btnEditTextCmd.isVisible = true
-        binding.btnSearchTextCmd.isVisible = true
-    }
-
-    private fun saveEditedText() {
-        val newText = safeViews.etTextContent.text.toString()
-        val fileToSave = currentFile
-
-        if (fileToSave == null) {
-            callback.showError(context.getString(R.string.text_file_not_found))
-            return
-        }
-
-        binding.progressBar.isVisible = true
-
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val localFile = networkFileManager.prepareFileForWrite(fileToSave)
-                if (localFile == null) {
-                    withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
-                    }
-                    return@launch
-                }
-
-                localFile.writeText(newText)
-                MediaStoreNotifier.notifyFile(context, localFile.absolutePath, "text-edit")
-
-                val isNetworkFile = !fileToSave.path.startsWith("/")
-                if (isNetworkFile) {
-                    val uploadSuccess =
-                        networkFileManager.uploadEditedFile(fileToSave, localFile)
-                    if (!uploadSuccess) {
-                        withContext(Dispatchers.Main) {
-                            binding.progressBar.isVisible = false
-                            callback.showError(
-                                context.getString(R.string.text_file_upload_failed_after_local_save)
-                            )
-                        }
-                        return@launch
-                    }
-                    networkFileManager.clearEditingCache()
-                }
-
-                withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
-                    originalTextWithoutNumbers = newText
-                }
-
-                // Read settings on IO, not Main (C-3 fix)
-                val settings = settingsRepository.getSettings().first()
-
-                withContext(Dispatchers.Main) {
-                    val displayText = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
-                    safeViews.tvTextContent.text = displayText
-
-                    autoSaveManager?.stopAutoSave(deleteDraft = true)
-                    exitEditMode()
-                    Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error saving text file")
-                withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
-                    callback.showError(context.getString(R.string.text_file_save_failed))
-                }
-            }
-        }
-    }
+    private fun saveEditedText() = editorModeController.saveEditedText()
 
     // ===== Scroll helpers =====
 
@@ -1420,10 +868,7 @@ class TextViewerManager(
 
     // ===== Translation public API - delegated =====
 
-    /**
-     * Force enable translation and translate current text.
-     * Used when settings are changed via long-press dialog.
-     */
+    /** Force enable translation and translate current text. Used when settings are changed via long-press dialog. */
     fun forceTranslate() {
         translationOverlayManager.forceTranslate { originalTextForTranslation() }
     }

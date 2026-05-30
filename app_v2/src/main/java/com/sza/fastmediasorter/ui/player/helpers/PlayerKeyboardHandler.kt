@@ -282,6 +282,11 @@ class PlayerKeyboardHandler(
                 callback.onEpubScrollDelta(scrollY)
                 return
             }
+            MediaType.OFFICE_DOCUMENT -> {
+                // S0301 Phase 05: the embedded Office WebView consumes wheel scrolling itself, so
+                // the player must not hijack it for file navigation.
+                return
+            }
             else -> {
                 callback.onNavigationScroll(scrollY)
                 return

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveBrowserAuthManager
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
@@ -47,10 +48,18 @@ internal class AddResourceConnectionManager(
         ).identityRepository()
     }
 
+    private val browserAuthManager: GoogleDriveBrowserAuthManager by lazy {
+        EntryPointAccessors.fromApplication(
+            activity.applicationContext,
+            AddResourceIdentityEntryPoint::class.java
+        ).browserAuthManager()
+    }
+
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface AddResourceIdentityEntryPoint {
         fun identityRepository(): GoogleIdentityRepository
+        fun browserAuthManager(): GoogleDriveBrowserAuthManager
     }
 
     fun observeAuthEvents() {
@@ -74,7 +83,14 @@ internal class AddResourceConnectionManager(
                         CloudProvider.DROPBOX -> R.string.dropbox_authentication_failed
                         CloudProvider.ONEDRIVE -> R.string.onedrive_authentication_failed
                     }
-                    showDetailedErrorDialog(titleRes, event.message)
+                    val message = if (
+                        event.provider == CloudProvider.GOOGLE_DRIVE && event.message.isBlank()
+                    ) {
+                        activity.getString(R.string.s0294_google_drive_browser_auth_failed_message)
+                    } else {
+                        event.message
+                    }
+                    showDetailedErrorDialog(titleRes, message)
                 }
             }
         }
@@ -89,8 +105,10 @@ internal class AddResourceConnectionManager(
     // ========== Cloud Status ==========
 
     fun updateCloudStorageStatus() {
-        // S0200 Phase 04b: source primary account state from the identity domain.
+        // Google Drive can now be backed either by the primary identity-domain account or by a
+        // browser-authenticated Quest/XR account stored for Drive-specific reuse.
         val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
+            ?: browserAuthManager.peekStoredAccountEmail()
         googleDriveAccountEmail = boundEmail
         binding.tvGoogleDriveStatus.isVisible = true
         binding.tvGoogleDriveStatus.text = if (boundEmail != null) {
@@ -145,6 +163,7 @@ internal class AddResourceConnectionManager(
 
     fun startGoogleDriveAuth() {
         val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
+            ?: browserAuthManager.peekStoredAccountEmail()
         if (boundEmail != null) showGoogleDriveSignedInOptions(boundEmail)
         else unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.GOOGLE_DRIVE)
     }
@@ -194,7 +213,9 @@ internal class AddResourceConnectionManager(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check Dropbox authentication")
-                showDetailedErrorDialog(R.string.dropbox_authentication_failed, e.message)
+                // S0294 contract: `e.message` is raw exception text; pass null so the dialog
+                // shows the curated friendly fallback rather than leaking technical jargon.
+                showDetailedErrorDialog(R.string.dropbox_authentication_failed, details = null)
             }
         }
     }
@@ -500,11 +521,22 @@ internal class AddResourceConnectionManager(
     }
 
     fun showDetailedErrorDialog(titleRes: Int, details: String?) {
+        // S0294: `details` may be either a curated human-facing message (e.g. the
+        // `s0294_google_drive_browser_*` strings the unified auth manager hands us when GMS-less
+        // browser sign-in fails) or a raw provider exception. Curated strings should reach the
+        // user verbatim so the cause is actionable; raw exception text would leak technical
+        // jargon, so the contract here is: callers pass `null` (or blank) when they only have a
+        // technical message, and the dialog falls back to the friendly default. Callers that
+        // built a localised message pass it through and it is rendered as-is.
+        val message = if (!details.isNullOrBlank()) {
+            details
+        } else {
+            activity.getString(R.string.friendly_copy_error_auth_failed)
+        }
         ErrorDialog.show(
             context = activity,
             title = activity.getString(titleRes),
-            // Auth providers often return technical exception text here; keep the dialog human-facing.
-            message = activity.getString(R.string.friendly_copy_error_auth_failed)
+            message = message
         )
     }
 }

@@ -17,8 +17,8 @@ import javax.inject.Singleton
  * `serializeAccount(GoogleSignInAccount)` / `deserializeAccount` helpers are deleted; the
  * identity domain owns primary-account persistence in [PrimaryGoogleAccountStore].
  *
- * This class lingers only to hold the legacy `google_drive_credentials` blob that Phase 05's
- * auth-state wipe clears on first launch after the S0200 release.
+ * Holds the encrypted Google Drive credential blobs used by both the legacy single-account
+ * storage path and the new AppAuth browser OAuth fallback introduced for Quest / XR.
  */
 @Singleton
 class GoogleDriveCredentialsManager @Inject constructor(

@@ -6,16 +6,26 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.MasterTogglePreferences
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackRequest
+import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
+import com.sza.fastmediasorter.core.xr.VrLaunchInput
+import com.sza.fastmediasorter.core.xr.VrLaunchMode
+import com.sza.fastmediasorter.core.xr.VrLaunchPoint
+import com.sza.fastmediasorter.core.xr.VrLaunchResult
+import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
+import com.sza.fastmediasorter.core.xr.VrMediaType
+import com.sza.fastmediasorter.core.xr.VrPlaybackActivityContract
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionState
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
-import com.sza.fastmediasorter.core.xr.XrEntryResult
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -34,9 +44,9 @@ import timber.log.Timber
  *   - `NONE` (non-XR device): advisory visible, master toggle disabled, button hidden.
  *   - `AVAILABLE_DISABLED_BY_USER`: advisory hidden, toggle enabled, button hidden.
  *   - `AVAILABLE_ENABLED`: advisory hidden, toggle enabled, button visible.
- * - Route Test Immersive click through [XrEntryGateway.enterDiagnosticImage] and map results
- *   to localized toast strings. Native session lifecycle is owned by `XrEntryGatewayImpl` +
- *   `NativeDiagnosticXrRuntime`; this fragment only signals user intent.
+ * - Route Test Immersive click through [StartVrPlaybackUseCase] and the shared
+ *   [VrPlaybackActivityContract]. Native session lifecycle is owned by `XrEntryGatewayImpl` +
+ *   `NativeDiagnosticXrRuntime`; this fragment only signals user intent and handles results.
  *
  * Replaces the S0245 `VrSettingsFragment` (which lived in a separate 5th VR tab). The
  * standalone tab was removed in Phase 04 as part of merging VR into the Media section.
@@ -46,7 +56,18 @@ class VrSettingsBlockFragment : Fragment() {
 
     @Inject lateinit var preferences: MasterTogglePreferences
     @Inject lateinit var detection: XrDetectionFacade
+    @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
     @Inject lateinit var entryGateway: XrEntryGateway
+
+    private lateinit var immersiveLauncher: ActivityResultLauncher<VrLaunchInput>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        immersiveLauncher = registerForActivityResult(
+            VrPlaybackActivityContract(entryGateway),
+            ::handleVrLaunchResult,
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -105,21 +126,34 @@ class VrSettingsBlockFragment : Fragment() {
     }
 
     private fun launchDiagnosticImmerse() {
-        Timber.d("S0249: VrSettingsBlockFragment.launchDiagnosticImmerse - user tapped Test Immersive")
+        Timber.d("VrSettingsBlockFragment: user tapped Test Immersive")
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = entryGateway.enterDiagnosticImage()
-            Timber.d("VrSettingsBlockFragment: enterDiagnosticImage -> $result")
-            when (result) {
-                XrEntryResult.Started -> {
-                    // Meta hybrid-app exclusive mode expects the panel activity to terminate once
-                    // the immersive activity is launched. Keeping Settings alive in the background
-                    // produced duplicate Settings panels when the immersive host later tried to
-                    // return to Home.
-                    activity?.finishAndRemoveTask()
+            val request = StartVrPlaybackRequest(
+                launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST,
+                mediaType = VrMediaType.IMAGE,
+                source = VrLaunchPoint.SETTINGS_TEST,
+                deliveryMode = VrLaunchDeliveryMode.ACTIVITY_RESULT,
+            )
+            when (val result = startVrPlaybackUseCase(request)) {
+                is StartVrPlaybackUseCase.Result.Ready -> {
+                    Timber.d("VrSettingsBlockFragment: launching immersive contract")
+                    immersiveLauncher.launch(result.input)
                 }
-                XrEntryResult.InitializationFailed -> showToast(R.string.vr_settings_test_immersive_init_failure_toast)
-                XrEntryResult.UnavailableNoRuntime -> showToast(R.string.vr_settings_test_immersive_init_failure_toast)
-                XrEntryResult.UnavailableDisabledByUser -> Unit  // button should not be reachable in this state
+                is StartVrPlaybackUseCase.Result.Completed -> handleVrLaunchResult(result.result)
+            }
+        }
+    }
+
+    private fun handleVrLaunchResult(result: VrLaunchResult) {
+        Timber.d("VrSettingsBlockFragment: immersive result=$result")
+        when (result) {
+            VrLaunchResult.CancelledByUser,
+            VrLaunchResult.CompletedNormally -> Unit
+            is VrLaunchResult.Crashed -> showToast(R.string.vr_settings_test_immersive_init_failure_toast)
+            is VrLaunchResult.Unavailable -> {
+                if (result.reason != VrLaunchUnavailableReason.DisabledByUser) {
+                    showToast(R.string.vr_settings_test_immersive_init_failure_toast)
+                }
             }
         }
     }

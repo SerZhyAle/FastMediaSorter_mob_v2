@@ -503,7 +503,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // and resource-ops menus pick up the runtime capability flag on their next render.
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        timber.log.Timber.d("S0293: browse multi-window mode changed - isInMultiWindowMode=$isInMultiWindowMode")
         if (::initializer.isInitialized) initializer.notifyMultiWindowModeChanged()
     }
 

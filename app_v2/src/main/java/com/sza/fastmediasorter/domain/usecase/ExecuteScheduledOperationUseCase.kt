@@ -302,7 +302,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             if (FileTypeFlags.hasImages(mask))    types += setOf(MediaType.IMAGE, MediaType.GIF)
             if (FileTypeFlags.hasAudio(mask))     types += MediaType.AUDIO
             if (FileTypeFlags.hasVideo(mask))     types += MediaType.VIDEO
-            if (FileTypeFlags.hasDocuments(mask)) types += setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)
+            if (FileTypeFlags.hasDocuments(mask)) {
+                types += setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT, MediaType.OFFICE_DOCUMENT)
+            }
             resource.copy(supportedMediaTypes = types)
         }
     }
@@ -319,7 +321,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         if (FileTypeFlags.hasImages(mask)    && (file.type == MediaType.IMAGE || file.type == MediaType.GIF)) return true
         if (FileTypeFlags.hasAudio(mask)     && file.type == MediaType.AUDIO)  return true
         if (FileTypeFlags.hasVideo(mask)     && file.type == MediaType.VIDEO)  return true
-        if (FileTypeFlags.hasDocuments(mask) && file.type in setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)) return true
+        if (FileTypeFlags.hasDocuments(mask) && file.type.isDocumentFile()) return true
         return false
     }
 

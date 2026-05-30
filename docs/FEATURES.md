@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-05-11*
+*Last updated: 2026-05-28*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each feature works.
 
@@ -64,6 +64,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Subfolder operations**: Select, copy, move, rename, delete, and create subfolders directly in Browse for local, network, and cloud resources.
 - **Create Folder button** in Browse toolbar - visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
 - **Show hidden/all files**: Toggle visibility of system-hidden files, or bypass media filters to view all binary files and archives.
+- **Office document handoff**: Open DOC, DOCX, RTF, and ODT files from FMS with an installed document viewer, including files prepared from local, network, or cloud sources.
 - **Intelligent thumbnail loading**: Previews for photos and video frames; can be disabled per resource for large network directories.
 - **Fast placeholder for unsupported network video**: Containers that cannot be decoded over a network stream show an icon immediately instead of waiting for a timeout.
 - **Network thumbnail previews recover automatically**: Transient extraction failures during streaming clear themselves once playback stops.
@@ -156,8 +157,9 @@ This document is the canonical inventory of all user-facing features implemented
 - **Per-eye VR renderer**: Captures timestamped stereoscopic SBS PNG frames directly to the device.
 - **Dual-group format override dialog**: Exposes separate flat and spherical format override selectors.
 - **Immersive mode toggle**: Switch between immersive OpenXR mode and the flat panel player seamlessly.
+- **Player VR launch entry**: XR-capable builds add a floating `VR` badge plus an overflow fallback on eligible flat-player screens, and show a one-time Settings prompt when VR is turned off.
 - **VR Immersive Controls & HUD**: Full operation using controllers, keyboards, or mice. Features a head-locked HUD with progress, buffer, and control indicators.
-- **Cinema mode**: Displays standard 2D content on a virtual cinema screen within the immersive session.
+- **Cinema video playback**: Watch local or prepared video in immersive VR cinema mode on a flat screen inside the VR scene.
 - **VR hand tracking**: Switch to OpenXR hand-tracking input automatically when controllers are set aside (aim ray, pinch to click).
 - **Passthrough Snapshot**: Capture a JPEG from front passthrough cameras (Quest 3).
 

@@ -184,6 +184,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // ignored by the new build path.
         private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
         private val KEY_VR_AUTO_IMMERSIVE = booleanPreferencesKey("vr_auto_immersive")
+        private val KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED = booleanPreferencesKey("vr_player_entry_prompt_dismissed")
         // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
         private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
         // Panel-mode single-eye crop (spec_panel-stereo-single-eye)
@@ -332,7 +333,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
                     fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall).also {
-                        Timber.d("S0293: settings emission - fileOpsInOverflowMenu=${preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU]}, capabilityDefault=${MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context)}, freshInstall=$isFreshInstall")
                     }, // S0293: capability-detected devices (VR/XR/ChromeOS) get ON; otherwise S0253 fresh install → ON; existing non-capable user → OFF
                     fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall), // S0293: capability device or fresh install suppresses one-time "ops moved to menu" Toast (symmetric with fileOpsInOverflowMenu default)
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
@@ -393,6 +393,7 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
                         ?: "CINEMA",
                     vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
+                    vrPlayerEntryPromptDismissed = preferences[KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED] ?: false,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
                     // S0264: default ON for every flavor; immersive VR rendering overrides this at runtime.
                     panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
@@ -584,6 +585,7 @@ class SettingsRepositoryImpl @Inject constructor(
             // read path no longer reads them.
             preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
             preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
+            preferences[KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED] = settings.vrPlayerEntryPromptDismissed
             preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
             preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
             preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps

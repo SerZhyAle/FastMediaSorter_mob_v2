@@ -190,6 +190,11 @@
         <!-- EPUB WebView -->
         <FrameLayout android:id="@+id/epubWebView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
 
+        <!-- S0301: neutral host slot for the embedded Office viewer. Stays GONE until a
+             flavor with an internal Office engine populates it; engine-specific widgets are
+             added programmatically by the flavor viewer manager, never declared here. -->
+        <FrameLayout android:id="@+id/officeDocumentViewerContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
+
         <ImageButton android:id="@+id/btnExitEpubFullscreen" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:src="@drawable/ic_fullscreen_exit" android:background="@drawable/bg_circle_dark" app:tint="@color/white" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:visibility="gone" android:contentDescription="@string/exit_fullscreen" />
 
         <include layout="@layout/player_epub_controls_overlay_content" />
@@ -207,6 +212,8 @@
         <TextView android:id="@+id/tvAnimatedBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_button_padding" android:paddingVertical="@dimen/player_button_padding" android:text="@string/animated_badge_gif" android:textColor="@color/white" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:visibility="gone" />
 
         <include layout="@layout/player_pdf_controls_overlay_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" />
+
+        <include layout="@layout/player_vr_launch_overlay_content" />
 
         <!-- S0021: Diagnostic FPS overlay (parity with portrait layout). -->
         <TextView android:id="@+id/tvPlayerFpsOverlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:background="@drawable/bg_fps_overlay" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="2dp" android:textColor="@color/white" android:textSize="@dimen/toggler_desc_text_size" android:elevation="@dimen/elevation_player_overlay" android:focusable="false" android:clickable="false" android:visibility="gone" />

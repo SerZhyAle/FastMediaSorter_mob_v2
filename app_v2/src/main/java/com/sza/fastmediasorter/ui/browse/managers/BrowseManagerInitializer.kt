@@ -439,6 +439,7 @@ class BrowseManagerInitializer(
 
         observerManager = BrowseObserverManager(
             lifecycleOwner = activity,
+            activity = activity,
             binding = binding,
             viewModel = viewModel,
             adapter = mediaFileAdapter,
@@ -561,7 +562,6 @@ class BrowseManagerInitializer(
      * First-frame edge case (settings cache not yet populated): silently skip the tap.
      */
     private fun showPerFileOverflowMenu(anchor: android.view.View, file: MediaFile) {
-        Timber.d("S0293: per-file overflow menu opened for ${file.name}")
         val settings = latestSettings ?: return
         val currentState = viewModel.state.value
         // S0293: OR-compose persistent preference with runtime capability so DeX entry on phones
@@ -607,10 +607,14 @@ class BrowseManagerInitializer(
     /**
      * S0293: re-render the file adapter rows so any `allowSeparateWindow`-gated UI picks up the
      * new runtime capability flag after a multi-window / desktop-mode transition. The dropdown
-     * menus already resolve the OR-composition on tap, so this method's role is mostly to keep
-     * the row UI in sync if subsequent rendering depends on the runtime flag.
+     * menus already resolve the OR-composition on tap; the observer is also poked so the
+     * per-row `⋮` button visibility (gated on `fileOpsInOverflowMenu`) is recomputed with the
+     * OR-composed value `persisted || isMultiWindowActiveNow(activity)`.
      */
     fun notifyMultiWindowModeChanged() {
+        if (::observerManager.isInitialized) {
+            observerManager.notifyMultiWindowModeChanged()
+        }
         if (::mediaFileAdapter.isInitialized) {
             mediaFileAdapter.notifyDataSetChanged()
         }

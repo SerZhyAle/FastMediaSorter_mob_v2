@@ -52,7 +52,6 @@ object MultiWindowCapabilityDetector {
         val installTime = hasInstallTimeMultiWindowSignal(activity)
         val uiModeType = activity.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK
         val deskMode = uiModeType == Configuration.UI_MODE_TYPE_DESK
-        timber.log.Timber.d("S0293: capability check runtime - install-time=$installTime, deskMode=$deskMode")
         return installTime || deskMode
     }
 
@@ -74,4 +73,3 @@ object MultiWindowCapabilityDetector {
             manufacturer.equals("Oculus", ignoreCase = true)
     }
 }
-
