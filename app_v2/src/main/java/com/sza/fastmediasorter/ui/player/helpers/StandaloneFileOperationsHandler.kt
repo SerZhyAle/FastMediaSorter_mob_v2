@@ -73,13 +73,13 @@ class StandaloneFileOperationsHandler(
                     uri.scheme == "file" -> {
                         val deleted = File(uri.path!!).delete()
                         if (deleted) onDeleteSuccess(fileName)
-                        else toastDeleteFailed(fileName)
+                        else toastDeleteFailed()
                     }
 
                     uri.scheme == "content" && DocumentsContract.isDocumentUri(activity, uri) -> {
                         val deleted = DocumentsContract.deleteDocument(activity.contentResolver, uri)
                         if (deleted) onDeleteSuccess(fileName)
-                        else toastDeleteFailed(fileName)
+                        else toastDeleteFailed()
                     }
 
                     uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
@@ -111,7 +111,7 @@ class StandaloneFileOperationsHandler(
                         try {
                             val rows = activity.contentResolver.delete(uri, null, null)
                             if (rows > 0) onDeleteSuccess(fileName)
-                            else toastDeleteFailed(fileName)
+                            else toastDeleteFailed()
                         } catch (se: SecurityException) {
                             @Suppress("NewApi")
                             val rse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
@@ -130,7 +130,7 @@ class StandaloneFileOperationsHandler(
 
                     else -> {
                         Timber.w("StandalonePlayer: delete not supported for scheme=${uri.scheme}")
-                        toastDeleteFailed(fileName)
+                        toastDeleteFailed()
                     }
                 }
             } catch (e: SecurityException) {
@@ -153,8 +153,9 @@ class StandaloneFileOperationsHandler(
         activity.finish()
     }
 
-    private fun toastDeleteFailed(fileName: String) {
-        Toast.makeText(activity, activity.getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
+    private fun toastDeleteFailed() {
+        // R.string.delete_failed has no format placeholder, so no argument is passed.
+        Toast.makeText(activity, activity.getString(R.string.delete_failed), Toast.LENGTH_SHORT).show()
     }
 
     private fun retryDeleteAfterPermission(uri: Uri, fileName: String) {
@@ -163,7 +164,7 @@ class StandaloneFileOperationsHandler(
             try {
                 val rows = activity.contentResolver.delete(uri, null, null)
                 if (rows > 0) onDeleteSuccess(fileName)
-                else toastDeleteFailed(fileName)
+                else toastDeleteFailed()
             } catch (e: Exception) {
                 Timber.e(e, "StandalonePlayer: retry delete failed for $fileName")
                 Toast.makeText(
@@ -182,7 +183,7 @@ class StandaloneFileOperationsHandler(
             onDeleteSuccess(name)
         } else {
             Timber.w("StandalonePlayer: batch delete denied by user for $name")
-            toastDeleteFailed(name)
+            toastDeleteFailed()
         }
         pendingDeleteFileName = null
     }
@@ -195,7 +196,7 @@ class StandaloneFileOperationsHandler(
             if (uri != null) retryDeleteAfterPermission(uri, name)
         } else {
             Timber.w("StandalonePlayer: recoverable delete denied for $name")
-            toastDeleteFailed(name)
+            toastDeleteFailed()
         }
         pendingDeleteFileName = null
         pendingDeleteUri = null

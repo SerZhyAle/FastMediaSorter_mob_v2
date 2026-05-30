@@ -6,6 +6,7 @@
     actions at the bottom, and the overflow for secondary commands.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawOverlayToolbar"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
@@ -24,7 +25,7 @@
         android:contentDescription="@string/draw_tool_selector_cd"
         android:padding="8dp"
         android:src="@drawable/ic_draw_overlay"
-        android:tint="#FFFFFFFF" />
+        app:tint="#FFFFFFFF" />
 
     <View
         android:id="@+id/color_black"
@@ -83,7 +84,7 @@
         android:contentDescription="@string/text_editor_action_save"
         android:padding="8dp"
         android:src="@drawable/ic_text_save"
-        android:tint="#FFFFFFFF" />
+        app:tint="#FFFFFFFF" />
 
     <ImageButton
         android:id="@+id/btn_draw_save_close"
@@ -94,7 +95,7 @@
         android:contentDescription="@string/text_editor_action_save_close"
         android:padding="8dp"
         android:src="@drawable/ic_text_save_close"
-        android:tint="#FFFFFFFF" />
+        app:tint="#FFFFFFFF" />
 
     <ImageButton
         android:id="@+id/btn_draw_overflow"
@@ -105,7 +106,7 @@
         android:contentDescription="@string/draw_overflow_settings"
         android:padding="8dp"
         android:src="@android:drawable/ic_menu_more"
-        android:tint="#FFFFFFFF" />
+        app:tint="#FFFFFFFF" />
 
     <ImageButton
         android:id="@+id/btn_draw_close"
@@ -116,6 +117,6 @@
         android:contentDescription="@string/text_editor_action_cancel"
         android:padding="8dp"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:tint="#FFFFFFFF" />
+        app:tint="#FFFFFFFF" />
 
 </LinearLayout>

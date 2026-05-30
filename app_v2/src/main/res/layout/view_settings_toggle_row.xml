@@ -4,7 +4,8 @@
   Canonical pattern: switch (leftmost) + text group (title + helper inline, subtitle below) + optional trailing slot.
   See docs/ARCHITECTURE.md § "UI Patterns - Trigger Row" (Pattern A).
 -->
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/str_switch"
@@ -47,7 +48,7 @@
                 android:contentDescription=""
                 android:focusable="true"
                 android:src="@drawable/ic_help_outline_24"
-                android:tint="@color/text_color_secondary"
+                app:tint="@color/text_color_secondary"
                 android:visibility="gone" />
 
             <!-- Spacer fills remaining width so the helper sits next to the title, not pushed right.

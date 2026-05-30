@@ -586,7 +586,7 @@ class PlayerLifecycleManager(
             Timber.w("PlayerLifecycleManager: Batch delete permission denied")
             Toast.makeText(
                 activity,
-                activity.getString(R.string.error_delete_failed, "Permission denied"),
+                activity.getString(R.string.error_delete_failed),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -604,7 +604,7 @@ class PlayerLifecycleManager(
             Timber.w("PlayerLifecycleManager: Delete permission denied")
             Toast.makeText(
                 activity,
-                activity.getString(R.string.error_delete_failed, "Permission denied"),
+                activity.getString(R.string.error_delete_failed),
                 Toast.LENGTH_SHORT
             ).show()
         }
