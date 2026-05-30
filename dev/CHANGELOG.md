@@ -13617,3 +13617,6 @@ Format: | datetime | file | target | description |
 | 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301 Phase 05` | Explicit Office fallback dialog (external/share/cancel) [branch: DEBUG-v008] |
 | 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `S0301 Phase 05` | Route render-failure callback to fallback dialog [branch: DEBUG-v008] |
 | 2026-05-30 02:28:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301 Phase 05` | Standalone Office fallback dialog with cancel-finish [branch: DEBUG-v008] |
+| 2026-05-30 02:32:52 | `docs/FEATURES_noLegal.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (EN) [branch: DEBUG-v008] |
+| 2026-05-30 02:32:57 | `docs/FEATURES_noLegal_RU.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (RU) [branch: DEBUG-v008] |
+| 2026-05-30 02:33:01 | `docs/FEATURES_noLegal_UK.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (UK) [branch: DEBUG-v008] |
