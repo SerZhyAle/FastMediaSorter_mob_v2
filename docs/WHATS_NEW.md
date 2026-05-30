@@ -1,6 +1,28 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5220.333** (May 2026)
+**Current release: 2.60.5302.057** (May 2026)
+
+> Changes since version 2.60.5220.333
+
+---
+
+## What's New
+
+- **Office documents** - open DOC, DOCX, RTF, and ODT with an installed viewer.
+- **Send to Telegram** - share selected files to a Telegram client in one tap.
+- **MIDI playback** - play MID/MIDI files like regular music tracks.
+- **File Manager Mode** - browse and manage all file types, including archives.
+- **VR content launch** - start video into immersive VR cinema from the player (S0292, VR flavor).
+
+## What's Fixed
+
+- DeX and multi-window file operations reachable via overflow menu (S0293).
+- VR video no longer displays upside-down on Quest 3 (S0290).
+- VR pointer rays no longer flicker from stale tracking (S0291).
+
+---
+
+## Previous Release: 2.60.5220.333 (May 2026)
 
 > Changes since version 2.60.5202.303
 

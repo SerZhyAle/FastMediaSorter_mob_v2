@@ -13914,3 +13914,4 @@ Format: | datetime | file | target | description |
 | 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Update sweep completion notes for S0165 [branch: DEBUG-v008] |
 | 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Update Phase 04 S0165 evidence summary [branch: DEBUG-v008] |
 | 2026-05-30 19:12:37 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Update Phase 05 mutation count for S0165 [branch: DEBUG-v008] |
+| 2026-05-30 21:00:18 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.5302.057 - plateau merge from DEBUG-v008 [branch: DEBUG-v008] |
