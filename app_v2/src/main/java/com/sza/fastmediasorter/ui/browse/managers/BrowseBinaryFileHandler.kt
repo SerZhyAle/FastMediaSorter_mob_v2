@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import timber.log.Timber
@@ -126,6 +127,8 @@ class BrowseBinaryFileHandler(
                 else -> "application/octet-stream"
             }
             MediaType.BINARY_DISK -> "application/$extension"
+            MediaType.OFFICE_DOCUMENT -> MediaTypeUtils.officeMimeTypeForFileName(mediaFile.name)
+                ?: "application/octet-stream"
             else -> "application/octet-stream"
         }
     }

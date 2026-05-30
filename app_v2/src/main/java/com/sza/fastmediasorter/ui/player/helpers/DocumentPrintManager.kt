@@ -77,6 +77,14 @@ class DocumentPrintManager(
                 MediaType.PDF   -> printPdf(file, jobLabel, sourceName)
                 MediaType.IMAGE -> printImage(file, jobLabel, sourceName)
                 MediaType.TEXT  -> printText(file, jobLabel, sourceName)
+                // S0301 Phase 05: Office documents print through the embedded viewer's own
+                // WebView adapter (noLegal). The host returns false in market flavors / when
+                // nothing is rendered, in which case we degrade to the standard fallback.
+                MediaType.OFFICE_DOCUMENT -> {
+                    if (!activity.officeDocumentViewerManager.print()) {
+                        Timber.w("DocumentPrintManager: no internal Office print path, skipping ${mediaFile.name}")
+                    }
+                }
                 else -> Timber.w("DocumentPrintManager: unsupported type for print: ${mediaFile.type}")
             }
         }

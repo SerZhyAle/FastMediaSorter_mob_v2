@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- S0157 -->
-    <string name="s0157_auth_offer_dismiss_always">Не спрашивать</string>
-    <string name="s0157_account_default_name">Аккаунт по умолчанию</string>
-    <string name="s0157_dismissed_label">Не авторизован (вы отказались)</string>
-    <string name="s0157_last_used_never">ещё не использовалась</string>
-    <string name="s0157_last_used_fmt">последний раз %1$s</string>
-</resources>

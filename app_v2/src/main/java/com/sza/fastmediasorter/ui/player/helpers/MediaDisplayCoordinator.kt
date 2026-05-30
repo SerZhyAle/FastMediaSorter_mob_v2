@@ -13,6 +13,7 @@ class MediaDisplayCoordinator(
         fun displayText(file: MediaFile)
         fun displayPdf(file: MediaFile)
         fun displayEpub(file: MediaFile)
+        fun displayOfficeDocument(file: MediaFile)
     }
 
     fun display(file: MediaFile) {
@@ -34,6 +35,9 @@ class MediaDisplayCoordinator(
             }
             file.type == MediaType.EPUB -> {
                 callback.displayEpub(file)
+            }
+            file.type == MediaType.OFFICE_DOCUMENT -> {
+                callback.displayOfficeDocument(file)
             }
             else -> {
                 val ext = file.name.lowercase().substringAfterLast('.', "")

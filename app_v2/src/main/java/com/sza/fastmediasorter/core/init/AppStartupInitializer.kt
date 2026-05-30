@@ -172,6 +172,7 @@ class AppStartupInitializer @Inject constructor(
                 Timber.i("%-30s = %s", "supportText", supportText)
                 Timber.i("%-30s = %s", "supportPdf", supportPdf)
                 Timber.i("%-30s = %s", "supportEpub", supportEpub)
+                Timber.i("%-30s = %s", "supportOfficeDocuments", supportOfficeDocuments)
                 Timber.i("%-30s = %s", "showPdfThumbnails", showPdfThumbnails)
                 Timber.i("%-30s = %s", "textSizeMax", textSizeMax)
                 Timber.i("%-30s = %s", "showTextLineNumbers", showTextLineNumbers)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_vr_badge_label">VR</string>
+    <string name="player_vr_badge_loading">Открываю VR..</string>
+    <string name="player_vr_badge_error_retry">Не удалось открыть VR. Попробуйте ещё раз.</string>
+    <string name="player_vr_badge_error_not_supported">Этот тип файла пока не готов для VR.</string>
+    <string name="player_vr_prompt_message">На этой гарнитуре доступен VR. Включите его в настройках.</string>
+    <string name="player_vr_return_crashed">VR закрылся с ошибкой. Попробуйте ещё раз.</string>
+    <string name="player_vr_return_unavailable">VR сейчас недоступен.</string>
+    <string name="player_vr_overflow_open">Открыть в VR</string>
+</resources>

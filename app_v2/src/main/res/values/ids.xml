@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="browseApkVrBadgeContainer" type="id" />
+    <item name="browseApkVrBadgeRequestToken" type="id" />
+    <item name="browseApkVrBadgeBoundPath" type="id" />
+    <item name="flThumbnailFrame" type="id" />
+</resources>

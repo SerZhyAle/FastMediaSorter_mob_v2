@@ -30,7 +30,7 @@ data class ResourceEntity(
     val cloudProvider: CloudProvider? = null,
     val cloudFolderId: String? = null, // Cloud-specific folder ID (for Drive/OneDrive/Dropbox)
     
-    val supportedMediaTypesFlags: Int = 0b1111, // Binary flags for IMAGE(1), VIDEO(2), AUDIO(4), GIF(8), TEXT(16), PDF(32), EPUB(64)
+    val supportedMediaTypesFlags: Int = 0b1111, // Binary flags for IMAGE(1), VIDEO(2), AUDIO(4), GIF(8), TEXT(16), PDF(32), EPUB(64), OFFICE_DOCUMENT(128)
     val sortMode: SortMode = SortMode.NAME_ASC,
     val displayMode: DisplayMode = DisplayMode.LIST,
     

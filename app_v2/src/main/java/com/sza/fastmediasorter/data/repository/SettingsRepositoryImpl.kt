@@ -70,6 +70,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
         private val KEY_SUPPORT_PDF = booleanPreferencesKey("support_pdf")
         private val KEY_SUPPORT_EPUB = booleanPreferencesKey("support_epub")
+        private val KEY_SUPPORT_OFFICE_DOCUMENTS = booleanPreferencesKey("support_office_documents")
         private val KEY_SHOW_PDF_THUMBNAILS = booleanPreferencesKey("show_pdf_thumbnails")
         private val KEY_TEXT_SIZE_MAX = longPreferencesKey("text_size_max")
         private val KEY_SHOW_TEXT_LINE_NUMBERS = booleanPreferencesKey("show_text_line_numbers")
@@ -184,6 +185,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // ignored by the new build path.
         private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
         private val KEY_VR_AUTO_IMMERSIVE = booleanPreferencesKey("vr_auto_immersive")
+        private val KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED = booleanPreferencesKey("vr_player_entry_prompt_dismissed")
         // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
         private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
         // Panel-mode single-eye crop (spec_panel-stereo-single-eye)
@@ -296,6 +298,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
+                    supportOfficeDocuments = preferences[KEY_SUPPORT_OFFICE_DOCUMENTS]
+                        ?: ((preferences[KEY_SUPPORT_TEXT] ?: true) ||
+                            (preferences[KEY_SUPPORT_PDF] ?: true) ||
+                            (preferences[KEY_SUPPORT_EPUB] ?: true)),
                     showPdfThumbnails = preferences[KEY_SHOW_PDF_THUMBNAILS] ?: false,
                     textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 104857600L,
                     showTextLineNumbers = preferences[KEY_SHOW_TEXT_LINE_NUMBERS] ?: false,
@@ -331,8 +337,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
-                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
-                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: isFreshInstall, // S0253: fresh install suppresses one-time "ops moved to menu" Toast
+                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall).also {
+                    }, // S0293: capability-detected devices (VR/XR/ChromeOS) get ON; otherwise S0253 fresh install → ON; existing non-capable user → OFF
+                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall), // S0293: capability device or fresh install suppresses one-time "ops moved to menu" Toast (symmetric with fileOpsInOverflowMenu default)
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
@@ -391,6 +398,7 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
                         ?: "CINEMA",
                     vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
+                    vrPlayerEntryPromptDismissed = preferences[KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED] ?: false,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
                     // S0264: default ON for every flavor; immersive VR rendering overrides this at runtime.
                     panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
@@ -483,6 +491,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf
             preferences[KEY_SUPPORT_EPUB] = settings.supportEpub
+            preferences[KEY_SUPPORT_OFFICE_DOCUMENTS] = settings.supportOfficeDocuments
             preferences[KEY_SHOW_PDF_THUMBNAILS] = settings.showPdfThumbnails
             preferences[KEY_TEXT_SIZE_MAX] = settings.textSizeMax
             preferences[KEY_SHOW_TEXT_LINE_NUMBERS] = settings.showTextLineNumbers
@@ -582,6 +591,7 @@ class SettingsRepositoryImpl @Inject constructor(
             // read path no longer reads them.
             preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
             preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
+            preferences[KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED] = settings.vrPlayerEntryPromptDismissed
             preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
             preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
             preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps

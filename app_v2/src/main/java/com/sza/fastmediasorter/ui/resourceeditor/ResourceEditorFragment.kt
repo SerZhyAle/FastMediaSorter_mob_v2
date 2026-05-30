@@ -22,6 +22,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.FragmentResourceEditorBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
@@ -109,6 +110,7 @@ class ResourceEditorFragment : Fragment() {
         )
 
         reorderScanningAboveMediaTypes()
+        applyOfficeDocumentVisibility()
         setupToolbar()
         setupFieldListeners()
         setupFieldTapBridges()
@@ -295,7 +297,7 @@ class ResourceEditorFragment : Fragment() {
             viewModel.onFieldChanged(ResourceFieldKey.IS_READ_ONLY, isChecked)
         }
 
-        // Media types checkboxes (7 individual types)
+        // Media types checkboxes (8 individual types)
         binding.cbVideo.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbAudio.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbImage.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
@@ -303,6 +305,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbPdf.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbEpub.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbOffice.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
     }
 
     private fun setupFieldTapBridges() {
@@ -330,6 +333,7 @@ class ResourceEditorFragment : Fragment() {
         if (binding.cbText.isChecked) types.add(MediaType.TEXT)
         if (binding.cbPdf.isChecked) types.add(MediaType.PDF)
         if (binding.cbEpub.isChecked) types.add(MediaType.EPUB)
+        if (binding.cbOffice.isVisible && binding.cbOffice.isChecked) types.add(MediaType.OFFICE_DOCUMENT)
         viewModel.onFieldChanged(ResourceFieldKey.MEDIA_TYPES, types)
     }
 
@@ -664,7 +668,7 @@ class ResourceEditorFragment : Fragment() {
             binding.etSlideshowInterval.setText(formData.slideshowInterval.toString())
         }
 
-        // Media type checkboxes (7 individual types)
+        // Media type checkboxes (8 individual types)
         // Guard: remove listeners before programmatic setChecked to avoid spurious onFieldChanged calls.
         binding.cbVideo.setOnCheckedChangeListener(null)
         binding.cbAudio.setOnCheckedChangeListener(null)
@@ -673,6 +677,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.setOnCheckedChangeListener(null)
         binding.cbPdf.setOnCheckedChangeListener(null)
         binding.cbEpub.setOnCheckedChangeListener(null)
+        binding.cbOffice.setOnCheckedChangeListener(null)
         binding.cbVideo.isChecked = formData.supportedMediaTypes.contains(MediaType.VIDEO)
         binding.cbAudio.isChecked = formData.supportedMediaTypes.contains(MediaType.AUDIO)
         binding.cbImage.isChecked = formData.supportedMediaTypes.contains(MediaType.IMAGE)
@@ -680,6 +685,8 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.isChecked = formData.supportedMediaTypes.contains(MediaType.TEXT)
         binding.cbPdf.isChecked = formData.supportedMediaTypes.contains(MediaType.PDF)
         binding.cbEpub.isChecked = formData.supportedMediaTypes.contains(MediaType.EPUB)
+        binding.cbOffice.isChecked = supportsOfficeDocuments() &&
+            formData.supportedMediaTypes.contains(MediaType.OFFICE_DOCUMENT)
         binding.cbVideo.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbAudio.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbImage.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
@@ -687,6 +694,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbPdf.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbEpub.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbOffice.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
 
         // Profile selector button label
         binding.btnProfileSelector.setText(getProfileLabelResId(formData.profile))
@@ -735,6 +743,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.isEnabled = mediaEnabled
         binding.cbPdf.isEnabled = mediaEnabled
         binding.cbEpub.isEnabled = mediaEnabled
+        binding.cbOffice.isEnabled = mediaEnabled
 
         updateMediaTypesSectionVisibility(formData.allFiles)
 
@@ -756,6 +765,13 @@ class ResourceEditorFragment : Fragment() {
             ExpandableSection(binding.headerMediaTypes, binding.gridMediaTypes, sectionStateKey(SECTION_MEDIA_TYPES))
         )
     }
+
+    private fun applyOfficeDocumentVisibility() {
+        binding.cbOffice.isVisible = supportsOfficeDocuments()
+    }
+
+    private fun supportsOfficeDocuments(): Boolean =
+        MediaTypeUtils.OFFICE_DOCUMENT_EXTENSIONS.isNotEmpty()
 
     private fun updateConnectionSectionVisibility(
         visibleKeys: Set<ResourceFieldKey>,

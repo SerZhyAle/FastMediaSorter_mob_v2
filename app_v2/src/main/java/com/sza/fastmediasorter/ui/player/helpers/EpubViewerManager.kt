@@ -83,15 +83,24 @@ class EpubViewerManager(
     // Settings loading gate - await before first chapter render (C-3 fix)
     private val settingsReady = CompletableDeferred<Unit>()
 
-    // WebView for HTML rendering
-    private var webView: WebView? = null
-
     // Selection bridge: captures the latest selected text from WebView via JS interface
     private val selectionBridge = EpubSelectionBridge()
 
     // TTS Read Aloud delegate
     private val ttsDelegate = EpubTtsDelegate(binding.root.context)
     private val resourceContentHelper = EpubResourceContentHelper()
+    private val webViewLifecycle = EpubWebViewLifecycle(
+        binding = binding,
+        resourceContentHelper = resourceContentHelper,
+        selectionBridge = selectionBridge,
+        onPageRendered = {
+            if (!firstChapterRenderedLogged) firstChapterRenderedLogged = true
+        },
+        swipeGestureProvider = { swipeGestureDetector },
+        bookProvider = { currentBook },
+    )
+    // Backwards-compat alias for existing references.
+    private val webView: WebView? get() = webViewLifecycle.current()
 
     // Translation overlay delegate (extracted from this class - S0002 Wave 42)
     private val translationHelper = EpubTranslationOverlayHelper(
@@ -116,11 +125,7 @@ class EpubViewerManager(
         onNavigateToChapter = ::showChapter
     )
 
-    /**
-     * JS interface injected into WebView to capture text selection events.
-     * The JS snippet in preprocessHtml fires `EpubSelectionBridge.onSelectionChanged`
-     * on every `selectionchange` DOM event.
-     */
+    /** JS interface injected into WebView to capture text selection events. The JS snippet in preprocessHtml fires `EpubSelectionBridge.onSelectionChanged` on every `selectionchange` DOM event. */
     inner class EpubSelectionBridge {
         @Volatile var lastSelectedText: String = ""
 
@@ -205,39 +210,18 @@ class EpubViewerManager(
                     val isHorizontalSwipe = kotlin.math.abs(diffX) > kotlin.math.abs(diffY)
 
                     if (isHorizontalSwipe && kotlin.math.abs(diffX) > 100 && kotlin.math.abs(velocityX) > 100) {
-                        // Horizontal swipe: font size control
-                        if (diffX > 0) {
-                            increaseFontSize()
-                            android.widget.Toast.makeText(
-                                binding.root.context,
-                                binding.root.context.getString(R.string.epub_font_size, currentFontSize),
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            decreaseFontSize()
-                            android.widget.Toast.makeText(
-                                binding.root.context,
-                                binding.root.context.getString(R.string.epub_font_size, currentFontSize),
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        if (diffX > 0) increaseFontSize() else decreaseFontSize()
+                        android.widget.Toast.makeText(
+                            binding.root.context,
+                            binding.root.context.getString(R.string.epub_font_size, currentFontSize),
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
                         return true
                     } else if (!isHorizontalSwipe && kotlin.math.abs(diffY) > 100 && kotlin.math.abs(velocityY) > 100) {
-                        // Vertical swipe: control panel visibility or exit fullscreen
                         if (diffY < 0) {
-                            // Swipe up - show controls if not in fullscreen
-                            if (!isFullscreenMode) {
-                                safeViews.epubControlsLayout.isVisible = true
-                                Timber.d("EPUB: Controls shown via swipe up")
-                            }
-                        } else {
-                            // Swipe down
-                            if (isFullscreenMode) {
-                                checkAndExitFullscreenAtBottom()
-                            } else {
-                                checkAndHideControlsAtBottom()
-                            }
-                        }
+                            if (!isFullscreenMode) safeViews.epubControlsLayout.isVisible = true
+                        } else if (isFullscreenMode) checkAndExitFullscreenAtBottom()
+                        else checkAndHideControlsAtBottom()
                         return true
                     }
                     return false
@@ -252,14 +236,11 @@ class EpubViewerManager(
             }
         }
 
-        Timber.d("EpubViewerManager initialized, fontSize=$currentFontSize")
     }
 
     // ── EPUB display ─────────────────────────────────────────────────────────
 
-    /**
-     * Display EPUB file in WebView
-     */
+    /** Display EPUB file in WebView */
     fun displayEpub(mediaFile: MediaFile) {
         // Reset views - hide all other media viewers
         binding.imageView.isVisible = false
@@ -361,8 +342,6 @@ class EpubViewerManager(
                         chapterCount = spine.spineReferences.size
                         currentChapterIndex = 0
 
-                        Timber.d("EPUB: Loaded '${book.title}' with $chapterCount chapters")
-
                         // Restore last viewed chapter position
                         val savedChapter = playbackPositionRepository.getPosition(mediaFile.path)
                         val startChapter = if (savedChapter != null && savedChapter > 0 && savedChapter < chapterCount) {
@@ -378,7 +357,6 @@ class EpubViewerManager(
                             if (chapterCount > 0) {
                                 showChapter(startChapter)
                                 if (startChapter > 0) {
-                                    Timber.d("EPUB: Restored to chapter ${startChapter + 1}/$chapterCount")
                                 }
 
                                 // Hide navigation controls for single-chapter EPUBs
@@ -409,9 +387,7 @@ class EpubViewerManager(
 
     // ── Chapter rendering ────────────────────────────────────────────────────
 
-    /**
-     * Show specific chapter by index
-     */
+    /** Show specific chapter by index */
     private suspend fun showChapter(chapterIndex: Int) {
         // Wait for settings to be loaded before first render (C-3 fix)
         settingsReady.await()
@@ -465,12 +441,8 @@ class EpubViewerManager(
                     updateChapterIndicator()
 
                     // Auto-translate new chapter if translation is enabled
-                    Timber.d("EPUB: Chapter loaded, checking translation state. translationEnabled=${translationHelper.translationEnabled}")
                     if (translationHelper.translationEnabled) {
-                        Timber.d("EPUB: Auto-translating new chapter (translation was enabled)")
                         translationHelper.translateCurrentChapter()
-                    } else {
-                        Timber.d("EPUB: Skipping auto-translation (translationEnabled=false)")
                     }
 
                     // Save position (chapter index as position, total chapters as duration)
@@ -484,7 +456,6 @@ class EpubViewerManager(
                         }
                     }
 
-                    Timber.d("EPUB: Displayed chapter ${chapterIndex + 1}/$chapterCount")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to show chapter $chapterIndex")
@@ -497,18 +468,13 @@ class EpubViewerManager(
 
     // ── Chapter indicator and navigation dialogs ─────────────────────────────
 
-    /**
-     * Update chapter indicator text (e.g., "5/12")
-     */
+    /** Update chapter indicator text (e.g., "5/12") */
     private fun updateChapterIndicator() {
         binding.tvEpubChapterIndicator.text = "${currentChapterIndex + 1}/$chapterCount"
         binding.tvEpubChapterIndicator.isVisible = chapterCount > 1
-        Timber.d("EPUB: Chapter indicator updated: ${currentChapterIndex + 1}/$chapterCount")
     }
 
-    /**
-     * Show dialog to jump to specific EPUB chapter
-     */
+    /** Show dialog to jump to specific EPUB chapter */
     private fun showGoToChapterDialog() {
         val context = binding.root.context
         val editText = android.widget.EditText(context).apply {
@@ -528,7 +494,6 @@ class EpubViewerManager(
                     coroutineScope.launch {
                         showChapter(chapterNumber - 1) // Convert to 0-based index
                     }
-                    Timber.d("Jumped to chapter $chapterNumber")
                 } else {
                     callback.showError(context.getString(R.string.epub_invalid_chapter_number, chapterCount))
                 }
@@ -544,55 +509,29 @@ class EpubViewerManager(
 
     /** Navigate to previous chapter */
     fun showPreviousChapter() {
-        if (currentChapterIndex > 0) {
-            safeViews.translationOverlay.isVisible = false
-            binding.translationLensOverlay.isVisible = false
-            stopTtsOnChapterChange()
-            coroutineScope.launch {
-                showChapter(currentChapterIndex - 1)
-                if (translationHelper.translationEnabled) {
-                    kotlinx.coroutines.delay(500)
-                    translationHelper.translateCurrentChapter()
-                }
-            }
-        } else {
-            Timber.d("EPUB: Already at first chapter")
-        }
+        if (currentChapterIndex > 0) navigateToChapter(currentChapterIndex - 1)
     }
 
     /** Navigate to next chapter */
     fun showNextChapter() {
-        if (currentChapterIndex < chapterCount - 1) {
-            safeViews.translationOverlay.isVisible = false
-            binding.translationLensOverlay.isVisible = false
-            stopTtsOnChapterChange()
-            coroutineScope.launch {
-                showChapter(currentChapterIndex + 1)
-                if (translationHelper.translationEnabled) {
-                    kotlinx.coroutines.delay(500)
-                    translationHelper.translateCurrentChapter()
-                }
-            }
-        } else {
-            Timber.d("EPUB: Already at last chapter")
-        }
+        if (currentChapterIndex < chapterCount - 1) navigateToChapter(currentChapterIndex + 1)
     }
 
     /** Navigate to first chapter */
     fun showFirstChapter() {
-        if (currentChapterIndex > 0) {
-            safeViews.translationOverlay.isVisible = false
-            binding.translationLensOverlay.isVisible = false
-            stopTtsOnChapterChange()
-            coroutineScope.launch {
-                showChapter(0)
-                if (translationHelper.translationEnabled) {
-                    kotlinx.coroutines.delay(500)
-                    translationHelper.translateCurrentChapter()
-                }
+        if (currentChapterIndex > 0) navigateToChapter(0)
+    }
+
+    private fun navigateToChapter(targetIndex: Int) {
+        safeViews.translationOverlay.isVisible = false
+        binding.translationLensOverlay.isVisible = false
+        stopTtsOnChapterChange()
+        coroutineScope.launch {
+            showChapter(targetIndex)
+            if (translationHelper.translationEnabled) {
+                kotlinx.coroutines.delay(500)
+                translationHelper.translateCurrentChapter()
             }
-        } else {
-            Timber.d("EPUB: Already at first chapter")
         }
     }
 
@@ -602,7 +541,6 @@ class EpubViewerManager(
     override fun onNextPageRequest() { showNextChapter() }
     override fun onExitFullscreenRequest() {
         exitFullscreenMode()
-        Timber.d("EPUB: Exit fullscreen requested")
     }
     override fun isInFullscreenMode(): Boolean = isFullscreenMode
 
@@ -614,7 +552,6 @@ class EpubViewerManager(
         callback.onEnterFullscreenMode()
         safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = true
-        Timber.d("EPUB: Entered fullscreen mode")
     }
 
     /** Exit fullscreen mode - show controls and hide exit button */
@@ -623,81 +560,12 @@ class EpubViewerManager(
         callback.onExitFullscreenMode()
         safeViews.epubControlsLayout.isVisible = true
         binding.btnExitEpubFullscreen.isVisible = false
-        Timber.d("EPUB: Exited fullscreen mode")
     }
 
     // ── WebView lifecycle ─────────────────────────────────────────────────────
 
-    /**
-     * Create WebView on first EPUB open and add it to the container FrameLayout.
-     * Deferred creation prevents Chromium from loading into native memory at layout inflation,
-     * avoiding native OOM on emulators and low-memory devices.
-     */
-    private fun getOrCreateWebView(): WebView {
-        webView?.let { return it }
-        return WebView(binding.epubWebView.context).also { wv ->
-            binding.epubWebView.addView(
-                wv,
-                android.widget.FrameLayout.LayoutParams(
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-                )
-            )
-            webView = wv
-            configureWebView(wv)
-        }
-    }
-
-    @android.annotation.SuppressLint("ClickableViewAccessibility")
-    private fun configureWebView(wv: WebView) {
-        wv.settings.javaScriptEnabled = true
-        wv.settings.loadWithOverviewMode = true
-        wv.settings.useWideViewPort = true
-        wv.settings.builtInZoomControls = true
-        wv.settings.displayZoomControls = false
-        wv.settings.setSupportZoom(true)
-        wv.isLongClickable = true
-        wv.isClickable = true
-        wv.isFocusable = true
-        wv.isFocusableInTouchMode = true
-        wv.setOnLongClickListener(null)
-        wv.addJavascriptInterface(selectionBridge, "EpubSelectionBridge")
-        wv.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                binding.progressBar.post {
-                    binding.progressBar.isVisible = false
-                }
-                Timber.d("EPUB: WebView finished loading chapter")
-                // S0196 Phase 04: emit once on the first chapter render.
-                if (!firstChapterRenderedLogged) {
-                    firstChapterRenderedLogged = true
-                    Timber.d("EpubViewerManager: firstChapterRendered chapter=$currentChapterIndex chapterCount=$chapterCount")
-                }
-            }
-
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                request: android.webkit.WebResourceRequest?
-            ): android.webkit.WebResourceResponse? {
-                val url = request?.url?.toString() ?: return null
-                if (url.startsWith("file:///android_asset/")) {
-                    val resourcePath = url.removePrefix("file:///android_asset/")
-                    Timber.d("EPUB: Intercepting request for asset: $resourcePath")
-                    val book = currentBook
-                    if (book != null) {
-                        resourceContentHelper.assetResponse(resourcePath, book)?.let { return it }
-                    }
-                }
-                return super.shouldInterceptRequest(view, request)
-            }
-        }
-        wv.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP) v.performClick()
-            swipeGestureDetector.onTouchEvent(event)
-            false
-        }
-    }
+    /** Create WebView on first EPUB open and add it to the container FrameLayout. Deferred creation prevents Chromium from loading into native memory at layout inflation, avoiding native OOM on emulators and low-memory devices. */
+    private fun getOrCreateWebView(): WebView = webViewLifecycle.getOrCreate()
 
     // ── Book lifecycle ────────────────────────────────────────────────────────
 
@@ -708,59 +576,20 @@ class EpubViewerManager(
         currentEpubPath = null
         currentChapterIndex = 0
         chapterCount = 0
-
-        // SecurityException is thrown on HorizonOS (Quest) because the underlying
-        // Chromium WebView tries to read system preferences it has no access to.
-        try {
-            webView?.loadUrl("about:blank")
-        } catch (e: SecurityException) {
-            Timber.w("EpubViewerManager: loadUrl(about:blank) denied by system (Quest/HorizonOS) - ignored")
-        }
-
-        Timber.d("EPUB: Book closed, resources released")
+        webViewLifecycle.loadBlank()
     }
-
-    // ── TTS Read Aloud ────────────────────────────────────────────────────────
 
     /** Toggle TTS Read Aloud for the current EPUB chapter. */
-    fun toggleReadAloud() {
-        ttsDelegate.toggle(webView)
-    }
+    fun toggleReadAloud() = ttsDelegate.toggle(webView)
 
     /** Stop TTS on chapter navigation. */
-    fun stopTtsOnChapterChange() {
-        ttsDelegate.stop()
-    }
-
-    // ── Release ───────────────────────────────────────────────────────────────
+    fun stopTtsOnChapterChange() = ttsDelegate.stop()
 
     /** Release all resources on activity destroy */
     fun release() {
         ttsDelegate.release()
         closeEpubBook()
-        webView?.let { wv ->
-            try {
-                // Detach WebView from window BEFORE destroy to prevent native crash
-                (wv.parent as? android.view.ViewGroup)?.removeView(wv)
-                wv.removeAllViews()
-                wv.clearCache(true)
-                wv.destroy()
-                Timber.d("EpubViewerManager: WebView properly destroyed")
-            } catch (e: Exception) {
-                Timber.e(e, "EpubViewerManager: Error destroying WebView")
-            }
-        }
-
-        // ML-010: Clear WebViewDatabase credentials to prevent data retention
-        try {
-            android.webkit.WebViewDatabase.getInstance(binding.root.context).clearHttpAuthUsernamePassword()
-            Timber.d("EpubViewerManager: Cleared WebViewDatabase HTTP auth credentials (ML-010)")
-        } catch (e: Exception) {
-            Timber.e(e, "EpubViewerManager: Error clearing WebViewDatabase credentials (ML-010)")
-        }
-
-        webView = null
-        Timber.d("EpubViewerManager: Released")
+        webViewLifecycle.destroyAndClear()
     }
 
     // ── Chapter progress ──────────────────────────────────────────────────────
@@ -778,7 +607,6 @@ class EpubViewerManager(
             currentFontSize += 2
             saveFontSize()
             reloadCurrentChapter()
-            Timber.d("EPUB: Font size increased to $currentFontSize")
         }
     }
 
@@ -788,7 +616,6 @@ class EpubViewerManager(
             currentFontSize -= 2
             saveFontSize()
             reloadCurrentChapter()
-            Timber.d("EPUB: Font size decreased to $currentFontSize")
         }
     }
 
@@ -808,10 +635,7 @@ class EpubViewerManager(
 
     // ── Reader settings dialog ────────────────────────────────────────────────
 
-    /**
-     * Show reader settings dialog: theme, font, font size, line height, margin.
-     * Changes are applied immediately and persisted to AppSettings.
-     */
+    /** Show reader settings dialog: theme, font, font size, line height, margin. Changes are applied immediately and persisted to AppSettings. */
     fun showReaderSettingsDialog() {
         val context = binding.root.context
         val view: android.view.View = android.view.LayoutInflater.from(context)
@@ -912,15 +736,12 @@ class EpubViewerManager(
                 saveReaderSettings()
                 reloadCurrentChapter()
 
-                Timber.d("EPUB: Reader settings applied - theme=${currentReaderTheme.name}, font=$currentFontFamily, size=$currentFontSize, lh=$currentLineHeight, margin=$currentHorizontalMargin")
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    /**
-     * Persist reader style settings to AppSettings via repository.
-     */
+    /** Persist reader style settings to AppSettings via repository. */
     private fun saveReaderSettings() {
         coroutineScope.launch {
             val current = settingsRepository.getSettings().first()
@@ -949,10 +770,7 @@ class EpubViewerManager(
 
     // ── Search - delegated to EpubSearchAndTocPresenter ──────────────────────
 
-    /**
-     * Search for text in current EPUB chapter using WebView's built-in search.
-     * WebView.findAllAsync() highlights matches automatically.
-     */
+    /** Search for text in current EPUB chapter using WebView's built-in search. WebView.findAllAsync() highlights matches automatically. */
     fun searchInEpub(query: String, onResult: (Int) -> Unit = {}) =
         searchAndTocPresenter.searchInEpub(query, onResult)
 
@@ -962,10 +780,7 @@ class EpubViewerManager(
     /** Navigate to previous search match in the current chapter */
     fun previousSearchMatch() = searchAndTocPresenter.previousSearchMatch()
 
-    /**
-     * Show cross-chapter search BottomSheet dialog.
-     * Scans all spine chapters for matches and displays results with context snippets.
-     */
+    /** Show cross-chapter search BottomSheet dialog. Scans all spine chapters for matches and displays results with context snippets. */
     fun showCrossChapterSearch() = searchAndTocPresenter.showCrossChapterSearch()
 
     /** Clear search highlighting in WebView */
@@ -973,31 +788,21 @@ class EpubViewerManager(
 
     // ── Translation - delegated to EpubTranslationOverlayHelper ──────────────
 
-    /**
-     * Toggle translation on/off for current chapter.
-     * Extracts text from WebView and displays translated text in overlay.
-     */
+    /** Toggle translation on/off for current chapter. Extracts text from WebView and displays translated text in overlay. */
     fun toggleTranslation() = translationHelper.toggleTranslation()
 
-    /**
-     * Force enable translation and translate current chapter.
-     * Used when settings are changed via long-press dialog.
-     */
+    /** Force enable translation and translate current chapter. Used when settings are changed via long-press dialog. */
     fun forceTranslate() = translationHelper.forceTranslate()
 
     // ── Text extraction ───────────────────────────────────────────────────────
 
-    /**
-     * Extract text from current chapter and copy to clipboard (OCR functionality)
-     */
+    /** Extract text from current chapter and copy to clipboard (OCR functionality) */
     fun extractTextFromCurrentChapter() {
         val webView = webView ?: run {
             Timber.e("EPUB OCR: WebView is null")
             callback.showError(binding.root.context.getString(R.string.player_webview_unavailable))
             return
         }
-
-        Timber.d("EPUB OCR: Extracting text from current chapter")
 
         webView.evaluateJavascript(
             "(function() { " +
@@ -1006,7 +811,6 @@ class EpubViewerManager(
             "})();"
         ) { result ->
             if (result == null || result == "null" || result.trim().isEmpty() || result.trim() == "\"\"") {
-                Timber.d("EPUB OCR: No text extracted")
                 // Show toast directly: user-initiated action - ToastThrottler cooldown must not suppress it
                 android.widget.Toast.makeText(
                     binding.root.context,
@@ -1029,9 +833,7 @@ class EpubViewerManager(
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
 
-                Timber.d("EPUB OCR: Text extracted and copied (${extractedText.length} chars)")
             } else {
-                Timber.d("EPUB OCR: Extracted text is blank")
                 android.widget.Toast.makeText(
                     binding.root.context,
                     binding.root.context.getString(R.string.translation_error_no_text),
@@ -1043,18 +845,13 @@ class EpubViewerManager(
 
     // ── Translate button icon ─────────────────────────────────────────────────
 
-    /**
-     * Update translate button icon with language badge showing source -> target languages
-     */
+    /** Update translate button icon with language badge showing source -> target languages */
     private fun updateTranslateButtonIcon() {
-        Timber.d("EPUB: updateTranslateButtonIcon() called")
         coroutineScope.launch {
             try {
                 val settings = settingsRepository.getSettings().first()
                 val sourceLang = settings.translationSourceLanguage
                 val targetLang = settings.translationTargetLanguage
-
-                Timber.d("EPUB: Creating LanguageBadgeDrawable for $sourceLang -> $targetLang")
 
                 val languageBadge = LanguageBadgeDrawable(
                     binding.root.context,
@@ -1069,7 +866,6 @@ class EpubViewerManager(
                     binding.btnTranslateEpubCmd.setImageDrawable(languageBadge)
                     // Keep alpha consistent with current translation state
                     binding.btnTranslateEpubCmd.alpha = if (translationHelper.translationEnabled) 1.0f else 0.55f
-                    Timber.d("EPUB: Translate button icon updated successfully: $sourceLang -> $targetLang")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "EPUB: Failed to update translate button icon")
@@ -1079,11 +875,8 @@ class EpubViewerManager(
 
     // ── Font settings from translation session dialog ──────────────────────────
 
-    /**
-     * Apply font settings from settings dialog without triggering translation
-     */
+    /** Apply font settings from settings dialog without triggering translation */
     fun applyFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
-        Timber.d("EPUB: Applying font settings: ${settings.fontSize} (${settings.fontSize.multiplier}x), ${settings.fontFamily}")
 
         // 1. Update font size based on multiplier
         if (settings.fontSize != com.sza.fastmediasorter.domain.models.TranslationFontSize.AUTO) {
@@ -1128,7 +921,6 @@ class EpubViewerManager(
     /** Scroll WebView to the very top (Home) */
     fun scrollToHome() {
         webView?.post { webView?.scrollTo(0, 0) }
-        Timber.d("EPUB: Scrolled to home (top)")
     }
 
     /** Scroll WebView to the very bottom (End) */
@@ -1140,14 +932,11 @@ class EpubViewerManager(
                 view.scrollTo(0, scrollHeight)
             }
         }
-        Timber.d("EPUB: Scrolled to end (bottom)")
     }
 
     // ── Swipe-gesture helpers ─────────────────────────────────────────────────
 
-    /**
-     * Check if WebView is scrolled to bottom and hide controls if needed
-     */
+    /** Check if WebView is scrolled to bottom and hide controls if needed */
     private fun checkAndHideControlsAtBottom() {
         val webView = this.webView ?: return
         webView.evaluateJavascript(
@@ -1162,21 +951,16 @@ class EpubViewerManager(
             val isAtBottom = result?.toBoolean() == true
             if (isAtBottom) {
                 safeViews.epubControlsLayout.isVisible = false
-                Timber.d("EPUB: Controls hidden - user at bottom of page")
                 android.widget.Toast.makeText(
                     binding.root.context,
                     binding.root.context.getString(R.string.epub_controls_hidden),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
-            } else {
-                Timber.d("EPUB: Not at bottom, controls remain visible")
             }
         }
     }
 
-    /**
-     * Check if WebView is scrolled to bottom and exit fullscreen if needed
-     */
+    /** Check if WebView is scrolled to bottom and exit fullscreen if needed */
     private fun checkAndExitFullscreenAtBottom() {
         val webView = this.webView ?: return
         webView.evaluateJavascript(
@@ -1196,24 +980,13 @@ class EpubViewerManager(
                     binding.root.context.getString(R.string.epub_exit_fullscreen),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
-                Timber.d("EPUB: Exited fullscreen - swipe down at bottom")
-            } else {
-                Timber.d("EPUB: Not at bottom, staying in fullscreen")
             }
         }
     }
 
     // ── ActionMode selection callback ─────────────────────────────────────────
 
-    /**
-     * Returns a [DocumentSelectionActionModeCallback] wired to this manager's JS selection bridge
-     * and translation handler.
-     *
-     * WebView does not support [android.widget.TextView.setCustomSelectionActionModeCallback].
-     * The hosting Activity should override [android.app.Activity.startActionMode] and wrap the
-     * incoming callback with this one to inject "Translate" / "Search in Google" items into the
-     * WebView floating text-selection ActionMode.
-     */
+    /** Returns a [DocumentSelectionActionModeCallback] wired to this manager's JS selection bridge and translation handler. WebView does not support [android.widget.TextView.setCustomSelectionActionModeCallback]. The hosting Activity should override [android.app.Activity.startActionMode] and wrap the incoming callback with this one to inject "Translate" / "Search in Google" items into the WebView floating text-selection ActionMode. */
     fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback =
         DocumentSelectionActionModeCallback(
             showTranslate   = BuildConfig.ENABLE_TRANSLATION,

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
+import android.widget.Toast
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.CommandPanelController
@@ -49,6 +51,10 @@ class PlayerCommandPanelCallbackImpl(
         activity.shareCurrentFile()
     }
 
+    override fun onSendToTelegramClicked() {
+        activity.shareManager.sendCurrentFileToTelegram()
+    }
+
     override fun onEditClicked() {
         val currentFile = viewModel.state.value.currentFile
         when (currentFile?.type) {
@@ -60,6 +66,9 @@ class PlayerCommandPanelCallbackImpl(
             }
             MediaType.GIF -> activity.dialogAndUiStateManager.showGifEditDialog()
             MediaType.PDF -> activity.dialogAndUiStateManager.showPdfEditDialog()
+            // S0301 Phase 05: the embedded Office viewer is strictly read-only - no edit affordance
+            // is offered even when the underlying file is writable.
+            MediaType.OFFICE_DOCUMENT -> {}
             else -> {}
         }
     }
@@ -157,6 +166,7 @@ class PlayerCommandPanelCallbackImpl(
             MediaType.EPUB -> {
                 if (activity._epubViewerManager != null) activity.epubViewerManager.toggleTranslation()
             }
+            MediaType.OFFICE_DOCUMENT -> translateOfficeDocumentText()
             MediaType.IMAGE, MediaType.GIF -> activity.activityBinding.btnTranslateImageCmd.performClick()
             else -> {}
         }
@@ -169,8 +179,25 @@ class PlayerCommandPanelCallbackImpl(
             MediaType.EPUB -> {
                 if (activity._epubViewerManager != null) activity.epubViewerManager.extractTextFromCurrentChapter()
             }
+            MediaType.OFFICE_DOCUMENT -> showOfficeExtractedText()
             MediaType.IMAGE, MediaType.GIF -> activity.extractTextFromCurrentImage()
             else -> {}
+        }
+    }
+
+    private fun showOfficeExtractedText(): Boolean {
+        val text = activity.officeDocumentViewerManager.extractPlainText()?.takeIf { it.isNotBlank() }
+        if (text == null) {
+            Toast.makeText(activity, R.string.ocr_no_text_found, Toast.LENGTH_SHORT).show()
+            return false
+        }
+        activity.textViewerManager.displayOcrText(text)
+        return true
+    }
+
+    private fun translateOfficeDocumentText() {
+        if (showOfficeExtractedText()) {
+            activity.textViewerManager.forceTranslate()
         }
     }
 
@@ -268,6 +295,10 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onBlackScreenClicked() {
         activity.blackScreenOverlayManager.show()
+    }
+
+    override fun onOpenInVrClicked() {
+        activity.playerVrLaunchManager?.launchFromOverflow()
     }
 
     override fun onOpenInSeparateWindowClicked() {

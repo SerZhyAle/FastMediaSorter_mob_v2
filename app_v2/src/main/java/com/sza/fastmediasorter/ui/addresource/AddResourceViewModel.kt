@@ -151,6 +151,7 @@ class AddResourceViewModel @Inject constructor(
         if (settings.supportText) types.add(MediaType.TEXT)
         if (settings.supportPdf) types.add(MediaType.PDF)
         if (settings.supportEpub) types.add(MediaType.EPUB)
+        if (settings.supportOfficeDocuments) types.add(MediaType.OFFICE_DOCUMENT)
         return types
     }
 

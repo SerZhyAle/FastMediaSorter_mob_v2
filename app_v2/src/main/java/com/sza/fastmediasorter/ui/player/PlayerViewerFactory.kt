@@ -5,7 +5,6 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
-
 /**
  * Factory for the lazily-initialized viewer and player managers in PlayerActivity.
  * Extracted from PlayerActivity to reduce file size (~165 lines).
@@ -171,4 +170,45 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             textNoteStagingRegistry = activity.textNoteStagingRegistry,
         )
     }
+
+    /**
+     * Creates the flavor-specific Office document viewer provider (S0301 Phase 02).
+     * Market flavors delegate to an external app; noLegal plugs an embedded viewer in
+     * Phase 03. The concrete [OfficeDocumentViewerProviderFactory] is resolved per flavor
+     * source set, so no `BuildConfig.IS_*` checks leak into shared code.
+     */
+    fun createOfficeDocumentViewerProvider(): com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProvider =
+        com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProviderFactory().create()
+
+    /**
+     * Creates the flavor-specific embedded Office viewer host (S0301 Phase 03).
+     * Market flavors get a no-op host (external handoff stays the only path); noLegal gets
+     * the engine-backed, read-only in-app viewer. Resolved per flavor source set, so no
+     * `BuildConfig.IS_*` checks leak into shared code.
+     */
+    fun createOfficeDocumentViewerHost(): com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost =
+        com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProviderFactory().createViewerHost(
+            binding = activity.activityBinding,
+            coroutineScope = activity.lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost.Callback {
+                override fun showError(message: String) { activity.showError(message) }
+
+                override fun onEnterFullscreenMode() {
+                    if (activity.currentSettings?.hideSystemUiInFullscreen != false) {
+                        activity.systemBarsManager.enterFullscreenMode()
+                    }
+                }
+
+                override fun onExitFullscreenMode() {
+                    activity.systemBarsManager.exitFullscreenMode()
+                }
+
+                override fun onRequireExternalFallback(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {
+                    // S0301 Phase 05: engine could not render internally - show the explicit
+                    // external / share / cancel fallback dialog instead of a silent handoff or a
+                    // blank surface. Cancel keeps the player open.
+                    activity.shareManager.showOfficeFallbackDialog(mediaFile)
+                }
+            },
+        )
 }

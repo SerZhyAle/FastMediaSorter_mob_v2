@@ -82,6 +82,10 @@
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
 
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="match_parent" />
+
             <!-- Filter and Sort -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
@@ -112,6 +116,10 @@
                 app:iconPadding="4dp"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
+
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="match_parent" />
 
             <!-- Refresh -->
             <com.google.android.material.button.MaterialButton
@@ -144,6 +152,10 @@
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
 
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="match_parent" />
+
             <!-- Settings -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettings"
@@ -169,11 +181,15 @@
                 android:text="@string/settings"
                 android:textColor="?attr/colorControlNormal"
                 android:textSize="16sp"
-                app:icon="@android:drawable/ic_menu_preferences"
+                app:icon="@drawable/ic_settings"
                 app:iconGravity="textStart"
                 app:iconPadding="4dp"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
+
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="match_parent" />
 
             <!-- Toggle List/Grid View -->
             <com.google.android.material.button.MaterialButton
@@ -201,6 +217,10 @@
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal"
                 tools:visibility="visible" />
+
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="match_parent" />
 
             <!-- Favorites -->
             <com.google.android.material.button.MaterialButton

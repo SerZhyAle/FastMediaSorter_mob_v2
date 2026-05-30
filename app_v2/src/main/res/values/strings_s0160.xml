@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- S0160: resource ops overflow toggle -->
-    <string name="resource_ops_in_overflow_menu">Show resource actions in menu</string>
-    <string name="setting_resource_ops_in_overflow_menu_desc">Collapses inline action buttons into a ⋮ overflow menu on each resource card</string>
-    <string name="action_refresh_resource">Refresh</string>
-    <string name="resource_unavailable_name">Resource \"%1$s\" is unavailable</string>
-</resources>

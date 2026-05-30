@@ -453,7 +453,7 @@ class GetMediaFilesUseCase @Inject constructor(
      * 
      * For example:
      * - photos flavor: SUPPORT_VIDEO=false, SUPPORT_AUDIO=false → removes VIDEO and AUDIO
-     * - lite flavor: SUPPORT_DOCUMENTS=false, ENABLE_EPUB=false → removes TEXT, PDF, EPUB
+     * - lite flavor: SUPPORT_DOCUMENTS=false, ENABLE_EPUB=false -> removes TEXT, PDF, EPUB, OFFICE_DOCUMENT
      */
     private fun applyFlavorMediaTypeRestrictions(supportedTypes: Set<MediaType>): Set<MediaType> {
         return supportedTypes.filter { mediaType ->
@@ -465,6 +465,7 @@ class GetMediaFilesUseCase @Inject constructor(
                 MediaType.TEXT -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.PDF -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.EPUB -> BuildConfig.ENABLE_EPUB
+                MediaType.OFFICE_DOCUMENT -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
             }
         }.toSet()

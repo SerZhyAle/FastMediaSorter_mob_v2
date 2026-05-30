@@ -55,6 +55,7 @@ Timber.d("Sxxxx: <short description of exercised path>")
 | Situation | Skill |
 |-----------|-------|
 | **Очень незначительная** правка (коррекция дизайна, опечатка, цвет/отступ, одна строка ресурса) | `/quick` (без спеки/доков/билда; только `dev/CHANGELOG.md`) |
+| Точечный фикс бага / UI-неполадки в существующем коде без спеки, журналов, доков, билда и git | `/skill-fix` (anti-bureaucracy: только диагноз → правка → отчёт; всё остальное на пользователе) |
 | Creating or updating any `PLAN/Sxxxx_*.md` strategic spec | `/spec` |
 | Full spec pipeline from idea to verified implementation, unattended | `/spec-all` |
 | Breaking an approved strategic spec into a tactical phase plan | `/spec-tech` |
@@ -64,6 +65,8 @@ Timber.d("Sxxxx: <short description of exercised path>")
 | Applying mechanical fixes after a spec-check audit | `/spec-fix` |
 | Archiving a spec - move `PLAN/Sxxxx_*` files to `temp/done/` and mark the journal record `Archived` | `/spec-arc` |
 | End-to-end on-device verification of a spec (build → install → drive UI → harvest logcat → patch spec's Manual block) | `/spec-test-device` |
+| Batch device-test sweep over all `BlockNeedUserTest` tickets to drain the manual-verification backlog (operationalizes S0307) | `/spec-sweep` |
+| Lightweight on-device smoke ("does it launch / click / not crash?") without touching specs, journal, or dev log | `/verify` (pre-flight via `scripts/devtest/device-ready.ps1`; outputs land in `temp/verify_*` only) |
 | Locating a Kotlin class or feature before grepping, planning a refactor/decomposition, auditing who injects a type, or refreshing class-catalog metadata | `/catalog` (query `dev/CATALOG/scripts/query.ps1` before global grep; run `scripts/catalog_sync.ps1` after every `.kt` change) |
 | UI/UX change touching layout, menus, visibility, orientation, empty/error states, overflow | `/ui-clarify` (blocks impl until ambiguities resolved) |
 | Editing `docs/FEATURES*.md` or other feature docs | `/doc-update` (EN/RU/UK mirrors; `noLegal`-only features → `docs/FEATURES_noLegal*.md`, never public files) |
@@ -298,6 +301,7 @@ Skill-owned decisions stay outside `post-change.ps1`:
 Notes:
 
 - `post-change.ps1` covers only the mechanical closure steps. Build, test, and compile gates still follow the `Validation Requirements` table above.
+- `/skill-fix` is the explicit fast-patch exception: skip dev log, functionality log, feature docs, spec/catalog writes, full builds, and git inspection; keep only focused local validation and core safety rules.
 - `add_to_dev_log.ps1` already records the current branch - no separate branch step is needed.
 - `dev/CATALOG/<module>.jsonl` and `<module>.md` are local gitignored indexes. Regenerate them via `scripts/catalog_sync.ps1`; do not expect or require a git commit for them.
 

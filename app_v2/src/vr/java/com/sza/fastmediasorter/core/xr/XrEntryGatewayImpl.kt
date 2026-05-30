@@ -29,6 +29,24 @@ class XrEntryGatewayImpl @Inject constructor(
     private val runtime: DiagnosticXrRuntime,
 ) : XrEntryGateway {
 
+    override fun createImmersiveIntent(input: VrLaunchInput): Intent? {
+        if (!runtime.isNativeAvailable) {
+            Timber.i("XrEntryGatewayImpl: createImmersiveIntent -> native runtime unavailable")
+            return null
+        }
+        if (input.launchMode == VrLaunchMode.FILE_URI && input.fileUriString.isNullOrBlank()) {
+            Timber.w("XrEntryGatewayImpl: createImmersiveIntent -> missing fileUriString")
+            return null
+        }
+        return Intent(appContext, DiagnosticXrActivity::class.java).apply {
+            action = Intent.ACTION_MAIN
+            if (input.deliveryMode == VrLaunchDeliveryMode.LEGACY_PANEL_RETURN) {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            putExtra(VrLaunchInput.EXTRA_LAUNCH_INPUT, input)
+        }
+    }
+
     override suspend fun tryEnter(): Boolean {
         Timber.d("XrEntryGatewayImpl: legacy tryEnter() called - no-op until full VR entry lands")
         return false
@@ -36,17 +54,14 @@ class XrEntryGatewayImpl @Inject constructor(
 
     override suspend fun enterDiagnosticImage(): XrEntryResult {
         Timber.d("S0249: XrEntryGatewayImpl.enterDiagnosticImage - dispatching to DiagnosticXrActivity")
-        if (!runtime.isNativeAvailable) {
-            Timber.i("XrEntryGatewayImpl: native runtime unavailable on this ABI - returning UnavailableNoRuntime")
-            return XrEntryResult.UnavailableNoRuntime
-        }
-        if (runtime.isRunning()) {
-            Timber.w("XrEntryGatewayImpl: diagnostic session already active - InitializationFailed")
-            return XrEntryResult.InitializationFailed
-        }
+        val intent = createImmersiveIntent(
+            VrLaunchInput(
+                launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST,
+                mediaType = VrMediaType.IMAGE,
+                deliveryMode = VrLaunchDeliveryMode.LEGACY_PANEL_RETURN,
+            )
+        ) ?: return XrEntryResult.UnavailableNoRuntime
         return try {
-            val intent = Intent(appContext, DiagnosticXrActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             appContext.startActivity(intent)
             Timber.d("XrEntryGatewayImpl: DiagnosticXrActivity launched")
             XrEntryResult.Started

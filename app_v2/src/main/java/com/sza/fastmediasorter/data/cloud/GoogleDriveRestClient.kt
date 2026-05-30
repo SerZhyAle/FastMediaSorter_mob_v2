@@ -24,23 +24,7 @@ import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Google Drive implementation of CloudStorageClient using REST API v3
- * 
- * REST API approach avoids heavy Google Drive SDK dependencies (~10-12 MB)
- * 
- * Authentication: Google Sign-In API (play-services-auth only)
- * API: Direct HTTP calls to www.googleapis.com/drive/v3
- * 
- * Endpoints:
- * - /about - Get drive info
- * - /files - List/create/search files
- * - /files/{fileId} - Get/update/delete file
- * - /files/{fileId}?alt=media - Download file content
- * - /files/{fileId}/copy - Copy file
- * 
- * Reference: https://developers.google.com/drive/api/v3/reference
- */
+/** Google Drive REST API v3 client. Auth: Credential Manager (GMS) + AppAuth browser fallback (Quest/XR). https://developers.google.com/drive/api/v3/reference */
 @Singleton
 class GoogleDriveRestClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -52,11 +36,12 @@ class GoogleDriveRestClient @Inject constructor(
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
     // S0200 Phase 04a - additive plumbing; consumed by Phase 04b token-source switchover.
     private val identityRepository: GoogleIdentityRepository,
+    private val browserAuthManager: GoogleDriveBrowserAuthManager,
 ) : CloudStorageClient {
 
     override val provider = CloudProvider.GOOGLE_DRIVE
 
-    private val auth = GoogleDriveAuthCoordinator(context, credentialsManager, httpClient, networkCredentialsRepository, identityRepository)
+    private val auth = GoogleDriveAuthCoordinator(context, httpClient, identityRepository, browserAuthManager)
 
     override fun isAuthenticated(): Boolean = auth.isAuthenticated()
 
@@ -77,33 +62,29 @@ class GoogleDriveRestClient @Inject constructor(
         private const val TOKEN_RETRY_DELAY_MS = 2000L
     }
 
-    /**
-     * Try to restore client from stored credentials
-     * Attempts silent sign-in first, then falls back to stored credentials
-     */
+    /** Try to restore client from stored credentials Attempts silent sign-in first, then falls back to stored credentials */
     /** S0195: trigger network lifecycle bootstrap on first Google Drive use. */
     suspend fun tryRestoreFromStorage(): Boolean {
         if (isAuthenticated()) return true
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("Cloud-GDrive")
 
-        // Try silent sign-in first (most reliable)
+        // Try silent sign-in first so an active identity-domain account or a stored browser
+        // credential blob can both recover without the caller having to know which backend owns it.
         val silentResult = silentSignIn()
         if (silentResult is AuthResult.Success) {
-            Timber.d("Google Drive client restored via silent sign-in")
             return true
         }
-        
+
         // Fallback to stored credentials
         val stored = credentialsManager.loadStoredCredentials()
         if (stored != null) {
             val result = initialize(stored)
             if (result) {
-                Timber.d("Google Drive client restored from stored credentials")
                 return true
             }
         }
-        
+
         Timber.w("Failed to restore Google Drive authentication")
         return false
     }
@@ -124,12 +105,11 @@ class GoogleDriveRestClient @Inject constructor(
         val perAccountStored = credentialsManager.loadStoredCredentials(email)
         if (perAccountStored != null) {
             if (initialize(perAccountStored)) {
-                Timber.d("Google Drive client restored for account: $email (current: ${auth.accountEmail})")
                 return true
             }
         }
 
-        // Fallback: try silent sign-in (may be for a different account)
+        // Fallback: try whichever token source can restore first (identity or browser credentials).
         return tryRestoreFromStorage()
     }
 
@@ -137,22 +117,22 @@ class GoogleDriveRestClient @Inject constructor(
 
     private suspend fun silentSignIn(): AuthResult = auth.silentSignIn(R.string.google_web_client_id)
 
-    /** Fresh Drive access token sourced from the identity domain (S0200 Phase 04b). */
-    private suspend fun currentAccessToken(): String? = auth.fetchTokenFromIdentity()
+    /** Fresh Drive access token sourced from the active Google Drive auth backend. */
+    private suspend fun currentAccessToken(): String? = auth.fetchAccessToken()
 
     private suspend fun ensureTokenFresh() = auth.ensureTokenFresh(R.string.google_web_client_id)
-    
+
     override suspend fun initialize(credentialsJson: String): Boolean =
         auth.initializeFromStored(credentialsJson, R.string.google_web_client_id)
-    
+
     override suspend fun testConnection(): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val url = URL("$DRIVE_API_BASE/about?fields=user")
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess) {
                     CloudResult.Success(true)
                 } else {
@@ -175,7 +155,7 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun listFiles(
         folderId: String?,
         pageToken: String?
@@ -184,18 +164,18 @@ class GoogleDriveRestClient @Inject constructor(
             try {
                 // Proactively refresh token if old
                 ensureTokenFresh()
-                
+
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val query = if (folderId != null) {
                     "'$folderId' in parents and trashed = false"
                 } else {
                     "'root' in parents and trashed = false"
                 }
-                
+
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("nextPageToken, files(id, name, mimeType, size, modifiedTime, thumbnailLink, webViewLink)", "UTF-8")
-                
+
                 val urlString = buildString {
                     append("$DRIVE_API_BASE/files")
                     append("?q=$encodedQuery")
@@ -206,17 +186,17 @@ class GoogleDriveRestClient @Inject constructor(
                         append("&pageToken=$pageToken")
                     }
                 }
-                
+
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val files = json.getJSONArray("files")
                     val cloudFiles = parseItems(files, folderId ?: "root")
-                    
+
                     val nextToken: String? = json.optString("nextPageToken").takeIf { it.isNotEmpty() }
-                    
+
                     CloudResult.Success(cloudFiles to nextToken)
                 } else {
                     CloudResult.Error(context.getString(R.string.cloud_list_files_failed))
@@ -227,33 +207,33 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun listFolders(parentFolderId: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val parentQuery = if (parentFolderId != null) {
                     "'$parentFolderId' in parents"
                 } else {
                     "'root' in parents"
                 }
-                
+
                 val query = "$parentQuery and mimeType = '$MIME_TYPE_FOLDER' and trashed = false"
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("files(id, name, mimeType, modifiedTime)", "UTF-8")
-                
+
                 val urlString = "$DRIVE_API_BASE/files?q=$encodedQuery&pageSize=$PAGE_SIZE&fields=$fields&orderBy=name"
-                
+
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val files = json.getJSONArray("files")
                     val folders = parseItems(files, parentFolderId ?: "root")
                         .filter { it.isFolder }
-                    
+
                     CloudResult.Success(folders)
                 } else {
                     CloudResult.Error(context.getString(R.string.cloud_list_folders_failed))
@@ -264,7 +244,7 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun getFileMetadata(fileId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
@@ -276,11 +256,11 @@ class GoogleDriveRestClient @Inject constructor(
                 }
 
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, thumbnailLink, webViewLink, parents", "UTF-8")
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?fields=$fields")
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val parents = json.optJSONArray("parents")
@@ -299,35 +279,29 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
-    /**
-     * Resolve filename to file ID by searching in parent folder.
-     * Used when only filename is known (e.g., from integration tests or legacy code).
-     * @param fileName Name of file to find
-     * @param parentFolderId Parent folder ID to search in
-     * @return CloudResult with file ID, or Error if not found
-     */
+
+    /** Resolve [fileName] to its Drive ID by searching [parentFolderId]. */
     private suspend fun resolveFileIdFromName(fileName: String, parentFolderId: String?): CloudResult<String> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
                 } else {
                     "'root' in parents"
                 }
-                
+
                 // Escape backslash and single quote per Drive API query language spec
                 val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
                 val query = "$parentQuery and name = '$escapedFileName' and trashed = false"
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("files(id)", "UTF-8")
-                
+
                 val urlString = "$DRIVE_API_BASE/files?q=$encodedQuery&pageSize=1&fields=$fields"
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val files = json.getJSONArray("files")
@@ -346,17 +320,8 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
-    /**
-     * Parse fileId parameter which can be:
-     * 1. Actual Google Drive file ID (e.g., "1AbC...xyz")
-     * 2. "folderId/filename" format (e.g., "1AbC.../document.txt") - needs resolution
-     * 3. Just filename (e.g., "document.txt") - needs resolution in root
-     * 4. Full cloud path (e.g., "cloud://google_drive/folder/file.txt")
-     * 
-     * @param fileId Input parameter that may be ID, filename, or path
-     * @return Resolved file ID or null if resolution fails
-     */
+
+    /** Resolve a Drive ID from raw input which may be: actual ID; "folderId/filename"; bare filename (root); or "cloud://google_drive/..." path. */
     private suspend fun parseAndResolveFileId(fileId: String): String? {
         // Strip cloud:// prefix if present and extract parts
         val actualInput = if (fileId.startsWith("cloud://google_drive/")) {
@@ -364,7 +329,7 @@ class GoogleDriveRestClient @Inject constructor(
         } else {
             fileId
         }
-        
+
         // Check if it contains folder/filename format
         val (potentialFolderId, potentialFilename) = if (actualInput.contains('/')) {
             val parts = actualInput.split('/', limit = 2)
@@ -372,7 +337,7 @@ class GoogleDriveRestClient @Inject constructor(
         } else {
             null to actualInput
         }
-        
+
         // If we have a folder/filename split
         if (potentialFolderId != null && potentialFilename != null) {
             // Handle empty folder ID as root
@@ -381,7 +346,7 @@ class GoogleDriveRestClient @Inject constructor(
             } else {
                 resolveFolderId(potentialFolderId) ?: potentialFolderId
             }
-            
+
             // Check if first part looks like a Google Drive ID
             if (potentialFolderId.isEmpty() || (targetFolderId.length > 25 && targetFolderId.matches(Regex("^[a-zA-Z0-9_-]+$")))) {
                 // Try to resolve the filename in this folder
@@ -395,13 +360,13 @@ class GoogleDriveRestClient @Inject constructor(
                 }
             }
         }
-        
+
         // If it looks like a Google Drive ID (long alphanumeric + special chars), use it directly
         // Google Drive IDs are typically 30+ characters with alphanumeric and _ - chars
         if (actualInput.length > 25 && actualInput.matches(Regex("^[a-zA-Z0-9_-]+$"))) {
             return actualInput
         }
-        
+
         // Otherwise, it might be just a filename - try to resolve it in root
         val resolveResult = resolveFileIdFromName(actualInput, "root")
         return when (resolveResult) {
@@ -413,7 +378,7 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun downloadFile(
         fileId: String,
         outputStream: OutputStream,
@@ -422,7 +387,7 @@ class GoogleDriveRestClient @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
                 if (actualFileId == null) {
@@ -436,25 +401,25 @@ class GoogleDriveRestClient @Inject constructor(
                 } else {
                     0L
                 }
-                
+
                 // Download file content
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?alt=media")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
-                
+
                 try {
                     val inputStream = BufferedInputStream(connection.inputStream)
                     val buffer = ByteArray(65536) // 64KB buffer for better network throughput
                     var bytesRead: Int
                     var totalBytes = 0L
-                    
+
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                         outputStream.write(buffer, 0, bytesRead)
                         totalBytes += bytesRead
                         progressCallback?.invoke(TransferProgress(totalBytes, size))
                     }
-                    
+
                     outputStream.flush()
                     CloudResult.Success(true)
                 } finally {
@@ -472,15 +437,14 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     // Helper to resolve folder name to ID if needed.
     private suspend fun resolveFolderId(idOrName: String?): String? {
         // Handle null or empty string as root folder (no parent)
         if (idOrName.isNullOrEmpty()) return null
-        
+
         // Google Drive IDs are typically long (33+ chars). Names like "test_media" are short.
         if (idOrName.length < 25 && !idOrName.startsWith("cloud://")) {
-            Timber.d("Resolving folder '$idOrName' to ID...")
             val result = ensureFolderExists(idOrName)
             if (result is CloudResult.Success) {
                 return result.data.id
@@ -495,81 +459,22 @@ class GoogleDriveRestClient @Inject constructor(
         mimeType: String,
         parentFolderId: String?,
         progressCallback: ((TransferProgress) -> Unit)?
-    ): CloudResult<CloudFile> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
-                val resolvedParentId = resolveFolderId(parentFolderId)
-                
-                // Create metadata
-                val metadata = JSONObject().apply {
-                    put("name", fileName)
-                    if (resolvedParentId != null) {
-                        put("parents", JSONArray().put(resolvedParentId))
-                    }
-                }
-                
-                // Multipart upload
-                val boundary = "----FastMediaSorterBoundary${System.currentTimeMillis()}"
-                val url = URL("$DRIVE_UPLOAD_BASE/files?uploadType=multipart")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Authorization", "Bearer $token")
-                connection.setRequestProperty("Content-Type", "multipart/related; boundary=$boundary")
-                connection.doOutput = true
-                
-                try {
-                    val outputStream = connection.outputStream
-                    
-                    // Write metadata part
-                    outputStream.write("--$boundary\r\n".toByteArray())
-                    outputStream.write("Content-Type: application/json; charset=UTF-8\r\n\r\n".toByteArray())
-                    outputStream.write(metadata.toString().toByteArray())
-                    outputStream.write("\r\n".toByteArray())
-                    
-                    // Write file content part
-                    outputStream.write("--$boundary\r\n".toByteArray())
-                    outputStream.write("Content-Type: $mimeType\r\n\r\n".toByteArray())
-                    
-                    val buffer = ByteArray(65536) // 64KB buffer for better network throughput
-                    var bytesRead: Int
-                    var totalBytes = 0L
-                    
-                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                        totalBytes += bytesRead
-                        progressCallback?.invoke(TransferProgress(totalBytes, 0L))
-                    }
-                    
-                    outputStream.write("\r\n--$boundary--\r\n".toByteArray())
-                    outputStream.flush()
-                    
-                    val responseCode = connection.responseCode
-                    if (responseCode in 200..299) {
-                        val responseData = connection.inputStream.bufferedReader().use { it.readText() }
-                        val json = JSONObject(responseData)
-                        val parents = json.optJSONArray("parents")
-                        val parentId = if (parents != null && parents.length() > 0) {
-                            parents.getString(0)
-                        } else {
-                            "root"
-                        }
-                        CloudResult.Success(parseItem(json, parentId))
-                    } else {
-                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                        CloudResult.Error(context.getString(R.string.cloud_upload_failed))
-                    }
-                } finally {
-                    connection.disconnect()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to upload file")
-                CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
-            }
+    ): CloudResult<CloudFile> = withContext(Dispatchers.IO) {
+        try {
+            val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
+            val resolvedParentId = resolveFolderId(parentFolderId)
+            val json = com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveMultipartUploader.upload(
+                DRIVE_UPLOAD_BASE, token, fileName, mimeType, resolvedParentId, inputStream, progressCallback
+            ) ?: return@withContext CloudResult.Error(context.getString(R.string.cloud_upload_failed))
+            val parents = json.optJSONArray("parents")
+            val parentId = if (parents != null && parents.length() > 0) parents.getString(0) else "root"
+            CloudResult.Success(parseItem(json, parentId))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to upload file")
+            CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
         }
     }
-    
+
     override suspend fun createFolder(
         folderName: String,
         parentFolderId: String?
@@ -577,9 +482,9 @@ class GoogleDriveRestClient @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val resolvedParentId = resolveFolderId(parentFolderId)
-                
+
                 val requestBody = JSONObject().apply {
                     put("name", folderName)
                     put("mimeType", MIME_TYPE_FOLDER)
@@ -587,10 +492,10 @@ class GoogleDriveRestClient @Inject constructor(
                         put("parents", JSONArray().put(resolvedParentId))
                     }
                 }.toString()
-                
+
                 val url = URL(DRIVE_API_BASE + "/files")
                 val response = makeAuthenticatedRequest(url, "POST", token, requestBody)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val parents = json.optJSONArray("parents")
@@ -609,12 +514,12 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun deleteFile(fileId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
                 if (actualFileId == null) {
@@ -623,7 +528,7 @@ class GoogleDriveRestClient @Inject constructor(
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId")
                 val response = makeAuthenticatedRequest(url, "DELETE", token)
-                
+
                 if (response.isSuccess) {
                     CloudResult.Success(true)
                 } else {
@@ -635,16 +540,16 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun renameFile(fileId: String, newName: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val requestBody = JSONObject().apply {
                     put("name", newName)
                 }.toString()
-                
+
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
                 if (actualFileId == null) {
@@ -653,7 +558,7 @@ class GoogleDriveRestClient @Inject constructor(
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId")
                 val response = makeAuthenticatedRequest(url, "PATCH", token, requestBody)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val parents = json.optJSONArray("parents")
@@ -672,22 +577,22 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun moveFile(fileId: String, newParentId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 // Get current parents
                 val metadataResult = getFileMetadata(fileId)
                 val metadata = when (metadataResult) {
                     is CloudResult.Success -> metadataResult.data
                     is CloudResult.Error -> return@withContext CloudResult.Error(metadataResult.message, metadataResult.cause)
                 }
-                
+
                 // Get current parent from path (simplified)
                 val currentParentId = metadata.path.substringBeforeLast("/")
-                
+
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, parents", "UTF-8")
                 val actualFileId = parseAndResolveFileId(fileId)
                     ?: return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
@@ -700,10 +605,10 @@ class GoogleDriveRestClient @Inject constructor(
                     }
                     append("&fields=$fields")
                 }
-                
+
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "PATCH", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     CloudResult.Success(parseItem(json, newParentId))
@@ -716,7 +621,7 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun copyFile(
         fileId: String,
         newParentId: String,
@@ -725,20 +630,20 @@ class GoogleDriveRestClient @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val requestBody = JSONObject().apply {
                     put("parents", JSONArray().put(newParentId))
                     if (newName != null) {
                         put("name", newName)
                     }
                 }.toString()
-                
+
                 val actualFileId = parseAndResolveFileId(fileId)
                     ?: return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId/copy")
                 val response = makeAuthenticatedRequest(url, "POST", token, requestBody)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     CloudResult.Success(parseItem(json, newParentId))
@@ -751,23 +656,23 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 // Escape backslash and single quote per Drive API query language spec
                 val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
                 val query = "name = '$escapedFileName' and '$parentId' in parents and trashed = false"
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("files(id)", "UTF-8")
-                
+
                 val urlString = "$DRIVE_API_BASE/files?q=$encodedQuery&pageSize=1&fields=$fields"
-                
+
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val files = json.getJSONArray("files")
@@ -781,26 +686,26 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun searchFiles(query: String, mimeType: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val searchQuery = buildString {
                     append("name contains '$query' and trashed = false")
                     if (mimeType != null) {
                         append(" and mimeType = '$mimeType'")
                     }
                 }
-                
+
                 val encodedQuery = URLEncoder.encode(searchQuery, "UTF-8")
                 val fields = URLEncoder.encode("files(id, name, mimeType, size, modifiedTime, thumbnailLink, parents)", "UTF-8")
                 val urlString = "$DRIVE_API_BASE/files?q=$encodedQuery&pageSize=$PAGE_SIZE&fields=$fields"
-                
+
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val files = json.getJSONArray("files")
@@ -815,11 +720,11 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Find folder by exact name match in parent folder.
      * Returns the folder's CloudFile if found, null if not found.
-     * 
+     *
      * @param folderName Exact name of the folder to find
      * @param parentFolderId Parent folder ID to search in (null for root)
      * @return CloudResult with CloudFile if found, null if not found
@@ -828,22 +733,22 @@ class GoogleDriveRestClient @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
                 } else {
                     "'root' in parents"
                 }
-                
+
                 val query = "$parentQuery and name = '$folderName' and mimeType = '$MIME_TYPE_FOLDER' and trashed = false"
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("files(id, name, mimeType, modifiedTime, parents)", "UTF-8")
-                
+
                 val urlString = "$DRIVE_API_BASE/files?q=$encodedQuery&pageSize=1&fields=$fields"
-                
+
                 val url = URL(urlString)
                 val response = makeAuthenticatedRequest(url, "GET", token)
-                
+
                 if (response.isSuccess && response.data != null) {
                     val json = JSONObject(response.data)
                     val files = json.getJSONArray("files")
@@ -862,34 +767,24 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
-    /**
-     * Ensure folder exists - find it or create it if not found.
-     * This is a convenience method for integration tests and automated workflows.
-     * 
-     * @param folderName Name of the folder to ensure exists
-     * @param parentFolderId Parent folder ID (null for root)
-     * @return CloudResult with CloudFile of existing or newly created folder
-     */
+
+    /** Find [folderName] or create it under [parentFolderId] (null = root). Used by integration tests / automation. */
     suspend fun ensureFolderExists(folderName: String, parentFolderId: String? = null): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
                 // First, try to find existing folder
                 val findResult = findFolderByName(folderName, parentFolderId)
-                
+
                 when (findResult) {
                     is CloudResult.Success -> {
                         if (findResult.data != null) {
                             // Folder found
-                            Timber.d("ensureFolderExists: Folder '$folderName' already exists with ID: ${findResult.data.id}")
                             CloudResult.Success(findResult.data)
                         } else {
                             // Folder not found, create it
-                            Timber.i("ensureFolderExists: Folder '$folderName' not found, creating...")
                             val createResult = createFolder(folderName, parentFolderId)
                             when (createResult) {
                                 is CloudResult.Success -> {
-                                    Timber.i("ensureFolderExists: Created folder '$folderName' with ID: ${createResult.data.id}")
                                     createResult
                                 }
                                 is CloudResult.Error -> {
@@ -910,31 +805,31 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun getThumbnail(fileId: String, size: Int): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
-                
+
                 // Get thumbnail link from metadata
                 val metadataResult = getFileMetadata(fileId)
                 if (metadataResult !is CloudResult.Success) {
                     // Surface a preview-specific message because metadata lookup is internal to thumbnail loading.
                     return@withContext CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed))
                 }
-                
+
                 val thumbnailLink = metadataResult.data.thumbnailUrl
                 if (thumbnailLink.isNullOrEmpty()) {
                     // Fallback: download actual file content
                     return@withContext downloadFileAsStream(fileId, token)
                 }
-                
+
                 // Download thumbnail
                 val url = URL(thumbnailLink)
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
-                
+
                 try {
                     val responseCode = connection.responseCode
                     if (responseCode in 200..299) {
@@ -953,12 +848,12 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     // Download file as InputStream (for thumbnails)
     private suspend fun downloadFileAsStream(fileId: String, token: String): CloudResult<InputStream> {
         return httpClient.downloadFileAsStream(fileId, DRIVE_API_BASE, token)
     }
-    
+
     override suspend fun signOut(): CloudResult<Boolean> {
         // Capture token before clearing - revoke call happens off-Main
         val tokenToRevoke = auth.captureToken()
@@ -1014,16 +909,8 @@ class GoogleDriveRestClient @Inject constructor(
 
         return CloudResult.Success(true)
     }
-    
-    /**
-     * Get authenticated InputStream for media file with range support (for ExoPlayer).
-     * Used by CloudDataSource for video/audio streaming.
-     * 
-     * @param fileId Google Drive file ID
-     * @param position Starting byte position (0 for start of file)
-     * @param length Number of bytes to read (-1 for entire file)
-     * @return InputStream with requested range
-     */
+
+    /** Range-supported InputStream for ExoPlayer streaming. [length]=-1 reads the rest. */
     override suspend fun getFileInputStream(
         fileId: String,
         position: Long,
@@ -1031,7 +918,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<InputStream> {
         return getFileInputStreamInternal(fileId, position, length, retryCount = 0)
     }
-    
+
     // Internal implementation with retry support
     private suspend fun getFileInputStreamInternal(
         fileId: String,
@@ -1047,36 +934,34 @@ class GoogleDriveRestClient @Inject constructor(
         }
 
         val result = httpClient.getFileInputStream(fileId, DRIVE_API_BASE, token, position, length)
-        
+
         // Handle 401 Unauthorized - Token expired
         if (result is GoogleDriveHttpClient.StreamResult.Error && result.httpCode == 401 && retryCount < TOKEN_MAX_RETRY_ATTEMPTS) {
             Timber.w("getFileInputStream: Received 401 Unauthorized (attempt ${retryCount + 1}/$TOKEN_MAX_RETRY_ATTEMPTS). Attempting silent sign-in and retry...")
-            
+
             // Delay before retry
             if (retryCount > 0) {
                 delay(TOKEN_RETRY_DELAY_MS)
             }
-            
+
             val authResult = silentSignIn()
             if (authResult is AuthResult.Success) {
                 Timber.i("getFileInputStream: Silent sign-in successful. Retrying request (attempt ${retryCount + 2})...")
                 return getFileInputStreamInternal(fileId, position, length, retryCount + 1)
             }
-            
+
             // If not last retry, try again
             if (retryCount < TOKEN_MAX_RETRY_ATTEMPTS - 1) {
-                Timber.w("getFileInputStream: Silent sign-in failed, but will retry again...")
                 delay(TOKEN_RETRY_DELAY_MS)
                 return getFileInputStreamInternal(fileId, position, length, retryCount + 1)
             }
-            
+
             Timber.e("getFileInputStream: All retry attempts exhausted ($TOKEN_MAX_RETRY_ATTEMPTS attempts). Returning error.")
             return CloudResult.Error(googleDriveReauthRequiredMessage())
         }
-        
+
         return when (result) {
             is GoogleDriveHttpClient.StreamResult.Success -> {
-                Timber.d("getFileInputStream: Stream opened successfully")
                 CloudResult.Success(result.stream)
             }
             is GoogleDriveHttpClient.StreamResult.Error -> {
@@ -1085,7 +970,7 @@ class GoogleDriveRestClient @Inject constructor(
             }
         }
     }
-    
+
     private suspend fun makeAuthenticatedRequest(
         url: URL,
         method: String,
@@ -1094,7 +979,7 @@ class GoogleDriveRestClient @Inject constructor(
         retryCount: Int = 0
     ): GoogleDriveHttpClient.ApiResponse =
         auth.makeAuthenticatedRequest(url, method, token, R.string.google_web_client_id, body, retryCount)
-    
+
     private fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> =
         GoogleDriveRestClientUtils.parseItems(items, parentPath)
 

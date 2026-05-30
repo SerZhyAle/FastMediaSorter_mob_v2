@@ -2,12 +2,10 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,10 +26,9 @@ import java.net.URL
  */
 class GoogleDriveAuthCoordinator(
     private val context: Context,
-    private val credentialsManager: GoogleDriveCredentialsManager,
     private val httpClient: GoogleDriveHttpClient,
-    private val networkCredentialsRepository: NetworkCredentialsRepository,
-    private val identityRepository: GoogleIdentityRepository
+    private val identityRepository: GoogleIdentityRepository,
+    private val browserAuthManager: GoogleDriveBrowserAuthManager
 ) {
 
     private val driveScopes: Set<GoogleScope> = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
@@ -45,10 +42,19 @@ class GoogleDriveAuthCoordinator(
 
     /** Email of the currently bound primary Google account, or null when unbound. */
     val accountEmail: String?
-        get() = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
+        get() = when {
+            browserAuthManager.hasActiveSession() -> browserAuthManager.peekStoredAccountEmail()
+            identityRepository.state.value is PrimaryGoogleAccountState.Bound -> {
+                (identityRepository.state.value as PrimaryGoogleAccountState.Bound).account.email
+            }
+
+            else -> browserAuthManager.peekStoredAccountEmail()
+        }
 
     fun isAuthenticated(): Boolean =
-        identityRepository.state.value is PrimaryGoogleAccountState.Bound
+        browserAuthManager.hasActiveSession() ||
+            identityRepository.state.value is PrimaryGoogleAccountState.Bound ||
+            browserAuthManager.hasStoredCredentials()
 
     fun captureToken(): String? = cachedAccessToken
 
@@ -62,8 +68,8 @@ class GoogleDriveAuthCoordinator(
      * Caches the value for synchronous reads in [accessToken]. Returns null when the primary
      * account is unbound or the identity-domain silent refresh failed.
      */
-    suspend fun fetchTokenFromIdentity(): String? = tokenMutex.withLock {
-        val token = identityRepository.getAccessToken(driveScopes)?.token
+    suspend fun fetchAccessToken(): String? = tokenMutex.withLock {
+        val token = resolveAccessToken()
         if (token != null) {
             cachedAccessToken = token
             tokenTimestamp = System.currentTimeMillis()
@@ -79,17 +85,16 @@ class GoogleDriveAuthCoordinator(
      * client-id configuration so the parameter is ignored.
      */
     suspend fun silentSignIn(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int): AuthResult {
-        identityRepository.invalidateToken()
-        val token = fetchTokenFromIdentity()
+        val token = fetchAccessToken()
         return if (token != null) {
-            Timber.i("Silent sign-in successful via identity domain")
+            Timber.i("Silent sign-in successful for Google Drive")
             AuthResult.Success(
                 accountName = accountEmail ?: "Unknown",
                 credentialsJson = accountEmail.orEmpty()
             )
         } else {
-            Timber.w("Silent sign-in failed: identity-domain returned no token")
-            AuthResult.Error("Silent sign-in failed: identity-domain returned no token")
+            Timber.w("Silent sign-in failed: no Google Drive token source returned a token")
+            AuthResult.Error("Silent sign-in failed: no Google Drive token source returned a token")
         }
     }
 
@@ -99,7 +104,7 @@ class GoogleDriveAuthCoordinator(
      * is unbound - caller surfaces this so the user signs in through the Settings card.
      */
     suspend fun authenticate(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int): AuthResult {
-        val token = fetchTokenFromIdentity()
+        val token = fetchAccessToken()
         return if (token != null) {
             AuthResult.Success(
                 accountName = accountEmail ?: "Unknown",
@@ -118,8 +123,8 @@ class GoogleDriveAuthCoordinator(
     /** Pre-emptive refresh past the 50-minute threshold to avoid 401 mid-operation. */
     suspend fun ensureTokenFresh(@Suppress("UNUSED_PARAMETER") webClientIdResId: Int) {
         if (shouldRefreshToken()) {
-            Timber.d("Token is old (>50 min), proactively refreshing via identity-domain..")
-            fetchTokenFromIdentity()
+            Timber.d("Token is old (>50 min), proactively refreshing Google Drive auth state..")
+            fetchAccessToken()
         }
     }
 
@@ -129,8 +134,17 @@ class GoogleDriveAuthCoordinator(
      */
     @Suppress("UNUSED_PARAMETER")
     suspend fun initializeFromStored(credentialsJson: String, webClientIdResId: Int): Boolean {
-        val ok = fetchTokenFromIdentity() != null
-        if (ok) Timber.d("Initialized Google Drive via identity-domain") else Timber.w("No token from identity-domain")
+        val restoredBrowser = browserAuthManager.restoreCredentialBlob(credentialsJson)
+        val ok = if (restoredBrowser) {
+            browserAuthManager.getFreshAccessToken() != null
+        } else {
+            fetchAccessToken() != null
+        }
+        if (ok) {
+            Timber.d("Initialized Google Drive authentication state")
+        } else {
+            Timber.w("No Google Drive token source was available during initializeFromStored")
+        }
         return ok
     }
 
@@ -150,12 +164,11 @@ class GoogleDriveAuthCoordinator(
         val response = httpClient.makeAuthenticatedRequest(url, method, token, body)
 
         if (response.httpCode == 401 && retryCount < TOKEN_MAX_RETRY_ATTEMPTS) {
-            Timber.w("Received 401 Unauthorized (attempt ${retryCount + 1}/$TOKEN_MAX_RETRY_ATTEMPTS). Attempting silent refresh via identity-domain..")
+            Timber.w("Received 401 Unauthorized (attempt ${retryCount + 1}/$TOKEN_MAX_RETRY_ATTEMPTS). Attempting Google Drive token refresh..")
 
             if (retryCount > 0) delay(TOKEN_RETRY_DELAY_MS)
 
-            identityRepository.invalidateToken()
-            val newToken = fetchTokenFromIdentity()
+            val newToken = refreshForRetry()
             if (newToken != null) {
                 Timber.i("Silent refresh successful. Retrying request (attempt ${retryCount + 2})..")
                 return makeAuthenticatedRequest(url, method, newToken, webClientIdResId, body, retryCount + 1)
@@ -180,6 +193,32 @@ class GoogleDriveAuthCoordinator(
         }
 
         return response
+    }
+
+    private suspend fun resolveAccessToken(): String? {
+        if (browserAuthManager.hasActiveSession()) {
+            return browserAuthManager.getFreshAccessToken()
+        }
+
+        val bound = identityRepository.state.value as? PrimaryGoogleAccountState.Bound
+        if (bound != null) {
+            return identityRepository.getAccessToken(driveScopes)?.token
+        }
+
+        if (browserAuthManager.ensureActiveFromStored()) {
+            return browserAuthManager.getFreshAccessToken()
+        }
+
+        return null
+    }
+
+    private suspend fun refreshForRetry(): String? {
+        if (browserAuthManager.hasActiveSession()) {
+            return browserAuthManager.getFreshAccessToken()
+        }
+
+        identityRepository.invalidateToken()
+        return resolveAccessToken()
     }
 
     companion object {

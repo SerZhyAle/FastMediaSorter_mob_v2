@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.ui.share.helpers
 
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
 
@@ -23,7 +26,11 @@ class AccountSelectionManager(
         Timber.i("AccountSelectionManager: host=%s accounts=%d", host, accounts.size)
         when {
             accounts.isEmpty() -> onNoneAvailable()
-            accounts.size == 1 -> onSelected(accounts.first())
+            accounts.size == 1 -> {
+                val selected = accounts.first()
+                markSelected(selected)
+                onSelected(selected)
+            }
             else -> showPicker(host, accounts, activity, onSelected, onCancelled)
         }
     }
@@ -50,7 +57,7 @@ class AccountSelectionManager(
         }.toTypedArray()
 
         var selectedIndex = defaultIndex
-        Timber.i("[S0166] account picker shown: count=%d, host=%s", accounts.size, host)
+        Timber.i("AccountSelectionManager: picker shown count=%d host=%s", accounts.size, host)
         MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.s0155_pick_account_title, host))
             .setSingleChoiceItems(labels, defaultIndex) { _, which ->
@@ -59,10 +66,28 @@ class AccountSelectionManager(
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val chosen = accounts[selectedIndex]
                 Timber.i("AccountSelectionManager: user selected host=%s accountId=%s", host, chosen.accountId)
-                onSelected(chosen)
+                activity.lifecycleScope.launch {
+                    markSelected(chosen)
+                    onSelected(chosen)
+                }
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> onCancelled() }
             .setOnCancelListener { onCancelled() }
             .show()
+    }
+
+    private suspend fun markSelected(account: AuthAccountDomain) {
+        try {
+            // Selection itself defines recency; the next picker must not depend on download success.
+            repository.markLastUsed(account.host, account.accountId)
+        } catch (throwable: Throwable) {
+            if (throwable is CancellationException) throw throwable
+            Timber.w(
+                throwable,
+                "AccountSelectionManager: failed to mark selected account last-used host=%s accountId=%s",
+                account.host,
+                account.accountId,
+            )
+        }
     }
 }

@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -143,6 +145,8 @@ private class FakeNetworkSourceRepository : NetworkSourceRepository {
     var upsertCallCount = 0
 
     override suspend fun getAllSources(): List<NetworkSource> = existing.toList()
+
+    override fun observeSources(): Flow<List<NetworkSource>> = flowOf(existing.toList())
 
     override suspend fun upsertSource(source: NetworkSource) {
         upsertCallCount++

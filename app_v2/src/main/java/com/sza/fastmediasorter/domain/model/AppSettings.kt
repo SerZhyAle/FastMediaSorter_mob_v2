@@ -53,6 +53,7 @@ data class AppSettings(
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files
     val supportEpub: Boolean = true, // Optional support for EPUB files
+    val supportOfficeDocuments: Boolean = true, // Optional support for Office document files
     val showPdfThumbnails: Boolean = false, // "Large PDF Thumbnails" - increases size limit for network PDF thumbnails
     val textSizeMax: Long = 104857600L, // 100MB max for internal text viewer
     val showTextLineNumbers: Boolean = false, // Show line numbers for text files
@@ -181,6 +182,7 @@ data class AppSettings(
     // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true).
     val vrRenderingMode: String = "CINEMA",         // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
     val vrAutoImmersive: Boolean = true,             // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
+    val vrPlayerEntryPromptDismissed: Boolean = false, // One-time player prompt for XR-capable devices with master toggle OFF
     // Global VR kill-switch: when true, bypasses all 3D/VR classification; all content plays as plain 2D
     val disable3dVr: Boolean = false,
     // S0264: panel-mode crop of SBS/OU stereo content to a single eye; default ON for every flavor.
@@ -217,7 +219,7 @@ data class AppSettings(
      * Resource-level mediaTypes should be intersected with this set.
      */
     fun getGloballyEnabledMediaTypes(): Set<MediaType> {
-        // If 'All Files' mode is ON, return all 7 types regardless of individual settings
+        // If 'All Files' mode is ON, return all known types regardless of individual settings
         if (allFiles) {
             return MediaType.entries.toSet()
         }
@@ -231,6 +233,7 @@ data class AppSettings(
         if (supportText) types.add(MediaType.TEXT)
         if (supportPdf) types.add(MediaType.PDF)
         if (supportEpub) types.add(MediaType.EPUB)
+        if (supportOfficeDocuments) types.add(MediaType.OFFICE_DOCUMENT)
         return types
     }
 }

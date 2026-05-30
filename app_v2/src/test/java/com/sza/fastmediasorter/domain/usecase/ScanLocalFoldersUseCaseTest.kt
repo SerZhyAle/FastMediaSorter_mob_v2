@@ -43,7 +43,8 @@ class ScanLocalFoldersUseCaseTest {
                 supportGifs = false,
                 supportText = false,
                 supportPdf = false,
-                supportEpub = true
+                supportEpub = true,
+                supportOfficeDocuments = false
             )
         )
         coEvery { mediaStoreRepository.getStandardFolders() } returns emptyList()

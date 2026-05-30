@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.net.Uri
@@ -10,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -34,22 +36,16 @@ import kotlin.math.roundToInt
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
 
-/**
- * Manages command panel in PlayerActivity:
- * - Setup button click listeners
- * - Update button availability based on state
- * - Apply/restore small controls layout
- * - Track original button heights
- * - Adaptive layout based on orientation (landscape vs portrait)
- */
+/** PlayerActivity command panel: button setup, availability/state updates, small-controls layout, original-height tracking, landscape/portrait adaptation. */
 class CommandPanelController(
     private val binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: CommandPanelCallback,
-    private val bigButtonsMode: Boolean = false
+    private val bigButtonsMode: Boolean = false,
+    private val allowVrLaunch: () -> Boolean = { false },
 ) {
-    
+
     interface CommandPanelCallback {
         fun onBackClicked()
         fun onPreviousClicked()
@@ -58,6 +54,7 @@ class CommandPanelController(
         fun onRenameClicked()
         fun onDeleteClicked()
         fun onShareClicked()
+        fun onSendToTelegramClicked()
         fun onEditClicked()
         fun onUndoClicked()
         fun onFullscreenClicked()
@@ -90,6 +87,7 @@ class CommandPanelController(
         fun onPrintClicked()
         fun onSaveFrameClicked()
         fun onBlackScreenClicked()
+        fun onOpenInVrClicked()
         fun onOpenInSeparateWindowClicked()
         fun onCropClicked()
         fun onCropToFileClicked()
@@ -97,7 +95,7 @@ class CommandPanelController(
         fun onDrawOverlayClicked()
         fun onRotationToggleClicked()
     }
-    
+
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
     private val originalMargins = mutableMapOf<Int, android.graphics.Rect>()
     private val originalPaddings = mutableMapOf<Int, android.graphics.Rect>()
@@ -117,7 +115,7 @@ class CommandPanelController(
     // Cached state for overflow menu visibility
     private var cachedState: PlayerViewModel.PlayerState? = null
     private var isLandscapeMode = true
-    
+
     companion object {
         private const val SMALL_CONTROLS_SCALE = 0.5f
     }
@@ -133,31 +131,26 @@ class CommandPanelController(
         }
     }
 
-    /**
-     * Setup all command panel button click listeners
-     */
+    /** Setup all command panel button click listeners */
     fun setupCommandPanelControls() {
         binding.btnBack.setOnClickListener {
             callback.onBackClicked()
         }
-        
+
         // Overflow menu button for portrait mode
         safeViews.btnOverflowMenu.setOnClickListener { view ->
             showOverflowMenu(view)
         }
 
         binding.btnPreviousCmd.setOnClickListener {
-            Timber.d("CommandPanelController: btnPreviousCmd clicked")
             callback.onPreviousClicked()
         }
 
         binding.btnRandomCmd.setOnClickListener {
-            Timber.d("CommandPanelController: btnRandomCmd clicked")
             callback.onRandomClicked()
         }
 
         binding.btnNextCmd.setOnClickListener {
-            Timber.d("CommandPanelController: btnNextCmd clicked")
             callback.onNextClicked()
         }
 
@@ -168,11 +161,11 @@ class CommandPanelController(
         binding.btnDeleteCmd.setOnClickListener {
             callback.onDeleteClicked()
         }
-        
+
         binding.btnShareCmd.setOnClickListener {
             callback.onShareClicked()
         }
-        
+
         safeViews.btnEditCmd.setOnClickListener {
             callback.onEditClicked()
         }
@@ -225,21 +218,19 @@ class CommandPanelController(
         binding.btnInfoCmd.setOnClickListener {
             callback.onInfoClicked()
         }
-        
+
         // Setup collapsible Copy to panel
         safeViews.copyToPanelHeader.apply {
             setExpanded(false, notify = false)
             setOnExpandedChangeListener { expanded ->
-                Timber.d("CommandPanelController: copyToPanelHeader expanded=$expanded")
                 callback.onCopyPanelExpandedChanged(expanded)
             }
         }
-        
+
         // Setup collapsible Move to panel
         safeViews.moveToPanelHeader.apply {
             setExpanded(false, notify = false)
             setOnExpandedChangeListener { expanded ->
-                Timber.d("CommandPanelController: moveToPanelHeader expanded=$expanded")
                 callback.onMovePanelExpandedChanged(expanded)
             }
         }
@@ -251,311 +242,49 @@ class CommandPanelController(
 
     }
 
-    /**
-     * Update command availability based on state
-     */
+    /** S0293: re-run command availability after the host Activity entered or left a multi-window / desktop-mode container. The OR-composition inside [updateCommandAvailability] reads the runtime capability flag on every pass, so calling this from [Activity.onMultiWindowModeChanged] (and [Activity.onConfigurationChanged]) brings inline buttons into sync without a recreate. Safe before the first state arrives (`cachedState == null`): no-op. */
+    fun notifyMultiWindowModeChanged() {
+        val state = cachedState ?: return
+        updateCommandAvailability(state)
+    }
+
+    private val availabilityUpdater: CommandPanelAvailabilityUpdater by lazy {
+        CommandPanelAvailabilityUpdater(
+            binding = binding,
+            safeViews = safeViews,
+            planner = planner,
+            bigButtonsModeManager = bigButtonsModeManager,
+            settingsRepository = settingsRepository,
+            coroutineScope = coroutineScope,
+            bigButtonsMode = bigButtonsMode,
+            getIsLandscapeMode = { isLandscapeMode },
+            getCastMediaManager = { if (::castMediaManager.isInitialized) castMediaManager else null },
+            getAllowVrLaunch = { allowVrLaunch() },
+            shouldShowRandomNavigation = ::shouldShowRandomNavigation,
+            isWifiConnected = ::isWifiConnected,
+            getOverflowableButtons = ::getOverflowableButtons,
+            barViewForCommand = ::barViewForCommand,
+            resolveAvailableCenterWidthPx = ::resolveAvailableCenterWidthPx,
+            resolveBigButtonsTopPanelSlotCount = ::resolveBigButtonsTopPanelSlotCount,
+            bigButtonsFixedButtons = ::bigButtonsFixedButtons,
+            updateBigButtonsTopPanelContentDescriptions = ::updateBigButtonsTopPanelContentDescriptions,
+            updateSlideshowButtonColor = ::updateSlideshowButtonColor,
+            syncBigButtonsTopPanelLayout = ::syncBigButtonsTopPanelLayout,
+            logPanelGeometrySnapshot = ::logPanelGeometrySnapshot,
+            onCachedStateChange = { cachedState = it },
+            getLastKnownFavoriteVisible = { lastKnownFavoriteVisible },
+            setLastKnownFavoriteVisible = { lastKnownFavoriteVisible = it },
+            getLastKnownAllowSeparateWindow = { lastKnownAllowSeparateWindow },
+            setLastKnownAllowSeparateWindow = { lastKnownAllowSeparateWindow = it },
+            setLatestBigButtonsBarCommands = { latestBigButtonsBarCommands = it },
+            setLatestOverflowCommands = { latestOverflowCommands = it },
+            reTriggerUpdate = { state -> updateCommandAvailability(state) },
+        )
+    }
+
+    /** Update command availability based on state */
     fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
-        // Cache state for overflow menu
-        cachedState = state
-        
-        val currentFile = state.currentFile ?: return
-        val resource = state.resource
-        
-        // Check if resource is read-only
-        val isReadOnly = resource?.isReadOnly == true
-        
-        // For network resources, assume permissions based on resource type
-        val isNetworkResource = resource != null && 
-            (resource.type == ResourceType.SMB || 
-             resource.type == ResourceType.SFTP || 
-             resource.type == ResourceType.FTP)
-        
-        var canWrite: Boolean
-        val canRead: Boolean
-        
-        if (isNetworkResource) {
-            // Network resources: assume read/write based on resource configuration
-            canWrite = true // Network resources typically allow operations
-            canRead = true
-        } else if (currentFile.path.startsWith("content://")) {
-            // SAF resources: check DocumentFile permissions and resource.isWritable
-            canWrite = resource?.isWritable ?: false
-            canRead = try {
-                val uri = Uri.parse(currentFile.path)
-                val docFile = DocumentFile.fromSingleUri(binding.root.context, uri)
-                docFile?.canRead() ?: false
-            } catch (e: Exception) {
-                Timber.e(e, "CommandPanelController: Error checking SAF URI read permission")
-                false
-            }
-        } else {
-            // Regular file system: check actual file permissions
-            val file = File(currentFile.path)
-            // Fix: Use resource writable state if available, otherwise fall back to file system check
-            // On modern Android, File.canWrite() may return false even if we have access via other means
-            canWrite = resource?.isWritable ?: file.canWrite()
-            canRead = file.canRead()
-        }
-        
-        // Enforce Read-Only mode
-        if (isReadOnly) {
-            canWrite = false
-        }
-        
-        // AUDIO override: for audio files the command panel is always force-shown by
-        // updatePanelVisibility() regardless of state.showCommandPanel. We must mirror
-        // that logic here so buttons/panels are consistent with what the user sees.
-        val isAudioFile = currentFile.type == MediaType.AUDIO
-        val effectiveShowCommandPanel = state.showCommandPanel || isAudioFile
-        
-        // Adaptive layout based on orientation
-        // Portrait: Back | Overflow(...) | Delete, Fullscreen | Prev, Next
-        // Landscape: All buttons visible
-        
-        val showInLandscape = effectiveShowCommandPanel && isLandscapeMode
-        val showInPortrait = effectiveShowCommandPanel && !isLandscapeMode
-        
-        val showRandomNavigation = shouldShowRandomNavigation(resource?.profile)
-        val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
-        val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
-        val isPdf = currentFile.type == MediaType.PDF
-        val isText = currentFile.type == MediaType.TEXT
-        val isEpub = currentFile.type == MediaType.EPUB
-        val isAudio = currentFile.type == MediaType.AUDIO
-        val showSlideshow = isImage || isVideo
-
-        // Back + Previous/Next are fixed anchors - always visible when command panel is shown.
-        binding.btnBack.isVisible = effectiveShowCommandPanel
-        binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
-        binding.btnNextCmd.isVisible = effectiveShowCommandPanel
-
-        // Sync: update favorite icon before planner/landscape branch runs
-        if (effectiveShowCommandPanel) {
-            binding.btnFavorite.setImageResource(
-                if (currentFile.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-            )
-        }
-
-        // Async: resolve enableFavorites + allowSeparateWindow from settings; re-run if changed
-        if (effectiveShowCommandPanel) {
-            coroutineScope.launch {
-                val settings = settingsRepository.getSettings().first()
-                val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                val shouldAllowSeparateWindow = settings.allowSeparateWindow
-                withContext(Dispatchers.Main) {
-                    val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
-                    val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow
-                    lastKnownFavoriteVisible = shouldShowFavorite
-                    lastKnownAllowSeparateWindow = shouldAllowSeparateWindow
-                    if (favoriteChanged || separateChanged) {
-                        // Re-run full update so the planner/landscape branch sees the correct values
-                        updateCommandAvailability(state)
-                    } else if (isLandscapeMode) {
-                        binding.btnFavorite.isVisible = shouldShowFavorite
-                    }
-                }
-            }
-        }
-        
-        // Center buttons visibility
-        if (bigButtonsMode && effectiveShowCommandPanel) {
-            binding.btnSlideshowCmd.isVisible = showSlideshow
-            val activeCommands = planner.buildActiveCommands(
-                state, canWrite, canRead, isWifiConnected(binding.root.context),
-                showFavorite = lastKnownFavoriteVisible,
-                showRandom = showRandomNavigation,
-                allowSeparateWindow = lastKnownAllowSeparateWindow
-            )
-            val editLabel = if (isVideo) R.string.control else R.string.edit
-            safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
-            updateBigButtonsTopPanelContentDescriptions(editLabel)
-
-            // S0158/S0208: total top-panel slot count is now a function of panel width
-            // (resolveBigButtonsTopPanelSlotCount). Fixed nav buttons reserve their share first,
-            // the remainder is handed to the planner.
-            val totalSlots = resolveBigButtonsTopPanelSlotCount()
-            val commandSlots = (totalSlots - bigButtonsFixedButtons().count {
-                it.isVisible
-            }).coerceAtLeast(0)
-            val result = planner.planBigButtonsLayout(activeCommands, commandSlots)
-            latestBigButtonsBarCommands = result.barCommands
-            latestOverflowCommands = result.overflowCommands
-
-            getOverflowableButtons().forEach { it.isVisible = false }
-            result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
-            safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
-            safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
-
-        } else if (showInPortrait) {
-            latestBigButtonsBarCommands = emptyList()
-            binding.btnSlideshowCmd.isVisible = showSlideshow
-            // Adaptive portrait layout: planner decides which commands fit on bar vs overflow
-            val activeCommands = planner.buildActiveCommands(
-                state, canWrite, canRead, isWifiConnected(binding.root.context),
-                showFavorite = lastKnownFavoriteVisible,
-                showRandom = showRandomNavigation,
-                allowSeparateWindow = lastKnownAllowSeparateWindow
-            )
-            val availablePx = resolveAvailableCenterWidthPx()
-            val density = binding.root.resources.displayMetrics.density
-            val buttonPx = (40 * density).toInt()
-            val overflowPx = (40 * density).toInt()
-            val result = planner.planLayout(activeCommands, availablePx, buttonPx, overflowPx)
-            latestOverflowCommands = result.overflowCommands
-
-            // Hide all adaptive center buttons; planner result shows only bar commands
-            getOverflowableButtons().forEach { it.isVisible = false }
-            result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
-
-            // RENAME isEnabled mirrors landscape rule (requires canRead)
-            safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
-
-            // Overflow button: only when the planner says some commands are in overflow
-            safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
-
-        } else if (showInLandscape) {
-            latestBigButtonsBarCommands = emptyList()
-
-            // Group 1: inside HorizontalScrollView (Previous/Next set in common section)
-            binding.btnRandomCmd.isVisible = showRandomNavigation
-            binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
-            binding.btnFavorite.isVisible = lastKnownFavoriteVisible
-            binding.btnShareCmd.isVisible = true
-            binding.btnInfoCmd.isVisible = true
-            binding.btnFullscreenCmd.isVisible = !isAudio && (isImage || isVideo || isPdf || isText || isEpub)
-            binding.btnSlideshowCmd.isVisible = isImage || isVideo
-            binding.btnBlackScreenCmd.isVisible = (isAudio || isVideo) && state.showBlackScreenButton
-
-            // Group 2: type-specific adaptive commands
-            safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
-            safeViews.btnRenameCmd.isVisible = canWrite && state.allowRename
-            safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
-            safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
-            safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
-            safeViews.btnCastCmd.isVisible =
-                BuildConfig.SUPPORT_CAST &&
-                (::castMediaManager.isInitialized && castMediaManager.isCastAvailable) &&
-                (isImage || isVideo) &&
-                isWifiConnected(binding.root.context)
-            safeViews.btnEditCmd.isVisible = (isImage && canWrite) || (isVideo && !isAudio) || isPdf
-            safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
-            safeViews.btnEditCmd.contentDescription = binding.root.context.getString(
-                if (isVideo) R.string.control else R.string.edit
-            )
-            safeViews.btnGoogleLensPdfCmd.isVisible = isPdf
-            safeViews.btnOcrPdfCmd.isVisible = isPdf
-            safeViews.btnTranslatePdfCmd.isVisible = isPdf
-            safeViews.btnSearchPdfCmd.isVisible = isPdf
-            safeViews.btnPdfThumbnailsCmd.isVisible = isPdf
-            safeViews.btnCopyTextCmd.isVisible = isText || isPdf
-            safeViews.btnEditTextCmd.isVisible = isText && canWrite
-            safeViews.btnTranslateTextCmd.isVisible = isText
-            safeViews.btnTextSettingsCmd.isVisible = isText
-            safeViews.btnSearchTextCmd.isVisible = isText
-            safeViews.btnSearchEpubCmd.isVisible = isEpub
-            safeViews.btnTranslateEpubCmd.isVisible = isEpub
-            safeViews.btnEpubTextSettingsCmd.isVisible = isEpub
-            safeViews.btnOcrEpubCmd.isVisible = isEpub
-            safeViews.btnPdfTextSettingsCmd.isVisible = isPdf
-            if (isImage) {
-                safeViews.btnTranslateImageCmd.isVisible = state.enableTranslation
-                safeViews.btnOcrImageCmd.isVisible = state.enableOcr
-                safeViews.btnGoogleLensImageCmd.isVisible = state.enableGoogleLens
-                safeViews.btnImageTextSettingsCmd.isVisible = true
-                Timber.d("CommandPanelController: Image buttons IN LANDSCAPE - translate=${state.enableTranslation}, ocr=${state.enableOcr}, lens=${state.enableGoogleLens}")
-            } else {
-                safeViews.btnTranslateImageCmd.isVisible = false
-                safeViews.btnImageTextSettingsCmd.isVisible = false
-                safeViews.btnOcrImageCmd.isVisible = false
-                safeViews.btnGoogleLensImageCmd.isVisible = false
-            }
-            safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage
-            // S0217: image-edit commands are now bar-capable; expose them inline in landscape on the same
-            // per-type rules used by buildActiveCommands (static bitmap only; CROP additionally requires write).
-            val isStaticBitmap = isImage &&
-                !currentFile.name.lowercase().endsWith(".gif") &&
-                !currentFile.name.lowercase().endsWith(".apng")
-            safeViews.btnOpenInSeparateWindowCmd.isVisible = lastKnownAllowSeparateWindow
-            safeViews.btnCropCmd.isVisible = isStaticBitmap && canWrite && !isReadOnly
-            safeViews.btnCropToFileCmd.isVisible = isStaticBitmap
-            safeViews.btnCompressCopyCmd.isVisible = isStaticBitmap
-            safeViews.btnDrawOverlayCmd.isVisible = isStaticBitmap
-            // S0129: expose overflow-only commands (barCapable=false) in landscape via the ⋯ button
-            val landscapeOverflowCmds = planner.buildActiveCommands(
-                state, canWrite, canRead, isWifiConnected(binding.root.context),
-                showFavorite = lastKnownFavoriteVisible,
-                showRandom = showRandomNavigation,
-                allowSeparateWindow = lastKnownAllowSeparateWindow
-            ).filter { !it.barCapable }
-            latestOverflowCommands = landscapeOverflowCmds
-            safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
-        } else {
-            latestBigButtonsBarCommands = emptyList()
-            // Command panel hidden
-            safeViews.btnOverflowMenu.isVisible = false
-            latestOverflowCommands = emptyList()
-            getOverflowableButtons().forEach { it.isVisible = false }
-        }
-        
-        // Enable states (set regardless of visibility - overflow menu uses the same callbacks)
-        binding.btnBack.isEnabled = true
-        binding.btnPreviousCmd.isEnabled = true
-        binding.btnNextCmd.isEnabled = true
-        binding.btnRandomCmd.isEnabled = state.files.size > 1
-        binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
-        binding.btnSlideshowCmd.isEnabled = true
-        
-        // Update slideshow button color based on active state
-        updateSlideshowButtonColor(state.isSlideShowActive)
-        
-        // Copy/Move panels visibility based on settings AND whether there are destination buttons
-        val hasCopyButtons = safeViews.copyToButtonsGrid.childCount > 0
-        val hasMoveButtons = safeViews.moveToButtonsGrid.childCount > 0
-        
-        val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons
-        val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons && canWrite
-        
-        Timber.v("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${safeViews.copyToButtonsGrid.childCount})")
-        Timber.v("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${safeViews.moveToButtonsGrid.childCount})")
-        
-        safeViews.copyToPanel.isVisible = copyPanelVisible
-        safeViews.moveToPanel.isVisible = movePanelVisible
-
-        logPanelGeometrySnapshot("decision")
-        
-        // CRITICAL FIX: Force layout recalculation when panel visibility changes
-        // Problem: mediaContentArea has layout_weight=1 and takes all available space
-        // When panels change from gone->visible, LinearLayout doesn't recalculate automatically
-        // Result: panels are pushed off-screen (Y > screen height)
-        // Solution: Force complete layout recalculation via requestLayout() + requestApplyInsets()
-        // This is the same approach used in updateSystemBarsForPlayer after exitFullscreen
-        if (copyPanelVisible || movePanelVisible) {
-            binding.root.post {
-                // Force immediate layout recalculation
-                binding.mediaContentArea.requestLayout()
-                safeViews.copyToPanel.requestLayout()
-                safeViews.moveToPanel.requestLayout()
-                binding.root.requestLayout()
-                
-                // Also request insets reapply for proper system bars handling
-                binding.root.requestApplyInsets()
-                Timber.d("CommandPanelController: Requested full layout recalculation and insets reapply")
-            }
-        }
-        
-        // DEBUG: Log actual panel state after visibility change (single + delayed snapshot)
-        safeViews.copyToPanel.post {
-            logPanelGeometrySnapshot("post")
-            binding.root.post {
-                logPanelGeometrySnapshot("post+1")
-            }
-        }
-
-        if (bigButtonsMode) {
-            syncBigButtonsTopPanelLayout()
-        }
-        
-
+        availabilityUpdater.update(state)
     }
 
     private fun logPanelGeometrySnapshot(stage: String) {
@@ -584,24 +313,10 @@ class CommandPanelController(
         val copyLocalVisible = safeViews.copyToPanel.getLocalVisibleRect(copyLocalRect)
         val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)
 
-        Timber.v(
-            "PanelGeom[$stage]: visibleFrame=[${visibleFrame.left},${visibleFrame.top}..${visibleFrame.right},${visibleFrame.bottom}] h=${visibleFrame.height()} | root=(x=${rootLoc[0]},y=${rootLoc[1]},w=${binding.root.width},h=${binding.root.height}) | media=(x=${mediaLoc[0]},y=${mediaLoc[1]},w=${binding.mediaContentArea.width},h=${binding.mediaContentArea.height}) | bottom=(x=${bottomLoc[0]},y=${bottomLoc[1]},w=${safeViews.bottomPanelsContainer.width},h=${safeViews.bottomPanelsContainer.height},vis=${safeViews.bottomPanelsContainer.visibility})"
-        )
-
-        Timber.v(
-            "PanelGeom[$stage]: copy=(vis=${safeViews.copyToPanel.visibility},isVisible=${safeViews.copyToPanel.isVisible},x=${copyLoc[0]},y=${copyLoc[1]},w=${safeViews.copyToPanel.width},h=${safeViews.copyToPanel.height},globalVisible=$copyGlobalVisible,globalRect=$copyGlobalRect,localVisible=$copyLocalVisible,localRect=$copyLocalRect,childRows=${safeViews.copyToButtonsGrid.childCount})"
-        )
-
-        Timber.v(
-            "PanelGeom[$stage]: move=(vis=${safeViews.moveToPanel.visibility},isVisible=${safeViews.moveToPanel.isVisible},x=${moveLoc[0]},y=${moveLoc[1]},w=${safeViews.moveToPanel.width},h=${safeViews.moveToPanel.height},globalVisible=$moveGlobalVisible,globalRect=$moveGlobalRect,localVisible=$moveLocalVisible,localRect=$moveLocalRect,childRows=${safeViews.moveToButtonsGrid.childCount})"
-        )
     }
-    
-    /**
-     * Update slideshow button visual state (color/alpha) based on active state
-     */
+
+    /** Update slideshow button visual state (color/alpha) based on active state */
     fun updateSlideshowButtonColor(isActive: Boolean) {
-        Timber.v("CommandPanelController.updateSlideshowButtonColor: isActive=$isActive, btn=${binding.btnSlideshowCmd}")
         binding.btnSlideshowCmd.alpha = if (isActive) 1.0f else 0.5f
         // ImageButton uses imageTintList instead of setTextColor
         if (isActive) {
@@ -612,10 +327,8 @@ class CommandPanelController(
             binding.btnSlideshowCmd.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
         }
     }
-    
-    /**
-     * Apply small controls layout (50% height, margins, and paddings) if not already applied
-     */
+
+    /** Apply small controls layout (50% height, margins, and paddings) if not already applied */
     fun applySmallControlsIfNeeded() {
         if (smallControlsApplied) return
 
@@ -634,7 +347,7 @@ class CommandPanelController(
             if (params != null) {
                 // Save and scale height
                 params.height = (baseline * SMALL_CONTROLS_SCALE).roundToInt().coerceAtLeast(1)
-                
+
                 // Save and scale margins
                 if (params is android.view.ViewGroup.MarginLayoutParams) {
                     // Save original margins
@@ -642,7 +355,7 @@ class CommandPanelController(
                         button.id,
                         android.graphics.Rect(params.leftMargin, params.topMargin, params.rightMargin, params.bottomMargin)
                     )
-                    
+
                     params.setMargins(
                         (params.leftMargin * SMALL_CONTROLS_SCALE).roundToInt(),
                         (params.topMargin * SMALL_CONTROLS_SCALE).roundToInt(),
@@ -650,16 +363,16 @@ class CommandPanelController(
                         (params.bottomMargin * SMALL_CONTROLS_SCALE).roundToInt()
                     )
                 }
-                
+
                 button.layoutParams = params
             }
-            
+
             // Save and scale paddings
             originalPaddings.putIfAbsent(
                 button.id,
                 android.graphics.Rect(button.paddingLeft, button.paddingTop, button.paddingRight, button.paddingBottom)
             )
-            
+
             button.setPadding(
                 (button.paddingLeft * SMALL_CONTROLS_SCALE).roundToInt(),
                 (button.paddingTop * SMALL_CONTROLS_SCALE).roundToInt(),
@@ -676,14 +389,14 @@ class CommandPanelController(
             safeViews.copyToButtonsGrid,
             safeViews.moveToButtonsGrid
         )
-        
+
         containers.forEach { container ->
             // Save original padding
             originalContainerPaddings.putIfAbsent(
                 container.id,
                 android.graphics.Rect(container.paddingLeft, container.paddingTop, container.paddingRight, container.paddingBottom)
             )
-            
+
             container.setPadding(
                 (container.paddingLeft * SMALL_CONTROLS_SCALE).roundToInt(),
                 (container.paddingTop * SMALL_CONTROLS_SCALE).roundToInt(),
@@ -695,9 +408,7 @@ class CommandPanelController(
         smallControlsApplied = true
     }
 
-    /**
-     * Restore original button heights, margins, and paddings if small controls were applied
-     */
+    /** Restore original button heights, margins, and paddings if small controls were applied */
     fun restoreCommandButtonHeightsIfNeeded() {
         if (!smallControlsApplied) return
 
@@ -706,7 +417,7 @@ class CommandPanelController(
             val baseline = originalCommandButtonHeights[button.id] ?: return@forEach
             val params = button.layoutParams ?: return@forEach
             params.height = baseline
-            
+
             // Restore margins
             if (params is android.view.ViewGroup.MarginLayoutParams) {
                 val originalMargin = originalMargins[button.id]
@@ -719,9 +430,9 @@ class CommandPanelController(
                     )
                 }
             }
-            
+
             button.layoutParams = params
-            
+
             // Restore padding
             val originalPadding = originalPaddings[button.id]
             if (originalPadding != null) {
@@ -733,7 +444,7 @@ class CommandPanelController(
                 )
             }
         }
-        
+
         // Restore container paddings
         val containers = listOf(
             binding.topCommandPanel,
@@ -742,7 +453,7 @@ class CommandPanelController(
             safeViews.copyToButtonsGrid,
             safeViews.moveToButtonsGrid
         )
-        
+
         containers.forEach { container ->
             val originalPadding = originalContainerPaddings[container.id]
             if (originalPadding != null) {
@@ -814,27 +525,21 @@ class CommandPanelController(
             else -> 0
         }
     }
-    
+
     /**
      * Update layout based on orientation change
      * @param configuration Current configuration
      */
     fun updateOrientation(configuration: Configuration) {
         isLandscapeMode = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        Timber.d("CommandPanelController.updateOrientation: isLandscape=$isLandscapeMode")
-        
+
         // Post so the layout has settled to the new dimensions before the planner measures width
         cachedState?.let { state ->
             binding.topCommandPanel.post { updateCommandAvailability(state) }
         }
     }
 
-    /**
-     * Show the overflow popup menu, ordered by command priority (highest priority first).
-     *
-     * Items are built programmatically from [latestOverflowCommands] so the display order
-     * reflects the runtime priority model, not the static XML declaration order.
-     */
+    /** Show the overflow popup menu, ordered by command priority (highest priority first). Items are built programmatically from [latestOverflowCommands] so the display order reflects the runtime priority model, not the static XML declaration order. */
     @SuppressLint("RestrictedApi")
     private fun showOverflowMenu(anchor: View) {
         val state = cachedState ?: return
@@ -945,6 +650,7 @@ class CommandPanelController(
             R.id.menu_delete -> callback.onDeleteClicked()
             R.id.menu_favorite -> callback.onFavoriteClicked()
             R.id.menu_share -> callback.onShareClicked()
+            R.id.menu_send_to_telegram -> callback.onSendToTelegramClicked()
             R.id.menu_info -> callback.onInfoClicked()
             R.id.menu_fullscreen -> callback.onFullscreenClicked()
             R.id.menu_slideshow -> callback.onSlideshowClicked()
@@ -973,6 +679,7 @@ class CommandPanelController(
             R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
             R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
             R.id.menu_print -> callback.onPrintClicked()
+            R.id.menu_open_in_vr -> callback.onOpenInVrClicked()
             R.id.menu_save_frame -> callback.onSaveFrameClicked()
             R.id.menu_black_screen -> callback.onBlackScreenClicked()
             R.id.menu_open_in_separate_window -> callback.onOpenInSeparateWindowClicked()
@@ -984,11 +691,7 @@ class CommandPanelController(
         }
     }
 
-    /**
-     * All adaptive center buttons that may move between bar and overflow.
-     * These are hidden at the start of every portrait-branch pass and then
-     * selectively shown by the planner result.
-     */
+    /** All adaptive center buttons that may move between bar and overflow. These are hidden at the start of every portrait-branch pass and then selectively shown by the planner result. */
     private fun getOverflowableButtons(): List<View> {
         val list = mutableListOf<View>(
             // Group 1: high-priority adaptive buttons
@@ -1038,9 +741,7 @@ class CommandPanelController(
         return list
     }
 
-    /**
-     * Return the bar [View] for [cmd], or null for overflow-only commands.
-     */
+    /** Return the bar [View] for [cmd], or null for overflow-only commands. */
     private fun barViewForCommand(cmd: CommandPanelLayoutPlanner.PlayerCommand): View? {
         return when (cmd) {
             CommandPanelLayoutPlanner.PlayerCommand.DELETE -> binding.btnDeleteCmd
@@ -1092,10 +793,7 @@ class CommandPanelController(
         return profile == ResourceProfile.AUDIO_LIBRARY || profile == ResourceProfile.PHOTO_STORAGE
     }
 
-    /**
-     * Pixel width available for the center adaptive group in portrait mode.
-     * Fixed anchors: Back (left) + Previous + Next (right) = 3 × 40dp.
-     */
+    /** Pixel width available for the center adaptive group in portrait mode. Fixed anchors: Back (left) + Previous + Next (right) = 3 × 40dp. */
     private fun resolveAvailableCenterWidthPx(): Int {
         val dm = binding.root.resources.displayMetrics
         val buttonPx = (40 * dm.density).toInt()
@@ -1108,16 +806,7 @@ class CommandPanelController(
         return (panelWidth - buttonPx * (3 + slideshowFixed)).coerceAtLeast(0) // Back + Slideshow + Prev + Next
     }
 
-    /**
-     * Big Buttons Mode total visible top-panel slot count.
-     *
-     * Formula: `(panelWidthPx / minSlotWidthPx).coerceIn(5, 9)`.
-     * `panelWidthPx` is the laid-out width of `topCommandPanel`; falls back to
-     * `displayMetrics.widthPixels` before the first layout pass.
-     * `minSlotWidthPx` is `R.dimen.player_big_button_min_slot_width`.
-     *
-     * Strategic S0208 §3.1.4 / §5.1.3.
-     */
+    /** Big Buttons Mode total visible top-panel slot count. Formula: `(panelWidthPx / minSlotWidthPx).coerceIn(5, 9)`. `panelWidthPx` is the laid-out width of `topCommandPanel`; falls back to `displayMetrics.widthPixels` before the first layout pass. `minSlotWidthPx` is `R.dimen.player_big_button_min_slot_width`. Strategic S0208 §3.1.4 / §5.1.3. */
     private fun resolveBigButtonsTopPanelSlotCount(): Int {
         val dm = binding.root.resources.displayMetrics
         val panelWidthPx = binding.topCommandPanel.width.takeIf { it > 0 } ?: dm.widthPixels

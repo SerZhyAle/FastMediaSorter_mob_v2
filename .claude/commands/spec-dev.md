@@ -11,7 +11,10 @@ Execute a tactical specification step by step. Reads `PLAN/Sxxxx_<short-name>/IN
 /spec-dev <Sxxxx-or-slug> --until <NN.M>     # steps up to and including this one
 /spec-dev <Sxxxx-or-slug> --resume           # re-scan state, then continue
 /spec-dev <Sxxxx-or-slug> --dry-run          # print plan without writing
+/spec-dev <Sxxxx-or-slug> --verify-smoke     # after all phases done, run /verify smoke before flipping status
 ```
+
+`--verify-smoke` is opt-in and exists to catch a trivial launch-crash before the strategic spec is recorded as `Implemented` or `BlockNeedUserTest`. It runs `/verify --build` once with no scenario (default smoke: launch + screenshot + crash scan). If smoke fails, the status flip is **aborted**: the ticket stays `In Progress`, the `## Step Log` of the last phase gets a `VERIFY-SMOKE FAIL` line. This is a safety net, not a replacement for `/spec-test-device` or `/spec-check`.
 
 ---
 
@@ -78,6 +81,10 @@ After all planned steps in the current phase complete:
 
 After all phases done:
 
+- **Optional verification smoke (only when `--verify-smoke`).** Before flipping the strategic status, run `/verify --build` once with no scenario argument. The skill writes its artefacts under `temp/verify_*`; do not touch them. Read the single-line verdict it returns:
+  - `verify: ... PASS/SKIPPED ...` with `log errors 0` and `crashes 0` → proceed with the status flip below as normal.
+  - Any FAIL row in the run table, any `crashes K > 0`, or any `log errors` containing a fresh exception from the package under test → **abort the status flip**. Leave the ticket at `In Progress`. Append one `VERIFY-SMOKE FAIL` line to the last phase's `## Step Log` pointing at the scenario path in `temp/verify_*.md`. Stop with: `<Sxxxx>: verify-smoke FAIL, status not advanced. See temp/verify_<TS>.md.`
+  - `device-ready.ps1` exit ≠ 0 (no device, mobile-mcp missing) → **do not** abort: log the skip in chat (`verify-smoke skipped: <reason>`) and proceed with the original status flip. Smoke is a bonus, never a hard gate when no device is present.
 - Flip strategic `Status:` to `Implemented`. Add `**Implemented date:** <YYYY-MM-DD>`. Do **not** insert debug tags here - they belong only to `BlockNeedUserTest`.
 - If on-device verification is part of the acceptance - flip journal status to `BlockNeedUserTest`. Before flipping, insert one `Timber.d("Sxxxx: <entry-point description>")` at the entry point of each changed flow across all phases (per CLAUDE.md "Debug Verification Tags" - one tag per flow entry, not per modified line). Run a dev log line for each file that gained a tag.
 - **Finalization (batched).** Use `close-and-log.ps1` to perform the journal flip + dev log batch + functionality log + catalog scan/render in one pwsh process:
@@ -103,9 +110,18 @@ After all phases done:
 
   Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `add_to_functionality_log.ps1` + `catalog_sync.ps1` only when a separate catalog repair is still needed) remains valid when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process.
 
-- **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` - in that case note: `→ Awaiting on-device test. Debug tags inserted: N. Run /spec-check <Sxxxx> after verification (it removes the tags on the Verified transition).`
+- **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` - in that case apply the **Device-test gate** below instead.
 
-**Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. → Running /spec-check…`
+- **Device-test gate (on `BlockNeedUserTest`).** When the status was flipped to `BlockNeedUserTest`, do not just stop - probe for a device and auto-run the on-device verification when one is attached:
+
+  ```powershell
+  pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
+  ```
+
+  - **Exit 0 (device online):** auto-chain `/spec-test-device <Sxxxx>` (full evidence run) → then `/spec-check <Sxxxx>`. `/spec-check` converts the harvested evidence into `Verified` / `Partial` / `Broken` and, on a transition out of `BlockNeedUserTest`, removes the `Timber.d("Sxxxx:` tags. Note in chat: `→ Device online: ran /spec-test-device + /spec-check. End status: <new>.`
+  - **Exit 2/1/3/6 (no usable device):** do not run. Note: `→ Awaiting on-device test. Debug tags inserted: N. No device attached - run /spec-sweep (or /spec-test-device <Sxxxx>) when a device is online; /spec-check removes the tags on the Verified transition.` Leave the ticket in `BlockNeedUserTest`.
+
+**Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. [verify-smoke PASS/SKIPPED/FAIL when --verify-smoke]. → Running /spec-check…`
 
 ---
 

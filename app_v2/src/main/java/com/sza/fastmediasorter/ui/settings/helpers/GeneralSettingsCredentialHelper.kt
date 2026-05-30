@@ -127,6 +127,8 @@ class GeneralSettingsCredentialHelper(
                         supportGifs = settings.optBoolean("supportGifs", currentSettings.supportGifs),
                         supportText = settings.optBoolean("supportText", currentSettings.supportText),
                         supportPdf = settings.optBoolean("supportPdf", currentSettings.supportPdf),
+                        supportEpub = settings.optBoolean("supportEpub", currentSettings.supportEpub),
+                        supportOfficeDocuments = settings.optBoolean("supportOfficeDocuments", currentSettings.supportOfficeDocuments),
                         imageSizeMin = settings.optLong("imageMinSize", currentSettings.imageSizeMin),
                         imageSizeMax = settings.optLong("imageMaxSize", currentSettings.imageSizeMax),
                         videoSizeMin = settings.optLong("videoMinSize", currentSettings.videoSizeMin),

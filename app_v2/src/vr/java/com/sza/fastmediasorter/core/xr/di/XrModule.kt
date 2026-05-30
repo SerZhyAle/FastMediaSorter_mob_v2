@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.core.xr.di
 
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContractImpl
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCaseImpl
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionFacadeImpl
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
@@ -42,6 +44,12 @@ abstract class XrModule {
     abstract fun bindXrEntryGateway(
         impl: XrEntryGatewayImpl
     ): XrEntryGateway
+
+    @Binds
+    @Singleton
+    abstract fun bindStartVrPlaybackUseCase(
+        impl: StartVrPlaybackUseCaseImpl
+    ): StartVrPlaybackUseCase
 
     /**
      * S0249 Phase 02: native diagnostic runtime. Single binding, VR-flavor only — phone

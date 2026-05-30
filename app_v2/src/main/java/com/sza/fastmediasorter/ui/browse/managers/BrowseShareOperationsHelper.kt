@@ -6,6 +6,8 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -104,6 +106,74 @@ internal class BrowseShareOperationsHelper(
                 Timber.e(e, "Failed to share files")
                 withContext(Dispatchers.Main) {
                     showUnexpectedError(R.string.error_share_failed)
+                }
+            }
+        }
+    }
+
+    // S0303: send selected file(s) to an installed Telegram client. Mirrors [shareSelectedFiles]
+    // for URI staging, but targets the resolved Telegram package via [SystemShareInvoker.invokeFiles]
+    // (which falls back to the system chooser if the client is unavailable).
+    fun sendSelectedFilesToTelegram(
+        selectedFiles: List<MediaFile>,
+        resource: MediaResource
+    ) {
+        Timber.d("S0303: browse send-to-Telegram action invoked for ${selectedFiles.size} file(s)")
+        if (selectedFiles.isEmpty()) {
+            Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        coroutineScope.launch {
+            try {
+                Toast.makeText(context, R.string.please_wait, Toast.LENGTH_SHORT).show()
+
+                val uris = mutableListOf<Uri>()
+                for (mediaFile in selectedFiles) {
+                    val fileToShare = when (resource.type) {
+                        ResourceType.LOCAL -> File(mediaFile.path)
+                        ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
+                            downloadNetworkFileToCacheWithProgress(mediaFile, resource)
+                        }
+                    }
+                    if (fileToShare != null && fileToShare.exists()) {
+                        uris.add(
+                            FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                fileToShare
+                            )
+                        )
+                    }
+                }
+
+                if (uris.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, R.string.error, Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+
+                withContext(Dispatchers.Main) {
+                    val telegramPackage = TelegramShareTargets.firstInstalledPackage(context.packageManager)
+                    val launched = SystemShareInvoker.invokeFiles(
+                        context = context,
+                        uris = uris,
+                        mime = "*/*",
+                        preferredPackage = telegramPackage,
+                        chooserTitle = context.getString(R.string.share_to_telegram),
+                    )
+                    if (!launched) {
+                        Toast.makeText(context, R.string.share_to_telegram_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (_: CancellationException) {
+                Timber.i("Send to Telegram cancelled by user")
+                return@launch
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to send files to Telegram")
+                withContext(Dispatchers.Main) {
+                    showUnexpectedError(R.string.share_to_telegram_failed)
                 }
             }
         }

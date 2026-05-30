@@ -10,11 +10,12 @@ object MediaExtensions {
     )
     val AUDIO = setOf(
         "mp3", "flac", "aac", "ogg", "m4a", "wma", "opus", 
-        "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd", "mka", "oga", "caf", "alac", "mia", "mid", "midi"
-    )
+        "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd", "mka", "oga", "caf", "alac", "mia"
+    ) + MidiPlaybackPolicy.SUPPORTED_EXTENSIONS
     val TEXT = setOf("txt", "md", "log", "json", "xml", "csv", "conf", "ini", "properties", "yml", "yaml")
     val PDF = setOf("pdf")
     val EPUB = setOf("epub")
+    val OFFICE_DOCUMENT = setOf("doc", "docx", "rtf", "odt")
     
     fun isImage(extension: String): Boolean = extension.lowercase() in IMAGE
     fun isVideo(extension: String): Boolean = extension.lowercase() in VIDEO
@@ -22,6 +23,7 @@ object MediaExtensions {
     fun isText(extension: String): Boolean = extension.lowercase() in TEXT
     fun isPdf(extension: String): Boolean = extension.lowercase() in PDF
     fun isEpub(extension: String): Boolean = extension.lowercase() in EPUB
+    fun isOfficeDocument(extension: String): Boolean = extension.lowercase() in OFFICE_DOCUMENT
     
     fun getMediaType(extension: String): MediaType {
         val lowerExt = extension.lowercase()
@@ -38,8 +40,8 @@ object MediaExtensions {
             lowerExt in TEXT -> MediaType.TEXT
             lowerExt in PDF -> MediaType.PDF
             lowerExt in EPUB -> MediaType.EPUB
+            lowerExt in OFFICE_DOCUMENT -> MediaType.OFFICE_DOCUMENT
             else -> MediaType.IMAGE // Default fallback
         }
     }
 }
-

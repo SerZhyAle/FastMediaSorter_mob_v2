@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.core.xr.di
 
 import com.sza.fastmediasorter.core.xr.NoOpVrMediaSectionContract
+import com.sza.fastmediasorter.core.xr.NoOpStartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.NoOpXrDetectionFacade
 import com.sza.fastmediasorter.core.xr.NoOpXrEntryGateway
 import com.sza.fastmediasorter.core.xr.NoOpXrEnvironmentDetector
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
@@ -42,6 +44,12 @@ abstract class NoOpXrModule {
     abstract fun bindXrEntryGateway(
         impl: NoOpXrEntryGateway
     ): XrEntryGateway
+
+    @Binds
+    @Singleton
+    abstract fun bindStartVrPlaybackUseCase(
+        impl: NoOpStartVrPlaybackUseCase
+    ): StartVrPlaybackUseCase
 
     @Binds
     @Singleton

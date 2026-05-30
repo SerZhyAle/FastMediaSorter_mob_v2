@@ -4,11 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
+import com.sza.fastmediasorter.data.cloud.GoogleDriveInteractiveSignInCoordinator
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
-import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -36,54 +35,37 @@ class BrowseCloudAuthManager(
     }
 
     private var isDropboxAuthenticating = false
+    private var isGoogleDriveAuthenticating = false
 
-    /** S0200 Phase 04c: launch Credential Manager sign-in via the identity domain. */
+    /** S0294: reuse the shared capability-based Google Drive auth router for Browse / Player. */
     fun launchGoogleSignIn() {
         coroutineScope.launch {
             try {
                 val activity = context as? Activity
                 if (activity == null) {
-                    Timber.e("launchGoogleSignIn: context is not an Activity - Credential Manager requires one")
+                    Timber.e("launchGoogleSignIn: context is not an Activity - interactive Google auth requires one")
                     callbacks.onAuthenticationFailure()
                     return@launch
                 }
-                val identityRepo: GoogleIdentityRepository = EntryPointAccessors.fromApplication(
+                val signInCoordinator = EntryPointAccessors.fromApplication(
                     context.applicationContext,
                     BrowseIdentityEntryPoint::class.java
-                ).identityRepository()
-                val result = identityRepo.signInPrimary(activity, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)
-                when (result) {
-                    is IdentitySignInResult.Success -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.google_drive_signed_in, result.account.email),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.onAuthenticationSuccess()
+                ).interactiveSignInCoordinator()
+
+                when (val startResult = signInCoordinator.start(activity)) {
+                    is GoogleDriveInteractiveSignInCoordinator.StartResult.Immediate -> {
+                        handleGoogleAuthResult(startResult.result)
                     }
-                    IdentitySignInResult.Cancelled -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.google_sign_in_cancelled),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.onAuthenticationFailure()
-                    }
-                    is IdentitySignInResult.Failed -> {
-                        Timber.e(result.cause, "Google Sign-In failed via identity domain: ${result.reason}")
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.google_drive_authentication_failed),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.onAuthenticationFailure()
+
+                    GoogleDriveInteractiveSignInCoordinator.StartResult.AwaitResume -> {
+                        isGoogleDriveAuthenticating = true
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to launch Google Sign-In")
                 Toast.makeText(
                     context,
-                    context.getString(R.string.google_drive_authentication_failed),
+                    context.getString(R.string.s0294_google_drive_browser_launch_failed_message),
                     Toast.LENGTH_SHORT
                 ).show()
                 callbacks.onAuthenticationFailure()
@@ -94,7 +76,7 @@ class BrowseCloudAuthManager(
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface BrowseIdentityEntryPoint {
-        fun identityRepository(): GoogleIdentityRepository
+        fun interactiveSignInCoordinator(): GoogleDriveInteractiveSignInCoordinator
     }
     
     fun launchDropboxSignIn() {
@@ -153,6 +135,20 @@ class BrowseCloudAuthManager(
     }
     
     fun onResume() {
+        if (isGoogleDriveAuthenticating) {
+            coroutineScope.launch {
+                val result = EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    BrowseIdentityEntryPoint::class.java
+                ).interactiveSignInCoordinator().consumePendingInteractiveResult()
+
+                if (result != null) {
+                    isGoogleDriveAuthenticating = false
+                    handleGoogleAuthResult(result)
+                }
+            }
+        }
+
         if (isDropboxAuthenticating) {
             coroutineScope.launch {
                 val result = dropboxClient.finishAuthentication()
@@ -183,6 +179,36 @@ class BrowseCloudAuthManager(
                     }
                 }
                 isDropboxAuthenticating = false
+            }
+        }
+    }
+
+    private fun handleGoogleAuthResult(result: AuthResult) {
+        when (result) {
+            is AuthResult.Success -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.google_drive_signed_in, result.accountName),
+                    Toast.LENGTH_SHORT
+                ).show()
+                callbacks.onAuthenticationSuccess()
+            }
+
+            is AuthResult.Cancelled -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.google_sign_in_cancelled),
+                    Toast.LENGTH_SHORT
+                ).show()
+                callbacks.onAuthenticationFailure()
+            }
+
+            is AuthResult.Error -> {
+                val message = result.message.ifBlank {
+                    context.getString(R.string.s0294_google_drive_browser_auth_failed_message)
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                callbacks.onAuthenticationFailure()
             }
         }
     }

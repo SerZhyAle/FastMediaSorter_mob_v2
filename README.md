@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5220.333 (May 2026)
+## What's New in v2.60.5302.057 (May 2026)
 
 **New:**
-Cyrillic OCR (Tesseract `tessdata_best` Cyrillic models with automatic fallback, S0287), Settings Search Expansion (broader coverage across standard, VR, photos, and noLegal flavors), VR Diagnostics Surface (DiagnosticXR Activity with HUD canvas, raycast targeting, and input dispatch), TV Navigation Overhaul (unified D-pad focus and mouse-wheel routing across screens, S0289).
+Office documents (open DOC, DOCX, RTF, ODT with an installed viewer), Send to Telegram (share selected files to a Telegram client), MIDI playback (play MID/MIDI as regular music), File Manager Mode (browse and manage all file types including archives), VR content launch (start video into immersive VR cinema from the player, S0292, VR flavor).
 
 **Fixed:**
-Finger taps unresponsive on Quest 3 and touchpad TVs (S0289), OCR action could be re-triggered while recognition was in progress (S0288).
+DeX and multi-window file operations reachable via overflow menu (S0293), VR video no longer displays upside-down on Quest 3 (S0290), VR pointer rays no longer flicker from stale tracking (S0291).
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -139,7 +139,7 @@ Full-size images:
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
-- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files" mode.
+- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "File Manager Mode".
 - ⌨️ **Keyboard & Mouse Support:** Full keyboard navigation (arrow keys, shortcuts like Ctrl+A/C/X, F2, F5, Delete, Backspace) and mouse support (right-click context menu, hover effects, focus indicators) for ChromeOS and desktop mode.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
@@ -167,7 +167,7 @@ FastMediaSorter v2 supports a wide range of formats:
 - **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
 - **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, DTS, DTS-HD
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
-- **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
+- **Binary Files** (File Manager Mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 
 ## Usage Scenarios 💡
 

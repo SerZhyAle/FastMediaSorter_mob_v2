@@ -110,14 +110,14 @@ class FtpMediaScanner @Inject constructor(
                             MediaType.IMAGE, MediaType.GIF -> sizeFilter.imageSizeMin
                             MediaType.VIDEO -> sizeFilter.videoSizeMin
                             MediaType.AUDIO -> sizeFilter.audioSizeMin
-                            MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> 0L // No filter for TEXT/PDF/EPUB
+                            MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> 0L
                             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> 0L
                         }
                         val maxSize = when (mediaType) {
                             MediaType.IMAGE, MediaType.GIF -> sizeFilter.imageSizeMax
                             MediaType.VIDEO -> sizeFilter.videoSizeMax
                             MediaType.AUDIO -> sizeFilter.audioSizeMax
-                            MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> Long.MAX_VALUE // No filter for TEXT/PDF/EPUB
+                            MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> Long.MAX_VALUE
                             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> Long.MAX_VALUE
                         }
                         
@@ -302,14 +302,14 @@ class FtpMediaScanner @Inject constructor(
                         MediaType.IMAGE, MediaType.GIF -> sizeFilter.imageSizeMin
                         MediaType.VIDEO -> sizeFilter.videoSizeMin
                         MediaType.AUDIO -> sizeFilter.audioSizeMin
-                        MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> 0L
+                        MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> 0L
                         MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> 0L
                     }
                     val maxSize = when (mediaType) {
                         MediaType.IMAGE, MediaType.GIF -> sizeFilter.imageSizeMax
                         MediaType.VIDEO -> sizeFilter.videoSizeMax
                         MediaType.AUDIO -> sizeFilter.audioSizeMax
-                        MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> Long.MAX_VALUE
+                        MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> Long.MAX_VALUE
                         MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> Long.MAX_VALUE
                     }
                     fileSize in minSize..maxSize

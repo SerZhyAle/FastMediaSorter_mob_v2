@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0200 - CCT unavailable refusal -->
+    <string name="s0200_cct_unavailable_title">Потрібен браузер</string>
+    <string name="s0200_cct_unavailable_message">Щоб увійти в Google, потрібен браузер із підтримкою Chrome Custom Tabs. Встановіть сумісний браузер (Chrome, Firefox, Brave..) і спробуйте ще раз. Інші функції застосунку працюють.</string>
+    <string name="s0200_cct_unavailable_retry">Спробувати ще раз</string>
+
+    <!-- S0200 - Google Account settings card -->
+    <string name="s0200_card_title">Google-акаунт</string>
+    <string name="s0200_card_state_unbound_summary">Увійдіть один раз, щоб робити резервні копії в Google Drive і додавати папки без повторної авторизації.</string>
+    <string name="s0200_card_state_unbound_cta">Увійти до Google</string>
+    <string name="s0200_card_state_bound_summary">Підключено акаунт %1$s.</string>
+    <string name="s0200_card_state_bound_sign_out">Вийти</string>
+    <string name="s0200_card_state_needs_resign_in_summary">Увійдіть знову під %1$s, щоб Drive продовжив працювати.</string>
+    <string name="s0200_card_state_needs_resign_in_cta">Увійти знову</string>
+    <string name="s0200_card_authenticating">Вхід..</string>
+    <string name="s0200_card_diag_cct_ok">Знайдено браузер: %1$s.</string>
+    <string name="s0200_card_diag_cct_missing">Немає сумісного браузера. Встановіть його, щоб користуватися Google.</string>
+    <string name="s0200_card_diag_show">Діагностика</string>
+    <string name="s0200_sign_out_confirm_title">Вийти з Google?</string>
+    <string name="s0200_sign_out_confirm_message">Папки Drive залишаться в списку, але знадобиться новий вхід, щоб відкрити файли. Імена папок і налаштування зберігаються.</string>
+    <string name="s0200_sign_out_confirm_confirm">Вийти</string>
+    <string name="s0200_resource_needs_sign_in_label">Потрібен вхід</string>
+
+    <!-- S0234 - sign-in error surfacing -->
+    <string name="s0234_error_dialog_title">Не вдалося увійти до Google Drive</string>
+    <string name="s0234_card_state_error_play_services_outdated_summary">Google Play Сервіси на пристрої застаріли, тому вхід до Google Drive не завершується. Оновіть Google Play Сервіси в Play Маркеті, щоб продовжити.</string>
+    <string name="s0234_card_state_error_play_services_outdated_cta">Оновити Play Сервіси</string>
+    <string name="s0234_card_state_error_network_summary">Не вдалося зв\'язатися з Google. Перевірте підключення до інтернету і спробуйте ще раз.</string>
+    <string name="s0234_card_state_error_network_cta">Повторити</string>
+    <string name="s0234_card_state_error_user_cancelled_summary">Вхід скасовано. Натисніть «Увійти», коли захочете спробувати знову.</string>
+    <string name="s0234_card_state_error_user_cancelled_cta">Увійти</string>
+    <string name="s0234_card_state_error_cct_unavailable_summary">Немає сумісного браузера. Встановіть Chrome, Firefox, Brave або інший браузер з підтримкою Chrome Custom Tabs і спробуйте знову.</string>
+    <string name="s0234_card_state_error_cct_unavailable_cta">Увійти</string>
+    <string name="s0234_card_state_error_unknown_summary">Не вдалося увійти з невідомої причини. Спробуйте ще раз - якщо не допомагає, надішліть звіт про помилку з діалогу.</string>
+    <string name="s0234_card_state_error_unknown_cta">Спробувати знову</string>
+    <string name="s0234_card_state_error_diag_details_prefix">Причина збою: %1$s</string>
+
+    <!-- S0294 - Google Drive browser auth -->
+    <string name="s0294_google_drive_browser_required_message">Для входу в Google потрібен браузер. Встановіть його і спробуйте ще раз.</string>
+    <string name="s0294_google_drive_browser_launch_failed_message">Не вдалося відкрити вхід через Google. Спробуйте ще раз.</string>
+    <string name="s0294_google_drive_browser_auth_failed_message">Не вдалося завершити вхід через Google. Спробуйте ще раз.</string>
+</resources>

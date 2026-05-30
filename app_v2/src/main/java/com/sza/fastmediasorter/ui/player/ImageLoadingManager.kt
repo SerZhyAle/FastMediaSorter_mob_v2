@@ -46,13 +46,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
-/**
- * Manages image loading in PlayerActivity:
- * - Display images (Cloud/Network/Local) with Glide
- * - Preload adjacent images for faster navigation
- * - Show audio file info overlay
- * - Update audio format info from ExoPlayer
- */
+/** PlayerActivity image loading: display cloud/network/local via Glide, preload adjacent, audio info overlay, audio-format ExoPlayer updates. */
 class ImageLoadingManager(
     private val binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
@@ -66,14 +60,14 @@ class ImageLoadingManager(
     private val callback: ImageLoadingCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
-    
+
     // Detect memory tier for optimization strategy
     private val memoryTier: MemoryTier = MemoryTier.detect(binding.root.context)
-    
+
     init {
         Timber.i("ImageLoadingManager: Initialized with memoryTier=$memoryTier")
     }
-    
+
     interface ImageLoadingCallback {
         fun isFinishing(): Boolean
         fun isDestroyed(): Boolean
@@ -96,7 +90,7 @@ class ImageLoadingManager(
         /** S0107: Called when a static (non-GIF) image is fully loaded; null on load failure or video transition. */
         fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {}
     }
-    
+
     // Context for scale type determination (set before loading image)
     private var currentCropSetting: Boolean = true
     private var currentIsFullscreenOrSlideshow: Boolean = false
@@ -108,17 +102,10 @@ class ImageLoadingManager(
     private var isInImageDisplayMode: Boolean = false
     private val animatedImageController = AnimatedImageController()
 
-    /**
-     * Called when the user performs a pinch-zoom gesture on the current image or GIF.
-     * Injected from outside after construction; wires to FilenameOverlayAutoHideManager.
-     * Load-time PhotoView scale events are filtered before invoking this callback.
-     */
+    /** Called when the user performs a pinch-zoom gesture on the current image or GIF. Injected from outside after construction; wires to FilenameOverlayAutoHideManager. Load-time PhotoView scale events are filtered before invoking this callback. */
     var onZoomInteraction: (() -> Unit)? = null
 
-    /**
-     * True once Glide has successfully delivered the current image to PhotoView.
-     * Reset on every new displayImage() call to suppress load-time scale events.
-     */
+    /** True once Glide has successfully delivered the current image to PhotoView. Reset on every new displayImage() call to suppress load-time scale events. */
     private var isPhotoViewImageLoaded = false
 
     private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
@@ -181,33 +168,19 @@ class ImageLoadingManager(
         imagePreloadHelper.setSlideshowBias(enabled)
     }
 
-    /**
-     * Set stereo crop mode for 3D images. Delegates to the underlying renderer.
-     * SBS crops to right half, OU crops to bottom half, MONO = no crop.
-     */
+    /** Set stereo crop mode for 3D images. Delegates to the underlying renderer. SBS crops to right half, OU crops to bottom half, MONO = no crop. */
     fun setStereoMode(mode: com.sza.fastmediasorter.domain.model.StereoMode) {
         staticImageRenderer.setStereoMode(mode)
     }
 
-    /**
-     * Toggle the panel single-eye crop master flag for 3D images.
-     * Caller (PlayerManagerInitializer) is responsible for re-displaying the current image
-     * so the toggle takes effect without a fresh navigation.
-     */
+    /** Toggle the panel single-eye crop master flag for 3D images. Caller (PlayerManagerInitializer) is responsible for re-displaying the current image so the toggle takes effect without a fresh navigation. */
     fun setPanelStereoSingleEyeEnabled(enabled: Boolean) {
         staticImageRenderer.setPanelStereoSingleEyeEnabled(enabled)
     }
 
-    /**
-     * Enable or disable the dynamic background extension effect.
-     * When enabled, a [DynamicBackgroundProcessor] is created and attached to [ivDynamicBackground].
-     * When disabled, the processor is cleared and the background view is hidden.
-     *
-     * NOTE: [binding.ivDynamicBackground] must exist in the layout (it is always added, just gone by default).
-     */
+    /** Enable or disable the dynamic background extension effect. When enabled, a [DynamicBackgroundProcessor] is created and attached to [ivDynamicBackground]. When disabled, the processor is cleared and the background view is hidden. NOTE: [binding.ivDynamicBackground] must exist in the layout (it is always added, just gone by default). */
     fun setDynamicBackgroundEnabled(enabled: Boolean) {
         isDynamicBackgroundEnabled = enabled
-        Timber.d("ImageLoadingManager: Dynamic background enabled=$enabled")
         if (enabled) {
             if (dynamicBackgroundProcessor == null) {
                 dynamicBackgroundProcessor = DynamicBackgroundProcessor(
@@ -220,22 +193,13 @@ class ImageLoadingManager(
             // Keep the processor instance to avoid re-creation churn on rapid toggles
         }
     }
-    
-    /**
-     * Explicitly clear dynamic background lines.
-     * Called when switching to video playback so stale image lines don't persist
-     * until the first video frame is ready.
-     */
+
+    /** Explicitly clear dynamic background lines. Called when switching to video playback so stale image lines don't persist until the first video frame is ready. */
     fun clearDynamicBackground() {
         dynamicBackgroundProcessor?.clear()
     }
 
-    /**
-     * Cancel all in-flight image loads and clear image views immediately.
-     * Must be called when transitioning FROM image TO video/audio so that:
-     * 1. Stale Glide callbacks cannot re-apply the dynamic background after clear.
-     * 2. photoView / imageView don't hold large bitmaps while video is playing.
-     */
+    /** Cancel all in-flight image loads and clear image views immediately. Must be called when transitioning FROM image TO video/audio so that: 1. Stale Glide callbacks cannot re-apply the dynamic background after clear. 2. photoView / imageView don't hold large bitmaps while video is playing. */
     fun clearForVideoTransition() {
         isInImageDisplayMode = false
 
@@ -260,22 +224,14 @@ class ImageLoadingManager(
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
         binding.progressBar.isVisible = false
 
-        Timber.d("ImageLoadingManager.clearForVideoTransition: Glide cleared, dynamic background cleared")
     }
 
-    /**
-     * Trigger dynamic background processing from a decoded video frame bitmap.
-     * Called by [VideoPlayerManager] (via [PlayerMediaLoaderManager]) on first frame rendered.
-     * No-op when dynamic background is disabled or screen dimensions not yet resolved.
-     */
+    /** Trigger dynamic background processing from a decoded video frame bitmap. Called by [VideoPlayerManager] (via [PlayerMediaLoaderManager]) on first frame rendered. No-op when dynamic background is disabled or screen dimensions not yet resolved. */
     fun triggerVideoBackground(bitmap: android.graphics.Bitmap, isPlaceholder: Boolean) {
         if (!isDynamicBackgroundEnabled) return
         val w = currentDeviceWidth.takeIf { it > 0 } ?: return
         val h = currentDeviceHeight.takeIf { it > 0 } ?: return
-        Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h} placeholder=$isPlaceholder")
-        // processFromBitmap internally uses the backgroundView dimensions via process(),
-        // which now receives the view size - but for video we pass screen dims as fallback;
-        // the processor will use backgroundView.width/height if available via its own layout.
+        // processFromBitmap internally uses the backgroundView dimensions via process(), which now receives the view size - but for video we pass screen dims as fallback; the processor will use backgroundView.width/height if available via its own layout.
         dynamicBackgroundProcessor?.processFromBitmap(bitmap, w, h)
         binding.ivDynamicBackground.contentDescription = if (isPlaceholder) {
             binding.root.context.getString(R.string.poster_thumbnail_unavailable)
@@ -284,20 +240,16 @@ class ImageLoadingManager(
         }
     }
 
-    /**
-     * Cleanup all resources - cancel Glide requests and pending handlers.
-     * Called from PlayerLifecycleManager.onDestroy() to prevent memory leaks.
-     */
+    /** Cleanup all resources - cancel Glide requests and pending handlers. Called from PlayerLifecycleManager.onDestroy() to prevent memory leaks. */
     fun cleanup() {
-        Timber.d("ImageLoadingManager: Cleaning up resources")
-        
+
         // Cancel any dynamic background processing
         dynamicBackgroundProcessor?.clear()
-        
+
         // Cancel all pending handlers
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-        
+
         // Cancel all Glide requests (use applicationContext to avoid destroyed activity error)
         try {
             val appContext = binding.root.context.applicationContext
@@ -306,7 +258,7 @@ class ImageLoadingManager(
         } catch (e: Exception) {
             Timber.w(e, "ImageLoadingManager: Error clearing Glide requests")
         }
-        
+
         // Cancel all preload jobs and clear prefetch queue
         imagePreloadHelper.cleanup()
         animatedImageController.release()
@@ -314,26 +266,17 @@ class ImageLoadingManager(
         callback.setAnimatedBadgeVisible(false)
         staticImageRenderer.release()
         dynamicBackgroundProcessor = null
-        
-        Timber.d("ImageLoadingManager: Cleanup complete")
+
     }
-    
-    /**
-     * Pause renderer - called from Activity onPause().
-     * Pauses any pending prefetch operations.
-     */
+
+    /** Pause renderer - called from Activity onPause(). Pauses any pending prefetch operations. */
     fun onPause() {
-        Timber.d("ImageLoadingManager: onPause - pausing renderer")
         animatedImageController.onPause()
         staticImageRenderer.onPause()
     }
-    
-    /**
-     * Resume renderer - called from Activity onResume().
-     * Resumes prefetch operations.
-     */
+
+    /** Resume renderer - called from Activity onResume(). Resumes prefetch operations. */
     fun onResume() {
-        Timber.d("ImageLoadingManager: onResume - resuming renderer")
         animatedImageController.onResume()
         staticImageRenderer.onResume()
     }
@@ -354,39 +297,35 @@ class ImageLoadingManager(
         currentIsAnimatedContent = false
         callback.setAnimatedBadgeVisible(false)
     }
-    
-    /**
-     * Re-evaluate and apply scale type after device rotation.
-     * Called when configuration changes (portrait ↔ landscape) to update the scale type
-     * for the currently displayed image without reloading it.
-     */
+
+    /** Re-evaluate and apply scale type after device rotation. Called when configuration changes (portrait ↔ landscape) to update the scale type for the currently displayed image without reloading it. */
     fun reEvaluateScaleTypeOnRotation() {
         lifecycleScope.launch {
             try {
                 // Get current settings
                 val settings = settingsRepository.getSettings().first()
-                
+
                 // Get current device dimensions (API 28+ compatible)
                 val (deviceWidth, deviceHeight) = WindowMetricsCompat.getScreenSize(
                     callback.getWindowManager()
                 )
-                
+
                 // Determine which view is currently visible
                 val targetView = when {
                     binding.imageView.isVisible -> binding.imageView
                     binding.photoView.isVisible -> binding.photoView
                     else -> null
                 }
-                
+
                 targetView?.let { view ->
                     val drawable = view.drawable
                     if (drawable != null) {
                         val imageWidth = drawable.intrinsicWidth
                         val imageHeight = drawable.intrinsicHeight
-                        
+
                         if (imageWidth > 0 && imageHeight > 0) {
                             val isFullscreenOrSlideshow = !callback.isShowingCommandPanel() || callback.isSlideshowActive()
-                            
+
                             val scaleType = ImageDisplayUtils.determineImageScaleType(
                                 cropImagesToFullscreen = settings.cropImagesToFullscreen,
                                 isFullscreenOrSlideshow = isFullscreenOrSlideshow,
@@ -395,9 +334,8 @@ class ImageLoadingManager(
                                 deviceWidth = deviceWidth,
                                 deviceHeight = deviceHeight
                             )
-                            
+
                             view.scaleType = scaleType
-                            Timber.d("ImageLoadingManager: Re-evaluated scale type on rotation: $scaleType (image: ${imageWidth}x${imageHeight}, device: ${deviceWidth}x${deviceHeight})")
                         }
                     }
                 }
@@ -406,7 +344,7 @@ class ImageLoadingManager(
             }
         }
     }
-    
+
     // Safety timeout to hide spinner if Glide hangs or cancels silently
     private val hideLoadingSafetyRunnable = Runnable {
         Timber.w("ImageLoadingManager.safetyTimeout: Loading took too long, hiding spinner")
@@ -415,7 +353,7 @@ class ImageLoadingManager(
             callback.showToast(binding.root.context.getString(R.string.msg_loading_timeout))
         }
     }
-    
+
     // Display image in ImageView or PhotoView based on settings
     fun displayImage(path: String) {
         isInImageDisplayMode = true
@@ -423,71 +361,61 @@ class ImageLoadingManager(
         // treated as intentional user zoom gestures on the new image.
         isPhotoViewImageLoaded = false
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
-        
+
         // Log memory state BEFORE loading new image
         logMemoryStats("BEFORE displayImage")
-        
+
         // NOTE: Do NOT clear imageView/photoView before loading new image!
         // This causes a brief black screen flash between slides.
         // Glide will automatically replace the image when the new one is ready.
         // Memory cleanup happens when the new request completes and replaces the old bitmap.
-        
+
         // Smart cancellation: only cancel jobs for files no longer adjacent to the new position
         val nextAdjacentPaths = callback.getAdjacentFiles().map { it.path }.toSet()
         val cancelledCount = imagePreloadHelper.cancelStaleJobsForPaths(nextAdjacentPaths)
-        Timber.d("ImageLoadingManager.displayImage: Cancelled $cancelledCount stale preload job(s), kept ${imagePreloadHelper.preloadJobCount} still-useful")
-        
+
         // Ensure any pending loading indicator from previous request is cancelled immediately
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
         if (!callback.isDestroyed()) {
             binding.progressBar.isVisible = false
         }
-        
+
         // Skip if activity is being destroyed
         if (callback.isFinishing() || callback.isDestroyed()) {
-            Timber.d("ImageLoadingManager.displayImage: Activity is finishing/destroyed, skipping image display")
             return
         }
-        
+
         callback.releasePlayer()
         animatedImageController.prepareForNewContent()
         binding.playerView.isVisible = false
-        
-        // Do NOT clear the dynamic background here. Clearing synchronously at the
-        // start of a transition produces a visible "draw -> erase -> draw" flash:
-        // old strips disappear immediately, then the screen has no strips while
-        // Glide decodes the new image and DynamicBackgroundProcessor builds the new
-        // bitmap on Dispatchers.Default. Keep the previous strips on screen and let
-        // applyBackground() swap them atomically when the new bitmap is ready.
-        // Hard clears for video/audio transitions and cleanup remain in
-        // clearForVideoTransition() / cleanup().
-        
+
+        // Do NOT clear the dynamic background here. Clearing synchronously at the start of a transition produces a visible "draw -> erase -> draw" flash: old strips disappear immediately, then the screen has no strips while Glide decodes the new image and DynamicBackgroundProcessor builds the new bitmap on Dispatchers.Default. Keep the previous strips on screen and let applyBackground() swap them atomically when the new bitmap is ready. Hard clears for video/audio transitions and cleanup remain in clearForVideoTransition() / cleanup().
+
         // Hide audio-related views (including any active empty-state animation)
-        Timber.d("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
         audioCoverArtLoader.hideEmptyState()
         binding.audioCoverArtView.isVisible = false
         safeViews.audioTouchZonesOverlay.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.pdfControlsLayout.isVisible = false
         safeViews.textViewerContainer.isVisible = false
-        
+
         // Hide text action buttons (they are for TXT files only)
         binding.btnCopyTextCmd.isVisible = false
         binding.btnEditTextCmd.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
-        
+
         // Hide PDF action buttons (they are for PDF files only)
         binding.btnGoogleLensPdfCmd.isVisible = false
         binding.btnOcrPdfCmd.isVisible = false
         binding.btnTranslatePdfCmd.isVisible = false
         binding.btnSearchPdfCmd.isVisible = false
-        
+
         // Hide EPUB action buttons (they are for EPUB files only)
         binding.btnSearchEpubCmd.isVisible = false
         binding.btnTranslateEpubCmd.isVisible = false
-        
+
         // Hide EPUB WebView and controls (they are for EPUB files only)
         binding.epubWebView.isVisible = false
         safeViews.epubControlsLayout.isVisible = false
@@ -532,22 +460,12 @@ class ImageLoadingManager(
             currentIsAnimatedContent = isAnimatedContent
             callback.setAnimatedBadgeVisible(isAnimatedContent)
             val usePhotoView = isAnimatedContent || (settings.loadFullSizeImages && currentFile != null && !isSlideshowActive)
-            
-            Timber.d("ImageLoadingManager.displayImage: enableTranslation=${settings.enableTranslation}")
-            Timber.d("TOUCH_DEBUG: ImageLoadingManager.displayImage - usePhotoView=$usePhotoView, loadFullSizeImages=${settings.loadFullSizeImages}")
-            
+
             // Switch visibility between ImageView and PhotoView
             binding.imageView.isVisible = !usePhotoView
                 binding.photoDualSurfaceContainer?.isVisible = usePhotoView
             binding.photoView.isVisible = usePhotoView
             binding.photoViewSurfaceB?.isVisible = false
-            Timber.d(
-                "TOUCH_DEBUG: View visibility set - imageView.isVisible=${binding.imageView.isVisible}, " +
-                    "photoDualSurfaceContainer.isVisible=${binding.photoDualSurfaceContainer?.isVisible == true}, " +
-                    "photoView.isVisible=${binding.photoView.isVisible}, " +
-                    "photoViewSurfaceB.isVisible=${binding.photoViewSurfaceB?.isVisible == true}"
-            )
-            
             // Configure PhotoView gestures based on loadFullSizeImages setting
             if (usePhotoView) {
                 binding.photoView.apply {
@@ -557,15 +475,7 @@ class ImageLoadingManager(
                         minimumScale = 1.0f  // Original size
                         mediumScale = 2.0f   // Not used (we override tap gestures)
                         maximumScale = 5.0f  // Maximum zoom
-                        
-                        Timber.d("GESTURE_CONFIG: PhotoView configured for CUSTOM GESTURES mode")
-                        Timber.d("GESTURE_CONFIG: - Zoom: ENABLED (min=1.0x, max=5.0x)")
-                        Timber.d("GESTURE_CONFIG: - Double-tap: Command Panel=2x (REG-3100), Fullscreen=3x")
-                        Timber.d("GESTURE_CONFIG: - Long press: Command Panel=2x, Fullscreen=3x")
-                        Timber.d("GESTURE_CONFIG: - Rotation: ENABLED (two-finger rotate)")
-                        Timber.d("GESTURE_CONFIG: - Pan: ENABLED (after zoom)")
-                        Timber.d("GESTURE_CONFIG: - Pinch zoom: ENABLED (gradual zoom)")
-                        
+
                         // NOTE: OnDoubleTapListener is set once in setupGestureDetector()
                         // Do NOT reset it here - it handles touch zones + custom zoom logic
                     } else {
@@ -574,29 +484,17 @@ class ImageLoadingManager(
                         minimumScale = 1.0f
                         mediumScale = 1.0f  // Disable zoom on double-tap
                         maximumScale = 1.0f // Disable pinch zoom
-                        
-                        Timber.d("GESTURE_CONFIG: PhotoView configured for ROTATION-ONLY mode")
-                        Timber.d("GESTURE_CONFIG: - Zoom: DISABLED (all scales locked to 1.0x)")
-                        Timber.d("GESTURE_CONFIG: - Rotation: ENABLED (two-finger rotate)")
-                        Timber.d("GESTURE_CONFIG: - Pan: DISABLED (no zoom = no pan)")
-                        Timber.d("GESTURE_CONFIG: - Double-tap: DISABLED (mediumScale = 1.0x)")
+
                     }
-                    
+
                     // Add matrix change listener for debug logging
                     setOnMatrixChangeListener { rect ->
                         val currentScale = scale
                         val currentRotation = rotation
-                        Timber.d("GESTURE_DEBUG: Matrix changed - scale=${"%.2f".format(currentScale)}x, rotation=${"%.1f".format(currentRotation)}°")
-                        Timber.d("GESTURE_DEBUG: Display rect: $rect")
                     }
-                    
-                    // Scale change listener: detect real user zoom gestures.
-                    // isPhotoViewImageLoaded guards against load-time auto-scale events
-                    // fired by PhotoView when the image first arrives from Glide.
-                    // scaleFactor is the per-frame delta (1.0 = no change); a meaningful
-                    // pinch gesture produces values well outside a tiny rounding band.
+
+                    // Scale change listener: detect real user zoom gestures. isPhotoViewImageLoaded guards against load-time auto-scale events fired by PhotoView when the image first arrives from Glide. scaleFactor is the per-frame delta (1.0 = no change); a meaningful pinch gesture produces values well outside a tiny rounding band.
                     setOnScaleChangeListener { scaleFactor, focusX, focusY ->
-                        Timber.d("GESTURE_DEBUG: Scale change - factor=${"%.2f".format(scaleFactor)}, focus=(${"%.0f".format(focusX)}, ${"%.0f".format(focusY)})")
                         if (isPhotoViewImageLoaded && kotlin.math.abs(scaleFactor - 1.0f) > 0.02f) {
                             // Real user pinch-zoom - notify overlay manager
                             onZoomInteraction?.invoke()
@@ -604,34 +502,32 @@ class ImageLoadingManager(
                     }
                 }
             }
-            
-            // NOTE: Button visibility (btnTranslateImageCmd, btnOcrImageCmd, etc.) is now managed 
+
+            // NOTE: Button visibility (btnTranslateImageCmd, btnOcrImageCmd, etc.) is now managed
             // by CommandPanelController.updateCommandAvailability() to ensure proper landscape/portrait handling
-            
+
             // Hide deprecated overlay buttons (moved to command panel)
             safeViews.btnTranslateImage.isVisible = false
             safeViews.btnGoogleLensImage.isVisible = false
             safeViews.btnOcrImage.isVisible = false
-            
-            Timber.d("ImageLoadingManager.displayImage: btnTranslateImage.isVisible=${safeViews.btnTranslateImage.isVisible}, btnTranslateImage.visibility=${safeViews.btnTranslateImage.visibility}")
-            
+
             // ALWAYS hide View-based touch zone overlays
             // TouchZoneGestureManager handles ALL touch detection via gesture listeners
             // - Command panel mode: 3-zone via handleCommandPanelTouchZones()
             // - Fullscreen mode: 9-zone via handleTouchZone()
             safeViews.touchZonesOverlay.isVisible = false
             safeViews.touchZones3Overlay.isVisible = false
-            
+
             // Determine target view for image loading
             val targetView = if (usePhotoView) binding.photoView else binding.imageView
-            
+
             // Determine scale type based on crop setting and orientation match
             val isFullscreenOrSlideshow = !callback.isShowingCommandPanel() || isSlideshowActive
             // Get device dimensions (API 28+ compatible)
             val (deviceWidth, deviceHeight) = WindowMetricsCompat.getScreenSize(
                 callback.getWindowManager()
             )
-            
+
             // Store context for scale type determination in onResourceReady
             val isCropEditMode = callback.isImageCropEditMode()
             currentCropSetting = settings.cropImagesToFullscreen && !isCropEditMode
@@ -649,11 +545,11 @@ class ImageLoadingManager(
                 android.widget.ImageView.ScaleType.FIT_CENTER
             }
             targetView.scaleType = initialScaleType
-            
+
             // NOTE: Touch listeners are NOT set here anymore - they are configured once
             // in PlayerActivity.setupTouchZones() and must NOT be overwritten.
             // The imageTouchGestureDetector in PlayerActivity handles 9-zone touch detection.
-            
+
             // Determine actual resource type from path prefix (for Favorites with mixed sources)
             val actualResourceType = when {
                 path.startsWith("cloud://") -> ResourceType.CLOUD
@@ -662,13 +558,13 @@ class ImageLoadingManager(
                 path.startsWith("ftp://") -> ResourceType.FTP
                 else -> resource?.type ?: ResourceType.LOCAL
             }
-            
+
             // Check if this is a cloud resource
             // During slideshow, always limit size to prevent OOM
             val effectiveLoadFullSize = settings.loadFullSizeImages && !isSlideshowActive
             if (currentFile != null && actualResourceType == ResourceType.CLOUD) {
                 loadCloudImage(path, currentFile, targetView, effectiveLoadFullSize, isSlideshowActive)
-            } else if (currentFile != null && 
+            } else if (currentFile != null &&
                 (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP)) {
                 loadNetworkImage(path, currentFile, resource, targetView, effectiveLoadFullSize, isSlideshowActive)
             } else {
@@ -678,11 +574,11 @@ class ImageLoadingManager(
             // Start prefetching adjacent images immediately (don't wait for current image to load).
             // This ensures next image is ready by the time slideshow interval expires.
             preloadNextImageIfNeeded()
-            
+
             callback.updateSlideShow()
         }
     }
-    
+
     private suspend fun loadCloudImage(
         path: String,
         currentFile: MediaFile,
@@ -697,10 +593,8 @@ class ImageLoadingManager(
             path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
             else -> CloudProvider.GOOGLE_DRIVE // default fallback
         }
-        
-        // Extract file ID from cloud path
-        // For Google Drive/OneDrive: cloud://google_drive/FILE_ID -> FILE_ID
-        // For Dropbox: cloud:/dropbox/folder/file.jpg -> /folder/file.jpg
+
+        // Extract file ID from cloud path For Google Drive/OneDrive: cloud://google_drive/FILE_ID -> FILE_ID For Dropbox: cloud:/dropbox/folder/file.jpg -> /folder/file.jpg
         val fileId = when (provider) {
             CloudProvider.DROPBOX -> {
                 // Dropbox needs full path starting with /
@@ -713,10 +607,7 @@ class ImageLoadingManager(
                 path.substringAfterLast("/")
             }
         }
-        
-        Timber.d("ImageLoadingManager: Loading cloud image - fileId = $fileId, path = $path, provider = $provider")
-        Timber.d("ImageLoadingManager: loadFullSizeImages = $loadFullSize")
-        
+
         // Always load full image in player (never thumbnail)
         // Resolution limiting is done via Glide's override() if needed
         val thumbnailData = CloudThumbnailData(
@@ -729,7 +620,6 @@ class ImageLoadingManager(
         val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
 
         if (isGif) {
-            Timber.d("ImageLoadingManager: Loading GIF via explicit asGif() pipeline")
 
             val gifRequest = Glide.with(binding.root.context)
                 .asGif()
@@ -749,38 +639,33 @@ class ImageLoadingManager(
                 .into(targetView)
             return
         }
-        
-        Timber.d("ImageLoadingManager: Created CloudThumbnailData with provider=$provider, loadFullImage=true")
-        
+
         val glideRequest = Glide.with(binding.root.context)
             .load(thumbnailData)
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded image, not source stream
             .priority(Priority.IMMEDIATE)
-        
+
         // Apply memory-aware optimizations for LOW tier devices
         val optimizedRequest = glideRequest
             .format(decodeFormatResolver.decodeFormat())
             .let { request ->
                 if (memoryTier == MemoryTier.LOW) {
-                    Timber.d("ImageLoadingManager: Applying LOW tier animation safeguards and reduced resolution")
                     request.dontAnimate()
                 } else {
                     request
                 }
             }
-        
+
         // Apply size limit if loadFullSizeImages is false (limit to 1920px max dimension)
         // For LOW tier, always limit size regardless of loadFullSize setting
         val finalRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
             val maxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-            Timber.d("ImageLoadingManager: Loading cloud image with size limit: ${maxDimension}px max dimension")
             optimizedRequest.override(maxDimension, maxDimension)
         } else {
             // Load original size for zooming
-            Timber.d("ImageLoadingManager: Loading cloud image at original size (no limit)")
             optimizedRequest
         }
-        
+
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
         val cloudTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
                               else DrawableTransitionOptions.withCrossFade(150)
@@ -808,7 +693,7 @@ class ImageLoadingManager(
                 .into(targetView)
         }
     }
-    
+
     private suspend fun loadNetworkImage(
         path: String,
         currentFile: MediaFile,
@@ -818,11 +703,11 @@ class ImageLoadingManager(
         isSlideshowActive: Boolean = false
     ) {
         // Network image loading
-        
+
         // Use NetworkFileData for Glide to load via NetworkFileModelLoader
         val networkData = NetworkFileData(
-            path = path, 
-            credentialsId = resource?.credentialsId, 
+            path = path,
+            credentialsId = resource?.credentialsId,
             loadFullImage = true,
             highPriority = true,
             size = currentFile.size,
@@ -833,7 +718,6 @@ class ImageLoadingManager(
         val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
 
         if (isGif) {
-            Timber.d("ImageLoadingManager: Loading network GIF via explicit asGif() pipeline")
 
             val gifRequest = Glide.with(binding.root.context)
                 .asGif()
@@ -860,24 +744,23 @@ class ImageLoadingManager(
                 .into(targetView)
             return
         }
-        
+
         val glideRequest = Glide.with(binding.root.context)
             .load(networkData)
             .signature(ObjectKey(cacheKey))
             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
-        
+
         // Apply memory-aware optimizations for LOW tier devices
         val optimizedRequest = glideRequest
             .format(decodeFormatResolver.decodeFormat())
             .let { request ->
                 if (memoryTier == MemoryTier.LOW) {
-                    Timber.d("ImageLoadingManager: Applying LOW tier animation safeguards")
                     request.dontAnimate()
                 } else {
                     request
                 }
             }
-        
+
         // Apply size limit if loadFullSizeImages is false
         // For LOW tier, always limit size regardless of loadFullSize setting
         val finalRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
@@ -891,14 +774,12 @@ class ImageLoadingManager(
             } else {
                 Pair(screenWidth, screenHeight)
             }
-            Timber.d("ImageLoadingManager: Loading image with size limit: ${targetWidth}x${targetHeight}")
             optimizedRequest.override(targetWidth, targetHeight)
         } else {
             // Load original size for zooming
-            Timber.d("ImageLoadingManager: Loading image at original size (no limit)")
             optimizedRequest
         }
-        
+
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
         val networkTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
                                 else DrawableTransitionOptions.withCrossFade(150)
@@ -907,7 +788,7 @@ class ImageLoadingManager(
             .listener(createGlideListener())
             .into(targetView)
     }
-    
+
     private suspend fun loadLocalImage(
         path: String,
         currentFile: MediaFile?,
@@ -916,7 +797,7 @@ class ImageLoadingManager(
         isSlideshowActive: Boolean = false
     ) {
         // Local file - support both file:// paths and content:// URIs
-        
+
         // Check file existence before loading
         val fileExists = if (path.startsWith("content://")) {
             try {
@@ -930,7 +811,7 @@ class ImageLoadingManager(
         } else {
             File(path).exists()
         }
-        
+
         if (!fileExists) {
             Timber.w("ImageLoadingManager: File does not exist, showing error: $path")
             loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
@@ -940,7 +821,7 @@ class ImageLoadingManager(
             }
             return
         }
-        
+
         val data: Any = if (path.startsWith("content://")) {
             Uri.parse(path)
         } else if (!File(path).canRead() && !currentFile?.contentUri.isNullOrEmpty()) {
@@ -953,7 +834,6 @@ class ImageLoadingManager(
         val isGif = currentFile?.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
 
         if (isGif) {
-            Timber.d("ImageLoadingManager: Loading local GIF via explicit asGif() pipeline")
 
             val gifRequest = Glide.with(binding.root.context)
                 .asGif()
@@ -980,24 +860,23 @@ class ImageLoadingManager(
                 .into(targetView)
             return
         }
-        
+
         val glideRequest = Glide.with(binding.root.context)
             .load(data)
             .signature(ObjectKey(cacheKey))
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-        
+
         // Apply memory-aware optimizations for LOW tier devices
         val optimizedRequest = glideRequest
             .format(decodeFormatResolver.decodeFormat())
             .let { request ->
                 if (memoryTier == MemoryTier.LOW) {
-                    Timber.d("ImageLoadingManager: Applying LOW tier animation safeguards")
                     request.dontAnimate()
                 } else {
                     request
                 }
             }
-        
+
         // Apply size limit if loadFullSizeImages is false
         // For LOW tier, always limit size regardless of loadFullSize setting
         val finalRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
@@ -1011,14 +890,12 @@ class ImageLoadingManager(
             } else {
                 Pair(screenWidth, screenHeight)
             }
-            Timber.d("ImageLoadingManager: Loading local image with size limit: ${targetWidth}x${targetHeight}")
             optimizedRequest.override(targetWidth, targetHeight)
         } else {
             // Load original size for zooming
-            Timber.d("ImageLoadingManager: Loading local image at original size (no limit)")
             optimizedRequest
         }
-        
+
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
         val localTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
                               else DrawableTransitionOptions.withCrossFade(150)
@@ -1027,186 +904,33 @@ class ImageLoadingManager(
             .listener(createGlideListener())
             .into(targetView)
     }
-    
-    private fun createGlideListener(): RequestListener<Drawable> {
-        return object : RequestListener<Drawable> {
-            override fun onLoadFailed(
-                e: GlideException?,
-                model: Any?,
-                target: Target<Drawable>,
-                isFirstResource: Boolean
-            ): Boolean {
-                Timber.e(e, "ImageLoadingManager.GlideListener: onLoadFailed triggered")
-                animatedImageController.onLoadFailed()
-                currentIsAnimatedContent = false
-                callback.setAnimatedBadgeVisible(false)
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-                if (!callback.isDestroyed()) {
-                    binding.progressBar.isVisible = false
-                }
 
-                if (isNonCriticalNetworkImageError(e)) {
-                    Timber.d("ImageLoadingManager: Suppressed non-critical network image error")
-                    return false
-                }
-                
-                // Check if this is a race condition error from fast scrolling
-                val isRaceConditionError = e?.rootCauses?.any { cause ->
-                    val msg = cause.message ?: ""
-                    msg.contains("memory mapping") ||
-                    msg.contains("setDataSource failed") ||
-                    msg.contains("cancelled")
-                } == true
-                
-                if (isRaceConditionError) {
-                    Timber.w("ImageLoadingManager: Race condition error during fast scrolling")
-                    if (!callback.isDestroyed()) {
-                        callback.showToast(binding.root.context.getString(R.string.image_scroll_too_fast))
-                    }
-                } else {
-                    Timber.e(e, "ImageLoadingManager: Failed to load image")
-                    if (!callback.isDestroyed()) {
-                        callback.showError(binding.root.context.getString(R.string.error_image_load_failed), e)
-                    }
-                }
-                return false
-            }
-            
-            override fun onResourceReady(
-                resource: Drawable,
-                model: Any,
-                target: Target<Drawable>?,
-                dataSource: DataSource,
-                isFirstResource: Boolean
-            ): Boolean {
-                Timber.d("ImageLoadingManager.GlideListener: onResourceReady triggered")
-                animatedImageController.onDrawableLoaded(resource, currentTargetView)
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-                // Mark image as fully loaded so PhotoView scale events are now user-driven
-                isPhotoViewImageLoaded = true
-                if (!callback.isDestroyed()) {
-                    binding.progressBar.isVisible = false
-                    
-                    // Apply proper scale type based on orientation matching
-                    currentTargetView?.let { view ->
-                        val imageWidth = resource.intrinsicWidth
-                        val imageHeight = resource.intrinsicHeight
-                        
-                        if (imageWidth > 0 && imageHeight > 0) {
-                            val scaleType = ImageDisplayUtils.determineImageScaleType(
-                                cropImagesToFullscreen = currentCropSetting,
-                                isFullscreenOrSlideshow = currentIsFullscreenOrSlideshow,
-                                imageWidth = imageWidth,
-                                imageHeight = imageHeight,
-                                deviceWidth = currentDeviceWidth,
-                                deviceHeight = currentDeviceHeight
-                            )
-                            view.scaleType = scaleType
-                            Timber.d("ImageLoadingManager: Applied scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${currentDeviceWidth}x${currentDeviceHeight})")
-                        }
-                    }
-                    
-                    // Log memory state AFTER successful image load
-                    logMemoryStats("AFTER onResourceReady")
-
-                    // S0107: expose loaded bitmap for draw overlay merge
-                    val loadedBitmap = (resource as? android.graphics.drawable.BitmapDrawable)?.bitmap
-                    callback.onStaticImageLoaded(loadedBitmap)
-                    callback.onImageContentLoaded()
-
-                    // Trigger dynamic background extension if enabled.
-                    // Guard with isInImageDisplayMode: a stale Glide request that completes
-                    // after the user has navigated to video would otherwise re-show the
-                    // previous image's blurred background over the video pillarbox areas.
-                    if (isDynamicBackgroundEnabled && isInImageDisplayMode) {
-                        // Use the ImageView's actual laid-out dimensions, not the full screen size.
-                        // The ImageView may be smaller than the screen when the command panel is
-                        // visible, so using screen dimensions would produce wrong imgLeft/imgTop
-                        // offsets and draw bars in the wrong positions.
-                        val targetView = currentTargetView
-                        val viewW = targetView?.width?.takeIf { it > 0 } ?: currentDeviceWidth
-                        val viewH = targetView?.height?.takeIf { it > 0 } ?: currentDeviceHeight
-                        Timber.d("DynamicBg: triggering process view=${viewW}x${viewH} screen=${currentDeviceWidth}x${currentDeviceHeight}")
-                        dynamicBackgroundProcessor?.process(
-                            drawable = resource,
-                            screenWidth = viewW,
-                            screenHeight = viewH
-                        )
-                    }
-                }
-                return false
-            }
-        }
+    private val glideListeners by lazy {
+        ImageLoadingGlideListeners(
+            binding = binding,
+            callback = callback,
+            animatedImageController = animatedImageController,
+            loadingIndicatorHandler = loadingIndicatorHandler,
+            showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
+            hideLoadingSafetyRunnable = hideLoadingSafetyRunnable,
+            getCurrentTargetView = { currentTargetView },
+            getCurrentCropSetting = { currentCropSetting },
+            getCurrentIsFullscreenOrSlideshow = { currentIsFullscreenOrSlideshow },
+            getCurrentDeviceWidth = { currentDeviceWidth },
+            getCurrentDeviceHeight = { currentDeviceHeight },
+            getIsDynamicBackgroundEnabled = { isDynamicBackgroundEnabled },
+            getIsInImageDisplayMode = { isInImageDisplayMode },
+            getDynamicBackgroundProcessor = { dynamicBackgroundProcessor },
+            setCurrentIsAnimatedContent = { currentIsAnimatedContent = it },
+            setPhotoViewImageLoaded = { isPhotoViewImageLoaded = it },
+            logMemoryStats = ::logMemoryStats,
+        )
     }
 
-    private fun createGifGlideListener(): RequestListener<com.bumptech.glide.load.resource.gif.GifDrawable> {
-        return object : RequestListener<com.bumptech.glide.load.resource.gif.GifDrawable> {
-            override fun onLoadFailed(
-                e: GlideException?,
-                model: Any?,
-                target: Target<com.bumptech.glide.load.resource.gif.GifDrawable>,
-                isFirstResource: Boolean
-            ): Boolean {
-                Timber.e(e, "ImageLoadingManager.GifListener: onLoadFailed triggered")
-                animatedImageController.onLoadFailed()
-                currentIsAnimatedContent = false
-                callback.setAnimatedBadgeVisible(false)
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-                if (!callback.isDestroyed()) {
-                    binding.progressBar.isVisible = false
-                    if (isNonCriticalNetworkImageError(e)) {
-                        Timber.d("ImageLoadingManager: Suppressed non-critical network GIF error")
-                        return false
-                    }
-                    callback.showError(binding.root.context.getString(R.string.error_gif_load_failed), e)
-                }
-                return false
-            }
+    private fun createGlideListener(): RequestListener<Drawable> = glideListeners.createDrawableListener()
 
-            override fun onResourceReady(
-                resource: com.bumptech.glide.load.resource.gif.GifDrawable,
-                model: Any,
-                target: Target<com.bumptech.glide.load.resource.gif.GifDrawable>?,
-                dataSource: DataSource,
-                isFirstResource: Boolean
-            ): Boolean {
-                Timber.d("ImageLoadingManager.GifListener: onResourceReady triggered")
-                animatedImageController.onDrawableLoaded(resource, currentTargetView)
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-                // Mark image as fully loaded so PhotoView scale events are now user-driven
-                isPhotoViewImageLoaded = true
-                if (!callback.isDestroyed()) {
-                    binding.progressBar.isVisible = false
-
-                    currentTargetView?.let { view ->
-                        val imageWidth = resource.intrinsicWidth
-                        val imageHeight = resource.intrinsicHeight
-
-                        if (imageWidth > 0 && imageHeight > 0) {
-                            val scaleType = ImageDisplayUtils.determineImageScaleType(
-                                cropImagesToFullscreen = currentCropSetting,
-                                isFullscreenOrSlideshow = currentIsFullscreenOrSlideshow,
-                                imageWidth = imageWidth,
-                                imageHeight = imageHeight,
-                                deviceWidth = currentDeviceWidth,
-                                deviceHeight = currentDeviceHeight
-                            )
-                            view.scaleType = scaleType
-                            Timber.d("ImageLoadingManager: Applied GIF scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${currentDeviceWidth}x${currentDeviceHeight})")
-                        }
-                    }
-
-                    logMemoryStats("AFTER GIF onResourceReady")
-                    callback.onImageContentLoaded()
-                }
-                return false
-            }
-        }
-    }
+    private fun createGifGlideListener(): RequestListener<com.bumptech.glide.load.resource.gif.GifDrawable> =
+        glideListeners.createGifListener()
 
     private fun isNonCriticalNetworkImageError(exception: GlideException?): Boolean =
         ImageLoadingDiagnostics.isNonCriticalNetworkImageError(exception)
@@ -1230,53 +954,45 @@ class ImageLoadingManager(
                     if (!settings.enableTranslation) binding.btnTranslateImageCmd.isVisible = false
                     if (!settings.enableGoogleLens) binding.btnGoogleLensImageCmd.isVisible = false
                     if (!settings.enableOcr) binding.btnOcrImageCmd.isVisible = false
-                    
+
                     // Hide deprecated overlay buttons
                     safeViews.btnTranslateImage.isVisible = false
                     safeViews.btnGoogleLensImage.isVisible = false
                     safeViews.btnOcrImage.isVisible = false
-                    
-                    Timber.d("ImageLoadingManager: Force updated button visibility. Lens=${settings.enableGoogleLens}, OCR=${settings.enableOcr}")
+
                 }
             }
         }
     }
-    
-    /**
-     * Clear Glide memory cache to free up RAM.
-     * Should be called periodically during slideshow to prevent OOM.
-     * Every 100 clears, triggers System.gc() for aggressive memory reclamation.
-     */
+
+    /** Clear Glide memory cache to free up RAM. Should be called periodically during slideshow to prevent OOM. Every 100 clears, triggers System.gc() for aggressive memory reclamation. */
     /**
      * Logs current memory usage and Glide cache statistics for debugging memory leaks.
      * Call this before/after image loading to track memory consumption patterns.
-     * 
+     *
      * @param context Contextual description for the log entry (e.g., "BEFORE displayImage", "AFTER onResourceReady")
      */
     private fun logMemoryStats(context: String) =
         ImageLoadingDiagnostics.logMemoryStats(context, imagePreloadHelper.preloadJobCount)
-    
+
     fun clearMemoryCache() {
         try {
             Glide.get(binding.root.context).clearMemory()
-            
+
             // Increment global counter and trigger GC every 100 clears
             cacheClears++
             if (cacheClears >= 100) {
                 Timber.w("ImageLoadingManager: Memory cache cleared 100 times, triggering System.gc()")
                 System.gc()
                 cacheClears = 0
-            } else {
-                Timber.d("ImageLoadingManager: Memory cache cleared (count: $cacheClears/100)")
             }
         } catch (e: Exception) {
             Timber.w(e, "ImageLoadingManager: Failed to clear memory cache")
         }
     }
-    
+
     companion object {
-        // Global counter for cache clears across all instances
-        // System.gc() is called every 100 clears to aggressively reclaim memory
+        // Global counter for cache clears; System.gc() every 100 clears reclaims memory aggressively.
         private var cacheClears = 0
     }
 }

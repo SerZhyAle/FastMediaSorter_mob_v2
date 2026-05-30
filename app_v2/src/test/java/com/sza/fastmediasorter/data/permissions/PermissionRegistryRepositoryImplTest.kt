@@ -1,0 +1,55 @@
+package com.sza.fastmediasorter.data.permissions
+
+import com.sza.fastmediasorter.domain.model.PermissionGroup
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+/**
+ * Unit tests for [PermissionRegistryRepositoryImpl]: SDK-range filtering (minSdk/maxSdk) of the
+ * static entry list and group derivation. Robolectric pins Build.VERSION.SDK_INT so the SDK gates
+ * are deterministic; flavor gates resolve against the test variant's BuildConfig.
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33])
+class PermissionRegistryRepositoryImplTest {
+
+    private val repo = PermissionRegistryRepositoryImpl()
+
+    @Test
+    fun `getEntries excludes entries below or above the SDK window on API 33`() {
+        val ids = repo.getEntries().map { it.id }.toSet()
+        // READ_EXTERNAL_STORAGE has maxSdk=32 → excluded on 33.
+        assertFalse("read_external_storage" in ids)
+        // READ_MEDIA_* require minSdk=33 → included on 33.
+        assertTrue("read_media_images" in ids)
+        assertTrue("read_media_video" in ids)
+        // access_local_network needs minSdk=37 → excluded on 33.
+        assertFalse("access_local_network" in ids)
+    }
+
+    @Test
+    fun `getEntries respects minSdk lower bound`() {
+        // manage_media needs minSdk=31 → present on 33.
+        assertTrue("manage_media" in repo.getEntries().map { it.id })
+    }
+
+    @Test
+    fun `getGroups returns only groups that have applicable entries`() {
+        val groups = repo.getGroups().map { it.group }.toSet()
+        val entryGroups = repo.getEntries().map { it.group }.toSet()
+        assertTrue(groups == entryGroups)
+        // STORAGE always has entries on API 33.
+        assertTrue(PermissionGroup.STORAGE in groups)
+    }
+
+    @Test
+    fun `getGroups preserves PermissionGroup declaration order`() {
+        val groups = repo.getGroups().map { it.group }
+        val declarationOrder = PermissionGroup.entries.filter { it in groups.toSet() }
+        assertTrue(groups == declarationOrder)
+    }
+}

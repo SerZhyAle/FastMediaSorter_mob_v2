@@ -13,7 +13,7 @@ object MediaGroupPalette {
     private const val DOCUMENT_MID: Int = 0xFF64B5F6.toInt()
     private const val DEFAULT: Int = 0xFF9E9E9E.toInt()
 
-    private val documentTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB)
+    private val documentTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
     private val imageTypes = setOf(MediaType.IMAGE, MediaType.GIF)
 
     fun colorForType(type: MediaType): Int {
@@ -25,6 +25,7 @@ object MediaGroupPalette {
             MediaType.TEXT -> DOCUMENT_LIGHT
             MediaType.PDF -> DOCUMENT_PRIMARY
             MediaType.EPUB -> DOCUMENT_MID
+            MediaType.OFFICE_DOCUMENT -> DOCUMENT_MID
             else -> DEFAULT
         }
     }

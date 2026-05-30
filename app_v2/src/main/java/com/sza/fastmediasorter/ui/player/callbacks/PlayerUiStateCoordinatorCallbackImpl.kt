@@ -98,6 +98,15 @@ class PlayerUiStateCoordinatorCallbackImpl(
         activity.epubViewerManager.displayEpub(file)
     }
 
+    override fun displayOfficeDocument(file: MediaFile) {
+        activity.stopVideoPlayback()
+        activity.safeViews.touchZonesOverlay.isVisible = false
+        activity.safeViews.touchZones3Overlay.isVisible = false
+        // S0301 Phase 02: route through the flavor-safe provider seam instead of the
+        // hardwired external-open call. Market flavors still delegate externally (S0299).
+        activity.shareManager.routeOfficeDocument(file)
+    }
+
     override fun adjustTouchZonesForVideo(isVideo: Boolean) =
         activity.adjustTouchZonesForVideo(isVideo)
 

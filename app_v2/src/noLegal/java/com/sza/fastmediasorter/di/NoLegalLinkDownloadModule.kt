@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.data.link.nolegal.ArtStationExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.DailymotionExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.DeviantArtExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.NewPipeSiteExtractionStrategy
+import com.sza.fastmediasorter.data.link.nolegal.TelegramExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.VimeoExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.YtDlpExtractionStrategy
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
@@ -42,4 +43,9 @@ abstract class NoLegalLinkDownloadModule {
     @Binds
     @IntoSet
     abstract fun bindDailymotion(impl: DailymotionExtractionStrategy): UrlExtractionStrategy
+
+    // S0303: lightweight public t.me post extractor (id "telegram"), ahead of "ytdlp" in CANONICAL_ORDER.
+    @Binds
+    @IntoSet
+    abstract fun bindTelegram(impl: TelegramExtractionStrategy): UrlExtractionStrategy
 }

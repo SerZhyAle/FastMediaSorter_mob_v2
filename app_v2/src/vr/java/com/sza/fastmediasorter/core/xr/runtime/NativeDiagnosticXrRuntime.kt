@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.xr.runtime
 
 import android.app.Activity
 import android.view.Surface
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import timber.log.Timber
@@ -35,6 +36,11 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override val isNativeAvailable: Boolean
 
+    // S0290 Phase 09: idempotent guard for shutdown() so onPause + onDestroy + render-thread
+    // finally-block can all call shutdown() without firing redundant nativeShutdown JNI calls.
+    // Reset to false on initSession() so a fresh session re-arms the flag.
+    private val _shutdownCalled = AtomicBoolean(false)
+
     init {
         isNativeAvailable = try {
             System.loadLibrary(NATIVE_LIBRARY_NAME)
@@ -58,6 +64,26 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override suspend fun initSession(activity: Activity): DiagnosticXrNativeResult {
         if (!isNativeAvailable) return DiagnosticXrNativeResult.LoaderUnavailable
+        val initialized = runCatching { nativeIsInitialized() }.getOrElse {
+            Timber.w(it, "initSession: native initialized-state probe threw")
+            false
+        }
+        if (initialized) {
+            val running = runCatching { nativeIsRunning() }.getOrElse {
+                Timber.w(it, "initSession: native running-state probe threw")
+                true
+            }
+            if (running) {
+                Timber.w("NativeDiagnosticXrRuntime: session is still running; rejecting concurrent init")
+                return DiagnosticXrNativeResult.AlreadyRunning
+            }
+            Timber.w("NativeDiagnosticXrRuntime: stale native state detected; forcing shutdown before init")
+            runCatching { nativeShutdown() }.onFailure {
+                Timber.w(it, "initSession: stale native shutdown threw")
+            }
+        }
+        // Re-arm idempotent shutdown flag after stale cleanup, for the new session lifetime.
+        _shutdownCalled.set(false)
         // Intentionally NO Dispatchers hop - see class KDoc threading contract.
         val ordinal = runCatching { nativeInitSession(activity) }.getOrElse {
             Timber.e(it, "initSession: native call threw")
@@ -111,6 +137,11 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override fun shutdown() {
         if (!isNativeAvailable) return
+        // S0290 Phase 09: idempotent - first caller wins, subsequent calls no-op.
+        if (!_shutdownCalled.compareAndSet(false, true)) {
+            Timber.d("NativeDiagnosticXrRuntime: shutdown already called for this session, ignoring")
+            return
+        }
         runCatching { nativeShutdown() }.onFailure {
             Timber.w(it, "shutdown: native call threw")
         }
@@ -193,6 +224,7 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
     private external fun nativeRequestExit()
     private external fun nativeShutdown()
     private external fun nativeIsRunning(): Boolean
+    private external fun nativeIsInitialized(): Boolean
 
     private companion object {
         const val NATIVE_LIBRARY_NAME = "fms_diagnostic_xr"

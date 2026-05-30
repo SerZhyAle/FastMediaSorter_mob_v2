@@ -19,7 +19,15 @@ End-to-end on-device verification of a spec: build → install → run UI scenar
 /spec-test-device <Sxxxx-or-slug> --dry-run                                 # generate scenario only, no execution
 ```
 
-Hard requirement: the **mobile-mcp** server must be reachable. If `mcp__mobile-mcp__mobile_list_available_devices` is not available, abort with `mobile-mcp not configured - enable the MCP server first`.
+Hard requirement: the **mobile-mcp** server must be reachable. The project ships an `.mcp.json` that registers `@mobilenext/mobile-mcp@latest` via npx; if Node.js / npx is missing locally, abort with `mobile-mcp not configured - ensure .mcp.json is present and Node.js / npx are installed`.
+
+Before any other device interaction, run the pre-flight:
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package <pkg> [-DeviceId <id>] [-CheckMcp] -Json
+```
+
+`<pkg>` is `com.sza.fastmediasorter.debug` for debug variants, `com.sza.fastmediasorter` for release. Exit codes (1..6) are the abort signals - see `scripts/devtest/device-ready.ps1` header for the table.
 
 ## Status gate
 

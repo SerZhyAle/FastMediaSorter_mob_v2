@@ -50,6 +50,10 @@ class CommandPanelLayoutPlanner {
             R.string.big_btn_short_favorite),
         SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share,
             R.string.big_btn_short_share),
+        // S0303: Send to Telegram - overflow-only (no command-bar button), all media types,
+        // shown only when a Telegram client is installed.
+        SEND_TO_TELEGRAM(35, R.id.menu_send_to_telegram, false, R.string.share_to_telegram,
+            R.drawable.ic_share),
         INFO(40, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
             R.string.big_btn_short_info),
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen,
@@ -119,6 +123,12 @@ class CommandPanelLayoutPlanner {
         OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
             R.string.big_btn_short_ocr),
 
+        // OFFICE: overflow-only to avoid reusing text/PDF inline buttons with mismatched listeners.
+        TRANSLATE_OFFICE(392, R.id.menu_translate, false, R.string.translate,
+            R.drawable.ic_translate, R.string.big_btn_short_translate),
+        OCR_OFFICE(394, R.id.menu_ocr, false, R.string.ocr_button_description, R.drawable.ic_ocr,
+            R.string.big_btn_short_ocr),
+
         // IMAGE / GIF
         TRANSLATE_IMAGE(400, R.id.menu_translate, true, R.string.translate,
             R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
@@ -154,6 +164,8 @@ class CommandPanelLayoutPlanner {
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
+        OPEN_IN_VR(605, R.id.menu_open_in_vr, false,
+            R.string.player_vr_overflow_open, R.drawable.ic_vr_headset),
         // S0028: multi-window - overflow-only; shown only when VR+setting allows it
         OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, true,
             R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse),
@@ -189,7 +201,9 @@ class CommandPanelLayoutPlanner {
         isWifiConnected: Boolean,
         showFavorite: Boolean = true,
         showRandom: Boolean = false,
-        allowSeparateWindow: Boolean = false
+        allowSeparateWindow: Boolean = false,
+        allowVrLaunch: Boolean = false,
+        telegramInstalled: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -198,6 +212,9 @@ class CommandPanelLayoutPlanner {
         val isPdf = file.type == MediaType.PDF
         val isText = file.type == MediaType.TEXT
         val isEpub = file.type == MediaType.EPUB
+        // S0301 Phase 05: the embedded Office viewer is a read-only document surface. It gets the
+        // PDF/EPUB-style view + translate/OCR/print parity, but never an EDIT command.
+        val isOffice = file.type == MediaType.OFFICE_DOCUMENT
         val isReadOnly = state.resource?.isReadOnly == true
 
         return buildList {
@@ -205,8 +222,9 @@ class CommandPanelLayoutPlanner {
             if (canWrite && state.allowDelete) add(PlayerCommand.DELETE)
             if (showFavorite) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
+            if (telegramInstalled) add(PlayerCommand.SEND_TO_TELEGRAM)
             add(PlayerCommand.INFO)
-            if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub)) add(PlayerCommand.FULLSCREEN)
+            if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
 
             // ── Group 2 ──────────────────────────────────────────────────────────────
@@ -237,6 +255,9 @@ class CommandPanelLayoutPlanner {
             if (isEpub) add(PlayerCommand.EPUB_TEXT_SETTINGS)
             if (isEpub && state.enableOcr) add(PlayerCommand.OCR_EPUB)
 
+            if (isOffice && state.enableTranslation) add(PlayerCommand.TRANSLATE_OFFICE)
+            if (isOffice && state.enableOcr) add(PlayerCommand.OCR_OFFICE)
+
             if (isImage && state.enableTranslation) add(PlayerCommand.TRANSLATE_IMAGE)
             if (isImage) add(PlayerCommand.IMAGE_TEXT_SETTINGS)
             if (isImage && state.enableOcr) add(PlayerCommand.OCR_IMAGE)
@@ -255,7 +276,8 @@ class CommandPanelLayoutPlanner {
             if (isPdf) add(PlayerCommand.PDF_THUMBNAILS)
             if (isEpub) add(PlayerCommand.EPUB_READER_SETTINGS)
             if (isEpub) add(PlayerCommand.EPUB_SEARCH_ALL)
-            if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
+            if (isPdf || isText || isImage || isOffice) add(PlayerCommand.PRINT)
+            if (allowVrLaunch) add(PlayerCommand.OPEN_IN_VR)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
             // S0028: multi-window tear-off - VR+setting guard already applied by controller

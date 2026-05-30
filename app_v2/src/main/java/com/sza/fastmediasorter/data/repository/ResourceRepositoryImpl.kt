@@ -151,6 +151,8 @@ class ResourceRepositoryImpl @Inject constructor(
             if (MediaType.GIF in filterByMediaType) requiredFlags = requiredFlags or 0b1000
             if (MediaType.TEXT in filterByMediaType) requiredFlags = requiredFlags or 0b00010000
             if (MediaType.PDF in filterByMediaType) requiredFlags = requiredFlags or 0b00100000
+            if (MediaType.EPUB in filterByMediaType) requiredFlags = requiredFlags or 0b01000000
+            if (MediaType.OFFICE_DOCUMENT in filterByMediaType) requiredFlags = requiredFlags or 0b10000000
             
             // Resource matches if ANY of the selected media types are supported
             whereConditions.add("(supportedMediaTypesFlags & ?) > 0")
@@ -435,6 +437,7 @@ class ResourceRepositoryImpl @Inject constructor(
         if (supportedMediaTypesFlags and 0b00010000 != 0) mediaTypes.add(MediaType.TEXT)
         if (supportedMediaTypesFlags and 0b00100000 != 0) mediaTypes.add(MediaType.PDF)
         if (supportedMediaTypesFlags and 0b01000000 != 0) mediaTypes.add(MediaType.EPUB)
+        if (supportedMediaTypesFlags and 0b10000000 != 0) mediaTypes.add(MediaType.OFFICE_DOCUMENT)
         
         // Normalize path: replace backslashes with forward slashes for SMB paths
         val normalizedPath = if (type == ResourceType.SMB) {
@@ -500,6 +503,7 @@ class ResourceRepositoryImpl @Inject constructor(
         if (MediaType.TEXT in supportedMediaTypes) flags = flags or 0b00010000
         if (MediaType.PDF in supportedMediaTypes) flags = flags or 0b00100000
         if (MediaType.EPUB in supportedMediaTypes) flags = flags or 0b01000000
+        if (MediaType.OFFICE_DOCUMENT in supportedMediaTypes) flags = flags or 0b10000000
         
         return ResourceEntity(
             id = id,

@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -59,8 +60,11 @@ internal class AddResourceFormManager(
     fun applyFlavorRestrictions() {
         binding.cardCloudStorage.isVisible = BuildConfig.SUPPORT_CLOUD
         val showEpub = BuildConfig.ENABLE_EPUB
+        val showOfficeDocuments = supportsOfficeDocuments()
         binding.cbSmbSupportEpub.isVisible = showEpub
         binding.cbSftpSupportEpub.isVisible = showEpub
+        binding.cbSmbSupportOffice.isVisible = showOfficeDocuments
+        binding.cbSftpSupportOffice.isVisible = showOfficeDocuments
         binding.cbSmbSupportVideo.isVisible = BuildConfig.SUPPORT_VIDEO
         binding.cbSftpSupportVideo.isVisible = BuildConfig.SUPPORT_VIDEO
         binding.cbSmbSupportAudio.isVisible = BuildConfig.SUPPORT_AUDIO
@@ -87,12 +91,14 @@ internal class AddResourceFormManager(
         binding.cbSmbAllFiles.setOnCheckedChangeListener { _, isChecked ->
             updateMediaTypeCheckboxes(isChecked,
                 binding.cbSmbSupportImage, binding.cbSmbSupportVideo, binding.cbSmbSupportAudio,
-                binding.cbSmbSupportGif, binding.cbSmbSupportText, binding.cbSmbSupportPdf, binding.cbSmbSupportEpub)
+                binding.cbSmbSupportGif, binding.cbSmbSupportText, binding.cbSmbSupportPdf,
+                binding.cbSmbSupportEpub, binding.cbSmbSupportOffice)
         }
         binding.cbSftpAllFiles.setOnCheckedChangeListener { _, isChecked ->
             updateMediaTypeCheckboxes(isChecked,
                 binding.cbSftpSupportImage, binding.cbSftpSupportVideo, binding.cbSftpSupportAudio,
-                binding.cbSftpSupportGif, binding.cbSftpSupportText, binding.cbSftpSupportPdf, binding.cbSftpSupportEpub)
+                binding.cbSftpSupportGif, binding.cbSftpSupportText, binding.cbSftpSupportPdf,
+                binding.cbSftpSupportEpub, binding.cbSftpSupportOffice)
         }
     }
 
@@ -193,6 +199,7 @@ internal class AddResourceFormManager(
             binding.cbSmbSupportText.apply  { isChecked = MediaType.TEXT in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.TEXT in supportedTypes) }
             binding.cbSmbSupportPdf.apply   { isChecked = MediaType.PDF  in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.PDF  in supportedTypes) }
             binding.cbSmbSupportEpub.apply  { isChecked = MediaType.EPUB in supportedTypes; isEnabled = true; isVisible = BuildConfig.ENABLE_EPUB && (MediaType.EPUB in supportedTypes) }
+            binding.cbSmbSupportOffice.apply { isChecked = MediaType.OFFICE_DOCUMENT in supportedTypes; isEnabled = true; isVisible = supportsOfficeDocuments() && (MediaType.OFFICE_DOCUMENT in supportedTypes) }
         } else {
             binding.cbSftpSupportImage.apply { isChecked = MediaType.IMAGE in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_IMAGES && (MediaType.IMAGE in supportedTypes) }
             binding.cbSftpSupportVideo.apply { isChecked = MediaType.VIDEO in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_VIDEO && (MediaType.VIDEO in supportedTypes) }
@@ -201,6 +208,7 @@ internal class AddResourceFormManager(
             binding.cbSftpSupportText.apply  { isChecked = MediaType.TEXT in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.TEXT in supportedTypes) }
             binding.cbSftpSupportPdf.apply   { isChecked = MediaType.PDF  in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.PDF  in supportedTypes) }
             binding.cbSftpSupportEpub.apply  { isChecked = MediaType.EPUB in supportedTypes; isEnabled = true; isVisible = BuildConfig.ENABLE_EPUB && (MediaType.EPUB in supportedTypes) }
+            binding.cbSftpSupportOffice.apply { isChecked = MediaType.OFFICE_DOCUMENT in supportedTypes; isEnabled = true; isVisible = supportsOfficeDocuments() && (MediaType.OFFICE_DOCUMENT in supportedTypes) }
         }
     }
 
@@ -246,6 +254,7 @@ internal class AddResourceFormManager(
                 binding.cbSmbSupportImage.isChecked  = false; binding.cbSmbSupportVideo.isChecked = false
                 binding.cbSmbSupportGif.isChecked    = false; binding.cbSmbSupportText.isChecked  = false
                 binding.cbSmbSupportPdf.isChecked    = false; binding.cbSmbSupportEpub.isChecked  = false
+                binding.cbSmbSupportOffice.isChecked  = false
                 binding.cbSmbRememberFileList.isChecked = true
             }
             ResourceProfile.VIDEO_LIBRARY -> {
@@ -253,6 +262,7 @@ internal class AddResourceFormManager(
                 binding.cbSmbSupportAudio.isChecked  = false; binding.cbSmbSupportImage.isChecked = false
                 binding.cbSmbSupportGif.isChecked    = false; binding.cbSmbSupportText.isChecked  = false
                 binding.cbSmbSupportPdf.isChecked    = false; binding.cbSmbSupportEpub.isChecked  = false
+                binding.cbSmbSupportOffice.isChecked  = false
             }
             ResourceProfile.PHOTO_STORAGE -> {
                 binding.cbSmbSupportImage.isChecked  = binding.cbSmbSupportImage.isVisible
@@ -260,11 +270,13 @@ internal class AddResourceFormManager(
                 binding.cbSmbSupportVideo.isChecked  = false; binding.cbSmbSupportAudio.isChecked = false
                 binding.cbSmbSupportText.isChecked   = false; binding.cbSmbSupportPdf.isChecked   = false
                 binding.cbSmbSupportEpub.isChecked   = false
+                binding.cbSmbSupportOffice.isChecked  = false
             }
             ResourceProfile.DOCUMENTS -> {
                 binding.cbSmbSupportText.isChecked   = binding.cbSmbSupportText.isVisible
                 binding.cbSmbSupportPdf.isChecked    = binding.cbSmbSupportPdf.isVisible
                 binding.cbSmbSupportEpub.isChecked   = binding.cbSmbSupportEpub.isVisible
+                binding.cbSmbSupportOffice.isChecked  = binding.cbSmbSupportOffice.isVisible
                 binding.cbSmbSupportImage.isChecked  = false; binding.cbSmbSupportVideo.isChecked = false
                 binding.cbSmbSupportAudio.isChecked  = false; binding.cbSmbSupportGif.isChecked   = false
             }
@@ -281,6 +293,7 @@ internal class AddResourceFormManager(
                 binding.cbSftpSupportImage.isChecked  = false; binding.cbSftpSupportVideo.isChecked = false
                 binding.cbSftpSupportGif.isChecked    = false; binding.cbSftpSupportText.isChecked  = false
                 binding.cbSftpSupportPdf.isChecked    = false; binding.cbSftpSupportEpub.isChecked  = false
+                binding.cbSftpSupportOffice.isChecked  = false
                 binding.cbSftpRememberFileList.isChecked = true
             }
             ResourceProfile.VIDEO_LIBRARY -> {
@@ -288,6 +301,7 @@ internal class AddResourceFormManager(
                 binding.cbSftpSupportAudio.isChecked  = false; binding.cbSftpSupportImage.isChecked = false
                 binding.cbSftpSupportGif.isChecked    = false; binding.cbSftpSupportText.isChecked  = false
                 binding.cbSftpSupportPdf.isChecked    = false; binding.cbSftpSupportEpub.isChecked  = false
+                binding.cbSftpSupportOffice.isChecked  = false
             }
             ResourceProfile.PHOTO_STORAGE -> {
                 binding.cbSftpSupportImage.isChecked  = binding.cbSftpSupportImage.isVisible
@@ -295,11 +309,13 @@ internal class AddResourceFormManager(
                 binding.cbSftpSupportVideo.isChecked  = false; binding.cbSftpSupportAudio.isChecked = false
                 binding.cbSftpSupportText.isChecked   = false; binding.cbSftpSupportPdf.isChecked   = false
                 binding.cbSftpSupportEpub.isChecked   = false
+                binding.cbSftpSupportOffice.isChecked  = false
             }
             ResourceProfile.DOCUMENTS -> {
                 binding.cbSftpSupportText.isChecked   = binding.cbSftpSupportText.isVisible
                 binding.cbSftpSupportPdf.isChecked    = binding.cbSftpSupportPdf.isVisible
                 binding.cbSftpSupportEpub.isChecked   = binding.cbSftpSupportEpub.isVisible
+                binding.cbSftpSupportOffice.isChecked  = binding.cbSftpSupportOffice.isVisible
                 binding.cbSftpSupportImage.isChecked  = false; binding.cbSftpSupportVideo.isChecked = false
                 binding.cbSftpSupportAudio.isChecked  = false; binding.cbSftpSupportGif.isChecked   = false
             }
@@ -415,6 +431,7 @@ internal class AddResourceFormManager(
         if (binding.cbSmbSupportText.isChecked)  add(MediaType.TEXT)
         if (binding.cbSmbSupportPdf.isChecked)   add(MediaType.PDF)
         if (binding.cbSmbSupportEpub.isChecked)  add(MediaType.EPUB)
+        if (binding.cbSmbSupportOffice.isChecked) add(MediaType.OFFICE_DOCUMENT)
     }
 
     private fun getSftpSupportedTypes(): Set<MediaType> = buildSet {
@@ -425,5 +442,9 @@ internal class AddResourceFormManager(
         if (binding.cbSftpSupportText.isChecked)  add(MediaType.TEXT)
         if (binding.cbSftpSupportPdf.isChecked)   add(MediaType.PDF)
         if (binding.cbSftpSupportEpub.isChecked)  add(MediaType.EPUB)
+        if (binding.cbSftpSupportOffice.isChecked) add(MediaType.OFFICE_DOCUMENT)
     }
+
+    private fun supportsOfficeDocuments(): Boolean =
+        BuildConfig.SUPPORT_DOCUMENTS && MediaTypeUtils.OFFICE_DOCUMENT_EXTENSIONS.isNotEmpty()
 }

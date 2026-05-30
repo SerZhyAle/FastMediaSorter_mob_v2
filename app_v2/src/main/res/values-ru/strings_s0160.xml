@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- S0160: resource ops overflow toggle -->
-    <string name="resource_ops_in_overflow_menu">Операции с ресурсами в меню</string>
-    <string name="setting_resource_ops_in_overflow_menu_desc">Сворачивает инлайн-кнопки в меню «⋮» на каждой планке ресурса</string>
-    <string name="action_refresh_resource">Обновить</string>
-    <string name="resource_unavailable_name">Ресурс «%1$s» недоступен</string>
-</resources>

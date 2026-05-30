@@ -1,0 +1,3 @@
+package com.sza.fastmediasorter.ui.browse.managers
+
+interface VariantBrowseApkTileBadgeBinder : BrowseApkTileBadgeBinder

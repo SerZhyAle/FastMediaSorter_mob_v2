@@ -26,6 +26,8 @@
             <TextView android:id="@+id/btnTypeText" android:layout_width="@dimen/item_status_badge_size" android:layout_height="@dimen/item_status_badge_size" android:gravity="center" android:text="@string/item_resource_to_add_btnTypeText_text" android:textSize="@dimen/item_detail_text_size" android:textStyle="bold" android:background="?attr/selectableItemBackgroundBorderless" android:clickable="true" android:focusable="true"/>
 
             <TextView android:id="@+id/btnTypePdf" android:layout_width="@dimen/item_status_badge_size" android:layout_height="@dimen/item_status_badge_size" android:gravity="center" android:text="@string/item_resource_to_add_btnTypePdf_text" android:textSize="@dimen/item_detail_text_size" android:textStyle="bold" android:background="?attr/selectableItemBackgroundBorderless" android:clickable="true" android:focusable="true"/>
+
+            <TextView android:id="@+id/btnTypeOffice" android:layout_width="@dimen/item_status_badge_size" android:layout_height="@dimen/item_status_badge_size" android:gravity="center" android:text="@string/item_resource_to_add_btnTypeOffice_text" android:textSize="@dimen/item_detail_text_size" android:textStyle="bold" android:background="?attr/selectableItemBackgroundBorderless" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
         <LinearLayout android:id="@+id/layoutCheckboxRow1" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:baselineAligned="false" android:orientation="horizontal" app:layout_constraintStart_toStartOf="@+id/etName" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@+id/tvFileCount">
@@ -47,4 +49,3 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>
-

@@ -13043,3 +13043,875 @@ Format: | datetime | file | target | description |
 | 2026-05-22 03:08:01 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec-check S0289` | Static audit of S0289 - all invariants PASS (probes present, classes declared, dev-log and catalog coverage OK). Status retained at BlockNeedUserTest pending on-device verification of the touch-click regression fix landed today in Phase 07 surface (MouseEventHandler.isMouseEvent + BaseActivity dispatch guards). [branch: DEBUG-v007] |
 | 2026-05-22 03:19:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageOcrManager.kt` | `ui/player/helpers` | ImageOcrManager: show progressBar and disable OCR button during recognition; add S0288 diagnostic markers to OCR launch path [branch: DEBUG-v007] |
 | 2026-05-22 03:37:00 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5220.333 - plateau merge from DEBUG-v007 [branch: DEBUG-v007] |
+| 2026-05-22 12:13:54 | `PLAN/S0285_nolegal-ocr-cyrillic.md` | `spec-check` | Audit S0285 -> Verified; PASS/WARN/FAIL 13/0/0 [branch: DEBUG-v008] |
+| 2026-05-22 12:13:54 | `PLAN/S0285_nolegal-ocr-cyrillic/INDEX.md` | `spec-check` | Tick Completion Gate items after Verified audit [branch: DEBUG-v008] |
+| 2026-05-22 12:14:38 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization.md` | `spec-fix` | Annotate Last Audit action items (S0286) [branch: DEBUG-v008] |
+| 2026-05-22 12:14:38 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization/INDEX.md` | `spec-fix` | Flip INDEX completion gate [All phases show Done] to [x] (S0286) [branch: DEBUG-v008] |
+| 2026-05-22 12:14:38 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization/PHASE_02__features-sanitization.md` | `spec-fix` | Flip Phase 02 prerequisite checkboxes to [x] to match finished state (S0286) [branch: DEBUG-v008] |
+| 2026-05-22 12:14:38 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization/PHASE_03__docs-catalog-cleanup.md` | `spec-fix` | Flip Phase 03 prerequisite checkboxes to [x] to match finished state (S0286) [branch: DEBUG-v008] |
+| 2026-05-22 12:16:48 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization.md` | `spec-update` | Sync strategic narrative to shipped reality: §6 items 1/2/3/5 Resolved with shipped decisions; §10 S0140 auto-flip clause corrected; §11.9 criterion rewritten around baseline file (S0286) [branch: DEBUG-v008] |
+| 2026-05-22 12:18:38 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization.md` | `spec-check` | Audit S0286 -> Verified; PASS/WARN/FAIL 16/0/0; flip strategic Status Partial -> Verified [branch: DEBUG-v008] |
+| 2026-05-22 12:18:38 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization/INDEX.md` | `spec-check` | Flip Completion Gate /spec-check Verified -> [x] (S0286) [branch: DEBUG-v008] |
+| 2026-05-22 12:46:50 | `app_v2/src/main/res/layout/player_draw_overlay_toolbar_content.xml` | `draw overlay toolbar (portrait)` | Merge draw overlay toolbar two rows into single horizontal strip (portrait) [branch: DEBUG-v008] |
+| 2026-05-22 12:51:29 | `app_v2/src/main/res/layout/activity_main.xml,app_v2/src/main/res/layout-land/activity_main.xml` | `MainActivity top bar` | Add 2dp spacers between top-bar buttons (excl. exit and slideshow); replace settings icon with gear (ic_settings) in portrait and land [branch: DEBUG-v008] |
+| 2026-05-22 13:00:06 | `app_v2/src/main/res/layout/player_draw_overlay_toolbar_content.xml,app_v2/src/main/res/layout-land/player_draw_overlay_toolbar_content.xml,app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `draw overlay toolbar overflow refactor` | Move Save_and_send + Share from draw toolbar into overflow popup (drop two buttons from portrait+landscape, simplify ImageDrawOverlayManager wiring) [branch: DEBUG-v008] |
+| 2026-05-22 13:07:59 | `PLAN/S0267_cloud-auth-unified-storage-research/CHILD_SPECS.md` | `spec-dev` | S0267 Phase 01.1 - Create child-spec matrix with 6 required cloud-auth follow-on tickets [branch: DEBUG-v008] |
+| 2026-05-22 13:08:43 | `PLAN/S0267_cloud-auth-unified-storage-research/CHILD_SPECS.md` | `spec-dev` | S0267 Phase 01.2 - Append optional post-release cloud-auth-auditor-extension [branch: DEBUG-v008] |
+| 2026-05-22 13:09:47 | `PLAN/S0267_cloud-auth-unified-storage-research/CHILD_SPECS.md` | `spec-dev` | S0267 Phase 01.3 - Add delivery waves and shared source anchors [branch: DEBUG-v008] |
+| 2026-05-22 13:11:39 | `PLAN/S0267_cloud-auth-unified-storage-research/PROMPTS.md` | `spec-dev` | S0267 Phase 02.1 - Create prompt pack with 7 child-spec /spec ad-hoc commands [branch: DEBUG-v008] |
+| 2026-05-22 13:13:16 | `PLAN/S0267_cloud-auth-unified-storage-research/PROMPTS.md` | `spec-dev` | S0267 Phase 02.2 - Owner-input packets for 6 required child specs [branch: DEBUG-v008] |
+| 2026-05-22 13:14:11 | `app_v2/src/vr/cpp/xr_session.h` | `S0290 Phase 09.1` | Declare xr_session_is_initialized() to detect stale native state before re-init [branch: DEBUG-v008] |
+| 2026-05-22 13:14:12 | `app_v2/src/vr/cpp/xr_session.cpp` | `S0290 Phase 09.1` | Define xr_session_is_initialized() returning true while instance/vm/activity still allocated [branch: DEBUG-v008] |
+| 2026-05-22 13:14:12 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `S0290 Phase 09.1` | Replace intentionally-leaks comment with paired-shutdown guard; reject nativeInitSession when previous session alive [branch: DEBUG-v008] |
+| 2026-05-22 13:14:25 | `PLAN/S0267_cloud-auth-unified-storage-research/PROMPTS.md` | `spec-dev` | S0267 Phase 02.3 - Validation expectations per child ticket [branch: DEBUG-v008] |
+| 2026-05-22 13:15:31 | `PLAN/S0267_cloud-auth-unified-storage-research/ROLLOUT_ORDER.md` | `spec-dev` | S0267 Phase 03.1 - Define wave-by-wave execution order with entry/output/exit gate per wave [branch: DEBUG-v008] |
+| 2026-05-22 13:16:34 | `PLAN/S0267_cloud-auth-unified-storage-research/ROLLOUT_ORDER.md` | `spec-dev` | S0267 Phase 03.2 - Parallelism and serialization rules across waves [branch: DEBUG-v008] |
+| 2026-05-22 13:17:41 | `PLAN/S0267_cloud-auth-unified-storage-research/ROLLOUT_ORDER.md` | `spec-dev` | S0267 Phase 03.3 - Stop-go checkpoints per wave + suggested operator sequence [branch: DEBUG-v008] |
+| 2026-05-22 13:18:29 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290 Phase 09.3` | Synchronous render-thread teardown in onPause/onDestroy via shutdownRenderThreadSync helper for Quest 3 re-entry safety [branch: DEBUG-v008] |
+| 2026-05-22 13:18:58 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0290 Phase 09.3` | Idempotent shutdown via _shutdownCalled AtomicBoolean; flag re-arms on initSession [branch: DEBUG-v008] |
+| 2026-05-22 13:19:19 | `PLAN/S0267_cloud-auth-unified-storage-research/INDEX.md` | `spec-dev` | S0267 tactical execution - phase counter + row status flips for Phases 01..04 [branch: DEBUG-v008] |
+| 2026-05-22 13:19:22 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_01__child-spec-matrix.md` | `spec-dev` | S0267 Phase 01 status flips + step log entries + Done Criteria ticks [branch: DEBUG-v008] |
+| 2026-05-22 13:19:27 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_02__prompt-pack.md` | `spec-dev` | S0267 Phase 02 status flips + step log entries + Done Criteria ticks [branch: DEBUG-v008] |
+| 2026-05-22 13:19:30 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_03__rollout-sequencing.md` | `spec-dev` | S0267 Phase 03 status flips + step log entries + Done Criteria ticks [branch: DEBUG-v008] |
+| 2026-05-22 13:19:36 | `PLAN/S0267_cloud-auth-unified-storage-research/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | S0267 Phase 04 - cross-link verification + dev log closure entries [branch: DEBUG-v008] |
+| 2026-05-22 13:20:13 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_09__diagnostic-lifecycle-fix.md` | `S0290 Phase 09.4` | Document mandatory 5x(enter->exit) on-device verification loop with heap delta and S0290 probe expectations [branch: DEBUG-v008] |
+| 2026-05-22 13:23:04 | `PLAN/S0267_cloud-auth-unified-storage-research.md` | `spec-check` | Audit S0267 strategic -> Verified; PASS/WARN/FAIL 13/0/0 (1 EXEMPT for FEATURES trilingual) [branch: DEBUG-v008] |
+| 2026-05-22 13:24:41 | `PLAN/S0267_cloud-auth-unified-storage-research/INDEX.md` | `spec-dev` | S0267 INDEX - tick Completion Gate; add Change Log entry for finished tactical execution [branch: DEBUG-v008] |
+| 2026-05-22 13:25:40 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290 Phase 11.1+11.2` | Off-main bitmap decode via Glide BitmapPool; pool.put after queueFrame replaces recycle; remove legacy inSampleSize loop helpers [branch: DEBUG-v008] |
+| 2026-05-22 13:26:18 | `app_v2/src/vr/cpp/xr_session.cpp` | `S0290 Phase 11.3` | Video fragment shader decodes BT.709 gamma to linear before sRGB swapchain re-encodes; prevents double-encode over-bright video [branch: DEBUG-v008] |
+| 2026-05-22 13:31:53 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290 Phase 09.5 + 11.4` | Insert 3 Timber S0290 BlockNeedUserTest probes (re-enter, bitmap recycled, video gamma); strip Sxxxx prefix from 6 persistent warn/error log lines [branch: DEBUG-v008] |
+| 2026-05-22 13:31:53 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0290 Phase 09.5` | Insert Timber S0290 native session init guarded probe at initSession entry [branch: DEBUG-v008] |
+| 2026-05-22 13:31:53 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_09__diagnostic-lifecycle-fix.md` | `S0290 Phase 09 close-out` | Mark all 5 steps done; phase 5/5 In Progress (manual on-device pending); record build PASS evidence [branch: DEBUG-v008] |
+| 2026-05-22 13:31:53 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_11__video-gamma-and-bitmap-pipeline.md` | `S0290 Phase 11 close-out` | Mark all 4 steps done; phase 4/4 In Progress (manual on-device pending); record build PASS evidence [branch: DEBUG-v008] |
+| 2026-05-22 13:31:53 | `PLAN/S0290_vr_test_quality_overhaul/INDEX.md` | `S0290 INDEX close-out` | Bump phase 09 and 11 step counters 5/5 and 4/4; document BlockNeedUserTest scope (only 09+11 implemented, other phases untouched) [branch: DEBUG-v008] |
+| 2026-05-22 13:56:33 | `scripts/utils/setup_test_vr.ps1` | `setup_test_vr.ps1` | Generate deterministic VR diagnostic videos and derived stereo variants [branch: DEBUG-v008] |
+| 2026-05-22 13:56:33 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Add SBS/LR stereo filenames to VR diagnostic parser and playlist [branch: DEBUG-v008] |
+| 2026-05-22 13:57:56 | `PLAN/spec_vr_test_colosseum_sample_url_dead.md` | `spec_vr_test_colosseum_sample_url_dead` | Record dead Wikimedia URL for VR colosseum QA sample [branch: DEBUG-v008] |
+| 2026-05-22 13:58:17 | `.github/prompts/skill-fix.prompt.md,.claude/commands/skill-fix.md,.github/copilot-instructions.md,AGENTS.md,CLAUDE.md,.github/prompts/quick.prompt.md,.claude/commands/quick.md` | `skill-fix` | Add /skill-fix fast-patch routing and quick fallbacks [branch: DEBUG-v008] |
+| 2026-05-22 14:00:29 | `scripts/utils/setup_test_vr.ps1` | `setup_test_vr.ps1` | Replace dead colosseum URL with deterministic local flat fallback [branch: DEBUG-v008] |
+| 2026-05-22 14:14:01 | `app_v2/build.gradle.kts` | `build.gradle.kts` | Ignore locked native linker temp files during CMake build and JNI merge [branch: DEBUG-v008] |
+| 2026-05-22 14:34:47 | `app_v2/src/vr/cpp/xr_session.cpp` | `S0290 Phase 10 (owner remap)` | Thumbstick X-axis edge-detection replaces trigger-based navigation; triggers stay free for Quest 3 system gestures (screenshot, recenter); per-hand rest hysteresis +-0.25 with 0.6 deflect threshold [branch: DEBUG-v008] |
+| 2026-05-22 14:34:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290 Phase 11.1+ + HUD always-on` | Bounds-based preflight pickSampleSizeForBudget keeps external decodes under 96 MB; HUD always renders full HudCanvasRenderer panel with FILE: filename via new renderAndQueueHud helper (replaces tiny generateFilenameHudBytes) [branch: DEBUG-v008] |
+| 2026-05-22 14:40:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290 parseFilenameConfig fix` | Re-order parser: specific SBS/TB/MONO markers checked before generic _stereo fallback; video_*_stereo_sbs no longer mis-routed to TB. Logs parsed config per file [branch: DEBUG-v008] |
+| 2026-05-22 14:40:32 | `app_v2/src/vr/cpp/xr_session.cpp` | `S0290 video Y-flip` | Pre-flip uv.y before SurfaceTexture u_texTransform multiply (GL bottom-left convention) so MediaCodec videos no longer display upside-down on Quest 3; stereo TB/SBS half-splits remain in bitmap convention upstream of the flip [branch: DEBUG-v008] |
+| 2026-05-22 15:01:58 | `app_v2/src/vr/cpp/xr_session.cpp` | `S0290 owner round 2` | Stick deflect threshold 0.6->0.85, return 0.25->0.40, debounce 100ms->500ms (one navigation per deliberate gesture) [branch: DEBUG-v008] |
+| 2026-05-22 15:01:58 | `app_v2/src/vr/cpp/xr_input.cpp` | `S0290 raycast staleness fix` | Reset pointerPose/gripPose to identity each frame; state.active set only after successful XrLocateSpace with valid flags; eliminates random ray stripes from stale tracking [branch: DEBUG-v008] |
+| 2026-05-22 15:01:58 | `scripts/utils/setup_test_vr.ps1` | `S0290 BBB URL upgrade` | Replace w3schools 320x176 mov_bbb.mp4 with Blender peach 480p trailer 854x480 for usable flat-video reference [branch: DEBUG-v008] |
+| 2026-05-22 15:42:37 | `scripts/utils/setup_test_vr.ps1` | `setup_test_vr.ps1` | Add real 360/180/flat stereo sample masters to VR test setup and harden synthetic fallback generation [branch: DEBUG-v008] |
+| 2026-05-22 15:43:18 | `scripts/utils/setup_test_vr.ps1` | `setup_test_vr.ps1` | Add real 360/180/flat stereo sample masters to VR test setup and document the 19-file playlist correctly [branch: DEBUG-v008] |
+| 2026-05-22 18:12:25 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `S0291 strategic spec authored` | New strategic spec from owner on-device feedback after v641 test; locks working baselines (HUD pipeline, joystick rays, grip-drag-HUD, Magic Forest 3D rendering), catalogues open issues (lifecycle re-entry crash, eye-order suspicion, 360-SBS shader bug, provisioning correctness, sample content quality, MSAA). S0290 closed Partial. [branch: DEBUG-v008] |
+| 2026-05-22 18:12:25 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290 -> Partial; remove BlockNeedUserTest probes` | Remove 3 Timber S0290 probes (bitmap recycled, video gamma path, re-enter path) per CLAUDE.md probe lifecycle rule on transition out of BlockNeedUserTest [branch: DEBUG-v008] |
+| 2026-05-22 18:13:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `S0290 -> Partial; remove BlockNeedUserTest probe` | Remove Timber S0290 probe (native session init guarded) per probe lifecycle rule [branch: DEBUG-v008] |
+| 2026-05-22 18:21:51 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-update` | Refine S0291 strategic spec from owner VR retest feedback [branch: DEBUG-v008] |
+| 2026-05-22 18:28:39 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/INDEX.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:28:40 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_01__lifecycle-reentry.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:28:40 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_02__sample-provisioning.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:28:41 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_03__render-quality.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:28:41 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_04__regression-verification.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:28:42 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:28:43 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-tech` | Create or update S0291 tactical implementation plan [branch: DEBUG-v008] |
+| 2026-05-22 18:37:50 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `NativeDiagnosticXrRuntime` | Add stale native-state probe before diagnostic XR init [branch: DEBUG-v008] |
+| 2026-05-22 18:38:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Rename misleading VR flat mono sample in diagnostic playlist [branch: DEBUG-v008] |
+| 2026-05-22 18:39:02 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `diagnostic_xr_runtime` | Clean stale native XR state before new JNI session [branch: DEBUG-v008] |
+| 2026-05-22 18:39:02 | `app_v2/src/vr/cpp/xr_session.cpp` | `xr_session` | Add mipmap and anisotropic filtering for static XR textures [branch: DEBUG-v008] |
+| 2026-05-22 18:39:03 | `app_v2/src/vr/cpp/xr_session.h` | `xr_session` | Expose native XR initialized-state probe [branch: DEBUG-v008] |
+| 2026-05-22 18:39:03 | `scripts/utils/setup_test_vr.ps1` | `setup_test_vr` | Regenerate VR test samples with visible eye labels and better sources [branch: DEBUG-v008] |
+| 2026-05-22 18:42:06 | `app_v2/build.gradle.kts` | `android.defaultConfig.version` | Update noLegal debug build version metadata after validation build [branch: DEBUG-v008] |
+| 2026-05-22 18:43:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `NativeDiagnosticXrRuntime` | Add temporary S0291 verification probe for XR init [branch: DEBUG-v008] |
+| 2026-05-22 18:44:19 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Add temporary S0291 verification probe for VR playlist loading [branch: DEBUG-v008] |
+| 2026-05-22 18:44:54 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `diagnostic_xr_runtime` | Add temporary S0291 verification probe for native XR init [branch: DEBUG-v008] |
+| 2026-05-22 18:44:55 | `app_v2/src/vr/cpp/xr_session.cpp` | `xr_session` | Add temporary S0291 verification probe for static texture filtering [branch: DEBUG-v008] |
+| 2026-05-22 18:46:43 | `app_v2/build.gradle.kts` | `android.defaultConfig.version` | Update noLegal debug build version metadata after final validation build [branch: DEBUG-v008] |
+| 2026-05-22 18:51:57 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `S0291 strategic spec` | Record implementation notes and owner verification checklist [branch: DEBUG-v008] |
+| 2026-05-22 18:51:57 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/INDEX.md` | `S0291 tactical index` | Mark S0291 tactical plan done [branch: DEBUG-v008] |
+| 2026-05-22 18:51:58 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_01__lifecycle-reentry.md` | `S0291 phase 01` | Mark lifecycle re-entry phase done [branch: DEBUG-v008] |
+| 2026-05-22 18:51:58 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_02__sample-provisioning.md` | `S0291 phase 02` | Mark sample provisioning phase done [branch: DEBUG-v008] |
+| 2026-05-22 18:51:59 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_03__render-quality.md` | `S0291 phase 03` | Mark render quality phase done [branch: DEBUG-v008] |
+| 2026-05-22 18:51:59 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_04__regression-verification.md` | `S0291 phase 04` | Mark regression verification phase done [branch: DEBUG-v008] |
+| 2026-05-22 18:52:00 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_05__docs-catalog-cleanup.md` | `S0291 phase 05` | Mark docs and catalog cleanup phase done [branch: DEBUG-v008] |
+| 2026-05-22 19:03:13 | `scripts/utils/setup_test_vr.ps1` | `S0291` | Remove stale remote VR diagnostic samples before device push [branch: DEBUG-v008] |
+| 2026-05-22 19:03:13 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `S0291` | Record researched answers for VR diagnostic open questions [branch: DEBUG-v008] |
+| 2026-05-22 21:02:55 | `.gitignore` | `.gitignore` | Ignore root logs folder and stop tracking logs [branch: DEBUG-v008] |
+| 2026-05-22 21:18:39 | `.mcp.json` | `mobile-mcp` | Register mobile-mcp server in project .mcp.json (npx @mobilenext/mobile-mcp@latest) so on-device verification skills work for any team member, not just users who configured it globally [branch: DEBUG-v008] |
+| 2026-05-22 21:18:48 | `scripts/devtest/device-ready.ps1` | `device-ready` | Pre-flight readiness check for on-device testing skills: ADB, online device, optional package install + versionName + mobile-mcp launcher resolvability. Stable exit codes 0..6 for skills to branch on. JSON or human output [branch: DEBUG-v008] |
+| 2026-05-22 21:18:52 | `.claude/commands/verify.md` | `C:/Program Files/Git/verify-skill` | Project-scoped /verify skill: lightweight on-device smoke (build optional, install optional, launch via mobile-mcp, walk minimal scenario, capture logcat) without touching PLAN/, journal, or dev log. Complements /spec-test-device for the in-between cases [branch: DEBUG-v008] |
+| 2026-05-22 21:18:56 | `.claude/commands/spec-test-device.md` | `C:/Program Files/Git/spec-test-device` | Reference scripts/devtest/device-ready.ps1 for unified pre-flight (replaces ad-hoc adb checks in step 3) [branch: DEBUG-v008] |
+| 2026-05-22 21:19:00 | `CLAUDE.md` | `mandatory-skills-table` | Add /verify row to Mandatory Skills table - lightweight on-device sanity check distinct from /spec-test-device [branch: DEBUG-v008] |
+| 2026-05-22 21:32:16 | `.claude/commands/quick.md` | `C:/Program Files/Git/quick` | Add opt-in --verify-device flag: after post-change.ps1 run /verify smoke; off by default to preserve zero-bureaucracy philosophy [branch: DEBUG-v008] |
+| 2026-05-22 21:32:21 | `.claude/commands/skill-fix.md` | `C:/Program Files/Git/skill-fix` | Add opt-in --verify-device flag: after local validation PASS optionally run /verify (--build chosen by edit type); skip cleanly when no device online so fast-patch philosophy holds [branch: DEBUG-v008] |
+| 2026-05-22 21:32:25 | `.claude/commands/spec-dev.md` | `C:/Program Files/Git/spec-dev` | Add opt-in --verify-smoke flag: after all phases done, before status flip, run /verify --build default smoke to catch trivial launch-crash. FAIL aborts the status flip; missing device skips cleanly [branch: DEBUG-v008] |
+| 2026-05-22 21:33:39 | `scripts/utils/setup_test_vr.ps1` | `VR Test Immersive playlist sync` | Centralize VR test playlist names and validate sync with DiagnosticXrActivity rotation order [branch: DEBUG-v008] |
+| 2026-05-22 22:58:12 | `PLAN/S0292_vr-content-launch-ui.md` | `spec` | S0292 vr-content-launch-ui placeholder spec — next VR step continuing S0240 epic [branch: DEBUG-v008] |
+| 2026-05-22 23:01:39 | `app_v2/src/vr/cpp/xr_hud_world.cpp` | `S0291 round 8` | S0291 round 8: HUD height halved 1.5x (0.169->0.113m), width preserved [branch: DEBUG-v008] |
+| 2026-05-22 23:02:12 | `app_v2/src/vr/cpp/xr_session.cpp` | `S0291 round 8` | S0291 round 8: zoom reset to 1.0 on every set_render_config (slide nav) [branch: DEBUG-v008] |
+| 2026-05-22 23:02:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0291 round 8` | S0291 round 8: re-entry trace tags on onCreate, proceedWithInitialization, surfaceCreated [branch: DEBUG-v008] |
+| 2026-05-22 23:04:08 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `S0291 round 8 deltas` | Document round 8 owner deltas: HUD 1.5x slimmer, zoom reset on slide nav, Activity re-entry probes [branch: DEBUG-v008] |
+| 2026-05-22 23:23:41 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `S0291 round 9 root cause` | S0291 round 9: re-entry root cause (loader stops tracking after first Activity destroyed); fix via moveTaskToBack to keep Activity alive [branch: DEBUG-v008] |
+| 2026-05-22 23:32:11 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec` | Add strategic spec S0293 for multi-window discoverability fixes (Bug A/B/C) [branch: DEBUG-v008] |
+| 2026-05-22 23:37:28 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec` | Extend S0293 scope: add runtime DeX/desktop-mode detection (4th pillar + ADR-3 + Research items §6.2-6.3) [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/INDEX.md` | `spec-tech` | Create tactical plan for S0293 [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_01__detector-foundations.md` | `spec-tech` | Phase 01: detector-foundations [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_02__settings-defaults-wiring.md` | `spec-tech` | Phase 02: settings-defaults-wiring [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_03__browse-mouse-routing-fix.md` | `spec-tech` | Phase 03: browse-mouse-routing-fix (Bug A) [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_04__player-portrait-inline.md` | `spec-tech` | Phase 04: player-portrait-inline (Bug C) [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_05__runtime-reactivity.md` | `spec-tech` | Phase 05: runtime-reactivity (DeX entry/exit) [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-22 23:44:52 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec-tech` | Status: Approved -> Tactical [branch: DEBUG-v008] |
+| 2026-05-22 23:46:19 | `app_v2/src/main/java/com/sza/fastmediasorter/core/compat/MultiWindowCapabilityDetector.kt` | `spec-dev` | S0293 Phase 01.1: extract hasInstallTimeMultiWindowSignal helper [branch: DEBUG-v008] |
+| 2026-05-22 23:47:21 | `app_v2/src/main/java/com/sza/fastmediasorter/core/compat/MultiWindowCapabilityDetector.kt` | `spec-dev` | S0293 Phase 01.2: add defaultFileOpsInOverflowMenu pair method [branch: DEBUG-v008] |
+| 2026-05-22 23:48:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/compat/MultiWindowCapabilityDetector.kt` | `spec-dev` | S0293 Phase 01.3: add runtime-aware isMultiWindowActiveNow [branch: DEBUG-v008] |
+| 2026-05-22 23:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | S0293 Phase 02.1+02.2: capability-aware defaults for fileOpsInOverflowMenu and fileOpsOverflowMenuHintShown [branch: DEBUG-v008] |
+| 2026-05-22 23:56:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-dev` | S0293 Phase 03.1: route mouse context menu to per-file overflow (Bug A) [branch: DEBUG-v008] |
+| 2026-05-23 00:07:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `spec-dev` | S0293 Phase 04.1: pin btnOpenInSeparateWindowCmd inline in portrait + big-buttons (Bug C) [branch: DEBUG-v008] |
+| 2026-05-23 00:15:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-dev` | S0293 Phase 05: OR-compose runtime detector + notifyMultiWindowModeChanged [branch: DEBUG-v008] |
+| 2026-05-23 00:15:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `spec-dev` | S0293 Phase 05: OR-compose runtime + notifyMultiWindowModeChanged [branch: DEBUG-v008] |
+| 2026-05-23 00:15:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `spec-dev` | S0293 Phase 05.2: override onMultiWindowModeChanged + onConfigurationChanged [branch: DEBUG-v008] |
+| 2026-05-23 00:16:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-dev` | S0293 Phase 05.3: override onMultiWindowModeChanged [branch: DEBUG-v008] |
+| 2026-05-23 00:35:17 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-update` | Refinement (claude-sonnet-4.5, focus: language structure verifiability consistency completeness style); re-opened BlockNeedUserTest -> Tactical; added 1.7 / Goal 9 / 6.8 / 6.9 / 11.15 / 11.16; 2 DISCUSS proposals for round 10 phase [branch: DEBUG-v008] |
+| 2026-05-23 00:35:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `spec-update` | Removed 7 Timber.d(S0291) re-entry verification probes after re-opening S0291 from BlockNeedUserTest to Tactical [branch: DEBUG-v008] |
+| 2026-05-23 00:35:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrRenderThread.kt` | `spec-update` | Removed 14 Timber.d(S0291.RT) lifecycle trace probes and round 4 instrumentation comment; rewrote warn/error log subjects to plain English [branch: DEBUG-v008] |
+| 2026-05-23 00:35:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/runtime/NativeDiagnosticXrRuntime.kt` | `spec-update` | Removed Timber.d(S0291) initSession entry probe after re-opening S0291 from BlockNeedUserTest to Tactical [branch: DEBUG-v008] |
+| 2026-05-23 00:51:49 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/XrEntryGateway.kt` | `XR hybrid exit flow` | Remove launchTaskId from XR entry contract; exclusive flow now recreates panel instead of restoring a background task. [branch: DEBUG-v008] |
+| 2026-05-23 00:51:49 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/core/xr/NoOpXrEntryGateway.kt` | `XR hybrid exit flow` | Keep stub entry gateway aligned with the simplified no-argument XR entry contract. [branch: DEBUG-v008] |
+| 2026-05-23 00:51:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `XR hybrid exit flow` | Stop passing panel task ids into the immersive host and keep entry semantics aligned with Meta exclusive-mode guidance. [branch: DEBUG-v008] |
+| 2026-05-23 00:51:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `XR hybrid exit flow` | Finish the Settings panel after a successful immersive launch so HorizonOS does not keep a duplicate panel alive in the background. [branch: DEBUG-v008] |
+| 2026-05-23 00:51:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `XR hybrid exit flow` | Replace moveToFront-based panel restore with the documented Home plus PendingIntent return path from immersive XR. [branch: DEBUG-v008] |
+| 2026-05-23 00:59:19 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `spec-update` | Removed stale Timber.d(S0291) probe from onNewIntent after S0291 left BlockNeedUserTest [branch: DEBUG-v008] |
+| 2026-05-23 01:12:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `XR hybrid entry flow` | Stop XR gateway from short-circuiting reentry on stale running state and relaunch immersive host as ACTION_MAIN NEW_TASK. [branch: DEBUG-v008] |
+| 2026-05-23 01:16:49 | `PLAN/spec-catalog.jsonl` | `spec catalog` | Insert S0294 record for Quest 3 Google Drive browser-auth strategic spec [branch: DEBUG-v008] |
+| 2026-05-23 01:16:49 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `strategic spec` | Add strategic spec for Quest 3 Google Drive browser-based Google Drive resource auth [branch: DEBUG-v008] |
+| 2026-05-23 01:24:23 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `XR immersive exit handoff` | Make immersive-to-settings handoff idempotent so duplicate Home pending-intent dispatches reuse one SettingsActivity instance. [branch: DEBUG-v008] |
+| 2026-05-23 01:33:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `XR immersive exit teardown` | Stop force-removing the XR task after Home handoff and finish the immersive host normally to avoid FocusPlaceholder-driven Settings relaunch. [branch: DEBUG-v008] |
+| 2026-05-23 01:50:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt` | `spec-dev` | S0293 Phase 07: fileOpsInOverflowMenu runtime override via MultiWindowCapabilityDetector [branch: DEBUG-v008] |
+| 2026-05-24 23:25:45 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regenerate app_v2 catalog after S0293 [branch: DEBUG-v008] |
+| 2026-05-24 23:27:54 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec` | Approve strategic spec S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:28:14 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec-dev` | S0293 Phase 06 complete: status -> BlockNeedUserTest, 6 BlockNeedUserTest probes active [branch: DEBUG-v008] |
+| 2026-05-24 23:28:14 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_06__docs-catalog-cleanup.md` | `spec-dev` | S0293 Phase 06: all 3 steps done (probes, catalog regen, status flip) [branch: DEBUG-v008] |
+| 2026-05-24 23:28:14 | `PLAN/S0293_bugfix-multi-window-discoverability/INDEX.md` | `spec-dev` | S0293 tactical INDEX: 6/6 phases done [branch: DEBUG-v008] |
+| 2026-05-24 23:28:26 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec` | Add owner inputs gate for S0294 approval [branch: DEBUG-v008] |
+| 2026-05-24 23:30:45 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec-tech` | Create tactical plan artifacts for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:30:45 | `PLAN/S0294_google-drive-browser-auth-quest3/INDEX.md` | `spec-tech` | Create tactical plan artifacts for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:30:46 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_01__browser-oauth-foundation.md` | `spec-tech` | Create tactical plan artifacts for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:30:46 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_02__drive-auth-routing.md` | `spec-tech` | Create tactical plan artifacts for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:30:47 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_03__reauth-surfaces.md` | `spec-tech` | Create tactical plan artifacts for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:30:48 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Create tactical plan artifacts for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:33:36 | `PLAN/S0292_vr-content-launch-ui.md` | `spec-update` | Refined player-first VR launch UI and resolved player-entry ui-clarify decisions [branch: DEBUG-v008] |
+| 2026-05-24 23:33:38 | `app_v2/build.gradle.kts` | `S0294` | Add AppAuth dependency for Google Drive browser OAuth [branch: DEBUG-v008] |
+| 2026-05-24 23:33:39 | `app_v2/src/main/AndroidManifest.xml` | `S0294` | Register Google Drive AppAuth redirect receiver and completion activity [branch: DEBUG-v008] |
+| 2026-05-24 23:33:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveBrowserAuthManager.kt` | `S0294` | Add Google Drive browser OAuth manager for AppAuth round-trip [branch: DEBUG-v008] |
+| 2026-05-24 23:33:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudauth/GoogleDriveAuthCompletionActivity.kt` | `S0294` | Add Google Drive browser auth completion activity [branch: DEBUG-v008] |
+| 2026-05-24 23:34:05 | `PLAN/S0292_vr-content-launch-ui.md` | `spec-update` | Normalized Russian wording in S0292 and removed draft placeholder terminology [branch: DEBUG-v008] |
+| 2026-05-24 23:35:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveBrowserAuthManager.kt` | `S0294` | Fix AppAuth manager compile issues and wire S0294 string keys [branch: DEBUG-v008] |
+| 2026-05-24 23:35:40 | `app_v2/src/main/res/values/strings_s0294.xml` | `S0294` | Add EN browser auth strings for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:35:40 | `app_v2/src/main/res/values-ru/strings_s0294.xml` | `S0294` | Add RU browser auth strings for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:35:40 | `app_v2/src/main/res/values-uk/strings_s0294.xml` | `S0294` | Add UK browser auth strings for S0294 [branch: DEBUG-v008] |
+| 2026-05-24 23:36:57 | `app_v2/src/main/res/values/strings_s0294.xml` | `S0294` | Adjust EN S0294 browser auth copy to avoid aapt escaping issue [branch: DEBUG-v008] |
+| 2026-05-24 23:40:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveInteractiveSignInCoordinator.kt` | `S0294` | Add shared Google Drive interactive sign-in router for browser and Credential Manager paths [branch: DEBUG-v008] |
+| 2026-05-24 23:40:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveBrowserAuthManager.kt` | `S0294` | Expose browser auth session restore helpers for Google Drive routing [branch: DEBUG-v008] |
+| 2026-05-24 23:40:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthPlugin.kt` | `S0294` | Route Google Drive interactive sign-in through shared coordinator and onResume consumption [branch: DEBUG-v008] |
+| 2026-05-24 23:40:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt` | `S0294` | Teach Google Drive token coordination about browser-backed credentials [branch: DEBUG-v008] |
+| 2026-05-24 23:40:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `S0294` | Use backend-agnostic Google Drive auth restoration and token access [branch: DEBUG-v008] |
+| 2026-05-24 23:40:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `S0294` | Show browser-backed Google Drive account status in Add Resource [branch: DEBUG-v008] |
+| 2026-05-24 23:40:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveCredentialsManager.kt` | `S0294` | Update Google Drive credential store comment for browser OAuth usage [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec-check` | Audit S0293 -> Broken; PASS/WARN/FAIL 16/1/1 [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/compat/MultiWindowCapabilityDetector.kt` | `spec-check` | Remove S0293 BlockNeedUserTest probe after Broken audit [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-check` | Remove S0293 BlockNeedUserTest probe after Broken audit [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-check` | Remove S0293 BlockNeedUserTest probe after Broken audit [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `spec-check` | Remove S0293 BlockNeedUserTest probe after Broken audit [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `spec-check` | Remove S0293 BlockNeedUserTest probe after Broken audit [branch: DEBUG-v008] |
+| 2026-05-24 23:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-check` | Remove S0293 BlockNeedUserTest probe after Broken audit [branch: DEBUG-v008] |
+| 2026-05-24 23:42:32 | `PLAN/S0292_vr-content-launch-ui.md` | `spec-update` | Refinement (claude-sonnet-4.5, focus: completeness, consistency) — badge-first UI rewrite, UI Clarification Status READY->PENDING, added round-trip + entry-surfaces contracts, dropped format-chip [branch: DEBUG-v008] |
+| 2026-05-24 23:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCloudAuthManager.kt` | `S0294` | Route Browse and Player Google reauth through shared coordinator with onResume browser result handling [branch: DEBUG-v008] |
+| 2026-05-24 23:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `S0294` | Add Google Drive browser auth failure fallback copy for Add Resource errors [branch: DEBUG-v008] |
+| 2026-05-24 23:46:25 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec-check` | Audit S0294 -> Verified; PASS/WARN/FAIL 18/0/0; record compact Last Audit block [branch: DEBUG-v008] |
+| 2026-05-24 23:46:25 | `PLAN/S0294_google-drive-browser-auth-quest3/INDEX.md` | `S0294` | Sync tactical index state to 4/4 phases done and Verified closure gate [branch: DEBUG-v008] |
+| 2026-05-24 23:46:26 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_01__browser-oauth-foundation.md` | `S0294` | Mark Phase 01 complete with compile validation evidence [branch: DEBUG-v008] |
+| 2026-05-24 23:46:26 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_02__drive-auth-routing.md` | `S0294` | Mark Phase 02 complete with compile validation evidence [branch: DEBUG-v008] |
+| 2026-05-24 23:46:26 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_03__reauth-surfaces.md` | `S0294` | Mark Phase 03 complete with compile and string-audit evidence [branch: DEBUG-v008] |
+| 2026-05-24 23:46:26 | `PLAN/S0294_google-drive-browser-auth-quest3/PHASE_04__docs-catalog-cleanup.md` | `S0294` | Mark Phase 04 complete and note Verified audit outcome [branch: DEBUG-v008] |
+| 2026-05-24 23:50:00 | `PLAN/S0295_vr-generic-immerse-playback-contract.md` | `spec` | Create S0295 as sub-step of S0240 §10.3, blocker for S0292: generic immerse playback contract (accept arbitrary uri+mediaType, return typed VrLaunchResult, StartVrPlaybackUseCase + VrLaunchPoint) [branch: DEBUG-v008] |
+| 2026-05-24 23:50:05 | `PLAN/S0292_vr-content-launch-ui.md` | `spec-update` | Add S0295 as additional Depends on (generic immerse playback contract) [branch: DEBUG-v008] |
+| 2026-05-24 23:54:09 | `PLAN/S0295_vr-generic-immerse-playback-contract.md` | `spec-all` | Repair owner-input gate and promote S0295 to Approved [branch: DEBUG-v008] |
+| 2026-05-24 23:56:57 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec-check` | Audit S0294 -> Broken; PASS/WARN/FAIL 16/0/2; Add Resource fallback copy not wired, browser auth scope leaks into backup/restore [branch: DEBUG-v008] |
+| 2026-05-25 00:02:50 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec-fix` | Annotate Last Audit (S0293): 2 items marked FOLLOW-UP (control-flow + tactical drift) [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract.md` | `spec-all` | Promote S0295 to Tactical and align strategic design [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `spec-tech` | Create tactical plan for S0295 [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_01__contracts-models.md` | `spec-tech` | Phase 01: contracts-models [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_02__activity-contract.md` | `spec-tech` | Phase 02: activity-contract [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_03__launch-orchestration.md` | `spec-tech` | Phase 03: launch-orchestration [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_04__settings-integration.md` | `spec-tech` | Phase 04: settings-integration [branch: DEBUG-v008] |
+| 2026-05-25 00:04:38 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_05__validation-cleanup.md` | `spec-tech` | Phase 05: validation-cleanup [branch: DEBUG-v008] |
+| 2026-05-25 00:06:42 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrLaunchContract.kt` | `VrLaunchContract` | Add shared VR launch transport models [branch: DEBUG-v008] |
+| 2026-05-25 00:07:45 | `PLAN/S0295_vr-generic-immerse-playback-contract.md` | `S0295` | Advance S0295 status to In Progress [branch: DEBUG-v008] |
+| 2026-05-25 00:07:46 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 tactical index` | Track S0295 phase progress [branch: DEBUG-v008] |
+| 2026-05-25 00:07:46 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_01__contracts-models.md` | `S0295 phase 01` | Mark Step 01.1 done [branch: DEBUG-v008] |
+| 2026-05-25 00:08:14 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/XrEntryGateway.kt` | `XrEntryGateway` | Add generic immersive intent seam [branch: DEBUG-v008] |
+| 2026-05-25 00:09:31 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 tactical index` | Track S0295 step 01.2 progress [branch: DEBUG-v008] |
+| 2026-05-25 00:09:31 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_01__contracts-models.md` | `S0295 phase 01` | Mark Step 01.2 done [branch: DEBUG-v008] |
+| 2026-05-25 00:09:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt` | `spec-all` | S0293 fix-loop: OR-compose persistent fileOpsInOverflowMenu with isMultiWindowActiveNow(activity) via multiWindowTick StateFlow; add notifyMultiWindowModeChanged() entry point [branch: DEBUG-v008] |
+| 2026-05-25 00:09:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-all` | S0293 fix-loop: pass activity to BrowseObserverManager; pipe notifyMultiWindowModeChanged through observer first so per-row overflow visibility refreshes on DeX transitions [branch: DEBUG-v008] |
+| 2026-05-25 00:11:55 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec-check` | Audit S0293 -> Partial (13 PASS / 1 WARN / 0 FAIL); FAIL §11.4 from prior audit now closed by BrowseObserverManager OR-compose; tactical drift WARN remains (Phase 07/08 markers not in INDEX) [branch: DEBUG-v008] |
+| 2026-05-25 00:14:26 | `PLAN/S0293_bugfix-multi-window-discoverability/INDEX.md` | `spec-all` | S0293 retrofit: bump INDEX to 8/8 phases (Phase 07 observer OR-compose + Phase 08 main-list per-resource entry) [branch: DEBUG-v008] |
+| 2026-05-25 00:14:26 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_07__browse-observer-runtime-orcompose.md` | `spec-all` | S0293 Phase 07 retrofit file: BrowseObserverManager OR-compose + ticker [branch: DEBUG-v008] |
+| 2026-05-25 00:14:26 | `PLAN/S0293_bugfix-multi-window-discoverability/PHASE_08__main-list-per-resource-new-window.md` | `spec-all` | S0293 Phase 08 retrofit file: per-resource Open in new window on main list [branch: DEBUG-v008] |
+| 2026-05-25 00:15:36 | `PLAN/S0293_bugfix-multi-window-discoverability.md` | `spec-check` | Audit S0293 -> Verified (16 PASS / 0 WARN / 0 FAIL); WARN tactical drift closed via INDEX retrofit (Phase 07+08 documented). Debug tags removed: 0. [branch: DEBUG-v008] |
+| 2026-05-25 00:23:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `spec-all` | S0294 fix-loop: showDetailedErrorDialog now passes through curated  (s0294 browser-auth messages); Dropbox caller switched to null (was raw e.message) [branch: DEBUG-v008] |
+| 2026-05-25 00:24:37 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec-check` | Audit S0294 iter 2 -> Broken (17 PASS / 0 WARN / 1 FAIL); item 1 string-wiring resolved; item 2 auth-scope leak remains FOLLOW-UP owner-design-needed [branch: DEBUG-v008] |
+| 2026-05-25 00:27:50 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 4 picked (1 Verified S0293; 1 progressed S0294 Broken->Broken with item 1 fixed; 2 skipped drift-needs-review S0290 S0291); 3 round-memoryed (S0292 deps-in-progress, S0295 concurrent, S0140 research-heavy) [branch: DEBUG-v008] |
+| 2026-05-25 00:43:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerVrLaunchManager.kt` | `PlayerVrLaunchManager` | added player VR badge, prompt, and panel return handling [branch: DEBUG-v008] |
+| 2026-05-25 00:44:05 | `app_v2/src/main/res/values/strings_s0292.xml` | `string/player_vr_*` | added player VR launch strings [branch: DEBUG-v008] |
+| 2026-05-25 00:44:06 | `docs/FEATURES.md` | `VR Edition` | documented player VR launch entry in feature docs [branch: DEBUG-v008] |
+| 2026-05-25 00:44:37 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrLaunchContract.kt` | `VrLaunchContract` | expanded shared VR launch and panel return contract for player round-trip [branch: DEBUG-v008] |
+| 2026-05-25 00:44:38 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/IntentSerializationCompat.kt` | `IntentSerializationCompat` | added typed Serializable extra helper for VR intents [branch: DEBUG-v008] |
+| 2026-05-25 00:44:38 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/StartVrPlaybackUseCase.kt` | `StartVrPlaybackUseCase` | added unified VR launch orchestration and unsupported-media gating [branch: DEBUG-v008] |
+| 2026-05-25 00:44:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `XrEntryGatewayImpl` | added generic immersive intent builder for XR host launches [branch: DEBUG-v008] |
+| 2026-05-25 00:44:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | added generic launch input handling and typed panel return handoff [branch: DEBUG-v008] |
+| 2026-05-25 00:44:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `VrSettingsBlockFragment` | moved settings diagnostic launch to StartVrPlaybackUseCase [branch: DEBUG-v008] |
+| 2026-05-25 00:44:39 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | added dismissal flag for the one-time player VR prompt [branch: DEBUG-v008] |
+| 2026-05-25 00:44:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | persisted the one-time player VR prompt dismissal flag [branch: DEBUG-v008] |
+| 2026-05-25 00:44:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | added player VR dependencies and panel return intent window routing [branch: DEBUG-v008] |
+| 2026-05-25 00:44:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | added overflow VR action routing [branch: DEBUG-v008] |
+| 2026-05-25 00:44:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | added overflow-only Open in VR command [branch: DEBUG-v008] |
+| 2026-05-25 00:44:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | routed overflow VR action to PlayerVrLaunchManager [branch: DEBUG-v008] |
+| 2026-05-25 00:44:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FilenameOverlayAutoHideManager.kt` | `FilenameOverlayAutoHideManager` | mirrored fullscreen filename overlay timing to VR companion views [branch: DEBUG-v008] |
+| 2026-05-25 00:44:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `PlayerBindingSafeViews` | added safe accessors for player VR overlay views [branch: DEBUG-v008] |
+| 2026-05-25 00:44:41 | `app_v2/src/main/res/layout/player_vr_launch_overlay_content.xml` | `player_vr_launch_overlay_content` | added player VR badge and inline prompt overlay [branch: DEBUG-v008] |
+| 2026-05-25 00:44:42 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | included the player VR launch overlay in portrait layout [branch: DEBUG-v008] |
+| 2026-05-25 00:44:42 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified landscape` | included the player VR launch overlay in landscape layout [branch: DEBUG-v008] |
+| 2026-05-25 00:44:42 | `docs/FEATURES_RU.md` | `VR section` | documented the player VR launch entry in the RU feature mirror [branch: DEBUG-v008] |
+| 2026-05-25 00:44:42 | `docs/FEATURES_UK.md` | `VR section` | documented the player VR launch entry in the UK feature mirror [branch: DEBUG-v008] |
+| 2026-05-25 00:45:38 | `PLAN/S0292_vr-content-launch-ui.md` | `S0292 spec` | marked S0292 implemented and recorded non-device-test validation results [branch: DEBUG-v008] |
+| 2026-05-25 00:45:38 | `PLAN/S0292_vr-content-launch-ui/INDEX.md` | `S0292 tactical index` | marked all S0292 phases done and recorded closure notes [branch: DEBUG-v008] |
+| 2026-05-25 22:38:12 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 index` | Advance activity contract phase status [branch: DEBUG-v008] |
+| 2026-05-25 22:38:12 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_02__activity-contract.md` | `S0295 phase 02` | Mark pre-resolved activity contract phase [branch: DEBUG-v008] |
+| 2026-05-25 22:39:26 | `PLAN/S0292_vr-content-launch-ui.md` | `spec-check` | Audit S0292 -> Partial; PASS/WARN/FAIL 16/3/0; 3 snapshot-field gaps (sleepTimer, audioFocus, partial restoration) [branch: DEBUG-v008] |
+| 2026-05-25 22:39:30 | `PLAN/S0292_vr-content-launch-ui/INDEX.md` | `spec-check` | INDEX status Implemented -> Partial after audit found 3 snapshot/restoration WARN items [branch: DEBUG-v008] |
+| 2026-05-25 22:40:07 | `PLAN/S0292_vr-content-launch-ui.md` | `spec-fix` | Annotate Last Audit: 3 WARN items marked FOLLOW-UP (snapshot field capture + round-trip restoration require manual implementation) [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrLaunchContract.kt` | `VrLaunchContract` | Finalize shared VR launch transport and result models [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/XrEntryGateway.kt` | `XrEntryGateway` | Expose generic immersive intent transport seam [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/core/xr/NoOpXrEntryGateway.kt` | `NoOpXrEntryGateway` | Return null generic immersive intents for non-VR flavors [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `XrEntryGatewayImpl` | Route diagnostic immersive launches through typed VR launch input [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/IntentSerializationCompat.kt` | `IntentSerializationCompat` | Add typed serializable extra reader for VR launch contracts [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrPlaybackActivityContract.kt` | `VrPlaybackActivityContract` | Add ActivityResult contract for immersive playback results [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrLaunchArgs.kt` | `DiagnosticXrLaunchArgs` | Parse typed launch args for the immersive XR host [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity` | Load diagnostic playlist or image URI and return typed VR results [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/StartVrPlaybackUseCase.kt` | `StartVrPlaybackUseCase` | Define shared Ready or Completed VR preflight contract [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/StartVrPlaybackUseCaseImpl.kt` | `StartVrPlaybackUseCaseImpl` | Implement VR launch preflight and unsupported media mapping [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/core/xr/NoOpStartVrPlaybackUseCase.kt` | `NoOpStartVrPlaybackUseCase` | Return no-runtime VR launch results for non-VR flavors [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/di/XrModule.kt` | `XrModule` | Bind real VR launch preflight use case [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/core/xr/di/NoOpXrModule.kt` | `NoOpXrModule` | Bind no-op VR launch preflight use case [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `VrSettingsBlockFragment` | Route Test Immersive through ActivityResult VR contract [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_03__launch-orchestration.md` | `S0295 phase 03` | Mark launch orchestration phase done [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_04__settings-integration.md` | `S0295 phase 04` | Mark settings integration phase done [branch: DEBUG-v008] |
+| 2026-05-25 22:43:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 index` | Advance launch and settings phase status [branch: DEBUG-v008] |
+| 2026-05-25 22:51:18 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrPlaybackActivityContract.kt` | `spec-all` | S0295 Phase 02 Step 02.1: VrPlaybackActivityContract for ActivityResult-based VR launches [branch: DEBUG-v008] |
+| 2026-05-25 22:51:18 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrLaunchArgs.kt` | `spec-all` | S0295 Phase 02 Step 02.2: immutable launch-args parsing helper extracted from DiagnosticXrActivity inline [branch: DEBUG-v008] |
+| 2026-05-25 22:51:18 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `spec-all` | S0295 Phase 02 Steps 02.3+02.4: ContentResolver path for FILE_URI, NotYetSupported short-circuit for VIDEO/GIF, split exit via deliveryMode (ACTIVITY_RESULT vs LEGACY_PANEL_RETURN), render-thread natural exit emits CompletedNormally [branch: DEBUG-v008] |
+| 2026-05-25 22:52:41 | `PLAN/S0295_vr-generic-immerse-playback-contract.md` | `spec-check` | Audit S0295 -> Verified (14 PASS / 0 WARN / 0 FAIL); all 5 phases done, builds PASS standard+noLegal; debug tags removed: 0 [branch: DEBUG-v008] |
+| 2026-05-25 22:54:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_05__validation-cleanup.md` | `S0295 phase 05` | Record validation cleanup gates [branch: DEBUG-v008] |
+| 2026-05-25 22:54:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 index` | Record completion gate build and catalog checks [branch: DEBUG-v008] |
+| 2026-05-25 22:54:24 | `app_v2/build.gradle.kts` | `debug build version` | Version updated by S0295 standard and noLegal debug build gates [branch: DEBUG-v008] |
+| 2026-05-25 22:55:11 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 1 Verified (S0295); 6 skip-cached (S0240 tier-5, S0294 owner-design, S0292 owner-design, S0174 blocker-not-verified, S0046 mid-phase, S0082 manual-verify); S0140/S0290/S0291 still cached from prior session [branch: DEBUG-v008] |
+| 2026-05-25 22:56:24 | `PLAN/S0295_vr-generic-immerse-playback-contract.md` | `spec-check` | Audit S0295 -> Verified; PASS/WARN/FAIL 17/0/0 [branch: DEBUG-v008] |
+| 2026-05-25 22:56:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/PHASE_05__validation-cleanup.md` | `S0295 phase 05` | Record spec-check completion [branch: DEBUG-v008] |
+| 2026-05-25 22:56:24 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 index` | Close completion gate after Verified audit [branch: DEBUG-v008] |
+| 2026-05-25 22:56:30 | `PLAN/spec_vr_test_colosseum_sample_url_dead.md` | `spec_vr_test_colosseum_sample_url_dead` | Archive obsolete standalone VR dead URL note after S0291 absorbed the fix [branch: DEBUG-v008] |
+| 2026-05-25 22:57:35 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrEntryGatewayImpl.kt` | `XrEntryGatewayImpl` | Keep NEW_TASK flag only on legacy VR panel-return launches [branch: DEBUG-v008] |
+| 2026-05-25 22:59:31 | `app_v2/build.gradle.kts` | `debug build version` | Version updated by final noLegal debug rebuild gate [branch: DEBUG-v008] |
+| 2026-05-25 22:59:53 | `PLAN/S0296_vr-immerse-video-playback.md` | `S0296` | Created strategic spec S0296 vr-immerse-video-playback (Draft, prio 80, tier 3) covering S0240 §10.3 next step after S0295: ExoPlayer-in-XR with CINEMA quad layer baseline, mono-flat video focus, per-format and auto-detect deferred to follow-up tickets [branch: DEBUG-v008] |
+| 2026-05-25 22:59:53 | `PLAN/S0297_nolegal-vr-capability-research.md` | `S0297` | Created research-only strategic spec S0297 nolegal-vr-capability-research (Draft, prio 55, tier 3): 12-candidate matrix with A/B/C recommendations for noLegal-only VR additions (out-of-legal-field), first-wave A1 yt-dlp VR-extraction + A2 PaddleOCR subtitles, defers DRM-bypass / passthrough capture / Whisper / experimental OpenXR loaders [branch: DEBUG-v008] |
+| 2026-05-25 23:04:58 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrPlaybackActivityContract.kt` | `S0295` | Preserve InvalidUri in the VR activity contract fallback path [branch: DEBUG-v008] |
+| 2026-05-25 23:05:44 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/VrPlaybackActivityContractTest.kt` | `S0295` | Add focused unit tests for VR launch unavailable mapping [branch: DEBUG-v008] |
+| 2026-05-25 23:10:49 | `app_v2/src/test/java/com/sza/fastmediasorter/data/cloud/GoogleDriveTokenRefreshTest.kt` | `test-fix` | Pass browserAuthManager to GoogleDriveRestClient test setup [branch: DEBUG-v008] |
+| 2026-05-25 23:11:36 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/VrPlaybackActivityContractTest.kt` | `S0295` | Pin VR contract Robolectric test to SDK 34 [branch: DEBUG-v008] |
+| 2026-05-25 23:19:10 | `PLAN/S0296_vr-immerse-video-playback.md` | `spec-update` | Research-backed refinement proposals for VR immersive video playback [branch: DEBUG-v008] |
+| 2026-05-25 23:24:51 | `PLAN/S0297_nolegal-vr-capability-research/RESEARCH.md` | `S0297` | Populated S0297 research artefact with detailed per-candidate blocks (A1 yt-dlp VR / A2 PaddleOCR subtitles / B1 adult-VR catalog / B2 libVLC codec pack / B3 VR APK classifier). Findings: YouTube VR180 anonymous extraction broken upstream (yt-dlp #14413); no Quest VR-player ships real-time subtitle OCR (A2 differentiation); Media3 FFmpeg is audio-only and FFmpegKit archived (libVLC AAR only viable for B2). Recommended order B3 -> A2 -> A1 -> B1.3. [branch: DEBUG-v008] |
+| 2026-05-25 23:24:51 | `PLAN/S0297_nolegal-vr-capability-research.md` | `S0297` | Strategic spec Last Audit updated with research-artefact completion summary; surprise facts surfaced (YouTube VR180 upstream broken, A2 has zero direct competitor on Quest, libVLC AAR sole viable B2 path). [branch: DEBUG-v008] |
+| 2026-05-25 23:42:39 | `PLAN/S0297_nolegal-vr-capability-research/DECISION_BRIEF.md` | `S0297` | Added owner decision brief: seven checkbox-style decisions (first-wave order / A1 variant / B1 scope / B2 stack / C-list retention / S0156 relationship / SpatialMetadataInjector shared primitive) with recommended defaults and post-decision mechanical next steps for impl-ticket allocation [branch: DEBUG-v008] |
+| 2026-05-25 23:52:19 | `PLAN/S0296_vr-immerse-video-playback.md` | `spec` | Finish S0296 strategic spec and approve researched VR video baseline [branch: DEBUG-v008] |
+| 2026-05-25 23:54:52 | `PLAN/S0297_nolegal-vr-capability-research.md` | `S0297` | Owner-decision recorded: composite default chosen 2026-05-25 (all D-1..D-7 set to recommended); §3.3 Owner inputs section added; status transitioned Draft -> Approved [branch: DEBUG-v008] |
+| 2026-05-25 23:54:52 | `PLAN/S0297_nolegal-vr-capability-research/DECISION_BRIEF.md` | `S0297` | Owner ticked recommended options on all 7 decision blocks (D-1.a / D-2.a / D-3.a / D-4.a / D-5.a / D-6.a / D-7.a) [branch: DEBUG-v008] |
+| 2026-05-25 23:54:52 | `PLAN/S0298_vr-companion-apk-badge.md` | `S0298` | Created strategic spec S0298 vr-companion-apk-badge (Draft, prio 70, tier 3): first-wave D-1.a impl ticket from S0297 — adds visual VR badge on .apk tiles in noLegal Browse via PackageManager.getPackageArchiveInfo(GET_META_DATA \| GET_CONFIGURATIONS), B3.2 variant without AXML walk, cache by (path, size, mtime), lazy on-viewport classification, flavor-isolated to src/noLegal/ [branch: DEBUG-v008] |
+| 2026-05-26 00:05:07 | `PLAN/S0296_vr-immerse-video-playback/INDEX.md` | `spec-tech` | Create S0296 tactical index [branch: DEBUG-v008] |
+| 2026-05-26 00:05:07 | `PLAN/S0296_vr-immerse-video-playback/PHASE_01__return-snapshot-contract.md` | `spec-tech` | Create S0296 phase 01 return snapshot contract [branch: DEBUG-v008] |
+| 2026-05-26 00:05:07 | `PLAN/S0296_vr-immerse-video-playback/PHASE_02__video-launch-gates.md` | `spec-tech` | Create S0296 phase 02 video launch gates [branch: DEBUG-v008] |
+| 2026-05-26 00:05:08 | `PLAN/S0296_vr-immerse-video-playback/PHASE_03__xr-owned-playback.md` | `spec-tech` | Create S0296 phase 03 XR-owned playback [branch: DEBUG-v008] |
+| 2026-05-26 00:05:08 | `PLAN/S0296_vr-immerse-video-playback/PHASE_04__flat-return-restore.md` | `spec-tech` | Create S0296 phase 04 flat return restore [branch: DEBUG-v008] |
+| 2026-05-26 00:05:08 | `PLAN/S0296_vr-immerse-video-playback/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Create S0296 phase 05 docs catalog cleanup [branch: DEBUG-v008] |
+| 2026-05-26 00:05:08 | `PLAN/S0296_vr-immerse-video-playback.md` | `spec-tech` | Advance S0296 to Tactical [branch: DEBUG-v008] |
+| 2026-05-26 00:10:03 | `PLAN/S0298_vr-companion-apk-badge.md` | `spec-tech` | Advance S0298 to Tactical and record UI clarification readiness [branch: DEBUG-v008] |
+| 2026-05-26 00:10:03 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `spec-tech` | Create tactical plan for S0298 [branch: DEBUG-v008] |
+| 2026-05-26 00:10:03 | `PLAN/S0298_vr-companion-apk-badge/PHASE_01__browse-hooks.md` | `spec-tech` | Add Phase 01 browse hook plan for S0298 [branch: DEBUG-v008] |
+| 2026-05-26 00:10:03 | `PLAN/S0298_vr-companion-apk-badge/PHASE_02__apk-classification.md` | `spec-tech` | Add Phase 02 classification plan for S0298 [branch: DEBUG-v008] |
+| 2026-05-26 00:10:03 | `PLAN/S0298_vr-companion-apk-badge/PHASE_03__nolegal-badge-ui.md` | `spec-tech` | Add Phase 03 UI plan for S0298 [branch: DEBUG-v008] |
+| 2026-05-26 00:10:03 | `PLAN/S0298_vr-companion-apk-badge/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Add Phase 04 cleanup plan for S0298 [branch: DEBUG-v008] |
+| 2026-05-26 00:10:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseApkTileBadgeBinder.kt` | `S0298 phase 01.1` | Add Browse APK tile badge binder contract [branch: DEBUG-v008] |
+| 2026-05-26 00:11:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/NoOpBrowseApkTileBadgeBinder.kt` | `S0298 phase 01.1` | Add no-op Browse APK tile badge binder [branch: DEBUG-v008] |
+| 2026-05-26 00:12:31 | `app_v2/src/main/java/com/sza/fastmediasorter/di/BrowseApkTileBadgeModule.kt` | `S0298 phase 01.1` | Bind default Browse APK tile badge binder [branch: DEBUG-v008] |
+| 2026-05-26 00:13:19 | `app_v2/src/main/res/values/ids.xml` | `S0298 phase 01.1` | Add shared Browse APK badge view ids [branch: DEBUG-v008] |
+| 2026-05-26 00:14:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0298 phase 01.2` | Inject Browse APK tile badge binder into BrowseActivity [branch: DEBUG-v008] |
+| 2026-05-26 00:14:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0298 phase 01.2` | Thread Browse APK tile badge binder into manager initializer [branch: DEBUG-v008] |
+| 2026-05-26 00:15:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `S0298 phase 01.2` | Bind and clear Browse APK tile badges from MediaFileAdapter [branch: DEBUG-v008] |
+| 2026-05-26 00:17:15 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkClassification.kt` | `S0298 phase 02.1` | Add VR APK classification model [branch: DEBUG-v008] |
+| 2026-05-26 00:17:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkClassifier.kt` | `S0298 phase 02.1` | Add manifest-based VR APK classifier [branch: DEBUG-v008] |
+| 2026-05-26 00:19:56 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkArchiveResolver.kt` | `S0298 phase 02.2` | Add APK archive resolver for local network and cloud Browse paths [branch: DEBUG-v008] |
+| 2026-05-26 00:20:41 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkClassificationCache.kt` | `S0298 phase 02.2` | Add bounded VR APK classification cache [branch: DEBUG-v008] |
+| 2026-05-26 00:23:13 | `app_v2/src/noLegal/res/layout/item_media_file.xml` | `S0298 phase 03.1` | Add noLegal list tile VR badge layout override [branch: DEBUG-v008] |
+| 2026-05-26 00:23:13 | `app_v2/src/noLegal/res/layout/item_media_file_grid.xml` | `S0298 phase 03.1` | Add noLegal grid tile VR badge layout override [branch: DEBUG-v008] |
+| 2026-05-26 00:23:13 | `app_v2/src/noLegal/res/values/strings_s0298.xml` | `S0298 phase 03.1` | Add EN accessibility string for VR APK badge [branch: DEBUG-v008] |
+| 2026-05-26 00:23:14 | `app_v2/src/noLegal/res/values-ru/strings_s0298.xml` | `S0298 phase 03.1` | Add RU accessibility string for VR APK badge [branch: DEBUG-v008] |
+| 2026-05-26 00:23:15 | `app_v2/src/noLegal/res/values-uk/strings_s0298.xml` | `S0298 phase 03.1` | Add UK accessibility string for VR APK badge [branch: DEBUG-v008] |
+| 2026-05-26 00:23:58 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/NoLegalBrowseApkTileBadgeBinder.kt` | `S0298 phase 03.2` | Bind VR APK badge state into noLegal Browse tiles [branch: DEBUG-v008] |
+| 2026-05-26 00:24:42 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/BrowseApkTileBadgeModule.kt` | `S0298 phase 03.2` | Override Browse APK tile badge binder in noLegal Hilt graph [branch: DEBUG-v008] |
+| 2026-05-27 00:25:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseApkTileBadgeBinder.kt` | `app_v2 main Browse badge hook` | Add Browse APK tile badge binder contract [branch: DEBUG-v008] |
+| 2026-05-27 00:25:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/NoOpBrowseApkTileBadgeBinder.kt` | `app_v2 main Browse badge hook` | Add no-op Browse APK tile badge binder [branch: DEBUG-v008] |
+| 2026-05-27 00:26:39 | `app_v2/src/main/java/com/sza/fastmediasorter/di/BrowseApkTileBadgeModule.kt` | `app_v2 main Hilt binding` | Bind default Browse APK tile badge binder [branch: DEBUG-v008] |
+| 2026-05-27 00:26:57 | `PLAN/S0297_nolegal-vr-capability-research/RESEARCH.md` | `S0297` | Refine S0297 research artifact wording and proposals [branch: DEBUG-v008] |
+| 2026-05-27 00:26:57 | `PLAN/S0297_nolegal-vr-capability-research.md` | `S0297` | Record S0297 spec-update structural proposal [branch: DEBUG-v008] |
+| 2026-05-27 00:27:10 | `PLAN/S0297_nolegal-vr-capability-research.md` | `S0297` | Remove S0297 forbidden ellipsis placeholder [branch: DEBUG-v008] |
+| 2026-05-27 00:27:34 | `app_v2/src/main/res/values/ids.xml` | `app_v2 shared badge IDs` | Add shared Browse APK VR badge view IDs [branch: DEBUG-v008] |
+| 2026-05-27 00:31:48 | `PLAN/S0298_vr-companion-apk-badge/PHASE_01__browse-hooks.md` | `S0298 tactical tracking` | Mark Phase 01 Browse hooks complete [branch: DEBUG-v008] |
+| 2026-05-27 00:31:49 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Update Phase 01 status and counters [branch: DEBUG-v008] |
+| 2026-05-27 00:35:19 | `PLAN/S0298_vr-companion-apk-badge/PHASE_02__apk-classification.md` | `S0298 tactical tracking` | Mark Phase 02 APK classification complete [branch: DEBUG-v008] |
+| 2026-05-27 00:35:20 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Update Phase 02 status and counters [branch: DEBUG-v008] |
+| 2026-05-27 00:36:50 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/BrowseApkTileBadgeModule.kt` | `app_v2 noLegal Hilt binding` | Name noLegal Browse APK tile badge binder binding for S0298 tracking [branch: DEBUG-v008] |
+| 2026-05-27 00:39:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `app_v2 Browse adapter click helpers` | Restore local click helper functions used by Browse badge hook refactor [branch: DEBUG-v008] |
+| 2026-05-27 00:41:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `app_v2 Browse adapter click helpers` | Remove duplicate Browse adapter click helpers after S0298 build repair [branch: DEBUG-v008] |
+| 2026-05-27 00:44:50 | `PLAN/S0298_vr-companion-apk-badge/PHASE_03__nolegal-badge-ui.md` | `S0298 tactical tracking` | Mark Phase 03 noLegal badge UI complete [branch: DEBUG-v008] |
+| 2026-05-27 00:44:51 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Update Phase 03 status and counters [branch: DEBUG-v008] |
+| 2026-05-27 00:46:21 | `docs/FEATURES_noLegal.md` | `S0298 noLegal feature inventory` | Document VR companion APK badge in noLegal inventory [branch: DEBUG-v008] |
+| 2026-05-27 00:46:22 | `docs/FEATURES_noLegal_RU.md` | `S0298 noLegal feature inventory RU` | Document VR companion APK badge in Russian noLegal inventory [branch: DEBUG-v008] |
+| 2026-05-27 00:46:23 | `docs/FEATURES_noLegal_UK.md` | `S0298 noLegal feature inventory UK` | Document VR companion APK badge in Ukrainian noLegal inventory [branch: DEBUG-v008] |
+| 2026-05-27 00:48:23 | `PLAN/S0298_vr-companion-apk-badge.md` | `S0298 strategic spec` | Mark S0298 implemented [branch: DEBUG-v008] |
+| 2026-05-27 00:48:24 | `PLAN/S0298_vr-companion-apk-badge/PHASE_04__docs-catalog-cleanup.md` | `S0298 tactical tracking` | Mark Phase 04 docs and cleanup complete [branch: DEBUG-v008] |
+| 2026-05-27 00:48:24 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Mark S0298 tactical plan done [branch: DEBUG-v008] |
+| 2026-05-27 00:50:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `standard build syntax cleanup` | Remove orphan panel geometry log fragments left after Timber cleanup [branch: DEBUG-v008] |
+| 2026-05-27 00:51:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `standard build syntax cleanup` | Remove orphan touch debug log fragment left after Timber cleanup [branch: DEBUG-v008] |
+| 2026-05-27 00:51:46 | `dev/TEST_COVERAGE_AUDIT_TASK.md` | `test coverage audit` | Document whole-app test coverage audit task [branch: DEBUG-v008] |
+| 2026-05-27 00:52:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `standard build syntax cleanup` | Remove orphan text viewer log fragments left after Timber cleanup [branch: DEBUG-v008] |
+| 2026-05-27 00:54:17 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/IntentSerializationCompatTest.kt` | `XR launch tests` | Add serializable intent compatibility unit tests [branch: DEBUG-v008] |
+| 2026-05-27 00:54:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerFileOpsInitializer.kt` | `standard build syntax cleanup` | Fix player file ops imports and drained branch expression [branch: DEBUG-v008] |
+| 2026-05-27 00:55:18 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/VrLaunchContractTest.kt` | `XR launch tests` | Add VR launch contract unit tests [branch: DEBUG-v008] |
+| 2026-05-27 00:56:40 | `app_v2/src/testNoLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkClassificationCacheTest.kt` | `noLegal APK classification tests` | Add VR APK classification cache unit tests [branch: DEBUG-v008] |
+| 2026-05-27 01:00:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingGlideListeners.kt` | `image loading glide listeners` | Fix stale image loading helper imports [branch: DEBUG-v008] |
+| 2026-05-27 01:00:54 | `PLAN/S0298_vr-companion-apk-badge.md` | `spec-check` | Audit S0298 -> Verified [branch: DEBUG-v008] |
+| 2026-05-27 01:00:55 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Mark S0298 completion gate verified [branch: DEBUG-v008] |
+| 2026-05-27 01:03:33 | `PLAN/S0002_decompose-giant-files.md` | `app_v2` | S0002 Wave 53: drove 12/16 hard-limit-zone Kotlin files <= 1000 LOC via mass KDoc collapse + helper extractions (StandaloneLaunchDebugLogger, MainEventHandler, EpubWebViewLifecycle, PlayerFileOpsInitializer, GoogleDriveMultipartUploader, ImageLoadingGlideListeners). 4 large files (TextViewer, PdfViewer, PlayerActivity, CommandPanelController) remain for Wave 54. [branch: DEBUG-v008] |
+| 2026-05-27 01:39:41 | `PLAN/S0002_decompose-giant-files.md` | `app_v2` | S0002 Wave 53 COMPLETE: drove all 16 hard-limit-zone Kotlin files <= 1000 LOC via 15 helper extractions + mass mechanical compression. Status -> Verified. Build standardDebug PASS. Helpers: StandaloneLaunchDebugLogger, MainEventHandler, EpubWebViewLifecycle, PlayerFileOpsInitializer, GoogleDriveMultipartUploader, ImageLoadingGlideListeners, CommandPanelAvailabilityUpdater, PdfTranslationCoordinator, PdfThumbnailSheet, PlayerInputDispatcher, PlayerActivityLifecycleBridge, TextEditorActionPanelCallbacks, TextViewerGestureDetectors, TextViewerLoader, TextEditorModeController. [branch: DEBUG-v008] |
+| 2026-05-28 00:08:51 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/ApplyWearSettingsUseCaseTest.kt` | `Wear settings tests` | Add Wear settings apply use case unit test [branch: DEBUG-v008] |
+| 2026-05-28 00:08:56 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/model/WearEventEnvelopeTest.kt` | `Wear event envelope tests` | Add Wear event envelope equality unit tests [branch: DEBUG-v008] |
+| 2026-05-28 00:08:59 | `wear/src/test/java/com/sza/fastmediasorter/wear/data/network/itunes/ITunesTrackTest.kt` | `Wear iTunes artwork tests` | Add iTunes artwork URL mapping unit tests [branch: DEBUG-v008] |
+| 2026-05-28 00:10:11 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/ImportNetworkSourcesUseCaseTest.kt` | `Wear import source tests` | Update fake repository for observeSources contract [branch: DEBUG-v008] |
+| 2026-05-28 00:10:52 | `dev/TEST_COVERAGE_AUDIT_TASK.md` | `test coverage audit` | Record completed test slices and coverage baseline limitation [branch: DEBUG-v008] |
+| 2026-05-28 00:11:16 | `wear/src/test/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpConnectionTestTest.kt` | `Wear FTP connection tests` | Add FTP connection stub contract unit test [branch: DEBUG-v008] |
+| 2026-05-28 00:11:19 | `wear/src/test/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpConnectionTestTest.kt` | `Wear SFTP connection tests` | Add SFTP connection stub contract unit test [branch: DEBUG-v008] |
+| 2026-05-28 00:11:54 | `dev/TEST_COVERAGE_AUDIT_TASK.md` | `test coverage audit` | Record Wear FTP and SFTP test slice [branch: DEBUG-v008] |
+| 2026-05-28 23:38:03 | `PLAN/S0299_office-document-viewing-legal-routing.md` | `spec` | Add strategic spec S0299 for office document viewing legal routing [branch: DEBUG-v008] |
+| 2026-05-29 00:00:28 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-tech` | Create tactical plan for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:00:29 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-tech` | Phase 01: classification [branch: DEBUG-v008] |
+| 2026-05-29 00:00:29 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-tech` | Phase 02: external handoff [branch: DEBUG-v008] |
+| 2026-05-29 00:00:29 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs catalog cleanup [branch: DEBUG-v008] |
+| 2026-05-29 00:00:29 | `PLAN/S0299_office-document-viewing-legal-routing.md` | `spec-tech` | Status to Tactical for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:00:31 | `PLAN/S0300_domain-data-unit-tests.md` | `spec` | Add strategic spec S0300 for domain+data unit test coverage (ad-hoc) [branch: DEBUG-v008] |
+| 2026-05-29 00:01:04 | `PLAN/S0299_office-document-viewing-legal-routing.md` | `spec-dev` | Status to In Progress for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:01:04 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Start Phase 01 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:01:04 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | Start Step 01.1 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:02:04 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `MediaType` | Add Office document media type [branch: DEBUG-v008] |
+| 2026-05-29 00:02:04 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MediaExtensions.kt` | `MediaExtensions` | Classify Office document extensions [branch: DEBUG-v008] |
+| 2026-05-29 00:02:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/common/MediaTypeUtils.kt` | `MediaTypeUtils` | Map Office document extensions and MIME types [branch: DEBUG-v008] |
+| 2026-05-29 00:02:05 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | Complete Step 01.1 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:02:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceEntity.kt` | `ResourceEntity` | Document resource flags include Office documents [branch: DEBUG-v008] |
+| 2026-05-29 00:02:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `ResourceRepositoryImpl` | Persist Office document media type flag [branch: DEBUG-v008] |
+| 2026-05-29 00:02:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Enable Office documents with document settings [branch: DEBUG-v008] |
+| 2026-05-29 00:02:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/ResourceFormData.kt` | `ResourceFormData` | Include Office documents in document profile [branch: DEBUG-v008] |
+| 2026-05-29 00:02:48 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | Complete Step 01.2 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/FileTypeFilter.kt` | `FileTypeFlags` | Document masks include Office documents [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Include Office documents in default document resource [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDownloadsDestinationUseCase.kt` | `ProvisionDownloadsDestinationUseCase` | Include Office documents in downloads destination types [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ScanLocalFoldersUseCase.kt` | `ScanLocalFoldersUseCase` | Include Office documents in virtual document resource [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExecuteScheduledOperationUseCase.kt` | `ExecuteScheduledOperationUseCase` | Include Office documents in scheduled document operations [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GetMediaFilesUseCase.kt` | `GetMediaFilesUseCase` | Allow Office document filtering for document-enabled flavors [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `LocalMediaScanner` | Include Office documents in document scans [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/MediaStoreRepositoryImpl.kt` | `MediaStoreRepositoryImpl` | Select Office documents from MediaStore [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt` | `FtpMediaScanner` | Treat Office documents as unbounded document files [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `SftpMediaScanner` | Treat Office documents as unbounded document files [branch: DEBUG-v008] |
+| 2026-05-29 00:05:23 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | Complete Step 01.3 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:06:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader` | Render Office document extension thumbnails [branch: DEBUG-v008] |
+| 2026-05-29 00:06:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/PagingMediaFileAdapter.kt` | `PagingMediaFileAdapter` | Render Office document extension placeholders [branch: DEBUG-v008] |
+| 2026-05-29 00:06:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `ResourceAdapter` | Include Office documents in document resource indicators [branch: DEBUG-v008] |
+| 2026-05-29 00:06:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/FilterResourceDialog.kt` | `FilterResourceDialog` | Add Office document media filter chip [branch: DEBUG-v008] |
+| 2026-05-29 00:06:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MediaGroupPalette.kt` | `MediaGroupPalette` | Color Office documents as documents [branch: DEBUG-v008] |
+| 2026-05-29 00:06:12 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | Complete Step 01.4 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:08:59 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt` | `MediaMetadataHelper` | Handle Office document metadata fallback [branch: DEBUG-v008] |
+| 2026-05-29 00:08:59 | `app_v2/src/main/java/com/sza/fastmediasorter/util/ThumbnailColorMapper.kt` | `ThumbnailColorMapper` | Color Office documents as documents [branch: DEBUG-v008] |
+| 2026-05-29 00:08:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoLaunchManager.kt` | `FileInfoLaunchManager` | Resolve Office document MIME for external open [branch: DEBUG-v008] |
+| 2026-05-29 00:13:18 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Complete Phase 01 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:13:18 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | Phase 01 done for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:13:30 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Start Phase 02 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:13:30 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Start Step 02.1 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:14:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentOpenManager.kt` | `OfficeDocumentOpenManager` | Add external Office document opener [branch: DEBUG-v008] |
+| 2026-05-29 00:14:17 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Complete Step 02.1 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:15:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt` | `MediaDisplayCoordinator` | Route Office documents to external handoff callback [branch: DEBUG-v008] |
+| 2026-05-29 00:15:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt` | `PlayerUiStateCoordinator` | Add Office document display callback path [branch: DEBUG-v008] |
+| 2026-05-29 00:15:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerUiStateCoordinatorCallbackImpl.kt` | `PlayerUiStateCoordinatorCallbackImpl` | Open Office documents through PlayerShareManager [branch: DEBUG-v008] |
+| 2026-05-29 00:15:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `PlayerShareManager` | Prepare and launch Office documents externally [branch: DEBUG-v008] |
+| 2026-05-29 00:15:25 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Complete Step 02.2 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:16:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Redirect standalone Office documents to external viewer [branch: DEBUG-v008] |
+| 2026-05-29 00:16:16 | `app_v2/src/main/AndroidManifest.xml` | `StandaloneDocsPlayer` | Add Office document MIME intent filters [branch: DEBUG-v008] |
+| 2026-05-29 00:16:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `DefaultPlayerHelper` | Probe DOCX default document association [branch: DEBUG-v008] |
+| 2026-05-29 00:16:16 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Complete Step 02.3 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:16:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseBinaryFileHandler.kt` | `BrowseBinaryFileHandler` | Resolve Office document MIME for secondary open actions [branch: DEBUG-v008] |
+| 2026-05-29 00:16:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoLaunchManager.kt` | `FileInfoLaunchManager` | Use Office document MIME for file info open action [branch: DEBUG-v008] |
+| 2026-05-29 00:16:42 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Complete Step 02.4 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:20:15 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Complete Phase 02 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:20:15 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Phase 02 done for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `docs/FEATURES.md` | `features` | Document Office handoff feature [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `docs/FEATURES_RU.md` | `features` | Document Office handoff feature RU [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `docs/FEATURES_UK.md` | `features` | Document Office handoff feature UK [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Start Phase 03 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Complete Step 03.1 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:22:31 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Complete Step 03.2 for S0299 [branch: DEBUG-v008] |
+| 2026-05-29 00:27:43 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | S0299 phase 03 build verification recorded [branch: DEBUG-v008] |
+| 2026-05-29 00:28:21 | `PLAN/S0299_office-document-viewing-legal-routing.md` | `spec-dev` | S0299 implementation status set to Implemented [branch: DEBUG-v008] |
+| 2026-05-29 00:29:22 | `dev/FUNCTIONALITY.log` | `functionality-log` | Record S0299 Office document handoff feature [branch: DEBUG-v008] |
+| 2026-05-29 00:29:36 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | S0299 phase 03 prerequisite and line budget synchronized [branch: DEBUG-v008] |
+| 2026-05-29 00:29:36 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | S0299 phase 02 prerequisite state synchronized [branch: DEBUG-v008] |
+| 2026-05-29 00:31:02 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_01__classification.md` | `spec-dev` | S0299 phase 01 line budgets synchronized [branch: DEBUG-v008] |
+| 2026-05-29 00:31:02 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | S0299 phase 02 line budget synchronized [branch: DEBUG-v008] |
+| 2026-05-29 00:31:03 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | S0299 phase 03 line budgets synchronized [branch: DEBUG-v008] |
+| 2026-05-29 00:32:50 | `PLAN/S0299_office-document-viewing-legal-routing.md` | `spec-check` | Audit S0299 -> Verified; PASS/WARN/FAIL 22/0/0 [branch: DEBUG-v008] |
+| 2026-05-29 00:32:50 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-check` | Close S0299 tactical plan as Done [branch: DEBUG-v008] |
+| 2026-05-29 00:32:51 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-check` | Complete S0299 phase 03 after audit [branch: DEBUG-v008] |
+| 2026-05-29 00:32:51 | `PLAN/spec-catalog.jsonl` | `spec-check` | Close S0299 as Verified [branch: DEBUG-v008] |
+| 2026-05-29 00:38:19 | `PLAN/S0300_domain-data-unit-tests/INDEX.md` | `spec-tech` | Create tactical plan for S0300 [branch: DEBUG-v008] |
+| 2026-05-29 00:38:19 | `PLAN/S0300_domain-data-unit-tests/PHASE_01__test-foundations.md` | `spec-tech` | Phase 01: test-foundations [branch: DEBUG-v008] |
+| 2026-05-29 00:38:19 | `PLAN/S0300_domain-data-unit-tests/PHASE_02__domain-usecases.md` | `spec-tech` | Phase 02: domain-usecases [branch: DEBUG-v008] |
+| 2026-05-29 00:38:19 | `PLAN/S0300_domain-data-unit-tests/PHASE_03__domain-models-strategies.md` | `spec-tech` | Phase 03: domain-models-strategies [branch: DEBUG-v008] |
+| 2026-05-29 00:38:20 | `PLAN/S0300_domain-data-unit-tests/PHASE_04__data-repositories-local.md` | `spec-tech` | Phase 04: data-repositories-local [branch: DEBUG-v008] |
+| 2026-05-29 00:38:20 | `PLAN/S0300_domain-data-unit-tests/PHASE_05__data-network-remote.md` | `spec-tech` | Phase 05: data-network-remote [branch: DEBUG-v008] |
+| 2026-05-29 00:38:20 | `PLAN/S0300_domain-data-unit-tests/PHASE_06__data-transfer-link-cloud.md` | `spec-tech` | Phase 06: data-transfer-link-cloud [branch: DEBUG-v008] |
+| 2026-05-29 00:38:21 | `PLAN/S0300_domain-data-unit-tests/PHASE_07__flavor-data-logic.md` | `spec-tech` | Phase 07: flavor-data-logic [branch: DEBUG-v008] |
+| 2026-05-29 00:38:21 | `PLAN/S0300_domain-data-unit-tests/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-29 00:38:21 | `PLAN/S0300_domain-data-unit-tests.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v008] |
+| 2026-05-29 00:53:17 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/MainDispatcherRule.kt` | `spec-dev` | S0300 P01.1: add MainDispatcherRule test harness [branch: DEBUG-v008] |
+| 2026-05-29 00:57:22 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec` | Add strategic draft S0301 for noLegal Office embedded renderer follow-up [branch: DEBUG-v008] |
+| 2026-05-29 00:57:52 | `PLAN/S0300_domain-data-unit-tests/COVERAGE_INVENTORY.md` | `spec-dev` | S0300 P01.5: coverage inventory (382 in-scope of 593 domain+data classes) [branch: DEBUG-v008] |
+| 2026-05-29 01:01:03 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/DomainModelFactories.kt` | `spec-dev` | S0300 P01.2: domain model test factories [branch: DEBUG-v008] |
+| 2026-05-29 01:01:03 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeResourceRepository.kt` | `spec-dev` | S0300 P01.3: FakeResourceRepository [branch: DEBUG-v008] |
+| 2026-05-29 01:01:04 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeSettingsRepository.kt` | `spec-dev` | S0300 P01.3: FakeSettingsRepository [branch: DEBUG-v008] |
+| 2026-05-29 01:01:04 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeFavoritesRepository.kt` | `spec-dev` | S0300 P01.3: FakeFavoritesRepository [branch: DEBUG-v008] |
+| 2026-05-29 01:01:04 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeScheduledOperationRepository.kt` | `spec-dev` | S0300 P01.3: FakeScheduledOperationRepository [branch: DEBUG-v008] |
+| 2026-05-29 01:01:04 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/InMemoryRoomHelper.kt` | `spec-dev` | S0300 P01.4: in-memory Room helper [branch: DEBUG-v008] |
+| 2026-05-29 01:02:57 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec-update` | Refine S0301 with PDF EPUB style viewer parity and read-only action scope [branch: DEBUG-v008] |
+| 2026-05-29 01:11:00 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec-update` | Refine S0301 with owner decisions for scope fallback links and runtime budget [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `spec-tech` | Create tactical plan for S0301 [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_01__family-catalog.md` | `spec-tech` | Phase 01: family-catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_02__viewer-boundary.md` | `spec-tech` | Phase 02: viewer-boundary [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_03__word-family-viewer.md` | `spec-tech` | Phase 03: word-family-viewer [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_04__sheet-slide-viewer.md` | `spec-tech` | Phase 04: sheet-slide-viewer [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_05__action-parity-fallbacks.md` | `spec-tech` | Phase 05: action-parity-fallbacks [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-29 01:22:55 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec-tech` | Status -> Tactical and tactical plan authored for S0301 [branch: DEBUG-v008] |
+| 2026-05-29 01:26:20 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec-update` | Close engine-family blocker with JVM/WebView recommendation for S0301 [branch: DEBUG-v008] |
+| 2026-05-29 01:26:20 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `spec-update` | Mark engine-related blockers resolved for S0301 [branch: DEBUG-v008] |
+| 2026-05-29 01:44:21 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec-update` | Resolve remote lifecycle and docs wording blockers for S0301 [branch: DEBUG-v008] |
+| 2026-05-29 01:44:21 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `spec-update` | Mark remaining pre-implementation blockers resolved for S0301 [branch: DEBUG-v008] |
+| 2026-05-29 01:44:21 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_01__family-catalog.md` | `spec-update` | Make S0301 Phase 01 family and MIME contract concrete [branch: DEBUG-v008] |
+| 2026-05-29 01:46:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamily.kt` | `S0301 Phase 01 Step 01.1` | Add shared Office document family model [branch: DEBUG-v008] |
+| 2026-05-29 01:47:12 | `app_v2/src/standard/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 Step 01.1` | Add standard Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:48:13 | `app_v2/src/legacy/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 Step 01.1` | Add legacy Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:49:15 | `app_v2/src/vr/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 Step 01.1` | Add VR Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:50:15 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 Step 01.1` | Add noLegal Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:51:12 | `app_v2/src/photos/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 Step 01.1` | Add photos Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:51:13 | `app_v2/src/lite/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 Step 01.1` | Add lite Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:54:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/common/MediaTypeUtils.kt` | `S0301 Phase 01 Step 01.2` | Route Office media type detection through flavor catalogs [branch: DEBUG-v008] |
+| 2026-05-29 01:55:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/MediaStoreRepositoryImpl.kt` | `S0301 Phase 01 Step 01.2` | Build Office MediaStore selection from flavor catalog [branch: DEBUG-v008] |
+| 2026-05-29 01:56:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `S0301 Phase 01 Step 01.2` | Probe default-player Office MIME types through flavor catalog [branch: DEBUG-v008] |
+| 2026-05-29 02:04:08 | `app_v2/src/vr/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 build repair` | Remove VR catalog from source set inherited by noLegal [branch: DEBUG-v008] |
+| 2026-05-29 02:04:08 | `app_v2/src/vrOnly/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt` | `S0301 Phase 01 build repair` | Add VR-only Office family catalog [branch: DEBUG-v008] |
+| 2026-05-29 02:04:08 | `app_v2/build.gradle.kts` | `S0301 Phase 01 build repair` | Mount vrOnly source set for vr flavor [branch: DEBUG-v008] |
+| 2026-05-29 02:06:27 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `S0301 Phase 01` | Mark family-catalog phase complete [branch: DEBUG-v008] |
+| 2026-05-29 02:06:27 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_01__family-catalog.md` | `S0301 Phase 01` | Record completed phase checks and noLegal build pass [branch: DEBUG-v008] |
+| 2026-05-29 02:07:14 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `S0301 BlockQuestions` | Block before Phase 02 pending UI placement decisions [branch: DEBUG-v008] |
+| 2026-05-29 02:07:14 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `S0301 BlockQuestions` | Mark Phase 02 blocked pending UI placement decisions [branch: DEBUG-v008] |
+| 2026-05-29 03:14:21 | `PLAN/S0300_domain-data-unit-tests/PHASE_02__domain-usecases.md` | `spec-dev` | S0300 Phase 02 done: 56 domain usecase/core unit-test classes (~338 methods), all green [branch: DEBUG-v008] |
+| 2026-05-29 03:39:15 | `PLAN/S0300_domain-data-unit-tests/PHASE_03__domain-models-strategies.md` | `spec-dev` | S0300 Phase 03 done: 26 domain model/strategy/identity/input/ocr/transfer unit-test classes (154 methods), all green [branch: DEBUG-v008] |
+| 2026-05-29 04:34:32 | `PLAN/S0300_domain-data-unit-tests/PHASE_04__data-repositories-local.md` | `spec-dev` | S0300 Phase 04 done: 18 data repository/local unit-test classes (163 methods), all green [branch: DEBUG-v008] |
+| 2026-05-29 05:34:53 | `PLAN/S0300_domain-data-unit-tests/PHASE_05__data-network-remote.md` | `spec-dev` | S0300 Phase 05 done: 41 data network/remote unit-test classes (295 methods), all green [branch: DEBUG-v008] |
+| 2026-05-29 06:27:41 | `PLAN/S0300_domain-data-unit-tests/PHASE_06__data-transfer-link-cloud.md` | `spec-dev` | S0300 Phase 06 done: 27 data transfer/link/cloud unit-test classes (214 methods), all green [branch: DEBUG-v008] |
+| 2026-05-29 06:56:56 | `PLAN/S0300_domain-data-unit-tests/PHASE_07__flavor-data-logic.md` | `spec-dev` | S0300 Phase 07 done: 9 noLegal flavor unit-test classes (93 methods) in testNoLegal, all green [branch: DEBUG-v008] |
+| 2026-05-29 06:59:13 | `PLAN/S0300_domain-data-unit-tests/COVERAGE_INVENTORY.md` | `spec-dev` | S0300 P08.1: finalize coverage inventory - all in-scope rows resolved [branch: DEBUG-v008] |
+| 2026-05-29 06:59:14 | `PLAN/S0300_domain-data-unit-tests/PHASE_08__docs-catalog-cleanup.md` | `spec-dev` | S0300 Phase 08: docs/catalog cleanup [branch: DEBUG-v008] |
+| 2026-05-29 07:00:50 | `PLAN/S0300_domain-data-unit-tests.md` | `spec-dev` | S0300 all 8 phases done; status -> Implemented (domain+data unit coverage, ~1260 test methods) [branch: DEBUG-v008] |
+| 2026-05-29 07:02:05 | `PLAN/S0300_domain-data-unit-tests.md` | `spec-check` | Audit S0300 -> Verified; PASS/WARN/FAIL 7/0/0; 0 debug tags [branch: DEBUG-v008] |
+| 2026-05-30 00:49:32 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `spec-update` | Apply S0301 UI clarification answers [branch: DEBUG-v008] |
+| 2026-05-30 00:49:32 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `spec-update` | Record S0301 UI clarification readiness [branch: DEBUG-v008] |
+| 2026-05-30 00:49:33 | `PLAN/S0301_nolegal-office-document-embedded-renderer/PHASE_02__viewer-boundary.md` | `spec-update` | Document S0301 Phase 02 approved UI decisions [branch: DEBUG-v008] |
+| 2026-05-30 01:01:42 | `PLAN/S0300_domain-data-unit-tests.md` | `spec-check` | Re-audit S0300 -> Verified; static checks 10/0/0 PASS/WARN/FAIL, no debug tags, inventory clean [branch: DEBUG-v008] |
+| 2026-05-30 01:11:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProvider.kt` | `S0301 Phase 02` | Add flavor-safe Office viewer provider contract + ExternalOfficeDocumentViewerProvider (S0299 delegation) [branch: DEBUG-v008] |
+| 2026-05-30 01:11:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerSession.kt` | `S0301 Phase 02` | Add OfficeDocumentViewerSession + OfficeDocumentViewerOutcome (display/fallback/delegate) [branch: DEBUG-v008] |
+| 2026-05-30 01:11:18 | `app_v2/src/{standard,legacy,vrOnly,noLegal,photos,lite}/java/.../OfficeDocumentViewerProviderFactory.kt` | `S0301 Phase 02` | Add 6 per-flavor OfficeDocumentViewerProviderFactory peers (vrOnly not vr to avoid noLegal duplicate) [branch: DEBUG-v008] |
+| 2026-05-30 01:11:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt;PlayerActivity.kt;callbacks/PlayerUiStateCoordinatorCallbackImpl.kt;helpers/PlayerShareManager.kt;helpers/StandaloneViewManager.kt` | `S0301 Phase 02` | Route Player + Standalone Office handling through provider seam; conditional finish() on DELEGATE_EXTERNAL [branch: DEBUG-v008] |
+| 2026-05-30 01:11:18 | `app_v2/src/main/res/layout{,-land}/activity_player_unified.xml` | `S0301 Phase 02` | Add neutral officeDocumentViewerContainer host slot in portrait and landscape [branch: DEBUG-v008] |
+| 2026-05-30 01:13:12 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md;INDEX.md;PHASE_02__viewer-boundary.md` | `S0301` | Phase 02 marked Done; status -> BlockExternal pending Office engine dependency pin (Phases 03-06) [branch: DEBUG-v008] |
+| 2026-05-30 01:15:51 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrLaunchContract.kt` | `PlayerStateSnapshot, VrLaunchInput` | added videoIsPlaying and videoVolume to snapshot, carried snapshot in launch input [branch: DEBUG-v008] |
+| 2026-05-30 01:15:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrLaunchArgs.kt` | `DiagnosticXrLaunchArgs.Parsed` | expose launch snapshot for immediate retrieval [branch: DEBUG-v008] |
+| 2026-05-30 01:15:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerVrLaunchManager.kt` | `PlayerVrLaunchManager.captureSnapshot` | capture current video play state and volume on launch [branch: DEBUG-v008] |
+| 2026-05-30 01:15:51 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/VrLaunchContractTest.kt` | `VrLaunchContractTest` | added JVM contract serialization unit test [branch: DEBUG-v008] |
+| 2026-05-30 01:19:58 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/StartVrPlaybackUseCaseImpl.kt` | `StartVrPlaybackUseCaseImpl.validateRequest` | allow local video URIs, reject GIFs and non-local schemes [branch: DEBUG-v008] |
+| 2026-05-30 01:19:58 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity.prepareLaunchMedia, resolveSingleLaunchFile` | route video launches to unresolved, keep content cache copy for image only [branch: DEBUG-v008] |
+| 2026-05-30 01:23:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity.startVideoPlayback` | apply launch snapshot, add Player.Listener, and return typed DecoderFailed [branch: DEBUG-v008] |
+| 2026-05-30 01:25:04 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `DiagnosticXrActivity.buildPlayerReturnTarget` | construct return snapshot before panel return [branch: DEBUG-v008] |
+| 2026-05-30 01:25:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerVrLaunchManager.kt` | `PlayerVrLaunchManager.applyPendingReturnIfReady` | restore flat player position, speed, and volume from return snapshot [branch: DEBUG-v008] |
+| 2026-05-30 01:52:41 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `spec-all` | S0291 round-10: re-queue filename HUD banner on session-ready for all media types so image items repaint on session re-entry [branch: DEBUG-v008] |
+| 2026-05-30 01:52:41 | `app_v2/src/vr/cpp/xr_session.cpp` | `spec-all` | S0291: remove stale BlockNeedUserTest debug probe; de-identify 180-mirror-fix comment [branch: DEBUG-v008] |
+| 2026-05-30 01:52:41 | `app_v2/src/vr/cpp/diagnostic_xr_runtime.cpp` | `spec-all` | S0291: remove stale initSession debug probe [branch: DEBUG-v008] |
+| 2026-05-30 01:52:41 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-all` | S0291 round-10: Phase 06 created, drift Last Audit, section 6.8/6.9 updated, P-1/P-2 applied [branch: DEBUG-v008] |
+| 2026-05-30 01:54:08 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_06__lifecycle-round10-exit-and-hud-rebind.md` | `spec-all` | S0291 Phase 06 tactical: HUD re-bind (done) + exit-handshake/passthrough (deferred) [branch: DEBUG-v008] |
+| 2026-05-30 01:54:08 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/INDEX.md` | `spec-all` | S0291 tactical INDEX reopened to In Progress 5/6 for round 10 [branch: DEBUG-v008] |
+| 2026-05-30 01:57:58 | `docs/FEATURES.md` | `S0296 features` | Align VR cinema video feature bullet [branch: DEBUG-v008] |
+| 2026-05-30 01:57:59 | `docs/FEATURES_RU.md` | `S0296 features` | Align Russian VR cinema video feature bullet [branch: DEBUG-v008] |
+| 2026-05-30 01:58:01 | `docs/FEATURES_UK.md` | `S0296 features` | Align Ukrainian VR cinema video feature bullet [branch: DEBUG-v008] |
+| 2026-05-30 01:59:51 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-all` | S0291: record owner diagnostic-first decision for DEFECT A (no successor ticket until Quest 3 confirms passthrough symptom) [branch: DEBUG-v008] |
+| 2026-05-30 02:04:45 | `PLAN/S0296_vr-immerse-video-playback/INDEX.md` | `S0296 phase 05` | Close S0296 tactical phase 05 and add device handoff [branch: DEBUG-v008] |
+| 2026-05-30 02:04:45 | `PLAN/S0296_vr-immerse-video-playback/PHASE_05__docs-catalog-cleanup.md` | `S0296 phase 05` | Mark docs catalog cleanup phase complete [branch: DEBUG-v008] |
+| 2026-05-30 02:04:46 | `PLAN/S0296_vr-immerse-video-playback.md` | `S0296 handoff` | Record static implementation closure and device verification handoff [branch: DEBUG-v008] |
+| 2026-05-30 02:05:30 | `PLAN/S0296_vr-immerse-video-playback.md` | `spec-check` | Audit S0296 -> Partial; PASS/WARN/FAIL 34/2/0 [branch: DEBUG-v008] |
+| 2026-05-30 02:05:43 | `PLAN/S0296_vr-immerse-video-playback.md` | `spec-check` | Keep S0296 cold-start placeholder unique after audit [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerHost.kt` | `OfficeDocumentViewerHost` | S0301 Phase 03: market-safe viewer-host interface + NoOp impl in src/main [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentEngineBridge.kt` | `OfficeDocumentEngineBridge` | S0301 Phase 03: ZipFile+jsoup OOXML/ODF + RTF renderToHtml engine [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentHyperlinkPolicy.kt` | `OfficeDocumentHyperlinkPolicy` | S0301 Phase 03: allowOrdinaryLinks/blockActiveContent policy [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerManager.kt` | `OfficeDocumentViewerManager` | S0301 Phase 03: noLegal read-only WebView Office viewer host impl [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProviderFactory.kt` | `OfficeDocumentViewerProviderFactory` | S0301 Phase 03: noLegal factory createViewerHost + internal-display resolve [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/standard/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProviderFactory.kt` | `OfficeDocumentViewerProviderFactory` | S0301 Phase 03: standard factory createViewerHost -> NoOp [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/legacy/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProviderFactory.kt` | `OfficeDocumentViewerProviderFactory` | S0301 Phase 03: legacy factory createViewerHost -> NoOp [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/vrOnly/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProviderFactory.kt` | `OfficeDocumentViewerProviderFactory` | S0301 Phase 03: vrOnly factory createViewerHost -> NoOp [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/photos/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProviderFactory.kt` | `OfficeDocumentViewerProviderFactory` | S0301 Phase 03: photos factory createViewerHost -> NoOp [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/lite/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerProviderFactory.kt` | `OfficeDocumentViewerProviderFactory` | S0301 Phase 03: lite factory createViewerHost -> NoOp [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerViewerFactory.kt` | `PlayerViewerFactory` | S0301 Phase 03: createOfficeDocumentViewerHost wiring [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0301 Phase 03: officeDocumentViewerManager lazy host [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `PlayerShareManager` | S0301 Phase 03: routeOfficeDocument internal display + external fallback [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | S0301 Phase 03: officeDocumentViewerHost + internal/external display split [branch: DEBUG-v008] |
+| 2026-05-30 02:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `PlayerLifecycleManager` | S0301 Phase 03: release office viewer host on shutdown [branch: DEBUG-v008] |
+| 2026-05-30 02:07:54 | `app_v2/build.gradle.kts` | `noLegal debug build` | Record auto-version bump from S0296 noLegal debug validation [branch: DEBUG-v008] |
+| 2026-05-30 02:10:57 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeSpreadsheetViewerDelegate.kt` | `OfficeSpreadsheetViewerDelegate` | S0301 Phase 04: noLegal spreadsheet render delegate (xls/xlsx/ods) [branch: DEBUG-v008] |
+| 2026-05-30 02:10:57 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficePresentationViewerDelegate.kt` | `OfficePresentationViewerDelegate` | S0301 Phase 04: noLegal presentation render delegate (ppt/pptx/odp) [branch: DEBUG-v008] |
+| 2026-05-30 02:10:57 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerManager.kt` | `OfficeDocumentViewerManager` | S0301 Phase 04: renderByFamily dispatch + explicit fallback dialog seam [branch: DEBUG-v008] |
+| 2026-05-30 02:10:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerHost.kt` | `OfficeDocumentViewerHost` | S0301 Phase 04: Callback.onRequireExternalFallback hook [branch: DEBUG-v008] |
+| 2026-05-30 02:10:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `PlayerViewerFactory` | S0301 Phase 04: external-fallback callback -> shareManager.openOfficeDocument [branch: DEBUG-v008] |
+| 2026-05-30 02:10:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | S0301 Phase 04: standalone external-fallback wiring for sheet/slide families [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `S0301 Phase 05` | Show fullscreen command for OFFICE_DOCUMENT in landscape layout [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0301 Phase 05` | Add Office to fullscreen/print active commands; no edit command for Office [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0301 Phase 05` | OFFICE_DOCUMENT read-only edit no-op arm [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `S0301 Phase 05` | Route OFFICE_DOCUMENT print through office viewer manager print() [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentPrintAdapter.kt` | `S0301 Phase 05` | New noLegal WebView print adapter for Office documents [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerGestureCallbackImpl.kt` | `S0301 Phase 05` | OFFICE_DOCUMENT swipe navigation parity [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `S0301 Phase 05` | OFFICE_DOCUMENT wheel-scroll handled by WebView [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/TouchZoneConfig.kt` | `S0301 Phase 05` | OFFICE_DOCUMENT uses REG_DOC touch zone map [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt` | `S0301 Phase 05` | Treat OFFICE_DOCUMENT as document in skip-documents navigation [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/res/values/strings.xml` | `S0301 Phase 05` | Add Office fallback dialog strings (EN) [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/res/values-ru/strings.xml` | `S0301 Phase 05` | Add Office fallback dialog strings (RU) [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/res/values-uk/strings.xml` | `S0301 Phase 05` | Add Office fallback dialog strings (UK) [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerHost.kt` | `S0301 Phase 05` | Add print() to viewer host interface; NoOp returns false [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerManager.kt` | `S0301 Phase 05` | Implement print() via OfficeDocumentPrintAdapter [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301 Phase 05` | Explicit Office fallback dialog (external/share/cancel) [branch: DEBUG-v008] |
+| 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `S0301 Phase 05` | Route render-failure callback to fallback dialog [branch: DEBUG-v008] |
+| 2026-05-30 02:28:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301 Phase 05` | Standalone Office fallback dialog with cancel-finish [branch: DEBUG-v008] |
+| 2026-05-30 02:32:52 | `docs/FEATURES_noLegal.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (EN) [branch: DEBUG-v008] |
+| 2026-05-30 02:32:57 | `docs/FEATURES_noLegal_RU.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (RU) [branch: DEBUG-v008] |
+| 2026-05-30 02:33:01 | `docs/FEATURES_noLegal_UK.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (UK) [branch: DEBUG-v008] |
+| 2026-05-30 02:42:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301` | Fix Office fallback dialog routing in player [branch: DEBUG-v008] |
+| 2026-05-30 02:43:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301` | Keep standalone Office fallback cancel in viewer [branch: DEBUG-v008] |
+| 2026-05-30 02:44:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301` | Fix Office fallback dialog routing in player [branch: DEBUG-v008] |
+| 2026-05-30 02:44:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301` | Keep standalone Office fallback cancel in viewer [branch: DEBUG-v008] |
+| 2026-05-30 02:49:21 | `.github/prompts/spec.prompt.md` | `spec prompt` | Allow free-form and empty draft /spec requests [branch: DEBUG-v008] |
+| 2026-05-30 02:50:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerHost.kt` | `S0301` | Expose Office rendered text for command parity [branch: DEBUG-v008] |
+| 2026-05-30 02:50:35 | `PLAN/S0302_file-manager-mode.md` | `spec` | Add strategic spec S0302 for File Manager Mode positioning [branch: DEBUG-v008] |
+| 2026-05-30 02:51:08 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerManager.kt` | `S0301` | Store Office rendered plain text for OCR and translation [branch: DEBUG-v008] |
+| 2026-05-30 02:51:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0301` | Expose Office translate and OCR overflow commands [branch: DEBUG-v008] |
+| 2026-05-30 02:52:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `S0301` | Expose Office print command availability [branch: DEBUG-v008] |
+| 2026-05-30 02:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0301` | Route Office translate and OCR commands [branch: DEBUG-v008] |
+| 2026-05-30 02:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `S0301` | Expose Office print command availability [branch: DEBUG-v008] |
+| 2026-05-30 02:53:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0301` | Route Office translate and OCR commands [branch: DEBUG-v008] |
+| 2026-05-30 02:54:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `S0301` | Preserve OCR text as translation source [branch: DEBUG-v008] |
+| 2026-05-30 02:55:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextOcrDisplayManager.kt` | `S0301` | Restore Office viewer after OCR text overlay [branch: DEBUG-v008] |
+| 2026-05-30 02:58:30 | `PLAN/S0303_telegram-integration.md` | `spec` | Add strategic spec S0303 for Telegram integration (t.me download + share) [branch: DEBUG-v008] |
+| 2026-05-30 02:59:51 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlannerTest.kt` | `S0301` | Update command planner overflow-only test for Office actions [branch: DEBUG-v008] |
+| 2026-05-30 03:01:56 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `S0301` | Record Verified spec-check audit [branch: DEBUG-v008] |
+| 2026-05-30 03:01:56 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `S0301` | Close S0301 completion gate after spec-check [branch: DEBUG-v008] |
+| 2026-05-30 03:03:20 | `PLAN/S0303_telegram-integration/INDEX.md` | `spec-tech` | Create tactical plan for S0303 [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_01__share-intent.md` | `spec-tech` | Phase 01: share-intent [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_02__link-extraction.md` | `spec-tech` | Phase 02: link-extraction [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_03__bot-upload.md` | `spec-tech` | Phase 03: bot-upload [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration.md` | `spec-tech` | Status to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 13:38:47 | `app_v2/src/main/res/values/strings.xml` | `string/backup_to_google_drive,string/restore_from_google_drive,fragment_settings_general.xml` | Rename Google Drive backup/restore buttons to mention settings (EN/RU/UK) and unify btnBackup style to OutlinedM3 (portrait+land) [branch: DEBUG-v008] |
+| 2026-05-30 13:45:06 | `PLAN/S0302_file-manager-mode/INDEX.md` | `spec-tech` | Create tactical plan for S0302 [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_01__ui-terminology.md` | `spec-tech` | Phase 01: ui-terminology [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_02__manifest-integration.md` | `spec-tech` | Phase 02: manifest-integration [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_03__browse-ux.md` | `spec-tech` | Phase 03: browse-ux [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v008] |
+| 2026-05-30 13:45:40 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Update File Manager Mode EN labels [branch: DEBUG-v008] |
+| 2026-05-30 13:45:41 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | Update File Manager Mode RU labels [branch: DEBUG-v008] |
+| 2026-05-30 13:45:41 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Update File Manager Mode UK labels [branch: DEBUG-v008] |
+| 2026-05-30 13:46:02 | `app_v2/src/main/res/layout/fragment_resource_editor.xml` | `fragment_resource_editor.xml` | Verify cbAllFiles uses label_all_files [branch: DEBUG-v008] |
+| 2026-05-30 13:46:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt` | `AddResourceFormManager.kt` | Verify profile label references in Kotlin [branch: DEBUG-v008] |
+| 2026-05-30 13:48:36 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest.xml` | Add APP_FILES category to MainActivity intent-filter [branch: DEBUG-v008] |
+| 2026-05-30 13:50:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseUtilityManager.kt` | `BrowseUtilityManager.kt` | Add File Manager Mode indicator to Browse screen [branch: DEBUG-v008] |
+| 2026-05-30 13:50:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseBinaryFileHandler.kt` | `BrowseBinaryFileHandler.kt` | Verify BrowseBinaryFileHandler handles unsupported binary files menu [branch: DEBUG-v008] |
+| 2026-05-30 13:51:31 | `PLAN/S0304_office-document-settings-parity.md` | `spec` | Add strategic spec S0304 for Office document settings parity [branch: DEBUG-v008] |
+| 2026-05-30 13:56:28 | `docs/FAQ.md` | `FAQ.md` | Add File Manager Mode section [branch: DEBUG-v008] |
+| 2026-05-30 13:56:29 | `docs/FAQ_RU.md` | `FAQ_RU.md` | Add File Manager Mode section (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:31 | `docs/FAQ_UK.md` | `FAQ_UK.md` | Add File Manager Mode section (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:33 | `docs/FEATURES.md` | `FEATURES.md` | Rename All Files to File Manager Mode [branch: DEBUG-v008] |
+| 2026-05-30 13:56:34 | `docs/FEATURES_RU.md` | `docs/FEATURES_RU.md` | Rename All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:36 | `docs/FEATURES_UK.md` | `docs/FEATURES_UK.md` | Rename All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:38 | `docs/README.md` | `docs/README.md` | Update All Files to File Manager Mode [branch: DEBUG-v008] |
+| 2026-05-30 13:56:39 | `README.md` | `README.md` | Update All Files to File Manager Mode in root [branch: DEBUG-v008] |
+| 2026-05-30 13:56:41 | `docs/README_RU.md` | `docs/README_RU.md` | Update All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:43 | `docs/README_UK.md` | `docs/README_UK.md` | Update All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
+| 2026-05-30 14:04:32 | `PLAN/S0305_mid-audio-playback-support.md` | `spec` | Add strategic spec S0305 for MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 14:35:51 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Resolve S0305 MIDI playback research questions [branch: DEBUG-v008] |
+| 2026-05-30 14:41:24 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Record S0305 owner gate decisions for MIDI playback scope and autonomy [branch: DEBUG-v008] |
+| 2026-05-30 14:41:37 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Clarify S0305 owner gate marker wording [branch: DEBUG-v008] |
+| 2026-05-30 14:44:32 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-tech` | Promote S0305 to Approved for tactical planning [branch: DEBUG-v008] |
+| 2026-05-30 14:49:42 | `PLAN/S0305_mid-audio-playback-support.md` | `S0305` | Move S0305 strategic spec to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/spec-catalog.jsonl` | `S0305` | Set S0305 catalog status to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Add S0305 tactical plan index [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Add Media3 MIDI backend tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Add MIDI MIME routing tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:44 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305` | Add MIDI fallback error tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:44 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305` | Add S0305 tests validation tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:44 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305` | Add S0305 docs catalog cleanup tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:50:47 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/TelegramShareTargets.kt` | `spec-dev S0303 step 01.1` | Add TelegramShareTargets: known Telegram client package ids + installed-client lookup [branch: DEBUG-v008] |
+| 2026-05-30 14:52:29 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/SystemShareInvoker.kt` | `spec-dev S0303 step 01.2` | SystemShareInvoker.invokeFiles: multi-URI targeted send with chooser fallback [branch: DEBUG-v008] |
+| 2026-05-30 15:01:08 | `PLAN/spec-catalog.jsonl` | `S0305` | Set S0305 catalog status to In Progress [branch: DEBUG-v008] |
+| 2026-05-30 15:01:45 | `app_v2/build.gradle.kts` | `S0305` | Add Media3 MIDI dependency to audio flavors [branch: DEBUG-v008] |
+| 2026-05-30 15:01:45 | `PLAN/S0305_mid-audio-playback-support.md` | `S0305` | Mark S0305 implementation in progress [branch: DEBUG-v008] |
+| 2026-05-30 15:01:45 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter [branch: DEBUG-v008] |
+| 2026-05-30 15:01:46 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 01 done [branch: DEBUG-v008] |
+| 2026-05-30 15:01:54 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Finalize S0305 phase 01 step 01 log [branch: DEBUG-v008] |
+| 2026-05-30 15:02:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackRenderersFactory.kt` | `S0305` | Add shared Media3 playback renderers factory [branch: DEBUG-v008] |
+| 2026-05-30 15:03:22 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter to two [branch: DEBUG-v008] |
+| 2026-05-30 15:03:22 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 02 done [branch: DEBUG-v008] |
+| 2026-05-30 15:03:37 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Finalize S0305 phase 01 step 02 log [branch: DEBUG-v008] |
+| 2026-05-30 15:04:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt` | `S0305` | Use shared playback renderers factory in foreground player [branch: DEBUG-v008] |
+| 2026-05-30 15:04:29 | `PLAN/S0304_office-document-settings-parity/INDEX.md` | `S0304` | Implemented Office document settings parity across settings, resources, strings, docs, and validation [branch: DEBUG-v008] |
+| 2026-05-30 15:05:07 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter to three [branch: DEBUG-v008] |
+| 2026-05-30 15:05:08 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 03 done [branch: DEBUG-v008] |
+| 2026-05-30 15:05:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `S0305` | Use shared playback renderers factory in audio service [branch: DEBUG-v008] |
+| 2026-05-30 15:06:26 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter to four [branch: DEBUG-v008] |
+| 2026-05-30 15:06:26 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 04 done [branch: DEBUG-v008] |
+| 2026-05-30 15:06:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `spec-dev S0303 step 02.1` | Add telegram id to CANONICAL_ORDER ahead of ytdlp for t.me extraction [branch: DEBUG-v008] |
+| 2026-05-30 15:09:09 | `app_v2/build.gradle.kts` | `S0305` | Record debug build validation version update [branch: DEBUG-v008] |
+| 2026-05-30 15:09:20 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Mark S0305 phase 01 done [branch: DEBUG-v008] |
+| 2026-05-30 15:09:21 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Close S0305 phase 01 done criteria [branch: DEBUG-v008] |
+| 2026-05-30 15:09:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MidiPlaybackPolicy.kt` | `S0305` | Add MIDI playback extension policy [branch: DEBUG-v008] |
+| 2026-05-30 15:10:30 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to one [branch: DEBUG-v008] |
+| 2026-05-30 15:10:31 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 01 done [branch: DEBUG-v008] |
+| 2026-05-30 15:10:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MediaExtensions.kt` | `S0305` | Route audio MIDI extensions through shared policy [branch: DEBUG-v008] |
+| 2026-05-30 15:11:46 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to two [branch: DEBUG-v008] |
+| 2026-05-30 15:11:47 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 02 done [branch: DEBUG-v008] |
+| 2026-05-30 15:12:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt` | `S0305` | Use MIDI playback policy for local MIME detection [branch: DEBUG-v008] |
+| 2026-05-30 15:13:08 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to three [branch: DEBUG-v008] |
+| 2026-05-30 15:13:08 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 03 done [branch: DEBUG-v008] |
+| 2026-05-30 15:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt` | `S0305` | Add optional MIME type to audio playlist metadata item [branch: DEBUG-v008] |
+| 2026-05-30 15:14:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0305` | Apply optional MIME type to service MediaItems [branch: DEBUG-v008] |
+| 2026-05-30 15:15:36 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to four [branch: DEBUG-v008] |
+| 2026-05-30 15:15:36 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 04 done [branch: DEBUG-v008] |
+| 2026-05-30 15:16:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt` | `S0305` | Pass MIDI MIME hints in now playing playlist items [branch: DEBUG-v008] |
+| 2026-05-30 15:16:49 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to five [branch: DEBUG-v008] |
+| 2026-05-30 15:16:49 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 05 done [branch: DEBUG-v008] |
+| 2026-05-30 15:18:49 | `PLAN/spec-catalog.jsonl` | `spec catalog` | Insert S0306 record for thematic string resource files strategic spec [branch: DEBUG-v008] |
+| 2026-05-30 15:18:49 | `PLAN/S0306_thematic-string-resource-files.md` | `strategic spec` | Add strategic spec S0306 for thematic string resource files [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0002_decompose-giant-files.md` | `spec-arc` | Archive S0002 (decompose-giant-files) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0220_google-tv-availability-research.md` | `spec-arc` | Archive S0220 (google-tv-availability-research) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0240_vr-stack-rewrite-epic.md` | `spec-arc` | Archive S0240 (vr-stack-rewrite-epic) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0267_cloud-auth-unified-storage-research.md` | `spec-arc` | Archive S0267 (cloud-auth-unified-storage-research) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0285_nolegal-ocr-cyrillic.md` | `spec-arc` | Archive S0285 (nolegal-ocr-cyrillic) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization.md` | `spec-arc` | Archive S0286 (compliance-lint-gate-and-features-sanitization) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:29:16 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305 Phase 02` | Mark S0305 Phase 02 done after build validation [branch: DEBUG-v008] |
+| 2026-05-30 15:29:16 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 phase counter after Phase 02 completion [branch: DEBUG-v008] |
+| 2026-05-30 15:30:12 | `temp/VideoPlayerManager_S0305_20260530_152953.kt` | `S0305 backup` | Create Phase 03 backup for VideoPlayerManager [branch: DEBUG-v008] |
+| 2026-05-30 15:30:12 | `temp/PlayerMediaLoaderManager_S0305_20260530_152953.kt` | `S0305 backup` | Create Phase 03 backup for PlayerMediaLoaderManager [branch: DEBUG-v008] |
+| 2026-05-30 15:30:13 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03 backup step done [branch: DEBUG-v008] |
+| 2026-05-30 15:30:13 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter [branch: DEBUG-v008] |
+| 2026-05-30 15:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0305 Phase 03.2` | Route local MIDI through Media3 instead of eager MediaPlayer fallback [branch: DEBUG-v008] |
+| 2026-05-30 15:31:32 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03.2 done [branch: DEBUG-v008] |
+| 2026-05-30 15:31:32 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter after 03.2 [branch: DEBUG-v008] |
+| 2026-05-30 15:32:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0305 Phase 03.3` | Pass MIDI MIME hints for cached cloud and network audio [branch: DEBUG-v008] |
+| 2026-05-30 15:32:45 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03.3 done [branch: DEBUG-v008] |
+| 2026-05-30 15:32:45 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter after 03.3 [branch: DEBUG-v008] |
+| 2026-05-30 15:34:15 | `app_v2/src/main/res/values/strings.xml` | `string/midi_playback_failed` | Add English MIDI playback failure message [branch: DEBUG-v008] |
+| 2026-05-30 15:34:15 | `app_v2/src/main/res/values-ru/strings.xml` | `string/midi_playback_failed` | Add Russian MIDI playback failure message [branch: DEBUG-v008] |
+| 2026-05-30 15:34:16 | `app_v2/src/main/res/values-uk/strings.xml` | `string/midi_playback_failed` | Add Ukrainian MIDI playback failure message [branch: DEBUG-v008] |
+| 2026-05-30 15:34:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0305 Phase 03.4` | Show MIDI-specific service playback error message [branch: DEBUG-v008] |
+| 2026-05-30 15:35:07 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03.4 done [branch: DEBUG-v008] |
+| 2026-05-30 15:35:07 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter after 03.4 [branch: DEBUG-v008] |
+| 2026-05-30 15:37:09 | `app_v2/build.gradle.kts` | `S0305 build validation` | Record auto-version update from Phase 03 debug build [branch: DEBUG-v008] |
+| 2026-05-30 15:37:21 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03 done after build validation [branch: DEBUG-v008] |
+| 2026-05-30 15:37:21 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 phase counter after Phase 03 completion [branch: DEBUG-v008] |
+| 2026-05-30 15:38:09 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/MidiPlaybackPolicyTest.kt` | `MidiPlaybackPolicyTest` | Add MIDI playback policy unit tests [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `spec-dev S0303` | Add Send to Telegram overflow menu item (player) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `spec-dev S0303` | Add SEND_TO_TELEGRAM overflow command + telegramInstalled gate [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `spec-dev S0303` | Pass telegramInstalled to buildActiveCommands [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `spec-dev S0303` | Dispatch menu_send_to_telegram + Callback.onSendToTelegramClicked [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `spec-dev S0303` | Implement onSendToTelegramClicked [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `spec-dev S0303` | Add sendCurrentFileToTelegram via SystemShareInvoker [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/helpers/BrowseFileOverflowMenuManager.kt` | `spec-dev S0303` | Add Send to Telegram per-file overflow entry (Telegram-installed gate) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `spec-dev S0303` | Expose sendSelectedFilesToTelegram [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-dev S0303` | Wire onSendToTelegram in per-file overflow menu [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShareOperationsHelper.kt` | `spec-dev S0303` | Add sendSelectedFilesToTelegram (targeted invokeFiles) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0303` | Add share_to_telegram + share_to_telegram_failed (EN) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0303` | Add share_to_telegram + share_to_telegram_failed (RU) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0303` | Add share_to_telegram + share_to_telegram_failed (UK) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/TelegramExtractionStrategy.kt` | `spec-dev S0303` | New public t.me post extraction strategy (noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `spec-dev S0303` | Bind TelegramExtractionStrategy @IntoSet [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/testNoLegal/java/com/sza/fastmediasorter/data/link/nolegal/TelegramExtractionStrategyTest.kt` | `spec-dev S0303` | Unit tests for TelegramExtractionStrategy [branch: DEBUG-v008] |
+| 2026-05-30 15:38:50 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Mark S0305 Phase 04.1 done [branch: DEBUG-v008] |
+| 2026-05-30 15:38:51 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 04 step counter after 04.1 [branch: DEBUG-v008] |
+| 2026-05-30 15:39:15 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/MediaExtensionsTest.kt` | `MediaExtensionsTest` | Extend audio classification tests for S0305 MIDI scope [branch: DEBUG-v008] |
+| 2026-05-30 15:40:04 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Mark S0305 Phase 04.2 done [branch: DEBUG-v008] |
+| 2026-05-30 15:40:05 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 04 step counter after 04.2 [branch: DEBUG-v008] |
+| 2026-05-30 15:40:29 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/Media3MidiExtensionPresenceTest.kt` | `Media3MidiExtensionPresenceTest` | Add Media3 MIDI extension classpath presence test [branch: DEBUG-v008] |
+| 2026-05-30 15:41:19 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Mark S0305 Phase 04.3 done [branch: DEBUG-v008] |
+| 2026-05-30 15:41:20 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 04 step counter after 04.3 [branch: DEBUG-v008] |
+| 2026-05-30 15:46:14 | `app_v2/build.gradle.kts` | `S0305 Phase 04 build validation` | Record auto-version update from Phase 04 debug build [branch: DEBUG-v008] |
+| 2026-05-30 15:46:14 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04.4` | Record blocked validation results for S0305 Phase 04 [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (EN) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_RU.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (RU) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_UK.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (UK) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal.md` | `spec-dev S0303` | Add t.me public-post download entry (EN, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal_RU.md` | `spec-dev S0303` | Add t.me public-post download entry (RU, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal_UK.md` | `spec-dev S0303` | Add t.me public-post download entry (UK, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `PLAN/S0303_telegram-integration.md` | `spec-dev` | All phases done (03 skipped); status -> BlockNeedUserTest [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (player send flow) [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShareOperationsHelper.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (browse send flow) [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/TelegramExtractionStrategy.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (t.me extraction flow) [branch: DEBUG-v008] |
+| 2026-05-30 17:32:10 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Close S0305 Phase 04 with focused validation [branch: DEBUG-v008] |
+| 2026-05-30 17:32:10 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Mark S0305 Phase 04 done [branch: DEBUG-v008] |
+| 2026-05-30 17:33:04 | `docs/FEATURES.md` | `FEATURES Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `docs/FEATURES_RU.md` | `FEATURES_RU Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `docs/FEATURES_UK.md` | `FEATURES_UK Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05.1 done [branch: DEBUG-v008] |
+| 2026-05-30 17:33:06 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 05 step counter after 05.1 [branch: DEBUG-v008] |
+| 2026-05-30 17:34:21 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Refresh app_v2 catalog after S0305 Kotlin changes [branch: DEBUG-v008] |
+| 2026-05-30 17:34:21 | `dev/CATALOG/app_v2.md` | `app_v2 catalog` | Render app_v2 catalog after S0305 Kotlin changes [branch: DEBUG-v008] |
+| 2026-05-30 17:34:21 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05.2 done [branch: DEBUG-v008] |
+| 2026-05-30 17:34:22 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 05 step counter after 05.2 [branch: DEBUG-v008] |
+| 2026-05-30 17:36:08 | `app_v2/build.gradle.kts` | `S0305 Phase 05 build validation` | Record auto-version update from Phase 05 final debug build [branch: DEBUG-v008] |
+| 2026-05-30 17:36:37 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-update` | Refinement (GPT-5, focus: language, structure, verifiability, consistency, completeness, style) [branch: DEBUG-v008] |
+| 2026-05-30 17:39:41 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-check` | Audit S0305 to Verified [branch: DEBUG-v008] |
+| 2026-05-30 17:39:41 | `PLAN/spec-catalog.jsonl` | `S0305 spec catalog` | Close S0305 as Verified [branch: DEBUG-v008] |
+| 2026-05-30 17:39:41 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05 done [branch: DEBUG-v008] |
+| 2026-05-30 17:39:42 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Close S0305 tactical plan [branch: DEBUG-v008] |
+| 2026-05-30 17:43:48 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-update` | Accept P-1 and defer P-2 for S0306 implementation [branch: DEBUG-v008] |
+| 2026-05-30 17:45:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0305` | Add optional MIME type to single-file audio service controller playback [branch: DEBUG-v008] |
+| 2026-05-30 17:46:14 | `PLAN/S0297_nolegal-vr-capability-research.md` | `spec-all` | Verify S0297 research closure [branch: DEBUG-v008] |
+| 2026-05-30 17:46:14 | `PLAN/S0297_nolegal-vr-capability-research/RESEARCH.md` | `spec-all` | Mark S0297 research artifact complete [branch: DEBUG-v008] |
+| 2026-05-30 17:46:14 | `PLAN/S0297_nolegal-vr-capability-research.md` | `spec-all` | Pipeline Verified: S0297 [branch: DEBUG-v008] |
+| 2026-05-30 17:46:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0305` | Pass MIDI MIME hint through local single-file audio service fallback [branch: DEBUG-v008] |
+| 2026-05-30 17:46:52 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `spec-tech` | Create tactical plan for S0306 [branch: DEBUG-v008] |
+| 2026-05-30 17:46:52 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `spec-tech` | S0306 Phase 01 resource regroup [branch: DEBUG-v008] |
+| 2026-05-30 17:46:53 | `PLAN/S0306_thematic-string-resource-files/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | S0306 Phase 02 docs catalog cleanup [branch: DEBUG-v008] |
+| 2026-05-30 17:46:53 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-tech` | S0306 status to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 17:47:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0305` | Pass MIDI MIME hint through standalone audio service playback [branch: DEBUG-v008] |
+| 2026-05-30 17:47:22 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-tech` | Add S0306 owner inputs gate for tactical transition [branch: DEBUG-v008] |
+| 2026-05-30 17:49:12 | `app_v2/src/main/res/values/strings_link_auth.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:12 | `app_v2/src/main/res/values-ru/strings_link_auth.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:13 | `app_v2/src/main/res/values-uk/strings_link_auth.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:13 | `app_v2/src/main/res/values/strings_s0140.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:13 | `app_v2/src/main/res/values-ru/strings_s0140.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values-uk/strings_s0140.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values/strings_s0155.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values-ru/strings_s0155.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values-uk/strings_s0155.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:15 | `app_v2/src/main/res/values/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:15 | `app_v2/src/main/res/values-ru/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:16 | `app_v2/src/main/res/values-uk/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:16 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.1` | Mark link auth resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:51:27 | `app_v2/src/main/res/values/strings_google_account.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:27 | `app_v2/src/main/res/values-ru/strings_google_account.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:28 | `app_v2/src/main/res/values-uk/strings_google_account.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:28 | `app_v2/src/main/res/values/strings_s0200.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:28 | `app_v2/src/main/res/values-ru/strings_s0200.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values-uk/strings_s0200.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values/strings_s0294.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values-ru/strings_s0294.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:29 | `app_v2/src/main/res/values-uk/strings_s0294.xml` | `S0306 Step 01.2` | Move Google account strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:51:30 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.2` | Mark Google account resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:52:11 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-check` | Re-audit S0305 after MIME fallback fix; PASS/WARN/FAIL 61/0/0 [branch: DEBUG-v008] |
+| 2026-05-30 17:52:17 | `app_v2/src/main/res/values/strings_vr.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:18 | `app_v2/src/main/res/values-ru/strings_vr.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:18 | `app_v2/src/main/res/values-uk/strings_vr.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:18 | `app_v2/src/main/res/values/strings_s0292.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:19 | `app_v2/src/main/res/values-ru/strings_s0292.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:19 | `app_v2/src/main/res/values-uk/strings_s0292.xml` | `S0306 Step 01.3` | Move VR strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:52:19 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.3` | Mark VR resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:53:05 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec` | Add strategic spec S0307 for emulator user-test sweep [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values/strings_resource_operations.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values-ru/strings_resource_operations.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values-uk/strings_resource_operations.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:07 | `app_v2/src/main/res/values/strings_s0160.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:08 | `app_v2/src/main/res/values-ru/strings_s0160.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:08 | `app_v2/src/main/res/values-uk/strings_s0160.xml` | `S0306 Step 01.4` | Move resource operation strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:53:08 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.4` | Mark resource operations resource move done [branch: DEBUG-v008] |
+| 2026-05-30 17:54:54 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Phase 01` | Mark resource regroup phase done [branch: DEBUG-v008] |
+| 2026-05-30 17:54:54 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `S0306 Phase 01` | Update Phase 01 completion in tactical index [branch: DEBUG-v008] |
+| 2026-05-30 17:54:54 | `app_v2/build.gradle.kts` | `S0306 Phase 01 build validation` | Record auto-version update from standard debug build [branch: DEBUG-v008] |
+| 2026-05-30 17:55:58 | `PLAN/S0306_thematic-string-resource-files.md` | `S0306 Step 02.1` | Record resource-only implementation handoff [branch: DEBUG-v008] |
+| 2026-05-30 17:55:58 | `PLAN/S0306_thematic-string-resource-files/PHASE_02__docs-catalog-cleanup.md` | `S0306 Phase 02` | Mark docs catalog cleanup phase done [branch: DEBUG-v008] |
+| 2026-05-30 17:55:59 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `S0306 Phase 02` | Update Phase 02 completion in tactical index [branch: DEBUG-v008] |
+| 2026-05-30 17:56:11 | `PLAN/S0306_thematic-string-resource-files.md` | `S0306 implementation` | Mark S0306 implemented [branch: DEBUG-v008] |
+| 2026-05-30 17:57:27 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec` | Add owner inputs gate for S0307 spec-all continuation [branch: DEBUG-v008] |
+| 2026-05-30 17:57:38 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-check` | Audit S0306 to Verified; PASS/WARN/FAIL 38/0/0 [branch: DEBUG-v008] |
+| 2026-05-30 17:57:54 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `S0306 spec-check` | Mark S0306 completion gate verified [branch: DEBUG-v008] |
+| 2026-05-30 17:59:50 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:50 | `PLAN/S0307_emulator-user-test-sweep/PHASE_01__bootstrap-discovery.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:51 | `PLAN/S0307_emulator-user-test-sweep/PHASE_02__route-matrix.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:51 | `PLAN/S0307_emulator-user-test-sweep/PHASE_03__fixtures-build-plan.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:52 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:52 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 17:59:53 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-tech` | Create or update S0307 tactical plan artifact [branch: DEBUG-v008] |
+| 2026-05-30 18:00:35 | `PLAN/S0307_emulator-user-test-sweep/PHASE_01__bootstrap-discovery.md` | `spec-dev` | Mark S0307 Phase 01 discovery complete [branch: DEBUG-v008] |
+| 2026-05-30 18:00:35 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 tactical index after Phase 01 [branch: DEBUG-v008] |
+| 2026-05-30 18:00:49 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Set S0307 implementation status in progress [branch: DEBUG-v008] |
+| 2026-05-30 18:02:01 | `PLAN/S0307_emulator-user-test-sweep/PHASE_02__route-matrix.md` | `spec-dev` | Mark S0307 Phase 02 route matrix complete [branch: DEBUG-v008] |
+| 2026-05-30 18:02:01 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 tactical index after Phase 02 [branch: DEBUG-v008] |
+| 2026-05-30 18:02:43 | `PLAN/S0307_emulator-user-test-sweep/PHASE_03__fixtures-build-plan.md` | `spec-dev` | Mark S0307 Phase 03 fixtures plan complete [branch: DEBUG-v008] |
+| 2026-05-30 18:02:43 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 tactical index after Phase 03 [branch: DEBUG-v008] |
+| 2026-05-30 18:03:29 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Block S0307 Phase 04 because emulator is offline [branch: DEBUG-v008] |
+| 2026-05-30 18:03:29 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Record S0307 emulator execution blocker [branch: DEBUG-v008] |
+| 2026-05-30 18:03:39 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Set S0307 strategic status to BlockExternal [branch: DEBUG-v008] |
+| 2026-05-30 18:04:22 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Update S0307 Last Audit after blocked sweep [branch: DEBUG-v008] |
+| 2026-05-30 18:04:23 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `spec-dev` | Mark S0307 Phase 05 report complete [branch: DEBUG-v008] |
+| 2026-05-30 18:04:23 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Mark S0307 tactical plan blocked after report [branch: DEBUG-v008] |
+| 2026-05-30 18:11:45 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-dev` | Resume S0307 after emulator became online [branch: DEBUG-v008] |
+| 2026-05-30 18:11:46 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Mark S0307 Phase 04 device ready [branch: DEBUG-v008] |
+| 2026-05-30 18:11:47 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Resume S0307 tactical Phase 04 [branch: DEBUG-v008] |
+| 2026-05-30 18:15:41 | `app_v2/build.gradle.kts` | `build` | Auto-version standard debug build for S0307 emulator sweep [branch: DEBUG-v008] |
+| 2026-05-30 18:16:17 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Mark S0307 Phase 04 build install complete [branch: DEBUG-v008] |
+| 2026-05-30 18:16:18 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 index after build install [branch: DEBUG-v008] |
+| 2026-05-30 18:17:07 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `spec-dev` | Mark S0307 Phase 04 fixture push complete [branch: DEBUG-v008] |
+| 2026-05-30 18:17:07 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `spec-dev` | Update S0307 index after fixture push [branch: DEBUG-v008] |
+| 2026-05-30 18:38:43 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Update emulator sweep audit after partial standardDebug verification run [branch: DEBUG-v008] |
+| 2026-05-30 18:45:06 | `.claude/commands/spec-sweep.md` | `spec-sweep` | New /spec-sweep skill: batch device-test sweep over BlockNeedUserTest tickets (operationalizes S0307); wired auto device-test gate into /spec-dev, /spec-all, /spec-next; registered in CLAUDE.md [branch: DEBUG-v008] |
+| 2026-05-30 18:46:22 | `.github/prompts/spec-sweep.prompt.md` | `spec-sweep.prompt.md` | Add /spec-sweep skill prompt file [branch: DEBUG-v008] |
+| 2026-05-30 18:46:23 | `AGENTS.md` | `AGENTS.md` | Register /spec-sweep skill in mandatory routing and imported skills lists [branch: DEBUG-v008] |
+| 2026-05-30 18:54:30 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Mark emulator execution phase complete after partial standardDebug sweep [branch: DEBUG-v008] |
+| 2026-05-30 18:54:30 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Update verdict phase for candidate-only partial execution report [branch: DEBUG-v008] |
+| 2026-05-30 18:54:31 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Synchronize tactical index with partial emulator sweep completion [branch: DEBUG-v008] |
+| 2026-05-30 18:56:56 | `PLAN/S0254_settings-grid-to-interface.md` | `S0254` | Mark settings grid relocation verification broken after emulator evidence [branch: DEBUG-v008] |
+| 2026-05-30 18:56:56 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Record S0254 broken transition in sweep audit [branch: DEBUG-v008] |
+| 2026-05-30 18:56:57 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Record applied S0254 transition in verdict phase [branch: DEBUG-v008] |
+| 2026-05-30 18:56:57 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Record S0254 broken transition in tactical index [branch: DEBUG-v008] |
+| 2026-05-30 18:59:21 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Record S0281 share-alias blocker in sweep audit [branch: DEBUG-v008] |
+| 2026-05-30 18:59:21 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Update evidence counters after S0281 share attempt [branch: DEBUG-v008] |
+| 2026-05-30 19:08:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0165` | Remove S0165 debug verification probe after emulator pass [branch: DEBUG-v008] |
+| 2026-05-30 19:10:34 | `PLAN/S0165_browse-create-folder.md` | `S0165` | Record emulator verification for browse create folder [branch: DEBUG-v008] |
+| 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Record S0165 verified result in sweep audit [branch: DEBUG-v008] |
+| 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep/INDEX.md` | `S0307` | Update sweep completion notes for S0165 [branch: DEBUG-v008] |
+| 2026-05-30 19:12:36 | `PLAN/S0307_emulator-user-test-sweep/PHASE_04__emulator-execution.md` | `S0307` | Update Phase 04 S0165 evidence summary [branch: DEBUG-v008] |
+| 2026-05-30 19:12:37 | `PLAN/S0307_emulator-user-test-sweep/PHASE_05__verdict-report.md` | `S0307` | Update Phase 05 mutation count for S0165 [branch: DEBUG-v008] |
+| 2026-05-30 21:00:18 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.5302.057 - plateau merge from DEBUG-v008 [branch: DEBUG-v008] |

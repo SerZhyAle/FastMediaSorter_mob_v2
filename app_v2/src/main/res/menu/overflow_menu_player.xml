@@ -21,6 +21,13 @@
         android:title="@string/share"
         app:showAsAction="never" />
 
+    <!-- S0303: Send to Telegram - shown only when a Telegram client is installed (overflow-only). -->
+    <item
+        android:id="@+id/menu_send_to_telegram"
+        android:icon="@drawable/ic_share"
+        android:title="@string/share_to_telegram"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menu_info"
         android:icon="@drawable/ic_info"
@@ -57,6 +64,12 @@
         android:id="@+id/menu_print"
         android:icon="@drawable/ic_print"
         android:title="@string/menu_print"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_open_in_vr"
+        android:icon="@drawable/ic_vr_headset"
+        android:title="@string/player_vr_overflow_open"
         app:showAsAction="never" />
 
     <!-- Save Frame (VIDEO only) - saves current frame as PNG to configured destination -->

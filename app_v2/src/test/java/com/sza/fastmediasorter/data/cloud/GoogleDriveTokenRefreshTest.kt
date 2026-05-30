@@ -34,6 +34,7 @@ class GoogleDriveTokenRefreshTest {
     private lateinit var mockHttpClient: GoogleDriveHttpClient
     private lateinit var mockPendingRevocationDao: PendingRevocationDao
     private lateinit var mockCredentialsRepo: NetworkCredentialsRepository
+    private lateinit var mockBrowserAuthManager: GoogleDriveBrowserAuthManager
     private lateinit var client: GoogleDriveRestClient
 
     @Before
@@ -43,6 +44,7 @@ class GoogleDriveTokenRefreshTest {
         mockHttpClient = mockk(relaxed = true)
         mockPendingRevocationDao = mockk(relaxed = true)
         mockCredentialsRepo = mockk(relaxed = true)
+        mockBrowserAuthManager = mockk(relaxed = true)
 
         client = GoogleDriveRestClient(
             context = mockContext,
@@ -58,6 +60,7 @@ class GoogleDriveTokenRefreshTest {
             // "pre-existing test failures" until Phase 04b.6 wires the FakeGoogleIdentityRepository
             // contract. Compile-correctness is preserved by passing a mockk.
             identityRepository = mockk<GoogleIdentityRepository>(relaxed = true),
+            browserAuthManager = mockBrowserAuthManager,
         )
     }
 

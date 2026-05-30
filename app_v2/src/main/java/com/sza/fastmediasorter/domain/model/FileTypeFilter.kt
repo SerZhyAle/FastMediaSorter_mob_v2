@@ -14,7 +14,7 @@ package com.sza.fastmediasorter.domain.model
  * IMAGES    (bit 1) - IMAGE + GIF
  * AUDIO     (bit 2) - AUDIO
  * VIDEO     (bit 3) - VIDEO
- * DOCUMENTS (bit 4) - PDF + EPUB + TEXT
+ * DOCUMENTS (bit 4) - PDF + EPUB + TEXT + OFFICE_DOCUMENT
  */
 object FileTypeFlags {
     const val ALL_FILES: Int = 1 shl 0   // 1

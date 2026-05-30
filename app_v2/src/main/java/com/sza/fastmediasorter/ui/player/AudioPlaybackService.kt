@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
+import com.sza.fastmediasorter.ui.player.helpers.createPlaybackRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -146,7 +147,7 @@ class AudioPlaybackService : MediaSessionService() {
             == PackageManager.PERMISSION_GRANTED
         ) C.WAKE_MODE_LOCAL else C.WAKE_MODE_NONE
 
-        val exoPlayer = ExoPlayer.Builder(this)
+        val exoPlayer = ExoPlayer.Builder(this, createPlaybackRenderersFactory(this))
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(wakeMode)

@@ -10,13 +10,16 @@
 ## Usage
 
 ```
-/quick <короткое описание задачи>
+/quick <короткое описание задачи> [--verify-device]
 ```
 
 Examples:
 - `/quick поправь padding у кнопки Save в settings_fragment.xml на 16dp`
 - `/quick цвет accent в colors.xml - на #FF6B00`
 - `/quick опечатка в strings.xml: "Загруска" → "Загрузка"`
+- `/quick padding у Save в settings_fragment.xml на 16dp --verify-device` (после правки прогнать минимальный smoke на подключённом устройстве)
+
+Флаг `--verify-device` выключен по умолчанию - философия `/quick` остаётся zero-bureaucracy. Включай только когда визуальная правка реально может сломать compose/layout (например, тронул constraint, не уверен в результате).
 
 ---
 
@@ -24,16 +27,16 @@ Examples:
 
 `/quick` запрещён для:
 
-- Любого изменения бизнес-логики, навигации, потоков данных.
+- Любого изменения бизнес-логики, навигации, потоков данных. Узкий фикс существующего поведения → `/skill-fix`; всё шире → `/spec`.
 - Новых классов/функций/UseCase/Repository/ViewModel.
 - Правок Room-схемы, миграций, Hilt-модулей, build.gradle, манифеста.
 - Многофайловых рефакторингов (>3 файлов или >50 LOC суммарно).
-- Любого изменения UI-поведения, видимости, ориентации, состояний, оверфлоу - это `/ui-clarify` + `/spec`.
+- Любого изменения UI-поведения, видимости, ориентации, состояний, оверфлоу. Узкий уже понятный багфикс → `/skill-fix`; если нужны UI-решения или согласование → `/ui-clarify` + `/spec`.
 - Задач, которые пользователь формулирует через "хочу фичу", "добавь возможность", "сделай чтобы можно было".
 - Любой правки в `src/main/java/**`, добавляющей `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED` или другой `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor-гейт - нарушает CLAUDE.md Rule 15 и `dev/FLAVOR_DEVELOPMENT_RULES.md`. Это всегда `/spec` (interface в main + impl в `src/<flavor>/java/` + flavor-specific Hilt module).
 - Любого нового файла в `src/main/java/com/sza/fastmediasorter/vr/**` или с явной flavor-семантикой (`*Vr*`, `*NoLegal*` в имени класса) - должен лежать в `src/<flavor>/java/`, не в main.
 
-При срабатывании любого из этих признаков - **отказать и предложить `/spec` или `/spec-all`**, не выполнять.
+При срабатывании любого из этих признаков - **отказать и предложить `/skill-fix` для узкого багфикса либо `/spec` / `/spec-all` для более широкой задачи**, не выполнять.
 
 ---
 
@@ -41,7 +44,7 @@ Examples:
 
 **Step 1 - Sanity gate.**
 Прочитать `$ARGUMENTS`. Если задача выходит за рамки определения «очень незначительная» (см. список выше), вернуть одну строку:
-`«/quick не подходит - это <причина>. Используй /spec или /spec-all.»`
+`«/quick не подходит - это <причина>. Если это узкий багфикс, используй /skill-fix; иначе /spec или /spec-all.»`
 И остановиться.
 
 **Step 2 - Локализовать файл.**
@@ -84,6 +87,17 @@ Skip (тихий пропуск), если:
 
 Сомневаешься - лог. Двойная запись лучше, чем пропуск.
 
+**Step 4b - Опциональная on-device проверка (только при `--verify-device`).**
+Сразу после `post-change.ps1`:
+
+1. Прогнать pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Если exit ≠ 0 → залогировать причину в чат и пропустить шаг (не блокировать `/quick`).
+2. Запустить `/verify` без аргументов (default smoke: launch + screenshot home + crash scan). Артефакты пишутся в `temp/verify_*` - `/quick` их не трогает.
+3. В финальный отчёт добавить хвост: `verify: PASS/FAIL, errors N`.
+
+Этот шаг **не**:
+- меняет статус, журнал, dev log (это всё уже было записано через `post-change.ps1` выше);
+- запускает full build - `/verify` сам выбирает, рестартовать ли APK (для XML-правок этого обычно не нужно, для `.kt` потребуется `--build`, но `/quick` не для `.kt`-правок такого масштаба).
+
 **Step 5 - НЕ запускать:**
 - `docs/FEATURES*.md` обновление (skip - это `/doc-update`).
 - Отдельные вызовы `add_to_dev_log.ps1`, `catalog_sync.ps1`, `check_strings_localized.ps1` - skip; применимые механические шаги уже выбирает `post-change.ps1`.
@@ -107,6 +121,7 @@ Skip (тихий пропуск), если:
 | Build verification   | skip              |
 | `post-change.ps1`    | **обязательно**   |
 | `dev/FUNCTIONALITY.log` | условно (только если правка видна пользователю как изменение поведения) |
+| `/verify` on-device smoke | опционально, только по флагу `--verify-device` |
 | Author style (`..`, `ё`) | **обязательно** |
 
 Всё, что в skip - ответственность пользователя при необходимости.

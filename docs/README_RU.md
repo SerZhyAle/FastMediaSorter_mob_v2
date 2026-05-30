@@ -153,7 +153,7 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 - **Видео:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG, TS, M2TS, VOB, OGV, DIVX, MTS
 - **Аудио:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, AMR, ALAC, CAF, MKA, OGA, AC3, MID, MIDI, DTS, DTS-HD
 - **Документы:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
-- **Бинарные файлы** (режим "Все файлы"): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO и 60+ других форматов
+- **Бинарные файлы** (Режим файлового менеджера): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO и 60+ других форматов
 
 ## Сценарии использования 💡
 

@@ -6,7 +6,9 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.IdRes
@@ -52,6 +54,14 @@ class PlayerBindingSafeViews(
     val btnSearchYoutubeMusicCmd: ImageButton get() = required(binding.btnSearchYoutubeMusicCmd, R.id.btnSearchYoutubeMusicCmd)
     val btnRotationToggleCmd: ImageButton get() = required(R.id.btnRotationToggleCmd)
     val btnCastCmd: ImageButton get() = required(R.id.btnCastCmd)
+    val vrLaunchBadgeContainer: LinearLayout get() = required(R.id.vrLaunchBadgeContainer)
+    val ivVrLaunchBadgeIcon: ImageView get() = required(R.id.ivVrLaunchBadgeIcon)
+    val tvVrLaunchBadgeText: TextView get() = required(R.id.tvVrLaunchBadgeText)
+    val progressVrLaunchBadge: ProgressBar get() = required(R.id.progressVrLaunchBadge)
+    val vrLaunchPromptCard: LinearLayout get() = required(R.id.vrLaunchPromptCard)
+    val tvVrLaunchPromptMessage: TextView get() = required(R.id.tvVrLaunchPromptMessage)
+    val btnVrLaunchPromptOpenSettings: TextView get() = required(R.id.btnVrLaunchPromptOpenSettings)
+    val btnVrLaunchPromptDismiss: TextView get() = required(R.id.btnVrLaunchPromptDismiss)
 
     val btnGoogleLensPdfCmd: ImageButton get() = required(binding.btnGoogleLensPdfCmd, R.id.btnGoogleLensPdfCmd)
     val btnPdfThumbnailsCmd: ImageButton get() = required(binding.btnPdfThumbnailsCmd, R.id.btnPdfThumbnailsCmd)

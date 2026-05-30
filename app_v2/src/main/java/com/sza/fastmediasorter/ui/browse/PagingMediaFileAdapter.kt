@@ -140,6 +140,7 @@ class PagingMediaFileAdapter(
             MediaType.VIDEO -> "VID"
             MediaType.PDF -> "PDF"
             MediaType.EPUB -> "EPUB"
+            MediaType.OFFICE_DOCUMENT -> "DOC"
             MediaType.AUDIO -> "AUD"
             MediaType.TEXT -> "TXT"
             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
@@ -351,7 +352,7 @@ class PagingMediaFileAdapter(
                             .into(imageView)
                     }
                 }
-                MediaType.AUDIO, MediaType.TEXT ->
+                MediaType.AUDIO, MediaType.TEXT, MediaType.OFFICE_DOCUMENT ->
                     imageView.setImageBitmap(createExtensionBitmap(
                         file.name.substringAfterLast('.', "").uppercase()))
                 MediaType.PDF -> {
@@ -622,7 +623,7 @@ class PagingMediaFileAdapter(
                             .into(imageView)
                     }
                 }
-                MediaType.AUDIO, MediaType.TEXT, MediaType.EPUB ->
+                MediaType.AUDIO, MediaType.TEXT, MediaType.EPUB, MediaType.OFFICE_DOCUMENT ->
                     imageView.setImageBitmap(createExtensionBitmap(
                         file.name.substringAfterLast('.', "").uppercase()))
                 MediaType.PDF -> {

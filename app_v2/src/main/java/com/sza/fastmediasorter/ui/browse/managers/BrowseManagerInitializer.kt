@@ -15,6 +15,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -93,6 +94,7 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
     // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
     private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
+    private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
 ) {
@@ -171,7 +173,7 @@ class BrowseManagerInitializer(
             onFileLongClick = { file -> UserActionLogger.logItemLongClick(file.name, context = "Range selection"); viewModel.selectFileRange(file.path) },
             onContextMenuRequest = { anchor, file ->
                 UserActionLogger.logItemLongClick(file.name, context = "Mouse context menu")
-                resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel)
+                showPerFileOverflowMenu(anchor, file)
             },
             onSelectionChanged = { file, selected ->
                 UserActionLogger.logSelection(file.name, selected, context = "Checkbox click")
@@ -206,42 +208,8 @@ class BrowseManagerInitializer(
                 viewModel.navigateToFolder(folder)
             },
             onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
-            onOverflowMenuClick = overflowClick@{ file, anchor ->
-                // Use cached values - populated by collectors started in initialize().
-                // First-frame edge case (cache not yet populated): silently skip tap.
-                val settings = latestSettings ?: return@overflowClick
-                val currentState = viewModel.state.value
-                browseFileOverflowMenuManager.showFor(
-                    anchor = anchor,
-                    file = file,
-                    appSettings = settings,
-                    isWritable = currentState.resource?.isReadOnly == false,
-                    hasDestinations = latestHasDestinations,
-                    isGridMode = mediaFileAdapter.isInGridMode,
-                    // Single-file path: pass overridePaths so dialog does not touch multiselect state.
-                    onCopy = { f -> showCopyDialog(setOf(f.path)) },
-                    onMove = { f -> showMoveDialog(setOf(f.path)) },
-                    onRename = { f -> showRenameDialog(setOf(f.path)) },
-                    onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
-                    onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
-                        { f -> viewModel.moveFileUp(f) }
-                    } else null,
-                    onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
-                        { f -> viewModel.moveFileDown(f) }
-                    } else null,
-                    onFavorite = { f -> viewModel.toggleFavorite(f) },
-                    onShare = { f ->
-                        val resource = viewModel.state.value.resource
-                        if (resource != null) fileOperationsManager.shareSelectedFiles(listOf(f), resource)
-                    },
-                    onInfo = { f -> showFileInfoDialog(f) },
-                    onGoogleLens = { f -> launchGoogleLensForFile(f) },
-                    onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
-                    onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
-                    onOpenInPlayer = { f -> viewModel.openFile(f) },
-                    onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) }
-                )
-            },
+            onOverflowMenuClick = { file, anchor -> showPerFileOverflowMenu(anchor, file) },
+            apkTileBadgeBinder = browseApkTileBadgeBinder,
             getShowVideoThumbnails = showVideoThumbnailsGetter,
             getShowPdfThumbnails = showPdfThumbnailsGetter
         )
@@ -471,6 +439,7 @@ class BrowseManagerInitializer(
 
         observerManager = BrowseObserverManager(
             lifecycleOwner = activity,
+            activity = activity,
             binding = binding,
             viewModel = viewModel,
             adapter = mediaFileAdapter,
@@ -546,7 +515,6 @@ class BrowseManagerInitializer(
                 Toast.makeText(activity, activity.getString(R.string.scan_stopped, viewModel.state.value.mediaFiles.size), Toast.LENGTH_SHORT).show()
             }
             override fun onCreateFolderClicked() {
-                Timber.d("S0165: btnCreateFolder clicked → showCreateFolderDialog")
                 resourceOpsMenuManager.showCreateFolderDialog(viewModel)
             }
             override fun onCreateTextNoteClicked() {
@@ -583,6 +551,78 @@ class BrowseManagerInitializer(
         }
     }
 
+    /**
+     * S0293 Bug A: single delegation point for the per-row ⋮ overflow menu, called both by
+     * tap on the row's overflow button and by mouse-context-menu (right click) on the row.
+     * Previously the latter routed into [resourceOpsMenuManager] without per-file callbacks,
+     * hiding the "Open in new window" action and showing resource-level items unrelated to
+     * the clicked file.
+     *
+     * First-frame edge case (settings cache not yet populated): silently skip the tap.
+     */
+    private fun showPerFileOverflowMenu(anchor: android.view.View, file: MediaFile) {
+        val settings = latestSettings ?: return
+        val currentState = viewModel.state.value
+        // S0293: OR-compose persistent preference with runtime capability so DeX entry on phones
+        // exposes the per-file "Open in new window" without requiring the user to flip the setting.
+        val effectiveSettings = if (settings.allowSeparateWindow) {
+            settings
+        } else if (MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity)) {
+            settings.copy(allowSeparateWindow = true)
+        } else {
+            settings
+        }
+        browseFileOverflowMenuManager.showFor(
+            anchor = anchor,
+            file = file,
+            appSettings = effectiveSettings,
+            isWritable = currentState.resource?.isReadOnly == false,
+            hasDestinations = latestHasDestinations,
+            isGridMode = mediaFileAdapter.isInGridMode,
+            onCopy = { f -> showCopyDialog(setOf(f.path)) },
+            onMove = { f -> showMoveDialog(setOf(f.path)) },
+            onRename = { f -> showRenameDialog(setOf(f.path)) },
+            onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
+            onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
+                { f -> viewModel.moveFileUp(f) }
+            } else null,
+            onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
+                { f -> viewModel.moveFileDown(f) }
+            } else null,
+            onFavorite = { f -> viewModel.toggleFavorite(f) },
+            onShare = { f ->
+                val resource = viewModel.state.value.resource
+                if (resource != null) fileOperationsManager.shareSelectedFiles(listOf(f), resource)
+            },
+            onSendToTelegram = { f ->
+                val resource = viewModel.state.value.resource
+                if (resource != null) fileOperationsManager.sendSelectedFilesToTelegram(listOf(f), resource)
+            },
+            onInfo = { f -> showFileInfoDialog(f) },
+            onGoogleLens = { f -> launchGoogleLensForFile(f) },
+            onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
+            onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
+            onOpenInPlayer = { f -> viewModel.openFile(f) },
+            onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) }
+        )
+    }
+
+    /**
+     * S0293: re-render the file adapter rows so any `allowSeparateWindow`-gated UI picks up the
+     * new runtime capability flag after a multi-window / desktop-mode transition. The dropdown
+     * menus already resolve the OR-composition on tap; the observer is also poked so the
+     * per-row `⋮` button visibility (gated on `fileOpsInOverflowMenu`) is recomputed with the
+     * OR-composed value `persisted || isMultiWindowActiveNow(activity)`.
+     */
+    fun notifyMultiWindowModeChanged() {
+        if (::observerManager.isInitialized) {
+            observerManager.notifyMultiWindowModeChanged()
+        }
+        if (::mediaFileAdapter.isInitialized) {
+            mediaFileAdapter.notifyDataSetChanged()
+        }
+    }
+
     private fun showBrowseResourceOpsMenu(anchor: android.view.View) {
         val isScheduleEnabled = isBrowseAutomationSettingsEnabled()
         lifecycleScope.launch {
@@ -608,8 +648,8 @@ class BrowseManagerInitializer(
                 isDestinationsFull = isDestinationsFull,
                 onCameraCapture = { activity.onCameraCaptureClicked() },
                 isCameraVisible = isCameraVisible,
-                allowSeparateWindow = settings.allowSeparateWindow,
-                openBrowseInNewWindow = if (settings.allowSeparateWindow) {
+                allowSeparateWindow = settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity),
+                openBrowseInNewWindow = if (settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity)) {
                     { id -> eventHandler.openBrowseInNewWindow(id) }
                 } else null,
                 isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,

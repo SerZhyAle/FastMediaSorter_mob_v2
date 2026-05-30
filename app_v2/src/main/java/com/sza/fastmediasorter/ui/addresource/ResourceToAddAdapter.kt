@@ -109,6 +109,7 @@ class ResourceToAddAdapter(
                 setupMediaTypeButton(btnTypeGif, resource, MediaType.GIF, activeColor, isDownloads)
                 setupMediaTypeButton(btnTypeText, resource, MediaType.TEXT, activeColor, isDownloads)
                 setupMediaTypeButton(btnTypePdf, resource, MediaType.PDF, activeColor, isDownloads)
+                setupMediaTypeButton(btnTypeOffice, resource, MediaType.OFFICE_DOCUMENT, activeColor, isDownloads)
 
                 // Disable destination checkbox if read-only or not writable
                 val canBeDestination = resource.isWritable && !resource.isReadOnly

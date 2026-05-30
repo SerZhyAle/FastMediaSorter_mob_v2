@@ -267,7 +267,8 @@ class ProvisionDefaultResourcesUseCaseTest {
             supportVideos = true,
             supportText = false,
             supportPdf = false,
-            supportEpub = false
+            supportEpub = false,
+            supportOfficeDocuments = false
         )
         coEvery { settingsRepository.getSettings() } returns flowOf(settings)
 
@@ -300,7 +301,7 @@ class ProvisionDefaultResourcesUseCaseTest {
         useCase()
 
         val docsResource = captured.first { it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS }
-        assertEquals(setOf(MediaType.TEXT, MediaType.EPUB), docsResource.supportedMediaTypes)
+        assertEquals(setOf(MediaType.TEXT, MediaType.EPUB, MediaType.OFFICE_DOCUMENT), docsResource.supportedMediaTypes)
     }
 
     // ── All resources use LOCAL type and isWritable=false ──────

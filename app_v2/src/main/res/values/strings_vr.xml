@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_vr_badge_label">VR</string>
+    <string name="player_vr_badge_loading">Opening VR..</string>
+    <string name="player_vr_badge_error_retry">Couldn\'t open VR. Tap to try again.</string>
+    <string name="player_vr_badge_error_not_supported">This file type is not ready for VR yet.</string>
+    <string name="player_vr_prompt_message">VR is available on this headset. Turn it on in Settings.</string>
+    <string name="player_vr_return_crashed">VR closed unexpectedly. Try again.</string>
+    <string name="player_vr_return_unavailable">VR is not available right now.</string>
+    <string name="player_vr_overflow_open">Open in VR</string>
+</resources>

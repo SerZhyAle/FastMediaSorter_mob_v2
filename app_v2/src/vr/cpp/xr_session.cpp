@@ -27,6 +27,14 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#endif
+
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
 #ifndef XR_EXT_HAND_INTERACTION_EXTENSION_NAME
 #define XR_EXT_HAND_INTERACTION_EXTENSION_NAME "XR_EXT_hand_interaction"
 #endif
@@ -43,7 +51,14 @@ constexpr const char* kLogTag = "S0249.XrSession";
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, kLogTag, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  kLogTag, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, kLogTag, __VA_ARGS__)
-constexpr XrDuration kNavigateDebounceDuration = 350000000;
+// S0290 Phase 10 / ADR-6: race-guard only against pathological double-callback from
+// xrWaitFrame on Quest 3 timewarp. Main debounce = application-side rising-edge detection
+// on triggerClicked (Step 10.1) plus the Meta runtime's own hysteresis on the
+// pinch_ext/ready_ext boolean input. Bumped 100 ms -> 500 ms after owner feedback round 2
+// (2026-05-22): user reported "still jumping" even with stick remap + edge-detection. The
+// half-second cooldown guarantees one navigation per deliberate gesture even if the stick
+// drifts back across the deflection threshold during a single intentional push.
+constexpr XrDuration kNavigateDebounceDuration = 500000000;
 
 constexpr float kPI = 3.14159265358979323846f;
 constexpr int   kSphereLatSegments = 32;
@@ -69,9 +84,14 @@ uniform sampler2D u_tex;
 uniform int u_eyeIndex; // 0 = left, 1 = right
 uniform int u_stereoLayout; // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
 uniform float u_parallaxShift;
+uniform float u_zoomUv; // S0291 round 5: zoom factor applied as UV scaling for sphere/hemi projections. 1.0 = no change. FLAT projection passes 1.0 here and scales via model matrix instead.
 out vec4 outColor;
 void main() {
     vec2 uv = v_uv;
+    if (u_zoomUv != 1.0) {
+        // Centre-anchored UV scaling: zoom > 1.0 sees a smaller portion of texture (zoom in).
+        uv = (uv - vec2(0.5)) / u_zoomUv + vec2(0.5);
+    }
     if (u_stereoLayout == 1) {
         uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift);
@@ -79,7 +99,7 @@ void main() {
         uv.x = uv.x * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift) * 0.5;
     }
-    uv.x = clamp(uv.x, 0.0, 1.0);
+    uv = clamp(uv, vec2(0.0), vec2(1.0));
     outColor = texture(u_tex, uv);
 }
 )GLSL";
@@ -93,9 +113,13 @@ uniform int u_eyeIndex; // 0 = left, 1 = right
 uniform int u_stereoLayout; // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
 uniform float u_parallaxShift;
 uniform mat4 u_texTransform;
+uniform float u_zoomUv; // S0291 round 5: zoom factor for sphere/hemi; FLAT passes 1.0.
 out vec4 outColor;
 void main() {
     vec2 uv = v_uv;
+    if (u_zoomUv != 1.0) {
+        uv = (uv - vec2(0.5)) / u_zoomUv + vec2(0.5);
+    }
     if (u_stereoLayout == 1) {
         uv.y = uv.y * 0.5 + (u_eyeIndex == 1 ? 0.5 : 0.0);
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift);
@@ -104,8 +128,23 @@ void main() {
         uv.x += (u_eyeIndex == 0 ? -u_parallaxShift : u_parallaxShift) * 0.5;
     }
     uv = clamp(uv, vec2(0.0), vec2(1.0));
+    // S0290 (owner feedback 2026-05-22): video shown upside-down on Quest 3 because the
+    // SurfaceTexture transform from MediaCodec expects GL bottom-left convention UV, but
+    // our quad mesh is bitmap top-down. Convert just before the transform so stereo math
+    // above stays in bitmap convention (correct for TB / SBS half-splits) and the OES
+    // sampler sees the orientation it expects. See strategic spec §5.1.B.2.
+    uv.y = 1.0 - uv.y;
     vec4 transformed = u_texTransform * vec4(uv, 0.0, 1.0);
-    outColor = texture(u_tex, transformed.xy);
+    vec4 sampled = texture(u_tex, transformed.xy);
+    // S0290 ADR-5 v2: OES external returns RGB in source colorspace - the spec
+    // (https://registry.khronos.org/OpenGL/extensions/OES/OES_EGL_image_external.txt)
+    // says "no gamma encode or decode" happens on sample. H.264 / HEVC video out of
+    // MediaCodec is BT.709 gamma-encoded RGB, and the sRGB swapchain re-encodes on
+    // write. Without a decode here, the chain runs gamma TWICE -> over-bright video
+    // (Big Buck Bunny visibly brighter than desktop player, observed 2026-05-22).
+    // Decode to linear here so the swapchain's encode round-trips correctly.
+    outColor.rgb = pow(sampled.rgb, vec3(2.2));
+    outColor.a = sampled.a;
 }
 )GLSL";
 
@@ -139,6 +178,11 @@ struct State {
     int renderProjection{0}; // 0 = 360, 1 = 180, 2 = Flat
     int stereoLayout{1};     // 0 = Mono, 1 = Top-Bottom, 2 = Side-by-Side
     float parallaxShift{0.0f};
+    // S0291 owner round 5 (2026-05-22 22:32): thumbstick-Y driven zoom factor. 1.0 = no
+    // change. Higher = image appears closer/bigger (zoom IN). Stick toward user accumulates
+    // zoom UP; stick away accumulates zoom DOWN. Clamped [0.3, 3.0]. For FLAT projection
+    // applied as model matrix scale; for 360/180 applied as UV scaling in the fragment shader.
+    float zoom{1.0f};
 
     std::vector<uint8_t> pendingFrameData;
     int pendingFrameWidth{0};
@@ -199,12 +243,14 @@ struct State {
     GLint locEye{-1};
     GLint locStereoLayout{-1};
     GLint locParallaxShift{-1};
+    GLint locZoomUv{-1};
     GLint videoLocViewProj{-1};
     GLint videoLocTex{-1};
     GLint videoLocEye{-1};
     GLint videoLocStereoLayout{-1};
     GLint videoLocParallaxShift{-1};
     GLint videoLocTexTransform{-1};
+    GLint videoLocZoomUv{-1};
 };
 
 State g;
@@ -216,11 +262,51 @@ std::atomic<float> g_currentFps{0.0f};
 // Previous predicted display time (nanoseconds, monotonic). 0 marks "no previous frame yet".
 int64_t g_prevPredictedDisplayTimeNs{0};
 XrTime g_lastNavigateActionTime[2] = {0, 0};
+// S0290 Phase 10 (revised 2026-05-22 by owner): navigation moved off trigger/pinch
+// (those collide with Quest 3 system gestures like screenshot) to the thumbstick X axis.
+// Per-hand last-known stick deflection state: -1 = pushed left, 0 = neutral, +1 = right.
+// A transition 0 -> ±1 is the navigate event; we re-arm when stick returns to neutral.
+// triggerClicked is preserved as the kept-as-default-mapping signal for ray interaction
+// (HUD click) — only the prev/next navigation is moved to the stick.
+int g_prevStickState[2] = {0, 0};
+bool g_prevTriggerClicked[2] = {false, false};
+// S0290 Phase 10 Step 10.3: running count of accepted navigations per hand for in-log
+// self-diagnosis. The count appears in the LOGD navigation line so the operator can
+// distinguish "system saw 5 distinct gestures" vs "system saw 1 gesture but I think I
+// did 5". Reset alongside the time stamps in xr_session_start.
+int g_navigateCounter[2] = {0, 0};
 
 bool checkGl(const char* tag) {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR) { LOGE("GL error at %s: 0x%x", tag, e); return false; }
     return true;
+}
+
+bool hasGlExtension(const char* needle) {
+    const char* extensions = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+    return extensions && std::strstr(extensions, needle) != nullptr;
+}
+
+void configureStaticTextureFiltering() {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (hasGlExtension("GL_EXT_texture_filter_anisotropic")) {
+        GLfloat maxAnisotropy = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+        const GLfloat chosen = std::fmin(maxAnisotropy, 8.0f);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, chosen);
+        LOGD("static texture anisotropy enabled: %.1f", chosen);
+    }
+}
+
+bool uploadStaticTexturePixels(const uint8_t* rgba, int width, int height, const char* tag) {
+    glBindTexture(GL_TEXTURE_2D, g.texture);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return checkGl(tag);
 }
 
 GLuint compileShader(GLenum type, const char* src) {
@@ -395,7 +481,16 @@ void buildSphereMesh(std::vector<float>& verts, std::vector<unsigned int>& indic
         float sinT = std::sin(theta), cosT = std::cos(theta);
         for (int x = 0; x <= lon; ++x) {
             float u = (float)x / (float)lon;
-            float phi = u * 2.0f * kPI;
+            // S0291 owner round 3 fix (2026-05-22 21:26): owner observed "LEFT" text rendered
+            // as "TFEL" (horizontally mirrored) on diagnostic_360_stereo_tb.jpg. Root cause:
+            // for sphere viewed from inside, the azimuth-vs-texture-U direction was inverted —
+            // as user turned LEFT, texture U DECREASED instead of INCREASED, producing a
+            // mirror image. Same bug was present on bundled landscape pano but masked because
+            // the lake scene has no readable text. Reverse phi direction so texture U=0
+            // appears behind user and increases counter-clockwise (standard equirect viewer
+            // convention) — front-of-user now at u=0.25 (was 0.75) and turning RIGHT scrolls
+            // toward larger u.
+            float phi = (1.0f - u) * 2.0f * kPI;
             float sinP = std::sin(phi), cosP = std::cos(phi);
             float px = -sinT * cosP * kSphereRadius;
             float py = cosT * kSphereRadius;
@@ -428,7 +523,10 @@ void buildHemisphereMesh(std::vector<float>& verts, std::vector<unsigned int>& i
         float sinT = std::sin(theta), cosT = std::cos(theta);
         for (int x = 0; x <= lon; ++x) {
             float u = (float)x / (float)lon;
-            float phi = kPI + u * kPI;
+            // Same U-axis mirror fix as sphere (see comment above). For the 180° forward
+            // hemisphere, phi spans pi..2pi originally — reverse so the texture's natural
+            // left-to-right reads correctly when viewed from inside the half-shell.
+            float phi = kPI + (1.0f - u) * kPI;
             float sinP = std::sin(phi), cosP = std::cos(phi);
             float px = -sinT * cosP * kSphereRadius;
             float py = cosT * kSphereRadius;
@@ -725,12 +823,14 @@ NativeResult createGlAssets() {
     g.locEye          = glGetUniformLocation(g.program, "u_eyeIndex");
     g.locStereoLayout = glGetUniformLocation(g.program, "u_stereoLayout");
     g.locParallaxShift = glGetUniformLocation(g.program, "u_parallaxShift");
+    g.locZoomUv = glGetUniformLocation(g.program, "u_zoomUv");
     g.videoLocViewProj = glGetUniformLocation(g.videoProgram, "u_viewProj");
     g.videoLocTex = glGetUniformLocation(g.videoProgram, "u_tex");
     g.videoLocEye = glGetUniformLocation(g.videoProgram, "u_eyeIndex");
     g.videoLocStereoLayout = glGetUniformLocation(g.videoProgram, "u_stereoLayout");
     g.videoLocParallaxShift = glGetUniformLocation(g.videoProgram, "u_parallaxShift");
     g.videoLocTexTransform = glGetUniformLocation(g.videoProgram, "u_texTransform");
+    g.videoLocZoomUv = glGetUniformLocation(g.videoProgram, "u_zoomUv");
 
     std::vector<float> verts; std::vector<unsigned int> indices;
 
@@ -775,12 +875,10 @@ NativeResult createGlAssets() {
 
     glGenTextures(1, &g.texture);
     glBindTexture(GL_TEXTURE_2D, g.texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    configureStaticTextureFiltering();
     uint8_t pixel[4] = { 64, 64, 64, 255 };
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     glGenTextures(1, &g.hudTexture);
     glBindTexture(GL_TEXTURE_2D, g.hudTexture);
@@ -905,8 +1003,13 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
 
     float mvp[16];
     if (g.renderProjection == 2) {
+        // S0291 round 5: zoom for FLAT projection applied as proportional scale of the quad
+        // (width AND height multiplied by g.zoom). Quad stays at z=-5 so depth cues match the
+        // rest of the scene; only apparent size changes. This is the natural interpretation of
+        // "image приближается / удаляется" for a movie screen.
+        const float flatScale = g.zoom;
         float modelMat[16];
-        scaleAndTranslate4x4(8.0f, 4.5f, 1.0f, 0.0f, 0.0f, -5.0f, modelMat);
+        scaleAndTranslate4x4(8.0f * flatScale, 4.5f * flatScale, 1.0f, 0.0f, 0.0f, -5.0f, modelMat);
         float temp[16];
         multiply4x4(viewMat, modelMat, temp);
         multiply4x4(proj, temp, mvp);
@@ -935,6 +1038,7 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
     GLint locEye = useVideoTexture ? g.videoLocEye : g.locEye;
     GLint locStereoLayout = useVideoTexture ? g.videoLocStereoLayout : g.locStereoLayout;
     GLint locParallaxShift = useVideoTexture ? g.videoLocParallaxShift : g.locParallaxShift;
+    GLint locZoomUv = useVideoTexture ? g.videoLocZoomUv : g.locZoomUv;
 
     glEnable(GL_DEPTH_TEST); glDisable(GL_CULL_FACE);
     glUseProgram(program);
@@ -952,6 +1056,11 @@ bool renderEye(size_t eyeIdx, const XrView& view, XrCompositionLayerProjectionVi
     glUniform1i(locEye, (GLint)eyeIdx);
     glUniform1i(locStereoLayout, g.stereoLayout);
     if (locParallaxShift >= 0) glUniform1f(locParallaxShift, g.parallaxShift);
+    // S0291 round 5: zoom applies as UV scaling for 360 / 180 sphere/hemi projections only.
+    // FLAT projection scales via model matrix instead (built above) and the shader gets 1.0
+    // so the FLAT quad's UV range stays exact.
+    const float effectiveZoomUv = (g.renderProjection == 2) ? 1.0f : g.zoom;
+    if (locZoomUv >= 0) glUniform1f(locZoomUv, effectiveZoomUv);
     glBindVertexArray(activeVao);
     glDrawElements(GL_TRIANGLES, activeIndexCount, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
@@ -977,21 +1086,68 @@ void pollActions(XrTime predictedTime) {
 
     xr_input_poll(g.localSpace, predictedTime);
 
-    const bool leftNavigationAllowed =
-        g_lastNavigateActionTime[0] == 0 ||
-        predictedTime - g_lastNavigateActionTime[0] >= kNavigateDebounceDuration;
-    if (g_handInputStates[0].triggerClicked && leftNavigationAllowed) {
-        g_lastNavigateActionTime[0] = predictedTime;
-        LOGD("Left select / pinch triggered -> navigating prev");
-        triggerJniInputCallback(2); // 2 = Previous
+    // S0290 Phase 10 (owner feedback round 2 2026-05-22): tighten thresholds to combat
+    // over-sensitivity reports — user sees "still jumping" even with edge-detection because
+    // a 0.6 deflect is easy to hit incidentally on Quest 3 sticks. Bumped to 0.85 (firm push
+    // required) and re-arm to ±0.40 (clear release required). Race-guard duration upgraded
+    // to a navigation-cooldown of 500 ms (kNavigateDebounceDuration) so a quick re-flick
+    // cannot fire a second navigation within half a second of the previous one. Triggers
+    // remain free for Quest 3 system gestures (screenshot, recenter).
+    constexpr float kStickDeflectThreshold = 0.85f;
+    constexpr float kStickReturnThreshold = 0.40f;
+    for (int hand = 0; hand < 2; ++hand) {
+        const float x = g_handInputStates[hand].thumbstickX;
+        int newState = g_prevStickState[hand];
+        if (g_prevStickState[hand] == 0) {
+            if (x >  kStickDeflectThreshold) newState = +1;
+            else if (x < -kStickDeflectThreshold) newState = -1;
+        } else {
+            if (std::abs(x) < kStickReturnThreshold) newState = 0;
+        }
+        if (newState != g_prevStickState[hand] && newState != 0) {
+            const bool raceGuardOk =
+                g_lastNavigateActionTime[hand] == 0 ||
+                predictedTime - g_lastNavigateActionTime[hand] >= kNavigateDebounceDuration;
+            if (raceGuardOk) {
+                g_lastNavigateActionTime[hand] = predictedTime;
+                if (newState > 0) {
+                    LOGD("hand=%d thumbstick deflect right -> navigating next (count=%d, x=%.2f)",
+                         hand, ++g_navigateCounter[hand], x);
+                    triggerJniInputCallback(1); // 1 = Next
+                } else {
+                    LOGD("hand=%d thumbstick deflect left -> navigating prev (count=%d, x=%.2f)",
+                         hand, ++g_navigateCounter[hand], x);
+                    triggerJniInputCallback(2); // 2 = Previous
+                }
+            }
+        }
+        g_prevStickState[hand] = newState;
+        // Track trigger rising edge purely to keep the field reset in sync; no nav action.
+        g_prevTriggerClicked[hand] = g_handInputStates[hand].triggerClicked;
     }
-    const bool rightNavigationAllowed =
-        g_lastNavigateActionTime[1] == 0 ||
-        predictedTime - g_lastNavigateActionTime[1] >= kNavigateDebounceDuration;
-    if (g_handInputStates[1].triggerClicked && rightNavigationAllowed) {
-        g_lastNavigateActionTime[1] = predictedTime;
-        LOGD("Right select / pinch triggered -> navigating next");
-        triggerJniInputCallback(1); // 1 = Next
+
+    // S0291 owner round 5 (2026-05-22 22:32): thumbstick-Y drives zoom on the immersive
+    // image. Stick pulled toward the user (y < 0 in OpenXR thumbstick convention) zooms IN
+    // (image appears closer / larger). Stick pushed away (y > 0) zooms OUT. Either hand
+    // contributes. Deadzone 0.2 keeps neutral; outside deadzone we accumulate at a rate
+    // proportional to deflection and clamp to a sane range [0.3, 3.0].
+    constexpr float kZoomDeadzone = 0.2f;
+    constexpr float kZoomPerFrame = 0.012f; // ~1.2% size change at full deflection per frame; smooth at 72 Hz.
+    constexpr float kZoomMin = 0.3f;
+    constexpr float kZoomMax = 3.0f;
+    float zoomDelta = 0.0f;
+    for (int hand = 0; hand < 2; ++hand) {
+        const float y = g_handInputStates[hand].thumbstickY;
+        if (std::abs(y) > kZoomDeadzone) {
+            zoomDelta += -y * kZoomPerFrame;
+        }
+    }
+    if (zoomDelta != 0.0f) {
+        std::lock_guard<std::mutex> lock(g.mutex);
+        float nz = g.zoom + zoomDelta;
+        if (nz < kZoomMin) nz = kZoomMin;
+        if (nz > kZoomMax) nz = kZoomMax;
+        g.zoom = nz;
     }
 }
 
@@ -999,15 +1155,66 @@ void pollActions(XrTime predictedTime) {
 
 bool xr_session_is_running() { return g.running.load(); }
 
+bool xr_session_is_initialized() {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    // S0291 owner round 4 (2026-05-22 21:51): "initialized" now means "session is active",
+    // not "instance exists". g.instance and g.eglContext are intentionally process-scoped
+    // (see xr_session_init / xr_session_shutdown comments) and persist across exit/re-enter.
+    // A fresh session is detected by g.session being XR_NULL_HANDLE.
+    return g.session != XR_NULL_HANDLE;
+}
+
+jobject_opaque g_activity_jobject() {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    return static_cast<jobject_opaque>(g.activity);
+}
+
+void xr_session_clear_activity_jobject() {
+    std::lock_guard<std::mutex> lock(g.mutex);
+    g.activity = nullptr;
+}
+
 NativeResult xr_session_init(JavaVM* vm, jobject_opaque activity) {
     std::lock_guard<std::mutex> lock(g.mutex);
-    if (g.running.load()) return NativeResult::AlreadyRunning;
+    if (g.running.load()) {
+        LOGW("xr_session_init: already running; rejecting");
+        return NativeResult::AlreadyRunning;
+    }
     g.vm = vm;
     g.activity = static_cast<jobject>(activity);
-    NativeResult r = createInstance(vm, static_cast<jobject>(activity));
-    if (r != NativeResult::Ok) return r;
-    r = createEgl();
-    if (r != NativeResult::Ok) return r;
+    // S0291 owner round 4 (2026-05-22 21:51): re-entry crashed with CheckJNI abort inside
+    // libopenxr_loader.so::xrEnumerateInstanceExtensionProperties (logcat 21:45 line 430-445
+    // stack trace). Quest 3's OpenXR loader holds an internal JNI global ref to the Activity
+    // it received during xrInitializeLoaderKHR; that ref is NOT released when we call
+    // xrDestroyInstance. After ANY shutdown, the loader's cached ref races with ART CheckJNI
+    // and the next xrEnumerate* call (re-init) aborts the whole process. Mitigation: keep
+    // the XrInstance + EGL context alive for the WHOLE process lifetime, only destroy the
+    // per-session pieces (session handle, swapchains, GL objects, hud, input) in shutdown.
+    // This matches the standard OpenXR pattern — instance is process-scoped, session is
+    // immersive-scoped. Logged transitions so we can verify the path in the next test.
+    LOGD("xr_session_init: g.instance=%p g.eglContext=%p (will reuse if non-null)",
+         (void*)g.instance, (void*)g.eglContext);
+    NativeResult r;
+    if (g.instance == XR_NULL_HANDLE) {
+        LOGD("xr_session_init: creating XrInstance (cold start)");
+        r = createInstance(vm, static_cast<jobject>(activity));
+        if (r != NativeResult::Ok) {
+            LOGE("xr_session_init: createInstance failed -> %d", (int)r);
+            return r;
+        }
+    } else {
+        LOGD("xr_session_init: reusing existing XrInstance %p", (void*)g.instance);
+    }
+    if (g.eglContext == EGL_NO_CONTEXT) {
+        LOGD("xr_session_init: creating EGL context (cold start)");
+        r = createEgl();
+        if (r != NativeResult::Ok) {
+            LOGE("xr_session_init: createEgl failed -> %d", (int)r);
+            return r;
+        }
+    } else {
+        LOGD("xr_session_init: reusing existing EGL context %p", (void*)g.eglContext);
+    }
     return NativeResult::Ok;
 }
 
@@ -1033,6 +1240,16 @@ NativeResult xr_session_start() {
     g_prevPredictedDisplayTimeNs = 0;
     g_lastNavigateActionTime[0] = 0;
     g_lastNavigateActionTime[1] = 0;
+    // S0290 Phase 10: clear per-hand edge-detection snapshot and per-hand counters so a
+    // freshly started session does not inherit stale state from the previous one.
+    g_prevStickState[0] = 0;
+    g_prevStickState[1] = 0;
+    g_prevTriggerClicked[0] = false;
+    g_prevTriggerClicked[1] = false;
+    // S0291 round 5: reset zoom on each new session so re-enter starts at 1.0 (no carry-over).
+    g.zoom = 1.0f;
+    g_navigateCounter[0] = 0;
+    g_navigateCounter[1] = 0;
     LOGD("xr_session_start: complete");
     return NativeResult::Ok;
 }
@@ -1040,10 +1257,7 @@ NativeResult xr_session_start() {
 NativeResult xr_session_upload_texture(const uint8_t* rgba, int width, int height) {
     std::lock_guard<std::mutex> lock(g.mutex);
     if (g.texture == 0 || !rgba || width <= 0 || height <= 0) return NativeResult::NotRunning;
-    glBindTexture(GL_TEXTURE_2D, g.texture);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
-    if (!checkGl("upload_texture")) return NativeResult::FramePresentFailed;
+    if (!uploadStaticTexturePixels(rgba, width, height, "upload_texture")) return NativeResult::FramePresentFailed;
     LOGD("texture uploaded: %dx%d", width, height);
     return NativeResult::Ok;
 }
@@ -1071,7 +1285,11 @@ void xr_session_set_render_config(int projection, int layout) {
     std::lock_guard<std::mutex> lock(g.mutex);
     g.renderProjection = projection;
     g.stereoLayout = layout;
-    LOGD("set_render_config: projection=%d, layout=%d", projection, layout);
+    // S0291 owner round 8 (2026-05-22 22:53): reset zoom to 1.0 on every media
+    // switch so each new slide starts at default framing ("при переключении на
+    // следующую картинку/видео приближение/удаление сбрасывается к норме").
+    g.zoom = 1.0f;
+    LOGD("set_render_config: projection=%d, layout=%d, zoom reset to 1.0", projection, layout);
 }
 
 void xr_session_set_parallax_shift(float value) {
@@ -1081,13 +1299,18 @@ void xr_session_set_parallax_shift(float value) {
 }
 
 void xr_session_queue_hud(const uint8_t* rgba, int width, int height) {
-    if (!rgba || width <= 0 || height <= 0) return;
+    if (!rgba || width <= 0 || height <= 0) {
+        LOGW("xr_session_queue_hud REJECTED: rgba=%p w=%d h=%d", rgba, width, height);
+        return;
+    }
     std::lock_guard<std::mutex> lock(g.hudMutex);
     size_t size = width * height * 4;
     g.pendingHudData.assign(rgba, rgba + size);
     g.pendingHudWidth = width;
     g.pendingHudHeight = height;
     g.pendingHudReady = true;
+    LOGD("xr_session_queue_hud STORED %dx%d (%zu bytes); first pixel RGBA=%d,%d,%d,%d",
+         width, height, size, (int)rgba[0], (int)rgba[1], (int)rgba[2], (int)rgba[3]);
 }
 
 
@@ -1130,9 +1353,11 @@ NativeResult xr_session_run_frame_loop() {
         {
             std::lock_guard<std::mutex> lock(g.frameMutex);
             if (g.pendingFrameReady) {
-                glBindTexture(GL_TEXTURE_2D, g.texture);
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingFrameWidth, g.pendingFrameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingFrameData.data());
+                uploadStaticTexturePixels(
+                    g.pendingFrameData.data(),
+                    g.pendingFrameWidth,
+                    g.pendingFrameHeight,
+                    "pending_frame_upload");
                 g.pendingFrameReady = false;
             }
         }
@@ -1142,6 +1367,7 @@ NativeResult xr_session_run_frame_loop() {
                 glBindTexture(GL_TEXTURE_2D, g.hudTexture);
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingHudWidth, g.pendingHudHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingHudData.data());
+                LOGD("hud upload: %dx%d to texture=%u", g.pendingHudWidth, g.pendingHudHeight, g.hudTexture);
                 g.pendingHudReady = false;
             }
         }
@@ -1212,6 +1438,12 @@ float xr_session_get_fps() {
 
 void xr_session_shutdown() {
     std::lock_guard<std::mutex> lock(g.mutex);
+    LOGD("xr_session_shutdown: begin (instance=%p session=%p activity=%p)",
+         (void*)g.instance, (void*)g.session, (void*)g.activity);
+    // Drop running flag FIRST so any concurrent render-thread iteration observes the change
+    // and exits the frame loop before we tear down GL/EGL/OpenXR resources underneath it.
+    g.running.store(false);
+    g.exitRequested.store(true);
     bool attached = false;
     JNIEnv* env = getAttachedEnv(attached);
     releaseVideoSurfaceObjects(env);
@@ -1247,29 +1479,47 @@ void xr_session_shutdown() {
     xr_hud_shutdown();
     if (g.localSpace != XR_NULL_HANDLE)      { xrDestroySpace(g.localSpace);      g.localSpace = XR_NULL_HANDLE; }
     if (g.session != XR_NULL_HANDLE)         { xrDestroySession(g.session);       g.session = XR_NULL_HANDLE; }
-    if (g.instance != XR_NULL_HANDLE)        { xrDestroyInstance(g.instance);     g.instance = XR_NULL_HANDLE; }
+    // S0291 owner round 4 (2026-05-22 21:51): keep XrInstance, XrSystemId, view configs,
+    // and the EGL context alive for the process lifetime. See xr_session_init for the
+    // rationale (Quest 3 OpenXR loader holds its own JNI globalref to Activity that does
+    // NOT survive re-create cleanly). We DO destroy the per-session EGLSurface because it
+    // is bound to a per-Activity ANativeWindow that legitimately changes across sessions.
+    LOGD("xr_session_shutdown: preserving XrInstance %p, EGL context %p across exit",
+         (void*)g.instance, (void*)g.eglContext);
     if (g.eglSurface != EGL_NO_SURFACE && g.eglDisplay != EGL_NO_DISPLAY) {
         eglMakeCurrent(g.eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         eglDestroySurface(g.eglDisplay, g.eglSurface); g.eglSurface = EGL_NO_SURFACE;
     }
-    if (g.eglContext != EGL_NO_CONTEXT) { eglDestroyContext(g.eglDisplay, g.eglContext); g.eglContext = EGL_NO_CONTEXT; }
-    if (g.eglDisplay != EGL_NO_DISPLAY) { eglTerminate(g.eglDisplay); g.eglDisplay = EGL_NO_DISPLAY; }
     if (g.window) { ANativeWindow_release(g.window); g.window = nullptr; }
-    g.systemId = XR_NULL_SYSTEM_ID;
-    g.viewConfigs.clear();
     g.sessionRunning = false;
     g.sessionState = XR_SESSION_STATE_UNKNOWN;
-    g.running.store(false);
-    
-    if (g.vm && g.activity) {
-        JNIEnv* env = nullptr;
-        if (g.vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK && env) {
-            env->DeleteGlobalRef(g.activity);
-        }
-        g.activity = nullptr;
-        g.vm = nullptr;
+    // g.running already false (set at function top). Reset frame buffers too so a fresh
+    // session does not inherit stale pendingFrameReady from the previous one.
+    {
+        std::lock_guard<std::mutex> fl(g.frameMutex);
+        g.pendingFrameReady = false;
+        g.pendingFrameData.clear();
+        g.pendingFrameWidth = 0;
+        g.pendingFrameHeight = 0;
     }
-    LOGD("session shutdown complete");
+    {
+        std::lock_guard<std::mutex> hl(g.hudMutex);
+        g.pendingHudReady = false;
+        g.pendingHudData.clear();
+        g.pendingHudWidth = 0;
+        g.pendingHudHeight = 0;
+    }
+
+    // S0291 owner round 3 (2026-05-22 21:19): do NOT DeleteGlobalRef on g.activity at
+    // shutdown. The Activity global ref must persist across the immersive enter/exit
+    // boundary for the lifetime of the process — see the load-bearing rationale in
+    // diagnostic_xr_runtime.cpp::nativeInitSession (CheckJNI "stale reference with
+    // serial number" crash on re-entry when the ref was deleted between sessions).
+    // g.activity is reused by the JNI bridge on next nativeInitSession via IsSameObject;
+    // it is released only if a truly different Activity instance arrives, or implicitly
+    // when the process dies. g.vm is cleared because it has no associated allocation.
+    g.vm = nullptr;
+    LOGD("xr_session_shutdown: complete (activity globalref intentionally retained for process lifetime)");
 }
 
 } // namespace fms::xr

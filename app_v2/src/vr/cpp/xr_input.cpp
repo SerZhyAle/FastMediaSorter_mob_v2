@@ -288,6 +288,14 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
         state.gripDown = false;
         state.thumbstickX = 0.0f;
         state.thumbstickY = 0.0f;
+        // S0290 (owner feedback round 2 2026-05-22): explicitly reset poses to identity so
+        // a lost-then-restored tracking frame does not leave the previous frame's stale
+        // pose around. Stale pointerPose was the root cause of "random ray stripes" the
+        // owner observed - the ray was rendered from a hand position several frames old.
+        state.pointerPose.position = {0.0f, 0.0f, 0.0f};
+        state.pointerPose.orientation = {0.0f, 0.0f, 0.0f, 1.0f};
+        state.gripPose.position = {0.0f, 0.0f, 0.0f};
+        state.gripPose.orientation = {0.0f, 0.0f, 0.0f, 1.0f};
 
         // Check if hand joints are tracking to set the hand tracking flag
         if (pfnLocateHandJointsEXT) {
@@ -329,10 +337,12 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
         XrActionStatePose aimState{XR_TYPE_ACTION_STATE_POSE};
         xrGetActionStatePose(g_session, &aimGetInfo, &aimState);
 
+        // S0290 (owner feedback round 2 2026-05-22): only mark hand active when we actually
+        // have a valid aim pose this frame. Previously state.active was set on aimState.isActive
+        // alone — but isActive can be true while xrLocateSpace fails or returns invalid flags,
+        // in which case the ray downstream used a stale or zero-pose and appeared at random
+        // positions. Tracking-lost = no ray rendered.
         if (aimState.isActive) {
-            state.active = true;
-
-            // Locate Aim ray in space
             XrSpace aimSpace = (hand == 0) ? g_leftAimSpace : g_rightAimSpace;
             if (aimSpace != XR_NULL_HANDLE) {
                 XrSpaceLocation aimLoc{XR_TYPE_SPACE_LOCATION};
@@ -340,9 +350,9 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
                 if (XR_SUCCEEDED(locR) && (aimLoc.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) &&
                     (aimLoc.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)) {
                     state.pointerPose = aimLoc.pose;
+                    state.active = true;
                 }
             }
-
         }
 
         XrActionStateGetInfo gripPoseGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};

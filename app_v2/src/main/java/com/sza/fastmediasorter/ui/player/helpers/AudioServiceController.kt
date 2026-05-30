@@ -82,10 +82,19 @@ class AudioServiceController(
      * @param uri The audio file URI
      * @param onPlayerReady Callback with the MediaController as Player (for binding to PlayerView)
      */
-    fun playAudio(uri: Uri, onPlayerReady: (Player) -> Unit) {
+    fun playAudio(
+        uri: Uri,
+        mimeType: String? = null,
+        onPlayerReady: (Player) -> Unit
+    ) {
         connect { player ->
             Timber.d("AudioServiceController: playAudio uri=$uri")
-            val mediaItem = MediaItem.fromUri(uri)
+            val mediaItemBuilder = MediaItem.Builder()
+                .setUri(uri)
+            if (mimeType != null) {
+                mediaItemBuilder.setMimeType(mimeType)
+            }
+            val mediaItem = mediaItemBuilder.build()
             player.setMediaItem(mediaItem)
             player.repeatMode = Player.REPEAT_MODE_OFF
             player.prepare()
@@ -106,12 +115,17 @@ class AudioServiceController(
         uri: Uri,
         title: String,
         artist: String? = null,
+        mimeType: String? = null,
         onPlayerReady: (Player) -> Unit
     ) {
         connect { player ->
             Timber.d("AudioServiceController: playAudioWithMetadata uri=$uri title=$title artist=$artist")
-            val mediaItem = MediaItem.Builder()
+            val mediaItemBuilder = MediaItem.Builder()
                 .setUri(uri)
+            if (mimeType != null) {
+                mediaItemBuilder.setMimeType(mimeType)
+            }
+            val mediaItem = mediaItemBuilder
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setTitle(title)
@@ -176,8 +190,12 @@ class AudioServiceController(
                 return@connect
             }
             val mediaItems = items.map { item ->
-                MediaItem.Builder()
+                val mediaItemBuilder = MediaItem.Builder()
                     .setUri(item.uri)
+                if (item.mimeType != null) {
+                    mediaItemBuilder.setMimeType(item.mimeType)
+                }
+                mediaItemBuilder
                     .setMediaMetadata(
                         MediaMetadata.Builder()
                             .setTitle(item.title)

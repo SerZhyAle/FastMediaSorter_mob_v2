@@ -2,10 +2,7 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.app.Activity
 import android.content.Intent
-import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
-import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
-import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,7 +18,7 @@ import javax.inject.Inject
  */
 class GoogleDriveAuthPlugin @Inject constructor(
     @Suppress("unused") private val client: GoogleDriveRestClient,
-    private val identityRepository: GoogleIdentityRepository
+    private val interactiveSignInCoordinator: GoogleDriveInteractiveSignInCoordinator
 ) : InteractiveCloudAuthenticator {
 
     override val provider: CloudProvider = CloudProvider.GOOGLE_DRIVE
@@ -34,36 +31,14 @@ class GoogleDriveAuthPlugin @Inject constructor(
     override fun startInteractiveSignIn(activity: Activity) {
         Timber.d("S0243: GoogleDriveAuthPlugin.startInteractiveSignIn")
         pluginScope.launch {
-            try {
-                val result = identityRepository.signInPrimary(activity, DRIVE_SIGN_IN_SCOPES)
-                when (result) {
-                    is IdentitySignInResult.Success -> {
-                        Timber.i("GoogleDriveAuthPlugin: signInPrimary succeeded for email=${result.account.email}")
-                        _results.tryEmit(
-                            AuthResult.Success(
-                                accountName = result.account.email,
-                                credentialsJson = result.account.email
-                            )
-                        )
-                    }
-                    IdentitySignInResult.Cancelled -> {
-                        Timber.i("GoogleDriveAuthPlugin: signInPrimary cancelled by user")
-                        _results.tryEmit(AuthResult.Cancelled)
-                    }
-                    is IdentitySignInResult.Failed -> {
-                        Timber.e(result.cause, "GoogleDriveAuthPlugin: signInPrimary failed: ${result.reason}")
-                        _results.tryEmit(
-                            AuthResult.Error("Google sign-in failed: ${result.reason}")
-                        )
-                    }
+            when (val startResult = interactiveSignInCoordinator.start(activity)) {
+                is GoogleDriveInteractiveSignInCoordinator.StartResult.Immediate -> {
+                    _results.tryEmit(startResult.result)
                 }
-            } catch (e: Exception) {
-                Timber.e(e, "GoogleDriveAuthPlugin: signInPrimary threw")
-                _results.tryEmit(
-                    AuthResult.Error(
-                        "Google sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
-                    )
-                )
+
+                GoogleDriveInteractiveSignInCoordinator.StartResult.AwaitResume -> {
+                    Timber.d("GoogleDriveAuthPlugin: awaiting Google Drive browser auth completion on onResume")
+                }
             }
         }
     }
@@ -73,7 +48,9 @@ class GoogleDriveAuthPlugin @Inject constructor(
     }
 
     override suspend fun onResume() {
-        // No-op: Credential Manager produces its result inside the launched coroutine.
+        interactiveSignInCoordinator.consumePendingInteractiveResult()?.let { result ->
+            _results.tryEmit(result)
+        }
     }
 
     companion object {
@@ -86,8 +63,5 @@ class GoogleDriveAuthPlugin @Inject constructor(
             GoogleScope.PROFILE,
             GoogleScope.OPENID
         )
-
-        @Suppress("unused")
-        private val DEFAULT_FAILURE = IdentityFailureReason.UnknownError
     }
 }

@@ -118,7 +118,7 @@ Full-size images:
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
-- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files" mode.
+- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "File Manager Mode".
 - ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Input → Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
@@ -149,7 +149,7 @@ FastMediaSorter v2 supports a wide range of formats:
 - **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
 - **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, DTS, DTS-HD
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
-- **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
+- **Binary Files** (File Manager Mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 
 ## Usage Scenarios 💡
 

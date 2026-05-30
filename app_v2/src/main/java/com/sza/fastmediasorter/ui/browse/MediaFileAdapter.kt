@@ -9,6 +9,7 @@ import android.net.Uri
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
@@ -43,6 +44,7 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import java.io.File
@@ -63,6 +65,7 @@ class MediaFileAdapter(
     private val onOverflowMenuClick: (MediaFile, android.view.View) -> Unit = { _, _ -> },
     private val onFolderClick: (MediaFile) -> Unit = {}, // Callback for folder navigation
     private val onBinaryFileClick: (MediaFile) -> Unit = {}, // Callback for binary files (Task 6)
+    private val apkTileBadgeBinder: BrowseApkTileBadgeBinder,
     private var isGridMode: Boolean = false,
     private var thumbnailSize: Int = 96, // Default size in dp
     private var useCompactElements: Boolean = false, // Global 0.5x scaling mode
@@ -121,10 +124,7 @@ class MediaFileAdapter(
     // Inline audio player state (adapter-level, not part of MediaFile model)
     private var inlinePlayerState: InlinePlayerState = InlinePlayerState()
 
-    /**
-     * Update inline playback state and partially rebind only affected items.
-     * Uses PAYLOAD_PLAYBACK_STATE to avoid full rebind (thumbnail stays intact).
-     */
+    /** Update inline playback state and partially rebind only affected items. Uses PAYLOAD_PLAYBACK_STATE to avoid full rebind (thumbnail stays intact). */
     fun updateInlinePlayerState(newState: InlinePlayerState) {
         val oldState = inlinePlayerState
         inlinePlayerState = newState
@@ -140,21 +140,17 @@ class MediaFileAdapter(
             }
         }
     }
-    
+
     // Fast scroll detection to skip thumbnail loading during rapid scrolling
     private var isScrolling: Boolean = false
-    
+
     // Viewport-based audio metadata loader for network files
     private var audioMetadataLoader: AudioMetadataLoader? = null
 
     // Binary file thumbnail generator (Task 6)
     private var binaryThumbnailGenerator: BinaryFileThumbnailGenerator? = null
     private var disableDocumentPreviewsOnLowMemory: Boolean? = null
-    
-    init {
-        Timber.i("=== MediaFileAdapter CREATED with refreshVersion=$refreshVersion ===")
-    }
-    
+
     fun setBinaryThumbnailGenerator(generator: BinaryFileThumbnailGenerator) {
         binaryThumbnailGenerator = generator
     }
@@ -163,11 +159,7 @@ class MediaFileAdapter(
         audioMetadataLoader = loader
     }
 
-    /**
-     * Called after scrolling stops to load audio metadata for visible network audio files.
-     * Mirrors [loadVisibleThumbnails] pattern. Triggers [AudioMetadataLoader] for each
-     * qualifying item; callbacks update the ViewHolder via [PAYLOAD_AUDIO_METADATA].
-     */
+    /** Called after scrolling stops to load audio metadata for visible network audio files. Mirrors [loadVisibleThumbnails] pattern. Triggers [AudioMetadataLoader] for each qualifying item; callbacks update the ViewHolder via [PAYLOAD_AUDIO_METADATA]. */
     fun loadVisibleAudioMetadata(firstVisiblePos: Int, lastVisiblePos: Int) {
         val loader = audioMetadataLoader ?: return
         if (firstVisiblePos < 0 || lastVisiblePos < 0 || firstVisiblePos > lastVisiblePos) return
@@ -198,51 +190,41 @@ class MediaFileAdapter(
     private fun shouldDisableDocumentPreviews(context: android.content.Context): Boolean {
         if (disableDocumentPreviewsOnLowMemory == null) {
             disableDocumentPreviewsOnLowMemory = MemoryTier.detect(context) == MemoryTier.LOW
-            Timber.i("MediaFileAdapter: disableDocumentPreviewsOnLowMemory=$disableDocumentPreviewsOnLowMemory")
         }
         return disableDocumentPreviewsOnLowMemory == true
     }
-    
+
     fun incrementRefreshVersion() {
         refreshVersion++
-        Timber.i("*** CACHE INVALIDATION *** refreshVersion incremented to $refreshVersion (will invalidate ALL cached thumbnails)")
     }
-    
-    /**
-     * Set scrolling state to skip thumbnail loading during fast scroll.
-     * Call setScrolling(true) when scroll starts, setScrolling(false) when scroll ends.
-     */
+
+    /** Set scrolling state to skip thumbnail loading during fast scroll. Call setScrolling(true) when scroll starts, setScrolling(false) when scroll ends. */
     fun setScrolling(scrolling: Boolean) {
         if (isScrolling != scrolling) {
             isScrolling = scrolling
-            Timber.d("MediaFileAdapter: isScrolling=$isScrolling (caller: ${Thread.currentThread().stackTrace[3].methodName})")
         }
     }
-    
-    /**
-     * Called after scrolling stops to load thumbnails for currently visible items.
-     * Uses notifyItemRangeChanged with LOAD_THUMBNAILS payload.
-     */
+
+    /** Called after scrolling stops to load thumbnails for currently visible items. Uses notifyItemRangeChanged with LOAD_THUMBNAILS payload. */
     fun loadVisibleThumbnails(firstVisiblePos: Int, lastVisiblePos: Int) {
         if (firstVisiblePos < 0 || lastVisiblePos < 0 || firstVisiblePos > lastVisiblePos) return
         val count = (lastVisiblePos - firstVisiblePos + 1).coerceAtMost(itemCount - firstVisiblePos)
         if (count > 0) {
-            Timber.d("MediaFileAdapter: Loading visible thumbnails [$firstVisiblePos..$lastVisiblePos] count=$count")
             notifyItemRangeChanged(firstVisiblePos, count, "LOAD_THUMBNAILS")
         }
     }
-    
+
     fun setCredentialsId(id: String?) {
         credentialsId = id
     }
-    
+
     fun setShowFavoriteButton(show: Boolean) {
         if (this.showFavoriteButton != show) {
             this.showFavoriteButton = show
             notifyDataSetChanged() // Update button visibility across all items
         }
     }
-    
+
     fun setHideGridActionButtons(hide: Boolean) {
         if (this.hideGridActionButtons != hide) {
             this.hideGridActionButtons = hide
@@ -266,7 +248,7 @@ class MediaFileAdapter(
             notifyDataSetChanged() // Update button visibility across all items
         }
     }
-    
+
     fun setDisableThumbnails(disabled: Boolean) {
         if (disableThumbnails != disabled) {
             disableThumbnails = disabled
@@ -288,22 +270,15 @@ class MediaFileAdapter(
             notifyDataSetChanged()
         }
     }
-    
-    /**
-     * Enable/disable initial thumbnail loading in bind().
-     * When true, thumbnails are loaded only via LOAD_THUMBNAILS payload.
-     */
+
+    /** Enable/disable initial thumbnail loading in bind(). When true, thumbnails are loaded only via LOAD_THUMBNAILS payload. */
     fun setSkipInitialThumbnailLoad(skip: Boolean) {
-        Timber.d("MediaFileAdapter: setSkipInitialThumbnailLoad($skip)")
         skipInitialThumbnailLoad = skip
     }
-    
+
     fun getSkipInitialThumbnailLoad(): Boolean = skipInitialThumbnailLoad
 
-    /**
-     * Returns [file] enriched with AudioMetadataLoader's in-memory cache, if available.
-     * This is a fast ConcurrentHashMap lookup - safe to call on every bind.
-     */
+    /** Returns [file] enriched with AudioMetadataLoader's in-memory cache, if available. This is a fast ConcurrentHashMap lookup - safe to call on every bind. */
     private fun resolveAudioMetadata(file: MediaFile): MediaFile {
         if (file.type != MediaType.AUDIO || file.isDirectory) return file
         if (file.artist != null && file.title != null) return file
@@ -315,7 +290,7 @@ class MediaFileAdapter(
             duration = cached.duration ?: file.duration
         )
     }
-    
+
     companion object {
         private const val VIEW_TYPE_LIST = 0
         private const val VIEW_TYPE_GRID = 1
@@ -325,6 +300,35 @@ class MediaFileAdapter(
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
     }
 
+    // Shared click-listener helpers used by both ListViewHolder and GridViewHolder.
+    private inline fun View.bindFileClick(
+        crossinline getFile: () -> MediaFile?,
+        crossinline action: (MediaFile) -> Unit,
+    ) = setOnClickListener {
+        val file = getFile() ?: return@setOnClickListener
+        action(file)
+    }
+
+    private inline fun View.bindFileTypeClick(crossinline getFile: () -> MediaFile?) =
+        setOnClickListener {
+            val file = getFile() ?: return@setOnClickListener
+            when {
+                file.isDirectory -> onFolderClick(file)
+                file.type.isBinaryFile() -> onBinaryFileClick(file)
+                else -> onFileClick(file)
+            }
+        }
+
+    private inline fun View.bindRightClickContextMenu(crossinline getFile: () -> MediaFile?) =
+        setOnGenericMotionListener { view, event ->
+            if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
+                event.buttonState == MotionEvent.BUTTON_SECONDARY) {
+                val file = getFile() ?: return@setOnGenericMotionListener false
+                onContextMenuRequest(view, file)
+                return@setOnGenericMotionListener true
+            }
+            false
+        }
 
     fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
         if (isGridMode != enabled || thumbnailSize != iconSize) {
@@ -332,13 +336,12 @@ class MediaFileAdapter(
             val sizeChanged = thumbnailSize != iconSize
             isGridMode = enabled
             thumbnailSize = iconSize
-            
+
             // When thumbnail size changes, increment refresh version to force Glide reload
             if (sizeChanged) {
                 incrementRefreshVersion()
-                Timber.d("Thumbnail size changed to ${iconSize}dp, cache will be regenerated at new size")
             }
-            
+
             // When mode changes (List↔Grid), use payload to rebind items efficiently
             // When only size changes, force thumbnail reload with payload
             if (sizeChanged && !modeChanged) {
@@ -352,10 +355,10 @@ class MediaFileAdapter(
 
     fun setSelectedPaths(paths: Set<String>) {
         if (selectedPaths == paths) return
-        
+
         val oldSelected = selectedPaths
         selectedPaths = paths
-        
+
         // Optimize updates: only notify changed items
         // If selection was cleared
         if (paths.isEmpty() && oldSelected.isNotEmpty()) {
@@ -366,7 +369,7 @@ class MediaFileAdapter(
             }
             return
         }
-        
+
         // If selection was added/changed
         currentList.forEachIndexed { index, file ->
             val wasSelected = file.path in oldSelected
@@ -376,7 +379,7 @@ class MediaFileAdapter(
             }
         }
     }
-    
+
     override fun getItemViewType(position: Int): Int {
         return if (isGridMode) VIEW_TYPE_GRID else VIEW_TYPE_LIST
     }
@@ -409,7 +412,7 @@ class MediaFileAdapter(
             is GridViewHolder -> holder.bind(file, selectedPaths)
         }
     }
-    
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
         val file = getItem(position)
         if (payloads.isEmpty()) {
@@ -447,9 +450,7 @@ class MediaFileAdapter(
                 }
             }
             if (payloads.contains(PAYLOAD_AUDIO_METADATA)) {
-                // Partial bind: only update text labels with enriched audio metadata.
-                // For network files the ListAdapter list may not contain enriched data yet,
-                // so check AudioMetadataLoader's in-memory cache first.
+                // Partial bind: only update text labels with enriched audio metadata. For network files the ListAdapter list may not contain enriched data yet, so check AudioMetadataLoader's in-memory cache first.
                 val displayFile = resolveAudioMetadata(file)
                 if (holder is ListViewHolder) {
                     holder.updateAudioMetadataText(displayFile)
@@ -457,12 +458,11 @@ class MediaFileAdapter(
             }
             // If no known payloads were handled, fall back to super
             if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED") && !payloads.contains(PAYLOAD_PLAYBACK_STATE) && !payloads.contains(PAYLOAD_AUDIO_METADATA)) {
-                Timber.v("onBindViewHolder: UNKNOWN payloads=$payloads, calling super")
                 super.onBindViewHolder(holder, position, payloads)
             }
         }
     }
-    
+
     override fun onCurrentListChanged(
         previousList: MutableList<com.sza.fastmediasorter.domain.model.MediaFile>,
         currentList: MutableList<com.sza.fastmediasorter.domain.model.MediaFile>
@@ -474,9 +474,7 @@ class MediaFileAdapter(
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
-        // Explicitly clear Glide requests when view is recycled to free up
-        // ConnectionThrottleManager slots immediately. This is critical for
-        // network resources where concurrency is limited.
+        // Explicitly clear Glide requests when view is recycled to free up ConnectionThrottleManager slots immediately. This is critical for network resources where concurrency is limited.
         when (holder) {
             is ListViewHolder -> {
                 holder.clearImage()
@@ -484,12 +482,13 @@ class MediaFileAdapter(
             }
             is GridViewHolder -> holder.clearImage()
         }
+        apkTileBadgeBinder.onViewRecycled(holder.itemView)
     }
 
     inner class ListViewHolder(
         private val binding: ItemMediaFileBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        
+
         private var lastLoadedKey: String? = null
         private val playbackAnimator = InlinePlaybackAnimator(binding.btnPlayInline)
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
@@ -509,86 +508,26 @@ class MediaFileAdapter(
         }
 
         init {
-            binding.ivThumbnail.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                if (file.isDirectory) {
-                    onFolderClick(file)
-                } else if (file.type.isBinaryFile()) {
-                    onBinaryFileClick(file)
-                } else {
-                    onFileClick(file)
-                }
-            }
-
-            binding.root.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                if (file.isDirectory) {
-                    onFolderClick(file)
-                } else if (file.type.isBinaryFile()) {
-                    onBinaryFileClick(file)
-                } else {
-                    onFileClick(file)
-                }
-            }
-
-            binding.root.setOnGenericMotionListener { view, event ->
-                if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
-                    event.buttonState == MotionEvent.BUTTON_SECONDARY
-                ) {
-                    val file = getItemByPosition() ?: return@setOnGenericMotionListener false
-                    Timber.d("Right-click on ${file.name}")
-                    // Right-click must open the context menu, not reuse range-selection semantics.
-                    onContextMenuRequest(view, file)
-                    return@setOnGenericMotionListener true
-                }
-                false
-            }
-
+            val getFile: () -> MediaFile? = ::getItemByPosition
+            binding.ivThumbnail.bindFileTypeClick(getFile)
+            binding.root.bindFileTypeClick(getFile)
+            binding.root.bindRightClickContextMenu(getFile)
             binding.root.setOnLongClickListener {
-                val file = getItemByPosition() ?: return@setOnLongClickListener false
-                if (!file.isDirectory) {
-                    onFileLongClick(file)
-                }
+                val file = getFile() ?: return@setOnLongClickListener false
+                if (!file.isDirectory) onFileLongClick(file)
                 true
             }
-
             binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
-
-            binding.btnFavorite.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onFavoriteClick(file)
-            }
-
-            binding.btnCopyItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onCopyClick(file)
-            }
-
-            binding.btnMoveItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onMoveClick(file)
-            }
-
-            binding.btnRenameItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onRenameClick(file)
-            }
-
-            binding.btnDeleteItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onDeleteClick(file)
-            }
-
+            binding.btnFavorite.bindFileClick(getFile, onFavoriteClick)
+            binding.btnCopyItem.bindFileClick(getFile, onCopyClick)
+            binding.btnMoveItem.bindFileClick(getFile, onMoveClick)
+            binding.btnRenameItem.bindFileClick(getFile, onRenameClick)
+            binding.btnDeleteItem.bindFileClick(getFile, onDeleteClick)
             binding.btnOverflowMenu.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
+                val file = getFile() ?: return@setOnClickListener
                 onOverflowMenuClick(file, it)
             }
-
-            binding.btnPlayInline.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onPlayClick(file)
-            }
-
+            binding.btnPlayInline.bindFileClick(getFile, onPlayClick)
             binding.ivDragHandle.setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                     dragController.listener?.onStartDrag(this)
@@ -618,10 +557,7 @@ class MediaFileAdapter(
             lastLoadedKey = null
         }
 
-        /**
-         * Update only the inline play button icon/animation for this item.
-         * Called via PAYLOAD_PLAYBACK_STATE partial rebind.
-         */
+        /** Update only the inline play button icon/animation for this item. Called via PAYLOAD_PLAYBACK_STATE partial rebind. */
         fun updatePlaybackState(file: MediaFile) {
             val state = this@MediaFileAdapter.inlinePlayerState
             val isThisItem = state.playingPath == file.path
@@ -668,10 +604,7 @@ class MediaFileAdapter(
             }
         }
 
-        /**
-         * Update only text labels when audio metadata (artist/album/title/duration) is enriched.
-         * Called via PAYLOAD_AUDIO_METADATA partial rebind - avoids thumbnail reload.
-         */
+        /** Update only text labels when audio metadata (artist/album/title/duration) is enriched. Called via PAYLOAD_AUDIO_METADATA partial rebind - avoids thumbnail reload. */
         fun updateAudioMetadataText(file: MediaFile) {
             val audioOnlyFile = isAudioOnlyMode && !file.isDirectory
             if (audioOnlyFile) {
@@ -707,17 +640,17 @@ class MediaFileAdapter(
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             // Note: Glide automatically cancels previous request when load() is called on same ImageView
-            
-            Timber.v("ListViewHolder.bind: START file=${file.name}, isDirectory=${file.isDirectory}, childCount=${file.childCount}")
-            
+
             binding.apply {
                 val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
-                
+
                 // In audio-only mode, hide thumbnail entirely for files (not folders)
                 // so file name/details shift to the left and take its space
                 val audioOnlyFile = isAudioOnlyMode && !isFolder
                 ivThumbnail.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
+                val thumbnailFrame = root.findViewById<android.view.View?>(R.id.flThumbnailFrame)
+                thumbnailFrame?.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
 
                 if (!audioOnlyFile) {
                     // Apply thumbnail size from settings for list mode (halved if compact mode enabled)
@@ -727,6 +660,13 @@ class MediaFileAdapter(
                         (dSize * root.resources.displayMetrics.density).toInt()
                     } else {
                         (effectiveBaseSize * root.resources.displayMetrics.density).toInt()
+                    }
+                    // noLegal wraps the thumbnail in a frame so the badge stays anchored to the
+                    // same box the adapter resizes in standard list mode.
+                    thumbnailFrame?.layoutParams?.let { frameParams ->
+                        frameParams.width = thumbnailSizePx
+                        frameParams.height = thumbnailSizePx
+                        thumbnailFrame.layoutParams = frameParams
                     }
                     ivThumbnail.layoutParams.width = thumbnailSizePx
                     ivThumbnail.layoutParams.height = thumbnailSizePx
@@ -765,7 +705,7 @@ class MediaFileAdapter(
                     cbSelect.isChecked = isSelected
                     cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
                 }
-                
+
                 // Highlight selected items
                 // Highlight selected items using background color
                 val backgroundColor = when {
@@ -774,7 +714,7 @@ class MediaFileAdapter(
                     else -> root.context.getColor(com.sza.fastmediasorter.R.color.item_normal)
                 }
                 root.setBackgroundColor(backgroundColor)
-                
+
                 // In audio-only mode: top line = Artist - Title, bottom = filename + size + duration
                 // For network audio files, check AudioMetadataLoader cache for enriched data.
                 val displayFile = resolveAudioMetadata(file)
@@ -789,7 +729,6 @@ class MediaFileAdapter(
                 // Load thumbnail or folder icon
                 if (isFolder) {
                     // ALWAYS show folder icon, regardless of skipInitialThumbnailLoad
-                    Timber.v("ListViewHolder.bind: Setting folder icon for ${file.name}, isDirectory=${file.isDirectory}")
                     ivThumbnail.setImageResource(R.drawable.ic_folder)
                     ivThumbnail.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
                     ivThumbnail.setBackgroundColor(Color.TRANSPARENT)
@@ -800,11 +739,10 @@ class MediaFileAdapter(
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
                     } else {
-                        Timber.v("ListViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
                     }
                 }
                 // audioOnlyFile: thumbnail is GONE, nothing to load
-                
+
                 // Favorite button (hide for folders)
                 btnFavorite.isVisible = showFavoriteButton && !isFolder
                 btnFavorite.setImageResource(
@@ -836,6 +774,9 @@ class MediaFileAdapter(
 
                 // Drag handle: visible only in MANUAL sort mode (set via showDragHandles)
                 ivDragHandle.isVisible = dragController.showHandles && !isFolder
+
+                // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
+                apkTileBadgeBinder.bind(root, file)
             }
         }
 
@@ -845,12 +786,12 @@ class MediaFileAdapter(
         }
 
     }
-    
+
     // Grid ViewHolder for grid mode
     inner class GridViewHolder(
         private val binding: ItemMediaFileGridBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        
+
         private var lastLoadedKey: String? = null
         private var operationsContainer: android.widget.LinearLayout? = null
         private var btnCopyItem: android.widget.ImageButton? = null
@@ -875,101 +816,45 @@ class MediaFileAdapter(
 
         private fun ensureOperationsInflated() {
             if (operationsContainer != null) return
-
             val inflated = binding.stubOperations.inflate()
             operationsContainer = inflated as? android.widget.LinearLayout
             btnCopyItem = inflated.findViewById(R.id.btnCopyItem)
             btnMoveItem = inflated.findViewById(R.id.btnMoveItem)
             btnRenameItem = inflated.findViewById(R.id.btnRenameItem)
             btnDeleteItem = inflated.findViewById(R.id.btnDeleteItem)
-
-            btnCopyItem?.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onCopyClick(file)
-            }
-
-            btnMoveItem?.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onMoveClick(file)
-            }
-
-            btnRenameItem?.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onRenameClick(file)
-            }
-
-            btnDeleteItem?.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onDeleteClick(file)
-            }
+            val getFile: () -> MediaFile? = ::getItemByPosition
+            btnCopyItem?.bindFileClick(getFile, onCopyClick)
+            btnMoveItem?.bindFileClick(getFile, onMoveClick)
+            btnRenameItem?.bindFileClick(getFile, onRenameClick)
+            btnDeleteItem?.bindFileClick(getFile, onDeleteClick)
         }
 
         init {
-            binding.ivThumbnail.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                if (file.isDirectory) {
-                    onFolderClick(file)
-                } else if (file.type.isBinaryFile()) {
-                    onBinaryFileClick(file)
-                } else {
-                    onFileClick(file)
-                }
-            }
-
-            binding.root.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                if (file.isDirectory) {
-                    onFolderClick(file)
-                } else if (file.type.isBinaryFile()) {
-                    onBinaryFileClick(file)
-                } else {
-                    onFileClick(file)
-                }
-            }
-
-            binding.root.setOnGenericMotionListener { view, event ->
-                if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
-                    event.buttonState == MotionEvent.BUTTON_SECONDARY
-                ) {
-                    val file = getItemByPosition() ?: return@setOnGenericMotionListener false
-                    Timber.d("Right-click on ${file.name}")
-                    // Right-click must open the context menu, not reuse range-selection semantics.
-                    onContextMenuRequest(view, file)
-                    return@setOnGenericMotionListener true
-                }
-                false
-            }
-
+            val getFile: () -> MediaFile? = ::getItemByPosition
+            binding.ivThumbnail.bindFileTypeClick(getFile)
+            binding.root.bindFileTypeClick(getFile)
+            binding.root.bindRightClickContextMenu(getFile)
             binding.root.setOnLongClickListener {
-                val file = getItemByPosition() ?: return@setOnLongClickListener false
+                val file = getFile() ?: return@setOnLongClickListener false
                 onFileLongClick(file)
                 true
             }
-
             binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             binding.cbSelect.setOnLongClickListener {
-                val file = getItemByPosition() ?: return@setOnLongClickListener false
-                if (!file.isDirectory && !binding.cbSelect.isChecked) {
-                    onSelectionRangeRequested(file)
-                }
+                val file = getFile() ?: return@setOnLongClickListener false
+                if (!file.isDirectory && !binding.cbSelect.isChecked) onSelectionRangeRequested(file)
                 true
             }
-
-            binding.btnFavorite.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onFavoriteClick(file)
-            }
-
+            binding.btnFavorite.bindFileClick(getFile, onFavoriteClick)
             binding.btnOverflowMenu.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
+                val file = getFile() ?: return@setOnClickListener
                 onOverflowMenuClick(file, it)
             }
-
-            // Task 8: Make item focusable for keyboard navigation
+            // Make item focusable for keyboard navigation
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = false
         }
-        
+
         fun clearImage() {
             // Check if the context (activity) is still valid before clearing Glide request
             val context = binding.ivThumbnail.context
@@ -994,16 +879,14 @@ class MediaFileAdapter(
             thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, binarySizePx, isListMode = false)
             lastLoadedKey = newKey
         }
-        
+
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             // Note: Glide automatically cancels previous request when load() is called on same ImageView
-            
-            Timber.v("GridViewHolder.bind: START file=${file.name}, isDirectory=${file.isDirectory}, childCount=${file.childCount}")
-            
+
             binding.apply {
                 val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
-                
+
                 // Hide checkbox for folders (folders can't be selected)
                 cbSelect.isVisible = !isFolder
                 if (!isFolder) {
@@ -1012,7 +895,7 @@ class MediaFileAdapter(
                     cbSelect.isChecked = isSelected
                     cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
                 }
-                
+
                 // Set dynamic thumbnail size (height only - width is match_parent)
                 val sizeInPx = if (this@MediaFileAdapter.disableThumbnails) {
                     val baseDisableSize = if (isAudioOnlyMode) AUDIO_ONLY_THUMBNAIL_DP else 64
@@ -1023,7 +906,7 @@ class MediaFileAdapter(
                     val effectiveSizeDp = if (useCompactElements) sizeDp / 2 else sizeDp
                     (effectiveSizeDp * root.context.resources.displayMetrics.density).toInt() // User preference
                 }
-                
+
                 // Apply user-defined icon size to thumbnail container and image.
                 // Container controls effective cell height; updating only ImageView is not enough.
                 val containerParams = flThumbnailContainer.layoutParams
@@ -1037,7 +920,7 @@ class MediaFileAdapter(
                     imgParams.height = sizeInPx
                     ivThumbnail.layoutParams = imgParams
                 }
-                
+
                 // Highlight selected items
                 cvCard.setCardBackgroundColor(
                     if (isSelected) {
@@ -1046,18 +929,17 @@ class MediaFileAdapter(
                         root.context.getColor(R.color.item_normal)
                     }
                 )
-                
+
                 tvFileName.text = file.name
                 if (useCompactElements) {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11f)
                 } else {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
                 }
-                
+
                 // Load thumbnail or folder icon
                 if (isFolder) {
                     // ALWAYS show folder icon, regardless of skipInitialThumbnailLoad
-                    Timber.v("GridViewHolder.bind: Setting folder icon for ${file.name}, isDirectory=${file.isDirectory}")
                     ivThumbnail.setImageResource(R.drawable.ic_folder)
                     ivThumbnail.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
                     ivThumbnail.setBackgroundColor(Color.TRANSPARENT)
@@ -1068,14 +950,13 @@ class MediaFileAdapter(
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
                     } else {
-                        Timber.v("GridViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
                     }
                 }
-                
+
                 // Favorite button
                 btnFavorite.isVisible = showFavoriteButton
                 btnFavorite.setImageResource(
-                    if (file.isFavorite) R.drawable.ic_star_filled 
+                    if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline
                 )
 
@@ -1093,9 +974,12 @@ class MediaFileAdapter(
                 } else {
                     operationsContainer?.isVisible = false
                 }
+
+                // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
+                apkTileBadgeBinder.bind(root, file)
             }
         }
-        
+
         private fun loadThumbnail(file: MediaFile) {
             val binarySizePx = (this@MediaFileAdapter.thumbnailSize * binding.root.context.resources.displayMetrics.density).toInt()
             thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, binarySizePx, isListMode = false)
@@ -1104,8 +988,4 @@ class MediaFileAdapter(
     }
 
 }
-
-
-
-
 

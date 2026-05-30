@@ -42,6 +42,41 @@ object MediaTypeUtils {
     )
     val PDF_EXTENSIONS = setOf("pdf")
     val EPUB_EXTENSIONS = setOf("epub")
+    private val OFFICE_DOCUMENT_MIME_TYPE_FAMILIES = mapOf(
+        "application/msword" to OfficeDocumentFamily.WORD,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" to OfficeDocumentFamily.WORD,
+        "application/rtf" to OfficeDocumentFamily.WORD,
+        "application/x-rtf" to OfficeDocumentFamily.WORD,
+        "text/rtf" to OfficeDocumentFamily.WORD,
+        "application/vnd.oasis.opendocument.text" to OfficeDocumentFamily.WORD,
+        "application/vnd.ms-excel" to OfficeDocumentFamily.SPREADSHEET,
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" to OfficeDocumentFamily.SPREADSHEET,
+        "application/vnd.oasis.opendocument.spreadsheet" to OfficeDocumentFamily.SPREADSHEET,
+        "application/vnd.ms-powerpoint" to OfficeDocumentFamily.PRESENTATION,
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation" to OfficeDocumentFamily.PRESENTATION,
+        "application/vnd.oasis.opendocument.presentation" to OfficeDocumentFamily.PRESENTATION,
+    )
+
+    private val OFFICE_DOCUMENT_DEFAULT_MIME_BY_EXTENSION = mapOf(
+        "doc" to "application/msword",
+        "docx" to "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "rtf" to "application/rtf",
+        "odt" to "application/vnd.oasis.opendocument.text",
+        "xls" to "application/vnd.ms-excel",
+        "xlsx" to "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "ods" to "application/vnd.oasis.opendocument.spreadsheet",
+        "ppt" to "application/vnd.ms-powerpoint",
+        "pptx" to "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "odp" to "application/vnd.oasis.opendocument.presentation",
+    )
+
+    val OFFICE_DOCUMENT_EXTENSIONS: Set<String>
+        get() = OfficeDocumentFamilyCatalog.extensionToFamily.keys
+
+    val OFFICE_DOCUMENT_MIME_TYPES: Set<String>
+        get() = OFFICE_DOCUMENT_MIME_TYPE_FAMILIES
+            .filterValues { it in OfficeDocumentFamilyCatalog.supportedFamilies }
+            .keys
 
     fun getMediaType(fileName: String): MediaType? {
         val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
@@ -53,6 +88,7 @@ object MediaTypeUtils {
             TEXT_EXTENSIONS.contains(extension) -> MediaType.TEXT
             PDF_EXTENSIONS.contains(extension) -> MediaType.PDF
             EPUB_EXTENSIONS.contains(extension) -> MediaType.EPUB
+            OFFICE_DOCUMENT_EXTENSIONS.contains(extension) -> MediaType.OFFICE_DOCUMENT
             // Task 6: Check for binary file types
             BinaryFileTypeDetector.isBinaryExtension(extension) -> BinaryFileTypeDetector.detectType(extension)
             else -> null
@@ -75,14 +111,16 @@ object MediaTypeUtils {
 
     fun getMediaTypeFromMime(mimeType: String?): MediaType? {
         if (mimeType == null) return null
+        val normalizedMimeType = mimeType.substringBefore(';').trim().lowercase(Locale.ROOT)
         return when {
-            mimeType == "image/gif" -> MediaType.GIF
-            mimeType.startsWith("image/") -> MediaType.IMAGE
-            mimeType.startsWith("video/") -> MediaType.VIDEO
-            mimeType.startsWith("audio/") -> MediaType.AUDIO
-            mimeType == "text/plain" || mimeType == "application/json" || mimeType == "text/xml" -> MediaType.TEXT
-            mimeType == "application/pdf" -> MediaType.PDF
-            mimeType == "application/epub+zip" -> MediaType.EPUB
+            normalizedMimeType == "image/gif" -> MediaType.GIF
+            normalizedMimeType.startsWith("image/") -> MediaType.IMAGE
+            normalizedMimeType.startsWith("video/") -> MediaType.VIDEO
+            normalizedMimeType.startsWith("audio/") -> MediaType.AUDIO
+            normalizedMimeType == "text/plain" || normalizedMimeType == "application/json" || normalizedMimeType == "text/xml" -> MediaType.TEXT
+            normalizedMimeType == "application/pdf" -> MediaType.PDF
+            normalizedMimeType == "application/epub+zip" -> MediaType.EPUB
+            normalizedMimeType in OFFICE_DOCUMENT_MIME_TYPES -> MediaType.OFFICE_DOCUMENT
             else -> null
         }
     }
@@ -90,6 +128,22 @@ object MediaTypeUtils {
     /** MIME-first, extension fallback. Covers cases where SAF / cloud providers return null or non-standard MIME. */
     fun getMediaTypeFromMimeOrExtension(mimeType: String?, fileName: String): MediaType? =
         getMediaTypeFromMime(mimeType) ?: getMediaType(fileName)
+
+    fun officeMimeTypeForFileName(fileName: String): String? {
+        val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+        if (extension !in OfficeDocumentFamilyCatalog.extensionToFamily) return null
+        return OFFICE_DOCUMENT_DEFAULT_MIME_BY_EXTENSION[extension]
+    }
+
+    fun officeProbeForMimeType(mimeType: String): Pair<String, String>? {
+        val normalizedMimeType = mimeType.substringBefore(';').trim().lowercase(Locale.ROOT)
+        if (normalizedMimeType !in OFFICE_DOCUMENT_MIME_TYPES) return null
+        val extension = OFFICE_DOCUMENT_DEFAULT_MIME_BY_EXTENSION.entries
+            .firstOrNull { it.value == normalizedMimeType }
+            ?.key
+            ?: return null
+        return extension to normalizedMimeType
+    }
 
     fun isFileSizeInRange(size: Long, mediaType: MediaType, filter: SizeFilter): Boolean {
         return when (mediaType) {
@@ -99,6 +153,7 @@ object MediaTypeUtils {
             MediaType.TEXT -> true // No size filtering for now
             MediaType.PDF -> true // No size filtering for now
             MediaType.EPUB -> true // No size filtering for now
+            MediaType.OFFICE_DOCUMENT -> true // External viewer route, no size filtering
             // Task 6: Binary files - no size filtering
             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, 
             MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
@@ -116,6 +171,7 @@ object MediaTypeUtils {
                 MediaType.TEXT -> extensions.addAll(TEXT_EXTENSIONS)
                 MediaType.PDF -> extensions.addAll(PDF_EXTENSIONS)
                 MediaType.EPUB -> extensions.addAll(EPUB_EXTENSIONS)
+                MediaType.OFFICE_DOCUMENT -> extensions.addAll(OFFICE_DOCUMENT_EXTENSIONS)
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
                 MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
                     // Binary files don't have predefined extension sets

@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260522032
-        versionName = "2.60.5220.322"
+        versionCode = 260530194
+        versionName = "2.60.5301.948"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -539,6 +539,7 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/vrOnly/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -718,6 +719,9 @@ android {
             // 16 KB page size alignment for Android 15+ compatibility (required for Google Play since Nov 1, 2025)
             // Ensures all native libraries (.so) have LOAD segments aligned to 16 KB boundaries
             // Affects Tesseract OCR libraries: libjpeg.so, libleptonica.so, libpng.so, libtesseract.so
+            // Windows NDK linker can leave locked sibling temp files (*.tmp) next to the
+            // final shared library in intermediates/cxx; mergeNativeLibs must ignore them.
+            excludes += "**/*.tmp"
             useLegacyPackaging = false
         }
     }
@@ -754,6 +758,14 @@ android {
         htmlOutput = file("build/reports/lint-results.html")
         xmlReport = true
         xmlOutput = file("build/reports/lint-results.xml")
+    }
+}
+
+// Gradle 9.4.1 on Windows can try to hash linker temp files like
+// libfms_diagnostic_xr.so<hash>.tmp before the native toolchain releases them.
+tasks.configureEach {
+    if (name.startsWith("buildCMake")) {
+        doNotTrackState("Windows native linker temp outputs can remain unreadable during Gradle output hashing")
     }
 }
 
@@ -1016,6 +1028,12 @@ dependencies {
     "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    // S0305: MIDI playback is available only in flavors that support audio.
+    "standardImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "noLegalImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "liteImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "legacyImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "vrImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
@@ -1060,6 +1078,7 @@ dependencies {
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
     implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("net.openid:appauth:0.11.1")
     
     // Network - Retrofit for iTunes Search API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

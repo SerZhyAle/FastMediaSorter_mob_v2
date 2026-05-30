@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
+import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
@@ -100,6 +101,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var passthroughCaptureProvider: java.util.Optional<BrowsePassthroughCaptureProvider>
     // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
+    @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
@@ -309,6 +311,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false),
             passthroughProvider = passthroughCaptureProvider.orElse(null),
             binaryFileMenuActions = binaryFileMenuActions,
+            browseApkTileBadgeBinder = browseApkTileBadgeBinder,
             reviewRequestManager = reviewRequestManager,
         )
 
@@ -494,6 +497,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Findings flow back through the journal as `Mutation.Delete` and are picked up by
         // the next `reconcile()` call; no immediate UI update this resume.
         browseReconcilerManager.scheduleQuickVerify(resource.id, resource.type, result.updatedList)
+    }
+
+    // S0293: forward Activity multi-window / desktop-mode transitions so the per-row overflow
+    // and resource-ops menus pick up the runtime capability flag on their next render.
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        if (::initializer.isInitialized) initializer.notifyMultiWindowModeChanged()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (::initializer.isInitialized) initializer.notifyMultiWindowModeChanged()
     }
 
     override fun onPause() {

@@ -70,6 +70,7 @@ data class BackupSettings(
     val supportText: Boolean = true,
     val supportPdf: Boolean = true,
     val supportEpub: Boolean = true,
+    val supportOfficeDocuments: Boolean = true,
     val showPdfThumbnails: Boolean = false,
     val textSizeMax: Long = 104857600L,
     val showTextLineNumbers: Boolean = false,

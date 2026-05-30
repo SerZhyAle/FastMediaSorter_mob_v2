@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.core.xr
 
+import android.content.Intent
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,6 +12,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class NoOpXrEntryGateway @Inject constructor() : XrEntryGateway {
+
+    override fun createImmersiveIntent(input: VrLaunchInput): Intent? = null
 
     override suspend fun tryEnter(): Boolean = false
 

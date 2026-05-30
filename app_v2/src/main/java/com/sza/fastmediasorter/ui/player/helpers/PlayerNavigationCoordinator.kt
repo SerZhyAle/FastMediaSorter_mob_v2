@@ -134,7 +134,8 @@ class PlayerNavigationCoordinator(
                 val file = currentState.files.getOrNull(nextIndex)
                 val isDocument = file?.type == MediaType.TEXT ||
                     file?.type == MediaType.PDF ||
-                    file?.type == MediaType.EPUB
+                    file?.type == MediaType.EPUB ||
+                    file?.type == MediaType.OFFICE_DOCUMENT // S0301 Phase 05: Office files are documents too
                 if (!isDocument) {
                     Timber.d("nextFile: Found media file at index $nextIndex")
                     break
@@ -204,7 +205,8 @@ class PlayerNavigationCoordinator(
                 val file = currentState.files.getOrNull(prevIndex)
                 val isDocument = file?.type == MediaType.TEXT ||
                     file?.type == MediaType.PDF ||
-                    file?.type == MediaType.EPUB
+                    file?.type == MediaType.EPUB ||
+                    file?.type == MediaType.OFFICE_DOCUMENT // S0301 Phase 05: Office files are documents too
                 if (!isDocument) {
                     Timber.d("previousFile: Found media file at index $prevIndex")
                     break

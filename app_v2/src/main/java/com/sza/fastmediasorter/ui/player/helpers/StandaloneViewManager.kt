@@ -12,6 +12,7 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -32,6 +33,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -227,6 +229,7 @@ class StandaloneViewManager(
             MediaType.PDF   -> showPdf(mediaFile)
             MediaType.EPUB  -> showEpub(mediaFile)
             MediaType.TEXT  -> showText(mediaFile)
+            MediaType.OFFICE_DOCUMENT -> displayOfficeDocument(mediaFile)
             else -> {
                 Timber.w("StandaloneViewManager: binary type $mediaType not supported standalone")
                 showToastError(activity.getString(R.string.unsupported_format_use_external_player))
@@ -371,7 +374,8 @@ class StandaloneViewManager(
         // Creating a separate AudioFocusManager in the Activity would cause a double-focus conflict:
         // the Activity's manager would receive AUDIOFOCUS_LOSS as soon as the service's ExoPlayer
         // requests focus, triggering player.stop() and immediately killing playback.
-        controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.')) { player ->
+        val mimeType = if (MidiPlaybackPolicy.isMidiPath(mediaFile.path)) MimeTypes.AUDIO_MIDI else null
+        controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.'), mimeType = mimeType) { player ->
             binding.playerView.player = player
             binding.playerView.showController()
             acquireWakeLock()
@@ -436,6 +440,130 @@ class StandaloneViewManager(
 
     private fun showText(mediaFile: MediaFile) {
         textViewerManager.displayText(mediaFile, isWritable = false)
+    }
+
+    // S0301 Phase 02: flavor-safe Office viewer decision provider for standalone mode.
+    // Market flavors delegate externally (S0299); noLegal plugs an embedded viewer in Phase 03.
+    private val officeDocumentViewerProvider by lazy {
+        OfficeDocumentViewerProviderFactory().create()
+    }
+
+    // S0301 Phase 03: embedded Office viewer host for standalone mode. Market = no-op host,
+    // noLegal = engine-backed read-only in-app viewer. Fullscreen toggling is a no-op here;
+    // standalone mode has no system-bars manager wired.
+    private val officeDocumentViewerHost: OfficeDocumentViewerHost by lazy {
+        OfficeDocumentViewerProviderFactory().createViewerHost(
+            binding = binding,
+            coroutineScope = lifecycleScope,
+            callback = object : OfficeDocumentViewerHost.Callback {
+                override fun showError(message: String) = showToastError(message)
+                override fun onEnterFullscreenMode() {}
+                override fun onExitFullscreenMode() {}
+                override fun onRequireExternalFallback(mediaFile: MediaFile) {
+                    // S0301 Phase 05: engine could not render internally - show the explicit
+                    // external / share / cancel dialog. Cancel keeps the current screen open per
+                    // the approved fallback contract.
+                    showOfficeFallbackDialog(mediaFile)
+                }
+            },
+        )
+    }
+
+    private fun displayOfficeDocument(mediaFile: MediaFile) {
+        val session = officeDocumentViewerProvider.resolve(mediaFile)
+        when (session.outcome) {
+            OfficeDocumentViewerOutcome.DISPLAY_INTERNALLY ->
+                displayOfficeDocumentInternally(mediaFile)
+            // S0301 Phase 05: provider asked for the explicit external / share / cancel dialog.
+            // Cancel keeps the standalone screen open, matching the shared Office UX contract.
+            OfficeDocumentViewerOutcome.SHOW_FALLBACK_DIALOG ->
+                showOfficeFallbackDialog(mediaFile)
+            OfficeDocumentViewerOutcome.DELEGATE_EXTERNAL ->
+                displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = true)
+        }
+    }
+
+    /**
+     * Explicit Office fallback dialog for standalone mode (S0301 Phase 05). Offers opening in
+     * another app or sharing the file. Cancel keeps the screen open per the approved fallback
+     * contract. Strings stay factual (COMMUNICATION_POLICY §6).
+     */
+    private fun showOfficeFallbackDialog(mediaFile: MediaFile) {
+        androidx.appcompat.app.AlertDialog.Builder(activity)
+            .setTitle(R.string.office_viewer_fallback_title)
+            .setMessage(R.string.office_viewer_fallback_message)
+            .setPositiveButton(R.string.office_viewer_fallback_open_external) { _, _ ->
+                displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = true)
+            }
+            .setNeutralButton(R.string.office_viewer_fallback_share) { _, _ ->
+                shareOfficeDocument(mediaFile)
+            }
+            .setNegativeButton(R.string.office_viewer_fallback_cancel, null)
+            .show()
+    }
+
+    /** Share the Office [mediaFile] via a generic ACTION_SEND chooser (S0301 Phase 05). */
+    private fun shareOfficeDocument(mediaFile: MediaFile) {
+        lifecycleScope.launch {
+            try {
+                val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    activity,
+                    "${activity.packageName}.fileprovider",
+                    preparedFile
+                )
+                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "application/octet-stream"
+                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    clipData = android.content.ClipData.newRawUri(null, uri)
+                }
+                activity.startActivity(
+                    android.content.Intent.createChooser(intent, activity.getString(R.string.office_viewer_fallback_share))
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "StandaloneViewManager: failed to share Office document")
+                showToastError(activity.getString(R.string.error_opening_file_simple))
+            }
+        }
+    }
+
+    /**
+     * Render an Office document inside the in-app viewer (S0301 Phase 03, noLegal standalone).
+     * Falls back to the explicit Office dialog when the host cannot accept the prepared file.
+     */
+    private fun displayOfficeDocumentInternally(mediaFile: MediaFile) {
+        lifecycleScope.launch {
+            try {
+                val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
+                val started = officeDocumentViewerHost.open(mediaFile, preparedFile)
+                if (!started) showOfficeFallbackDialog(mediaFile)
+            } catch (e: Exception) {
+                Timber.e(e, "StandaloneViewManager: failed to render Office document internally")
+                showOfficeFallbackDialog(mediaFile)
+            }
+        }
+    }
+
+    private fun displayOfficeDocumentExternally(mediaFile: MediaFile, finishAfterHandoff: Boolean) {
+        lifecycleScope.launch {
+            try {
+                val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
+                val opened = OfficeDocumentOpenManager.openPreparedFile(
+                    activity = activity,
+                    file = preparedFile,
+                    displayName = mediaFile.name
+                )
+                if (!opened) {
+                    showToastError(activity.getString(R.string.no_app_to_open))
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "StandaloneViewManager: failed to open Office document externally")
+                showToastError(activity.getString(R.string.error_opening_file_simple))
+            } finally {
+                if (finishAfterHandoff) activity.finish()
+            }
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

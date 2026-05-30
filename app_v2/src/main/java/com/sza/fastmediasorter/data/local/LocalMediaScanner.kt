@@ -214,7 +214,9 @@ class LocalMediaScanner @Inject constructor(
     }
 
     private fun docTypesFromSettings(supportedTypes: Set<MediaType>): Set<MediaType> {
-        return supportedTypes.filter { it in setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB) }.toSet()
+        return supportedTypes.filter {
+            it in setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
+        }.toSet()
     }
 
     private suspend fun scanFolderLegacy(

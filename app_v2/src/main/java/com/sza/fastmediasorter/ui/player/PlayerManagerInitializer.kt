@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerVrLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
@@ -61,11 +62,7 @@ import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
 import java.io.File
 import java.util.UUID
 
-/**
- * Consolidates all manager initialization logic extracted from PlayerActivity.
- * Called once from PlayerActivity.initializeManagers() to reduce activity size by ~650 lines.
- * Each private init*() method corresponds to a former private method in PlayerActivity.
- */
+/** Consolidates all manager initialization logic extracted from PlayerActivity. Called once from PlayerActivity.initializeManagers() to reduce activity size by ~650 lines. Each private init*() method corresponds to a former private method in PlayerActivity. */
 internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
     fun initialize() {
@@ -188,7 +185,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         }
 
         activity.safeViews.tvBackgroundMusicTrack.setOnClickListener {
-            Timber.d("BackgroundMusic: User clicked track name - skipping to next random")
             activity.backgroundMusicManager.skipToNextRandomTrack()
         }
 
@@ -387,291 +383,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
     }
 
     private fun initFileOps() {
-        fun destinationLabel(destinationPath: String): String {
-            val folderName = File(destinationPath).name
-            return folderName.ifBlank { destinationPath }
-        }
-
-        fun cloneQueuedOperation(operation: PlayerFileOperation): PlayerFileOperation {
-            return when (operation) {
-                is PlayerFileOperation.MoveToResource -> operation.copy(id = UUID.randomUUID().toString())
-                is PlayerFileOperation.MoveToPath -> operation.copy(id = UUID.randomUUID().toString())
-                is PlayerFileOperation.Delete -> operation.copy(id = UUID.randomUUID().toString())
-                is PlayerFileOperation.Rename -> operation.copy(id = UUID.randomUUID().toString())
-            }
-        }
-
-        fun queuedFailureMessage(operation: PlayerFileOperation): String {
-            return when (operation) {
-                is PlayerFileOperation.MoveToResource,
-                is PlayerFileOperation.MoveToPath -> activity.getString(R.string.error_queued_operation_move, operation.displayName)
-
-                is PlayerFileOperation.Delete -> activity.getString(R.string.error_queued_operation_delete, operation.displayName)
-                is PlayerFileOperation.Rename -> activity.getString(R.string.error_queued_operation_rename, operation.displayName)
-            }
-        }
-
-        fun showStartedToast(operation: PlayerFileOperation) {
-            if (activity.isFinishing || activity.isDestroyed) return
-            when (operation) {
-                is PlayerFileOperation.MoveToResource -> {
-                    Toast.makeText(activity, activity.getString(R.string.msg_move_started, operation.destination.name), Toast.LENGTH_LONG).show()
-                }
-
-                is PlayerFileOperation.MoveToPath -> {
-                    Toast.makeText(activity, activity.getString(R.string.msg_move_started, destinationLabel(operation.destinationPath)), Toast.LENGTH_LONG).show()
-                }
-
-                else -> Unit
-            }
-        }
-
-        fun showSuccessToast(operation: PlayerFileOperation) {
-            if (activity.isFinishing || activity.isDestroyed) return
-            when (operation) {
-                is PlayerFileOperation.MoveToResource -> {
-                    Toast.makeText(activity, activity.getString(R.string.msg_move_success, operation.destination.name), Toast.LENGTH_SHORT).show()
-                }
-
-                is PlayerFileOperation.MoveToPath -> {
-                    Toast.makeText(activity, activity.getString(R.string.msg_move_success, destinationLabel(operation.destinationPath)), Toast.LENGTH_SHORT).show()
-                }
-
-                is PlayerFileOperation.Delete -> {
-                    Toast.makeText(activity, R.string.msg_delete_success, Toast.LENGTH_SHORT).show()
-                }
-
-                is PlayerFileOperation.Rename -> {
-                    Toast.makeText(activity, activity.getString(R.string.renamed_n_files, 1), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        activity.playerFileOperationQueue = PlayerFileOperationQueue(
-            scope = activity.fileOpsAppScope,
-            fileOperationUseCase = activity.viewModel.fileOperationUseCase,
-            settingsRepository = activity.settingsRepository,
-        )
-
-        activity.fileOperationsHandler = FileOperationsHandler(
-            context = activity,
-            lifecycleScope = activity.lifecycleScope,
-            appScope = activity.fileOpsAppScope,
-            settingsRepository = activity.settingsRepository,
-            fileOperationUseCase = activity.viewModel.fileOperationUseCase,
-            playerFileOperationQueue = activity.playerFileOperationQueue,
-            callback = object : FileOperationsHandler.FileOperationCallback {
-                override fun onBeforeMove(movedFilePath: String) {
-                    if (movedFilePath != activity.viewModel.state.value.currentFile?.path) return
-                    activity.stopVideoPlayback()
-                    activity.viewModel.state.value.resource?.let { resource ->
-                        MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
-                    }
-                    activity.navigationManager.navigateNextAfterOperation("Pre-move: stop and optimistic advance")
-                }
-
-                override fun onBeforeDelete(deletedFilePath: String) {
-                    if (deletedFilePath != activity.viewModel.state.value.currentFile?.path) return
-                    activity.stopVideoPlayback()
-                    activity.viewModel.state.value.resource?.let { resource ->
-                        MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
-                    }
-                    activity.navigationManager.navigateNextAfterOperation("Pre-delete: stop and optimistic advance")
-                    // S0226: Persist lastViewedFile immediately after the optimistic advance so that
-                    // a new player session opened before the debounced save (5 s) fires lands on the
-                    // correct next file instead of the now-deleted one. Skip when the list had only
-                    // one file - nextFile() wraps back to the same path and the Activity will finish
-                    // when the delete completes anyway.
-                    val nextPath = activity.viewModel.state.value.currentFile?.path
-                    if (nextPath != null && nextPath != deletedFilePath) {
-                        activity.viewModel.saveLastViewedFile(nextPath)
-                    }
-                }
-
-                override fun onCopySuccess(destination: com.sza.fastmediasorter.domain.model.MediaResource, goToNext: Boolean) {
-                    if (goToNext) {
-                        activity.navigationManager.navigateNextAfterOperation("Copy success with goToNext=true")
-                    }
-                }
-
-                override fun onCopyToPathSuccess(destinationPath: String, goToNext: Boolean) {
-                    if (goToNext) {
-                        activity.navigationManager.navigateNextAfterOperation("CopyToPath success with goToNext=true")
-                    }
-                }
-
-                override fun onOperationError(message: String, throwable: Throwable?) {
-                    activity.showError(message, throwable)
-                }
-
-                override fun onAuthenticationRequired(provider: String, message: String) {
-                    activity.eventHandler.showCloudAuthenticationError(provider)
-                }
-
-                override fun getCurrentFile(): com.sza.fastmediasorter.domain.model.MediaFile? =
-                    activity.viewModel.state.value.currentFile
-
-                override fun getCurrentResource(): com.sza.fastmediasorter.domain.model.MediaResource? =
-                    activity.viewModel.state.value.resource
-            }
-        )
-
-        activity.lifecycleScope.launch {
-            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                activity.playerFileOperationQueue.events.collect { event ->
-                    when (event) {
-                        is PlayerFileOperationEvent.Enqueued -> {
-                            Timber.i(
-                                "PlayerFileOperationQueue: enqueued %s for %s",
-                                event.op.id,
-                                event.op.sourcePath,
-                            )
-                        }
-
-                        is PlayerFileOperationEvent.Started -> {
-                            Timber.i(
-                                "PlayerFileOperationQueue: started %s for %s",
-                                event.op.id,
-                                event.op.sourcePath,
-                            )
-                            showStartedToast(event.op)
-                        }
-
-                        is PlayerFileOperationEvent.Succeeded -> {
-                            Timber.i(
-                                "PlayerFileOperationQueue: succeeded %s for %s (processed=%s)",
-                                event.op.id,
-                                event.op.sourcePath,
-                                event.processedCount,
-                            )
-                            // S0242 Phase 02: route queue-succeeded operations through the
-                            // MutationJournal so the Browse Reconciler sees them on its next
-                            // onResume. Variant is selected by op kind.
-                            recordQueuedOperationMutation(event.op)
-                            showSuccessToast(event.op)
-                        }
-
-                        is PlayerFileOperationEvent.Failed -> {
-                            if (event.op is PlayerFileOperation.Rename) {
-                                val queuedNewPath = buildRenamedPath(event.op.sourcePath, event.op.newName)
-                                if (activity.viewModel.state.value.currentFile?.path == queuedNewPath) {
-                                    activity.viewModel.updateRenamedFilePath(queuedNewPath, event.op.sourcePath)
-                                }
-                            }
-                            Timber.w(
-                                "PlayerFileOperationQueue: failed %s for %s: %s",
-                                event.op.id,
-                                event.op.sourcePath,
-                                event.message,
-                            )
-                            if (event.retryable && !activity.isFinishing && !activity.isDestroyed) {
-                                // When batch-delete permission is denied on a Move, the upload already
-                                // completed - the file exists at the destination. Show a specific message
-                                // instead of the generic "couldn't move" to avoid confusion.
-                                val isMovePermissionDenied = event.message == "permission_denied" &&
-                                    (event.op is PlayerFileOperation.MoveToResource || event.op is PlayerFileOperation.MoveToPath)
-                                val snackbarMessage = if (isMovePermissionDenied) {
-                                    activity.getString(R.string.error_queued_move_permission_denied, event.op.displayName)
-                                } else {
-                                    queuedFailureMessage(event.op)
-                                }
-                                val snackbar = Snackbar.make(
-                                    activity.activityBinding.root,
-                                    snackbarMessage,
-                                    Snackbar.LENGTH_LONG,
-                                )
-                                // Retry is not useful for permission_denied on Move (the file is already
-                                // at the destination) - do not offer retry in that case.
-                                if (!isMovePermissionDenied) {
-                                    snackbar.setAction(activity.getString(R.string.action_retry).uppercase()) {
-                                        activity.playerFileOperationQueue.enqueue(cloneQueuedOperation(event.op))
-                                    }
-                                }
-                                snackbar.show()
-                            }
-                        }
-
-                        is PlayerFileOperationEvent.AuthRequired -> {
-                            Timber.i(
-                                "PlayerFileOperationQueue: auth required for %s (%s)",
-                                event.provider,
-                                event.op.sourcePath,
-                            )
-                            activity.eventHandler.showCloudAuthenticationError(event.provider)
-                        }
-
-                        is PlayerFileOperationEvent.PermissionRequired -> {
-                            Timber.i(
-                                "PlayerFileOperationQueue: permission required for %s",
-                                event.op.sourcePath,
-                            )
-                            activity.lifecycleManager.storePendingBatchDeleteFilePath(event.op.sourcePath)
-                            activity.lifecycleManager.storePendingBatchDeleteOperation(event.op)
-                            try {
-                                activity.batchDeletePermissionLauncher.launch(
-                                    androidx.activity.result.IntentSenderRequest.Builder(event.pendingIntent.intentSender).build()
-                                )
-                            } catch (e: Exception) {
-                                activity.lifecycleManager.storePendingBatchDeleteOperation(null)
-                                activity.playerFileOperationQueue.resumeAfterPermission(false, event.op)
-                                activity.showError(activity.getString(R.string.error_delete_failed), e)
-                            }
-                        }
-
-                        PlayerFileOperationEvent.Drained -> {
-                            Timber.i("PlayerFileOperationQueue: drained")
-                            if (activity.viewModel.state.value.files.isEmpty() && !activity.isFinishing && !activity.isDestroyed) {
-                                activity.finish()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        activity.playerFolderPickerHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerFolderPickerHandler(
+        PlayerFileOpsInitializer(
             activity = activity,
-            coroutineScope = activity.lifecycleScope,
-            settingsRepository = activity.settingsRepository,
-            fileOperationsHandler = activity.fileOperationsHandler,
-            onLaunchPicker = { uri -> activity.folderPickerLauncher.launch(uri) }
-        )
-
-        activity.destinationButtonsManager = DestinationButtonsManager(
-            binding = activity.activityBinding,
-            settingsRepository = activity.settingsRepository,
-            getDestinationsUseCase = activity.viewModel.getDestinationsUseCase,
-            lifecycleScope = activity.lifecycleScope,
-            callback = object : DestinationButtonsManager.DestinationButtonsCallback {
-                override fun onCopyClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) {
-                    activity.fileOperationsHandler.performCopy(destination)
-                }
-
-                override fun onMoveClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) {
-                    Timber.d("PlayerActivity: onMoveClicked - destination=${destination.name}")
-                    activity.fileOperationsHandler.performMove(destination)
-                }
-
-                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
-                    val credId = activity.viewModel.state.value.resource?.credentialsId
-                    activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
-                }
-
-                override fun getCurrentResourceId(): Long =
-                    activity.intent.getLongExtra("resourceId", -1)
-
-                override fun onUpdateCommandAvailability() {
-                    val state = activity.viewModel.state.value
-                    Timber.d("PlayerActivity.onUpdateCommandAvailability: showCommandPanel=${state.showCommandPanel}, enableCopying=${state.enableCopying}, enableMoving=${state.enableMoving}")
-                    activity.updateCommandAvailability(state)
-                }
-
-                override fun isCommandPanelVisible(): Boolean {
-                    val state = activity.viewModel.state.value
-                    return state.showCommandPanel || state.currentFile?.type == MediaType.AUDIO
-                }
-            }
-        )
+            recordQueuedOperationMutation = ::recordQueuedOperationMutation,
+            buildRenamedPath = ::buildRenamedPath,
+        ).install()
     }
 
     private fun initCommandPanelAndImageLoading() {
@@ -684,7 +400,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity = activity,
                 viewModel = activity.viewModel
             ),
-            bigButtonsMode = bigButtonsMode
+            bigButtonsMode = bigButtonsMode,
+            allowVrLaunch = { activity.playerVrLaunchManager?.isOverflowEntryVisible() == true },
         )
         activity.commandPanelController.updateOrientation(activity.resources.configuration)
 
@@ -1027,9 +744,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 val isAudioFile = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
                 val servicePlayWhenReady = activity.audioServiceController?.player?.playWhenReady
                 if (isAudioFile && servicePlayWhenReady != null) {
-                    // Persistent audio is driven by MediaController state, not the local ExoPlayer path.
-                    // Sync ViewModel pause from playWhenReady so pause/resume UI reactions
-                    // (including filename overlay re-show) also work for service-backed audio.
+                    // Persistent audio is driven by MediaController state, not the local ExoPlayer path. Sync ViewModel pause from playWhenReady so pause/resume UI reactions (including filename overlay re-show) also work for service-backed audio.
                     activity.viewModel.setPaused(!servicePlayWhenReady)
                 }
                 activity.sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
@@ -1128,12 +843,25 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.dialogAndUiStateManager.audioSlideshowPhotoModeManager =
             activity.audioSlideshowPhotoModeManager
 
-        // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay.
-        // Use actual command-panel visibility rather than raw showCommandPanel state,
-        // because audio can force the panel visible while the ViewModel flag stays false.
+        activity.playerVrLaunchManager = PlayerVrLaunchManager(
+            activity = activity,
+            viewModel = activity.viewModel,
+            settingsRepository = activity.settingsRepository,
+            detectionFacade = activity.xrDetectionFacade,
+            startVrPlaybackUseCase = activity.startVrPlaybackUseCase,
+        ).also { it.bind() }
+
+        // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay. Use actual command-panel visibility rather than raw showCommandPanel state, because audio can force the panel visible while the ViewModel flag stays false.
         activity.dialogAndUiStateManager.filenameOverlayManager = FilenameOverlayAutoHideManager(
             overlayView = activity.activityBinding.tvFileNameOverlay,
-            isFullscreen = { !activity.activityBinding.topCommandPanel.isVisible }
+            isFullscreen = { !activity.activityBinding.topCommandPanel.isVisible },
+            companionViews = {
+                if (!activity.activityBinding.topCommandPanel.isVisible) {
+                    activity.playerVrLaunchManager?.overlayViewsForAutoHide().orEmpty()
+                } else {
+                    emptyList()
+                }
+            },
         )
 
         // Wire zoom interaction signal from PhotoView → overlay manager.

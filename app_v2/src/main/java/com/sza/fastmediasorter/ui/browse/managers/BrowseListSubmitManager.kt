@@ -88,15 +88,30 @@ class BrowseListSubmitManager(
     }
 
     private fun triggerThumbnailsImmediate(source: String) {
+        notifyVisibleThumbnailRange(source)
+    }
+
+    private fun notifyVisibleThumbnailRange(source: String) {
+        val itemCount = adapter.itemCount
+        if (itemCount <= 0) return
+
         val (first, last) = getVisibleRange()
-        if (first >= 0 && last >= first) {
-            scrollButtonManager.notifyItemRangeChangedSafely(
-                start = first,
-                count = last - first + 1,
-                payload = "LOAD_THUMBNAILS",
-                source = source
-            )
+        if (first < 0 || last < first) return
+
+        // RecyclerView can report pre-submit positions immediately after a list shrink.
+        // Skipping stale ranges avoids an out-of-bounds notify before layout catches up.
+        if (first >= itemCount) {
+            Timber.d("$source: visible range stale start=$first itemCount=$itemCount")
+            return
         }
+
+        val boundedLast = minOf(last, itemCount - 1)
+        scrollButtonManager.notifyItemRangeChangedSafely(
+            start = first,
+            count = boundedLast - first + 1,
+            payload = "LOAD_THUMBNAILS",
+            source = source
+        )
     }
 
     private fun retryOnFirstChildAttach() {
@@ -106,10 +121,7 @@ class BrowseListSubmitManager(
                 if (activity.isDestroyed || activity.isFinishing) return
                 val (f, l) = getVisibleRange()
                 if (f >= 0 && l >= f) {
-                    scrollButtonManager.notifyItemRangeChangedSafely(
-                        start = f, count = l - f + 1,
-                        payload = "LOAD_THUMBNAILS", source = "submitList childAttach"
-                    )
+                    notifyVisibleThumbnailRange("submitList childAttach")
                 }
             }
             override fun onChildViewDetachedFromWindow(view: View) {}

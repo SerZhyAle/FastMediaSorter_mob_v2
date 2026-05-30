@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.app.Activity
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
@@ -11,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import timber.log.Timber
 
@@ -27,6 +30,7 @@ import timber.log.Timber
  */
 class BrowseObserverManager(
     private val lifecycleOwner: LifecycleOwner,
+    private val activity: Activity,
     private val binding: ActivityBrowseBinding,
     private val viewModel: BrowseViewModel,
     private val adapter: MediaFileAdapter,
@@ -37,6 +41,12 @@ class BrowseObserverManager(
     private val setShowVideoThumbnails: (Boolean) -> Unit,
     private val setShowPdfThumbnails: (Boolean) -> Unit
 ) {
+
+    // S0293: ticker that re-fires the `fileOpsInOverflowMenu` observer when the host Activity
+    // enters or leaves a multi-window / DeX container. The runtime capability is not a Flow,
+    // so we bump this counter from `notifyMultiWindowModeChanged()` to force `combine` to
+    // recompute the OR-composed value against the latest `isMultiWindowActiveNow(activity)`.
+    private val multiWindowTick = MutableStateFlow(0)
 
     fun startAll() {
         observeInlinePlayer()
@@ -84,9 +94,31 @@ class BrowseObserverManager(
     }
 
     private fun observeFileOpsOverflowMenu() {
-        lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-            adapter.setFileOpsInOverflowMenu(settings.fileOpsInOverflowMenu)
+        // S0293: OR-compose persistent preference with runtime multi-window capability so that
+        // entering a DeX / desktop container on a phone exposes the per-row `⋮` overflow button
+        // (and thereby the per-file "Open in new window" action) without requiring the user to
+        // flip `Settings → Playback → "File operations in ⋮ menu"`. Leaving the container hides
+        // the button again unless the user enabled it explicitly. The OR-composition is computed
+        // here in the observer (single feed point); downstream `MediaFileAdapter` consumes a
+        // single Boolean and stays unchanged.
+        lifecycleOwner.collectOnLifecycle(
+            combine(settingsRepository.getSettings(), multiWindowTick) { settings, _ ->
+                settings.fileOpsInOverflowMenu || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity)
+            }
+        ) { effective ->
+            adapter.setFileOpsInOverflowMenu(effective)
         }
+    }
+
+    /**
+     * S0293: bump the ticker so [observeFileOpsOverflowMenu] re-evaluates the OR-composed
+     * overflow-menu flag against the current Activity multi-window state. Called from
+     * `BrowseActivity.onMultiWindowModeChanged` / `onConfigurationChanged` via
+     * `BrowseManagerInitializer.notifyMultiWindowModeChanged()` after the system has finished
+     * the mode transition.
+     */
+    fun notifyMultiWindowModeChanged() {
+        multiWindowTick.value = multiWindowTick.value + 1
     }
 
     private fun observeLoadingProgress() {

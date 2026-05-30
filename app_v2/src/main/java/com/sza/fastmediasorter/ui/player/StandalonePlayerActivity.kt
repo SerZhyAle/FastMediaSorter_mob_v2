@@ -87,31 +87,11 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.media3.common.Player
 
-/**
- * Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW
- * and Intent.ACTION_SEND). Detached from the main resource/database tree - no resource system,
- * no playlists, no history.
- *
- * All viewer routing is delegated to StandaloneViewManager.
- */
-// StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With"
-// handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded
-// to startActivity/startService - received URIs are only passed to ExoPlayer/Glide as media.
+/** Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW and Intent.ACTION_SEND). Detached from the main resource/database tree - no resource system, no playlists, no history. All viewer routing is delegated to StandaloneViewManager. */
+// StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With" handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded to startActivity/startService - received URIs are only passed to ExoPlayer/Glide as media.
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
-
-    companion object {
-        private val DEFAULT_PLAYER_COMPONENT_SUFFIXES = listOf(
-            ".StandaloneAudioPlayer",
-            ".StandaloneVideoPlayer",
-            ".StandaloneImagePlayer",
-            ".StandaloneDocsPlayer",
-            ".StandaloneAudioSender",
-            ".StandaloneVideoSender",
-            ".StandaloneImageSender"
-        )
-    }
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -176,11 +156,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
     private var contentLoaded = false
 
-    // ── EPUB WebView floating ActionMode augmentation ─────────────────────
-    // WebView cannot use setCustomSelectionActionModeCallback (TextView-only).
-    // Instead, we intercept every startActionMode call: when an EPUB is open and
-    // the mode is TYPE_FLOATING (WebView text selection), we wrap the system
-    // callback to inject our "Translate" / "Search in Google" items.
+    // ── EPUB WebView floating ActionMode augmentation ───────────────────── WebView cannot use setCustomSelectionActionModeCallback (TextView-only). Instead, we intercept every startActionMode call: when an EPUB is open and the mode is TYPE_FLOATING (WebView text selection), we wrap the system callback to inject our "Translate" / "Search in Google" items.
 
     override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? {
         val epubCallback = if (
@@ -384,23 +360,14 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         )
     }
 
-    /**
-     * S0289 Phase 08: keep the standalone player aligned with PlayerActivity's multimodal
-     * baseline - bespoke `keyboardHandler` consumes its keys first, then `super.onKeyDown`
-     * lets BaseActivity's TV / back / context defaults take over. No duplicate gamepad-analog
-     * helper is required here; the standalone surface does not own a media-resource list.
-     */
+    /** S0289 Phase 08: keep the standalone player aligned with PlayerActivity's multimodal baseline - bespoke `keyboardHandler` consumes its keys first, then `super.onKeyDown` lets BaseActivity's TV / back / context defaults take over. No duplicate gamepad-analog helper is required here; the standalone surface does not own a media-resource list. */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
             keyboardHandler.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)
     }
 
-    /**
-     * S0289 Phase 08: pointer events route through the player's bespoke handler first; if it
-     * does not consume them, the call falls through to BaseActivity, which delegates to the
-     * shared `ActivityMouseDispatchHelper` (wheel scroll, back/context, etc.).
-     */
+    /** S0289 Phase 08: pointer events route through the player's bespoke handler first; if it does not consume them, the call falls through to BaseActivity, which delegates to the shared `ActivityMouseDispatchHelper` (wheel scroll, back/context, etc.). */
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true
@@ -546,109 +513,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
-    private fun debugLogLaunchConditions(incomingIntent: Intent?) {
-        if (!BuildConfig.DEBUG) return
-
-        if (incomingIntent == null) {
-            Timber.d("StandalonePlayer[debug]: launch intent is null")
-            return
-        }
-
-        val categories = incomingIntent.categories?.joinToString(",") ?: "(none)"
-        val clipCount = incomingIntent.clipData?.itemCount ?: 0
-        val streamCount = runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                incomingIntent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.size ?: 0
-            } else {
-                @Suppress("DEPRECATION")
-                incomingIntent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.size ?: 0
-            }
-        }.getOrDefault(0)
-
-        val resolvedUri = when (incomingIntent.action) {
-            Intent.ACTION_VIEW -> incomingIntent.data
-            Intent.ACTION_SEND -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    incomingIntent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    incomingIntent.getParcelableExtra(Intent.EXTRA_STREAM)
-                }
-            }
-            Intent.ACTION_SEND_MULTIPLE -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    incomingIntent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.firstOrNull()
-                } else {
-                    @Suppress("DEPRECATION")
-                    incomingIntent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
-                }
-            }
-            else -> incomingIntent.data
-        }
-
-        val persistedGrant = resolvedUri?.let { uri ->
-            contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }
-        } ?: false
-
-        val runtimeReadGrant = resolvedUri?.let { uri ->
-            checkUriPermission(
-                uri,
-                android.os.Process.myPid(),
-                android.os.Process.myUid(),
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            ) == PackageManager.PERMISSION_GRANTED
-        } ?: false
-
-        val aliasStates = DEFAULT_PLAYER_COMPONENT_SUFFIXES.joinToString(", ") { suffix ->
-            val componentName = "$packageName$suffix"
-            val stateLabel = try {
-                when (packageManager.getComponentEnabledSetting(android.content.ComponentName(packageName, componentName))) {
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> "ENABLED"
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> "DISABLED"
-                    PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> "DEFAULT"
-                    else -> "UNKNOWN"
-                }
-            } catch (e: Exception) {
-                "ERROR:${e.javaClass.simpleName}"
-            }
-            "$suffix=$stateLabel"
-        }
-
-        Timber.i(
-            "StandalonePlayer[debug]: launch action=%s component=%s categories=%s flags=0x%s type=%s hasData=%s clipItems=%d extraStreams=%d caller=%s referrer=%s",
-            incomingIntent.action,
-            incomingIntent.component?.className,
-            categories,
-            Integer.toHexString(incomingIntent.flags),
-            incomingIntent.type,
-            incomingIntent.data != null,
-            clipCount,
-            streamCount,
-            callingActivity?.flattenToShortString(),
-            referrer?.toString()
-        )
-        Timber.i(
-            "StandalonePlayer[debug]: uri=%s scheme=%s authority=%s readGrant=%s persistedReadGrant=%s",
-            resolvedUri,
-            resolvedUri?.scheme,
-            resolvedUri?.authority,
-            runtimeReadGrant,
-            persistedGrant
-        )
-        Timber.i(
-            "StandalonePlayer[debug]: build debug=%s type=%s flavor=%s supportsDefaultPlayer=%s support(video=%s,audio=%s,images=%s,docs=%s,cloud=%s)",
-            BuildConfig.DEBUG,
-            BuildConfig.BUILD_TYPE,
-            BuildConfig.FLAVOR,
-            BuildConfig.SUPPORTS_DEFAULT_PLAYER,
-            BuildConfig.SUPPORT_VIDEO,
-            BuildConfig.SUPPORT_AUDIO,
-            BuildConfig.SUPPORT_IMAGES,
-            BuildConfig.SUPPORT_DOCUMENTS,
-            BuildConfig.SUPPORT_CLOUD
-        )
-        Timber.i("StandalonePlayer[debug]: default-player components: %s", aliasStates)
-    }
+    private fun debugLogLaunchConditions(incomingIntent: Intent?) =
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(this, incomingIntent)
 
     // ── Window / Insets Setup ─────────────────────────────────────────────
 
@@ -959,11 +825,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     // ── EPUB Translator Visibility ───────────────────────────────────────
 
-    /**
-     * Mirrors CommandPanelController behaviour for standalone mode:
-     * hides btnTranslateEpubCmd in portrait, shows it in landscape when EPUB is active
-     * and translation is enabled (flavor flag + user setting).
-     */
+    /** Mirrors CommandPanelController behaviour for standalone mode: hides btnTranslateEpubCmd in portrait, shows it in landscape when EPUB is active and translation is enabled (flavor flag + user setting). */
     private fun updateEpubTranslatorVisibility() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         binding.btnTranslateEpubCmd.isVisible =
@@ -988,14 +850,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     // ── Standalone Rename ────────────────────────────────────────────────────
 
-    /**
-     * Checks asynchronously (IO dispatcher) whether the current file URI supports rename,
-     * then updates [binding.btnRenameCmd] visibility on the Main thread.
-     *
-     * SAF documents: check FLAG_SUPPORTS_RENAME via DocumentsContract query.
-     * MediaStore URIs: optimistic - show button, handle failure at attempt time.
-     * All other schemes: hidden.
-     */
+    /** Checks asynchronously (IO dispatcher) whether the current file URI supports rename, then updates [binding.btnRenameCmd] visibility on the Main thread. SAF documents: check FLAG_SUPPORTS_RENAME via DocumentsContract query. MediaStore URIs: optimistic - show button, handle failure at attempt time. All other schemes: hidden. */
     private fun updateRenameButtonVisibility() = fileOperations.updateRenameButtonVisibility()
     private fun showStandaloneRenameDialog() = fileOperations.showStandaloneRenameDialog()
 

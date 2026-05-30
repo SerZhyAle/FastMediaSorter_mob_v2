@@ -21,8 +21,7 @@ import timber.log.Timber
  * thread that created them, satisfying both EGL and OpenXR threading rules.
  *
  * The render thread is also responsible for invoking [onExitDelivered] back to the Activity so
- * the Activity can `finish()` itself from the UI thread; this avoids the Activity having to
- * poll the runtime state.
+ * the Activity can leave foreground from the UI thread without polling runtime state.
  */
 class DiagnosticXrRenderThread(
     private val activity: Activity,
@@ -54,35 +53,35 @@ class DiagnosticXrRenderThread(
     }
 
     override fun run() {
-        Timber.d("DiagnosticXrRenderThread: starting")
         try {
             val initResult = runBlocking { runtime.initSession(activity) }
             if (initResult != DiagnosticXrNativeResult.Ok) {
-                Timber.w("initSession -> $initResult"); onStartFailed(initResult); return
+                Timber.w("DiagnosticXrRenderThread: initSession failed -> $initResult")
+                onStartFailed(initResult); return
             }
             val attachResult = runBlocking { runtime.attachSurface(surface) }
             if (attachResult != DiagnosticXrNativeResult.Ok) {
-                Timber.w("attachSurface -> $attachResult"); onStartFailed(attachResult); return
+                Timber.w("DiagnosticXrRenderThread: attachSurface failed -> $attachResult")
+                onStartFailed(attachResult); return
             }
             val startResult = runBlocking { runtime.startSession() }
             if (startResult != DiagnosticXrNativeResult.Ok) {
-                Timber.w("startSession -> $startResult"); onStartFailed(startResult); return
+                Timber.w("DiagnosticXrRenderThread: startSession failed -> $startResult")
+                onStartFailed(startResult); return
             }
             val uploadResult = runBlocking { runtime.uploadTexture(textureBytes, textureWidth, textureHeight) }
             if (uploadResult != DiagnosticXrNativeResult.Ok) {
                 // Texture failure is non-fatal: the placeholder grey sphere still shows. Log loudly
                 // because the user is staring at a featureless globe in this state.
-                Timber.w("uploadTexture -> $uploadResult; proceeding with placeholder texture")
+                Timber.w("DiagnosticXrRenderThread: uploadTexture -> $uploadResult; proceeding with placeholder texture")
             }
             onSessionReady()
-            val loopResult = runtime.runFrameLoop()
-            Timber.d("frame loop returned $loopResult")
+            runtime.runFrameLoop()
         } catch (t: Throwable) {
-            Timber.e(t, "DiagnosticXrRenderThread: unhandled exception")
+            Timber.e(t, "DiagnosticXrRenderThread: unhandled exception in render loop")
         } finally {
             runCatching { runtime.shutdown() }
             onExitDelivered()
-            Timber.d("DiagnosticXrRenderThread: terminated")
         }
     }
 

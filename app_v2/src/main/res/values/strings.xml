@@ -204,7 +204,7 @@
     <string name="virtual_comment_all_video">Local video files (mp4, mkv, mov, wmv…)</string>
     <string name="virtual_comment_camera_photos">Photos and videos from the device camera</string>
     <string name="virtual_comment_all_images">Local image files (jpg, png, gif, webp…)</string>
-    <string name="virtual_comment_all_docs">Local documents (pdf, epub, txt…)</string>
+    <string name="virtual_comment_all_docs">Local documents (PDF, EPUB, text, Office)</string>
     <string name="special_virtual_folders">Special Folders</string>
     <string name="virtual_resource_already_added">Already added</string>
     <string name="virtual_resource_added">Resource "%1$s" added</string>
@@ -270,6 +270,7 @@
     <string name="media_type_text">Text</string>
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
+    <string name="media_type_office_documents">Office documents</string>
 
     <!-- Media Type Checkboxes (for Resource Registration) -->
     <string name="images_i">Images (I)</string>
@@ -279,6 +280,7 @@
     <string name="text_t">Text (T)</string>
     <string name="pdf_p">PDF (P)</string>
     <string name="epub_e">EPUB (E)</string>
+    <string name="office_doc_d">DOC (D)</string>
 
     <string name="filter_by_size">Filter by file size (MB)</string>
     <string name="min_date">Min date</string>
@@ -296,8 +298,8 @@
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Backup &amp; Restore</string>
     <string name="settings_tab_backup">Backup</string>
-    <string name="backup_to_google_drive">Backup to Google Drive</string>
-    <string name="restore_from_google_drive">Restore from Google Drive</string>
+    <string name="backup_to_google_drive">Backup settings to Google Drive</string>
+    <string name="restore_from_google_drive">Restore settings from Google Drive</string>
     <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="tooltip_backup_info_title">Backup Information</string>
     <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
@@ -465,6 +467,7 @@ Close the player and try again.</string>
     <string name="pdf_export_failed">Export failed: %s</string>
     <string name="support_epub">Support EPUB</string>
     <string name="support_epub_description">Support EPUB e-books</string>
+    <string name="support_office_documents_description">Support Office documents</string>
     <string name="epub_table_of_contents">Table of Contents</string>
     <string name="epub_no_toc">No table of contents available</string>
     <string name="epub_chapter_progress">Chapter %1$d of %2$d</string>
@@ -720,6 +723,7 @@ Close the player and try again.</string>
     <string name="setting_support_text_desc">Opens .txt, .md, .log, .json, and .xml</string>
     <string name="setting_support_pdf_desc">Opens PDFs in the built-in viewer</string>
     <string name="setting_support_epub_desc">Reads EPUB books with bookmarks and table of contents</string>
+    <string name="setting_support_office_documents_desc">Opens DOC, DOCX, RTF, and ODT with an external app</string>
     <string name="setting_show_video_thumbnails_desc">Creates preview frames for video files in the browser</string>
     <string name="setting_load_full_size_images_desc">Downloads original resolution from the network for zooming (slower and uses more memory)</string>
     <string name="setting_crop_images_to_fullscreen_desc">Fills the entire screen, but cropping the edges of the image</string>
@@ -1086,11 +1090,11 @@ Close the player and try again.</string>
     <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Default Network Credentials</string>
     <string name="tooltip_default_credentials_message">Default username and password used when connecting to network resources (SMB/SFTP/FTP). Can be overridden per-resource during configuration.</string>
-    <string name="all_files">All files</string>
-    <string name="tooltip_all_files_title">All Files Mode</string>
-    <string name="tooltip_all_files_message">Show ALL file types in resources (not just media). When enabled, automatically enables support for images, video, audio, GIF, text, PDF, and EPUB files. Use this for file management beyond just media viewing.</string>
+    <string name="all_files">File Manager</string>
+    <string name="tooltip_all_files_title">File Manager Mode</string>
+    <string name="tooltip_all_files_message">Show and manage ALL file types in resources (not just media). When enabled, automatically supports images, video, audio, text, documents, archives, and binaries.</string>
     <string name="all_files_global_info">All Files mode is enabled in Settings. All media types are automatically supported.</string>
-    <string name="all_files_resource_info">All Files mode is enabled for this resource. All media types are automatically supported.</string>
+    <string name="all_files_resource_info">File Manager Mode is enabled for this resource. All file types are supported.</string>
     <string name="show_hidden_files">Show hidden files</string>
     <string name="tooltip_show_hidden_files_title">Show Hidden Files</string>
     <string name="help_show_hidden_files">Help: Show hidden files</string>
@@ -1868,6 +1872,12 @@ Close the player and try again.</string>
     <!-- External Player Fallback -->
     <string name="open_in_external_player">Open in External Player</string>
     <string name="open_with">Open with</string>
+    <!-- S0301 Office viewer fallback dialog (noLegal). Factual, no fidelity promises. -->
+    <string name="office_viewer_fallback_title">This document can\'t be shown here</string>
+    <string name="office_viewer_fallback_message">The built-in viewer can\'t display this Office file. Choose how to open it.</string>
+    <string name="office_viewer_fallback_open_external">Open in another app</string>
+    <string name="office_viewer_fallback_share">Share</string>
+    <string name="office_viewer_fallback_cancel">Cancel</string>
     <string name="file_not_found">File not found</string>
     <string name="file_not_found_name">File not found: %1$s</string>
     <string name="cannot_read_file">Cannot read file: %1$s</string>
@@ -2117,7 +2127,7 @@ Close the player and try again.</string>
     <string name="settings_category_images">Images, GIFs and slideshow</string>
     <string name="settings_category_video">Video and player settings</string>
     <string name="settings_category_audio">Audio playback, covers and visuals</string>
-    <string name="settings_category_documents">Text, PDF and EPUB viewing</string>
+    <string name="settings_category_documents">Text, PDF, EPUB and Office viewing</string>
     <string name="settings_category_other">Translation, OCR and Google Lens</string>
 
     <!-- General Settings Categories -->
@@ -2325,6 +2335,7 @@ Close the player and try again.</string>
     <string name="item_resource_to_add_btnTypeGif_text">G</string>
     <string name="item_resource_to_add_btnTypeImage_text">I</string>
     <string name="item_resource_to_add_btnTypePdf_text">P</string>
+    <string name="item_resource_to_add_btnTypeOffice_text">D</string>
     <string name="item_resource_to_add_btnTypeText_text">T</string>
     <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
@@ -2471,7 +2482,7 @@ Close the player and try again.</string>
     <string name="label_is_destination">Use as destination folder</string>
     <string name="label_is_read_only">Read-only mode</string>
     <string name="label_scan_subdirectories">Scan subdirectories</string>
-    <string name="label_all_files">All files (ignore media type filter)</string>
+    <string name="label_all_files">File Manager Mode (browse and manage all files)</string>
     <string name="label_disable_thumbnails">Disable thumbnails</string>
     <string name="label_show_hidden_files">Show hidden files</string>
     <string name="label_show_subfolders_as_items">Show subfolders as items</string>
@@ -2592,7 +2603,7 @@ Close the player and try again.</string>
     <string name="label_profile_video_library">Quick Setup: Video Library</string>
     <string name="label_profile_photo_storage">Quick Setup: Photo Storage</string>
     <string name="label_profile_documents">Quick Setup: Documents</string>
-    <string name="label_profile_all_files">Quick Setup: All Files</string>
+    <string name="label_profile_all_files">Quick Setup: File Manager Mode</string>
     <string name="title_select_profile">Quick Setup Profile</string>
     <string name="database_reset_message">Database was reset due to an upgrade error. Your resources will need to be re-added.</string>
 
@@ -2605,6 +2616,10 @@ Close the player and try again.</string>
     <string name="settings_default_player_dialog_title">Set as default</string>
     <string name="settings_default_player_dialog_message">You will be redirected to Android system settings where you can select FastMediaSorter as the default app for this file type.</string>
     <string name="settings_default_player_dialog_confirm">Open settings</string>
+    <string name="settings_default_document_type_title">Document type</string>
+    <string name="settings_default_document_type_message">Android stores defaults per document type. Choose which type to configure now.</string>
+    <string name="settings_default_document_type_pdf">PDF</string>
+    <string name="settings_default_document_type_office">Office documents</string>
 
     <!-- App Shortcuts (X.19) -->
     <string name="shortcut_favorites_short">Favorites</string>
@@ -2653,7 +2668,7 @@ Close the player and try again.</string>
     <string name="scheduled_ops_filter_audio">Audio</string>
     <string name="scheduled_ops_filter_images">Images (incl. GIF)</string>
     <string name="scheduled_ops_filter_video">Video</string>
-    <string name="scheduled_ops_filter_documents">Documents (PDF, EPUB, text)</string>
+    <string name="scheduled_ops_filter_documents">Documents (PDF, EPUB, text, Office)</string>
     <string name="scheduled_ops_filter_select_at_least_one">Select at least one file type</string>
     <string name="scheduled_ops_time_all">All</string>
     <string name="scheduled_ops_time_since_last">New since last run</string>
@@ -3565,4 +3580,7 @@ Close the player and try again.</string>
     <string name="file_operation_progress_preparing">Preparing..</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
     <string name="s0281_google_oauth_only_note">Couldn\'t get this YouTube content. Sign-in isn\'t stored here..</string>
+    <string name="share_to_telegram">Send to Telegram</string>
+    <string name="share_to_telegram_failed">Unable to send to Telegram. Try the standard share instead.</string>
+    <string name="midi_playback_failed">Couldn\'t play this MIDI file. Try another copy or skip to the next track.</string>
 </resources>

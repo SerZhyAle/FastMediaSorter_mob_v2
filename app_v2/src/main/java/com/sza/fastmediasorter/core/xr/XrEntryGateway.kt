@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.core.xr
 
+import android.content.Intent
+
 /**
  * Facade for "enter VR session" requests.
  *
@@ -16,6 +18,12 @@ package com.sza.fastmediasorter.core.xr
 interface XrEntryGateway {
 
     /**
+     * Shared transport seam for UI callers that launch immersive playback through an
+     * ActivityResultContract. Returning null means the launch is unavailable before dispatch.
+     */
+    fun createImmersiveIntent(input: VrLaunchInput): Intent?
+
+    /**
      * Stage 0 legacy entry. Kept for binary-compatibility while no caller exists; will be
      * removed once a higher-fidelity entry replaces every Stage 0 call site.
      *
@@ -27,6 +35,8 @@ interface XrEntryGateway {
      * Stage 1A (S0249) entry: open an OpenXR session that renders a single bundled,
      * stereoscopic top-bottom equirectangular diagnostic image. The session closes on any
      * controller input, keyboard key, or mouse click.
+     *
+     * @param launchTaskId optional flat-task id to restore when the immersive Activity exits.
      *
      * @return [XrEntryResult] describing what happened. Never throws.
      */

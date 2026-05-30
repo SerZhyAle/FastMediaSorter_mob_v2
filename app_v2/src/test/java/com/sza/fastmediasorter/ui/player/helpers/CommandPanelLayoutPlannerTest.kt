@@ -171,7 +171,7 @@ class CommandPanelLayoutPlannerTest {
             activeCommands = listOf(
                 CommandPanelLayoutPlanner.PlayerCommand.DELETE,
                 CommandPanelLayoutPlanner.PlayerCommand.FAVORITE,
-                CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER
+                CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_OFFICE
             ),
             maxCommandSlots = 3
         )
@@ -180,7 +180,7 @@ class CommandPanelLayoutPlannerTest {
             CommandPanelLayoutPlanner.PlayerCommand.DELETE,
             CommandPanelLayoutPlanner.PlayerCommand.FAVORITE
         ))
-        assertTrue("Overflow-only commands must remain in overflow", result.overflowCommands == listOf(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
+        assertTrue("Overflow-only commands must remain in overflow", result.overflowCommands == listOf(CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_OFFICE))
         assertTrue("Overflow button should occupy the last slot when overflow-only items exist", result.showOverflowButton)
     }
 }

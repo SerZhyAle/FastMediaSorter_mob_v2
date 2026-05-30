@@ -119,6 +119,7 @@ class MediaMetadataHelper(
                     MediaType.PDF -> safExtractor.extractPdfInfo(mediaFile.path)
                     MediaType.TEXT -> safExtractor.extractTextInfo(mediaFile.path)
                     MediaType.EPUB -> safExtractor.extractEpubInfo(mediaFile.path)
+                    MediaType.OFFICE_DOCUMENT -> info
                     MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> info
                 }
                 return@withContext result
@@ -134,6 +135,7 @@ class MediaMetadataHelper(
                 MediaType.PDF -> documentExtractor.extractPdfInfo(file)
                 MediaType.TEXT -> documentExtractor.extractTextInfo(file)
                 MediaType.EPUB -> documentExtractor.extractEpubInfo(file)
+                MediaType.OFFICE_DOCUMENT -> info
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> info
             }
             
@@ -408,4 +410,3 @@ class MediaMetadataHelper(
     }
 
 }
-

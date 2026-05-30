@@ -8,6 +8,7 @@ import android.os.Environment
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
@@ -249,6 +250,7 @@ class FileInfoLaunchManager(
             MediaType.TEXT -> "text/plain"
             MediaType.PDF -> "application/pdf"
             MediaType.EPUB -> "application/epub+zip"
+            MediaType.OFFICE_DOCUMENT -> MediaTypeUtils.officeMimeTypeForFileName(displayName) ?: "application/octet-stream"
             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
             MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "application/octet-stream"
         }

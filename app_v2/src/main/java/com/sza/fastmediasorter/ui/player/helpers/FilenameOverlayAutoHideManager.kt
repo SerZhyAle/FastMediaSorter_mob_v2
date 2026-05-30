@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -27,7 +28,8 @@ class FilenameOverlayAutoHideManager(
     private val overlayView: TextView,
     private val mainHandler: Handler = Handler(Looper.getMainLooper()),
     /** Returns true when the player is in fullscreen (command panel hidden). */
-    private val isFullscreen: () -> Boolean
+    private val isFullscreen: () -> Boolean,
+    private val companionViews: () -> List<View> = { emptyList() },
 ) {
     companion object {
         private const val TIMEOUT_TXT_MS      = 5_000L
@@ -116,6 +118,11 @@ class FilenameOverlayAutoHideManager(
             overlayView.animate().cancel()
             overlayView.alpha = 1f
             overlayView.isVisible = true
+            companionViews().forEach { companion ->
+                companion.animate().cancel()
+                companion.alpha = 1f
+                companion.isVisible = true
+            }
             // Re-arm timer: use remaining time if still valid, else start fresh
             val remaining = deadlineMs - System.currentTimeMillis()
             val delay = if (remaining > 0L) remaining else currentTimeoutMs
@@ -134,6 +141,10 @@ class FilenameOverlayAutoHideManager(
         // Don't change overlayLogicallyVisible - preserve for restore on panel-back
         overlayView.animate().cancel()
         overlayView.isVisible = false
+        companionViews().forEach { companion ->
+            companion.animate().cancel()
+            companion.isVisible = false
+        }
         Timber.d("FilenameOverlayAutoHideManager: onEnterFullscreenMode - timer cancelled")
     }
 
@@ -181,6 +192,11 @@ class FilenameOverlayAutoHideManager(
         overlayView.animate().cancel()
         overlayView.alpha = 0f
         overlayView.isVisible = false
+        companionViews().forEach { companion ->
+            companion.animate().cancel()
+            companion.alpha = 0f
+            companion.isVisible = false
+        }
         overlayLogicallyVisible = false
         Timber.d("FilenameOverlayAutoHideManager: cancelled")
     }
@@ -229,6 +245,11 @@ class FilenameOverlayAutoHideManager(
         overlayView.animate().cancel()
         overlayView.isVisible = true
         overlayView.animate().alpha(1f).setDuration(FADE_DURATION_MS).start()
+        companionViews().forEach { companion ->
+            companion.animate().cancel()
+            companion.isVisible = true
+            companion.animate().alpha(1f).setDuration(FADE_DURATION_MS).start()
+        }
     }
 
     private fun animateHide() {
@@ -241,6 +262,14 @@ class FilenameOverlayAutoHideManager(
                 overlayLogicallyVisible = false
             }
             .start()
+        companionViews().forEach { companion ->
+            companion.animate().cancel()
+            companion.animate()
+                .alpha(0f)
+                .setDuration(FADE_DURATION_MS)
+                .withEndAction { companion.isVisible = false }
+                .start()
+        }
         Timber.d("FilenameOverlayAutoHideManager: hide animation started")
     }
 }

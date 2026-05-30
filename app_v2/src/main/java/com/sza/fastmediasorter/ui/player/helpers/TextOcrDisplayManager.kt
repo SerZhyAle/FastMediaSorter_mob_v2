@@ -29,12 +29,14 @@ class TextOcrDisplayManager(
             binding.imageView.isVisible -> binding.imageView
             binding.playerView.isVisible -> binding.playerView
             safeViews.pdfControlsLayout.isVisible -> safeViews.pdfControlsLayout
+            binding.officeDocumentViewerContainer.isVisible -> binding.officeDocumentViewerContainer
             else -> null
         }
 
         binding.playerView.isVisible = false
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
+        binding.officeDocumentViewerContainer.isVisible = false
         safeViews.pdfControlsLayout.isVisible = false
         safeViews.translationOverlay.isVisible = false
         binding.translationLensOverlay.isVisible = false
@@ -108,12 +110,14 @@ class TextOcrDisplayManager(
             binding.playerView.isVisible -> binding.playerView
             isPdfActive -> safeViews.pdfControlsLayout
             isEpubActive -> safeViews.epubControlsLayout
+            binding.officeDocumentViewerContainer.isVisible -> binding.officeDocumentViewerContainer
             else -> null
         }
 
         binding.playerView.isVisible = false
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
+        binding.officeDocumentViewerContainer.isVisible = false
         if (!isPdfActive) safeViews.pdfControlsLayout.isVisible = false
         if (!isEpubActive) safeViews.epubControlsLayout.isVisible = false
         binding.epubWebView.isVisible = false

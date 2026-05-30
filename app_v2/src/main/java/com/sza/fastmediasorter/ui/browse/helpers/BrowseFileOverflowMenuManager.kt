@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner.PlayerCommand
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
@@ -35,6 +36,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         onMoveDown: ((MediaFile) -> Unit)? = null,
         onFavorite: ((MediaFile) -> Unit)? = null,
         onShare: ((MediaFile) -> Unit)? = null,
+        onSendToTelegram: ((MediaFile) -> Unit)? = null,
         onInfo: ((MediaFile) -> Unit)? = null,
         onGoogleLens: ((MediaFile) -> Unit)? = null,
         onDrawOverlay: ((MediaFile) -> Unit)? = null,
@@ -73,6 +75,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             val action: () -> Unit = when (cmd) {
                 PlayerCommand.FAVORITE          -> { { onFavorite?.invoke(file) } }
                 PlayerCommand.SHARE             -> { { onShare?.invoke(file) } }
+                PlayerCommand.SEND_TO_TELEGRAM  -> { { onSendToTelegram?.invoke(file) } }
                 PlayerCommand.INFO              -> { { onInfo?.invoke(file) } }
                 PlayerCommand.GOOGLE_LENS_IMAGE -> { { onGoogleLens?.invoke(file) } }
                 PlayerCommand.DRAW_OVERLAY      -> { { onDrawOverlay?.invoke(file) } }
@@ -144,6 +147,10 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             // Universal - available for every file type
             add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
+            // S0303: Send to Telegram - all file types, only when a Telegram client is installed.
+            if (TelegramShareTargets.firstInstalledPackage(context.packageManager) != null) {
+                add(PlayerCommand.SEND_TO_TELEGRAM)
+            }
             add(PlayerCommand.INFO)
 
             // Audio-specific

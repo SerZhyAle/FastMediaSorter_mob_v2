@@ -42,11 +42,51 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIni
         LOGE("nativeInitSession: GetJavaVM failed");
         return static_cast<jint>(fms::xr::NativeResult::UnexpectedRuntimeError);
     }
+    if (fms::xr::xr_session_is_initialized()) {
+        if (fms::xr::xr_session_is_running()) {
+            LOGW("nativeInitSession: session already running; rejecting concurrent init");
+            return static_cast<jint>(fms::xr::NativeResult::AlreadyRunning);
+        }
+        LOGW("nativeInitSession: stale initialized state detected; forcing shutdown before re-init");
+        fms::xr::xr_session_shutdown();
+        if (fms::xr::xr_session_is_initialized()) {
+            LOGE("nativeInitSession: stale native state survived forced shutdown");
+            return static_cast<jint>(fms::xr::NativeResult::UnexpectedRuntimeError);
+        }
+    }
+    // S0291 owner round 3 fix (2026-05-22 21:19): the original S0249 comment "the global ref
+    // intentionally leaks for the session's lifetime" was load-bearing and the S0290 attempt
+    // to balance NewGlobalRef/DeleteGlobalRef across the immersive enter/exit cycle backfired.
+    // Two symptoms observed in successive logs:
+    //   1. After DeleteGlobalRef the JNI table reused the same encoded jobject value for a
+    //      new local ref on the SAME persistent Activity instance, then the next NewGlobalRef
+    //      tripped the ART CheckJNI "stale reference with serial 4 v current 6" assertion
+    //      (logcat 21:18:26 line 1886). Crashes the whole process before the new session can
+    //      run.
+    //   2. Even before that, with detach mid-shutdown, DeleteGlobalRef was silently skipped
+    //      and the ref leaked anyway, eventually exhausting the table.
+    // Resolution: keep the Activity global ref alive for the WHOLE process lifetime. If the
+    // caller passes the same Activity instance (typical when user re-enters immersive without
+    // recreating the Activity), reuse the existing global ref. If they pass a different
+    // instance (extreme corner case - recreate(), config change), drop the old ref before
+    // taking a new one. The native ref count grows by at most one per real Activity instance.
+    if (fms::xr::g_activity_jobject() != nullptr) {
+        jobject existing = static_cast<jobject>(fms::xr::g_activity_jobject());
+        if (env->IsSameObject(activity, existing)) {
+            LOGD("nativeInitSession: reusing existing activity global ref (same Activity instance)");
+            auto r = fms::xr::xr_session_init(vm, static_cast<void*>(existing));
+            return static_cast<jint>(r);
+        }
+        LOGW("nativeInitSession: Activity instance changed across sessions; replacing global ref");
+        env->DeleteGlobalRef(existing);
+        fms::xr::xr_session_clear_activity_jobject();
+    }
     jobject globalActivity = env->NewGlobalRef(activity);
+    if (!globalActivity) {
+        LOGE("nativeInitSession: NewGlobalRef returned null");
+        return static_cast<jint>(fms::xr::NativeResult::UnexpectedRuntimeError);
+    }
     auto r = fms::xr::xr_session_init(vm, static_cast<void*>(globalActivity));
-    // Note: the global ref intentionally leaks for the session's lifetime; xr_session_shutdown
-    // tears the OpenXR instance down but does not free this ref. The Activity is in foreground
-    // until the user exits — JNI cleanup happens implicitly when the process is torn down.
     return static_cast<jint>(r);
 }
 
@@ -141,6 +181,12 @@ JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsRunning(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     return fms::xr::xr_session_is_running() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsInitialized(
+        JNIEnv* /*env*/, jobject /*thiz*/) {
+    return fms::xr::xr_session_is_initialized() ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL

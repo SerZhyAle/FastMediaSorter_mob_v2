@@ -74,7 +74,13 @@ class BrowseUtilityManager(
             buildBreadcrumb(resource.path, currentPath)
         } ?: buildRootPathDisplay(resource.path, resource.name)
         
-        return "${resource.name}$fileCount • $pathDisplay • $sortMode$selected"
+        val modeLabel = if (resource.allFiles) {
+            " • " + context.getString(R.string.all_files)
+        } else {
+            ""
+        }
+        
+        return "${resource.name}$fileCount • $pathDisplay • $sortMode$modeLabel$selected"
     }
 
     private fun buildRootPathDisplay(resourcePath: String, resourceName: String): String {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0140 - link intake and WebView auth -->
+    <string name="s0140_progress_analyzing_page">Analyzing page..</string>
+    <string name="s0140_webview_auth_hint">Sign in, then tap Save authorization.</string>
+    <string name="s0140_webview_auth_sign_in_first">Sign in first, then tap Save authorization.</string>
+
+    <!-- S0155 - account naming, picking, and account operations -->
+    <string name="s0155_name_account_title">Name this account</string>
+    <string name="s0155_name_account_hint">e.g. @myusername</string>
+    <string name="s0155_name_account_positive">Save</string>
+    <string name="s0155_pick_account_title">Choose account for %1$s</string>
+    <string name="s0155_pick_account_last_used">(last used)</string>
+    <string name="s0155_reauth_title">Sign in again as %1$s?</string>
+    <string name="s0155_reauth_message">The saved sign-in for %1$s may have expired. Signing in again lets the app fetch the actual content.</string>
+    <string name="s0155_reauth_positive">Sign in again</string>
+    <string name="s0155_add_account_label">Add another account</string>
+    <string name="s0155_rename_account_title">Rename account</string>
+    <string name="s0155_delete_account_confirm">Delete sign-in for %1$s?</string>
+    <string name="s0155_relogin_account_label">Sign in again</string>
+    <string name="s0155_account_default_name">Account 1</string>
+
+    <!-- S0157 - auth offer dismissal and account metadata -->
+    <string name="s0157_auth_offer_dismiss_always">Don\'t ask again</string>
+    <string name="s0157_account_default_name">Default account</string>
+    <string name="s0157_dismissed_label">Not authorized (you declined)</string>
+    <string name="s0157_last_used_never">not yet used</string>
+    <string name="s0157_last_used_fmt">last used %1$s</string>
+</resources>

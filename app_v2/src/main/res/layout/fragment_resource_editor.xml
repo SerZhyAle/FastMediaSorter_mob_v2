@@ -190,6 +190,8 @@
 
                         <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbEpub" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="@string/media_type_epub" />
 
+                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbOffice" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="@string/media_type_office_documents" />
+
                     </GridLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

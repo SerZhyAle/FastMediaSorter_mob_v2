@@ -51,7 +51,8 @@ class ProvisionDownloadsDestinationUseCase @Inject constructor(
             profile = ResourceProfile.NONE,
             supportedMediaTypes = setOf(
                 MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO,
-                MediaType.GIF, MediaType.TEXT, MediaType.PDF, MediaType.EPUB
+                MediaType.GIF, MediaType.TEXT, MediaType.PDF, MediaType.EPUB,
+                MediaType.OFFICE_DOCUMENT
             ),
             isDestination = true,
             destinationOrder = destinationOrder,

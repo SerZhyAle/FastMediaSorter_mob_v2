@@ -9,4 +9,5 @@
     <string name="s0183_apk_install_success">APK установлен</string>
     <string name="s0183_apk_install_cancelled">Установка отменена</string>
     <string name="s0183_apk_install_failed">Ошибка установки</string>
+    <string name="setting_support_office_documents_desc">Открывает Word, таблицы и презентации во встроенном просмотрщике, если формат поддерживается</string>
 </resources>
