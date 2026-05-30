@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.FragmentSettingsDocumentsBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
@@ -45,6 +46,7 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
             // After migration the row IS the visible element; no extra wrapper container.
             binding.rowSupportEpub.isVisible = false
         }
+        binding.rowSupportOfficeDocuments.isVisible = MediaTypeUtils.OFFICE_DOCUMENT_EXTENSIONS.isNotEmpty()
     }
 
     private fun setupViews() {
@@ -75,6 +77,11 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(supportEpub = isChecked))
         }
 
+        bindSwitch(binding.rowSupportOfficeDocuments) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportOfficeDocuments = isChecked))
+        }
+
         // Help payload for line-numbers row is now wired inline via str_helpTitle/str_helpMessage
         // and opened by SettingsToggleRow's built-in helper button.
 
@@ -99,7 +106,7 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
             if (!current.isPrimaryMediaPlayer) {
                 viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
             }
-            DefaultPlayerHelper.showSetDefaultDialogForType(this, "application/pdf")
+            DefaultPlayerHelper.showSetDefaultDocumentDialog(this)
         }
     }
 
@@ -116,6 +123,9 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
 
                 setSwitchChecked(binding.rowSupportEpub, isAllFilesEnabled || settings.supportEpub)
                 binding.rowSupportEpub.isEnabled = !isAllFilesEnabled
+
+                setSwitchChecked(binding.rowSupportOfficeDocuments, isAllFilesEnabled || settings.supportOfficeDocuments)
+                binding.rowSupportOfficeDocuments.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowShowTextLineNumbers, settings.showTextLineNumbers)
                 setSwitchChecked(binding.rowShowPdfThumbnails, settings.showPdfThumbnails)

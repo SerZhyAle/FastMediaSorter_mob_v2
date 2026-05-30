@@ -224,6 +224,7 @@ class SettingsViewModel @Inject constructor(
                 supportText = defaults.supportText,
                 supportPdf = defaults.supportPdf,
                 supportEpub = defaults.supportEpub,
+                supportOfficeDocuments = defaults.supportOfficeDocuments,
                 showPdfThumbnails = defaults.showPdfThumbnails,
                 textSizeMax = defaults.textSizeMax,
                 showTextLineNumbers = defaults.showTextLineNumbers,

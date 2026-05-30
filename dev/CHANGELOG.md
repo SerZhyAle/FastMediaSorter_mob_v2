@@ -13620,3 +13620,214 @@ Format: | datetime | file | target | description |
 | 2026-05-30 02:32:52 | `docs/FEATURES_noLegal.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (EN) [branch: DEBUG-v008] |
 | 2026-05-30 02:32:57 | `docs/FEATURES_noLegal_RU.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (RU) [branch: DEBUG-v008] |
 | 2026-05-30 02:33:01 | `docs/FEATURES_noLegal_UK.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (UK) [branch: DEBUG-v008] |
+| 2026-05-30 02:42:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301` | Fix Office fallback dialog routing in player [branch: DEBUG-v008] |
+| 2026-05-30 02:43:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301` | Keep standalone Office fallback cancel in viewer [branch: DEBUG-v008] |
+| 2026-05-30 02:44:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301` | Fix Office fallback dialog routing in player [branch: DEBUG-v008] |
+| 2026-05-30 02:44:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301` | Keep standalone Office fallback cancel in viewer [branch: DEBUG-v008] |
+| 2026-05-30 02:49:21 | `.github/prompts/spec.prompt.md` | `spec prompt` | Allow free-form and empty draft /spec requests [branch: DEBUG-v008] |
+| 2026-05-30 02:50:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerHost.kt` | `S0301` | Expose Office rendered text for command parity [branch: DEBUG-v008] |
+| 2026-05-30 02:50:35 | `PLAN/S0302_file-manager-mode.md` | `spec` | Add strategic spec S0302 for File Manager Mode positioning [branch: DEBUG-v008] |
+| 2026-05-30 02:51:08 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerManager.kt` | `S0301` | Store Office rendered plain text for OCR and translation [branch: DEBUG-v008] |
+| 2026-05-30 02:51:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0301` | Expose Office translate and OCR overflow commands [branch: DEBUG-v008] |
+| 2026-05-30 02:52:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `S0301` | Expose Office print command availability [branch: DEBUG-v008] |
+| 2026-05-30 02:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0301` | Route Office translate and OCR commands [branch: DEBUG-v008] |
+| 2026-05-30 02:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `S0301` | Expose Office print command availability [branch: DEBUG-v008] |
+| 2026-05-30 02:53:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0301` | Route Office translate and OCR commands [branch: DEBUG-v008] |
+| 2026-05-30 02:54:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `S0301` | Preserve OCR text as translation source [branch: DEBUG-v008] |
+| 2026-05-30 02:55:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextOcrDisplayManager.kt` | `S0301` | Restore Office viewer after OCR text overlay [branch: DEBUG-v008] |
+| 2026-05-30 02:58:30 | `PLAN/S0303_telegram-integration.md` | `spec` | Add strategic spec S0303 for Telegram integration (t.me download + share) [branch: DEBUG-v008] |
+| 2026-05-30 02:59:51 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlannerTest.kt` | `S0301` | Update command planner overflow-only test for Office actions [branch: DEBUG-v008] |
+| 2026-05-30 03:01:56 | `PLAN/S0301_nolegal-office-document-embedded-renderer.md` | `S0301` | Record Verified spec-check audit [branch: DEBUG-v008] |
+| 2026-05-30 03:01:56 | `PLAN/S0301_nolegal-office-document-embedded-renderer/INDEX.md` | `S0301` | Close S0301 completion gate after spec-check [branch: DEBUG-v008] |
+| 2026-05-30 03:03:20 | `PLAN/S0303_telegram-integration/INDEX.md` | `spec-tech` | Create tactical plan for S0303 [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_01__share-intent.md` | `spec-tech` | Phase 01: share-intent [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_02__link-extraction.md` | `spec-tech` | Phase 02: link-extraction [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_03__bot-upload.md` | `spec-tech` | Phase 03: bot-upload [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-30 03:03:21 | `PLAN/S0303_telegram-integration.md` | `spec-tech` | Status to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 13:38:47 | `app_v2/src/main/res/values/strings.xml` | `string/backup_to_google_drive,string/restore_from_google_drive,fragment_settings_general.xml` | Rename Google Drive backup/restore buttons to mention settings (EN/RU/UK) and unify btnBackup style to OutlinedM3 (portrait+land) [branch: DEBUG-v008] |
+| 2026-05-30 13:45:06 | `PLAN/S0302_file-manager-mode/INDEX.md` | `spec-tech` | Create tactical plan for S0302 [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_01__ui-terminology.md` | `spec-tech` | Phase 01: ui-terminology [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_02__manifest-integration.md` | `spec-tech` | Phase 02: manifest-integration [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_03__browse-ux.md` | `spec-tech` | Phase 03: browse-ux [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v008] |
+| 2026-05-30 13:45:07 | `PLAN/S0302_file-manager-mode.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v008] |
+| 2026-05-30 13:45:40 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Update File Manager Mode EN labels [branch: DEBUG-v008] |
+| 2026-05-30 13:45:41 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | Update File Manager Mode RU labels [branch: DEBUG-v008] |
+| 2026-05-30 13:45:41 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Update File Manager Mode UK labels [branch: DEBUG-v008] |
+| 2026-05-30 13:46:02 | `app_v2/src/main/res/layout/fragment_resource_editor.xml` | `fragment_resource_editor.xml` | Verify cbAllFiles uses label_all_files [branch: DEBUG-v008] |
+| 2026-05-30 13:46:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt` | `AddResourceFormManager.kt` | Verify profile label references in Kotlin [branch: DEBUG-v008] |
+| 2026-05-30 13:48:36 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest.xml` | Add APP_FILES category to MainActivity intent-filter [branch: DEBUG-v008] |
+| 2026-05-30 13:50:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseUtilityManager.kt` | `BrowseUtilityManager.kt` | Add File Manager Mode indicator to Browse screen [branch: DEBUG-v008] |
+| 2026-05-30 13:50:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseBinaryFileHandler.kt` | `BrowseBinaryFileHandler.kt` | Verify BrowseBinaryFileHandler handles unsupported binary files menu [branch: DEBUG-v008] |
+| 2026-05-30 13:51:31 | `PLAN/S0304_office-document-settings-parity.md` | `spec` | Add strategic spec S0304 for Office document settings parity [branch: DEBUG-v008] |
+| 2026-05-30 13:56:28 | `docs/FAQ.md` | `FAQ.md` | Add File Manager Mode section [branch: DEBUG-v008] |
+| 2026-05-30 13:56:29 | `docs/FAQ_RU.md` | `FAQ_RU.md` | Add File Manager Mode section (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:31 | `docs/FAQ_UK.md` | `FAQ_UK.md` | Add File Manager Mode section (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:33 | `docs/FEATURES.md` | `FEATURES.md` | Rename All Files to File Manager Mode [branch: DEBUG-v008] |
+| 2026-05-30 13:56:34 | `docs/FEATURES_RU.md` | `docs/FEATURES_RU.md` | Rename All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:36 | `docs/FEATURES_UK.md` | `docs/FEATURES_UK.md` | Rename All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:38 | `docs/README.md` | `docs/README.md` | Update All Files to File Manager Mode [branch: DEBUG-v008] |
+| 2026-05-30 13:56:39 | `README.md` | `README.md` | Update All Files to File Manager Mode in root [branch: DEBUG-v008] |
+| 2026-05-30 13:56:41 | `docs/README_RU.md` | `docs/README_RU.md` | Update All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:43 | `docs/README_UK.md` | `docs/README_UK.md` | Update All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
+| 2026-05-30 14:04:32 | `PLAN/S0305_mid-audio-playback-support.md` | `spec` | Add strategic spec S0305 for MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 14:35:51 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Resolve S0305 MIDI playback research questions [branch: DEBUG-v008] |
+| 2026-05-30 14:41:24 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Record S0305 owner gate decisions for MIDI playback scope and autonomy [branch: DEBUG-v008] |
+| 2026-05-30 14:41:37 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Clarify S0305 owner gate marker wording [branch: DEBUG-v008] |
+| 2026-05-30 14:44:32 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-tech` | Promote S0305 to Approved for tactical planning [branch: DEBUG-v008] |
+| 2026-05-30 14:49:42 | `PLAN/S0305_mid-audio-playback-support.md` | `S0305` | Move S0305 strategic spec to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/spec-catalog.jsonl` | `S0305` | Set S0305 catalog status to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Add S0305 tactical plan index [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Add Media3 MIDI backend tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:43 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Add MIDI MIME routing tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:44 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305` | Add MIDI fallback error tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:44 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305` | Add S0305 tests validation tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:49:44 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305` | Add S0305 docs catalog cleanup tactical phase [branch: DEBUG-v008] |
+| 2026-05-30 14:50:47 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/TelegramShareTargets.kt` | `spec-dev S0303 step 01.1` | Add TelegramShareTargets: known Telegram client package ids + installed-client lookup [branch: DEBUG-v008] |
+| 2026-05-30 14:52:29 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/SystemShareInvoker.kt` | `spec-dev S0303 step 01.2` | SystemShareInvoker.invokeFiles: multi-URI targeted send with chooser fallback [branch: DEBUG-v008] |
+| 2026-05-30 15:01:08 | `PLAN/spec-catalog.jsonl` | `S0305` | Set S0305 catalog status to In Progress [branch: DEBUG-v008] |
+| 2026-05-30 15:01:45 | `app_v2/build.gradle.kts` | `S0305` | Add Media3 MIDI dependency to audio flavors [branch: DEBUG-v008] |
+| 2026-05-30 15:01:45 | `PLAN/S0305_mid-audio-playback-support.md` | `S0305` | Mark S0305 implementation in progress [branch: DEBUG-v008] |
+| 2026-05-30 15:01:45 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter [branch: DEBUG-v008] |
+| 2026-05-30 15:01:46 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 01 done [branch: DEBUG-v008] |
+| 2026-05-30 15:01:54 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Finalize S0305 phase 01 step 01 log [branch: DEBUG-v008] |
+| 2026-05-30 15:02:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackRenderersFactory.kt` | `S0305` | Add shared Media3 playback renderers factory [branch: DEBUG-v008] |
+| 2026-05-30 15:03:22 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter to two [branch: DEBUG-v008] |
+| 2026-05-30 15:03:22 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 02 done [branch: DEBUG-v008] |
+| 2026-05-30 15:03:37 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Finalize S0305 phase 01 step 02 log [branch: DEBUG-v008] |
+| 2026-05-30 15:04:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt` | `S0305` | Use shared playback renderers factory in foreground player [branch: DEBUG-v008] |
+| 2026-05-30 15:04:29 | `PLAN/S0304_office-document-settings-parity/INDEX.md` | `S0304` | Implemented Office document settings parity across settings, resources, strings, docs, and validation [branch: DEBUG-v008] |
+| 2026-05-30 15:05:07 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter to three [branch: DEBUG-v008] |
+| 2026-05-30 15:05:08 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 03 done [branch: DEBUG-v008] |
+| 2026-05-30 15:05:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `S0305` | Use shared playback renderers factory in audio service [branch: DEBUG-v008] |
+| 2026-05-30 15:06:26 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 01 step counter to four [branch: DEBUG-v008] |
+| 2026-05-30 15:06:26 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Mark S0305 phase 01 step 04 done [branch: DEBUG-v008] |
+| 2026-05-30 15:06:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `spec-dev S0303 step 02.1` | Add telegram id to CANONICAL_ORDER ahead of ytdlp for t.me extraction [branch: DEBUG-v008] |
+| 2026-05-30 15:09:09 | `app_v2/build.gradle.kts` | `S0305` | Record debug build validation version update [branch: DEBUG-v008] |
+| 2026-05-30 15:09:20 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Mark S0305 phase 01 done [branch: DEBUG-v008] |
+| 2026-05-30 15:09:21 | `PLAN/S0305_mid-audio-playback-support/PHASE_01__media3-midi-backend.md` | `S0305` | Close S0305 phase 01 done criteria [branch: DEBUG-v008] |
+| 2026-05-30 15:09:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MidiPlaybackPolicy.kt` | `S0305` | Add MIDI playback extension policy [branch: DEBUG-v008] |
+| 2026-05-30 15:10:30 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to one [branch: DEBUG-v008] |
+| 2026-05-30 15:10:31 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 01 done [branch: DEBUG-v008] |
+| 2026-05-30 15:10:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MediaExtensions.kt` | `S0305` | Route audio MIDI extensions through shared policy [branch: DEBUG-v008] |
+| 2026-05-30 15:11:46 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to two [branch: DEBUG-v008] |
+| 2026-05-30 15:11:47 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 02 done [branch: DEBUG-v008] |
+| 2026-05-30 15:12:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt` | `S0305` | Use MIDI playback policy for local MIME detection [branch: DEBUG-v008] |
+| 2026-05-30 15:13:08 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to three [branch: DEBUG-v008] |
+| 2026-05-30 15:13:08 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 03 done [branch: DEBUG-v008] |
+| 2026-05-30 15:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt` | `S0305` | Add optional MIME type to audio playlist metadata item [branch: DEBUG-v008] |
+| 2026-05-30 15:14:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0305` | Apply optional MIME type to service MediaItems [branch: DEBUG-v008] |
+| 2026-05-30 15:15:36 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to four [branch: DEBUG-v008] |
+| 2026-05-30 15:15:36 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 04 done [branch: DEBUG-v008] |
+| 2026-05-30 15:16:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt` | `S0305` | Pass MIDI MIME hints in now playing playlist items [branch: DEBUG-v008] |
+| 2026-05-30 15:16:49 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305` | Advance S0305 phase 02 step counter to five [branch: DEBUG-v008] |
+| 2026-05-30 15:16:49 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305` | Mark S0305 phase 02 step 05 done [branch: DEBUG-v008] |
+| 2026-05-30 15:18:49 | `PLAN/spec-catalog.jsonl` | `spec catalog` | Insert S0306 record for thematic string resource files strategic spec [branch: DEBUG-v008] |
+| 2026-05-30 15:18:49 | `PLAN/S0306_thematic-string-resource-files.md` | `strategic spec` | Add strategic spec S0306 for thematic string resource files [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0002_decompose-giant-files.md` | `spec-arc` | Archive S0002 (decompose-giant-files) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0220_google-tv-availability-research.md` | `spec-arc` | Archive S0220 (google-tv-availability-research) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0240_vr-stack-rewrite-epic.md` | `spec-arc` | Archive S0240 (vr-stack-rewrite-epic) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0267_cloud-auth-unified-storage-research.md` | `spec-arc` | Archive S0267 (cloud-auth-unified-storage-research) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0285_nolegal-ocr-cyrillic.md` | `spec-arc` | Archive S0285 (nolegal-ocr-cyrillic) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:25:42 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization.md` | `spec-arc` | Archive S0286 (compliance-lint-gate-and-features-sanitization) -> temp/done/ [branch: DEBUG-v008] |
+| 2026-05-30 15:29:16 | `PLAN/S0305_mid-audio-playback-support/PHASE_02__mime-routing-policy.md` | `S0305 Phase 02` | Mark S0305 Phase 02 done after build validation [branch: DEBUG-v008] |
+| 2026-05-30 15:29:16 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 phase counter after Phase 02 completion [branch: DEBUG-v008] |
+| 2026-05-30 15:30:12 | `temp/VideoPlayerManager_S0305_20260530_152953.kt` | `S0305 backup` | Create Phase 03 backup for VideoPlayerManager [branch: DEBUG-v008] |
+| 2026-05-30 15:30:12 | `temp/PlayerMediaLoaderManager_S0305_20260530_152953.kt` | `S0305 backup` | Create Phase 03 backup for PlayerMediaLoaderManager [branch: DEBUG-v008] |
+| 2026-05-30 15:30:13 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03 backup step done [branch: DEBUG-v008] |
+| 2026-05-30 15:30:13 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter [branch: DEBUG-v008] |
+| 2026-05-30 15:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0305 Phase 03.2` | Route local MIDI through Media3 instead of eager MediaPlayer fallback [branch: DEBUG-v008] |
+| 2026-05-30 15:31:32 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03.2 done [branch: DEBUG-v008] |
+| 2026-05-30 15:31:32 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter after 03.2 [branch: DEBUG-v008] |
+| 2026-05-30 15:32:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0305 Phase 03.3` | Pass MIDI MIME hints for cached cloud and network audio [branch: DEBUG-v008] |
+| 2026-05-30 15:32:45 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03.3 done [branch: DEBUG-v008] |
+| 2026-05-30 15:32:45 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter after 03.3 [branch: DEBUG-v008] |
+| 2026-05-30 15:34:15 | `app_v2/src/main/res/values/strings.xml` | `string/midi_playback_failed` | Add English MIDI playback failure message [branch: DEBUG-v008] |
+| 2026-05-30 15:34:15 | `app_v2/src/main/res/values-ru/strings.xml` | `string/midi_playback_failed` | Add Russian MIDI playback failure message [branch: DEBUG-v008] |
+| 2026-05-30 15:34:16 | `app_v2/src/main/res/values-uk/strings.xml` | `string/midi_playback_failed` | Add Ukrainian MIDI playback failure message [branch: DEBUG-v008] |
+| 2026-05-30 15:34:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0305 Phase 03.4` | Show MIDI-specific service playback error message [branch: DEBUG-v008] |
+| 2026-05-30 15:35:07 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03.4 done [branch: DEBUG-v008] |
+| 2026-05-30 15:35:07 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 03 step counter after 03.4 [branch: DEBUG-v008] |
+| 2026-05-30 15:37:09 | `app_v2/build.gradle.kts` | `S0305 build validation` | Record auto-version update from Phase 03 debug build [branch: DEBUG-v008] |
+| 2026-05-30 15:37:21 | `PLAN/S0305_mid-audio-playback-support/PHASE_03__fallback-error-flow.md` | `S0305 Phase 03` | Mark S0305 Phase 03 done after build validation [branch: DEBUG-v008] |
+| 2026-05-30 15:37:21 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 phase counter after Phase 03 completion [branch: DEBUG-v008] |
+| 2026-05-30 15:38:09 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/MidiPlaybackPolicyTest.kt` | `MidiPlaybackPolicyTest` | Add MIDI playback policy unit tests [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `spec-dev S0303` | Add Send to Telegram overflow menu item (player) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `spec-dev S0303` | Add SEND_TO_TELEGRAM overflow command + telegramInstalled gate [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelAvailabilityUpdater.kt` | `spec-dev S0303` | Pass telegramInstalled to buildActiveCommands [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `spec-dev S0303` | Dispatch menu_send_to_telegram + Callback.onSendToTelegramClicked [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `spec-dev S0303` | Implement onSendToTelegramClicked [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `spec-dev S0303` | Add sendCurrentFileToTelegram via SystemShareInvoker [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/helpers/BrowseFileOverflowMenuManager.kt` | `spec-dev S0303` | Add Send to Telegram per-file overflow entry (Telegram-installed gate) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `spec-dev S0303` | Expose sendSelectedFilesToTelegram [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-dev S0303` | Wire onSendToTelegram in per-file overflow menu [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShareOperationsHelper.kt` | `spec-dev S0303` | Add sendSelectedFilesToTelegram (targeted invokeFiles) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0303` | Add share_to_telegram + share_to_telegram_failed (EN) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0303` | Add share_to_telegram + share_to_telegram_failed (RU) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0303` | Add share_to_telegram + share_to_telegram_failed (UK) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/TelegramExtractionStrategy.kt` | `spec-dev S0303` | New public t.me post extraction strategy (noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `spec-dev S0303` | Bind TelegramExtractionStrategy @IntoSet [branch: DEBUG-v008] |
+| 2026-05-30 15:38:31 | `app_v2/src/testNoLegal/java/com/sza/fastmediasorter/data/link/nolegal/TelegramExtractionStrategyTest.kt` | `spec-dev S0303` | Unit tests for TelegramExtractionStrategy [branch: DEBUG-v008] |
+| 2026-05-30 15:38:50 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Mark S0305 Phase 04.1 done [branch: DEBUG-v008] |
+| 2026-05-30 15:38:51 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 04 step counter after 04.1 [branch: DEBUG-v008] |
+| 2026-05-30 15:39:15 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/MediaExtensionsTest.kt` | `MediaExtensionsTest` | Extend audio classification tests for S0305 MIDI scope [branch: DEBUG-v008] |
+| 2026-05-30 15:40:04 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Mark S0305 Phase 04.2 done [branch: DEBUG-v008] |
+| 2026-05-30 15:40:05 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 04 step counter after 04.2 [branch: DEBUG-v008] |
+| 2026-05-30 15:40:29 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/Media3MidiExtensionPresenceTest.kt` | `Media3MidiExtensionPresenceTest` | Add Media3 MIDI extension classpath presence test [branch: DEBUG-v008] |
+| 2026-05-30 15:41:19 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Mark S0305 Phase 04.3 done [branch: DEBUG-v008] |
+| 2026-05-30 15:41:20 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 04 step counter after 04.3 [branch: DEBUG-v008] |
+| 2026-05-30 15:46:14 | `app_v2/build.gradle.kts` | `S0305 Phase 04 build validation` | Record auto-version update from Phase 04 debug build [branch: DEBUG-v008] |
+| 2026-05-30 15:46:14 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04.4` | Record blocked validation results for S0305 Phase 04 [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (EN) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_RU.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (RU) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_UK.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (UK) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal.md` | `spec-dev S0303` | Add t.me public-post download entry (EN, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal_RU.md` | `spec-dev S0303` | Add t.me public-post download entry (RU, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal_UK.md` | `spec-dev S0303` | Add t.me public-post download entry (UK, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `PLAN/S0303_telegram-integration.md` | `spec-dev` | All phases done (03 skipped); status -> BlockNeedUserTest [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (player send flow) [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShareOperationsHelper.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (browse send flow) [branch: DEBUG-v008] |
+| 2026-05-30 15:52:15 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/TelegramExtractionStrategy.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (t.me extraction flow) [branch: DEBUG-v008] |
+| 2026-05-30 17:32:10 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Close S0305 Phase 04 with focused validation [branch: DEBUG-v008] |
+| 2026-05-30 17:32:10 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Mark S0305 Phase 04 done [branch: DEBUG-v008] |
+| 2026-05-30 17:33:04 | `docs/FEATURES.md` | `FEATURES Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `docs/FEATURES_RU.md` | `FEATURES_RU Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `docs/FEATURES_UK.md` | `FEATURES_UK Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05.1 done [branch: DEBUG-v008] |
+| 2026-05-30 17:33:06 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 05 step counter after 05.1 [branch: DEBUG-v008] |
+| 2026-05-30 17:34:21 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Refresh app_v2 catalog after S0305 Kotlin changes [branch: DEBUG-v008] |
+| 2026-05-30 17:34:21 | `dev/CATALOG/app_v2.md` | `app_v2 catalog` | Render app_v2 catalog after S0305 Kotlin changes [branch: DEBUG-v008] |
+| 2026-05-30 17:34:21 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05.2 done [branch: DEBUG-v008] |
+| 2026-05-30 17:34:22 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 05 step counter after 05.2 [branch: DEBUG-v008] |
+| 2026-05-30 17:36:08 | `app_v2/build.gradle.kts` | `S0305 Phase 05 build validation` | Record auto-version update from Phase 05 final debug build [branch: DEBUG-v008] |
+| 2026-05-30 17:36:37 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-update` | Refinement (GPT-5, focus: language, structure, verifiability, consistency, completeness, style) [branch: DEBUG-v008] |
+| 2026-05-30 17:39:41 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-check` | Audit S0305 to Verified [branch: DEBUG-v008] |
+| 2026-05-30 17:39:41 | `PLAN/spec-catalog.jsonl` | `S0305 spec catalog` | Close S0305 as Verified [branch: DEBUG-v008] |
+| 2026-05-30 17:39:41 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05 done [branch: DEBUG-v008] |
+| 2026-05-30 17:39:42 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Close S0305 tactical plan [branch: DEBUG-v008] |
+| 2026-05-30 17:43:48 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-update` | Accept P-1 and defer P-2 for S0306 implementation [branch: DEBUG-v008] |
+| 2026-05-30 17:45:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0305` | Add optional MIME type to single-file audio service controller playback [branch: DEBUG-v008] |
+| 2026-05-30 17:46:14 | `PLAN/S0297_nolegal-vr-capability-research.md` | `spec-all` | Verify S0297 research closure [branch: DEBUG-v008] |
+| 2026-05-30 17:46:14 | `PLAN/S0297_nolegal-vr-capability-research/RESEARCH.md` | `spec-all` | Mark S0297 research artifact complete [branch: DEBUG-v008] |
+| 2026-05-30 17:46:14 | `PLAN/S0297_nolegal-vr-capability-research.md` | `spec-all` | Pipeline Verified: S0297 [branch: DEBUG-v008] |
+| 2026-05-30 17:46:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0305` | Pass MIDI MIME hint through local single-file audio service fallback [branch: DEBUG-v008] |
+| 2026-05-30 17:46:52 | `PLAN/S0306_thematic-string-resource-files/INDEX.md` | `spec-tech` | Create tactical plan for S0306 [branch: DEBUG-v008] |
+| 2026-05-30 17:46:52 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `spec-tech` | S0306 Phase 01 resource regroup [branch: DEBUG-v008] |
+| 2026-05-30 17:46:53 | `PLAN/S0306_thematic-string-resource-files/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | S0306 Phase 02 docs catalog cleanup [branch: DEBUG-v008] |
+| 2026-05-30 17:46:53 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-tech` | S0306 status to Tactical [branch: DEBUG-v008] |
+| 2026-05-30 17:47:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0305` | Pass MIDI MIME hint through standalone audio service playback [branch: DEBUG-v008] |
+| 2026-05-30 17:47:22 | `PLAN/S0306_thematic-string-resource-files.md` | `spec-tech` | Add S0306 owner inputs gate for tactical transition [branch: DEBUG-v008] |
+| 2026-05-30 17:49:12 | `app_v2/src/main/res/values/strings_link_auth.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:12 | `app_v2/src/main/res/values-ru/strings_link_auth.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:13 | `app_v2/src/main/res/values-uk/strings_link_auth.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:13 | `app_v2/src/main/res/values/strings_s0140.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:13 | `app_v2/src/main/res/values-ru/strings_s0140.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values-uk/strings_s0140.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values/strings_s0155.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values-ru/strings_s0155.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:14 | `app_v2/src/main/res/values-uk/strings_s0155.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:15 | `app_v2/src/main/res/values/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:15 | `app_v2/src/main/res/values-ru/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:16 | `app_v2/src/main/res/values-uk/strings_s0157.xml` | `S0306 Step 01.1` | Move link auth strings to thematic resource file [branch: DEBUG-v008] |
+| 2026-05-30 17:49:16 | `PLAN/S0306_thematic-string-resource-files/PHASE_01__resource-regroup.md` | `S0306 Step 01.1` | Mark link auth resource move done [branch: DEBUG-v008] |

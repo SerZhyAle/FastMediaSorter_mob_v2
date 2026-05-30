@@ -231,6 +231,7 @@ internal class AddResourceVirtualCoordinator(
                     if (settings.supportText) add(MediaType.TEXT)
                     if (settings.supportPdf) add(MediaType.PDF)
                     if (settings.supportEpub) add(MediaType.EPUB)
+                    if (settings.supportOfficeDocuments) add(MediaType.OFFICE_DOCUMENT)
                 }
                 if (docTypes.isEmpty()) return null
                 Triple(

@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.BuildConfig
@@ -13,6 +14,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.databinding.ViewMiniNowPlayingBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.NowPlayingBottomSheetFragment
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
@@ -80,11 +82,13 @@ class NowPlayingManager(
 
         Timber.d("NowPlayingManager: startPlayback files=${files.size} startIndex=$startIndex")
         val items = files.map { file ->
+            val mimeType = if (MidiPlaybackPolicy.isMidiPath(file.path)) MimeTypes.AUDIO_MIDI else null
             MediaItemWithMeta(
                 uri = buildPlaybackUri(file),
                 title = file.name.substringBeforeLast('.'),
                 artist = null,       // ID3 artist extracted natively by ExoPlayer after load
-                albumArtUri = null   // cover art resolved lazily in ImageLoadingManager
+                albumArtUri = null,  // cover art resolved lazily in ImageLoadingManager
+                mimeType = mimeType
             )
         }
         audioServiceController.playAudioPlaylistWithMetadata(items, startIndex, onPlayerReady)

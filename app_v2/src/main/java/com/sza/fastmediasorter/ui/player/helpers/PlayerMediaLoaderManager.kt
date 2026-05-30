@@ -5,6 +5,7 @@ import android.os.Handler
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.BuildConfig
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -105,6 +107,7 @@ class PlayerMediaLoaderManager(
         }
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             Timber.e(error, "PlayerMediaLoaderManager: Audio service playback error - code=${error.errorCode}")
+            showMidiPlaybackErrorIfNeeded(error)
             onAudioServicePlaybackError(error)
         }
     }
@@ -301,7 +304,7 @@ class PlayerMediaLoaderManager(
                             resumedFromStringResId = R.string.playback_resumed_from
                         )
                     } ?: 0L
-                    controller.playAudioWithMetadata(uri, title) { player ->
+                    controller.playAudioWithMetadata(uri, title, mimeType = midiMimeTypeFor(path)) { player ->
                         if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
                         activity.runOnUiThread { bindServicePlayerToView(player) }
                     }
@@ -355,7 +358,7 @@ class PlayerMediaLoaderManager(
                     )
                 } ?: 0L
 
-                controller.playAudioWithMetadata(uri, netTitle) { player ->
+                controller.playAudioWithMetadata(uri, netTitle, mimeType = midiMimeTypeFor(path)) { player ->
                     if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
                     activity.runOnUiThread { bindServicePlayerToView(player) }
                 }
@@ -408,7 +411,7 @@ class PlayerMediaLoaderManager(
             // Fallback: single-file mode (ForwardingPlayer handles next/prev via STATE_ENDED)
             val currentFile = allFiles[currentIndex]
             val uri = buildUriForMediaFile(currentFile)
-            controller.playAudio(uri) { player ->
+            controller.playAudio(uri, mimeType = midiMimeTypeFor(path)) { player ->
                 activity.runOnUiThread { bindServicePlayerToView(player) }
             }
         }
@@ -622,6 +625,17 @@ class PlayerMediaLoaderManager(
     private fun buildLocalUri(path: String): Uri {
         val parsed = Uri.parse(path)
         return if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
+    }
+
+    private fun midiMimeTypeFor(path: String): String? {
+        // Cache files use hash names, so MIDI must be identified from the original source path.
+        return if (MidiPlaybackPolicy.isMidiPath(path)) MimeTypes.AUDIO_MIDI else null
+    }
+
+    private fun showMidiPlaybackErrorIfNeeded(error: androidx.media3.common.PlaybackException) {
+        val path = viewModel.state.value.currentFile?.path ?: return
+        if (!MidiPlaybackPolicy.isMidiPath(path)) return
+        activity.showError(activity.getString(R.string.midi_playback_failed), error)
     }
 
     /** Build playback URI for a local MediaFile. Prefers contentUri (content:// from MediaStore) over file:// to avoid EACCES on Android 10+ scoped storage when AudioPlaybackService opens files via FileDataSource. */

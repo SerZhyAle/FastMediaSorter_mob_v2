@@ -282,19 +282,8 @@
 
                 <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
-                    <!-- Export/Import Settings -->
-                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny">
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" app:icon="@drawable/ic_cloud_upload" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_settings" app:icon="@drawable/ic_cloud_download" app:layout_constraintStart_toEndOf="@+id/btnExportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
-
-                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnImportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
                     <!-- Debug Logs Export -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_field_margin_top">
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
 
@@ -302,14 +291,26 @@
 
                     </LinearLayout>
 
-                    <!-- Google Drive Backup/Restore -->
+                    <!-- Settings backup group: file export/import + Google Drive backup/restore (all operate on settings, kept adjacent). -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical">
+                    <!-- Export/Import Settings to/from file. Equal-weight 0dp buttons let long labels wrap to multiple lines instead of overflowing. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_upload" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/import_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_download" />
+
+                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
+                    </LinearLayout>
+
+                    <!-- Google Drive Backup/Restore. Equal-weight 0dp buttons match the file row above and let long labels wrap. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
 
                         <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 

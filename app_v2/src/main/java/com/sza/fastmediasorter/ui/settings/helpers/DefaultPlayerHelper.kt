@@ -34,6 +34,9 @@ import java.io.File
  *    (works on Samsung/Xiaomi ROMs that have a "Media player" category there).
  */
 object DefaultPlayerHelper {
+    private const val PDF_MIME_TYPE = "application/pdf"
+    private const val OFFICE_DOCX_MIME_TYPE =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
     /**
      * Best-effort check: is this app the current default handler for media open intents?
@@ -49,7 +52,7 @@ object DefaultPlayerHelper {
             "audio/*",
             "video/*",
             "image/*",
-            "application/pdf"
+            PDF_MIME_TYPE
         ) + MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES
         return mimeTypesToProbe.any { mime ->
             val probe = Intent(Intent.ACTION_VIEW).apply {
@@ -92,6 +95,34 @@ object DefaultPlayerHelper {
             .setMessage(R.string.settings_default_player_dialog_message)
             .setPositiveButton(R.string.settings_default_player_dialog_confirm) { _, _ ->
                 openChooserOrFallback(fragment, mimeType)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun showSetDefaultDocumentDialog(fragment: Fragment) {
+        if (!fragment.isAdded || fragment.activity?.isFinishing == true || fragment.activity?.isDestroyed == true) return
+        val context = fragment.requireContext()
+        DefaultPlayerManager.applyPrimaryPlayerState(context, true)
+
+        val options = mutableListOf(
+            R.string.settings_default_document_type_pdf to PDF_MIME_TYPE
+        )
+        defaultOfficeMimeType()?.let { officeMimeType ->
+            options += R.string.settings_default_document_type_office to officeMimeType
+        }
+
+        if (options.size == 1) {
+            showSetDefaultDialogForType(fragment, options.first().second)
+            return
+        }
+
+        val labels = options.map { context.getString(it.first) }.toTypedArray()
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.settings_default_document_type_title)
+            .setMessage(R.string.settings_default_document_type_message)
+            .setItems(labels) { _, which ->
+                showSetDefaultDialogForType(fragment, options[which].second)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -220,7 +251,7 @@ object DefaultPlayerHelper {
             mimeType.startsWith("audio") -> "mp3" to "audio/mpeg"
             mimeType.startsWith("video") -> "mp4" to "video/mp4"
             mimeType.startsWith("image") -> "jpg" to "image/jpeg"
-            mimeType == "application/pdf" -> "pdf" to "application/pdf"
+            mimeType == PDF_MIME_TYPE -> "pdf" to PDF_MIME_TYPE
             mimeType == "application/vnd.ms-powerpoint" && mimeType in MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES ->
                 "ppt" to "application/vnd.ms-powerpoint"
             MediaTypeUtils.officeProbeForMimeType(mimeType) != null ->
@@ -243,6 +274,14 @@ object DefaultPlayerHelper {
         } catch (e: Exception) {
             Timber.w(e, "DefaultPlayerHelper: failed to create probe file for %s", mimeType)
             null
+        }
+    }
+
+    private fun defaultOfficeMimeType(): String? {
+        val officeMimeTypes = MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES
+        return when {
+            OFFICE_DOCX_MIME_TYPE in officeMimeTypes -> OFFICE_DOCX_MIME_TYPE
+            else -> officeMimeTypes.firstOrNull()
         }
     }
 

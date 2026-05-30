@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormatDetector
+import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -197,6 +198,10 @@ internal fun VideoPlayerManager.getMimeTypeFromPath(path: String): String? {
 
     Timber.d("VideoPlayerManager.getMimeTypeFromPath: path=$path, extension=$extension")
 
+    if (MidiPlaybackPolicy.isMidiExtension(extension)) {
+        return MimeTypes.AUDIO_MIDI
+    }
+
     return when (extension) {
         "mp3" -> MimeTypes.AUDIO_MPEG
         "m4a", "aac", "adts" -> MimeTypes.AUDIO_AAC
@@ -210,7 +215,6 @@ internal fun VideoPlayerManager.getMimeTypeFromPath(path: String): String? {
         "ac4" -> MimeTypes.AUDIO_AC4
         "mka" -> MimeTypes.AUDIO_MATROSKA
         "alac", "caf" -> MimeTypes.AUDIO_ALAC
-        "mid", "midi" -> MimeTypes.AUDIO_MIDI
         "mp4", "m4v" -> MimeTypes.VIDEO_MP4
         "webm" -> MimeTypes.VIDEO_WEBM
         "mkv" -> MimeTypes.VIDEO_MATROSKA

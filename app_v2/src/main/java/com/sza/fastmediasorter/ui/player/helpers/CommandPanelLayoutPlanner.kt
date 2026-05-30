@@ -50,6 +50,10 @@ class CommandPanelLayoutPlanner {
             R.string.big_btn_short_favorite),
         SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share,
             R.string.big_btn_short_share),
+        // S0303: Send to Telegram - overflow-only (no command-bar button), all media types,
+        // shown only when a Telegram client is installed.
+        SEND_TO_TELEGRAM(35, R.id.menu_send_to_telegram, false, R.string.share_to_telegram,
+            R.drawable.ic_share),
         INFO(40, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
             R.string.big_btn_short_info),
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen,
@@ -117,6 +121,12 @@ class CommandPanelLayoutPlanner {
         EPUB_TEXT_SETTINGS(380, R.id.menu_text_settings, true, R.string.translation_settings,
             R.drawable.ic_book, R.string.big_btn_short_text_settings),
         OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
+            R.string.big_btn_short_ocr),
+
+        // OFFICE: overflow-only to avoid reusing text/PDF inline buttons with mismatched listeners.
+        TRANSLATE_OFFICE(392, R.id.menu_translate, false, R.string.translate,
+            R.drawable.ic_translate, R.string.big_btn_short_translate),
+        OCR_OFFICE(394, R.id.menu_ocr, false, R.string.ocr_button_description, R.drawable.ic_ocr,
             R.string.big_btn_short_ocr),
 
         // IMAGE / GIF
@@ -193,6 +203,7 @@ class CommandPanelLayoutPlanner {
         showRandom: Boolean = false,
         allowSeparateWindow: Boolean = false,
         allowVrLaunch: Boolean = false,
+        telegramInstalled: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -202,7 +213,7 @@ class CommandPanelLayoutPlanner {
         val isText = file.type == MediaType.TEXT
         val isEpub = file.type == MediaType.EPUB
         // S0301 Phase 05: the embedded Office viewer is a read-only document surface. It gets the
-        // PDF/EPUB-style view + print parity, but never an EDIT command (no Office edit path).
+        // PDF/EPUB-style view + translate/OCR/print parity, but never an EDIT command.
         val isOffice = file.type == MediaType.OFFICE_DOCUMENT
         val isReadOnly = state.resource?.isReadOnly == true
 
@@ -211,6 +222,7 @@ class CommandPanelLayoutPlanner {
             if (canWrite && state.allowDelete) add(PlayerCommand.DELETE)
             if (showFavorite) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
+            if (telegramInstalled) add(PlayerCommand.SEND_TO_TELEGRAM)
             add(PlayerCommand.INFO)
             if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
@@ -242,6 +254,9 @@ class CommandPanelLayoutPlanner {
             if (isEpub && state.enableTranslation) add(PlayerCommand.TRANSLATE_EPUB)
             if (isEpub) add(PlayerCommand.EPUB_TEXT_SETTINGS)
             if (isEpub && state.enableOcr) add(PlayerCommand.OCR_EPUB)
+
+            if (isOffice && state.enableTranslation) add(PlayerCommand.TRANSLATE_OFFICE)
+            if (isOffice && state.enableOcr) add(PlayerCommand.OCR_OFFICE)
 
             if (isImage && state.enableTranslation) add(PlayerCommand.TRANSLATE_IMAGE)
             if (isImage) add(PlayerCommand.IMAGE_TEXT_SETTINGS)

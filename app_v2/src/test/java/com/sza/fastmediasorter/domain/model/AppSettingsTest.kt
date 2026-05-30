@@ -21,6 +21,7 @@ class AppSettingsTest {
             supportText = false,
             supportPdf = false,
             supportEpub = false,
+            supportOfficeDocuments = false,
         )
 
         val result = settings.getGloballyEnabledMediaTypes()
@@ -39,6 +40,7 @@ class AppSettingsTest {
             supportText = false,
             supportPdf = false,
             supportEpub = false,
+            supportOfficeDocuments = false,
         )
 
         val result = settings.getGloballyEnabledMediaTypes()
@@ -47,7 +49,7 @@ class AppSettingsTest {
     }
 
     @Test
-    fun `any document flag adds OFFICE_DOCUMENT alongside the specific document type`() {
+    fun `office document flag adds OFFICE_DOCUMENT alongside specific document types`() {
         val settings = AppSettings(
             allFiles = false,
             supportImages = false,
@@ -57,11 +59,31 @@ class AppSettingsTest {
             supportText = false,
             supportPdf = true,
             supportEpub = false,
+            supportOfficeDocuments = true,
         )
 
         val result = settings.getGloballyEnabledMediaTypes()
 
         assertEquals(setOf(MediaType.PDF, MediaType.OFFICE_DOCUMENT), result)
+    }
+
+    @Test
+    fun `document flags do not imply OFFICE_DOCUMENT when office flag is off`() {
+        val settings = AppSettings(
+            allFiles = false,
+            supportImages = false,
+            supportVideos = false,
+            supportAudio = false,
+            supportGifs = false,
+            supportText = false,
+            supportPdf = true,
+            supportEpub = false,
+            supportOfficeDocuments = false,
+        )
+
+        val result = settings.getGloballyEnabledMediaTypes()
+
+        assertEquals(setOf(MediaType.PDF), result)
     }
 
     @Test
@@ -75,6 +97,7 @@ class AppSettingsTest {
             supportText = false,
             supportPdf = false,
             supportEpub = false,
+            supportOfficeDocuments = false,
         )
 
         val result = settings.getGloballyEnabledMediaTypes()
@@ -93,6 +116,7 @@ class AppSettingsTest {
             supportText = true,
             supportPdf = true,
             supportEpub = true,
+            supportOfficeDocuments = true,
         )
 
         val result = settings.getGloballyEnabledMediaTypes()

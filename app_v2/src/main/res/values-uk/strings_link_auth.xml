@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- S0155 -->
+    <!-- S0140 - link intake and WebView auth -->
+    <string name="s0140_progress_analyzing_page">Аналіз сторінки..</string>
+    <string name="s0140_webview_auth_hint">Увійдіть в акаунт, потім натисніть «Зберегти авторизацію».</string>
+    <string name="s0140_webview_auth_sign_in_first">Спочатку увійдіть в акаунт, потім натисніть «Зберегти авторизацію».</string>
+
+    <!-- S0155 - account naming, picking, and account operations -->
     <string name="s0155_name_account_title">Назвіть акаунт</string>
     <string name="s0155_name_account_hint">наприклад, @myusername</string>
     <string name="s0155_name_account_positive">Зберегти</string>
@@ -14,4 +19,11 @@
     <string name="s0155_delete_account_confirm">Видалити вхід для %1$s?</string>
     <string name="s0155_relogin_account_label">Увійти знову</string>
     <string name="s0155_account_default_name">Акаунт 1</string>
+
+    <!-- S0157 - auth offer dismissal and account metadata -->
+    <string name="s0157_auth_offer_dismiss_always">Не питати</string>
+    <string name="s0157_account_default_name">Акаунт за замовчуванням</string>
+    <string name="s0157_dismissed_label">Не авторизовано (ви відмовились)</string>
+    <string name="s0157_last_used_never">ще не використовувалась</string>
+    <string name="s0157_last_used_fmt">останній раз %1$s</string>
 </resources>

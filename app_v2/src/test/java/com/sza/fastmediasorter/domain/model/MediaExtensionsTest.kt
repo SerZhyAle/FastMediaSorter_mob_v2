@@ -79,6 +79,7 @@ class MediaExtensionsTest {
     @Test
     fun `isAudio returns true for less common formats`() {
         assertTrue("Expected opus", MediaExtensions.isAudio("opus"))
+        assertTrue("Expected mid", MediaExtensions.isAudio("mid"))
         assertTrue("Expected midi", MediaExtensions.isAudio("midi"))
         assertTrue("Expected mka", MediaExtensions.isAudio("mka"))
     }
@@ -94,6 +95,8 @@ class MediaExtensionsTest {
         assertFalse("Expected false for jpg", MediaExtensions.isAudio("jpg"))
         assertFalse("Expected false for mp4", MediaExtensions.isAudio("mp4"))
         assertFalse("Expected false for txt", MediaExtensions.isAudio("txt"))
+        assertFalse("Expected false for kar", MediaExtensions.isAudio("kar"))
+        assertFalse("Expected false for rmi", MediaExtensions.isAudio("rmi"))
     }
 
     // Note: v2 doesn't have isMedia() - removed these tests

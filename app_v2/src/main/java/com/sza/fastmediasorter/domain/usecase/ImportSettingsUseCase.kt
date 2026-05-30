@@ -184,6 +184,10 @@ class ImportSettingsUseCase @Inject constructor(
                                         supportText = data["supportText"]?.toBoolean() ?: false,
                                         supportPdf = data["supportPdf"]?.toBoolean() ?: false,
                                         supportEpub = data["supportEpub"]?.toBoolean() ?: false,
+                                        supportOfficeDocuments = data["supportOfficeDocuments"]?.toBoolean()
+                                            ?: (data["supportText"]?.toBoolean() == true ||
+                                                data["supportPdf"]?.toBoolean() == true ||
+                                                data["supportEpub"]?.toBoolean() == true),
                                         showPdfThumbnails = data["showPdfThumbnails"]?.toBoolean() ?: false,
                                         textSizeMax = data["textSizeMax"]?.toLong() ?: 104857600L,
                                         showTextLineNumbers = data["showTextLineNumbers"]?.toBoolean() ?: false,

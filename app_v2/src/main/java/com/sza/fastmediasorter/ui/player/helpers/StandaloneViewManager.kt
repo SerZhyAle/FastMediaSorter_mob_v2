@@ -12,6 +12,7 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -32,6 +33,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -372,7 +374,8 @@ class StandaloneViewManager(
         // Creating a separate AudioFocusManager in the Activity would cause a double-focus conflict:
         // the Activity's manager would receive AUDIOFOCUS_LOSS as soon as the service's ExoPlayer
         // requests focus, triggering player.stop() and immediately killing playback.
-        controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.')) { player ->
+        val mimeType = if (MidiPlaybackPolicy.isMidiPath(mediaFile.path)) MimeTypes.AUDIO_MIDI else null
+        controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.'), mimeType = mimeType) { player ->
             binding.playerView.player = player
             binding.playerView.showController()
             acquireWakeLock()
@@ -458,9 +461,9 @@ class StandaloneViewManager(
                 override fun onExitFullscreenMode() {}
                 override fun onRequireExternalFallback(mediaFile: MediaFile) {
                     // S0301 Phase 05: engine could not render internally - show the explicit
-                    // external / share / cancel dialog. Standalone has no other content, so Cancel
-                    // closes the screen.
-                    showOfficeFallbackDialog(mediaFile, finishOnCancel = true)
+                    // external / share / cancel dialog. Cancel keeps the current screen open per
+                    // the approved fallback contract.
+                    showOfficeFallbackDialog(mediaFile)
                 }
             },
         )
@@ -472,9 +475,9 @@ class StandaloneViewManager(
             OfficeDocumentViewerOutcome.DISPLAY_INTERNALLY ->
                 displayOfficeDocumentInternally(mediaFile)
             // S0301 Phase 05: provider asked for the explicit external / share / cancel dialog.
-            // In standalone there is nothing else to show, so Cancel finishes the screen.
+            // Cancel keeps the standalone screen open, matching the shared Office UX contract.
             OfficeDocumentViewerOutcome.SHOW_FALLBACK_DIALOG ->
-                showOfficeFallbackDialog(mediaFile, finishOnCancel = true)
+                showOfficeFallbackDialog(mediaFile)
             OfficeDocumentViewerOutcome.DELEGATE_EXTERNAL ->
                 displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = true)
         }
@@ -482,10 +485,10 @@ class StandaloneViewManager(
 
     /**
      * Explicit Office fallback dialog for standalone mode (S0301 Phase 05). Offers opening in
-     * another app or sharing the file. Cancel finishes the screen because standalone has no other
-     * content to fall back to. Strings stay factual (COMMUNICATION_POLICY §6).
+     * another app or sharing the file. Cancel keeps the screen open per the approved fallback
+     * contract. Strings stay factual (COMMUNICATION_POLICY §6).
      */
-    private fun showOfficeFallbackDialog(mediaFile: MediaFile, finishOnCancel: Boolean) {
+    private fun showOfficeFallbackDialog(mediaFile: MediaFile) {
         androidx.appcompat.app.AlertDialog.Builder(activity)
             .setTitle(R.string.office_viewer_fallback_title)
             .setMessage(R.string.office_viewer_fallback_message)
@@ -495,10 +498,7 @@ class StandaloneViewManager(
             .setNeutralButton(R.string.office_viewer_fallback_share) { _, _ ->
                 shareOfficeDocument(mediaFile)
             }
-            .setNegativeButton(R.string.office_viewer_fallback_cancel) { _, _ ->
-                if (finishOnCancel) activity.finish()
-            }
-            .setOnCancelListener { if (finishOnCancel) activity.finish() }
+            .setNegativeButton(R.string.office_viewer_fallback_cancel, null)
             .show()
     }
 
@@ -530,17 +530,17 @@ class StandaloneViewManager(
 
     /**
      * Render an Office document inside the in-app viewer (S0301 Phase 03, noLegal standalone).
-     * Falls back to external open when the engine cannot render the concrete file.
+     * Falls back to the explicit Office dialog when the host cannot accept the prepared file.
      */
     private fun displayOfficeDocumentInternally(mediaFile: MediaFile) {
         lifecycleScope.launch {
             try {
                 val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
                 val started = officeDocumentViewerHost.open(mediaFile, preparedFile)
-                if (!started) displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = false)
+                if (!started) showOfficeFallbackDialog(mediaFile)
             } catch (e: Exception) {
                 Timber.e(e, "StandaloneViewManager: failed to render Office document internally")
-                displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = false)
+                showOfficeFallbackDialog(mediaFile)
             }
         }
     }

@@ -87,7 +87,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             // discovers every case where the session-context (and audioOnly hint) was
             // not actually applied. The hint propagation chain is critical for YTMusic
             // audio-share - if this fires with audioOnly=true the hint is being dropped.
-            Timber.i(
+            Timber.d(
                 "S0260: session context skipped host=%s reason=%s audioOnly=%b",
                 host,
                 if (resolvedHost == null) "no_resolved_host" else "no_cookies",
@@ -139,7 +139,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             accountId ?: "auto",
             cookies.size,
         )
-        Timber.i(
+        Timber.d(
             "S0260: session context state host=%s resolvedHost=%s cookies=%d audioOnly=%b",
             host,
             resolvedHost,
@@ -163,7 +163,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // propagated into LinkDownloadSessionContext so downstream extractors can pick
         // an audio-only format.
         val canonical = urlCanonicalizer.canonicalize(url)
-        Timber.i(
+        Timber.d(
             "S0260: canonical orig=%s canonical=%s audioOnly=%b",
             url.take(120),
             canonical.url.take(120),
@@ -657,13 +657,13 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     ): Result? {
         return when (val outcome = contract.validate(originalUrl, canonicalAudioOnly, resultMime, resultFileName)) {
             YtMusicAudioOnlyContract.ValidationOutcome.Accept -> {
-                Timber.i("S0260: contract outcome=Accept reason=%s", "none")
+                Timber.d("S0260: contract outcome=Accept reason=%s", "none")
                 null
             }
             is YtMusicAudioOnlyContract.ValidationOutcome.Reject -> {
-                Timber.i("S0260: contract outcome=Reject reason=%s", outcome.reasonCode)
+                Timber.d("S0260: contract outcome=Reject reason=%s", outcome.reasonCode)
                 if (outcome.fallbackAllowed) {
-                    Timber.w("S0260: contract fallback permitted reason=%s", outcome.reasonCode)
+                    Timber.d("S0260: contract fallback permitted reason=%s", outcome.reasonCode)
                     null
                 } else {
                     Result.Failed.Other(IllegalStateException(YtMusicAudioOnlyContract.USER_FACING_ERROR_KEY))

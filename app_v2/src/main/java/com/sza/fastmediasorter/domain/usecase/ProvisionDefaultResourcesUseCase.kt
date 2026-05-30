@@ -146,9 +146,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
                 if (settings.supportText) add(MediaType.TEXT)
                 if (settings.supportPdf) add(MediaType.PDF)
                 if (settings.supportEpub) add(MediaType.EPUB)
-                if (settings.supportText || settings.supportPdf || settings.supportEpub) {
-                    add(MediaType.OFFICE_DOCUMENT)
-                }
+                if (settings.supportOfficeDocuments) add(MediaType.OFFICE_DOCUMENT)
             }
             if (docTypes.isNotEmpty()) {
                 if (LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS !in existingPaths) {

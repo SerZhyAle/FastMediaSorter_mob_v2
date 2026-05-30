@@ -36,16 +36,16 @@ class AnimatedImageController {
         }
 
         if (currentAnimatedDrawable != null && currentAnimatedDrawable !== animatable) {
-            currentAnimatedDrawable?.stop()
+            stopCurrentAnimation()
         }
 
         currentAnimatedDrawable = animatable
         currentTargetView = targetView
 
         if (!pausedByLifecycle && !pausedByUser) {
-            currentAnimatedDrawable?.start()
+            startCurrentAnimation()
         } else {
-            currentAnimatedDrawable?.stop()
+            stopCurrentAnimation()
         }
 
         Timber.d("AnimatedImageController: Animated drawable attached (pausedByLifecycle=$pausedByLifecycle, pausedByUser=$pausedByUser)")
@@ -57,13 +57,13 @@ class AnimatedImageController {
 
     fun onPause() {
         pausedByLifecycle = true
-        currentAnimatedDrawable?.stop()
+        stopCurrentAnimation()
     }
 
     fun onResume() {
         pausedByLifecycle = false
         if (!pausedByUser) {
-            currentAnimatedDrawable?.start()
+            startCurrentAnimation()
         }
     }
 
@@ -80,9 +80,12 @@ class AnimatedImageController {
         pausedByUser = !pausedByUser
 
         if (pausedByUser || pausedByLifecycle) {
-            drawable.stop()
+            safeStop(drawable)
         } else {
-            drawable.start()
+            if (!safeStart(drawable)) {
+                clearCurrentAnimation()
+                return null
+            }
         }
 
         Timber.d("AnimatedImageController: togglePlayback pausedByUser=$pausedByUser pausedByLifecycle=$pausedByLifecycle")
@@ -96,8 +99,37 @@ class AnimatedImageController {
     }
 
     private fun clearCurrentAnimation() {
-        currentAnimatedDrawable?.stop()
+        stopCurrentAnimation()
         currentAnimatedDrawable = null
         currentTargetView = null
+    }
+
+    private fun startCurrentAnimation() {
+        val drawable = currentAnimatedDrawable ?: return
+        if (!safeStart(drawable) && currentAnimatedDrawable === drawable) {
+            currentAnimatedDrawable = null
+            currentTargetView = null
+        }
+    }
+
+    private fun stopCurrentAnimation() {
+        currentAnimatedDrawable?.let(::safeStop)
+    }
+
+    private fun safeStart(drawable: Animatable): Boolean = try {
+        drawable.start()
+        true
+    } catch (e: RuntimeException) {
+        // Glide can surface a partially decoded or already-cleared GifDrawable during Activity resume.
+        Timber.w(e, "AnimatedImageController: Ignoring invalid animated drawable start")
+        false
+    }
+
+    private fun safeStop(drawable: Animatable) {
+        try {
+            drawable.stop()
+        } catch (e: RuntimeException) {
+            Timber.w(e, "AnimatedImageController: Ignoring invalid animated drawable stop")
+        }
     }
 }

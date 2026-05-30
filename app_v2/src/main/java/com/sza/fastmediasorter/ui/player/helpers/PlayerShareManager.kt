@@ -5,6 +5,8 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -168,8 +170,8 @@ class PlayerShareManager(
      * Render an Office document inside the in-app viewer (S0301 Phase 03, noLegal).
      *
      * Materializes the file with the shared S0299 path, then hands it to the embedded
-     * read-only viewer. If the engine cannot render it (unsupported / legacy binary), the
-     * call falls back to the external-open path so the user is never left without a viewer.
+     * read-only viewer. If the host cannot accept the prepared file, the explicit Office
+     * fallback dialog preserves the approved external / share / cancel choice.
      * Unlike [openOfficeDocument], the internal path does not finish the activity.
      */
     private fun displayOfficeDocumentInternally(mediaFile: MediaFile) {
@@ -177,11 +179,59 @@ class PlayerShareManager(
             try {
                 val preparedFile = activity.networkFileManager.prepareFileForRead(mediaFile)
                 val started = activity.officeDocumentViewerManager.open(mediaFile, preparedFile)
-                if (!started) openOfficeDocument(mediaFile)
+                if (!started) showOfficeFallbackDialog(mediaFile)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to render Office document internally")
-                openOfficeDocument(mediaFile)
+                showOfficeFallbackDialog(mediaFile)
             }
+        }
+    }
+
+    /**
+     * S0303: Send the current media file to an installed Telegram client.
+     * For network files, downloads/caches the file first (same path as Google Lens sharing).
+     * The command surfacing this action is shown only when a Telegram client is installed, but the
+     * invoker still falls back to the system chooser if the client became unavailable meanwhile.
+     */
+    fun sendCurrentFileToTelegram() {
+        Timber.d("S0303: player send-to-Telegram action invoked")
+        val currentFile = activity.viewModel.state.value.currentFile ?: return
+        if (!currentFile.path.contains("://")) {
+            sendFileToTelegram(File(currentFile.path))
+        } else {
+            activity.lifecycleScope.launch {
+                try {
+                    val file = activity.networkFileManager.prepareFileForRead(currentFile)
+                    sendFileToTelegram(file)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to prepare file for Telegram")
+                    Toast.makeText(activity, R.string.toast_failed_to_prepare_file, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun sendFileToTelegram(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                activity,
+                "${activity.packageName}.fileprovider",
+                file
+            )
+            val telegramPackage = TelegramShareTargets.firstInstalledPackage(activity.packageManager)
+            val launched = SystemShareInvoker.invokeFiles(
+                context = activity,
+                uris = listOf(uri),
+                mime = "*/*",
+                preferredPackage = telegramPackage,
+                chooserTitle = activity.getString(R.string.share_to_telegram),
+            )
+            if (!launched) {
+                Toast.makeText(activity, R.string.share_to_telegram_failed, Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to send file to Telegram")
+            Toast.makeText(activity, R.string.share_to_telegram_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

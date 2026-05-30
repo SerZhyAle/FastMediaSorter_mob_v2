@@ -70,6 +70,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
         private val KEY_SUPPORT_PDF = booleanPreferencesKey("support_pdf")
         private val KEY_SUPPORT_EPUB = booleanPreferencesKey("support_epub")
+        private val KEY_SUPPORT_OFFICE_DOCUMENTS = booleanPreferencesKey("support_office_documents")
         private val KEY_SHOW_PDF_THUMBNAILS = booleanPreferencesKey("show_pdf_thumbnails")
         private val KEY_TEXT_SIZE_MAX = longPreferencesKey("text_size_max")
         private val KEY_SHOW_TEXT_LINE_NUMBERS = booleanPreferencesKey("show_text_line_numbers")
@@ -297,6 +298,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
+                    supportOfficeDocuments = preferences[KEY_SUPPORT_OFFICE_DOCUMENTS]
+                        ?: ((preferences[KEY_SUPPORT_TEXT] ?: true) ||
+                            (preferences[KEY_SUPPORT_PDF] ?: true) ||
+                            (preferences[KEY_SUPPORT_EPUB] ?: true)),
                     showPdfThumbnails = preferences[KEY_SHOW_PDF_THUMBNAILS] ?: false,
                     textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 104857600L,
                     showTextLineNumbers = preferences[KEY_SHOW_TEXT_LINE_NUMBERS] ?: false,
@@ -486,6 +491,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf
             preferences[KEY_SUPPORT_EPUB] = settings.supportEpub
+            preferences[KEY_SUPPORT_OFFICE_DOCUMENTS] = settings.supportOfficeDocuments
             preferences[KEY_SHOW_PDF_THUMBNAILS] = settings.showPdfThumbnails
             preferences[KEY_TEXT_SIZE_MAX] = settings.textSizeMax
             preferences[KEY_SHOW_TEXT_LINE_NUMBERS] = settings.showTextLineNumbers

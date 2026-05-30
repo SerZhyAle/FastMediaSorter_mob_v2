@@ -3,10 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Effect
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
@@ -43,19 +41,7 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Bo
         .setUsage(C.USAGE_MEDIA)
         .build()
 
-    // P1-1: Enable SW decoder fallback so HW codec failures (e.g., VP8 on API 28) are
-    // handled transparently without surface-mode errors or startup freezes.
-    val renderersFactory = DefaultRenderersFactory(context)
-        .setEnableDecoderFallback(true)
-        .apply {
-            // Activate FFmpeg/AV1/VPX extension renderers only when the custom AAR is present
-            // (ENABLE_DTS_DECODER = true in flavors: standard, legacy, vr, vr-unlicensed).
-            // Without the AAR on the classpath this mode has no effect, so it is safe to set
-            // eagerly - ExoPlayer falls back to MediaCodec if no extension is registered.
-            if (BuildConfig.ENABLE_DTS_DECODER) {
-                setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
-            }
-        }
+    val renderersFactory = createPlaybackRenderersFactory(context)
 
     val player = ExoPlayer.Builder(context, renderersFactory)
         .setLoadControl(loadControl)

@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jsoup.Jsoup
 import timber.log.Timber
 import java.io.File
 
@@ -51,6 +52,7 @@ class OfficeDocumentViewerManager(
 
     private var webView: WebView? = null
     private var fullscreen = false
+    private var renderedPlainText: String? = null
 
     override val isActive: Boolean
         get() = webView != null && container.isVisible
@@ -104,6 +106,7 @@ class OfficeDocumentViewerManager(
 
     private fun renderHtml(html: String) {
         val view = webView ?: createWebView().also { webView = it }
+        renderedPlainText = Jsoup.parse(html).text().trim().takeIf { it.isNotBlank() }
         container.isVisible = true
         view.isVisible = true
         view.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
@@ -148,6 +151,7 @@ class OfficeDocumentViewerManager(
             view.destroy()
         }
         webView = null
+        renderedPlainText = null
         container.isVisible = false
         fullscreen = false
     }
@@ -158,4 +162,6 @@ class OfficeDocumentViewerManager(
         val view = webView ?: return false
         return printAdapter.print(view, jobName = "FastMediaSorter Office")
     }
+
+    override fun extractPlainText(): String? = renderedPlainText
 }

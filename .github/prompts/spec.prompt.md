@@ -10,23 +10,24 @@ Write a strategic specification: product-level *what* and *why*, in Russian, wit
 ## Usage
 
 ```text
-/spec <roadmap-id> <short-name>
-/spec <roadmap-id> <short-name> --priority N
+/spec
+/spec <free-form specification request>
+/spec <roadmap-id|ad-hoc> <free-form specification request>
+/spec <roadmap-id|ad-hoc> <free-form specification request> --priority N
 ```
 
-If `<roadmap-id>` or `<short-name>` is missing, or if the first argument is neither `ad-hoc` nor a roadmap id like `X.11`, stop and return:
+Any text after `/spec` is accepted as a free-form specification assignment when it can be interpreted as a feature, bug, roadmap, research, UX, architecture, or implementation request. The request does not need to include a roadmap id, slug, file path, local anchor, done signal, or technical details.
 
-```text
-Usage error: /spec <roadmap-id|ad-hoc> <short-name> [--priority N]
-Example: /spec X.11 background-thumbnail-preload
-```
+An empty `/spec` invocation is valid. Treat it as an ad-hoc empty draft request: allocate a ticket, create a strategic draft skeleton, keep unknown values as owner-input gaps, and stop at the approval gate.
 
-Do not allocate a ticket id until both arguments are valid.
+Do not reject the invocation solely because a roadmap id, short name, or details are missing. Reject only structurally invalid switches, such as `--priority` outside `0..100`.
 
 - `/spec X.11 background-thumbnail-preload`
 - `/spec III.12 standalone-player-playlist`
 - `/spec ad-hoc player-keybinding-remapping`
 - `/spec ad-hoc bugfix-camera-capture-crash --priority 95`
+- `/spec make embedded office documents open inside noLegal player`
+- `/spec`
 
 Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by `scripts/spec_catalog/insert.ps1` - see "Spec Catalog hooks" below). No `_spec_` segment in the filename. Tactical folder created separately by `/spec-tech` at `PLAN/Sxxxx_<short-name>/`.
 
@@ -46,13 +47,31 @@ Before `Draft` → `Approved`, the spec must contain `## 0. Approval Gate (owner
 
 Each line in `§0` must be marked `Provided by user`, `Delegated by user`, or `MISSING - requires owner input`. `Inferred by agent` never qualifies a draft for promotion to `Approved`.
 
-The current `/spec` invocation counts as a request to author the draft, not as approval to proceed. Promotion to `Approved` requires either an explicit follow-up approval from the user or an explicit human-triggered `/spec-tech <Sxxxx>` on a draft whose `§0` gate is complete.
+The current `/spec` invocation counts as a request to author the draft, not as approval to proceed. A free-form or empty request still stays `Draft` unless the owner explicitly asks to approve/proceed. Promotion to `Approved` requires either an explicit follow-up approval from the user or an explicit human-triggered `/spec-tech <Sxxxx>` on a draft whose `§0` gate is complete.
 
 ---
 
 ## Process
 
-**1 - Parse arguments.** Extract ID (`X.11` or `ad-hoc`) and short name. Auto-derive priority from slug if `--priority` not supplied:
+**1 - Parse request.** Extract optional switches first. `--priority N` overrides the default priority and must be `0..100`.
+
+Then classify the non-switch text:
+
+- If the first token matches `^S\d{4}$`, treat it as an existing ticket id and resolve it through the catalog hooks.
+- If the first token is `ad-hoc`, use ad-hoc source mode and treat the remaining text as the request body.
+- If the first token is a roadmap id like `X.11` or `III.12`, use roadmap source mode and treat the remaining text as the request body.
+- Otherwise use ad-hoc source mode and treat the entire text after `/spec` as the request body.
+- If the request body is empty, set draft mode to `empty`.
+
+Derive `<short-name>` from the request body:
+
+- If the request body starts with a machine slug token (`[a-z0-9][a-z0-9-]+`) and additional details follow, use that token as the slug.
+- Otherwise derive a concise lowercase ASCII slug from the request body, 3..6 meaningful words joined by hyphens.
+- For empty draft mode, use `draft-<YYYYMMDD>`.
+- If the target `PLAN/Sxxxx_<short-name>.md` path would collide after ticket allocation, append `-2`, `-3`, and so on.
+- Do not infer product decisions from the slug. It is only a filename and catalog name.
+
+Auto-derive priority from slug if `--priority` is not supplied:
 
 | Slug pattern | Default priority |
 |--------------|:----------------:|
@@ -64,14 +83,18 @@ The current `/spec` invocation counts as a request to author the draft, not as a
 
 **2 - Read context.**
 
-- `PLAN/IMPROVEMENT_ROADMAP.md` (if not ad-hoc)
+- `PLAN/IMPROVEMENT_ROADMAP.md` (if roadmap source mode)
 - `dev/PROJECT_OPERATIONS_INDEX.md`
 - `docs/ARCHITECTURE.md`
 - `app_v2/build.gradle.kts`
 - `docs/FEATURES.md`
 - Relevant `dev/CATALOG/` files for affected area.
 
+For empty draft mode, read only the mandatory process/source-of-truth docs needed to create a valid draft shell. Do not perform broad affected-area research because no affected area is known yet.
+
 **2.5 - Evaluate complexity (PRIMITIVE check).**
+
+Skip the PRIMITIVE path when the request body is empty, vague, or lacks enough owner-provided details to identify changed files and done criteria. In that case create a normal strategic draft and keep the missing values in `§0` / `§6`.
 
 After reading context, score the task against the primitive checklist:
 
@@ -112,6 +135,7 @@ After reading context, score the task against the primitive checklist:
 | TIER 4 | `4 - Strategic` |
 
 For ad-hoc: evaluate the scope by affected modules and user impact, assign the closest tier label, and note "ad-hoc" alongside.
+For empty draft mode: assign `3 - Moderate` provisionally, note "ad-hoc empty draft", and leave the real tier as an owner-input refinement item in `§6`.
 
 **4 - Allocate ticket id.** Before any file write:
 
@@ -134,6 +158,14 @@ The `name` field in the journal is the **bare slug** - no `spec_` prefix. Curren
 
 When filling the template, populate `§0 Approval Gate` only from the user request. Unknown items must stay `MISSING - requires owner input`.
 
+For empty draft mode, write a valid strategic shell without inventing product behavior:
+
+- `Roadmap entry`: `Ad-hoc - empty draft request <YYYY-MM-DD>`.
+- `§0`: mark every unknown owner-input field as `MISSING - requires owner input`; `Requested mode` may be `Provided by user - spec`.
+- `§1`, `§2`, `§5`, and `§11`: use concise Russian placeholders meaning "requires owner input" instead of feature claims.
+- `§6`: add open research items for purpose, scope, local anchor, done signal, autonomy rule, and final tier.
+- `§8`: `Без изменений в docs/FEATURES до уточнения объёма.`
+
 ```powershell
 & pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
@@ -147,7 +179,7 @@ Normal `/spec` behavior ends here with `Status: Draft`. If any `§0` item is `MI
 Only when **both** conditions are true may the draft be promoted in the same run:
 
 1. Every mandatory `§0` item is complete and marked `Provided by user` or `Delegated by user`.
-2. The current user turn explicitly asks to approve/proceed past the draft. A plain `/spec ...` request does not count.
+2. The current user turn explicitly asks to approve/proceed past the draft. A plain `/spec <request>` call does not count.
 
 In that rare case, advance `Status: Draft` → `Status: Approved` in the spec file and in the journal:
 
@@ -174,7 +206,7 @@ Invoke `/spec-tech <Sxxxx>` only after the spec is already `Approved`. The norma
 
 **Chat output (default):** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Draft. Waiting for owner approval gate.`
 
-**Chat output (only when explicitly approved in the same turn):** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Approved. → Running /spec-tech…`
+**Chat output (only when explicitly approved in the same turn):** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Approved. → Running /spec-tech..`
 
 ---
 
@@ -339,7 +371,7 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as a short-name slug and allocate a new id (Process step 4).
+- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise parse optional `ad-hoc` / roadmap source mode and free-form request text as described in Process step 1, derive a `<short-name>`, and allocate a new id (Process step 4).
 - **Mutations performed by this skill:**
   - On new spec: `insert.ps1 -Status Draft -Tier <N> -Priority <P>` (Process step 4). `insert.ps1` allocates the next id internally; use `next-id.ps1` when only the id token is needed (outputs `S####` only, no journal write).
   - After file is on disk: `update.ps1 -Id <Sxxxx> -File "PLAN/<Sxxxx>_<short-name>.md"` (Process step 5).

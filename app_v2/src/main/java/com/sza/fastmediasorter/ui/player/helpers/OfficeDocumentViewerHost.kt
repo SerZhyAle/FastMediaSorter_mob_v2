@@ -26,8 +26,8 @@ interface OfficeDocumentViewerHost {
     /**
      * Render the already-materialized local [file] for [mediaFile] in the in-app surface.
      *
-     * Read-only: the viewer never edits the document. Returns true when rendering started
-     * successfully; false signals the caller to fall back to the external-open path.
+    * Read-only: the viewer never edits the document. Returns true when rendering started
+    * successfully; false signals the caller to show the explicit Office fallback dialog.
      */
     fun open(mediaFile: MediaFile, file: File): Boolean
 
@@ -41,6 +41,12 @@ interface OfficeDocumentViewerHost {
      * available (e.g. nothing is rendered, or a market flavor with the no-op host).
      */
     fun print(): Boolean
+
+    /**
+     * Return the rendered document text for OCR/translation parity (S0301 Phase 05).
+     * Market no-op hosts and empty renders return null so callers can hide unavailable actions.
+     */
+    fun extractPlainText(): String?
 
     /** UI callbacks routed back to the hosting player (errors, fullscreen transitions). */
     interface Callback {
@@ -70,4 +76,5 @@ object NoOpOfficeDocumentViewerHost : OfficeDocumentViewerHost {
     override fun open(mediaFile: MediaFile, file: File): Boolean = false
     override fun release() {}
     override fun print(): Boolean = false
+    override fun extractPlainText(): String? = null
 }

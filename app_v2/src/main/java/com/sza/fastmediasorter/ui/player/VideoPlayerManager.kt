@@ -43,7 +43,6 @@ import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
 import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
-import com.sza.fastmediasorter.ui.player.helpers.playWithMediaPlayer
 import com.sza.fastmediasorter.ui.player.helpers.playSmbVideo
 import com.sza.fastmediasorter.ui.player.helpers.playSftpVideo
 import com.sza.fastmediasorter.ui.player.helpers.startPlaybackHealthCheck
@@ -565,21 +564,6 @@ class VideoPlayerManager(
         managerScope.launch {
             try {
                 val savedPosition = playbackPositionRepository.getPosition(path)
-
-                // MIDI requires MediaPlayer - ExoPlayer has no native MIDI decoder.
-                // Restrict to LOCAL files: MediaPlayer cannot handle network URIs.
-                val isLocalFile = resourceType == ResourceType.LOCAL
-                val shouldUseMediaPlayer = isLocalFile && (
-                    path.endsWith(".mid", ignoreCase = true) ||
-                        path.endsWith(".midi", ignoreCase = true)
-                    )
-
-                if (shouldUseMediaPlayer) {
-                    Timber.i("VideoPlayerManager: Using MediaPlayer for ${path.substringAfterLast('/')} (MIDI)")
-                    withContext(Dispatchers.Main) { playWithMediaPlayer(path) }
-                    onComplete()
-                    return@launch
-                }
 
                 when (resourceType) {
                     ResourceType.CLOUD -> playCloudVideo(path, playWhenReady)

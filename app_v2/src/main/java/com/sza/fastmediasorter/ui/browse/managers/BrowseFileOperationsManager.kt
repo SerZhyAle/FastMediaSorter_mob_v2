@@ -569,7 +569,13 @@ class BrowseFileOperationsManager(
         selectedFiles: List<MediaFile>,
         resource: MediaResource
     ) = shareOperationsHelper.shareSelectedFiles(selectedFiles, resource)
-    
+
+    // S0303: send selected file(s) to an installed Telegram client.
+    fun sendSelectedFilesToTelegram(
+        selectedFiles: List<MediaFile>,
+        resource: MediaResource
+    ) = shareOperationsHelper.sendSelectedFilesToTelegram(selectedFiles, resource)
+
     fun cleanup() {
         // Cancel any pending operations if needed
     }

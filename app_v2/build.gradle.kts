@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260530020
-        versionName = "2.60.5300.206"
+        versionCode = 260530173
+        versionName = "2.60.5301.734"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -1028,6 +1028,12 @@ dependencies {
     "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    // S0305: MIDI playback is available only in flavors that support audio.
+    "standardImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "noLegalImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "liteImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "legacyImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
+    "vrImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats

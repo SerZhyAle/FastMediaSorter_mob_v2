@@ -898,6 +898,7 @@ class TextViewerManager(
 
     fun displayOcrText(text: String) {
         currentFile = null
+        originalTextWithoutNumbers = text
         ocrDisplayManager.displayOcrText(text)
     }
 

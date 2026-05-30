@@ -53,6 +53,7 @@ data class AppSettings(
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files
     val supportEpub: Boolean = true, // Optional support for EPUB files
+    val supportOfficeDocuments: Boolean = true, // Optional support for Office document files
     val showPdfThumbnails: Boolean = false, // "Large PDF Thumbnails" - increases size limit for network PDF thumbnails
     val textSizeMax: Long = 104857600L, // 100MB max for internal text viewer
     val showTextLineNumbers: Boolean = false, // Show line numbers for text files
@@ -232,7 +233,7 @@ data class AppSettings(
         if (supportText) types.add(MediaType.TEXT)
         if (supportPdf) types.add(MediaType.PDF)
         if (supportEpub) types.add(MediaType.EPUB)
-        if (supportText || supportPdf || supportEpub) types.add(MediaType.OFFICE_DOCUMENT)
+        if (supportOfficeDocuments) types.add(MediaType.OFFICE_DOCUMENT)
         return types
     }
 }

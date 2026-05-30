@@ -595,6 +595,10 @@ class BrowseManagerInitializer(
                 val resource = viewModel.state.value.resource
                 if (resource != null) fileOperationsManager.shareSelectedFiles(listOf(f), resource)
             },
+            onSendToTelegram = { f ->
+                val resource = viewModel.state.value.resource
+                if (resource != null) fileOperationsManager.sendSelectedFilesToTelegram(listOf(f), resource)
+            },
             onInfo = { f -> showFileInfoDialog(f) },
             onGoogleLens = { f -> launchGoogleLensForFile(f) },
             onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },

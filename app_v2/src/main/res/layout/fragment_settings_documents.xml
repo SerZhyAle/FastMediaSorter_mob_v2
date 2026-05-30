@@ -80,6 +80,15 @@
             app:str_title="@string/support_epub_description"
             app:str_subtitle="@string/setting_support_epub_desc" />
 
+        <!-- Office Documents Support Row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSupportOfficeDocuments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_title="@string/support_office_documents_description"
+            app:str_subtitle="@string/setting_support_office_documents_desc" />
+
     <Button
         android:id="@+id/btnSetDefaultDocsViewer"
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"

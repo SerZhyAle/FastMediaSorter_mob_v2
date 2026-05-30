@@ -38,9 +38,9 @@ This document is the canonical inventory of all user-facing features implemented
 ## 1. Resource / Source Management
 
 - **Add multiple resource types**: Connect Local folders, SMB (Windows share/NAS), FTP, SFTP, Google Drive, Dropbox, and OneDrive in a single interface.
-- **Resource profiles (quick-setup presets)**: Configure new folders using presets (Audio Library, Video Library, Photo Storage, Documents, All Files) that automatically apply optimal sorting, filtering, and display settings.
+- **Resource profiles (quick-setup presets)**: Configure new folders using presets (Audio Library, Video Library, Photo Storage, Documents, File Manager Mode) that automatically apply optimal sorting, filtering, and display settings.
 - **Camera Photos Virtual Folder**: A dedicated virtual folder to browse photos and videos taken by the device's camera.
-- **Recent and Downloads**: These default virtual folders are pre-configured with "Show all files" enabled to display documents and non-media files automatically.
+- **Recent and Downloads**: These default virtual folders are pre-configured with File Manager Mode enabled to display documents and non-media files automatically.
 - **Virtual resource language sync**: Virtual resources (All Images, All Videos, etc.) are automatically renamed when the app language changes.
 - **Per-resource settings**: Customize supported media types, default sort mode, display mode, thumbnail loading, PIN access, and subfolder scanning per folder.
 - **Resource ordering**: Rearrange connected resources on the main screen using drag-and-drop.
@@ -63,8 +63,8 @@ This document is the canonical inventory of all user-facing features implemented
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into the file list, or uncheck to flatten the view (recursive scan).
 - **Subfolder operations**: Select, copy, move, rename, delete, and create subfolders directly in Browse for local, network, and cloud resources.
 - **Create Folder button** in Browse toolbar - visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
-- **Show hidden/all files**: Toggle visibility of system-hidden files, or bypass media filters to view all binary files and archives.
-- **Office document handoff**: Open DOC, DOCX, RTF, and ODT files from FMS with an installed document viewer, including files prepared from local, network, or cloud sources.
+- **Show hidden files / File Manager Mode**: Toggle visibility of system-hidden files, or activate File Manager Mode to bypass media filters and manage all binary files and archives (ZIP, APK, EXE, etc.).
+- **Office document handoff**: Open DOC, DOCX, RTF, and ODT files from FMS with an installed document viewer. Office documents can be enabled or disabled in Document settings and selected in resource media-type filters, including local, network, or cloud sources.
 - **Intelligent thumbnail loading**: Previews for photos and video frames; can be disabled per resource for large network directories.
 - **Fast placeholder for unsupported network video**: Containers that cannot be decoded over a network stream show an icon immediately instead of waiting for a timeout.
 - **Network thumbnail previews recover automatically**: Transient extraction failures during streaming clear themselves once playback stops.
@@ -120,6 +120,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Integrated OCR**: Extract text directly from any image using ML Kit and Tesseract.
 - **Augmented Reality translation**: Translated text blocks are drawn directly over their original positions on the image.
 - **Send to Google Lens**: Quickly bridge any photo to the external Google Lens app.
+- **Send to Telegram**: Send selected files to an installed Telegram client in one tap, from the file browser and the player. The action appears only when a Telegram client is installed.
 - **Crop & Compressed copy**: Save cropped fragments or 70% compressed JPEG copies natively via the overflow menu.
 - **Draw annotations**: Brush, rectangle, oval, eraser, and text tools with a 16-color custom palette and adjustable brush size, text size, and opacity. Save back to the original file or to a new file, undo the last or all changes, and send the merged drawing to Google Keep.
 - **Create new drawing from Browse**: Start a blank `.jpg` canvas directly from the Browse toolbar in local, SMB, SFTP, FTP, or cloud folders. The editor opens immediately with Save, Save & Close, Save & Send, Share, and Cancel actions; remote drawings stay staged locally until you commit them.
@@ -171,6 +172,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Lyrics search and display**: Synchronized lyrics in a full-screen overlay.
 - **YouTube Music search**: Open YouTube Music with a pre-filled search query for the current track.
 - **Cast to Chromecast**: Send audio, images, and local video to Cast-compatible devices directly from the player.
+- **MID/MIDI as regular music**: Play MID/MIDI files from local, network, and cloud sources after the usual cache preparation.
 - **Visual backgrounds**: Cycle random photos from a selected resource, or use audio visualizers (Canvas bars, waves, spectrum analyzers).
 - **Now Playing UI**: Persistent mini bar with a bottom sheet for queue management.
 

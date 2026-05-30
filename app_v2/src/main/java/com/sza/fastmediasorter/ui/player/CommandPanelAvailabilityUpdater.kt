@@ -7,6 +7,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -188,6 +189,7 @@ internal class CommandPanelAvailabilityUpdater(
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
+            telegramInstalled = isTelegramInstalled(),
         )
         val editLabel = if (isVideo) R.string.control else R.string.edit
         safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
@@ -220,6 +222,7 @@ internal class CommandPanelAvailabilityUpdater(
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
+            telegramInstalled = isTelegramInstalled(),
         )
         val availablePx = resolveAvailableCenterWidthPx()
         val density = binding.root.resources.displayMetrics.density
@@ -302,7 +305,7 @@ internal class CommandPanelAvailabilityUpdater(
             safeViews.btnOcrImageCmd.isVisible = false
             safeViews.btnGoogleLensImageCmd.isVisible = false
         }
-        safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage
+        safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage || isOffice
         val isStaticBitmap = isImage &&
             !currentFile.name.lowercase().endsWith(".gif") &&
             !currentFile.name.lowercase().endsWith(".apng")
@@ -318,8 +321,13 @@ internal class CommandPanelAvailabilityUpdater(
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
+            telegramInstalled = isTelegramInstalled(),
         ).filter { !it.barCapable }
         setLatestOverflowCommands(landscapeOverflowCmds)
         safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
     }
+
+    // S0303: the "Send to Telegram" overflow command is offered only when a Telegram client is present.
+    private fun isTelegramInstalled(): Boolean =
+        TelegramShareTargets.firstInstalledPackage(binding.root.context.packageManager) != null
 }

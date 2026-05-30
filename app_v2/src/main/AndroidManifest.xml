@@ -122,6 +122,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <!-- TV launcher: makes the app appear in Google TV / Android TV app grid -->
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <!-- Categorize app as system APP_FILES manager -->
+                <category android:name="android.intent.category.APP_FILES" />
             </intent-filter>
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>

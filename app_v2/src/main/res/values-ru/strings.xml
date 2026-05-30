@@ -271,7 +271,7 @@
     <string name="virtual_comment_all_video">Локальные видеофайлы (mp4, mkv, mov, wmv…)</string>
     <string name="virtual_comment_camera_photos">Фото и видео с камеры устройства</string>
     <string name="virtual_comment_all_images">Локальные изображения (jpg, png, gif, webp…)</string>
-    <string name="virtual_comment_all_docs">Локальные документы (pdf, epub, txt…)</string>
+    <string name="virtual_comment_all_docs">Локальные документы (PDF, EPUB, текст, Office)</string>
     <string name="special_virtual_folders">Специальные папки</string>
     <string name="virtual_resource_already_added">Уже добавлен</string>
     <string name="virtual_resource_added">Ресурс «%1$s» добавлен</string>
@@ -378,6 +378,7 @@
     <string name="media_type_text">Текст</string>
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
+    <string name="media_type_office_documents">Офисные документы</string>
     <string name="filter_by_size">Фильтр по размеру файла (МБ)</string>
     <string name="min_date">Мин. дата</string>
     <string name="max_date">Макс. дата</string>
@@ -480,7 +481,7 @@
     <string name="label_statistics">Статистика</string>
     <string name="label_expand_collapse">Развернуть/свернуть</string>
     <string name="label_scan_subdirectories">Сканировать подпапки</string>
-    <string name="label_all_files">Все файлы (игнорировать фильтр типов медиа)</string>
+    <string name="label_all_files">Режим файлового менеджера (показ и управление всеми файлами)</string>
     <string name="label_disable_thumbnails">Отключить миниатюры</string>
     <string name="label_show_hidden_files">Показывать скрытые файлы</string>
     <string name="label_show_subfolders_as_items">Показывать подпапки как элементы</string>
@@ -557,6 +558,7 @@
     <string name="support_pdf_description">Поддержка PDF-документов</string>
     <string name="support_epub">Поддержка EPUB</string>
     <string name="support_epub_description">Поддержка EPUB электронных книг</string>
+    <string name="support_office_documents_description">Поддержка Office-документов</string>
     <string name="epub_table_of_contents">Оглавление</string>
     <string name="epub_no_toc">Оглавление недоступно</string>
     <string name="epub_chapter_progress">Глава %1$d из %2$d</string>
@@ -948,11 +950,11 @@
     <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Сетевые учетные данные по умолчанию</string>
     <string name="tooltip_default_credentials_message">Имя пользователя и пароль по умолчанию при подключении к сетевым ресурсам (SMB/SFTP/FTP). Могут быть переопределены для каждого ресурса при настройке.</string>
-    <string name="all_files">Все файлы</string>
-    <string name="tooltip_all_files_title">Режим всех файлов</string>
-    <string name="tooltip_all_files_message">Показывать ВСЕ типы файлов в ресурсах (не только медиа). При включении автоматически активируется поддержка изображений, видео, аудио, GIF, текста, PDF и EPUB. Используйте для управления файлами помимо просмотра медиа.</string>
+    <string name="all_files">Файловый менеджер</string>
+    <string name="tooltip_all_files_title">Режим файлового менеджера</string>
+    <string name="tooltip_all_files_message">Показывать и управлять ВСЕМИ типами файлов в ресурсах (не только медиа). При включении автоматически поддерживаются изображения, видео, аудио, текст, документы, архивы и бинарные файлы.</string>
     <string name="all_files_global_info">Режим всех файлов включен в Настройках. Все типы медиа поддерживаются автоматически.</string>
-    <string name="all_files_resource_info">Режим всех файлов включен для этого ресурса. Все типы медиа поддерживаются автоматически.</string>
+    <string name="all_files_resource_info">Режим файлового менеджера включён для этого ресурса. Все типы файлов поддерживаются.</string>
     <string name="show_hidden_files">Показывать скрытые файлы</string>
     <string name="tooltip_show_hidden_files_title">Показывать скрытые файлы</string>
     <string name="help_show_hidden_files">Справка: показывать скрытые файлы</string>
@@ -1766,7 +1768,7 @@
     <string name="settings_category_images">Изображения, GIF и слайд-шоу</string>
     <string name="settings_category_video">Видео, настройки проигрывателя</string>
     <string name="settings_category_audio">Аудио, обложки и фоновые визуализации</string>
-    <string name="settings_category_documents">Просмотр текста, PDF и EPUB</string>
+    <string name="settings_category_documents">Просмотр текста, PDF, EPUB и Office</string>
     <string name="settings_category_other">Перевод, OCR и Google Lens</string>
 
     <!-- Photos during audio playback -->
@@ -1972,6 +1974,7 @@
     <string name="item_resource_to_add_btnTypeGif_text">G</string>
     <string name="item_resource_to_add_btnTypeImage_text">I</string>
     <string name="item_resource_to_add_btnTypePdf_text">P</string>
+    <string name="item_resource_to_add_btnTypeOffice_text">D</string>
     <string name="item_resource_to_add_btnTypeText_text">T</string>
     <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
@@ -2042,7 +2045,7 @@
     <string name="label_profile_video_library">Быстрая настройка: Видеотека</string>
     <string name="label_profile_photo_storage">Быстрая настройка: Фотохранилище</string>
     <string name="label_profile_documents">Быстрая настройка: Документы</string>
-    <string name="label_profile_all_files">Быстрая настройка: Все файлы</string>
+    <string name="label_profile_all_files">Быстрая настройка: Файловый менеджер</string>
     <string name="title_select_profile">Профиль быстрой настройки</string>
 
 
@@ -2066,6 +2069,7 @@
     <string name="default_zero">0</string>
     <string name="epub_chapter_indicator_default">1/1</string>
     <string name="epub_e">EPUB (E)</string>
+    <string name="office_doc_d">DOC (D)</string>
     <string name="error_reason_unknown">Произошла непредвиденная ошибка. Попробуйте ещё раз.</string>
     <string name="find_counter">%1$d / %2$d</string>
     <string name="forward_30_seconds">Forward 30 seconds</string>
@@ -2340,6 +2344,10 @@
     <string name="settings_default_player_dialog_title">Назначить по умолчанию</string>
     <string name="settings_default_player_dialog_message">Вы будете перенаправлены в системные настройки Android, где сможете выбрать FastMediaSorter приложением по умолчанию для этого типа файлов.</string>
     <string name="settings_default_player_dialog_confirm">Открыть настройки</string>
+    <string name="settings_default_document_type_title">Тип документа</string>
+    <string name="settings_default_document_type_message">Android хранит приложения по умолчанию отдельно для разных типов документов. Выберите тип для настройки.</string>
+    <string name="settings_default_document_type_pdf">PDF</string>
+    <string name="settings_default_document_type_office">Office-документы</string>
 
     <!-- Page navigation -->
     <string name="scroll_page_up">Страница вверх</string>
@@ -2347,8 +2355,8 @@
 
     <!-- Backup & Restore -->
     <string name="settings_tab_backup">Резервное копирование</string>
-    <string name="backup_to_google_drive">Копировать в Google Drive</string>
-    <string name="restore_from_google_drive">Восстановить из Google Drive</string>
+    <string name="backup_to_google_drive">Копировать настройки в Google Drive</string>
+    <string name="restore_from_google_drive">Восстановить настройки из Google Drive</string>
     <string name="backup_success">Сохранено %1$d ресурсов, %2$d избранных и все настройки в %3$s</string>
     <string name="backup_failed">Не получилось создать резервную копию настроек и ресурсов. Попробуйте ещё раз.</string>
     <string name="backup_in_progress">Создание резервной копии настроек и ресурсов…</string>
@@ -2424,6 +2432,7 @@
     <string name="setting_support_text_desc">Открывает .txt, .md, .log, .json и .xml</string>
     <string name="setting_support_pdf_desc">Открывает PDF во встроенном просмотрщике</string>
     <string name="setting_support_epub_desc">Читает EPUB-книги с закладками и оглавлением</string>
+    <string name="setting_support_office_documents_desc">Открывает DOC, DOCX, RTF и ODT во внешнем приложении</string>
     <string name="setting_show_video_thumbnails_desc">Создаёт превью-кадры для видеофайлов в обозревателе</string>
     <string name="setting_load_full_size_images_desc">Из сети загружает оригинальное разрешение для зума (медленнее и больше памяти)</string>
     <string name="setting_crop_images_to_fullscreen_desc">Заполняет весь экран, но обрезая края изображения</string>
@@ -2555,7 +2564,7 @@
     <string name="scheduled_ops_filter_audio">Аудио</string>
     <string name="scheduled_ops_filter_images">Изображения (включая GIF)</string>
     <string name="scheduled_ops_filter_video">Видео</string>
-    <string name="scheduled_ops_filter_documents">Документы (PDF, EPUB, текст)</string>
+    <string name="scheduled_ops_filter_documents">Документы (PDF, EPUB, текст, Office)</string>
     <string name="scheduled_ops_filter_select_at_least_one">Выберите хотя бы один тип файла</string>
     <string name="scheduled_ops_time_all">Все</string>
     <string name="scheduled_ops_time_since_last">Новые с прошлой операции</string>
@@ -3523,4 +3532,7 @@
     <string name="file_operation_progress_preparing">Подготовка..</string>
     <string name="s0266_apk_download_preparing">Подготавливается установка..</string>
     <string name="s0281_google_oauth_only_note">Не получилось скачать с YouTube. Вход в Google здесь не сохраняется..</string>
+    <string name="share_to_telegram">Отправить в Telegram</string>
+    <string name="share_to_telegram_failed">Не удалось отправить в Telegram. Попробуйте обычное «Поделиться».</string>
+    <string name="midi_playback_failed">Не удалось воспроизвести этот MIDI-файл. Попробуйте другую копию или перейдите к следующему треку.</string>
 </resources>

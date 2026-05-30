@@ -75,6 +75,7 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <supportText>${settings.supportText}</supportText>")
                 appendLine("    <supportPdf>${settings.supportPdf}</supportPdf>")
                 appendLine("    <supportEpub>${settings.supportEpub}</supportEpub>")
+                appendLine("    <supportOfficeDocuments>${settings.supportOfficeDocuments}</supportOfficeDocuments>")
                 appendLine("    <showPdfThumbnails>${settings.showPdfThumbnails}</showPdfThumbnails>")
                 appendLine("    <textSizeMax>${settings.textSizeMax}</textSizeMax>")
                 appendLine("    <showTextLineNumbers>${settings.showTextLineNumbers}</showTextLineNumbers>")

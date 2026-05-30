@@ -21,6 +21,13 @@
         android:title="@string/share"
         app:showAsAction="never" />
 
+    <!-- S0303: Send to Telegram - shown only when a Telegram client is installed (overflow-only). -->
+    <item
+        android:id="@+id/menu_send_to_telegram"
+        android:icon="@drawable/ic_share"
+        android:title="@string/share_to_telegram"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menu_info"
         android:icon="@drawable/ic_info"
