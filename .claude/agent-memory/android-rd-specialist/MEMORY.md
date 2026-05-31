@@ -1,5 +1,10 @@
 # Memory Index
 
+- [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
+
+- [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
+- [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying
+
 - [spec_catalog exit-code contract](project_spec_catalog_exit_code_contract.md) - mutators need trap{exit 1}+exit 0 because _lib.ps1 sets Stop preference, making Write-Error terminating
 - [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare `pwsh` works in bash via /c/Users/serzh/bin/pwsh; no full path needed (since 2026-05-21)
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative

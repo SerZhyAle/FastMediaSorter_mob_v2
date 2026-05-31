@@ -14006,3 +14006,17 @@ Format: | datetime | file | target | description |
 | 2026-05-31 01:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `CI Android Lint gate` | Fix StringFormatInvalid: drop extra arg from getString(error_delete_failed) - string has no format placeholder [branch: DEBUG-v010] |
 | 2026-05-31 01:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt` | `CI Android Lint gate` | Fix StringFormatInvalid: toastDeleteFailed() no longer passes fileName to getString(delete_failed) - string has no placeholder [branch: DEBUG-v010] |
 | 2026-05-31 01:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubWebViewLifecycle.kt` | `CI Android Lint gate` | Fix JavascriptInterface: type selectionBridge as EpubViewerManager.EpubSelectionBridge so lint sees the @JavascriptInterface annotation [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0311_agent-workflow-tooling-overhaul.md` | `spec-update` | Refactored S0311 into a tooling umbrella (Claude Opus 4.8): split into sub-tickets S0312-S0315, cut governance layer, corrected false Maestro/hasTests repo-facts [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0312_build-failure-digest.md` | `spec-update` | Created sub-ticket carved from S0311: build failure digest [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0313_flavor-isolation-diff-guard.md` | `spec-update` | Created sub-ticket carved from S0311: flavor isolation diff-guard [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0314_catalog-dependency-test-enrichment.md` | `spec-update` | Created sub-ticket carved from S0311: catalog dependency and test enrichment [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0315_rule-prompt-drift-audit.md` | `spec-update` | Created sub-ticket carved from S0311: rule and prompt drift audit [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0311_agent-workflow-tooling-overhaul.md` | `spec-tech` | Premise correction: catalog hasTests field exists (regression from gitignored-zone rg); S0314 hardens not creates [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0312_build-failure-digest.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0313_flavor-isolation-diff-guard.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0314_catalog-dependency-test-enrichment.md` | `spec-tech` | Status -> Tactical; premise correction (hasTests exists, ticket hardens it) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0315_rule-prompt-drift-audit.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0312_build-failure-digest/INDEX.md` | `spec-tech` | Tactical plan: 3 phases (contract-parser, one-shot-digest, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0313_flavor-isolation-diff-guard/INDEX.md` | `spec-tech` | Tactical plan: 4 phases (foundations, diff-classify-gate, self-test-fixtures, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0314_catalog-dependency-test-enrichment/INDEX.md` | `spec-tech` | Tactical plan: 3 phases (schema-enrich, query-flags, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0315_rule-prompt-drift-audit/INDEX.md` | `spec-tech` | Tactical plan: 3 phases (sources-contract, mismatch-detectors, docs-catalog-cleanup) [branch: DEBUG-v010] |
