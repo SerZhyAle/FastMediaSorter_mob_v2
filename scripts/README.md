@@ -50,6 +50,9 @@ a cdb
 
 # Clean Gradle caches
 a cls
+
+# Structured build-failure digest (JSON + verdict) - see builders/build-failure-digest.SCHEMA.md
+a bfd
 ```
 
 ### Run Tests

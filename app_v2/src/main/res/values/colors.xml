@@ -18,6 +18,7 @@
     <color name="filter_warning_text">#FF000000</color>    <!-- Black text for contrast -->
     <color name="folder_item_stroke">#00000000</color>    <!-- Transparent by default -->
     <color name="unavailable_resource_bg">#FFFFE0E6</color>    <!-- Pale pink for unavailable resources -->
+    <color name="calculator_clear_button_bg">#FFF8BBD0</color>    <!-- Pink 100 for calculator destructive clear actions -->
 
     <!-- Welcome screen backgrounds (light theme, muted Material palette) -->
     <color name="welcome_page_1_background">#E3F2FD</color>

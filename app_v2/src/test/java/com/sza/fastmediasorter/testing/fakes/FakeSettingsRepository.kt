@@ -64,6 +64,10 @@ class FakeSettingsRepository(
         settingsFlow.value = settingsFlow.value.copy(isResourceGridMode = isGridMode)
     }
 
+    override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
+        updateSettings(settingsFlow.value.copy(embeddedGameEnabled = enabled))
+    }
+
     override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean =
         touchZoneHints[type] ?: false
 

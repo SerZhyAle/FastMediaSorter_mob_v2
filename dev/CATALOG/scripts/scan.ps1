@@ -93,6 +93,29 @@ function Get-Injected([string]$content) {
     return ,$injected
 }
 
+function Get-ConstructorDeps([string]$content) {
+    # All primary-constructor parameter types for the class scope, ordered and
+    # de-duplicated. Superset of Get-Injected: captures every constructor param
+    # type, not only @Inject-annotated ones, so non-Hilt and @Inject-free classes
+    # still expose their collaborators. Imports are intentionally not parsed
+    # (BLK-02 default). Reuses the Get-Injected parameter-type regex style.
+    $deps = @()
+    # Prefer an explicit `constructor(..)` (covers `@Inject constructor(..)` and
+    # plain `constructor(..)`); otherwise fall back to the primary-constructor
+    # parenthesis in the class header `class Name<..>(..)`.
+    $m = [regex]::Match($content, '(?ms)\bconstructor\s*\(([^)]*)\)')
+    if (-not $m.Success) {
+        $m = [regex]::Match($content, '(?ms)^(?:(?:abstract|open|sealed|data|inner|internal|private|public|final)\s+)*class\s+[A-Z][A-Za-z0-9_]*(?:\s*<[^>]+>)?\s*\(([^)]*)\)')
+    }
+    if (-not $m.Success) { return ,$deps }
+    $params = $m.Groups[1].Value
+    foreach ($pm in [regex]::Matches($params, '(?:@\w+\s+)*(?:private\s+|internal\s+|val\s+|var\s+)*\w+\s*:\s*([A-Z][A-Za-z0-9_]*)')) {
+        $t = $pm.Groups[1].Value
+        if ($t -and ($deps -notcontains $t)) { $deps += $t }
+    }
+    return ,$deps
+}
+
 function Get-SideEffects([string]$content) {
     $se = @()
     if ($content -match 'androidx\.room|\bRoomDatabase\b|@Dao\b|@Entity\b') { $se += 'db' }
@@ -124,11 +147,18 @@ function Get-LastTouched([string]$fullPath, [string]$root) {
 }
 
 function Test-HasTests([string]$fullPath) {
-    $base = [System.IO.Path]::GetFileNameWithoutExtension($fullPath)
+    # Resolve the test source root from the file's OWN source root rather than a
+    # hard-coded production root, so flavor-root classes (vr, noLegal, lite,
+    # photos, legacy, ..) are eligible for a test match. A file under src\<root>\ is
+    # considered tested when EITHER convention exists in src\test\ or
+    # src\androidTest\: the <ClassName>Test.kt sibling, or a same-relative-path
+    # file mirrored into the test tree.
+    if ($fullPath -notmatch 'src\\[^\\]+\\') { return $false }
     foreach ($scope in @('test', 'androidTest')) {
-        $candidate = $fullPath -replace 'src\\main\\', "src\$scope\"
-        $candidateTest = ($candidate -replace '\.kt$', 'Test.kt')
-        if (Test-Path $candidateTest) { return $true }
+        $candidate = $fullPath -replace 'src\\[^\\]+\\', "src\$scope\"
+        $candidateConvention = ($candidate -replace '\.kt$', 'Test.kt')
+        if (Test-Path $candidateConvention) { return $true }
+        if (Test-Path $candidate)           { return $true }
     }
     return $false
 }
@@ -185,6 +215,7 @@ foreach ($file in $ktFiles) {
 
         $funcs = Get-Functions $scope
         $injected = Get-Injected $scope
+        $constructorDeps = Get-ConstructorDeps $scope
         $sideEffects = Get-SideEffects $scope
 
         $record = [ordered]@{
@@ -195,6 +226,7 @@ foreach ($file in $ktFiles) {
             lastTouched = $lastTouched
             noFlavors = @()
             injected = $injected
+            constructorDeps = $constructorDeps
             hasTests = $hasTests
             coroutines = Test-Coroutines $scope
             usesTimber = Test-Timber $scope

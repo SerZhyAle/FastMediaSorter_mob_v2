@@ -27,7 +27,8 @@ answer "where does X happen?" questions without scanning the whole codebase.
 | `lastTouched` | auto | Date of last git commit touching the file. |
 | `noFlavors` | **manual** | Flavors where the class is irrelevant. Empty = used everywhere. Valid: `standard`, `lite`, `photos`, `legacy`, `vr`, `noLegal`. Source-set placement (`src/<flavor>/java/`) governs physical isolation; `noFlavors` is the declarative hint for consumers and audits. |
 | `injected` | auto | Types from `@Inject constructor(..)`. |
-| `hasTests` | auto | Matching `*Test.kt` exists in `src/test` or `src/androidTest`. |
+| `constructorDeps` | auto | All primary-constructor parameter types (superset of `injected`: captures every constructor param, not only `@Inject`-annotated, so non-Hilt and `@Inject`-free classes still expose their collaborators). Imports are not parsed. |
+| `hasTests` | auto | A test sibling exists for the class. The test source root is resolved from the file's own source root (any `src/<root>/`, including flavor roots like `vr` / `noLegal` / `lite` / `photos` / `legacy`), not from `src/main` alone. Matches either the `<ClassName>Test.kt` convention or a same-relative-path file under `src/test` / `src/androidTest`. |
 | `coroutines` | auto | Uses `suspend` / `Flow` / `launch` / `CoroutineScope`. |
 | `usesTimber` | auto | Calls `Timber.*`. |
 | `sideEffects` | auto | Heuristic: `db` / `network` / `disk` / `prefs`. |
@@ -38,6 +39,13 @@ answer "where does X happen?" questions without scanning the whole codebase.
 
 Manual fields survive re-runs of `scan.ps1` - merge key is `path + class` for
 records, and `name` for function descriptions.
+
+The schema is **append-only** (S0314, ADR-1): the `constructorDeps` and hardened
+`hasTests` enrichment was added without renaming, reordering, or removing any
+existing field, so prior JSONL consumers keep working. `constructorDeps` is an
+auto field positioned after `injected`; it is recomputed on every scan and is
+never copied from the prior record (only `role`, `status`, `noFlavors`, and
+function `description` are merged back as manual fields).
 
 ## Scripts - CRUD reference
 
@@ -90,8 +98,12 @@ pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -MinLoc 800
 # Records still missing a role description
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Missing role
 
-# What depends on ResourceDao
+# What injects ResourceDao (@Inject constructor only)
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
+
+# What takes ResourceDao as a constructor parameter (superset of -Injected;
+# also catches non-Hilt / @Inject-free collaborators)
+pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
 
 # Recently touched data-layer code
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -TouchedSince 2026-04-01
@@ -102,8 +114,13 @@ pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer ui -Coroutines -J
 
 All filters are AND'd. Supported: `-Layer`, `-Status`, `-SideEffect`,
 `-MinLoc`, `-MaxLoc`, `-ClassMatches` (glob), `-PathMatches` (glob),
-`-Injected`, `-Missing role|description`, `-Coroutines`, `-UserFeedback`,
-`-Tests` / `-NoTests`, `-TouchedSince`, `-TouchedBefore`, `-Json`.
+`-Injected`, `-DependsOn`, `-Missing role|description`, `-Coroutines`,
+`-UserFeedback`, `-Tests` / `-NoTests`, `-TouchedSince`, `-TouchedBefore`,
+`-Json`.
+
+`-Injected <Type>` matches only `@Inject constructor` parameters; `-DependsOn
+<Type>` matches the broader `constructorDeps` (any constructor parameter type),
+so it also finds non-Hilt and `@Inject`-free collaborators.
 
 ### remove.ps1 - drop a record manually
 

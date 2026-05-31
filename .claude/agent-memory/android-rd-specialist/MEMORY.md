@@ -1,6 +1,7 @@
 # Memory Index
 
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
+- [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
 
 - [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
 - [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying

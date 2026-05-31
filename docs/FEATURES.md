@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-05-30*
+*Last updated: 2026-05-31*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
@@ -100,6 +100,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **In-place editing** `[Standard / VR]`: Modify `.txt` and `.md` files with auto-save and undo history (Undo/Redo) for local and remote files.
 - **Quick notes** `[Standard / VR]`: Create new text notes directly from the Browse toolbar with auto-saving and name conflict resolution.
 - **Action panel** `[Standard / VR]`: Dedicated control buttons (Save, Close, Share, Send to Keep) with unsaved change highlights.
+- **Embedded calculator round-trip** `[Standard / VR]`: Opens the embedded calculator from the editor action menu, sends selected text as input, and inserts the returned result at the caret.
 - **Font auto-fit** `[Standard / VR]`: Scales text size automatically to fit the screen, with swipe-based manual size lock.
 
 ## 13. Offline OCR & Translation
@@ -117,6 +118,8 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 15. Smart Widgets & Integration
 - **Resource shortcuts** `[Standard Only]`: Single-tap home screen widgets to open a specific folder or NAS drive immediately.
+- **Embedded calculator** `[Standard / Lite / Photos / Legacy]`: Enable Calculator in General settings -> Other functionality, then open it from the main menu or the Calculator widget; the calculator can share the current result and save or clear calculation history.
+- **Embedded mini-game** `[Standard / Lite / Photos / Legacy / VR]`: Optional turn-based puzzle, disabled by default, launched from the Settings-enabled main menu entry or a dedicated home-screen widget, with an in-game rules and color legend screen.
 - **Continue Reading beacon** `[Standard Only]`: Interactive widget to quickly resume your exact last document or video session.
 - **Launcher shortcuts** `[Standard Only]`: Long-press app icon to access recent folder history.
 - **Intent hooks** `[Standard / VR]`: Configures the app as a default media viewer and Share target.

@@ -1,1 +1,1 @@
-FastMediaSorter
+FastMedia: сортування файлів

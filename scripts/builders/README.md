@@ -81,7 +81,7 @@ Build + install to connected device:
 - **AAB Bundle**: `app_v2/build/outputs/bundle/standardRelease/` or `vrRelease/`
 - **Wear APKs**: `wear/build/outputs/apk/debug/` or `release/`
 - **Auto-copy**: `DOWNLOADS/` (release builds only)
-- **Failure diagnostics**: `.\a.ps1 bf` prints the relevant block from the latest saved `temp/*build*.log`
+- **Failure diagnostics**: `.\a.ps1 bf` prints the relevant block from the latest saved `temp/*build*.log`. For a structured, agent-readable companion use `build-failure-digest.ps1` (alias `.\a.ps1 bfd`) - it reuses the same `bf` extraction and emits a compact JSON digest (command, exit code, first actionable failure with module/flavor/file/line/message, raw-log path, verdict) plus a concise human verdict. See [`build-failure-digest.SCHEMA.md`](build-failure-digest.SCHEMA.md) for the JSON contract.
 
 ## Note
 

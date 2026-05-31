@@ -1,0 +1,13 @@
+// Fixture (S0313): NEW VIOLATION sample - one forbidden flavor-identity gate.
+// Fed to the guard via the -ScanFile test seam, every match is new-or-touched,
+// so this fixture must drive blocking=true. .kt.txt so it never compiles.
+package com.sza.fastmediasorter.sample
+
+class NewViolationViewModel {
+    fun openPlayer() {
+        if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            // Forbidden: a flavor-identity branch added to the main source set.
+            navigateToVrPlayer()
+        }
+    }
+}

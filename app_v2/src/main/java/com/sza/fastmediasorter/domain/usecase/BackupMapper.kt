@@ -115,6 +115,7 @@ object BackupMapper {
             language = settings.language,
             preventSleep = settings.preventSleep,
             showSmallControls = settings.showSmallControls,
+            embeddedGameEnabled = settings.embeddedGameEnabled,
             networkParallelism = settings.networkParallelism,
             cacheSizeMb = settings.cacheSizeMb,
             isCacheSizeUserModified = settings.isCacheSizeUserModified,
@@ -261,6 +262,7 @@ object BackupMapper {
             language = backup.language.gsonSafe(current.language),
             preventSleep = backup.preventSleep,
             showSmallControls = backup.showSmallControls,
+            embeddedGameEnabled = backup.embeddedGameEnabled,
             // Keep credentials from current: defaultUser, defaultPassword
             networkParallelism = backup.networkParallelism,
             cacheSizeMb = backup.cacheSizeMb,

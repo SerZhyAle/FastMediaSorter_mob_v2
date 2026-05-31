@@ -95,6 +95,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         const val EXTRA_SOURCE_RESOURCE_ID = "extra_source_resource_id"
         /** Intent extra: Int - open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
+        /** Intent extra: String - scroll/focus a concrete Settings row after opening its tab. */
+        const val EXTRA_HIGHLIGHT_SETTING = "extra_highlight_setting"
+        const val HIGHLIGHT_EMBEDDED_GAME = "embedded_game"
+        const val TAB_GENERAL = 0
+        const val TAB_PLAYBACK = 2
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 

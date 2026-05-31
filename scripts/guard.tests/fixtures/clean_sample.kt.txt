@@ -1,0 +1,17 @@
+// Fixture (S0313): CLEAN main-source sample - zero forbidden flavor gates.
+// Capability differences are delegated to an injected flavor-aware interface,
+// per dev/FLAVOR_DEVELOPMENT_RULES.md. .kt.txt so it never compiles or matches
+// a real src/main/java scan.
+package com.sza.fastmediasorter.sample
+
+import javax.inject.Inject
+
+class CleanSampleViewModel @Inject constructor(
+    private val vrNavigation: VrNavigationDelegate
+) {
+    fun openPlayer() {
+        // No BuildConfig flavor branch here: the delegate decides at runtime,
+        // bound by a flavor-specific Hilt module in the flavor source set.
+        vrNavigation.navigateToPlayer()
+    }
+}

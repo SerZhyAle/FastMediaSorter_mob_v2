@@ -13,6 +13,8 @@ data class AppSettings(
     val language: String = "en",
     val preventSleep: Boolean = true,
     val showSmallControls: Boolean = false,
+    val enableCalculator: Boolean = false,
+    val embeddedGameEnabled: Boolean = false,
     val defaultUser: String = "",
     val defaultPassword: String = "",
     val networkParallelism: Int = 4, // Parallel threads for network operations (1, 2, 4, 8, 12, 24)
@@ -72,6 +74,8 @@ data class AppSettings(
     val translationLensStyle: Boolean = true, // Google Lens style - draw translated text blocks over original positions (for images and PDFs)
     val enableGoogleLens: Boolean = false, // Enable sending to Google Lens app
     val enableOcr: Boolean = true, // Enable OCR text recognition (extract text from images/PDF for copying)
+    val cameraOcrTranslationEnabled: Boolean = false, // Opt-in quick Photo-OCR-Translation flow
+    val cameraOcrOnly: Boolean = false, // Under camera-ocr-translation: only perform OCR, no translation
     val ocrDefaultFontSize: String = "AUTO", // Default font size for OCR results (AUTO, MINIMUM, SMALL, MEDIUM, LARGE, HUGE)
     val ocrDefaultFontFamily: String = "DEFAULT", // Default font family for OCR results (DEFAULT, SERIF, MONOSPACE)
     val ocrEngineType: String = "TESSERACT",

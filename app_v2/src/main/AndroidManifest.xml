@@ -132,9 +132,17 @@
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
+        <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity android:name=".ui.game.GameHelpActivity" android:exported="false" android:label="@string/game_help_title" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" android:parentActivityName=".ui.game.GameActivity" />
+
         <activity android:name=".ui.player.PlayerActivity" android:exported="false" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
+
+        <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
@@ -292,6 +300,30 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_random_music_info" />
+        </receiver>
+
+        <!-- Calculator Widget -->
+        <receiver android:name=".widget.CalculatorWidgetProvider" android:exported="true" android:label="@string/widget_calculator_label" android:icon="@drawable/ic_widget_calculator">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_calculator_info" />
+        </receiver>
+
+        <!-- Camera OCR Translate Widget -->
+        <receiver android:name=".widget.CameraOcrTranslateWidgetProvider" android:exported="true" android:label="@string/widget_camera_ocr_translate_label" android:icon="@drawable/ic_camera_ocr_translate">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_ocr_translate_info" />
+        </receiver>
+
+        <!-- Embedded Game Widget -->
+        <receiver android:name=".widget.GameLaunchWidgetProvider" android:exported="true" android:label="@string/game_widget_label" android:icon="@drawable/ic_game_kryvavitsa">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_game_launch_info" />
         </receiver>
 
         <!-- Scheduled file operations: foreground service type for WorkManager (Android 14+) -->

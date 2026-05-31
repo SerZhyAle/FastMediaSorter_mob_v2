@@ -1,0 +1,12 @@
+// Fixture (S0313): LEGACY-ONLY sample - one forbidden capability gate.
+// Under an explicit -ScanFile run it counts as touched (blocking=true: the
+// caller asserted intent). Under the -LegacyAudit full-scan seam it is legacy
+// and must NOT block (blocking=false, legacyCount>0). .kt.txt so it never
+// compiles.
+package com.sza.fastmediasorter.sample
+
+class LegacyOnlyHelper {
+    fun isVrEnabled(): Boolean {
+        return BuildConfig.SUPPORT_VR_PLAYER
+    }
+}

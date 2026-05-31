@@ -31,6 +31,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
+        private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
+        private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
         private val KEY_DEFAULT_USER = stringPreferencesKey("default_user")
         private val KEY_DEFAULT_PASSWORD = stringPreferencesKey("default_password")
         private val KEY_NETWORK_PARALLELISM = intPreferencesKey("network_parallelism")
@@ -92,6 +94,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_OCR_DEFAULT_FONT_FAMILY = stringPreferencesKey("ocr_default_font_family")
         private val KEY_OCR_ENGINE_TYPE = stringPreferencesKey("ocr_engine_type")
         private val KEY_PADDLE_OCR_MODEL = stringPreferencesKey("paddle_ocr_model")
+        private val KEY_CAMERA_OCR_TRANSLATION_ENABLED = booleanPreferencesKey("camera_ocr_translation_enabled")
+        private val KEY_CAMERA_OCR_ONLY = booleanPreferencesKey("camera_ocr_only")
 
         private val KEY_DEFAULT_SORT_MODE = stringPreferencesKey("default_sort_mode")
         private val KEY_SLIDESHOW_INTERVAL = intPreferencesKey("slideshow_interval")
@@ -260,6 +264,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     language = language,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
+                    enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
+                    embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
                     defaultPassword = decryptPassword(preferences[KEY_DEFAULT_PASSWORD]),
                     networkParallelism = preferences[KEY_NETWORK_PARALLELISM] ?: 4,
@@ -318,6 +324,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     translationLensStyle = preferences[KEY_TRANSLATION_LENS_STYLE] ?: true,
                     enableGoogleLens = preferences[KEY_ENABLE_GOOGLE_LENS] ?: true,
                     enableOcr = preferences[KEY_ENABLE_OCR] ?: true,
+                    cameraOcrTranslationEnabled = preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] ?: false,
+                    cameraOcrOnly = preferences[KEY_CAMERA_OCR_ONLY] ?: false,
                     ocrDefaultFontSize = preferences[KEY_OCR_DEFAULT_FONT_SIZE] ?: "AUTO",
                     ocrDefaultFontFamily = preferences[KEY_OCR_DEFAULT_FONT_FAMILY] ?: "DEFAULT",
                     ocrEngineType = preferences[KEY_OCR_ENGINE_TYPE] ?: "TESSERACT",
@@ -456,6 +464,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LANGUAGE] = settings.language
             preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
+            preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
+            preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
             preferences[KEY_DEFAULT_USER] = settings.defaultUser
             preferences[KEY_DEFAULT_PASSWORD] = encryptPassword(settings.defaultPassword)
             preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
@@ -508,6 +518,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_GOOGLE_LENS] = settings.enableGoogleLens
             preferences[KEY_TRANSLATION_LENS_STYLE] = settings.translationLensStyle
             preferences[KEY_ENABLE_OCR] = settings.enableOcr
+            preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] = settings.cameraOcrTranslationEnabled
+            preferences[KEY_CAMERA_OCR_ONLY] = settings.cameraOcrOnly
             preferences[KEY_OCR_DEFAULT_FONT_SIZE] = settings.ocrDefaultFontSize
             preferences[KEY_OCR_DEFAULT_FONT_FAMILY] = settings.ocrDefaultFontFamily
             preferences[KEY_OCR_ENGINE_TYPE] = settings.ocrEngineType
@@ -634,6 +646,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setResourceGridMode(isGridMode: Boolean) {
         dataStore.edit { it[KEY_IS_RESOURCE_GRID_MODE] = isGridMode }
+    }
+
+    override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_EMBEDDED_GAME_ENABLED] = enabled }
     }
 
     private fun <T> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {

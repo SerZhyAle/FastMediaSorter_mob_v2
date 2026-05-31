@@ -13,6 +13,10 @@
 #   # All classes that inject a specific type
 #   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
 #
+#   # All classes that take a type as a constructor parameter (superset of -Injected;
+#   # also catches non-Hilt / @Inject-free collaborators)
+#   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
+#
 #   # Classes changed since a date
 #   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -TouchedSince 2026-04-01
 #
@@ -29,6 +33,7 @@ param(
     [string]$ClassMatches,
     [string]$PathMatches,
     [string]$Injected,
+    [string]$DependsOn,
     [ValidateSet('role','description')][string]$Missing,
     [switch]$Coroutines,
     [switch]$UserFeedback,
@@ -57,6 +62,7 @@ if ($MaxLoc)        { $result = @($result | Where-Object { $_.loc -le $MaxLoc })
 if ($ClassMatches)  { $result = @($result | Where-Object { $_.class -like $ClassMatches }) }
 if ($PathMatches)   { $result = @($result | Where-Object { $_.path -like $PathMatches }) }
 if ($Injected)      { $result = @($result | Where-Object { $_.injected -contains $Injected }) }
+if ($DependsOn)     { $result = @($result | Where-Object { $_.constructorDeps -contains $DependsOn }) }
 if ($Coroutines)    { $result = @($result | Where-Object { $_.coroutines }) }
 if ($UserFeedback)  { $result = @($result | Where-Object { $_.userFeedback }) }
 if ($Tests)         { $result = @($result | Where-Object { $_.hasTests }) }

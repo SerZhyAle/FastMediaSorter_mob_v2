@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -28,6 +29,7 @@ import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -42,6 +44,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
+import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
@@ -76,7 +79,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var bannerManager: MainChromeOsBannerManager
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
+    private lateinit var miniGameMenuManager: MainMiniGameMenuManager
     private var startupFullyDrawnReported = false
+    private var isCalculatorEnabled = false
+    private var isEmbeddedGameEnabled = false
+    private var isCameraOcrEnabled = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -237,6 +244,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.openCameraPhotos()
             }
         }
+        if (intent?.action == ACTION_CAMERA_OCR_TRANSLATE) {
+            lifecycleScope.launch {
+                val enabled = settingsRepository.getSettings().first().cameraOcrTranslationEnabled
+                if (enabled) {
+                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
+                } else if (isTaskRoot) {
+                    finish()
+                }
+            }
+        }
         if (intent?.action == ACTION_OPEN_FAVORITES) {
             binding.root.post {
                 viewModel.openFavorites()
@@ -320,6 +337,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Handles notification body tap while the app is in the foreground or background stack.
         if (intent.action == ACTION_RESUME_PLAYER) {
             openAudioPlayerFromNotification()
+        }
+        if (intent.action == ACTION_CAMERA_OCR_TRANSLATE) {
+            lifecycleScope.launch {
+                val enabled = settingsRepository.getSettings().first().cameraOcrTranslationEnabled
+                if (enabled) {
+                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
+                } else if (isTaskRoot) {
+                    finish()
+                }
+            }
         }
     }
 
@@ -460,6 +487,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.btnAddResource,
             binding.btnFilter,
             binding.btnRefresh,
+            binding.btnMainDropdownMenu,
             binding.btnSettings,
             binding.btnToggleView,
             binding.btnFavorites,
@@ -472,6 +500,75 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             btn.nextFocusLeftId = prev
             btn.nextFocusRightId = next
         }
+    }
+
+    private fun setupMainWindowDropdownMenu() {
+        Timber.d("S0319: main window dropdown menu setup")
+        refreshMainWindowDropdownMenuVisibility()
+        binding.btnMainDropdownMenu.setOnClickListenerDebounced {
+            showMainWindowDropdownMenu()
+        }
+    }
+
+    private fun refreshMainWindowDropdownMenuVisibility() {
+        val shouldShowMenuButton = getMainWindowDropdownMenuItemCount() > 0
+        val visibilityChanged = binding.layoutMainDropdownMenu.isVisible != shouldShowMenuButton ||
+            binding.btnMainDropdownMenu.isVisible != shouldShowMenuButton
+        if (visibilityChanged) {
+            binding.layoutMainDropdownMenu.isVisible = shouldShowMenuButton
+            binding.btnMainDropdownMenu.isVisible = shouldShowMenuButton
+            restitchControlBarFocusChain()
+        }
+    }
+
+    private fun getMainWindowDropdownMenuItemCount(): Int =
+        (if (isCalculatorEnabled) 1 else 0) + (if (isCameraOcrEnabled) 1 else 0) + getMiniGameMenuItemCount()
+
+    private fun getMiniGameMenuItemCount(): Int = miniGameMenuManager.itemCount(isEmbeddedGameEnabled)
+
+    private fun showMainWindowDropdownMenu() {
+        val popup = PopupMenu(this, binding.btnMainDropdownMenu)
+        val itemCount = populateMainWindowDropdownMenu(popup)
+        if (itemCount <= 0) {
+            refreshMainWindowDropdownMenuVisibility()
+            return
+        }
+
+        popup.setForceShowIcon(true)
+        popup.setOnMenuItemClickListener { item ->
+            if (miniGameMenuManager.handleMenuItem(item.itemId)) {
+                true
+            } else {
+                when (item.itemId) {
+                MENU_ITEM_CALCULATOR -> {
+                    Timber.d("S0317: main menu calculator launch")
+                    startActivity(CalculatorActivity.createIntent(this))
+                    true
+                }
+                MENU_ITEM_CAMERA_OCR -> {
+                    Timber.d("S0320: main menu camera ocr launch")
+                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this))
+                    true
+                }
+                else -> false
+                }
+            }
+        }
+        popup.show()
+    }
+
+    private fun populateMainWindowDropdownMenu(popup: PopupMenu): Int {
+        popup.menu.clear()
+        if (isCalculatorEnabled) {
+            popup.menu.add(0, MENU_ITEM_CALCULATOR, 0, R.string.calculator_title)
+                .setIcon(R.drawable.ic_calculator)
+        }
+        if (isCameraOcrEnabled) {
+            popup.menu.add(0, MENU_ITEM_CAMERA_OCR, 0, R.string.setting_camera_ocr_translation_title)
+                .setIcon(R.drawable.ic_camera_ocr_translate)
+        }
+        miniGameMenuManager.populate(popup, isEmbeddedGameEnabled, 1)
+        return popup.menu.size()
     }
 
     /** S0289 §2: when the Activity resumes on a non-touch device with a known last-played resource id, request focus on the matching RecyclerView row so the user lands back where they came from after exiting the player. */
@@ -495,6 +592,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Apply edge-to-edge insets: RecyclerView bottom padding for nav bar
         applyEdgeToEdgeInsets()
 
+        miniGameMenuManager = MainMiniGameMenuManager(this)
+        setupMainWindowDropdownMenu()
         restitchControlBarFocusChain()
 
         // S0293 Phase 08: capture effective multi-window availability at adapter construction time.
@@ -699,6 +798,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
 
             binding.btnToggleView.isVisible = true
+            restitchControlBarFocusChain()
 
             // Enable Play button if any resources exist (auto-selects last used or first)
             binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()
@@ -764,6 +864,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         collectOnLifecycle(viewModel.events) { eventHandler.handle(it) }
         // Observe settings to show/hide Favorites button
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+            val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
+            val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
+            isCalculatorEnabled = settings.enableCalculator
+            isEmbeddedGameEnabled = settings.embeddedGameEnabled
+            isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
             binding.btnFavorites.visibility = if (settings.enableFavorites) {
                 View.VISIBLE
             } else {
@@ -773,6 +879,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
+            if (calculatorEnabledChanged || embeddedGameEnabledChanged || cameraOcrEnabledChanged) {
+                refreshMainWindowDropdownMenuVisibility()
+            }
+            restitchControlBarFocusChain()
         }
     }
 
@@ -968,8 +1078,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val ACTION_START_SLIDESHOW = "com.sza.fastmediasorter.ACTION_START_SLIDESHOW"
         const val ACTION_RANDOM_MUSIC = "com.sza.fastmediasorter.ACTION_RANDOM_MUSIC"
         const val ACTION_CAMERA_PHOTOS = "com.sza.fastmediasorter.ACTION_CAMERA_PHOTOS"
+        const val ACTION_CAMERA_OCR_TRANSLATE = "com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE"
         const val ACTION_OPEN_FAVORITES = "com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
         const val ACTION_BROWSE_RESOURCE = "com.sza.fastmediasorter.ACTION_BROWSE_RESOURCE"
+        private const val MENU_ITEM_CALCULATOR = 1
+        private const val MENU_ITEM_CAMERA_OCR = 9
         /** Sent by AudioPlaybackService notification contentIntent (tapping the notification body).
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"

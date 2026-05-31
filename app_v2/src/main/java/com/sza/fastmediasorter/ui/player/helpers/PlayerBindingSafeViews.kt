@@ -141,13 +141,14 @@ class PlayerBindingSafeViews(
     val etTextContent: EditText get() = required(R.id.etTextContent)
     // S0189: scroll container that hosts etTextContent in edit mode
     val textEditScrollView: ScrollView get() = required(R.id.textEditScrollView)
-    // S0189: 5-action editor buttons. Now live inside [editorToolbar] (top bar) instead of the
+    // S0189: editor action buttons. Now live inside [editorToolbar] (top bar) instead of the
     // former bottom action panel - that panel was removed because the soft keyboard covered it
     // during edit. The dirty-state tint is applied to [editorToolbar] itself via actionPanelManager.
     val btnEditorSave: ImageButton get() = required(R.id.btnEditorSave)
     val btnEditorSaveClose: ImageButton get() = required(R.id.btnEditorSaveClose)
     val btnEditorSaveSend: ImageButton get() = required(R.id.btnEditorSaveSend)
     val btnEditorSendKeep: ImageButton get() = required(R.id.btnEditorSendKeep)
+    val btnEditorMore: ImageButton get() = required(R.id.btnEditorMore)
     val btnEditorCancel: ImageButton get() = required(R.id.btnEditorCancel)
 
     // Page navigation
@@ -257,7 +258,7 @@ val ActivityPlayerUnifiedBinding.etTextContent: EditText
 val ActivityPlayerUnifiedBinding.textEditScrollView: ScrollView
     get() = requiredFromRoot(R.id.textEditScrollView)
 
-// S0189: 5-action editor buttons (moved into editorToolbar - see safeViews property docs).
+// S0189: editor action buttons (moved into editorToolbar - see safeViews property docs).
 val ActivityPlayerUnifiedBinding.btnEditorSave: ImageButton
     get() = requiredFromRoot(R.id.btnEditorSave)
 
@@ -269,6 +270,9 @@ val ActivityPlayerUnifiedBinding.btnEditorSaveSend: ImageButton
 
 val ActivityPlayerUnifiedBinding.btnEditorSendKeep: ImageButton
     get() = requiredFromRoot(R.id.btnEditorSendKeep)
+
+val ActivityPlayerUnifiedBinding.btnEditorMore: ImageButton
+    get() = requiredFromRoot(R.id.btnEditorMore)
 
 val ActivityPlayerUnifiedBinding.btnEditorCancel: ImageButton
     get() = requiredFromRoot(R.id.btnEditorCancel)

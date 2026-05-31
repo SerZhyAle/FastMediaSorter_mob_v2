@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -37,6 +38,7 @@ class PlaybackSettingsFragment : Fragment() {
         private const val KEY_PLAYER_UI_EXPANDED = "section_player_ui_expanded"
         private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
         private const val KEY_BEHAVIOUR_EXPANDED = "section_behaviour_expanded"
+        private const val KEY_OTHER_FEATURES_EXPANDED = "section_other_features_expanded"
     }
 
     private data class ExpandableSection(
@@ -56,6 +58,7 @@ class PlaybackSettingsFragment : Fragment() {
         try {
             setupViews()
             setupExpandableSections()
+            scrollToHighlightedSettingIfRequested()
         } catch (e: Exception) {
             timber.log.Timber.tag("PlaybackSettings").e(e, "Error setting up views")
             Toast.makeText(context, getString(R.string.error_init_settings), Toast.LENGTH_LONG).show()
@@ -68,7 +71,40 @@ class PlaybackSettingsFragment : Fragment() {
         _binding = null
     }
 
+    private fun applyFlavorRestrictions() {
+        val hasOcrAndTranslation = BuildConfig.ENABLE_TRANSLATION && 
+            com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
+        binding.tvSubcategoryCameraOcr.isVisible = hasOcrAndTranslation
+        binding.rowCameraOcrTranslationEnabled.isVisible = hasOcrAndTranslation
+        binding.layoutCameraOcrOnly.isVisible = hasOcrAndTranslation
+        if (!hasOcrAndTranslation) {
+            binding.rowCameraOcrTranslationEnabled.setCheckedSilently(false)
+            binding.rowCameraOcrOnly.setCheckedSilently(false)
+            val current = viewModel.settings.value
+            if (current.cameraOcrTranslationEnabled || current.cameraOcrOnly) {
+                viewModel.updateSettings(current.copy(
+                    cameraOcrTranslationEnabled = false,
+                    cameraOcrOnly = false
+                ))
+            }
+        }
+    }
+
     private fun setupViews() {
+        applyFlavorRestrictions()
+
+        binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(cameraOcrTranslationEnabled = isChecked))
+        }
+
+        binding.rowCameraOcrOnly.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(cameraOcrOnly = isChecked))
+        }
+
         // Prevent Sleep — moved from General > Network & Cache to Playback > Behaviour.
         binding.rowPreventSleep.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -286,6 +322,18 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
         }
 
+        // Calculator + Embedded game (moved here from the General tab "Other functionality" group).
+        binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableCalculator = isChecked))
+        }
+
+        binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateEmbeddedGameEnabled(isChecked)
+        }
+
         binding.btnResetPlaybackSection.setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.reset_playback_section_title)
@@ -334,6 +382,19 @@ class PlaybackSettingsFragment : Fragment() {
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
+                    
+                    val hasOcrAndTranslation = BuildConfig.ENABLE_TRANSLATION && 
+                        com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
+                    if (hasOcrAndTranslation) {
+                        if (binding.rowCameraOcrTranslationEnabled.isChecked != settings.cameraOcrTranslationEnabled) {
+                            binding.rowCameraOcrTranslationEnabled.setCheckedSilently(settings.cameraOcrTranslationEnabled)
+                        }
+                        if (binding.rowCameraOcrOnly.isChecked != settings.cameraOcrOnly) {
+                            binding.rowCameraOcrOnly.setCheckedSilently(settings.cameraOcrOnly)
+                        }
+                        binding.layoutCameraOcrOnly.isVisible = settings.cameraOcrTranslationEnabled
+                    }
+
                     // Prevent Sleep (relocated from General)
                     if (binding.rowPreventSleep.isChecked != settings.preventSleep) {
                         binding.rowPreventSleep.setCheckedSilently(settings.preventSleep)
@@ -438,8 +499,34 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowDefaultRememberFileList.isChecked != settings.defaultRememberFileList) {
                         binding.rowDefaultRememberFileList.setCheckedSilently(settings.defaultRememberFileList)
                     }
+                    if (binding.rowEnableCalculator.isChecked != settings.enableCalculator) {
+                        binding.rowEnableCalculator.setCheckedSilently(settings.enableCalculator)
+                    }
+                    if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
+                        binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
+                    }
 
                     isUpdatingFromSettings = false
+        }
+    }
+
+    /**
+     * Handles the "embedded game" deep-link from GameLaunchIntents: expand the "Other features"
+     * group (collapsed by default) and bring the embedded-game row on screen.
+     */
+    private fun scrollToHighlightedSettingIfRequested() {
+        val highlight = requireActivity().intent?.getStringExtra(
+            com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_HIGHLIGHT_SETTING
+        )
+        if (highlight != com.sza.fastmediasorter.ui.settings.SettingsActivity.HIGHLIGHT_EMBEDDED_GAME) return
+        binding.headerOtherFeatures.setExpanded(true, notify = false)
+        binding.containerOtherFeatures.isVisible = true
+        binding.rowEmbeddedGame.post {
+            binding.rowEmbeddedGame.requestFocus()
+            binding.rowEmbeddedGame.requestRectangleOnScreen(
+                Rect(0, 0, binding.rowEmbeddedGame.width, binding.rowEmbeddedGame.height),
+                false
+            )
         }
     }
 
@@ -451,6 +538,7 @@ class PlaybackSettingsFragment : Fragment() {
             ExpandableSection(binding.headerPlayerUI, binding.containerPlayerUI, KEY_PLAYER_UI_EXPANDED, false),
             ExpandableSection(binding.headerTouchZones, binding.containerTouchZones, KEY_TOUCH_ZONES_EXPANDED, false),
             ExpandableSection(binding.headerBehaviour, binding.containerBehaviour, KEY_BEHAVIOUR_EXPANDED, false),
+            ExpandableSection(binding.headerOtherFeatures, binding.containerOtherFeatures, KEY_OTHER_FEATURES_EXPANDED, false),
         )
 
         sections.forEach { section ->
@@ -476,7 +564,8 @@ class PlaybackSettingsFragment : Fragment() {
                 KEY_FILE_OPS_EXPANDED to prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false),
                 KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
                 KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
-                KEY_BEHAVIOUR_EXPANDED to prefs.getBoolean(KEY_BEHAVIOUR_EXPANDED, false)
+                KEY_BEHAVIOUR_EXPANDED to prefs.getBoolean(KEY_BEHAVIOUR_EXPANDED, false),
+                KEY_OTHER_FEATURES_EXPANDED to prefs.getBoolean(KEY_OTHER_FEATURES_EXPANDED, false)
             )
         }
     }

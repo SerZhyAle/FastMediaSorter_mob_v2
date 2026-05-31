@@ -62,3 +62,13 @@ Required-flag defaults in this repo:
 - `0`: no `FAIL`, `INCONSISTENT`, or `MISSING` records.
 - `1`: at least one `FAIL`, `INCONSISTENT`, or `MISSING` record exists.
 - `-AsBootstrapWarning`: forces exit `0` after printing the same report.
+
+---
+
+# Rule/prompt executable drift (S0315)
+
+A sibling audit that finds executable mismatch between `CLAUDE.md`, prompt skills, agent profiles, `AGENTS.md`, copilot instructions, workflow docs, and the scripts on disk (missing scripts, route conflicts, missing `-NoProfile`, abolished artefacts).
+
+- Quick start: `pwsh -NoProfile -File scripts/doc-drift/check-rule-prompt-drift.ps1`
+- Full reference: [`RULE_PROMPT_DRIFT.md`](RULE_PROMPT_DRIFT.md)
+- Scope: executable mismatch only; version-pin drift stays in `check-doc-vs-gradle.ps1` (S0271 above), so the two checkers in this directory are not confused.
