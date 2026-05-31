@@ -14431,3 +14431,7 @@ Format: | datetime | file | target | description |
 | 2026-06-01 00:48:49 | `fastlane/metadata/android/ru-RU/title.txt` | `fastlane title ru-RU` | Align Russian Play metadata title with listing source [branch: DEBUG-v010] |
 | 2026-06-01 00:48:50 | `fastlane/metadata/android/uk-UA/title.txt` | `fastlane title uk-UA` | Align Ukrainian Play metadata title with listing source [branch: DEBUG-v010] |
 | 2026-06-01 00:49:25 | `store_assets/icon_512.png` | `Play icon 512` | Add canonical Play Console 512 icon asset [branch: DEBUG-v010] |
+| 2026-06-01 00:58:24 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:25 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:25 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:26 | `README.md` | `README` | README current release block for v2.60.6010.057 [branch: DEBUG-v010] |

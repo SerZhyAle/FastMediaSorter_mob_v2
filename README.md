@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5310.007 (May 2026)
+## What's New in v2.60.6010.057 (June 2026)
 
 **New:**
-Password-protected ZIPs (extract encrypted archives after a one-time password prompt), Protected document fallback (clear handling for locked EPUB and Office files).
+Camera OCR translation, text editor calculator, mini game and widgets, release tooling guards.
 
 **Fixed:**
-Protected PDF renderer failures now show a clear message.
+Android TV launcher title matches the banner and Play listing. Google Drive backup restore uses scoped GMS auth routing.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
