@@ -118,7 +118,8 @@ function Extract-CurrentReleaseBlock {
             if ($seenContent) { $endIdx = $i; break }
             continue
         }
-        if ($ln.Trim().Length -gt 0) { $seenContent = $true }
+        $isContentLine = $ln.Trim().Length -gt 0 -and $ln -notmatch "^>\s" -and $ln -notmatch "^---\s*$"
+        if ($isContentLine) { $seenContent = $true }
     }
 
     return $Lines[($startIdx + 1)..($endIdx - 1)]
@@ -156,6 +157,7 @@ function Trim-ToBudget {
 
     # Drop trailing empty lines.
     while ($Lines.Count -gt 0 -and $Lines[-1].Trim().Length -eq 0) {
+        if ($Lines.Count -eq 1) { return "" }
         $Lines = $Lines[0..($Lines.Count - 2)]
     }
 

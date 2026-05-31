@@ -14436,3 +14436,7 @@ Format: | datetime | file | target | description |
 | 2026-06-01 00:58:25 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:58:26 | `README.md` | `README` | README current release block for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:59:04 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 01:12:38 | `scripts/release/gen_fastlane_changelog.ps1` | `fastlane changelog generator` | Fix release changelog extraction loop [branch: main] |
+| 2026-06-01 01:15:06 | `fastlane/metadata/android/en-US/changelogs/260601005.txt` | `fastlane changelog en-US` | Generate fastlane changelog for versionCode 260601005 [branch: main] |
+| 2026-06-01 01:15:07 | `fastlane/metadata/android/ru-RU/changelogs/260601005.txt` | `fastlane changelog ru-RU` | Generate Russian fastlane changelog for versionCode 260601005 [branch: main] |
+| 2026-06-01 01:15:08 | `fastlane/metadata/android/uk-UA/changelogs/260601005.txt` | `fastlane changelog uk-UA` | Generate Ukrainian fastlane changelog for versionCode 260601005 [branch: main] |
