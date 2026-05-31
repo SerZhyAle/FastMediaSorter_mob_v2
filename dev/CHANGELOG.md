@@ -14435,3 +14435,4 @@ Format: | datetime | file | target | description |
 | 2026-06-01 00:58:25 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:58:25 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:58:26 | `README.md` | `README` | README current release block for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:59:04 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.057 [branch: DEBUG-v010] |
