@@ -95,6 +95,7 @@ class ExportSettingsUseCase @Inject constructor(
                 // Playback and Sorting settings
                 appendLine("    <defaultSortMode>${settings.defaultSortMode.name}</defaultSortMode>")
                 appendLine("    <slideshowInterval>${settings.slideshowInterval}</slideshowInterval>")
+                appendLine("    <embeddedGameEnabled>${settings.embeddedGameEnabled}</embeddedGameEnabled>")
                 appendLine("    <playToEndInSlideshow>${settings.playToEndInSlideshow}</playToEndInSlideshow>")
                 
                 // Slideshow Music

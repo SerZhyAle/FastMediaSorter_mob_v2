@@ -196,6 +196,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var audioMetadataManager: com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
     internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
+    internal lateinit var textEditorCalculatorBridge: com.sza.fastmediasorter.ui.player.helpers.TextEditorCalculatorBridge
     internal var playerVrLaunchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerVrLaunchManager? = null
 
     // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager replaces the
@@ -228,6 +229,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         lifecycleManager.handleDeletePermissionResult(result.resultCode)
+    }
+
+    internal val textEditorCalculatorLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (::textEditorCalculatorBridge.isInitialized) {
+            textEditorCalculatorBridge.handleResult(result)
+        }
     }
 
     internal val hideControlsHandler = Handler(Looper.getMainLooper())

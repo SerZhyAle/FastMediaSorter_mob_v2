@@ -14006,3 +14006,433 @@ Format: | datetime | file | target | description |
 | 2026-05-31 01:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `CI Android Lint gate` | Fix StringFormatInvalid: drop extra arg from getString(error_delete_failed) - string has no format placeholder [branch: DEBUG-v010] |
 | 2026-05-31 01:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt` | `CI Android Lint gate` | Fix StringFormatInvalid: toastDeleteFailed() no longer passes fileName to getString(delete_failed) - string has no placeholder [branch: DEBUG-v010] |
 | 2026-05-31 01:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubWebViewLifecycle.kt` | `CI Android Lint gate` | Fix JavascriptInterface: type selectionBridge as EpubViewerManager.EpubSelectionBridge so lint sees the @JavascriptInterface annotation [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0311_agent-workflow-tooling-overhaul.md` | `spec-update` | Refactored S0311 into a tooling umbrella (Claude Opus 4.8): split into sub-tickets S0312-S0315, cut governance layer, corrected false Maestro/hasTests repo-facts [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0312_build-failure-digest.md` | `spec-update` | Created sub-ticket carved from S0311: build failure digest [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0313_flavor-isolation-diff-guard.md` | `spec-update` | Created sub-ticket carved from S0311: flavor isolation diff-guard [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0314_catalog-dependency-test-enrichment.md` | `spec-update` | Created sub-ticket carved from S0311: catalog dependency and test enrichment [branch: DEBUG-v010] |
+| 2026-05-31 01:42:08 | `PLAN/S0315_rule-prompt-drift-audit.md` | `spec-update` | Created sub-ticket carved from S0311: rule and prompt drift audit [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0311_agent-workflow-tooling-overhaul.md` | `spec-tech` | Premise correction: catalog hasTests field exists (regression from gitignored-zone rg); S0314 hardens not creates [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0312_build-failure-digest.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0313_flavor-isolation-diff-guard.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0314_catalog-dependency-test-enrichment.md` | `spec-tech` | Status -> Tactical; premise correction (hasTests exists, ticket hardens it) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0315_rule-prompt-drift-audit.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0312_build-failure-digest/INDEX.md` | `spec-tech` | Tactical plan: 3 phases (contract-parser, one-shot-digest, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0313_flavor-isolation-diff-guard/INDEX.md` | `spec-tech` | Tactical plan: 4 phases (foundations, diff-classify-gate, self-test-fixtures, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0314_catalog-dependency-test-enrichment/INDEX.md` | `spec-tech` | Tactical plan: 3 phases (schema-enrich, query-flags, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:14:45 | `PLAN/S0315_rule-prompt-drift-audit/INDEX.md` | `spec-tech` | Tactical plan: 3 phases (sources-contract, mismatch-detectors, docs-catalog-cleanup) [branch: DEBUG-v010] |
+| 2026-05-31 02:32:45 | `scripts/guard/FlavorTokens.ps1` | `S0313 Phase 01` | Add FlavorTokens.ps1: data-only module exposing Get-FlavorTokenPatterns (forbidden BuildConfig.IS_/SUPPORT_/ENABLE_ flavor-gate regex + remediation categories) [branch: DEBUG-v010] |
+| 2026-05-31 02:32:55 | `scripts/guard/ChangeSource.ps1` | `S0313 Phase 01` | Add ChangeSource.ps1: Get-ChangedMainKotlin resolves app_v2/src/main/java Kotlin scan set from git diff (unstaged+staged, optional base ref) or explicit -Path override [branch: DEBUG-v010] |
+| 2026-05-31 02:32:59 | `scripts/guard/ViolationRecord.ps1` | `S0313 Phase 01` | Add ViolationRecord.ps1: New-FlavorViolation builds the ordered violation record (file/line/matchedToken/tokenFamily/remediationCategory/classification, classification defaults to unset) [branch: DEBUG-v010] |
+| 2026-05-31 02:38:33 | `scripts/guard/Classifier.ps1` | `S0313 Phase 02` | Add Classifier.ps1: Get-LineClassification marks a match new-or-touched when its line is in the git diff -U0 added set (or explicit -Path intent), else legacy [branch: DEBUG-v010] |
+| 2026-05-31 02:38:37 | `scripts/guard/flavor-isolation-guard.ps1` | `S0313 Phase 02` | Add flavor-isolation-guard.ps1: diff-aware Rule 15 guard - blocks only new/touched main-source flavor gates (exit 1), reports legacy non-blocking via -LegacyAudit, JSON+human output, temp/flavor-guard/report.json artifact [branch: DEBUG-v010] |
+| 2026-05-31 02:42:40 | `scripts/guard.tests/fixtures/clean_sample.kt.txt` | `S0313 Phase 03` | Add clean_sample.kt.txt fixture: main-source Kotlin with zero forbidden flavor gates (uses injected delegate) [branch: DEBUG-v010] |
+| 2026-05-31 02:42:41 | `scripts/guard.tests/fixtures/new_violation.kt.txt` | `S0313 Phase 03` | Add new_violation.kt.txt fixture: one BuildConfig.IS_NO_LEGAL_FLAVOR gate to prove the blocking path [branch: DEBUG-v010] |
+| 2026-05-31 02:42:41 | `scripts/guard.tests/fixtures/legacy_only.kt.txt` | `S0313 Phase 03` | Add legacy_only.kt.txt fixture: one BuildConfig.SUPPORT_VR_PLAYER gate for explicit-vs-LegacyAudit assertions [branch: DEBUG-v010] |
+| 2026-05-31 02:42:41 | `scripts/guard.tests/Run-Tests.ps1` | `S0313 Phase 03` | Add Run-Tests.ps1 fixture self-test: drives the guard via -ScanFile seam, asserts blocking flag + exit code per fixture (4 cases), dirty-tree-safe and hermetic [branch: DEBUG-v010] |
+| 2026-05-31 02:42:55 | `scripts/guard.tests/fixtures/clean_sample.kt.txt` | `S0313 Phase 03` | Add clean_sample.kt.txt fixture: main-source Kotlin with zero forbidden flavor gates (uses injected delegate) [branch: DEBUG-v010] |
+| 2026-05-31 02:42:56 | `scripts/guard.tests/fixtures/new_violation.kt.txt` | `S0313 Phase 03` | Add new_violation.kt.txt fixture: one BuildConfig.IS_NO_LEGAL_FLAVOR gate to prove the blocking path [branch: DEBUG-v010] |
+| 2026-05-31 02:42:56 | `scripts/guard.tests/fixtures/legacy_only.kt.txt` | `S0313 Phase 03` | Add legacy_only.kt.txt fixture: one BuildConfig.SUPPORT_VR_PLAYER gate for explicit-vs-LegacyAudit assertions [branch: DEBUG-v010] |
+| 2026-05-31 02:42:56 | `scripts/guard.tests/Run-Tests.ps1` | `S0313 Phase 03` | Add Run-Tests.ps1 fixture self-test: drives the guard via -ScanFile seam, asserts blocking flag + exit code per fixture (4 cases), dirty-tree-safe and hermetic [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `scripts/builders/build-failure-digest.ps1` | `spec-dev` | S0312: build failure digest one-shot command (JSON+human, exit 0/10/20/2) [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `scripts/builders/build-failure-digest.contract.ps1` | `spec-dev` | S0312: digest contract + parser dot-source helper [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `scripts/builders/build-failure-digest.SCHEMA.md` | `spec-dev` | S0312: digest JSON schema reference [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `a.ps1` | `spec-dev` | S0312: add bfd alias for build failure digest [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `scripts/builders/README.md` | `spec-dev` | S0312: document bfd + digest schema [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `scripts/README.md` | `spec-dev` | S0312: add bfd to alias block [branch: DEBUG-v010] |
+| 2026-05-31 02:48:44 | `scripts/guard/flavor-isolation-guard.ps1` | `spec-dev` | S0313: diff-aware flavor isolation guard (blocks new/touched main-source flavor gates; exit 0/1/2/3) [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard/FlavorTokens.ps1` | `spec-dev` | S0313: forbidden flavor token patterns [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard/ViolationRecord.ps1` | `spec-dev` | S0313: violation record contract [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard/ChangeSource.ps1` | `spec-dev` | S0313: git-diff / -Path change source [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard/Classifier.ps1` | `spec-dev` | S0313: new-vs-legacy violation classifier [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard.tests/Run-Tests.ps1` | `spec-dev` | S0313: fixture self-test runner [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard.tests/fixtures` | `spec-dev` | S0313: self-test fixtures (clean, new_violation, legacy_only .kt.txt) [branch: DEBUG-v010] |
+| 2026-05-31 02:48:45 | `scripts/guard/README.md` | `spec-dev` | S0313: guard usage + contract doc [branch: DEBUG-v010] |
+| 2026-05-31 02:58:28 | `PLAN/S0317_embedded-calculator.md` | `spec` | Add strategic spec S0317 for embedded calculator [branch: DEBUG-v010] |
+| 2026-05-31 02:59:52 | `PLAN/S0316_embedded-mini-game.md` | `spec` | Add strategic spec S0316 for embedded mini-game [branch: DEBUG-v010] |
+| 2026-05-31 03:05:59 | `PLAN/spec-catalog.jsonl` | `spec catalog` | Register S0318 playback pro features group strategic spec [branch: DEBUG-v010] |
+| 2026-05-31 03:07:04 | `dev/CATALOG/scripts/scan.ps1` | `spec-dev` | S0314: harden Test-HasTests for flavor roots; add Get-ConstructorDeps + constructorDeps append-only field [branch: DEBUG-v010] |
+| 2026-05-31 03:07:04 | `dev/CATALOG/scripts/query.ps1` | `spec-dev` | S0314: add -DependsOn dependency filter [branch: DEBUG-v010] |
+| 2026-05-31 03:07:04 | `dev/CATALOG/README.md` | `spec-dev` | S0314: document constructorDeps + hardened hasTests + -DependsOn [branch: DEBUG-v010] |
+| 2026-05-31 03:07:49 | `PLAN/S0318_playback-pro-features-group.md` | `strategic spec` | Add S0318 playback pro features group strategic spec [branch: DEBUG-v010] |
+| 2026-05-31 03:09:14 | `PLAN/S0318_playback-other-functionality-group.md` | `strategic spec` | Rename S0318 strategic spec to other-functionality group slug [branch: DEBUG-v010] |
+| 2026-05-31 03:09:14 | `PLAN/spec-catalog.jsonl` | `spec catalog` | Update S0318 spec slug to other-functionality group [branch: DEBUG-v010] |
+| 2026-05-31 03:09:57 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-update` | Refine S0318 title to Other functionality group [branch: DEBUG-v010] |
+| 2026-05-31 03:09:57 | `PLAN/spec-catalog.jsonl` | `spec catalog` | Touch S0318 after spec refinement [branch: DEBUG-v010] |
+| 2026-05-31 03:10:18 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-update` | Remove stale pro wording from S0318 [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/check-rule-prompt-drift.ps1` | `spec-dev` | S0315: rule/prompt executable drift audit entrypoint (6 mismatch kinds; exit 0/1/2) [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/RulePromptRecord.ps1` | `spec-dev` | S0315: executable-mismatch record contract (closed 6-kind taxonomy) [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/RulePromptSources.ps1` | `spec-dev` | S0315: manifest-driven source set + on-disk script inventory [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/RulePromptDetectors.ps1` | `spec-dev` | S0315: five executable-mismatch detectors [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/RulePromptOutput.ps1` | `spec-dev` | S0315: record stream + JSON formatter [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/sources.psd1` | `spec-dev` | S0315: canonical-source manifest (data-declared audited surfaces) [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/RULE_PROMPT_DRIFT.md` | `spec-dev` | S0315: audit categories + grammar + reuse boundary doc [branch: DEBUG-v010] |
+| 2026-05-31 03:15:54 | `scripts/doc-drift/README.md` | `spec-dev` | S0315: link rule/prompt drift audit alongside S0271 doc-vs-gradle checker [branch: DEBUG-v010] |
+| 2026-05-31 03:19:11 | `PLAN/S0317_embedded-calculator.md` | `spec-update` | Refine S0317 calculator settings group and non-engineering scope [branch: DEBUG-v010] |
+| 2026-05-31 03:22:07 | `PLAN/S0316_embedded-mini-game.md` | `spec-update` | Refine S0316 settings placement and KnC game rules [branch: DEBUG-v010] |
+| 2026-05-31 03:26:08 | `PLAN/S0319_main-window-dropdown-menu-button.md` | `spec` | Add strategic spec S0319 for main window dropdown menu button [branch: DEBUG-v010] |
+| 2026-05-31 03:31:43 | `PLAN/S0319_main-window-dropdown-menu-button.md` | `S0319` | mark S0319 approved for implementation [branch: DEBUG-v010] |
+| 2026-05-31 03:31:43 | `app_v2/src/main/res/layout/activity_main.xml` | `main dropdown menu button` | add portrait main dropdown menu button placeholder [branch: DEBUG-v010] |
+| 2026-05-31 03:31:43 | `app_v2/src/main/res/layout-land/activity_main.xml` | `main dropdown menu button` | add landscape main dropdown menu button placeholder [branch: DEBUG-v010] |
+| 2026-05-31 03:31:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | wire main dropdown menu visibility and popup placeholder [branch: DEBUG-v010] |
+| 2026-05-31 03:34:24 | `PLAN/S0316_embedded-mini-game.md` | `spec-update` | Refine S0316 main dropdown menu launch surface [branch: DEBUG-v010] |
+| 2026-05-31 03:34:30 | `PLAN/S0317_embedded-calculator.md` | `spec-update` | Refine S0317 main dropdown menu visibility [branch: DEBUG-v010] |
+| 2026-05-31 03:35:00 | `PLAN/S0319_main-window-dropdown-menu-button.md` | `S0319` | mark S0319 awaiting user test [branch: DEBUG-v010] |
+| 2026-05-31 03:35:00 | `app_v2/build.gradle.kts` | `debug version` | record debug build auto-version bump [branch: DEBUG-v010] |
+| 2026-05-31 03:36:34 | `app_v2/src/main/res/layout/activity_main.xml` | `main dropdown menu container` | hide portrait main dropdown spacer with button [branch: DEBUG-v010] |
+| 2026-05-31 03:36:34 | `app_v2/src/main/res/layout-land/activity_main.xml` | `main dropdown menu container` | hide landscape main dropdown spacer with button [branch: DEBUG-v010] |
+| 2026-05-31 03:36:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | sync main dropdown container visibility [branch: DEBUG-v010] |
+| 2026-05-31 03:39:20 | `app_v2/build.gradle.kts` | `debug version` | record final debug build auto-version bump [branch: DEBUG-v010] |
+| 2026-05-31 03:45:33 | `PLAN/S0316_embedded-mini-game.md` | `spec-update` | Rewrite S0316 from Kryvavitsa game design docs [branch: DEBUG-v010] |
+| 2026-05-31 03:45:41 | `PLAN/S0317_embedded-calculator.md` | `spec-update` | Refine S0317 dependencies and blockers [branch: DEBUG-v010] |
+| 2026-05-31 11:57:35 | `PLAN/S0317_embedded-calculator.md` | `spec-update` | Resolve S0317 owner decision package [branch: DEBUG-v010] |
+| 2026-05-31 11:57:50 | `PLAN/S0317_embedded-calculator.md` | `spec-update` | Clear S0317 approval gate marker [branch: DEBUG-v010] |
+| 2026-05-31 11:59:20 | `PLAN/S0316_embedded-mini-game.md` | `spec-update` | Approve S0316 owner decision package [branch: DEBUG-v010] |
+| 2026-05-31 12:01:59 | `PLAN/S0318_playback-other-functionality-group/INDEX.md` | `spec-tech` | Create tactical plan for S0318 [branch: DEBUG-v010] |
+| 2026-05-31 12:01:59 | `PLAN/S0318_playback-other-functionality-group/PHASE_01__strings.md` | `spec-tech` | Phase 01: strings [branch: DEBUG-v010] |
+| 2026-05-31 12:01:59 | `PLAN/S0318_playback-other-functionality-group/PHASE_02__regroup-layout.md` | `spec-tech` | Phase 02: regroup-layout [branch: DEBUG-v010] |
+| 2026-05-31 12:01:59 | `PLAN/S0318_playback-other-functionality-group/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v010] |
+| 2026-05-31 12:01:59 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v010] |
+| 2026-05-31 12:03:17 | `PLAN/S0316_embedded-mini-game.md` | `spec-tech` | Promote S0316 to Tactical [branch: DEBUG-v010] |
+| 2026-05-31 12:03:17 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `spec-tech` | Create S0316 tactical index [branch: DEBUG-v010] |
+| 2026-05-31 12:03:17 | `PLAN/S0316_embedded-mini-game/PHASE_01__domain-engine.md` | `spec-tech` | Create S0316 domain engine phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:17 | `PLAN/S0316_embedded-mini-game/PHASE_02__local-state-settings-model.md` | `spec-tech` | Create S0316 local state phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:18 | `PLAN/S0316_embedded-mini-game/PHASE_03__resources-strings-layouts.md` | `spec-tech` | Create S0316 resources phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:18 | `PLAN/S0316_embedded-mini-game/PHASE_04__game-screen.md` | `spec-tech` | Create S0316 game screen phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:18 | `PLAN/S0316_embedded-mini-game/PHASE_05__main-menu-settings-entry.md` | `spec-tech` | Create S0316 main menu settings phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:18 | `PLAN/S0316_embedded-mini-game/PHASE_06__launcher-widget.md` | `spec-tech` | Create S0316 widget phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:19 | `PLAN/S0316_embedded-mini-game/PHASE_07__validation-docs-catalog.md` | `spec-tech` | Create S0316 validation docs phase [branch: DEBUG-v010] |
+| 2026-05-31 12:03:46 | `PLAN/S0316_embedded-mini-game.md` | `spec-dev` | Move S0316 to In Progress for implementation [branch: DEBUG-v010] |
+| 2026-05-31 12:03:52 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0318 P01: add settings_category_other_features (EN) [branch: DEBUG-v010] |
+| 2026-05-31 12:03:52 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0318 P01: add settings_category_other_features (RU) [branch: DEBUG-v010] |
+| 2026-05-31 12:03:53 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0318 P01: add settings_category_other_features (UK) [branch: DEBUG-v010] |
+| 2026-05-31 12:06:27 | `PLAN/S0317_embedded-calculator.md` | `spec-tech` | Promote S0317 to Tactical [branch: DEBUG-v010] |
+| 2026-05-31 12:06:27 | `PLAN/S0317_embedded-calculator/INDEX.md` | `spec-tech` | Create S0317 tactical index [branch: DEBUG-v010] |
+| 2026-05-31 12:06:28 | `PLAN/S0317_embedded-calculator/PHASE_01__calculator-feature.md` | `spec-tech` | Create S0317 calculator feature phase [branch: DEBUG-v010] |
+| 2026-05-31 12:06:28 | `PLAN/S0317_embedded-calculator/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Create S0317 cleanup phase [branch: DEBUG-v010] |
+| 2026-05-31 12:07:16 | `PLAN/S0317_embedded-calculator/INDEX.md` | `spec-dev` | Start S0317 phase 01 [branch: DEBUG-v010] |
+| 2026-05-31 12:07:16 | `PLAN/S0317_embedded-calculator/PHASE_01__calculator-feature.md` | `spec-dev` | Complete S0317 step 01.1 backups [branch: DEBUG-v010] |
+| 2026-05-31 12:08:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0317` | Add calculator setting model flag [branch: DEBUG-v010] |
+| 2026-05-31 12:09:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0317` | Persist calculator setting [branch: DEBUG-v010] |
+| 2026-05-31 12:09:17 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameModels.kt` | `S0316-phase-01` | Create game domain models [branch: DEBUG-v010] |
+| 2026-05-31 12:09:21 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `spec-dev` | S0318 P02: move camera-capture + black-screen into Other features group (portrait) [branch: DEBUG-v010] |
+| 2026-05-31 12:09:21 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev` | S0318 P02: move camera-capture + black-screen into Other features group (landscape) [branch: DEBUG-v010] |
+| 2026-05-31 12:09:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | S0318 P02: register Other features collapsible section [branch: DEBUG-v010] |
+| 2026-05-31 12:10:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameScoring.kt` | `S0316-phase-01` | Create game scoring rules [branch: DEBUG-v010] |
+| 2026-05-31 12:10:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameRulesEngine.kt` | `S0316-phase-01` | Create game rules engine [branch: DEBUG-v010] |
+| 2026-05-31 12:11:50 | `app_v2/src/main/res/values/strings.xml` | `S0317` | Add calculator English strings [branch: DEBUG-v010] |
+| 2026-05-31 12:11:51 | `app_v2/src/main/res/values-ru/strings.xml` | `S0317` | Add calculator Russian strings [branch: DEBUG-v010] |
+| 2026-05-31 12:11:53 | `app_v2/src/main/res/values-uk/strings.xml` | `S0317` | Add calculator Ukrainian strings [branch: DEBUG-v010] |
+| 2026-05-31 12:11:55 | `app_v2/src/main/res/drawable/ic_calculator.xml` | `S0317` | Add calculator icon [branch: DEBUG-v010] |
+| 2026-05-31 12:11:56 | `app_v2/src/main/res/drawable/ic_widget_calculator.xml` | `S0317` | Add calculator widget icon [branch: DEBUG-v010] |
+| 2026-05-31 12:11:59 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameBoardGenerator.kt` | `S0316-phase-01` | Create game board generator [branch: DEBUG-v010] |
+| 2026-05-31 12:13:09 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0317` | Add calculator settings row portrait [branch: DEBUG-v010] |
+| 2026-05-31 12:13:10 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0317` | Add calculator settings row landscape [branch: DEBUG-v010] |
+| 2026-05-31 12:13:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt` | `S0317` | Add calculator settings section state [branch: DEBUG-v010] |
+| 2026-05-31 12:13:51 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameRulesEngineTest.kt` | `S0316-phase-01` | Add game rules engine tests [branch: DEBUG-v010] |
+| 2026-05-31 12:13:51 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameBoardGeneratorTest.kt` | `S0316-phase-01` | Add game board generator tests [branch: DEBUG-v010] |
+| 2026-05-31 12:14:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0317` | Wire calculator settings toggle [branch: DEBUG-v010] |
+| 2026-05-31 12:14:14 | `PLAN/S0316_embedded-mini-game/PHASE_01__domain-engine.md` | `spec-dev` | Mark S0316 phase 01 complete [branch: DEBUG-v010] |
+| 2026-05-31 12:14:14 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `spec-dev` | Update S0316 phase 01 status [branch: DEBUG-v010] |
+| 2026-05-31 12:14:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `S0317` | Observe calculator settings toggle [branch: DEBUG-v010] |
+| 2026-05-31 12:14:48 | `PLAN/S0316_embedded-mini-game/PHASE_02__local-state-settings-model.md` | `spec-dev` | Add S0316 phase 02 DI scope file [branch: DEBUG-v010] |
+| 2026-05-31 12:17:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | Insert S0318 debug verification tag at playback section setup [branch: DEBUG-v010] |
+| 2026-05-31 12:17:08 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v010] |
+| 2026-05-31 12:20:22 | `app_v2/src/main/java/com/sza/fastmediasorter/data/game/GameStateRepositoryImpl.kt` | `S0317-build-blocker` | Fix game state snapshot null helper blocking app_v2 compile [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0316-phase-02` | Add embedded game settings flag [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/SettingsRepository.kt` | `S0316-phase-02` | Expose embedded game setting update [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0316-phase-02` | Persist embedded game setting [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `S0316-phase-02` | Add embedded game setting updater [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `S0316-phase-02` | Include embedded game in backup settings [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `S0316-phase-02` | Map embedded game backup settings [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `S0316-phase-02` | Export embedded game setting [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `S0316-phase-02` | Import embedded game setting [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/RepositoryModule.kt` | `S0316-phase-02` | Bind game state repository [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameStateSnapshot.kt` | `S0316-phase-02` | Create game state snapshot [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameStateRepository.kt` | `S0316-phase-02` | Create game state repository contract [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/game/GameStateRepositoryImpl.kt` | `S0316-phase-02` | Create DataStore game state repository [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/test/java/com/sza/fastmediasorter/data/game/GameStateRepositoryImplTest.kt` | `S0316-phase-02` | Add game state repository tests [branch: DEBUG-v010] |
+| 2026-05-31 12:21:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameBoardGenerator.kt` | `S0316-phase-02` | Make game board generator injectable [branch: DEBUG-v010] |
+| 2026-05-31 12:21:22 | `PLAN/S0316_embedded-mini-game/PHASE_02__local-state-settings-model.md` | `spec-dev` | Mark S0316 phase 02 complete [branch: DEBUG-v010] |
+| 2026-05-31 12:21:22 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `spec-dev` | Update S0316 phase 02 status [branch: DEBUG-v010] |
+| 2026-05-31 12:22:55 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeSettingsRepository.kt` | `S0317-build-blocker` | Implement embedded game toggle in fake settings repository [branch: DEBUG-v010] |
+| 2026-05-31 12:24:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `S0317` | Add calculator engine [branch: DEBUG-v010] |
+| 2026-05-31 12:25:04 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `S0317` | Add calculator engine unit tests [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/values/strings.xml` | `S0316 Phase 03` | Add English embedded game strings [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/values-ru/strings.xml` | `S0316 Phase 03` | Add Russian embedded game strings [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/values-uk/strings.xml` | `S0316 Phase 03` | Add Ukrainian embedded game strings [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/layout/activity_game.xml` | `S0316 Phase 03` | Add portrait embedded game layout [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/layout-land/activity_game.xml` | `S0316 Phase 03` | Add landscape embedded game layout [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/layout/widget_game_launch.xml` | `S0316 Phase 03` | Add embedded game launcher widget layout [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/xml/widget_game_launch_info.xml` | `S0316 Phase 03` | Add embedded game widget provider metadata [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/drawable/ic_game_kryvavitsa.xml` | `S0316 Phase 03` | Add embedded game launcher icon drawable [branch: DEBUG-v010] |
+| 2026-05-31 12:26:15 | `app_v2/src/main/res/drawable/widget_preview_game_launch.xml` | `S0316 Phase 03` | Add embedded game widget preview drawable [branch: DEBUG-v010] |
+| 2026-05-31 12:26:49 | `PLAN/S0316_embedded-mini-game/PHASE_03__resources-strings-layouts.md` | `S0316 Phase 03` | Mark resources phase complete after validation [branch: DEBUG-v010] |
+| 2026-05-31 12:26:49 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `S0316 Phase 03` | Mark Phase 03 complete and align tactical status [branch: DEBUG-v010] |
+| 2026-05-31 12:28:28 | `app_v2/src/main/res/values/strings.xml` | `S0316 Phase 04` | Add game board accessibility strings [branch: DEBUG-v010] |
+| 2026-05-31 12:28:28 | `app_v2/src/main/res/values-ru/strings.xml` | `S0316 Phase 04` | Add Russian game board accessibility strings [branch: DEBUG-v010] |
+| 2026-05-31 12:28:28 | `app_v2/src/main/res/values-uk/strings.xml` | `S0316 Phase 04` | Add Ukrainian game board accessibility strings [branch: DEBUG-v010] |
+| 2026-05-31 12:30:46 | `app_v2/src/main/res/values/strings.xml` | `S0316 Phase 04` | Add next-level game action string [branch: DEBUG-v010] |
+| 2026-05-31 12:30:46 | `app_v2/src/main/res/values-ru/strings.xml` | `S0316 Phase 04` | Add Russian next-level game action string [branch: DEBUG-v010] |
+| 2026-05-31 12:30:46 | `app_v2/src/main/res/values-uk/strings.xml` | `S0316 Phase 04` | Add Ukrainian next-level game action string [branch: DEBUG-v010] |
+| 2026-05-31 12:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `S0317` | Add calculator input manager [branch: DEBUG-v010] |
+| 2026-05-31 12:32:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/CalculatorActivity.kt` | `S0317` | Add calculator activity [branch: DEBUG-v010] |
+| 2026-05-31 12:33:06 | `app_v2/src/main/res/layout/activity_calculator.xml` | `S0317` | Add calculator portrait layout [branch: DEBUG-v010] |
+| 2026-05-31 12:33:06 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `S0317` | Add calculator landscape layout [branch: DEBUG-v010] |
+| 2026-05-31 12:33:07 | `app_v2/src/main/AndroidManifest.xml` | `S0317` | Declare calculator activity [branch: DEBUG-v010] |
+| 2026-05-31 12:33:08 | `app_v2/src/main/res/values/strings.xml` | `S0317` | Add calculator error string [branch: DEBUG-v010] |
+| 2026-05-31 12:33:09 | `app_v2/src/main/res/values-ru/strings.xml` | `S0317` | Add calculator Russian error string [branch: DEBUG-v010] |
+| 2026-05-31 12:33:10 | `app_v2/src/main/res/values-uk/strings.xml` | `S0317` | Add calculator Ukrainian error string [branch: DEBUG-v010] |
+| 2026-05-31 12:34:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0317` | Add calculator main dropdown action [branch: DEBUG-v010] |
+| 2026-05-31 12:35:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameActivity.kt` | `S0316 Phase 04` | Add thin embedded game activity [branch: DEBUG-v010] |
+| 2026-05-31 12:35:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt` | `S0316 Phase 04` | Add embedded game ViewModel with movement persistence [branch: DEBUG-v010] |
+| 2026-05-31 12:35:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameUiState.kt` | `S0316 Phase 04` | Add embedded game UI state model [branch: DEBUG-v010] |
+| 2026-05-31 12:35:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameBoardView.kt` | `S0316 Phase 04` | Add custom game board view [branch: DEBUG-v010] |
+| 2026-05-31 12:35:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameInputManager.kt` | `S0316 Phase 04` | Add embedded game input helper [branch: DEBUG-v010] |
+| 2026-05-31 12:35:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameBoardRenderMapper.kt` | `S0316 Phase 04` | Add embedded game render mapper [branch: DEBUG-v010] |
+| 2026-05-31 12:35:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameScalingManager.kt` | `S0316 Phase 04` | Add embedded game scaling helper [branch: DEBUG-v010] |
+| 2026-05-31 12:35:42 | `app_v2/src/main/AndroidManifest.xml` | `S0316 Phase 04` | Register embedded game activity [branch: DEBUG-v010] |
+| 2026-05-31 12:35:42 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/game/GameViewModelTest.kt` | `S0316 Phase 04` | Add embedded game ViewModel tests [branch: DEBUG-v010] |
+| 2026-05-31 12:36:15 | `PLAN/S0316_embedded-mini-game/PHASE_04__game-screen.md` | `S0316 Phase 04` | Mark game screen phase complete with external Gradle blocker [branch: DEBUG-v010] |
+| 2026-05-31 12:36:15 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `S0316 Phase 04` | Mark Phase 04 complete [branch: DEBUG-v010] |
+| 2026-05-31 12:37:11 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/CalculatorWidgetProvider.kt` | `S0317` | Add calculator widget provider [branch: DEBUG-v010] |
+| 2026-05-31 12:37:55 | `app_v2/src/main/res/layout/widget_calculator.xml` | `S0317` | Add calculator widget layout [branch: DEBUG-v010] |
+| 2026-05-31 12:37:55 | `app_v2/src/main/res/xml/widget_calculator_info.xml` | `S0317` | Add calculator widget metadata [branch: DEBUG-v010] |
+| 2026-05-31 12:37:56 | `app_v2/src/main/AndroidManifest.xml` | `S0317` | Declare calculator widget [branch: DEBUG-v010] |
+| 2026-05-31 12:40:45 | `app_v2/src/main/res/layout/activity_calculator.xml` | `S0317` | Add calculator percent button portrait [branch: DEBUG-v010] |
+| 2026-05-31 12:40:45 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `S0317` | Add calculator percent button landscape [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0316 Phase 05` | Add embedded game Settings toggle [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0316 Phase 05` | Add landscape embedded game Settings toggle [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `S0316 Phase 05` | Add Settings highlight extra for game toggle [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `S0316 Phase 05` | Scroll and focus embedded game Settings toggle when requested [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0316 Phase 05` | Wire embedded game Settings toggle changes [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `S0316 Phase 05` | Observe embedded game Settings toggle state [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/core/game/GameLaunchIntents.kt` | `S0316 Phase 05` | Add embedded game launch intents [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainMiniGameMenuManager.kt` | `S0316 Phase 05` | Add main dropdown mini-game manager [branch: DEBUG-v010] |
+| 2026-05-31 12:40:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0316 Phase 05` | Delegate embedded game main dropdown entry [branch: DEBUG-v010] |
+| 2026-05-31 12:41:25 | `PLAN/S0316_embedded-mini-game/PHASE_05__main-menu-settings-entry.md` | `S0316 Phase 05` | Mark Settings and main menu phase complete [branch: DEBUG-v010] |
+| 2026-05-31 12:41:25 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `S0316 Phase 05` | Mark Phase 05 complete [branch: DEBUG-v010] |
+| 2026-05-31 12:42:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0317-build-fix` | Compose calculator and mini game menu handlers [branch: DEBUG-v010] |
+| 2026-05-31 12:44:15 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/GameLaunchWidgetProvider.kt` | `S0316 Phase 06` | Add embedded game launcher widget provider [branch: DEBUG-v010] |
+| 2026-05-31 12:44:15 | `app_v2/src/main/AndroidManifest.xml` | `S0316 Phase 06` | Register embedded game launcher widget receiver [branch: DEBUG-v010] |
+| 2026-05-31 12:44:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `S0316 Phase 06` | Refresh embedded game widget after toggle changes [branch: DEBUG-v010] |
+| 2026-05-31 12:44:38 | `PLAN/S0316_embedded-mini-game/PHASE_06__launcher-widget.md` | `S0316 Phase 06` | Mark launcher widget phase complete [branch: DEBUG-v010] |
+| 2026-05-31 12:44:38 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `S0316 Phase 06` | Mark Phase 06 complete [branch: DEBUG-v010] |
+| 2026-05-31 12:45:31 | `docs/FEATURES.md` | `S0316 Phase 07` | Document embedded mini-game feature [branch: DEBUG-v010] |
+| 2026-05-31 12:45:31 | `docs/FEATURES_RU.md` | `S0316 Phase 07` | Document embedded mini-game feature in Russian [branch: DEBUG-v010] |
+| 2026-05-31 12:45:31 | `docs/FEATURES_UK.md` | `S0316 Phase 07` | Document embedded mini-game feature in Ukrainian [branch: DEBUG-v010] |
+| 2026-05-31 12:47:44 | `docs/FEATURES.md` | `S0317` | Document embedded calculator feature in English feature catalog. [branch: DEBUG-v010] |
+| 2026-05-31 12:47:45 | `docs/FEATURES_RU.md` | `S0317` | Document embedded calculator feature in Russian feature catalog. [branch: DEBUG-v010] |
+| 2026-05-31 12:47:45 | `docs/FEATURES_UK.md` | `S0317` | Document embedded calculator feature in Ukrainian feature catalog. [branch: DEBUG-v010] |
+| 2026-05-31 12:47:45 | `PLAN/S0317_embedded-calculator/INDEX.md` | `S0317` | Start S0317 docs and catalog cleanup phase. [branch: DEBUG-v010] |
+| 2026-05-31 12:47:46 | `PLAN/S0317_embedded-calculator/PHASE_02__docs-catalog-cleanup.md` | `S0317` | Start S0317 docs and catalog cleanup phase step. [branch: DEBUG-v010] |
+| 2026-05-31 12:48:22 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameBoardGeneratorTest.kt` | `S0316 Phase 07` | Fix unreachable-board test fixture [branch: DEBUG-v010] |
+| 2026-05-31 12:48:22 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameRulesEngineTest.kt` | `S0316 Phase 07` | Fix enemy-order movement test fixture [branch: DEBUG-v010] |
+| 2026-05-31 12:48:27 | `PLAN/S0317_embedded-calculator/PHASE_02__docs-catalog-cleanup.md` | `S0317` | Mark S0317 feature documentation step complete. [branch: DEBUG-v010] |
+| 2026-05-31 12:48:27 | `dev/FUNCTIONALITY.log` | `S0317` | Record opt-in embedded calculator functionality. [branch: DEBUG-v010] |
+| 2026-05-31 12:48:27 | `dev/CATALOG/app_v2.jsonl` | `S0317` | Refresh app_v2 catalog for embedded calculator classes. [branch: DEBUG-v010] |
+| 2026-05-31 12:48:28 | `dev/CATALOG/app_v2.md` | `S0317` | Refresh app_v2 catalog report for embedded calculator classes. [branch: DEBUG-v010] |
+| 2026-05-31 12:49:37 | `PLAN/S0316_embedded-mini-game.md` | `S0316 Phase 07` | Record implementation completion and validation notes [branch: DEBUG-v010] |
+| 2026-05-31 12:49:37 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `S0316 Phase 07` | Mark validation phase complete [branch: DEBUG-v010] |
+| 2026-05-31 12:49:37 | `PLAN/S0316_embedded-mini-game/PHASE_07__validation-docs-catalog.md` | `S0316 Phase 07` | Record final validation passes [branch: DEBUG-v010] |
+| 2026-05-31 12:49:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0317-BNT` | Add temporary S0317 debug probe for calculator main menu launch. [branch: DEBUG-v010] |
+| 2026-05-31 12:50:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/CalculatorActivity.kt` | `S0317-BNT` | Add temporary S0317 debug probes for widget launch and disabled fallback. [branch: DEBUG-v010] |
+| 2026-05-31 12:51:19 | `PLAN/S0317_embedded-calculator.md` | `S0317` | Mark S0317 as implemented and awaiting device verification. [branch: DEBUG-v010] |
+| 2026-05-31 12:54:11 | `PLAN/S0317_embedded-calculator/INDEX.md` | `S0317` | Close S0317 tactical index as BlockNeedUserTest. [branch: DEBUG-v010] |
+| 2026-05-31 12:54:11 | `PLAN/S0317_embedded-calculator/PHASE_02__docs-catalog-cleanup.md` | `S0317` | Close S0317 docs catalog cleanup phase with final validation results. [branch: DEBUG-v010] |
+| 2026-05-31 13:12:27 | `docs/FEATURES.md` | `S0316 check/fix` | Align embedded mini-game flavor label with implemented scope [branch: DEBUG-v010] |
+| 2026-05-31 13:12:27 | `docs/FEATURES_RU.md` | `S0316 check/fix` | Align embedded mini-game Russian flavor label with implemented scope [branch: DEBUG-v010] |
+| 2026-05-31 13:12:27 | `docs/FEATURES_UK.md` | `S0316 check/fix` | Align embedded mini-game Ukrainian flavor label with implemented scope [branch: DEBUG-v010] |
+| 2026-05-31 13:14:13 | `PLAN/S0316_embedded-mini-game.md` | `spec-check` | Audit S0316 -> Verified; PASS/WARN/FAIL 18/0/0 [branch: DEBUG-v010] |
+| 2026-05-31 13:15:06 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 13/0/0; S0318 D-tag exercised [branch: DEBUG-v010] |
+| 2026-05-31 13:16:44 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-check` | Audit S0318 -> Verified; PASS/WARN/FAIL 14/0/0 [branch: DEBUG-v010] |
+| 2026-05-31 13:16:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-check` | Remove S0318 debug verification tag (Verified transition) [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameScoring.kt` | `S0316 check/fix` | Align game scoring constants with S0316 rules [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameModels.kt` | `S0316 check/fix` | Add shadow-crushed game event [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameRulesEngine.kt` | `S0316 check/fix` | Align wall push enemy collision and restart rules with S0316 [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt` | `S0316 check/fix` | Add game-over level restart flow [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameActivity.kt` | `S0316 check/fix` | Route game-over primary action to restart level [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/res/values/strings.xml` | `S0316 check/fix` | Add restart-level game string [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/res/values-ru/strings.xml` | `S0316 check/fix` | Add Russian restart-level game string [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/main/res/values-uk/strings.xml` | `S0316 check/fix` | Add Ukrainian restart-level game string [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameRulesEngineTest.kt` | `S0316 check/fix` | Cover S0316 scoring wall push and enemy collision rules [branch: DEBUG-v010] |
+| 2026-05-31 13:18:16 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/game/GameViewModelTest.kt` | `S0316 check/fix` | Cover game-over restart flow [branch: DEBUG-v010] |
+| 2026-05-31 13:19:56 | `PLAN/S0316_embedded-mini-game.md` | `spec-check` | Refresh S0316 audit after gameplay rule fixes; PASS/WARN/FAIL 23/0/0 [branch: DEBUG-v010] |
+| 2026-05-31 13:27:35 | `PLAN/S0316_embedded-mini-game.md` | `spec-test-device` | Verify S0316 settings portrait landscape and main menu launch on emulator-5554 [branch: DEBUG-v010] |
+| 2026-05-31 20:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `calculator-engine` | Add operation history and repeated equals support [branch: DEBUG-v010] |
+| 2026-05-31 20:56:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `calculator-input` | Add calculator menu copy paste round actions [branch: DEBUG-v010] |
+| 2026-05-31 20:56:52 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `calculator-tests` | Cover operation history repeated equals and round [branch: DEBUG-v010] |
+| 2026-05-31 20:57:35 | `app_v2/src/main/res/layout/activity_calculator.xml` | `calculator-layout` | Compact portrait calculator layout with history and menu [branch: DEBUG-v010] |
+| 2026-05-31 20:57:35 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `calculator-layout-land` | Compact landscape calculator layout with history and menu [branch: DEBUG-v010] |
+| 2026-05-31 20:57:35 | `app_v2/src/main/res/values/dimens.xml` | `calculator-resources` | Add calculator sizing dimensions [branch: DEBUG-v010] |
+| 2026-05-31 20:57:35 | `app_v2/src/main/res/values/themes.xml` | `calculator-styles` | Add calculator button styles [branch: DEBUG-v010] |
+| 2026-05-31 20:57:36 | `app_v2/src/main/res/values/strings.xml` | `calculator-strings` | Add calculator menu command strings [branch: DEBUG-v010] |
+| 2026-05-31 20:57:36 | `app_v2/src/main/res/values-ru/strings.xml` | `calculator-strings-ru` | Add calculator menu command strings RU [branch: DEBUG-v010] |
+| 2026-05-31 20:57:37 | `app_v2/src/main/res/values-uk/strings.xml` | `calculator-strings-uk` | Add calculator menu command strings UK [branch: DEBUG-v010] |
+| 2026-05-31 20:57:38 | `PLAN/S0317_embedded-calculator.md` | `spec-update` | Capture calculator UI feedback requirements [branch: DEBUG-v010] |
+| 2026-05-31 20:59:15 | `app_v2/build.gradle.kts` | `build-version` | Auto-version debug build after calculator feedback [branch: DEBUG-v010] |
+| 2026-05-31 20:59:34 | `PLAN/S0317_embedded-calculator/INDEX.md` | `spec-index` | Record S0317 calculator feedback patch [branch: DEBUG-v010] |
+| 2026-05-31 21:00:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `calculator-engine` | Clear stale history when starting new calculation [branch: DEBUG-v010] |
+| 2026-05-31 21:01:35 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `calculator-tests` | Cover clearing history after equals [branch: DEBUG-v010] |
+| 2026-05-31 21:02:59 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Refresh S0317 BlockNeedUserTest catalog record [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameRulesEngine.kt` | `game-rules` | Make purple enemies wander randomly [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameBoardGenerator.kt` | `game-generator` | Randomize board starts and remove boundary wall cells [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameUiState.kt` | `game-ui-state` | Track defeat connection without pause state [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt` | `game-viewmodel` | Use fresh seeds and remove pause handling [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameBoardRenderMapper.kt` | `game-render-mapper` | Map defeat connection for board rendering [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameBoardView.kt` | `game-board-view` | Draw thick border and defeat connection highlight [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameActivity.kt` | `game-activity` | Add back and help actions and remove pause button [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameHelpActivity.kt` | `game-help-activity` | Add game legend and rules screen [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/AndroidManifest.xml` | `game-help-manifest` | Register game help activity [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/res/layout/activity_game.xml` | `game-layout-portrait` | Make board larger with back help and triangle controls [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/res/layout-land/activity_game.xml` | `game-layout-landscape` | Make landscape board larger with side controls [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/res/layout/activity_game_help.xml` | `game-help-layout-portrait` | Add portrait game help screen [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/res/layout-land/activity_game_help.xml` | `game-help-layout-landscape` | Add landscape game help screen [branch: DEBUG-v010] |
+| 2026-05-31 21:14:20 | `app_v2/src/main/res/layout/view_game_help_legend.xml` | `game-help-legend` | Add reusable legend rows [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/ic_game_triangle_up.xml` | `game-direction-icons` | Add up triangle control icon [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/ic_game_triangle_down.xml` | `game-direction-icons` | Add down triangle control icon [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/ic_game_triangle_left.xml` | `game-direction-icons` | Add left triangle control icon [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/ic_game_triangle_right.xml` | `game-direction-icons` | Add right triangle control icon [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/bg_game_ball_player.xml` | `game-help-colors` | Add player legend marker [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/bg_game_ball_kryvavitsa.xml` | `game-help-colors` | Add Kryvavitsa legend marker [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/bg_game_ball_shadow.xml` | `game-help-colors` | Add purple enemy legend marker [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/bg_game_ball_exit.xml` | `game-help-colors` | Add exit legend marker [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/drawable/bg_game_ball_wall.xml` | `game-help-colors` | Add wall legend marker [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/values/strings.xml` | `game-strings-en` | Add game help and defeat strings [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/values-ru/strings.xml` | `game-strings-ru` | Add game help and defeat strings RU [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/main/res/values-uk/strings.xml` | `game-strings-uk` | Add game help and defeat strings UK [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameRulesEngineTest.kt` | `game-rules-tests` | Cover random purple enemy movement [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameBoardGeneratorTest.kt` | `game-generator-tests` | Cover no boundary wall cells [branch: DEBUG-v010] |
+| 2026-05-31 21:14:21 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/game/GameViewModelTest.kt` | `game-viewmodel-tests` | Cover fresh seed new games [branch: DEBUG-v010] |
+| 2026-05-31 21:17:21 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/game/GameViewModelTest.kt` | `game-viewmodel-tests` | Make move persistence test accept random starts [branch: DEBUG-v010] |
+| 2026-05-31 21:18:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `calculator-engine` | Add calculator history log and context-aware percent [branch: DEBUG-v010] |
+| 2026-05-31 21:18:08 | `docs/FEATURES.md` | `features-docs-en` | Document mini-game rules legend screen [branch: DEBUG-v010] |
+| 2026-05-31 21:18:08 | `docs/FEATURES_RU.md` | `features-docs-ru` | Document mini-game rules legend screen RU [branch: DEBUG-v010] |
+| 2026-05-31 21:18:08 | `docs/FEATURES_UK.md` | `features-docs-uk` | Document mini-game rules legend screen UK [branch: DEBUG-v010] |
+| 2026-05-31 21:18:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorHistoryFileWriter.kt` | `calculator-history-downloads` | Add calculator history Downloads writer [branch: DEBUG-v010] |
+| 2026-05-31 21:19:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `calculator-menu` | Add share result save history and clear history menu actions [branch: DEBUG-v010] |
+| 2026-05-31 21:20:30 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `calculator-tests` | Cover calculator history and percent behavior [branch: DEBUG-v010] |
+| 2026-05-31 21:21:13 | `app_v2/src/main/res/values/strings.xml` | `calculator-strings` | Add calculator menu history strings [branch: DEBUG-v010] |
+| 2026-05-31 21:21:14 | `app_v2/src/main/res/values-ru/strings.xml` | `calculator-strings-ru` | Add Russian calculator menu history strings [branch: DEBUG-v010] |
+| 2026-05-31 21:21:15 | `app_v2/src/main/res/values-uk/strings.xml` | `calculator-strings-uk` | Add Ukrainian calculator menu history strings [branch: DEBUG-v010] |
+| 2026-05-31 21:21:15 | `app_v2/src/main/res/values/colors.xml` | `calculator-style` | Add calculator clear button light color [branch: DEBUG-v010] |
+| 2026-05-31 21:21:16 | `app_v2/src/main/res/values-night/colors.xml` | `calculator-style-night` | Add calculator clear button dark color [branch: DEBUG-v010] |
+| 2026-05-31 21:21:16 | `app_v2/src/main/res/values/themes.xml` | `calculator-style` | Add calculator clear button style [branch: DEBUG-v010] |
+| 2026-05-31 21:21:17 | `app_v2/src/main/res/layout/activity_calculator.xml` | `calculator-layout` | Apply calculator clear button style in portrait [branch: DEBUG-v010] |
+| 2026-05-31 21:21:17 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `calculator-layout-land` | Apply calculator clear button style in landscape [branch: DEBUG-v010] |
+| 2026-05-31 21:21:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameActivity.kt` | `game-activity` | Show placeholder messages for non-ready game states [branch: DEBUG-v010] |
+| 2026-05-31 21:21:39 | `app_v2/src/main/res/values/strings.xml` | `game-strings-en` | Remove obsolete game pause strings [branch: DEBUG-v010] |
+| 2026-05-31 21:21:39 | `app_v2/src/main/res/values-ru/strings.xml` | `game-strings-ru` | Remove obsolete game pause strings RU [branch: DEBUG-v010] |
+| 2026-05-31 21:21:39 | `app_v2/src/main/res/values-uk/strings.xml` | `game-strings-uk` | Remove obsolete game pause strings UK [branch: DEBUG-v010] |
+| 2026-05-31 21:22:41 | `PLAN/S0317_embedded-calculator.md` | `spec` | Document S0317 calculator history and share feedback [branch: DEBUG-v010] |
+| 2026-05-31 21:22:41 | `PLAN/S0317_embedded-calculator/INDEX.md` | `spec-index` | Record S0317 calculator second feedback patch [branch: DEBUG-v010] |
+| 2026-05-31 21:23:33 | `docs/FEATURES.md` | `features-docs` | Document calculator result sharing and history actions [branch: DEBUG-v010] |
+| 2026-05-31 21:23:33 | `docs/FEATURES_RU.md` | `features-docs-ru` | Document Russian calculator result sharing and history actions [branch: DEBUG-v010] |
+| 2026-05-31 21:23:34 | `docs/FEATURES_UK.md` | `features-docs-uk` | Document Ukrainian calculator result sharing and history actions [branch: DEBUG-v010] |
+| 2026-05-31 21:23:34 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Refresh S0317 BlockNeedUserTest catalog record [branch: DEBUG-v010] |
+| 2026-05-31 21:25:37 | `app_v2/src/main/res/drawable/bg_game_ball_exit.xml` | `game-help-colors` | Make exit legend marker square [branch: DEBUG-v010] |
+| 2026-05-31 21:25:37 | `app_v2/src/main/res/drawable/bg_game_ball_wall.xml` | `game-help-colors` | Make wall legend marker square [branch: DEBUG-v010] |
+| 2026-05-31 21:35:37 | `PLAN/S0320_camera-ocr-translate.md` | `spec/S0320` | Add strategic spec S0320 for camera OCR translation flow [branch: DEBUG-v010] |
+| 2026-05-31 21:58:55 | `PLAN/S0320_camera-ocr-translate.md` | `spec-update/S0320` | Refine strategic spec S0320 owner inputs and camera OCR translation decisions [branch: DEBUG-v010] |
+| 2026-05-31 22:24:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `app_v2 settings` | Move Calculator + Embedded game toggles from General tab 'Other functionality' group into Playback tab 'Other features' group (portrait+landscape); delete source group; retarget calculator/game deep-links and section reset to Playback tab [branch: DEBUG-v010] |
+| 2026-05-31 22:40:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `calculator-history-panel` | Render scrollable calculator history panel [branch: DEBUG-v010] |
+| 2026-05-31 22:41:21 | `app_v2/src/main/res/layout/activity_calculator.xml` | `calculator-layout` | Make portrait calculator history panel scrollable [branch: DEBUG-v010] |
+| 2026-05-31 22:41:22 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `calculator-layout-land` | Make landscape calculator history panel scrollable [branch: DEBUG-v010] |
+| 2026-05-31 22:41:22 | `app_v2/src/main/res/values/dimens.xml` | `calculator-dimens` | Reduce calculator history text size [branch: DEBUG-v010] |
+| 2026-05-31 22:41:37 | `PLAN/S0317_embedded-calculator.md` | `spec` | Document scrollable calculator history panel [branch: DEBUG-v010] |
+| 2026-05-31 22:41:37 | `PLAN/S0317_embedded-calculator/INDEX.md` | `spec-index` | Record scrollable calculator history patch [branch: DEBUG-v010] |
+| 2026-05-31 22:42:12 | `app_v2/src/main/res/layout/activity_calculator.xml` | `calculator-layout` | Fix portrait calculator history scrollbar attribute [branch: DEBUG-v010] |
+| 2026-05-31 22:42:12 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `calculator-layout-land` | Fix landscape calculator history scrollbar attribute [branch: DEBUG-v010] |
+| 2026-05-31 22:43:25 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Refresh S0317 BlockNeedUserTest catalog record after scrollable history patch [branch: DEBUG-v010] |
+| 2026-05-31 22:47:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `calculator-paste-parser` | Parse noisy pasted calculator expressions [branch: DEBUG-v010] |
+| 2026-05-31 22:48:42 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `calculator-tests` | Cover noisy pasted calculator expressions [branch: DEBUG-v010] |
+| 2026-05-31 22:50:09 | `PLAN/S0317_embedded-calculator.md` | `S0317-spec` | Document noisy paste parsing for calculator [branch: DEBUG-v010] |
+| 2026-05-31 22:50:09 | `PLAN/S0317_embedded-calculator/INDEX.md` | `S0317-plan` | Record noisy paste parsing feedback patch [branch: DEBUG-v010] |
+| 2026-05-31 22:50:10 | `PLAN/spec-catalog.jsonl` | `S0317-spec-catalog` | Refresh S0317 after noisy paste parsing update [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameModels.kt` | `game-models` | Align game events and block reasons with reference implementation [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameBoardGenerator.kt` | `game-generator` | Port reference board generation density and placement rules [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameRulesEngine.kt` | `game-rules` | Port reference movement blocking and enemy behavior rules [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt` | `game-viewmodel` | Use reference board size and level shadow count [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameRulesEngineTest.kt` | `game-rules-tests` | Cover reference movement and blocking rules [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameBoardGeneratorTest.kt` | `game-generator-tests` | Cover reference wall density and shadow count [branch: DEBUG-v010] |
+| 2026-05-31 22:50:44 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/game/GameViewModelTest.kt` | `game-viewmodel-tests` | Cover reference default board configuration [branch: DEBUG-v010] |
+| 2026-05-31 22:51:37 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Register S0321 text editor calculator integration strategic spec [branch: DEBUG-v010] |
+| 2026-05-31 22:53:24 | `PLAN/S0321_text-editor-calculator-integration.md` | `S0321` | Add strategic spec for text editor calculator integration [branch: DEBUG-v010] |
+| 2026-05-31 23:02:17 | `PLAN/S0321_text-editor-calculator-integration.md` | `spec-update` | Resolve S0321 owner gate and approve strategic spec [branch: DEBUG-v010] |
+| 2026-05-31 23:09:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `CameraOcrTranslateActivity` | Implement S0320 Camera OCR Translation activity base class abstract methods setupViews and observeData [branch: DEBUG-v010] |
+| 2026-05-31 23:09:33 | `PLAN/S0321_text-editor-calculator-integration/INDEX.md` | `spec-tech` | Create S0321 tactical plan [branch: DEBUG-v010] |
+| 2026-05-31 23:09:34 | `PLAN/S0321_text-editor-calculator-integration/PHASE_01__calculator-result-contract.md` | `spec-tech` | Create S0321 phase 01 calculator result contract [branch: DEBUG-v010] |
+| 2026-05-31 23:09:34 | `PLAN/S0321_text-editor-calculator-integration/PHASE_02__editor-overflow-entry.md` | `spec-tech` | Create S0321 phase 02 editor overflow entry [branch: DEBUG-v010] |
+| 2026-05-31 23:09:35 | `PLAN/S0321_text-editor-calculator-integration/PHASE_03__player-round-trip.md` | `spec-tech` | Create S0321 phase 03 player round trip [branch: DEBUG-v010] |
+| 2026-05-31 23:09:35 | `PLAN/S0321_text-editor-calculator-integration/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Create S0321 phase 04 docs catalog cleanup [branch: DEBUG-v010] |
+| 2026-05-31 23:09:36 | `PLAN/S0321_text-editor-calculator-integration.md` | `spec-tech` | Status to Tactical for S0321 [branch: DEBUG-v010] |
+| 2026-05-31 23:10:08 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `fragment_settings_playback` | Add Camera OCR Translation settings layout to landscape configuration for compilation validation [branch: DEBUG-v010] |
+| 2026-05-31 23:10:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `S0321 phase 01.1` | Expose calculator input parseability [branch: DEBUG-v010] |
+| 2026-05-31 23:11:22 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `S0321 phase 01.1` | Cover calculator input parseability [branch: DEBUG-v010] |
+| 2026-05-31 23:12:05 | `PLAN/S0321_text-editor-calculator-integration/PHASE_01__calculator-result-contract.md` | `S0321 phase 01.1` | Mark calculator parseability step done [branch: DEBUG-v010] |
+| 2026-05-31 23:12:05 | `PLAN/S0321_text-editor-calculator-integration.md` | `spec-dev` | Status to In Progress for S0321 [branch: DEBUG-v010] |
+| 2026-05-31 23:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `S0321 step 01.1` | Expose calculator input parseability for editor integration [branch: DEBUG-v010] |
+| 2026-05-31 23:14:46 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `S0321 step 01.1` | Cover calculator input parseability for editor integration [branch: DEBUG-v010] |
+| 2026-05-31 23:15:33 | `PLAN/S0321_text-editor-calculator-integration/PHASE_01__calculator-result-contract.md` | `S0321 phase 01` | Record calculator parseability verification [branch: DEBUG-v010] |
+| 2026-05-31 23:17:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `S0321 step 01.2` | Add calculator initial input and returnable result API [branch: DEBUG-v010] |
+| 2026-05-31 23:18:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/CalculatorActivity.kt` | `S0321 step 01.3` | Return calculator result through Activity close paths [branch: DEBUG-v010] |
+| 2026-05-31 23:19:00 | `PLAN/S0321_text-editor-calculator-integration/PHASE_01__calculator-result-contract.md` | `S0321 phase 01` | Record calculator result contract implementation [branch: DEBUG-v010] |
+| 2026-05-31 23:25:51 | `app_v2/src/main/res/layout/player_text_viewer_container_content.xml` | `S0321 step 02.1` | Add text editor calculator overflow button in portrait [branch: DEBUG-v010] |
+| 2026-05-31 23:25:52 | `app_v2/src/main/res/layout-land/player_text_viewer_container_content.xml` | `S0321 step 02.1` | Add text editor calculator overflow button in landscape [branch: DEBUG-v010] |
+| 2026-05-31 23:25:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `S0321 step 02.2` | Expose text editor overflow button through safe views [branch: DEBUG-v010] |
+| 2026-05-31 23:26:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/editor/actions/EditorActionPanel.kt` | `S0321 step 02.3` | Extend editor action contract for calculator overflow [branch: DEBUG-v010] |
+| 2026-05-31 23:27:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt` | `S0294` | Implement gmsOnlyMode to bypass browser-auth state for global surfaces [branch: DEBUG-v010] |
+| 2026-05-31 23:27:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `S0294` | Expose setGmsOnlyMode to coordinator delegation [branch: DEBUG-v010] |
+| 2026-05-31 23:27:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `S0294` | Lock Google Drive client to GMS-only mode during Backup/Restore screen lifetime [branch: DEBUG-v010] |
+| 2026-05-31 23:27:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/editor/actions/EditorActionPanelBinder.kt` | `S0321 step 02.3` | Bind calculator overflow command to editor action panel [branch: DEBUG-v010] |
+| 2026-05-31 23:28:47 | `PLAN/S0321_text-editor-calculator-integration/PHASE_02__editor-overflow-entry.md` | `S0321 phase 02` | Record editor overflow entry implementation [branch: DEBUG-v010] |
+| 2026-05-31 23:33:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextEditorActionPanelCallbacks.kt` | `S0321 step 03.1` | Pass selected text into editor calculator launch [branch: DEBUG-v010] |
+| 2026-05-31 23:33:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `S0321 step 03.2` | Insert returned calculator result into text editor [branch: DEBUG-v010] |
+| 2026-05-31 23:34:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextEditorCalculatorBridge.kt` | `S0321 step 03.3` | Bridge text editor calculator Activity result [branch: DEBUG-v010] |
+| 2026-05-31 23:35:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0321 step 03.3` | Register text editor calculator result launcher [branch: DEBUG-v010] |
+| 2026-05-31 23:36:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `S0321 step 03.3` | Delegate text editor calculator launch from player viewer [branch: DEBUG-v010] |
+| 2026-05-31 23:36:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0321 step 03.3` | Initialize text editor calculator bridge [branch: DEBUG-v010] |
+| 2026-05-31 23:37:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0321 step 03.3` | No-op calculator launch for standalone text viewer [branch: DEBUG-v010] |
+| 2026-05-31 23:38:31 | `PLAN/S0321_text-editor-calculator-integration/PHASE_03__player-round-trip.md` | `S0321 phase 03` | Record player calculator round-trip implementation [branch: DEBUG-v010] |
+| 2026-05-31 23:48:33 | `docs/FEATURES.md` | `S0321 docs` | Document text editor calculator round-trip in English feature inventory [branch: DEBUG-v010] |
+| 2026-05-31 23:48:33 | `docs/FEATURES_RU.md` | `S0321 docs` | Document text editor calculator round-trip in Russian feature inventory [branch: DEBUG-v010] |
+| 2026-05-31 23:48:34 | `docs/FEATURES_UK.md` | `S0321 docs` | Document text editor calculator round-trip in Ukrainian feature inventory [branch: DEBUG-v010] |
+| 2026-05-31 23:48:34 | `PLAN/S0321_text-editor-calculator-integration.md` | `S0321 closure` | Mark strategic spec implemented [branch: DEBUG-v010] |
+| 2026-05-31 23:48:35 | `PLAN/S0321_text-editor-calculator-integration/INDEX.md` | `S0321 closure` | Mark tactical plan done [branch: DEBUG-v010] |
+| 2026-05-31 23:48:36 | `PLAN/S0321_text-editor-calculator-integration/PHASE_01__calculator-result-contract.md` | `S0321 closure` | Mark calculator result contract phase done [branch: DEBUG-v010] |
+| 2026-05-31 23:48:36 | `PLAN/S0321_text-editor-calculator-integration/PHASE_02__editor-overflow-entry.md` | `S0321 closure` | Mark editor overflow entry phase done [branch: DEBUG-v010] |
+| 2026-05-31 23:48:37 | `PLAN/S0321_text-editor-calculator-integration/PHASE_03__player-round-trip.md` | `S0321 closure` | Mark player round-trip phase done [branch: DEBUG-v010] |
+| 2026-05-31 23:48:37 | `PLAN/S0321_text-editor-calculator-integration/PHASE_04__docs-catalog-cleanup.md` | `S0321 closure` | Mark docs catalog cleanup phase done [branch: DEBUG-v010] |
+| 2026-05-31 23:48:38 | `dev/FUNCTIONALITY.log` | `S0321 functionality-log` | Record text editor calculator user-visible capability [branch: DEBUG-v010] |
+| 2026-05-31 23:49:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `S0321 spec-check fix` | Trim comments to keep player viewer factory within phase line budget [branch: DEBUG-v010] |
+| 2026-05-31 23:51:36 | `PLAN/S0321_text-editor-calculator-integration.md` | `spec-check` | Audit S0321 implementation to Verified [branch: DEBUG-v010] |
+| 2026-05-31 23:51:37 | `PLAN/S0321_text-editor-calculator-integration/INDEX.md` | `spec-check` | Record S0321 spec-check completion gate [branch: DEBUG-v010] |
+| 2026-05-31 23:51:37 | `PLAN/spec-catalog.jsonl` | `spec-check` | Close S0321 as Verified in spec catalog [branch: DEBUG-v010] |
+| 2026-06-01 00:41:22 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt` | `S0294` | Return previous Google Drive GMS-only mode for scoped backup restore routing [branch: DEBUG-v010] |
+| 2026-06-01 00:42:36 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `S0294` | Expose previous Google Drive GMS-only mode for scoped callers [branch: DEBUG-v010] |
+| 2026-06-01 00:43:29 | `app_v2/src/main/res/values/strings.xml` | `string/app_name` | Align launcher title with Android TV banner title [branch: DEBUG-v010] |
+| 2026-06-01 00:43:30 | `app_v2/src/main/res/values-ru/strings.xml` | `string/app_name` | Align Russian launcher title with Android TV banner title [branch: DEBUG-v010] |
+| 2026-06-01 00:43:32 | `app_v2/src/main/res/values-uk/strings.xml` | `string/app_name` | Align Ukrainian launcher title with Android TV banner title [branch: DEBUG-v010] |
+| 2026-06-01 00:43:33 | `app_v2/src/main/res/drawable-mdpi/tv_banner.png` | `tv_banner` | Replace mdpi Android TV banner with compliant title artwork [branch: DEBUG-v010] |
+| 2026-06-01 00:43:33 | `app_v2/src/main/res/drawable-hdpi/tv_banner.png` | `tv_banner` | Replace hdpi Android TV banner with compliant title artwork [branch: DEBUG-v010] |
+| 2026-06-01 00:43:34 | `app_v2/src/main/res/drawable-xhdpi/tv_banner.png` | `tv_banner` | Replace xhdpi Android TV banner with compliant 320x180 title artwork [branch: DEBUG-v010] |
+| 2026-06-01 00:43:35 | `app_v2/src/main/res/drawable-xxhdpi/tv_banner.png` | `tv_banner` | Replace xxhdpi Android TV banner with compliant title artwork [branch: DEBUG-v010] |
+| 2026-06-01 00:43:35 | `app_v2/src/main/res/drawable-xxxhdpi/tv_banner.png` | `tv_banner` | Replace xxxhdpi Android TV banner with compliant title artwork [branch: DEBUG-v010] |
+| 2026-06-01 00:43:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `S0294` | Scope Google Drive GMS-only mode to backup restore operations [branch: DEBUG-v010] |
+| 2026-06-01 00:45:20 | `PLAN/S0294_google-drive-browser-auth-quest3.md` | `spec-check` | Refresh S0294 audit after scoped GMS-only fix [branch: DEBUG-v010] |
+| 2026-06-01 00:48:06 | `app_v2/src/main/res/values/strings.xml` | `string/app_name` | Align launcher title with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:07 | `app_v2/src/main/res/values-ru/strings.xml` | `string/app_name` | Align Russian launcher title with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:08 | `app_v2/src/main/res/values-uk/strings.xml` | `string/app_name` | Align Ukrainian launcher title with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:09 | `app_v2/src/main/res/drawable-mdpi/tv_banner.png` | `tv_banner` | Update mdpi Android TV banner with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:10 | `app_v2/src/main/res/drawable-hdpi/tv_banner.png` | `tv_banner` | Update hdpi Android TV banner with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:10 | `app_v2/src/main/res/drawable-xhdpi/tv_banner.png` | `tv_banner` | Update xhdpi Android TV banner with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:11 | `app_v2/src/main/res/drawable-xxhdpi/tv_banner.png` | `tv_banner` | Update xxhdpi Android TV banner with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:12 | `app_v2/src/main/res/drawable-xxxhdpi/tv_banner.png` | `tv_banner` | Update xxxhdpi Android TV banner with full Play listing title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:49 | `fastlane/metadata/android/en-US/title.txt` | `fastlane title en-US` | Align Play metadata title with Android TV banner title [branch: DEBUG-v010] |
+| 2026-06-01 00:48:49 | `fastlane/metadata/android/ru-RU/title.txt` | `fastlane title ru-RU` | Align Russian Play metadata title with listing source [branch: DEBUG-v010] |
+| 2026-06-01 00:48:50 | `fastlane/metadata/android/uk-UA/title.txt` | `fastlane title uk-UA` | Align Ukrainian Play metadata title with listing source [branch: DEBUG-v010] |
+| 2026-06-01 00:49:25 | `store_assets/icon_512.png` | `Play icon 512` | Add canonical Play Console 512 icon asset [branch: DEBUG-v010] |
+| 2026-06-01 00:58:24 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:25 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:25 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:26 | `README.md` | `README` | README current release block for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:59:04 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.057 [branch: DEBUG-v010] |

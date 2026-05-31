@@ -87,6 +87,25 @@ class BackupRestoreViewModel @Inject constructor(
     /** Pending action after auth completes: "backup" or "restore" */
     private var pendingAction: String? = null
 
+    // Backup/restore stays on the identity-domain backend; S0294 browser sessions are resource-scoped.
+    private fun <T> withGoogleDriveGmsOnly(block: () -> T): T {
+        val previousMode = googleDriveClient.setGmsOnlyMode(true)
+        return try {
+            block()
+        } finally {
+            googleDriveClient.setGmsOnlyMode(previousMode)
+        }
+    }
+
+    private suspend fun <T> withGoogleDriveGmsOnlySuspending(block: suspend () -> T): T {
+        val previousMode = googleDriveClient.setGmsOnlyMode(true)
+        return try {
+            block()
+        } finally {
+            googleDriveClient.setGmsOnlyMode(previousMode)
+        }
+    }
+
     /**
      * S0200 Phase 04b: launch Credential Manager sign-in via the identity domain.
      * On success, continues any [pendingAction] (backup / restore). On cancellation or failure,
@@ -127,9 +146,13 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
-    fun isAuthenticated(): Boolean = googleDriveClient.isAuthenticated()
+    fun isAuthenticated(): Boolean = withGoogleDriveGmsOnly {
+        googleDriveClient.isAuthenticated()
+    }
 
-    fun getAccountEmail(): String? = googleDriveClient.getAccountEmail()
+    fun getAccountEmail(): String? = withGoogleDriveGmsOnly {
+        googleDriveClient.getAccountEmail()
+    }
 
     /**
      * Called when user taps Backup button.
@@ -137,12 +160,14 @@ class BackupRestoreViewModel @Inject constructor(
      */
     fun startBackup() {
         viewModelScope.launch {
-            if (googleDriveClient.isAuthenticated()) {
+            if (withGoogleDriveGmsOnly { googleDriveClient.isAuthenticated() }) {
                 performBackup()
             } else {
                 // Try silent auth first
                 _uiState.value = BackupRestoreUiState.Authenticating
-                val restored = googleDriveClient.tryRestoreFromStorage()
+                val restored = withGoogleDriveGmsOnlySuspending {
+                    googleDriveClient.tryRestoreFromStorage()
+                }
                 if (restored) {
                     performBackup()
                 } else {
@@ -159,11 +184,13 @@ class BackupRestoreViewModel @Inject constructor(
      */
     fun startRestore() {
         viewModelScope.launch {
-            if (googleDriveClient.isAuthenticated()) {
+            if (withGoogleDriveGmsOnly { googleDriveClient.isAuthenticated() }) {
                 fetchBackupInfo()
             } else {
                 _uiState.value = BackupRestoreUiState.Authenticating
-                val restored = googleDriveClient.tryRestoreFromStorage()
+                val restored = withGoogleDriveGmsOnlySuspending {
+                    googleDriveClient.tryRestoreFromStorage()
+                }
                 if (restored) {
                     fetchBackupInfo()
                 } else {
@@ -182,7 +209,7 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     /** Whether we need the caller to launch sign-in intent */
-    fun needsSignIn(): Boolean = pendingAction != null && !googleDriveClient.isAuthenticated()
+    fun needsSignIn(): Boolean = pendingAction != null && !isAuthenticated()
 
     fun resetState() {
         _uiState.value = BackupRestoreUiState.Idle
@@ -202,7 +229,9 @@ class BackupRestoreViewModel @Inject constructor(
 
     private suspend fun performBackup() {
         _uiState.value = BackupRestoreUiState.BackingUp
-        val result = backupUseCase()
+        val result = withGoogleDriveGmsOnlySuspending {
+            backupUseCase()
+        }
         result.onSuccess { backupResult ->
             _uiState.value = BackupRestoreUiState.BackupSuccess(
                 backupResult.resourceCount,
@@ -219,7 +248,9 @@ class BackupRestoreViewModel @Inject constructor(
 
     private suspend fun fetchBackupInfo() {
         _uiState.value = BackupRestoreUiState.FetchingInfo
-        val result = restoreUseCase.getBackupInfo()
+        val result = withGoogleDriveGmsOnlySuspending {
+            restoreUseCase.getBackupInfo()
+        }
         result.onSuccess { info ->
             _uiState.value = BackupRestoreUiState.BackupInfoReady(info)
         }.onFailure { error ->
@@ -232,7 +263,9 @@ class BackupRestoreViewModel @Inject constructor(
 
     private suspend fun performRestore() {
         _uiState.value = BackupRestoreUiState.Restoring
-        val result = restoreUseCase()
+        val result = withGoogleDriveGmsOnlySuspending {
+            restoreUseCase()
+        }
         result.onSuccess { restoreResult ->
             _uiState.value = BackupRestoreUiState.RestoreSuccess(restoreResult)
         }.onFailure { error ->

@@ -39,6 +39,7 @@ data class BackupSettings(
     val language: String = "en",
     val preventSleep: Boolean = true,
     val showSmallControls: Boolean = false,
+    val embeddedGameEnabled: Boolean = false,
     val networkParallelism: Int = 4,
     val cacheSizeMb: Int = 2048,
     val isCacheSizeUserModified: Boolean = false,

@@ -20,6 +20,7 @@
     bp   - Build and Push All
     ss   - Show unresolved specs (alias: sca-specs)
     bf   - Show last build failure block
+    bfd  - Build failure digest (structured JSON + verdict)
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
 .EXAMPLE
@@ -65,6 +66,7 @@ $scripts = @{
     'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
     'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
     'bf'        = @{ Path = 'scripts\builders\get-last-build-failure.ps1'; Args = @{} }
+    'bfd'       = @{ Path = 'scripts\builders\build-failure-digest.ps1'; Args = @{} }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
 }
@@ -91,6 +93,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  bp   - Build and Push All" -ForegroundColor Cyan
     Write-Host "  ss   - Show unresolved specs (alias: sca-specs)" -ForegroundColor Cyan
     Write-Host "  bf   - Show last build failure block" -ForegroundColor Cyan
+    Write-Host "  bfd  - Build failure digest (structured JSON + verdict)" -ForegroundColor Cyan
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host ""

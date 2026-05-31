@@ -5,11 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
-/**
- * Factory for the lazily-initialized viewer and player managers in PlayerActivity.
- * Extracted from PlayerActivity to reduce file size (~165 lines).
- * Each create*() method corresponds to a former private factory method in PlayerActivity.
- */
+
 internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
     fun createVideoPlayerManager(): VideoPlayerManager {
@@ -158,9 +154,11 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                     activity.dialogHelper.showEncodingDialog()
                 }
 
+                override fun launchEditorCalculator(initialInput: String) {
+                    activity.textEditorCalculatorBridge.launch(initialInput)
+                }
+
                 override fun finishActivity() {
-                    // S0189: Save & Close returns to Browse after the note is committed.
-                    // setResult(OK) signals BrowseActivity to refresh the file list.
                     activity.setResult(android.app.Activity.RESULT_OK)
                     activity.finish()
                 }
@@ -171,21 +169,11 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
         )
     }
 
-    /**
-     * Creates the flavor-specific Office document viewer provider (S0301 Phase 02).
-     * Market flavors delegate to an external app; noLegal plugs an embedded viewer in
-     * Phase 03. The concrete [OfficeDocumentViewerProviderFactory] is resolved per flavor
-     * source set, so no `BuildConfig.IS_*` checks leak into shared code.
-     */
+    /** Creates the flavor-specific Office document viewer provider (S0301 Phase 02). */
     fun createOfficeDocumentViewerProvider(): com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProvider =
         com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProviderFactory().create()
 
-    /**
-     * Creates the flavor-specific embedded Office viewer host (S0301 Phase 03).
-     * Market flavors get a no-op host (external handoff stays the only path); noLegal gets
-     * the engine-backed, read-only in-app viewer. Resolved per flavor source set, so no
-     * `BuildConfig.IS_*` checks leak into shared code.
-     */
+    /** Creates the flavor-specific embedded Office viewer host (S0301 Phase 03). */
     fun createOfficeDocumentViewerHost(): com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost =
         com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProviderFactory().createViewerHost(
             binding = activity.activityBinding,

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/widget_game_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_tiny">
+
+    <ImageView
+        android:id="@+id/widget_game_icon"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:contentDescription="@string/game_widget_label"
+        android:src="@drawable/ic_game_kryvavitsa"
+        app:tint="@color/white" />
+
+    <TextView
+        android:id="@+id/widget_game_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_tiny"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="@string/game_widget_label"
+        android:textColor="@color/white"
+        android:textSize="@dimen/item_detail_text_size_small"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/widget_game_disabled_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_tiny"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="@string/game_widget_disabled"
+        android:textColor="@color/white_50_alpha"
+        android:textSize="@dimen/text_size_tiny"
+        android:visibility="gone" />
+
+</LinearLayout>

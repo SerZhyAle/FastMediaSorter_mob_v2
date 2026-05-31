@@ -345,6 +345,18 @@
                 app:tint="@color/white" />
 
             <ImageButton
+                android:id="@+id/btnEditorMore"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:clickable="true"
+                android:visibility="gone"
+                android:contentDescription="@string/more_actions"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/white" />
+
+            <ImageButton
                 android:id="@+id/btnEditorCancel"
                 android:layout_width="36dp"
                 android:layout_height="36dp"

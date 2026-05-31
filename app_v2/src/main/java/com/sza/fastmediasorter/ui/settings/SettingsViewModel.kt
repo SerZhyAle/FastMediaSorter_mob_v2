@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
+import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -175,6 +176,11 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun updateEmbeddedGameEnabled(enabled: Boolean) {
+        updateSettings(settings.value.copy(embeddedGameEnabled = enabled))
+        GameLaunchWidgetProvider.updateAll(context, enabled)
+    }
+
     fun resetGeneralSection() {
         val defaults = AppSettings()
         val current = settings.value
@@ -270,7 +276,9 @@ class SettingsViewModel @Inject constructor(
                 alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay,
                 isResourceGridMode = defaults.isResourceGridMode,
                 showBlackScreenButton = defaults.showBlackScreenButton,
-                defaultRememberFileList = defaults.defaultRememberFileList
+                defaultRememberFileList = defaults.defaultRememberFileList,
+                enableCalculator = defaults.enableCalculator,
+                embeddedGameEnabled = defaults.embeddedGameEnabled
             )
         )
         // Also reset per-type touch zone hints

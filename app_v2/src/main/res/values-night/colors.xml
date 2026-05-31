@@ -19,6 +19,7 @@
     <color name="filter_warning_bg">#FF6D4C00</color>    <!-- Dark orange/brown for warnings -->
     <color name="filter_warning_text">#FFFFD54F</color>    <!-- Light yellow text for contrast -->
     <color name="unavailable_resource_bg">#FF3A3A3A</color>    <!-- Dark gray for unavailable resources -->
+    <color name="calculator_clear_button_bg">#FF5A2536</color>    <!-- Muted pink surface for calculator destructive clear actions -->
 
     <!-- Welcome screen backgrounds (dark theme, muted Material palette) -->
     <color name="welcome_page_1_background">#1A237E</color>

@@ -47,6 +47,8 @@ class GoogleDriveRestClient @Inject constructor(
 
     fun getAccountEmail(): String? = auth.accountEmail
 
+    fun setGmsOnlyMode(enabled: Boolean): Boolean = auth.setGmsOnlyMode(enabled)
+
     private fun googleDriveReauthRequiredMessage(): String =
         context.getString(R.string.cloud_auth_required, context.getString(R.string.google_drive))
 

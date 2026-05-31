@@ -17,7 +17,11 @@ import com.sza.fastmediasorter.utils.SyntaxHighlighter
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -73,6 +77,7 @@ class TextViewerManager(
         fun exitFullscreenMode()
         fun setTouchZonesEnabled(enabled: Boolean)
         fun showEncodingDialog()
+        fun launchEditorCalculator(initialInput: String)
         // S0189: invoked by Save & Close to return the user to Browse with the new file.
         fun finishActivity()
     }
@@ -131,6 +136,7 @@ class TextViewerManager(
         }
     }
     private val keepChecker = com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(context)
+    private val calculatorEnabledFlow = MutableStateFlow(false)
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
     private val safeViews = PlayerBindingSafeViews(binding)
@@ -141,11 +147,13 @@ class TextViewerManager(
                 saveClose = safeViews.btnEditorSaveClose,
                 saveSend = safeViews.btnEditorSaveSend,
                 sendKeep = safeViews.btnEditorSendKeep,
+                more = safeViews.btnEditorMore,
                 cancel = safeViews.btnEditorCancel,
             ),
             // S0189: dirty-state tint applies to the top editor toolbar (action buttons live there now).
             hostView = safeViews.editorToolbar,
             keepAvailable = keepChecker.isKeepAvailable(),
+            calculatorEnabled = calculatorEnabledFlow,
             isDirty = dirtyTracker.isDirty,
             coroutineScope = coroutineScope,
             cleanColor = com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter.TRANSPARENT_PRESERVE_ORIGINAL,
@@ -190,6 +198,15 @@ class TextViewerManager(
     fun setupControls() {
         // Setup gesture detectors for font size adjustment
         setupGestureDetectors()
+
+        coroutineScope.launch {
+            settingsRepository.getSettings()
+                .map { it.enableCalculator }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    calculatorEnabledFlow.value = enabled
+                }
+        }
 
         // Page navigation buttons
         safeViews.btnTextPagePrev.setOnClickListener {
@@ -281,7 +298,7 @@ class TextViewerManager(
             enterEditMode()
         }
 
-        // S0189: 5-action editor panel callbacks - extracted to TextEditorActionPanelCallbacks.
+        // S0189: editor action panel callbacks - extracted to TextEditorActionPanelCallbacks.
         actionPanelManager.setup(
             TextEditorActionPanelCallbacks(
                 context = context,
@@ -296,6 +313,7 @@ class TextViewerManager(
                 rebaselineDirtyTracker = dirtyTracker::rebaseline,
                 isDirty = { dirtyTracker.isDirty.value },
                 saveEditedText = ::saveEditedText,
+                openCalculator = callback::launchEditorCalculator,
                 finishActivity = callback::finishActivity,
                 exitEditMode = ::exitEditMode,
             ).build()
@@ -511,6 +529,14 @@ class TextViewerManager(
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
         currentFile = mediaFile
         viewerLoader.load(mediaFile, isWritable)
+    }
+
+    fun insertCalculatorResult(result: String) {
+        if (result.isBlank() || !calculatorEnabledFlow.value) return
+        val editable = safeViews.etTextContent.text
+        val insertAt = safeViews.etTextContent.selectionEnd.coerceIn(0, editable.length)
+        editable.insert(insertAt, result)
+        safeViews.etTextContent.setSelection(insertAt + result.length)
     }
 
     /**

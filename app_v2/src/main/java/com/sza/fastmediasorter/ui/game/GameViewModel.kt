@@ -1,0 +1,183 @@
+package com.sza.fastmediasorter.ui.game
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.game.GameBoardGenerator
+import com.sza.fastmediasorter.domain.game.GameDifficulty
+import com.sza.fastmediasorter.domain.game.GameDirection
+import com.sza.fastmediasorter.domain.game.GameEvent
+import com.sza.fastmediasorter.domain.game.GameLevelConfig
+import com.sza.fastmediasorter.domain.game.GameRulesEngine
+import com.sza.fastmediasorter.domain.game.GameStateRepository
+import com.sza.fastmediasorter.domain.game.GameStateSnapshot
+import com.sza.fastmediasorter.domain.game.GameStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
+
+@HiltViewModel
+class GameViewModel @Inject constructor(
+    private val gameStateRepository: GameStateRepository,
+    private val boardGenerator: GameBoardGenerator
+) : ViewModel() {
+
+    private val rulesEngine = GameRulesEngine()
+    private val _state = MutableStateFlow<GameUiState>(GameUiState.Loading)
+    val state: StateFlow<GameUiState> = _state.asStateFlow()
+
+    internal var seedProvider: () -> Long = { System.nanoTime() xor System.currentTimeMillis() }
+    private var seedNonce = 0L
+
+    init {
+        resumeGame()
+    }
+
+    fun resumeGame() {
+        viewModelScope.launch {
+            _state.value = GameUiState.Loading
+            try {
+                val snapshot = gameStateRepository.loadOrCreate(defaultConfig())
+                _state.value = readyFromSnapshot(snapshot)
+            } catch (exception: RuntimeException) {
+                Timber.e(exception, "GameViewModel: failed to load game")
+                _state.value = GameUiState.Error(exception.message)
+            }
+        }
+    }
+
+    fun startNewGame() {
+        viewModelScope.launch {
+            val levelState = boardGenerator.createInitialState(defaultConfig())
+            publishAndPersist(GameUiState.Ready(levelState = levelState))
+        }
+    }
+
+    fun restartLevel() {
+        viewModelScope.launch {
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            if (ready.levelState.status != GameStatus.GAME_OVER) return@launch
+
+            val currentConfig = ready.levelState.config
+            val restartConfig = currentConfig.copy(seed = nextSeed(currentConfig.levelNumber))
+            val generatedLevel = boardGenerator.createInitialState(restartConfig)
+            val restartedState = rulesEngine.restartLevel(ready.levelState, generatedLevel)
+            publishAndPersist(
+                ready.copy(
+                    levelState = restartedState,
+                    unreadableBoardWarning = shouldWarnForUnreadableBoard(restartedState.config, ready.customBoard),
+                    defeatConnection = null,
+                    lastRejectReason = null
+                )
+            )
+        }
+    }
+
+    fun move(direction: GameDirection) {
+        viewModelScope.launch {
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            if (!ready.canAcceptMoves) return@launch
+
+            val result = rulesEngine.applyMove(ready.levelState, direction)
+            if (!result.accepted) {
+                _state.value = ready.copy(lastRejectReason = result.rejectReason)
+                return@launch
+            }
+
+            publishAndPersist(
+                ready.copy(
+                    levelState = result.state,
+                    unreadableBoardWarning = shouldWarnForUnreadableBoard(result.state.config, ready.customBoard),
+                    defeatConnection = result.defeatConnection(),
+                    lastRejectReason = null
+                )
+            )
+        }
+    }
+
+    fun advanceLevel() {
+        viewModelScope.launch {
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            if (ready.levelState.status != GameStatus.LEVEL_WON) return@launch
+
+            val nextConfig = defaultConfig(
+                levelNumber = ready.levelNumber + 1,
+                difficulty = ready.levelState.config.difficulty
+            )
+            val generatedNextLevel = boardGenerator.createInitialState(nextConfig)
+            val advancedState = rulesEngine.advanceLevel(ready.levelState, generatedNextLevel)
+            publishAndPersist(
+                ready.copy(
+                    levelState = advancedState,
+                    unreadableBoardWarning = shouldWarnForUnreadableBoard(advancedState.config, ready.customBoard),
+                    defeatConnection = null,
+                    lastRejectReason = null
+                )
+            )
+        }
+    }
+
+    private suspend fun publishAndPersist(ready: GameUiState.Ready) {
+        _state.value = ready
+        gameStateRepository.saveSnapshot(
+            GameStateSnapshot.fromLevelState(
+                ready.levelState,
+                customBoard = ready.customBoard
+            )
+        )
+    }
+
+    private fun readyFromSnapshot(snapshot: GameStateSnapshot): GameUiState.Ready {
+        val levelState = snapshot.toLevelState()
+        return GameUiState.Ready(
+            levelState = levelState,
+            customBoard = snapshot.customBoard,
+            unreadableBoardWarning = shouldWarnForUnreadableBoard(levelState.config, snapshot.customBoard)
+        )
+    }
+
+    private fun defaultConfig(
+        levelNumber: Int = 1,
+        difficulty: GameDifficulty = GameDifficulty.NORMAL
+    ): GameLevelConfig {
+        return GameLevelConfig(
+            levelNumber = levelNumber,
+            difficulty = difficulty,
+            width = DEFAULT_BOARD_SIZE,
+            height = DEFAULT_BOARD_SIZE,
+            shadowCount = levelNumber.coerceAtLeast(1),
+            seed = nextSeed(levelNumber)
+        )
+    }
+
+    private fun nextSeed(levelNumber: Int): Long {
+        // The nonce prevents identical boards when several games start inside one clock tick.
+        seedNonce += 1L
+        return seedProvider() + (seedNonce * SEED_NONCE_STEP) + levelNumber
+    }
+
+    private fun com.sza.fastmediasorter.domain.game.GameTurnResult.defeatConnection(): GameDefeatConnection? {
+        if (state.status != GameStatus.GAME_OVER) return null
+        val capture = events.filterIsInstance<GameEvent.PlayerCaptured>().lastOrNull() ?: return null
+        val enemy = state.enemies.firstOrNull { it.id == capture.enemyId } ?: return null
+        return GameDefeatConnection(
+            playerPosition = state.player.position,
+            enemyPosition = enemy.position,
+            enemyType = enemy.type
+        )
+    }
+
+    private fun shouldWarnForUnreadableBoard(config: GameLevelConfig, customBoard: Boolean): Boolean {
+        if (!customBoard) return false
+        return config.width > LARGE_CUSTOM_BOARD_SIZE || config.height > LARGE_CUSTOM_BOARD_SIZE
+    }
+
+    companion object {
+        private const val DEFAULT_BOARD_SIZE = 10
+        private const val LARGE_CUSTOM_BOARD_SIZE = 18
+        private const val SEED_NONCE_STEP = 104729L
+    }
+}

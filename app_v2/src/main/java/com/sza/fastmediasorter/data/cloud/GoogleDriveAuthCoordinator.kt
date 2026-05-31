@@ -36,25 +36,38 @@ class GoogleDriveAuthCoordinator(
 
     @Volatile private var cachedAccessToken: String? = null
     @Volatile private var tokenTimestamp: Long = 0L
+    @Volatile private var gmsOnlyMode: Boolean = false
 
     /** Synchronous read of the cached token. Always refresh via [fetchTokenFromIdentity] first. */
     val accessToken: String? get() = cachedAccessToken
 
+    fun setGmsOnlyMode(enabled: Boolean): Boolean {
+        val previous = gmsOnlyMode
+        gmsOnlyMode = enabled
+        Timber.d("Google Drive auth coordinator gmsOnlyMode set to $enabled")
+        return previous
+    }
+
     /** Email of the currently bound primary Google account, or null when unbound. */
     val accountEmail: String?
         get() = when {
-            browserAuthManager.hasActiveSession() -> browserAuthManager.peekStoredAccountEmail()
+            !gmsOnlyMode && browserAuthManager.hasActiveSession() -> browserAuthManager.peekStoredAccountEmail()
             identityRepository.state.value is PrimaryGoogleAccountState.Bound -> {
                 (identityRepository.state.value as PrimaryGoogleAccountState.Bound).account.email
             }
 
-            else -> browserAuthManager.peekStoredAccountEmail()
+            !gmsOnlyMode -> browserAuthManager.peekStoredAccountEmail()
+            else -> null
         }
 
     fun isAuthenticated(): Boolean =
-        browserAuthManager.hasActiveSession() ||
-            identityRepository.state.value is PrimaryGoogleAccountState.Bound ||
-            browserAuthManager.hasStoredCredentials()
+        if (gmsOnlyMode) {
+            identityRepository.state.value is PrimaryGoogleAccountState.Bound
+        } else {
+            browserAuthManager.hasActiveSession() ||
+                identityRepository.state.value is PrimaryGoogleAccountState.Bound ||
+                browserAuthManager.hasStoredCredentials()
+        }
 
     fun captureToken(): String? = cachedAccessToken
 
@@ -134,6 +147,9 @@ class GoogleDriveAuthCoordinator(
      */
     @Suppress("UNUSED_PARAMETER")
     suspend fun initializeFromStored(credentialsJson: String, webClientIdResId: Int): Boolean {
+        if (gmsOnlyMode) {
+            return fetchAccessToken() != null
+        }
         val restoredBrowser = browserAuthManager.restoreCredentialBlob(credentialsJson)
         val ok = if (restoredBrowser) {
             browserAuthManager.getFreshAccessToken() != null
@@ -196,7 +212,7 @@ class GoogleDriveAuthCoordinator(
     }
 
     private suspend fun resolveAccessToken(): String? {
-        if (browserAuthManager.hasActiveSession()) {
+        if (!gmsOnlyMode && browserAuthManager.hasActiveSession()) {
             return browserAuthManager.getFreshAccessToken()
         }
 
@@ -205,7 +221,7 @@ class GoogleDriveAuthCoordinator(
             return identityRepository.getAccessToken(driveScopes)?.token
         }
 
-        if (browserAuthManager.ensureActiveFromStored()) {
+        if (!gmsOnlyMode && browserAuthManager.ensureActiveFromStored()) {
             return browserAuthManager.getFreshAccessToken()
         }
 
@@ -213,7 +229,7 @@ class GoogleDriveAuthCoordinator(
     }
 
     private suspend fun refreshForRetry(): String? {
-        if (browserAuthManager.hasActiveSession()) {
+        if (!gmsOnlyMode && browserAuthManager.hasActiveSession()) {
             return browserAuthManager.getFreshAccessToken()
         }
 

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/padding_small">
+
+    <ImageButton
+        android:id="@+id/btnGameBack"
+        android:layout_width="@dimen/button_height"
+        android:layout_height="@dimen/button_height"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/back"
+        android:padding="@dimen/padding_normal"
+        android:src="@drawable/ic_arrow_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurface" />
+
+    <TextView
+        android:id="@+id/txtGameTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/game_title"
+        android:textSize="@dimen/text_size_large"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btnGameBack"
+        app:layout_constraintEnd_toStartOf="@id/btnGameReset"
+        app:layout_constraintStart_toEndOf="@id/btnGameBack"
+        app:layout_constraintTop_toTopOf="@id/btnGameBack" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGameReset"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/button_height_small"
+        android:minWidth="@dimen/button_height"
+        android:text="@string/game_reset"
+        app:layout_constraintBottom_toBottomOf="@id/btnGameBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btnGameBack" />
+
+    <FrameLayout
+        android:id="@+id/gameBoardContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="@dimen/margin_normal"
+        android:contentDescription="@string/game_board_content_description"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toStartOf="@id/layoutGameSidePanel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnGameBack">
+
+        <TextView
+            android:id="@+id/txtGameBoardPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/game_loading"
+            android:textSize="@dimen/text_size_normal" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutGameSidePanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnGameBack"
+        app:layout_constraintWidth_percent="0.30">
+
+        <TextView
+            android:id="@+id/txtGameLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_small" />
+
+        <TextView
+            android:id="@+id/txtGameScore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_small" />
+
+        <TextView
+            android:id="@+id/txtGameTurns"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_small" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGameHelp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_small"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:text="@string/game_how_to_play" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <GridLayout
+            android:id="@+id/layoutGameControls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:columnCount="3"
+            android:rowCount="3">
+
+            <Space
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGameUp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height"
+                android:contentDescription="@string/game_move_up"
+                android:minWidth="@dimen/button_height"
+                android:minHeight="@dimen/button_height"
+                android:padding="@dimen/padding_small"
+                app:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_game_triangle_up"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="@dimen/icon_size_small"
+                app:iconTint="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="@dimen/stroke_width_normal" />
+
+            <Space
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGameLeft"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height"
+                android:contentDescription="@string/game_move_left"
+                android:minWidth="@dimen/button_height"
+                android:minHeight="@dimen/button_height"
+                android:padding="@dimen/padding_small"
+                app:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_game_triangle_left"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="@dimen/icon_size_small"
+                app:iconTint="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="@dimen/stroke_width_normal" />
+
+            <Space
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGameRight"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height"
+                android:contentDescription="@string/game_move_right"
+                android:minWidth="@dimen/button_height"
+                android:minHeight="@dimen/button_height"
+                android:padding="@dimen/padding_small"
+                app:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_game_triangle_right"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="@dimen/icon_size_small"
+                app:iconTint="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="@dimen/stroke_width_normal" />
+
+            <Space
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGameDown"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height"
+                android:contentDescription="@string/game_move_down"
+                android:minWidth="@dimen/button_height"
+                android:minHeight="@dimen/button_height"
+                android:padding="@dimen/padding_small"
+                app:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_game_triangle_down"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="@dimen/icon_size_small"
+                app:iconTint="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="@dimen/stroke_width_normal" />
+
+            <Space
+                android:layout_width="@dimen/button_height"
+                android:layout_height="@dimen/button_height" />
+        </GridLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

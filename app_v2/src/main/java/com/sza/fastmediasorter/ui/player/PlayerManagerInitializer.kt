@@ -304,6 +304,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.setupEditModeCallbacks()
         activity.eventHandler = PlayerEventHandler(activity = activity)
+        activity.textEditorCalculatorBridge = com.sza.fastmediasorter.ui.player.helpers.TextEditorCalculatorBridge(
+            context = activity,
+            launcher = activity.textEditorCalculatorLauncher,
+            textViewerManagerProvider = { activity._textViewerManager },
+        )
     }
 
     private fun initDialogHelper() {

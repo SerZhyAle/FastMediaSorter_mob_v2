@@ -13,7 +13,7 @@ import com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks
 import com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker
 import java.io.File
 
-/** 5-action editor-panel callbacks (Save / Save&Close / Save&Send / SendToKeep / Cancel) for [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
+/** Editor-panel callbacks for [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
 internal class TextEditorActionPanelCallbacks(
     private val context: Context,
     private val binding: ActivityPlayerUnifiedBinding,
@@ -27,6 +27,7 @@ internal class TextEditorActionPanelCallbacks(
     private val rebaselineDirtyTracker: (String) -> Unit,
     private val isDirty: () -> Boolean,
     private val saveEditedText: () -> Unit,
+    private val openCalculator: (String) -> Unit,
     private val finishActivity: () -> Unit,
     private val exitEditMode: () -> Unit,
 ) {
@@ -35,6 +36,7 @@ internal class TextEditorActionPanelCallbacks(
         onSaveAndClose = ::onSaveAndClose,
         onSaveAndSend = ::onSaveAndSend,
         onSendToKeep = ::onSendToKeep,
+        onOpenCalculator = ::onOpenCalculator,
         onCancel = ::onCancel,
     )
 
@@ -130,6 +132,20 @@ internal class TextEditorActionPanelCallbacks(
         if (!sent) {
             Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun onOpenCalculator() {
+        val editable = safeViews.etTextContent.text
+        val start = safeViews.etTextContent.selectionStart
+        val end = safeViews.etTextContent.selectionEnd
+        val selectedText = if (start >= 0 && end >= 0 && start != end) {
+            val from = minOf(start, end).coerceIn(0, editable.length)
+            val to = maxOf(start, end).coerceIn(0, editable.length)
+            editable.substring(from, to)
+        } else {
+            ""
+        }
+        openCalculator(selectedText)
     }
 
     private fun onCancel() {

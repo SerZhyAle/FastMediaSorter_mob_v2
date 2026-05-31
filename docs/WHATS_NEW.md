@@ -1,6 +1,26 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5310.007** (May 2026)
+**Current release: 2.60.6010.057** (June 2026)
+
+> Changes since version 2.60.5310.007
+
+---
+
+## What's New
+
+- **Camera OCR translation** - capture, recognize, translate, and save text.
+- **Text editor calculator** - calculate values without leaving text editing.
+- **Mini game and widgets** - launch calculator, camera OCR, and game actions.
+- **Release tooling guards** - digest build failures and detect flavor drift.
+
+## What's Fixed
+
+- Android TV launcher title now matches the banner and Play listing.
+- Google Drive backup restore uses scoped GMS auth routing.
+
+---
+
+## Previous Release: 2.60.5310.007 (May 2026)
 
 > Changes since version 2.60.5302.057
 

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.core.di
 
 import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
+import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.wear.WearableDataLayerRepositoryImpl
+import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.data.repository.ScheduledOperationRepositoryImpl
 import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
@@ -49,6 +51,12 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         impl: SettingsRepositoryImpl
     ): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGameStateRepository(
+        impl: GameStateRepositoryImpl
+    ): GameStateRepository
     
     @Binds
     @Singleton
