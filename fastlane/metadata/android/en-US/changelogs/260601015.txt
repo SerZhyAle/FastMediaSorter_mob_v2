@@ -1,0 +1,13 @@
+
+
+---
+
+
+• Camera OCR translation - capture, recognize, translate, and save text.
+• Text editor calculator - calculate values without leaving text editing.
+• Mini game and widgets - launch calculator, camera OCR, and game actions.
+• Release tooling guards - digest build failures and detect flavor drift.
+
+
+• Android TV launcher title now matches the banner and Play listing.
+• Google Drive backup restore uses scoped GMS auth routing.

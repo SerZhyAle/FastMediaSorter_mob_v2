@@ -14,7 +14,7 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6010.057 (June 2026)
+## What's New in v2.60.6010.151 (June 2026)
 
 **New:**
 Camera OCR translation, text editor calculator, mini game and widgets, release tooling guards.

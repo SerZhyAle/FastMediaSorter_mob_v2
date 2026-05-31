@@ -14440,3 +14440,11 @@ Format: | datetime | file | target | description |
 | 2026-06-01 01:15:06 | `fastlane/metadata/android/en-US/changelogs/260601005.txt` | `fastlane changelog en-US` | Generate fastlane changelog for versionCode 260601005 [branch: main] |
 | 2026-06-01 01:15:07 | `fastlane/metadata/android/ru-RU/changelogs/260601005.txt` | `fastlane changelog ru-RU` | Generate Russian fastlane changelog for versionCode 260601005 [branch: main] |
 | 2026-06-01 01:15:08 | `fastlane/metadata/android/uk-UA/changelogs/260601005.txt` | `fastlane changelog uk-UA` | Generate Ukrainian fastlane changelog for versionCode 260601005 [branch: main] |
+| 2026-06-01 01:51:40 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:51:41 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:51:41 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:51:42 | `README.md` | `README` | README current release block for v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:55:31 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:55:31 | `fastlane/metadata/android/en-US/changelogs/260601015.txt` | `fastlane changelog en-US` | Generate fastlane changelog for versionCode 260601015 [branch: main] |
+| 2026-06-01 01:55:32 | `fastlane/metadata/android/ru-RU/changelogs/260601015.txt` | `fastlane changelog ru-RU` | Generate Russian fastlane changelog for versionCode 260601015 [branch: main] |
+| 2026-06-01 01:55:33 | `fastlane/metadata/android/uk-UA/changelogs/260601015.txt` | `fastlane changelog uk-UA` | Generate Ukrainian fastlane changelog for versionCode 260601015 [branch: main] |
