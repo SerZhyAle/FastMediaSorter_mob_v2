@@ -108,6 +108,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Language identification** `[Standard / VR]`: Automatically recognizes the source language before performing translation.
 - **AR translation overlay** `[Standard / VR]`: Draws translated text precisely over original coordinates on images and PDFs.
 - **Quality models on-demand** `[Standard / VR]`: Download improved Cyrillic/Ukrainian Tesseract models (`tessdata_best`) directly in Settings with SHA-256 validation.
+- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads.
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery** `[Standard / VR]`: Scans the local subnet (ports 445, 21, 22) for active SMB, FTP, and SFTP endpoints.

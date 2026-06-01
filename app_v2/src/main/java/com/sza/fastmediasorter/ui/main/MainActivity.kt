@@ -546,7 +546,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     true
                 }
                 MENU_ITEM_CAMERA_OCR -> {
-                    Timber.d("S0320: main menu camera ocr launch")
                     startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this))
                     true
                 }

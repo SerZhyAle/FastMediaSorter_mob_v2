@@ -14436,3 +14436,16 @@ Format: | datetime | file | target | description |
 | 2026-06-01 00:58:25 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:58:26 | `README.md` | `README` | README current release block for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:59:04 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 01:06:56 | `PLAN/S0320_camera-ocr-translate.md` | `spec-check` | Audit S0320 -> Partial; PASS/WARN/FAIL 9/3/0 [branch: DEBUG-v011] |
+| 2026-06-01 01:06:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `spec-check` | Remove stale S0320 debug tag [branch: DEBUG-v011] |
+| 2026-06-01 01:10:23 | `docs/FEATURES.md` | `doc-update` | Add Photo OCR translation feature bullet (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:10:23 | `docs/FEATURES_RU.md` | `doc-update` | Add Photo OCR translation feature bullet RU (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:10:23 | `docs/FEATURES_UK.md` | `doc-update` | Add Photo OCR translation feature bullet UK (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:10:23 | `PLAN/S0320_camera-ocr-translate.md` | `spec-fix` | Annotate Last Audit (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:18:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrStorageManager.kt` | `CameraOcrStorageManager` | Extract Camera-OCR filesystem IO (temp/gallery/txt export) from Activity (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:18:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `CameraOcrFlowManager` | Extract Camera-OCR-Translate orchestration + flow state from Activity (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:18:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `CameraOcrTranslateActivity` | Thin out Activity to view-binding + callback rendering; delegate logic to managers (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:19:47 | `PLAN/S0320_camera-ocr-translate.md` | `spec-check` | Re-audit S0320 -> Verified after arch refactor; PASS/WARN/FAIL 12/0/0 [branch: DEBUG-v011] |
+| 2026-06-01 02:05:20 | `scripts/release/publish-play-release.py` | `publish-play-release` | Add automated resumable Google Play Console AAB uploader script with retry and timeout guards [branch: DEBUG-v011] |
+| 2026-06-01 02:05:22 | `scripts/release/publish-play-release.ps1` | `publish-play-release` | Add PowerShell wrapper for publish-play-release.py supporting -Track and -Status flags [branch: DEBUG-v011] |
+| 2026-06-01 02:05:23 | `scripts/release/README.md` | `release handbook` | Integrate Google Play Console automated release process into the release manual [branch: DEBUG-v011] |
