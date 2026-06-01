@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -19,7 +20,10 @@ import com.sza.fastmediasorter.databinding.ActivityCameraOcrTranslateBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManager
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
+import com.sza.fastmediasorter.ui.player.helpers.openGoogleSearch
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -41,6 +45,7 @@ class CameraOcrTranslateActivity :
     lateinit var settingsRepository: SettingsRepository
 
     private lateinit var flowManager: CameraOcrFlowManager
+    private var calculatorEnabled = false
 
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -109,10 +114,13 @@ class CameraOcrTranslateActivity :
         binding.btnClose.setOnClickListener { finish() }
         binding.btnEmptyClose.setOnClickListener { finish() }
         binding.btnSettings.setOnClickListener { showCompactSettingsDialog() }
+        installResultSelectionMenu(binding.tvOriginalText)
+        installResultSelectionMenu(binding.tvTranslation)
     }
 
     override fun observeData() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            calculatorEnabled = settings.enableCalculator
             flowManager.setOcrOnlyActive(settings.cameraOcrOnly)
         }
     }
@@ -229,6 +237,24 @@ class CameraOcrTranslateActivity :
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
+    }
+
+    private fun installResultSelectionMenu(textView: TextView) {
+        textView.customSelectionActionModeCallback = DocumentSelectionActionModeCallback(
+            showTranslate = false,
+            getSelectedText = { selectedTextFrom(textView) },
+            onTranslate = { },
+            onSearchGoogle = { openGoogleSearch(this, it) },
+            isCalculatorAvailable = { calculatorEnabled },
+            onOpenCalculator = { openCalculatorForSelection(this, it) },
+        )
+    }
+
+    private fun selectedTextFrom(textView: TextView): String {
+        val text = textView.text ?: return ""
+        val start = textView.selectionStart.coerceAtLeast(0).coerceAtMost(text.length)
+        val end = textView.selectionEnd.coerceAtLeast(0).coerceAtMost(text.length)
+        return text.substring(minOf(start, end), maxOf(start, end))
     }
 
     override fun onDestroy() {

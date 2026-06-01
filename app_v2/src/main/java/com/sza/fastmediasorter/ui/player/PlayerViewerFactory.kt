@@ -5,6 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
+import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
 
 internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
@@ -158,6 +159,10 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                     activity.textEditorCalculatorBridge.launch(initialInput)
                 }
 
+                override fun launchSelectionCalculator(initialInput: String) {
+                    openCalculatorForSelection(activity, initialInput)
+                }
+
                 override fun finishActivity() {
                     activity.setResult(android.app.Activity.RESULT_OK)
                     activity.finish()
@@ -189,6 +194,11 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
                 override fun onExitFullscreenMode() {
                     activity.systemBarsManager.exitFullscreenMode()
+                }
+
+                override fun onTranslateSelection(text: String) {
+                    activity.textViewerManager.displayOcrText(text)
+                    activity.textViewerManager.forceTranslate()
                 }
 
                 override fun onRequireExternalFallback(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {

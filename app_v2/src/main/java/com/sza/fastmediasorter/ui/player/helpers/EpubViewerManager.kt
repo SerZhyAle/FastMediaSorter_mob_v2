@@ -13,7 +13,11 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import io.documentnode.epub4j.domain.Book
@@ -85,6 +89,7 @@ class EpubViewerManager(
 
     // Selection bridge: captures the latest selected text from WebView via JS interface
     private val selectionBridge = EpubSelectionBridge()
+    private val calculatorEnabledFlow = MutableStateFlow(false)
 
     // TTS Read Aloud delegate
     private val ttsDelegate = EpubTtsDelegate(binding.root.context)
@@ -189,6 +194,14 @@ class EpubViewerManager(
 
             // Signal that settings are loaded (C-3 fix)
             settingsReady.complete(Unit)
+        }
+        coroutineScope.launch {
+            settingsRepository.getSettings()
+                .map { it.enableCalculator }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    calculatorEnabledFlow.value = enabled
+                }
         }
 
         // Initialize swipe gesture detector for chapter navigation and font size control
@@ -1009,6 +1022,8 @@ class EpubViewerManager(
             showTranslate   = BuildConfig.ENABLE_TRANSLATION,
             getSelectedText = { selectionBridge.lastSelectedText },
             onTranslate     = translationHelper::handleTranslateSelection,
-            onSearchGoogle  = { openGoogleSearch(binding.root.context, it) }
+            onSearchGoogle  = { openGoogleSearch(binding.root.context, it) },
+            isCalculatorAvailable = { calculatorEnabledFlow.value },
+            onOpenCalculator = { openCalculatorForSelection(binding.root.context, it) },
         )
 }

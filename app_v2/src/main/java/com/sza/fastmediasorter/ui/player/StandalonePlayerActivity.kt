@@ -4,15 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.view.View
 import android.view.ActionMode
-import android.view.Menu
-import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -60,7 +57,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
-import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfHome
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfNextPage
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfPrevPage
@@ -156,42 +153,17 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
     private var contentLoaded = false
 
-    // ── EPUB WebView floating ActionMode augmentation ───────────────────── WebView cannot use setCustomSelectionActionModeCallback (TextView-only). Instead, we intercept every startActionMode call: when an EPUB is open and the mode is TYPE_FLOATING (WebView text selection), we wrap the system callback to inject our "Translate" / "Search in Google" items.
+    // ── Document WebView floating ActionMode augmentation ───────────────────── WebView cannot use setCustomSelectionActionModeCallback (TextView-only). Instead, we intercept every startActionMode call: when a document WebView is open and the mode is TYPE_FLOATING (WebView text selection), we wrap the system callback to inject our "Translate" / "Search in Google" items.
 
     override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? {
-        val epubCallback = if (
+        val documentCallback = if (
             type == ActionMode.TYPE_FLOATING &&
-            ::viewManager.isInitialized &&
-            viewManager.isEpubActive()
-        ) viewManager.getEpubSelectionActionModeCallback() else null
-        return if (epubCallback != null && callback != null) {
-            super.startActionMode(EpubAugmentedActionModeCallback(callback, epubCallback), type)
+            ::viewManager.isInitialized
+        ) viewManager.getDocumentSelectionActionModeCallback() else null
+        return if (documentCallback != null && callback != null) {
+            super.startActionMode(DocumentSelectionActionModeAugmentingCallback(callback, documentCallback), type)
         } else {
             super.startActionMode(callback, type)
-        }
-    }
-
-    private class EpubAugmentedActionModeCallback(
-        private val original: ActionMode.Callback,
-        private val epub: DocumentSelectionActionModeCallback
-    ) : ActionMode.Callback2() {
-
-        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            epub.onCreateActionMode(mode, menu)
-            return original.onCreateActionMode(mode, menu)
-        }
-
-        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =
-            original.onPrepareActionMode(mode, menu)
-
-        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean =
-            epub.onActionItemClicked(mode, item) || original.onActionItemClicked(mode, item)
-
-        override fun onDestroyActionMode(mode: ActionMode) = original.onDestroyActionMode(mode)
-
-        override fun onGetContentRect(mode: ActionMode, view: View, outRect: Rect) {
-            if (original is ActionMode.Callback2) original.onGetContentRect(mode, view, outRect)
-            else super.onGetContentRect(mode, view, outRect)
         }
     }
 

@@ -14449,3 +14449,117 @@ Format: | datetime | file | target | description |
 | 2026-06-01 02:05:20 | `scripts/release/publish-play-release.py` | `publish-play-release` | Add automated resumable Google Play Console AAB uploader script with retry and timeout guards [branch: DEBUG-v011] |
 | 2026-06-01 02:05:22 | `scripts/release/publish-play-release.ps1` | `publish-play-release` | Add PowerShell wrapper for publish-play-release.py supporting -Track and -Status flags [branch: DEBUG-v011] |
 | 2026-06-01 02:05:23 | `scripts/release/README.md` | `release handbook` | Integrate Google Play Console automated release process into the release manual [branch: DEBUG-v011] |
+| 2026-06-01 03:28:20 | `PLAN/S0290_vr_test_quality_overhaul.md` | `spec-update` | Refinement (claude-opus-4.6, focus: completeness, consistency) - added 1.2 moved-OOM observation from Quest 3 logs 2026-06-01 + risk row; Proposal P-1 reopen Phase 11 [branch: DEBUG-v011] |
+| 2026-06-01 03:36:47 | `PLAN/S0322_bugfix-vr-diagnostic-video-playback.md` | `spec` | Add strategic spec S0322 (VR diagnostic 7K 180 video playback failure, research) from Quest 3 log analysis 2026-06-01 [branch: DEBUG-v011] |
+| 2026-06-01 03:39:13 | `scripts/utils/extract-device-logs.ps1` | `tooling` | Resolve adb from PATH or SDK locations (null-safe env vars); auto-detect installed package variant (.debug suffix) so logcat filter is not empty on debug builds. Validation: ParseFile 0 errors; live run resolves adb to SDK path and exits gracefully on absent device. Full device pull not re-confirmed - Quest 3 dropped when adb daemon cold-restarted mid-session. [branch: DEBUG-v011] |
+| 2026-06-01 03:42:40 | `PLAN/S0290_vr_test_quality_overhaul/PHASE_11__video-gamma-and-bitmap-pipeline.md` | `spec-update` | Reopen Phase 11: add Step 11.5 texture-copy allocation hardening (P-1 accepted, strategic 1.2) [branch: DEBUG-v011] |
+| 2026-06-01 03:42:40 | `PLAN/S0290_vr_test_quality_overhaul/INDEX.md` | `spec-update` | Phase 11 counter 4/4 -> 4/5; reopen note for Step 11.5 [branch: DEBUG-v011] |
+| 2026-06-01 12:16:31 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec` | Add strategic spec S0323 for double-tap text selection in document viewers [branch: DEBUG-v011] |
+| 2026-06-01 12:19:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Rename PDF text-mode button label T to TXT and show OCR-in-progress toast on tap [branch: DEBUG-v011] |
+| 2026-06-01 12:26:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Use neutral pdf_text_extracting string for TXT button toast; drop pdf_ocr_in_progress [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/res/menu/document_selection_menu.xml` | `document_selection_menu` | Added calculator item to the document text selection menu [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentSelectionActionModeCallback.kt` | `DocumentSelectionActionModeCallback` | Added settings-gated calculator launch for selected text [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | Routed read-only text selections to calculator without result insertion [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `TextViewerCallback` | Split editor calculator round-trip from read-only selection launch [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Enabled read-only selected text calculator launch in standalone text viewer [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTextSelectionManager.kt` | `PdfTextSelectionManager` | Added calculator launch to PDF text selection overlay [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | Added calculator launch to EPUB WebView selection menu [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt` | `LyricsManager` | Added calculator and Google actions to lyrics selection menu [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `LyricsManager` | Provided settings repository for calculator availability in lyrics selection [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `CameraOcrTranslateActivity` | Added calculator and Google selection menu actions to OCR and translation results [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `docs/FEATURES.md` | `FEATURES` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
+| 2026-06-01 12:34:25 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-update` | Refinement: selection entry gesture = long-press (EPUB-native), double-tap stays zoom; resolve open Q1, add ADR-3 [branch: DEBUG-v011] |
+| 2026-06-01 12:37:15 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `vr-diagnostic-playback` | Add detailed video player error logging and active immersive HUD failure warnings [branch: DEBUG-v011] |
+| 2026-06-01 12:38:21 | `PLAN/S0322_bugfix-vr-diagnostic-video-playback.md` | `spec-update` | Update status to BlockNeedUserTest and record implementation notes [branch: DEBUG-v011] |
+| 2026-06-01 12:46:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerVrLaunchManager.kt` | `PlayerVrLaunchManager` | Restore photo zoom and pan coordinates when returning from VR to flat player [branch: DEBUG-v011] |
+| 2026-06-01 12:50:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerVrLaunchManager.kt` | `PlayerVrLaunchManager` | Add Timber verification probe for spec S0292 inside applyPendingReturnIfReady [branch: DEBUG-v011] |
+| 2026-06-01 12:53:33 | `PLAN/S0254_settings-grid-to-interface.md` | `spec-update` | Reopen S0254 with current SettingsToggleRow repair phase [branch: DEBUG-v011] |
+| 2026-06-01 12:53:33 | `PLAN/S0254_settings-grid-to-interface/INDEX.md` | `spec-update` | Add S0254 Phase 04 repair phase to tactical index [branch: DEBUG-v011] |
+| 2026-06-01 12:53:34 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-update` | Add S0254 current settings UI repair phase [branch: DEBUG-v011] |
+| 2026-06-01 12:54:11 | `PLAN/S0254_settings-grid-to-interface.md` | `spec-dev` | Start S0254 repair implementation [branch: DEBUG-v011] |
+| 2026-06-01 12:54:11 | `PLAN/S0254_settings-grid-to-interface/INDEX.md` | `spec-dev` | Mark S0254 Phase 04 in progress [branch: DEBUG-v011] |
+| 2026-06-01 12:54:12 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-dev` | Mark S0254 Step 04.1 in progress [branch: DEBUG-v011] |
+| 2026-06-01 12:56:07 | `PLAN/S0323_document-double-tap-text-selection/INDEX.md` | `spec-tech` | Create tactical plan for S0323 (4 phases, full scope) [branch: DEBUG-v011] |
+| 2026-06-01 12:56:07 | `PLAN/S0323_document-double-tap-text-selection/PHASE_01__pdf-longpress-selection-entry.md` | `spec-tech` | Phase 01: pdf-longpress-selection-entry [branch: DEBUG-v011] |
+| 2026-06-01 12:56:07 | `PLAN/S0323_document-double-tap-text-selection/PHASE_02__pdf-word-preselection.md` | `spec-tech` | Phase 02: pdf-word-preselection [branch: DEBUG-v011] |
+| 2026-06-01 12:56:07 | `PLAN/S0323_document-double-tap-text-selection/PHASE_03__office-selection-actionmode.md` | `spec-tech` | Phase 03: office-selection-actionmode [branch: DEBUG-v011] |
+| 2026-06-01 12:56:07 | `PLAN/S0323_document-double-tap-text-selection/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-01 12:56:07 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-01 12:56:32 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0254 Phase 04.1` | Add relocated grid and file-operation controls to General Interface portrait layout [branch: DEBUG-v011] |
+| 2026-06-01 12:56:33 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0254 Phase 04.1` | Add relocated grid and file-operation controls to General Interface landscape layout [branch: DEBUG-v011] |
+| 2026-06-01 12:56:33 | `PLAN/S0254_settings-grid-to-interface/INDEX.md` | `spec-dev` | Record S0254 Step 04.1 progress [branch: DEBUG-v011] |
+| 2026-06-01 12:56:34 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-dev` | Complete S0254 Step 04.1 [branch: DEBUG-v011] |
+| 2026-06-01 12:58:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | S0323 Phase01: long-press opens PDF text-selection overlay; add requestPdfFullscreen() [branch: DEBUG-v011] |
+| 2026-06-01 12:59:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | S0323 Phase01: route overflow menu_fullscreen to PDF page-fullscreen [branch: DEBUG-v011] |
+| 2026-06-01 13:01:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0254 Phase 04.2` | Wire relocated grid and file-operation controls in General settings [branch: DEBUG-v011] |
+| 2026-06-01 13:02:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `S0254 Phase 04.2` | Observe relocated grid and file-operation controls in General settings [branch: DEBUG-v011] |
+| 2026-06-01 13:03:05 | `PLAN/S0254_settings-grid-to-interface/INDEX.md` | `spec-dev` | Record S0254 Step 04.2 progress [branch: DEBUG-v011] |
+| 2026-06-01 13:03:05 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-dev` | Complete S0254 Step 04.2 [branch: DEBUG-v011] |
+| 2026-06-01 13:10:58 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `S0254 Phase 04.3` | Remove relocated grid and file-operation controls from Playback portrait layout [branch: DEBUG-v011] |
+| 2026-06-01 13:10:58 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `S0254 Phase 04.3` | Remove relocated grid and file-operation controls from Playback landscape layout [branch: DEBUG-v011] |
+| 2026-06-01 13:10:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0254 Phase 04.3` | Remove relocated grid and file-operation bindings from Playback settings [branch: DEBUG-v011] |
+| 2026-06-01 13:11:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerGestureSetupManager.kt` | `spec-dev` | S0323 Phase02: capture PDF long-press point, pass to selection entry [branch: DEBUG-v011] |
+| 2026-06-01 13:11:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `spec-dev` | S0323 Phase02: forward long-press coordinates to text-selection overlay [branch: DEBUG-v011] |
+| 2026-06-01 13:11:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `spec-dev` | S0323 Phase02: add recognizeTextBlocksForSelection (word boxes, no translation) [branch: DEBUG-v011] |
+| 2026-06-01 13:11:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTextSelectionManager.kt` | `spec-dev` | S0323 Phase02: pre-select word under long-press in overlay [branch: DEBUG-v011] |
+| 2026-06-01 13:11:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfSelectionCoordinateMapper.kt` | `spec-dev` | S0323 Phase02: new coordinate->word mapper [branch: DEBUG-v011] |
+| 2026-06-01 13:11:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `build unblock` | Use positional PDF text-selection point argument to satisfy current Kotlin signature [branch: DEBUG-v011] |
+| 2026-06-01 13:12:45 | `PLAN/S0254_settings-grid-to-interface/INDEX.md` | `spec-dev` | Record S0254 Step 04.3 progress [branch: DEBUG-v011] |
+| 2026-06-01 13:12:45 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-dev` | Complete S0254 Step 04.3 [branch: DEBUG-v011] |
+| 2026-06-01 13:14:11 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `spec-all` | Split from S0323: noLegal Office unified selection menu (deferred Phase 03) [branch: DEBUG-v011] |
+| 2026-06-01 13:15:59 | `docs/FEATURES.md` | `spec-dev` | S0323 Phase04: document long-press text selection (PDF/EPUB/TXT) [branch: DEBUG-v011] |
+| 2026-06-01 13:15:59 | `docs/FEATURES_RU.md` | `spec-dev` | S0323 Phase04: RU mirror of text selection feature [branch: DEBUG-v011] |
+| 2026-06-01 13:15:59 | `docs/FEATURES_UK.md` | `spec-dev` | S0323 Phase04: UK mirror of text selection feature [branch: DEBUG-v011] |
+| 2026-06-01 13:19:50 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-dev` | S0323 all implementable phases done; status -> BlockNeedUserTest; debug tags inserted (3) [branch: DEBUG-v011] |
+| 2026-06-01 13:21:31 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0254 Phase 04.4` | Restore grid icon-size control in General Interface portrait layout [branch: DEBUG-v011] |
+| 2026-06-01 13:21:32 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0254 Phase 04.4` | Restore grid icon-size control in General Interface landscape layout [branch: DEBUG-v011] |
+| 2026-06-01 13:21:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0254 Phase 04.4` | Wire grid icon-size input in General settings [branch: DEBUG-v011] |
+| 2026-06-01 13:22:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `S0254 Phase 04.4` | Observe grid icon-size input in General settings [branch: DEBUG-v011] |
+| 2026-06-01 13:23:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `S0254 Phase 04.4` | Move relocated grid settings reset ownership to General section [branch: DEBUG-v011] |
+| 2026-06-01 13:24:10 | `PLAN/S0254_settings-grid-to-interface/INDEX.md` | `spec-dev` | Complete S0254 Phase 04 [branch: DEBUG-v011] |
+| 2026-06-01 13:24:10 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-dev` | Complete S0254 Step 04.4 and phase criteria [branch: DEBUG-v011] |
+| 2026-06-01 13:24:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0254 BlockNeedUserTest probes` | Add S0254 device verification probes for relocated General settings controls [branch: DEBUG-v011] |
+| 2026-06-01 13:25:35 | `PLAN/S0254_settings-grid-to-interface.md` | `spec-dev` | Move S0254 to BlockNeedUserTest after repair implementation [branch: DEBUG-v011] |
+| 2026-06-01 14:12:14 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-tech` | Create tactical index for S0324 [branch: DEBUG-v011] |
+| 2026-06-01 14:12:14 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_01__action-mode-routing.md` | `spec-tech` | Create S0324 action mode routing phase [branch: DEBUG-v011] |
+| 2026-06-01 14:12:15 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `spec-tech` | Create S0324 noLegal Office bridge phase [branch: DEBUG-v011] |
+| 2026-06-01 14:12:15 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_03__docs-catalog-validation.md` | `spec-tech` | Create S0324 docs and validation phase [branch: DEBUG-v011] |
+| 2026-06-01 14:12:15 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `spec-tech` | Advance S0324 to tactical plan [branch: DEBUG-v011] |
+| 2026-06-01 14:12:54 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `spec-dev` | Mark S0324 implementation in progress [branch: DEBUG-v011] |
+| 2026-06-01 14:12:54 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Mark S0324 phase 01 in progress [branch: DEBUG-v011] |
+| 2026-06-01 14:12:55 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_01__action-mode-routing.md` | `spec-dev` | Start S0324 step 01.1 [branch: DEBUG-v011] |
+| 2026-06-01 14:14:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentSelectionActionModeCallback.kt` | `S0324 Phase 01` | Add shared document selection ActionMode augmenter [branch: DEBUG-v011] |
+| 2026-06-01 14:14:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerHost.kt` | `S0324 Phase 01` | Add Office selection ActionMode host seam [branch: DEBUG-v011] |
+| 2026-06-01 14:15:39 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_01__action-mode-routing.md` | `spec-dev` | Complete S0324 step 01.1 [branch: DEBUG-v011] |
+| 2026-06-01 14:19:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0324 Phase 01` | Route player WebView text selection through document action mode [branch: DEBUG-v011] |
+| 2026-06-01 14:19:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `S0324 Phase 01` | Handle Office selected text translation in player [branch: DEBUG-v011] |
+| 2026-06-01 14:20:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0324 Phase 01` | Route standalone WebView text selection through document action mode [branch: DEBUG-v011] |
+| 2026-06-01 14:21:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0324 Phase 01` | Expose standalone document selection callback [branch: DEBUG-v011] |
+| 2026-06-01 14:22:22 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_01__action-mode-routing.md` | `spec-dev` | Complete S0324 step 01.2 [branch: DEBUG-v011] |
+| 2026-06-01 14:22:41 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Complete S0324 phase 01 in index [branch: DEBUG-v011] |
+| 2026-06-01 14:22:42 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_01__action-mode-routing.md` | `spec-dev` | Mark S0324 phase 01 done [branch: DEBUG-v011] |
+| 2026-06-01 14:22:58 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Start S0324 phase 02 in index [branch: DEBUG-v011] |
+| 2026-06-01 14:22:58 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `spec-dev` | Start S0324 step 02.1 [branch: DEBUG-v011] |
+| 2026-06-01 14:23:28 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentEngineBridge.kt` | `S0324 Phase 02` | Inject Office generated HTML selection bridge script [branch: DEBUG-v011] |
+| 2026-06-01 14:24:16 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `spec-dev` | Complete S0324 step 02.1 [branch: DEBUG-v011] |
+| 2026-06-01 14:25:18 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/player/helpers/OfficeDocumentViewerManager.kt` | `S0324 Phase 02` | Add Office WebView selected text action mode bridge [branch: DEBUG-v011] |
+| 2026-06-01 14:26:07 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `spec-dev` | Complete S0324 step 02.2 [branch: DEBUG-v011] |
+| 2026-06-01 14:26:21 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Complete S0324 phase 02 in index [branch: DEBUG-v011] |
+| 2026-06-01 14:26:21 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `spec-dev` | Mark S0324 phase 02 done [branch: DEBUG-v011] |
+| 2026-06-01 14:27:17 | `docs/FEATURES_noLegal.md` | `S0324 Phase 03` | Document noLegal Office selection menu [branch: DEBUG-v011] |
+| 2026-06-01 14:27:17 | `docs/FEATURES_noLegal_RU.md` | `S0324 Phase 03` | Document noLegal Office selection menu RU [branch: DEBUG-v011] |
+| 2026-06-01 14:27:18 | `docs/FEATURES_noLegal_UK.md` | `S0324 Phase 03` | Document noLegal Office selection menu UK [branch: DEBUG-v011] |
+| 2026-06-01 14:27:18 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Start S0324 phase 03 in index [branch: DEBUG-v011] |
+| 2026-06-01 14:27:18 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_03__docs-catalog-validation.md` | `spec-dev` | Complete S0324 step 03.1 [branch: DEBUG-v011] |
+| 2026-06-01 14:32:25 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `S0324` | Mark noLegal Office selection menu implementation complete [branch: DEBUG-v011] |
+| 2026-06-01 14:32:26 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `S0324 tactical index` | Close S0324 tactical implementation gate [branch: DEBUG-v011] |
+| 2026-06-01 14:32:26 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_03__docs-catalog-validation.md` | `S0324 phase 03` | Record final catalog and noLegal build validation [branch: DEBUG-v011] |
+| 2026-06-01 14:32:26 | `dev/SPEC_CATALOG.json` | `S0324 catalog` | Advance S0324 status to Implemented [branch: DEBUG-v011] |
+| 2026-06-01 14:32:26 | `dev/FUNCTIONALITY.log` | `S0324 functionality log` | Record noLegal Office selection menu behavior change [branch: DEBUG-v011] |
+| 2026-06-01 14:32:39 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_03__docs-catalog-validation.md` | `S0324 phase 03` | Finalize S0324 catalog verification note [branch: DEBUG-v011] |
+| 2026-06-01 14:33:22 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `S0324 phase 02` | Check completed Phase 01 prerequisite [branch: DEBUG-v011] |
+| 2026-06-01 14:35:37 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `spec-check` | Audit S0324 to Verified; PASS/WARN/FAIL 26/0/0 [branch: DEBUG-v011] |
+| 2026-06-01 14:35:37 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-check` | Mark S0324 spec-check completion gate verified [branch: DEBUG-v011] |
+| 2026-06-01 14:35:37 | `dev/SPEC_CATALOG.json` | `spec-check` | Close S0324 as Verified [branch: DEBUG-v011] |

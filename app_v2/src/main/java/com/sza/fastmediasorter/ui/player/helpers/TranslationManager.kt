@@ -966,6 +966,43 @@ class TranslationManager(
         }
     }
     
+    /**
+     * Recognize word-level text boxes for in-place selection mapping (no translation).
+     * Returns each recognized word as a [TranslatedTextBlock] carrying its original text and
+     * pixel bounding box (in bitmap coordinates); [TranslatedTextBlock.translatedText] is empty.
+     * Used by the PDF text-selection overlay to pre-select the word under a long-press point.
+     */
+    suspend fun recognizeTextBlocksForSelection(bitmap: Bitmap): List<TranslatedTextBlock>? {
+        return try {
+            val recognizer = getTextRecognizer()
+            val image = InputImage.fromBitmap(bitmap, 0)
+            val result = recognizer.process(image).await()
+            if (result.textBlocks.isEmpty()) return null
+            val words = mutableListOf<TranslatedTextBlock>()
+            for (block in result.textBlocks) {
+                for (line in block.lines) {
+                    for (element in line.elements) {
+                        val box = element.boundingBox ?: continue
+                        val text = element.text
+                        if (text.isBlank()) continue
+                        words.add(
+                            TranslatedTextBlock(
+                                originalText = text,
+                                translatedText = "",
+                                boundingBox = box,
+                                confidence = 1.0f
+                            )
+                        )
+                    }
+                }
+            }
+            words.ifEmpty { null }
+        } catch (e: Exception) {
+            Timber.w(e, "recognizeTextBlocksForSelection failed")
+            null
+        }
+    }
+
     private fun getLanguageName(langCode: String): String =
         TranslationTextUtils.getLanguageName(langCode)
     

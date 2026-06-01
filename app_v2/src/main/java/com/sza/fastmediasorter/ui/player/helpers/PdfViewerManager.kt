@@ -187,11 +187,7 @@ class PdfViewerManager(
 
         // Text selection mode button: toggle overlay with selectable page text
         safeViews.btnSelectTextPdf?.setOnClickListener {
-            pdfTextSelectionManager.enterTextSelectionMode(
-                pageIndex     = currentPdfPageIndex,
-                currentBitmap = currentPageBitmap,
-                pdfRenderer   = pdfRenderer
-            )
+            openPdfTextSelection()
         }
     }
 
@@ -852,6 +848,11 @@ class PdfViewerManager(
 
     }
 
+    /** Public entry to PDF page-fullscreen, reachable from the overflow `menu_fullscreen` item. Decouples fullscreen from the long-press gesture, which now opens text selection. */
+    fun requestPdfFullscreen() {
+        enterFullscreenMode()
+    }
+
     /** Exit fullscreen mode and return to normal PDF viewing with controls. */
     fun exitFullscreenMode() {
         if (!isFullscreenMode) return
@@ -904,13 +905,30 @@ class PdfViewerManager(
         return false
     }
 
-    /** Handle long press gesture for PDF fullscreen mode. Called from PlayerGestureSetupManager's PhotoView long-click listener. Returns true if handled (PDF active), false otherwise. */
-    fun handlePdfLongPress(): Boolean {
+    /** Handle long press gesture: open the text-selection overlay for the current page, pre-selecting the word under the long-press point (view coordinates). Returns true if handled (PDF active), false otherwise. */
+    fun handlePdfLongPress(x: Float, y: Float): Boolean {
         if (pdfRenderer != null && currentPageBitmap != null) {
-            enterFullscreenMode()
+            Timber.d("S0323: PDF long-press opened text-selection overlay")
+            openPdfTextSelection(x, y)
             return true
         }
         return false
+    }
+
+    /** Single entry to the PDF text-selection overlay, shared by the TXT button (no point) and the long-press gesture (with the touch point). Shows the text-extraction toast, then opens the overlay; a non-NaN point pre-selects the nearest word. */
+    private fun openPdfTextSelection(x: Float = Float.NaN, y: Float = Float.NaN) {
+        android.widget.Toast.makeText(
+            binding.root.context,
+            binding.root.context.getString(R.string.pdf_text_extracting),
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+        val point = if (!x.isNaN() && !y.isNaN()) android.graphics.PointF(x, y) else null
+        pdfTextSelectionManager.enterTextSelectionMode(
+            pageIndex          = currentPdfPageIndex,
+            currentBitmap      = currentPageBitmap,
+            pdfRenderer        = pdfRenderer,
+            point
+        )
     }
 
     /** Implementation of BaseDocumentViewerManager abstract methods for touch zone handling */

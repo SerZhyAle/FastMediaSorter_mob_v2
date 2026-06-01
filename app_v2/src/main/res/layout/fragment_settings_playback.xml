@@ -48,23 +48,6 @@
                         app:str_title="@string/play_video_to_end"
                         app:str_subtitle="@string/setting_play_to_end_desc" />
 
-                    <!-- Default browse view: grid vs list (bound to AppSettings.defaultGridMode) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowDefaultGridMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/default_grid_mode"
-                        app:str_subtitle="@string/setting_default_grid_mode_desc" />
-
-                    <!-- File ops collapse to per-row overflow menu (bound to AppSettings.fileOpsInOverflowMenu) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowFileOpsInOverflowMenu"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/file_ops_in_overflow_menu"
-                        app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

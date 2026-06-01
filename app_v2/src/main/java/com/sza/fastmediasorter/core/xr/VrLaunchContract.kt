@@ -44,8 +44,6 @@ data class PlayerStateSnapshot(
     val commandPanelVisible: Boolean = true,
     val fullscreen: Boolean = false,
     val slideshowState: String? = null,
-    val sleepTimerRemainingMs: Long? = null,
-    val audioFocusState: String? = null,
     val videoIsPlaying: Boolean = false,
     val videoVolume: Float = 1.0f,
 ) : Serializable {

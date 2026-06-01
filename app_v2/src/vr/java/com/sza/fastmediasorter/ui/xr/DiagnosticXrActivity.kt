@@ -26,7 +26,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
+import androidx.media3.common.PlaybackException
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.ExoPlaybackException
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
@@ -84,6 +86,41 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private var renderThread: DiagnosticXrRenderThread? = null
     private lateinit var surfaceView: SurfaceView
+
+    @Volatile private var reusableDirectBuffer: ByteBuffer? = null
+    @Volatile private var reusableHudBuffer: ByteBuffer? = null
+
+    @Synchronized
+    private fun getReusableDirectBuffer(size: Int): ByteBuffer {
+        val current = reusableDirectBuffer
+        if (current != null && current.capacity() >= size) {
+            current.clear()
+            return current
+        }
+        return try {
+            val newBuffer = ByteBuffer.allocateDirect(size)
+            reusableDirectBuffer = newBuffer
+            newBuffer
+        } catch (oom: OutOfMemoryError) {
+            Timber.w(oom, "getReusableDirectBuffer: OOM allocating direct buffer of size $size, trying GC...")
+            System.gc()
+            System.runFinalization()
+            ByteBuffer.allocateDirect(size).also { reusableDirectBuffer = it }
+        }
+    }
+
+    @Synchronized
+    private fun getReusableHudBuffer(): ByteBuffer {
+        val size = HUD_BANNER_WIDTH * HUD_BANNER_HEIGHT * 4
+        val current = reusableHudBuffer
+        if (current != null) {
+            current.clear()
+            return current
+        }
+        val newBuffer = ByteBuffer.allocateDirect(size)
+        reusableHudBuffer = newBuffer
+        return newBuffer
+    }
 
     // Dynamic Playlist
     private var mediaPlaylist: List<File> = emptyList()
@@ -378,6 +415,67 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         return RenderConfig(projection, layout)
     }
 
+    private fun queueErrorHud(filename: String, errorMsg: String) {
+        val bytes = generateErrorHudBytes(filename, errorMsg)
+        runtime.queueHud(bytes, HUD_BANNER_WIDTH, HUD_BANNER_HEIGHT)
+    }
+
+    private fun generateErrorHudBytes(filename: String, errorMsg: String): ByteArray {
+        val w = HUD_BANNER_WIDTH
+        val h = HUD_BANNER_HEIGHT
+        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Dark red opaque background for warning / error
+        canvas.drawColor(Color.argb(255, 139, 0, 0))
+
+        // Rounded panel inside the banner
+        val bgPaint = Paint().apply {
+            color = Color.argb(255, 60, 0, 0)
+            isAntiAlias = true
+            style = Paint.Style.FILL
+        }
+        val rect = RectF(12f, 10f, (w - 12).toFloat(), (h - 10).toFloat())
+        canvas.drawRoundRect(rect, 18f, 18f, bgPaint)
+
+        // Filename on the left, monospace bold
+        val namePaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 40f
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        }
+        // Error msg on the right, bold yellow accent
+        val errorPaint = Paint().apply {
+            color = Color.YELLOW
+            textSize = 36f
+            isAntiAlias = true
+            textAlign = Paint.Align.RIGHT
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        }
+
+        val truncated = if (filename.length > 32) filename.take(30) + ".." else filename
+        val nameBounds = Rect()
+        namePaint.getTextBounds(truncated, 0, truncated.length, nameBounds)
+        val nameY = (h / 2f) - nameBounds.exactCenterY()
+        canvas.drawText(truncated, 36f, nameY, namePaint)
+
+        val errorLabel = "ERROR: $errorMsg"
+        val errorBounds = Rect()
+        errorPaint.getTextBounds(errorLabel, 0, errorLabel.length, errorBounds)
+        val errorY = (h / 2f) - errorBounds.exactCenterY()
+        canvas.drawText(errorLabel, (w - 36).toFloat(), errorY, errorPaint)
+
+        val buf = getReusableHudBuffer()
+        bitmap.copyPixelsToBuffer(buf)
+        buf.rewind()
+        val bytes = ByteArray(buf.remaining())
+        buf.get(bytes)
+        bitmap.recycle()
+        return bytes
+    }
+
     /** S0290 (owner feedback round 3 2026-05-22): the previous attempt to render the full [HudCanvasRenderer] panel as the always-on HUD produced an invisible result on Quest 3 (user reported "I see no HUD"). The simple 1024x128 strip used pre-refactor was visible. This restores that working path and additionally includes the resolved projection and stereo layout next to the filename so the operator can see what the parser decided. */
     private fun queueFilenameHud(filename: String, projection: ProjectionType, layout: StereoLayout) {
         val bytes = generateFilenameHudBytes(filename, projection, layout)
@@ -432,7 +530,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         canvas.drawText(configLabel, (w - 36).toFloat(), configY, configPaint)
 
         // Use a DIRECT ByteBuffer (allocateDirect) — Bitmap.copyPixelsToBuffer is reliable with direct buffers; the previous ByteBuffer.wrap(ByteArray) heap-buffer path produced all-zero output (confirmed in logcat 16:29 round 2).
-        val buf = ByteBuffer.allocateDirect(w * h * 4)
+        val buf = getReusableHudBuffer()
         bitmap.copyPixelsToBuffer(buf)
         buf.rewind()
         val bytes = ByteArray(buf.remaining())
@@ -464,7 +562,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         try {
             val w = bitmap.width
             val h = bitmap.height
-            val buf = ByteBuffer.allocateDirect(w * h * 4)
+            val buf = getReusableDirectBuffer(w * h * 4)
             bitmap.copyPixelsToBuffer(buf)
             buf.rewind()
             val bytes = ByteArray(buf.remaining())
@@ -491,7 +589,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         try {
             val w = bitmap.width
             val h = bitmap.height
-            val buf = ByteBuffer.allocateDirect(w * h * 4)
+            val buf = getReusableDirectBuffer(w * h * 4)
             bitmap.copyPixelsToBuffer(buf)
             buf.rewind()
             val bytes = ByteArray(buf.remaining())
@@ -609,11 +707,53 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             repeatMode = Player.REPEAT_MODE_ALL
             
             addListener(object : Player.Listener {
-                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                    Timber.w(error, "DiagnosticXrActivity: VR video playback failed")
+                override fun onPlayerError(error: PlaybackException) {
+                    val cause = error.cause
+                    val stage = when {
+                        error.errorCode in 2000..2999 -> "source preparation"
+                        error.errorCode in 4001..4002 || error.errorCode == 4004 -> "decoder initialization"
+                        error.errorCode == 4003 -> "render"
+                        else -> {
+                            val exoEx = error as? ExoPlaybackException
+                            when (exoEx?.type) {
+                                ExoPlaybackException.TYPE_SOURCE -> "source preparation"
+                                ExoPlaybackException.TYPE_RENDERER -> "decoder initialization / render"
+                                else -> "unknown stage"
+                            }
+                        }
+                    }
+
+                    val decoderDetails = StringBuilder()
+                    if (cause is androidx.media3.exoplayer.mediacodec.MediaCodecRenderer.DecoderInitializationException) {
+                        decoderDetails.append("codec=${cause.codecInfo?.name ?: "null"}, ")
+                        decoderDetails.append("mime=${cause.mimeType ?: "null"}, ")
+                        decoderDetails.append("diag=${cause.diagnosticInfo ?: "null"}")
+                    } else if (cause != null) {
+                        decoderDetails.append("cause=${cause.javaClass.simpleName}: ${cause.message}")
+                        cause.cause?.let { inner ->
+                            decoderDetails.append(" -> ${inner.javaClass.simpleName}: ${inner.message}")
+                        }
+                    } else {
+                        decoderDetails.append("no cause info")
+                    }
+
+                    // Temporary debug-probe tag for S0322 BlockNeedUserTest
+                    Timber.d("S0322: VR video playback error captured on file ${file.name}")
+
+                    Timber.e(error, "VR diagnostic playback failed! File: ${file.name}, Stage: $stage, Code: ${error.errorCode} (${error.errorCodeName}), Msg: ${error.message}, $decoderDetails")
+
                     runOnUiThread {
                         if (!isFinishing && !isDestroyed) {
-                            deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed))
+                            val shortErr = "${error.errorCodeName} ($stage)"
+                            queueErrorHud(file.name, shortErr)
+
+                            android.widget.Toast.makeText(
+                                this@DiagnosticXrActivity,
+                                "Playback Error: $shortErr",
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+
+                            releasePlaybackResources()
                         }
                     }
                 }
@@ -683,7 +823,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     try {
                         val w = bitmap.width
                         val h = bitmap.height
-                        val buf = ByteBuffer.allocateDirect(w * h * 4)
+                        val buf = getReusableDirectBuffer(w * h * 4)
                         bitmap.copyPixelsToBuffer(buf)
                         buf.rewind()
                         val bytes = ByteArray(buf.remaining())
@@ -702,7 +842,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         } else {
             if (sessionReady) {
                 if (!startVideoPlayback(file)) {
-                    deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed))
+                    queueErrorHud(file.name, "Playback Start Failed")
                 }
             } else {
                 Timber.d("DiagnosticXrActivity: deferring video playback until native session is ready")
@@ -799,6 +939,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // onPause normally already tore everything down (Phase 09); this is the belt-and-braces path for the rare process-death-after-pause case where onPause did not get to finish. Same ordering rule: ExoPlayer release before native shutdown.
         releasePlaybackResources()
         shutdownRenderThreadSync(SHUTDOWN_TIMEOUT_MS)
+        reusableDirectBuffer = null
+        reusableHudBuffer = null
         super.onDestroy()
     }
 
@@ -991,7 +1133,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             Timber.d("S0291: session-ready HUD re-queue (${if (isVideoFilename(file.name)) "video" else "image"}) ${file.name}")
             if (isVideoFilename(file.name)) {
                 if (!startVideoPlayback(file)) {
-                    deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed))
+                    queueErrorHud(file.name, "Playback Start Failed")
                 }
             }
         }

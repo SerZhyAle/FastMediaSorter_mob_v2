@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.graphics.Bitmap
+import android.graphics.PointF
 import android.graphics.pdf.PdfRenderer
+import android.text.Selection
+import android.text.Spannable
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +21,11 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -48,6 +55,18 @@ class PdfTextSelectionManager(
 ) {
     private var overlayView: View? = null
     private var isInTextSelectionMode = false
+    private val calculatorEnabledFlow = MutableStateFlow(false)
+
+    init {
+        coroutineScope.launch {
+            settingsRepository.getSettings()
+                .map { it.enableCalculator }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    calculatorEnabledFlow.value = enabled
+                }
+        }
+    }
 
     fun isInTextSelectionMode(): Boolean = isInTextSelectionMode
 
@@ -59,7 +78,8 @@ class PdfTextSelectionManager(
     fun enterTextSelectionMode(
         pageIndex: Int,
         currentBitmap: Bitmap?,
-        pdfRenderer: PdfRenderer?
+        pdfRenderer: PdfRenderer?,
+        selectionViewPoint: PointF? = null
     ) {
         if (isInTextSelectionMode) {
             exitTextSelectionMode()
@@ -100,7 +120,7 @@ class PdfTextSelectionManager(
             if (pageText.isBlank()) {
                 tvText.text = binding.root.context.getString(R.string.pdf_text_empty)
             } else {
-                tvText.text = pageText
+                tvText.setText(pageText, TextView.BufferType.SPANNABLE)
                 // Attach the selection ActionMode callback
                 tvText.customSelectionActionModeCallback = DocumentSelectionActionModeCallback(
                     showTranslate  = BuildConfig.ENABLE_TRANSLATION,
@@ -123,11 +143,46 @@ class PdfTextSelectionManager(
                         }
                     },
                     onSearchGoogle = { openGoogleSearch(binding.root.context, it) },
+                    isCalculatorAvailable = { calculatorEnabledFlow.value },
+                    onOpenCalculator = { openCalculatorForSelection(binding.root.context, it) },
                     onReadAloud    = onReadAloud
                 )
+
+                // Pre-select the word under the long-press point (approximate, OCR word boxes).
+                if (selectionViewPoint != null && currentBitmap != null) {
+                    preselectWordAt(selectionViewPoint, currentBitmap, tvText, pageText)
+                }
             }
 
             scrollView.isVisible = true
+        }
+    }
+
+    /**
+     * Map the long-press [viewPoint] (PhotoView view coordinates) to a word in [pageText] and
+     * select it in [tvText] so native handles + floating Copy appear on it. No-op when the word
+     * cannot be resolved (the overlay simply opens without a pre-selection).
+     */
+    private suspend fun preselectWordAt(
+        viewPoint: PointF,
+        bitmap: Bitmap,
+        tvText: TextView,
+        pageText: String
+    ) {
+        Timber.d("S0323: PDF preselect word under long-press")
+        val bitmapPoint = PdfSelectionCoordinateMapper.viewToBitmap(
+            binding.photoView, viewPoint.x, viewPoint.y
+        ) ?: return
+        val words = withContext(Dispatchers.IO) {
+            translationManager.recognizeTextBlocksForSelection(bitmap)
+        } ?: return
+        val range = PdfSelectionCoordinateMapper.charRangeForPoint(bitmapPoint, words, pageText)
+            ?: return
+        val spannable = tvText.text as? Spannable ?: return
+        val end = range.last + 1
+        if (range.first in 0..spannable.length && end in range.first..spannable.length) {
+            Selection.setSelection(spannable, range.first, end)
+            tvText.requestFocus()
         }
     }
 

@@ -41,6 +41,7 @@ class GeneralSettingsViewSetupHelper(
         setupLanguageSpinner()
         setupSwitches()
         setupTooltips()
+        setupIconSizeInput()
         setupNetworkParallelism()
         setupCacheSizeInput()
         setupSyncSection()
@@ -79,6 +80,27 @@ class GeneralSettingsViewSetupHelper(
         binding.rowAllowSeparateWindow.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(allowSeparateWindow = isChecked))
+        }
+        binding.rowDefaultGridMode.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.defaultGridMode == isChecked) return@setOnCheckedChangeListener
+            Timber.d("S0254: General tab default grid mode toggled isChecked=$isChecked")
+            viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
+        }
+        binding.rowHideGridActionButtons.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.hideGridActionButtons == isChecked) return@setOnCheckedChangeListener
+            Timber.d("S0254: General tab hide grid action buttons toggled isChecked=$isChecked")
+            viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
+        }
+        binding.rowFileOpsInOverflowMenu.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
+            Timber.d("S0254: General tab file ops overflow menu toggled isChecked=$isChecked")
+            viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
         binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
@@ -150,6 +172,9 @@ class GeneralSettingsViewSetupHelper(
         binding.iconHelpDefaultCredentials.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_default_credentials_title, R.string.tooltip_default_credentials_message)
         }
+        binding.iconHelpGridSize.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_grid_size_title, R.string.tooltip_grid_size_message)
+        }
     }
 
     private fun setupNetworkParallelism() {
@@ -200,6 +225,35 @@ class GeneralSettingsViewSetupHelper(
                 } else {
                     binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb), false)
                     Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun setupIconSizeInput() {
+        val iconSizeOptions = (32..256 step 8).map { it.toString() }.toTypedArray()
+        val iconSizeAdapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)
+        binding.etIconSize.setAdapter(iconSizeAdapter)
+        binding.etIconSize.setText(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
+        binding.etIconSize.setOnItemClickListener { _, _, position, _ ->
+            if (getIsUpdatingSpinner()) return@setOnItemClickListener
+            val size = iconSizeOptions[position].toInt()
+            val current = viewModel.settings.value
+            if (current.defaultIconSize != size) {
+                Timber.d("S0254: General tab grid icon size selected size=$size")
+                viewModel.updateSettings(current.copy(defaultIconSize = size))
+            }
+        }
+        binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus && !getIsUpdatingSpinner()) {
+                val size = binding.etIconSize.text.toString().toIntOrNull()
+                if (size != null && size in 32..256 && (size - 32) % 8 == 0) {
+                    val current = viewModel.settings.value
+                    if (current.defaultIconSize != size) {
+                        viewModel.updateSettings(current.copy(defaultIconSize = size))
+                    }
+                } else {
+                    binding.etIconSize.setText(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
                 }
             }
         }

@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-05-31*
+*Last updated: 2026-06-01*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
@@ -94,13 +94,14 @@ This document is the canonical inventory of all user-facing features implemented
 - **EPUB custom formatting** `[Standard / VR]`: Configure Serif, Sans, or Monospace fonts, adjust line spacing, margins, and custom themes (including OLED black).
 - **Read Aloud (TTS)** `[Standard / VR]`: Synthesizes current pages or chapters through the system text-to-speech engine.
 - **Print support** `[Standard Only]`: Print PDF documents, notes, and photos natively via the Android Print service.
+- **Text selection & copy** `[Standard / VR]`: Long-press to select a word in PDF, EPUB and TXT/MD, drag the handles to adjust the range, and use the floating Copy action; in PDF the selection opens through the on-page text mode (TXT button).
 
 ## 12. Text Editor
 - **Rendering & syntax** `[Standard / VR]`: Auto-detects charsets, renders Markdown, and highlights code syntax.
 - **In-place editing** `[Standard / VR]`: Modify `.txt` and `.md` files with auto-save and undo history (Undo/Redo) for local and remote files.
 - **Quick notes** `[Standard / VR]`: Create new text notes directly from the Browse toolbar with auto-saving and name conflict resolution.
 - **Action panel** `[Standard / VR]`: Dedicated control buttons (Save, Close, Share, Send to Keep) with unsaved change highlights.
-- **Embedded calculator round-trip** `[Standard / VR]`: Opens the embedded calculator from the editor action menu, sends selected text as input, and inserts the returned result at the caret.
+- **Embedded calculator from text** `[Standard / VR]`: Opens the embedded calculator from the editor action menu with result insertion, and from read-only text selection menus for OCR, translations, PDF/EPUB text, and lyrics without writing the result back.
 - **Font auto-fit** `[Standard / VR]`: Scales text size automatically to fit the screen, with swipe-based manual size lock.
 
 ## 13. Offline OCR & Translation

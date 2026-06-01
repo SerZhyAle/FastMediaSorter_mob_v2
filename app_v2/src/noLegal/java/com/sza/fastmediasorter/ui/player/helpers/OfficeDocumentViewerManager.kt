@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamily
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamilyCatalog
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
@@ -28,8 +30,9 @@ import java.io.File
  * The viewer reuses the shared `officeDocumentViewerContainer` surface in the unified player
  * layout, mirroring how PDF/EPUB managers own their own surfaces.
  *
- * Read-only by contract: JavaScript is disabled, no editing affordances exist, and the
- * WebView blocks active content while letting ordinary hyperlinks open via the system.
+ * Read-only by contract: JavaScript is enabled only for the app-generated selection bridge,
+ * no editing affordances exist, and the WebView blocks active content while letting ordinary
+ * hyperlinks open via the system.
  */
 @SuppressLint("SetJavaScriptEnabled")
 class OfficeDocumentViewerManager(
@@ -53,6 +56,17 @@ class OfficeDocumentViewerManager(
     private var webView: WebView? = null
     private var fullscreen = false
     private var renderedPlainText: String? = null
+    private val selectionBridge = OfficeSelectionBridge()
+
+    /** JS bridge scoped to selected-text capture for generated Office HTML. */
+    inner class OfficeSelectionBridge {
+        @Volatile var lastSelectedText: String = ""
+
+        @JavascriptInterface
+        fun onSelectionChanged(text: String) {
+            lastSelectedText = text
+        }
+    }
 
     override val isActive: Boolean
         get() = webView != null && container.isVisible
@@ -107,6 +121,7 @@ class OfficeDocumentViewerManager(
     private fun renderHtml(html: String) {
         val view = webView ?: createWebView().also { webView = it }
         renderedPlainText = Jsoup.parse(html).text().trim().takeIf { it.isNotBlank() }
+        selectionBridge.lastSelectedText = ""
         container.isVisible = true
         view.isVisible = true
         view.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
@@ -115,13 +130,15 @@ class OfficeDocumentViewerManager(
     private fun createWebView(): WebView {
         val view = WebView(container.context)
         view.settings.apply {
-            javaScriptEnabled = false
+            // Required only for app-generated selection capture; external/local content remains blocked.
+            javaScriptEnabled = true
             allowFileAccess = false
             allowContentAccess = false
             builtInZoomControls = true
             displayZoomControls = false
             setSupportZoom(true)
         }
+        view.addJavascriptInterface(selectionBridge, "OfficeSelectionBridge")
         view.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url?.toString()
@@ -152,6 +169,7 @@ class OfficeDocumentViewerManager(
         }
         webView = null
         renderedPlainText = null
+        selectionBridge.lastSelectedText = ""
         container.isVisible = false
         fullscreen = false
     }
@@ -164,4 +182,14 @@ class OfficeDocumentViewerManager(
     }
 
     override fun extractPlainText(): String? = renderedPlainText
+
+    override fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback? {
+        if (!isActive) return null
+        return DocumentSelectionActionModeCallback(
+            showTranslate = BuildConfig.ENABLE_TRANSLATION,
+            getSelectedText = { selectionBridge.lastSelectedText },
+            onTranslate = callback::onTranslateSelection,
+            onSearchGoogle = { openGoogleSearch(binding.root.context, it) },
+        )
+    }
 }

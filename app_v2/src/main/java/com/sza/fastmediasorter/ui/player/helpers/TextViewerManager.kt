@@ -78,6 +78,7 @@ class TextViewerManager(
         fun setTouchZonesEnabled(enabled: Boolean)
         fun showEncodingDialog()
         fun launchEditorCalculator(initialInput: String)
+        fun launchSelectionCalculator(initialInput: String)
         // S0189: invoked by Save & Close to return the user to Browse with the new file.
         fun finishActivity()
     }
@@ -370,7 +371,9 @@ class TextViewerManager(
                         ?.substring(minOf(start, end), maxOf(start, end)) ?: ""
                 },
                 onTranslate = { translationOverlayManager.translateSelectedText(it) },
-                onSearchGoogle = { openGoogleSearch(context, it) }
+                onSearchGoogle = { openGoogleSearch(context, it) },
+                isCalculatorAvailable = { calculatorEnabledFlow.value },
+                onOpenCalculator = callback::launchSelectionCalculator,
             )
     }
 

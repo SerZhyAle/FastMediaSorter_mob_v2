@@ -48,28 +48,6 @@
                         app:str_title="@string/play_video_to_end"
                         app:str_subtitle="@string/setting_play_to_end_desc" />
 
-                    <!-- Landscape keeps default grid mode and file ops overflow toggles on one row. -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowDefaultGridMode"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/resource_field_margin_end"
-                            app:str_title="@string/default_grid_mode"
-                            app:str_subtitle="@string/setting_default_grid_mode_desc" />
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowFileOpsInOverflowMenu"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/settings_help_icon_margin"
-                            app:str_title="@string/file_ops_in_overflow_menu"
-                            app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
-
-                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
