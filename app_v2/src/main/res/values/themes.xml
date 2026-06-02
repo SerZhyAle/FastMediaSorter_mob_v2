@@ -60,6 +60,11 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <!-- Settings page-tabs text in landscape: 1.5x of the default 14sp tab text for easier tapping -->
+    <style name="TextAppearance.FastMediaSorter.SettingsTabLand" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">21sp</item>
+    </style>
+
     <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
@@ -126,6 +131,19 @@
 
     <style name="Widget.FastMediaSorter.Calculator.DigitButton" parent="Widget.FastMediaSorter.Calculator.Button">
         <item name="backgroundTint">@color/item_alternate</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Calculator.OperatorButton" parent="Widget.FastMediaSorter.Calculator.Button">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Calculator.PlusButton" parent="Widget.FastMediaSorter.Calculator.Button">
+        <item name="android:textColor">@color/calculator_plus_button_text</item>
+        <item name="android:textSize">@dimen/calculator_plus_button_text_size</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Calculator.MemoryButton" parent="Widget.FastMediaSorter.Calculator.Button">
+        <item name="android:textSize">@dimen/calculator_memory_button_text_size</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Calculator.ClearButton" parent="Widget.FastMediaSorter.Calculator.Button">

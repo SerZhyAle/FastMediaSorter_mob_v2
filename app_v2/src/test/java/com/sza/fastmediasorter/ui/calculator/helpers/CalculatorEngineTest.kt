@@ -296,4 +296,252 @@ class CalculatorEngineTest {
         assertEquals("5", engine.display)
         assertNull(engine.error)
     }
+
+    @Test
+    fun `sine of thirty degrees is one half`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(3)
+        engine.inputDigit(0)
+        engine.sine()
+
+        assertEquals("0.5", engine.display)
+        assertEquals(listOf("sin(30)=0.5"), engine.calculationHistory)
+    }
+
+    @Test
+    fun `cosine of sixty degrees is one half`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(6)
+        engine.inputDigit(0)
+        engine.cosine()
+
+        assertEquals("0.5", engine.display)
+    }
+
+    @Test
+    fun `tangent of forty five degrees is one`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(4)
+        engine.inputDigit(5)
+        engine.tangent()
+
+        assertEquals("1", engine.display)
+    }
+
+    @Test
+    fun `cotangent of forty five degrees is one`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(4)
+        engine.inputDigit(5)
+        engine.cotangent()
+
+        assertEquals("1", engine.display)
+    }
+
+    @Test
+    fun `square root of nine is three`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(9)
+        engine.squareRoot()
+
+        assertEquals("3", engine.display)
+    }
+
+    @Test
+    fun `cube root of twenty seven is three`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(2)
+        engine.inputDigit(7)
+        engine.cubeRoot()
+
+        assertEquals("3", engine.display)
+    }
+
+    @Test
+    fun `square of four is sixteen`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(4)
+        engine.square()
+
+        assertEquals("16", engine.display)
+    }
+
+    @Test
+    fun `reciprocal of four is a quarter`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(4)
+        engine.reciprocal()
+
+        assertEquals("0.25", engine.display)
+    }
+
+    @Test
+    fun `log base ten of one thousand is three`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputDigit(0)
+        engine.inputDigit(0)
+        engine.log10()
+
+        assertEquals("3", engine.display)
+    }
+
+    @Test
+    fun `natural log of one is zero`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.naturalLog()
+
+        assertEquals("0", engine.display)
+    }
+
+    @Test
+    fun `factorial of five is one hundred twenty`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(5)
+        engine.factorial()
+
+        assertEquals("120", engine.display)
+        assertEquals(listOf("5!=120"), engine.calculationHistory)
+    }
+
+    @Test
+    fun `power raises base to exponent`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(2)
+        engine.inputOperator("^")
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputEquals()
+
+        assertEquals("1024", engine.display)
+    }
+
+    @Test
+    fun `square root of negative is domain error`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(9)
+        engine.toggleSign()
+        engine.squareRoot()
+
+        assertEquals(CalculatorError.MATH_DOMAIN, engine.error)
+    }
+
+    @Test
+    fun `natural log of zero is domain error`() {
+        val engine = CalculatorEngine()
+
+        engine.naturalLog()
+
+        assertEquals(CalculatorError.MATH_DOMAIN, engine.error)
+    }
+
+    @Test
+    fun `factorial of negative is domain error`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(3)
+        engine.toggleSign()
+        engine.factorial()
+
+        assertEquals(CalculatorError.MATH_DOMAIN, engine.error)
+    }
+
+    @Test
+    fun `pi loads constant`() {
+        val engine = CalculatorEngine()
+
+        engine.inputPi()
+
+        assertEquals("3.14159265359", engine.display)
+    }
+
+    @Test
+    fun `memory add accumulates current value`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(5)
+        engine.memoryAdd()
+        engine.clear()
+        engine.inputDigit(3)
+        engine.memoryAdd()
+
+        assertEquals(0, engine.memory.compareTo(java.math.BigDecimal(8)))
+    }
+
+    @Test
+    fun `memory subtract reduces stored value`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(8)
+        engine.memoryAdd()
+        engine.clear()
+        engine.inputDigit(3)
+        engine.memorySubtract()
+
+        assertEquals(0, engine.memory.compareTo(java.math.BigDecimal(5)))
+    }
+
+    @Test
+    fun `memory recall puts stored value on display`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(7)
+        engine.memoryAdd()
+        engine.clear()
+        engine.memoryRecall()
+
+        assertEquals("7", engine.display)
+    }
+
+    @Test
+    fun `memory clear zeroes stored value`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(9)
+        engine.memoryAdd()
+        engine.memoryClear()
+
+        assertEquals(0, engine.memory.compareTo(java.math.BigDecimal.ZERO))
+    }
+
+    @Test
+    fun `modulo returns remainder`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputOperator("mod")
+        engine.inputDigit(3)
+        engine.inputEquals()
+
+        assertEquals("1", engine.display)
+    }
+
+    @Test
+    fun `modulo by zero is division error`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputOperator("mod")
+        engine.inputDigit(0)
+        engine.inputEquals()
+
+        assertEquals(CalculatorError.DIVISION_BY_ZERO, engine.error)
+    }
 }

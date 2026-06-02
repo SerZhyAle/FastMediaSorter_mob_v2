@@ -20,8 +20,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
+import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
@@ -29,6 +31,8 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -36,6 +40,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     private val viewModel: WelcomeViewModel by viewModels()
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
+    private lateinit var pagesList: MutableList<WelcomePage>
     private var currentPage = 0
     private var defaultPlayerPageIndex = -1
     // Separate field so the restored page is applied once in setupViewPager() without
@@ -74,10 +79,51 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         setupViewPager()
         setupButtons()
         updateUI()
+
+        // Result from the shared device-profile picker (opened from the Welcome profile card).
+        supportFragmentManager.setFragmentResultListener(
+            DeviceProfilePickerDialogFragment.RESULT_KEY, this
+        ) { _, bundle ->
+            val name = bundle.getString(DeviceProfilePickerDialogFragment.RESULT_PROFILE)
+                ?: return@setFragmentResultListener
+            runCatching { DeviceProfileType.valueOf(name) }.getOrNull()
+                ?.let { viewModel.onProfileSelected(it) }
+        }
+    }
+
+    private fun showProfilePicker() {
+        val state = viewModel.state.value
+        val current = state.selectedProfile
+            ?: state.recommendedProfile
+            ?: DeviceProfileType.PERSONAL_SMARTPHONE
+        DeviceProfilePickerDialogFragment.newInstance(
+            current = current,
+            recommended = state.recommendedProfile,
+            warnOnApply = false,
+        ).show(supportFragmentManager, DeviceProfilePickerDialogFragment.TAG)
     }
 
     override fun observeData() {
-        // No data to observe
+        lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                if (::pagesList.isInitialized && pagesList.isNotEmpty()) {
+                    val firstPage = pagesList[0]
+                    val updatedPage = firstPage.copy(
+                        showProfileSelector = true,
+                        recommendedProfileType = state.recommendedProfile,
+                        selectedProfileType = state.selectedProfile,
+                        onProfileSelected = { type ->
+                            viewModel.onProfileSelected(type)
+                        },
+                        onOpenProfilePicker = { showProfilePicker() }
+                    )
+                    if (firstPage != updatedPage) {
+                        pagesList[0] = updatedPage
+                        pagerAdapter.notifyItemChanged(0)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -134,7 +180,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     private fun setupViewPager() {
-        val pages = mutableListOf(
+        pagesList = mutableListOf(
             // Page 1: Welcome (Enhanced with feature cards)
             WelcomePage(
                 iconRes = R.drawable.welcome_hero_media,
@@ -194,8 +240,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 !DefaultPlayerHelper.isAlreadyDefaultPlayer(this))
 
         if (shouldShowDefaultPlayerPage) {
-            defaultPlayerPageIndex = pages.size
-            pages.add(
+            defaultPlayerPageIndex = pagesList.size
+            pagesList.add(
                 WelcomePage(
                     iconRes = 0,
                     titleRes = 0,
@@ -212,7 +258,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             )
         }
 
-        pagerAdapter = WelcomePagerAdapter(pages)
+        pagerAdapter = WelcomePagerAdapter(pagesList)
         binding.viewPager.adapter = pagerAdapter
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -224,11 +270,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             }
         })
 
-        setupIndicators(pages.size)
+        setupIndicators(pagesList.size)
 
         // Restore ViewPager position after activity recreation so the user lands on the
         // same page they were on before the config change, not always back on page 0.
-        if (restoredPage > 0 && restoredPage < pages.size) {
+        if (restoredPage > 0 && restoredPage < pagesList.size) {
             currentPage = restoredPage
             previousPage = restoredPage
             binding.viewPager.setCurrentItem(restoredPage, false)
@@ -313,6 +359,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             if (defaultPlayerPageIndex != -1 && currentPage < defaultPlayerPageIndex) {
                 binding.viewPager.currentItem = defaultPlayerPageIndex
             } else {
+                viewModel.saveDeviceProfile(isSkipped = true)
                 finishWelcome()
             }
         }
@@ -330,6 +377,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         }
 
         binding.btnFinish.setOnClickListener {
+            viewModel.saveDeviceProfile(isSkipped = false)
             finishWelcome()
         }
     }

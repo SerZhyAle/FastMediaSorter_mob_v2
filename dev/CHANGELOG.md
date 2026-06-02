@@ -14563,3 +14563,335 @@ Format: | datetime | file | target | description |
 | 2026-06-01 14:35:37 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `spec-check` | Audit S0324 to Verified; PASS/WARN/FAIL 26/0/0 [branch: DEBUG-v011] |
 | 2026-06-01 14:35:37 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-check` | Mark S0324 spec-check completion gate verified [branch: DEBUG-v011] |
 | 2026-06-01 14:35:37 | `dev/SPEC_CATALOG.json` | `spec-check` | Close S0324 as Verified [branch: DEBUG-v011] |
+| 2026-06-01 14:51:26 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-test-device` | Device run on emulator-5554 -> PASS 6/6, 0 errors; all 3 debug tags observed [branch: DEBUG-v011] |
+| 2026-06-01 14:52:53 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-check` | Audit S0323 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v011] |
+| 2026-06-01 14:52:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `spec-check` | Remove S0323 debug tag on Verified [branch: DEBUG-v011] |
+| 2026-06-01 14:52:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTextSelectionManager.kt` | `spec-check` | Remove S0323 debug tag on Verified [branch: DEBUG-v011] |
+| 2026-06-01 14:52:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `spec-check` | Remove S0323 debug tag on Verified [branch: DEBUG-v011] |
+| 2026-06-01 14:55:02 | `PLAN/S0325_browse-filter-doc-types-reset.md` | `spec` | Add strategic spec S0325 for Browse file-filter Office type + reset-checkboxes button (portrait+landscape) [branch: DEBUG-v011] |
+| 2026-06-01 14:57:59 | `PLAN/S0325_browse-filter-doc-types-reset/INDEX.md` | `spec-tech` | Create tactical plan for S0325 [branch: DEBUG-v011] |
+| 2026-06-01 14:57:59 | `PLAN/S0325_browse-filter-doc-types-reset/PHASE_01__filter-layout-grid.md` | `spec-tech` | Phase 01: filter-layout-grid [branch: DEBUG-v011] |
+| 2026-06-01 14:57:59 | `PLAN/S0325_browse-filter-doc-types-reset/PHASE_02__dialog-logic.md` | `spec-tech` | Phase 02: dialog-logic [branch: DEBUG-v011] |
+| 2026-06-01 14:57:59 | `PLAN/S0325_browse-filter-doc-types-reset/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-01 14:57:59 | `PLAN/S0325_browse-filter-doc-types-reset.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-01 14:59:07 | `app_v2/src/main/res/values/strings.xml` | `S0325 phase-01.1` | Add filter_check_all_types string (reset-checkboxes button label) EN/RU/UK [branch: DEBUG-v011] |
+| 2026-06-01 15:00:56 | `app_v2/src/main/res/layout/dialog_filter.xml` | `S0325 phase-01.2` | Browse filter portrait: add Office type checkbox + check-all-types reset button, 4x2 type grid [branch: DEBUG-v011] |
+| 2026-06-01 15:01:44 | `app_v2/src/main/res/layout-land/dialog_filter.xml` | `S0325 phase-01.3` | Browse filter landscape: add Office type checkbox + check-all-types reset button [branch: DEBUG-v011] |
+| 2026-06-01 15:02:53 | `PLAN/S0165_browse-create-folder.md` | `spec-arc` | Archive S0165 (browse-create-folder) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 15:05:24 | `PLAN/S0186_nolegal-pipeline-cascade-resilience.md` | `spec-arc` | Archive S0186 (noLegal-pipeline-cascade-resilience) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 15:05:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-arc` | Remove stale Timber.d(S0186) debug verification tag on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:06:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `S0325 phase-02` | Browse filter: wire Office type checkbox (visibility/init/apply) and check-all-types reset button [branch: DEBUG-v011] |
+| 2026-06-01 15:08:17 | `PLAN/S0207_radical-memory-reduction.md` | `spec-arc` | Archive S0207 (radical-memory-reduction) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 15:08:51 | `PLAN/S0211_webview-auth-account-dedup-and-loop-prevention.md` | `spec-arc` | Archive S0211 (webview-auth-account-dedup-and-loop-prevention) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 15:08:51 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `spec-arc` | Remove stale Timber.d(S0211) debug verification tag on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:08:51 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/DedupAuthAccountsUseCase.kt` | `spec-arc` | Remove stale Timber.d(S0211) debug verification tag on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:08:51 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `spec-arc` | Remove stale Timber.d(S0211) debug verification tag on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:10:24 | `PLAN/S0252_bugfix-sftp-audio-car-playback-resilience.md` | `spec-arc` | Archive S0252 (bugfix-sftp-audio-car-playback-resilience) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 15:10:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `spec-arc` | Remove stale Timber.d(S0252) debug verification tags on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:10:25 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `spec-arc` | Remove stale Timber.d(S0252) debug verification tag on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:10:29 | `docs/FEATURES.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action [branch: DEBUG-v011] |
+| 2026-06-01 15:10:29 | `docs/FEATURES_RU.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action (RU) [branch: DEBUG-v011] |
+| 2026-06-01 15:10:29 | `docs/FEATURES_UK.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action (UK) [branch: DEBUG-v011] |
+| 2026-06-01 15:11:35 | `PLAN/S0253_overflow-menus-default-on-fresh-install.md` | `spec-arc` | Archive S0253 (overflow-menus-default-on-fresh-install) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 15:11:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-arc` | Remove stale Timber.d(S0253) debug verification tag on archive [branch: DEBUG-v011] |
+| 2026-06-01 15:11:40 | `PLAN/S0325_browse-filter-doc-types-reset.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest (S0325 probe tag in BrowseDialogHelper) [branch: DEBUG-v011] |
+| 2026-06-01 15:15:55 | `PLAN/S0325_browse-filter-doc-types-reset.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 4/0/2; S0325 probe exercised; Office visibility inconclusive (resource allowed-set) [branch: DEBUG-v011] |
+| 2026-06-01 15:17:50 | `PLAN/S0325_browse-filter-doc-types-reset.md` | `spec-check` | Audit S0325 -> Verified; PASS/WARN/FAIL 11/0/0 [branch: DEBUG-v011] |
+| 2026-06-01 15:17:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `spec-check` | Remove S0325 probe tag + unused Timber import on Verified [branch: DEBUG-v011] |
+| 2026-06-01 15:20:26 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Remove camera subsection headings from playback settings portrait layout [branch: DEBUG-v011] |
+| 2026-06-01 15:20:26 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Remove camera subsection headings from playback settings landscape layout [branch: DEBUG-v011] |
+| 2026-06-01 15:20:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Remove binding reference for deleted camera OCR subsection heading [branch: DEBUG-v011] |
+| 2026-06-01 15:23:30 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0254 follow-up` | Merge icon-size dropdown + default grid mode into one row (portrait); drop grid-mode subtitle [branch: DEBUG-v011] |
+| 2026-06-01 15:23:30 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0254 follow-up` | Merge icon-size + grid mode into one row, pair hide-grid-buttons with file-ops-overflow (landscape) [branch: DEBUG-v011] |
+| 2026-06-01 17:52:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/editor/actions/EditorActionPanelBinder.kt` | `Text editor` | Move Save / Save & send / Send to Keep into the editor toolbar overflow menu (More always visible); add Calculator to the EditText selection ActionMode, gated on the calculator setting, inserting the result after the selection [branch: DEBUG-v011] |
+| 2026-06-01 17:57:06 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `string/setting_allow_separate_window_desc` | Add subtitle/support text to the Allow new windows toggle in Settings -> Common -> Interface (portrait + landscape) [branch: DEBUG-v011] |
+| 2026-06-01 18:05:01 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `Settings General` | Add help (?) icon next to Wear Companion button explaining the feature; TooltipDialog wiring in GeneralSettingsBackupHelper; new tooltip_wear_companion strings (EN/RU/UK); portrait + landscape layouts [branch: DEBUG-v011] |
+| 2026-06-01 18:08:25 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `Settings/Common` | Landscape: place Sync Now button and Never synced status on the same lane as Enable background sync toggle (status left of button) [branch: DEBUG-v011] |
+| 2026-06-01 18:09:15 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general.xml` | Landscape interface settings: pair Allow-new-windows with Enable-favourites on one row; move Resource-ops-overflow into the All-Files/Show-Hidden row [branch: DEBUG-v011] |
+| 2026-06-01 18:41:14 | `PLAN/S0326_media-3dvr-default-settings.md` | `spec` | Add strategic spec S0326 for global 3D/VR default settings screen [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/INDEX.md` | `spec-tech` | Create tactical plan for S0326 [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/PHASE_01__foundations-settings-fields.md` | `spec-tech` | Phase 01: foundations-settings-fields [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/PHASE_02__detection-config.md` | `spec-tech` | Phase 02: detection-config [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/PHASE_03__coordinator-default-slot.md` | `spec-tech` | Phase 03: coordinator-default-slot [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/PHASE_04__settings-screen-shared.md` | `spec-tech` | Phase 04: settings-screen-shared [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/PHASE_05__settings-screen-vr.md` | `spec-tech` | Phase 05: settings-screen-vr [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-01 18:46:20 | `PLAN/S0326_media-3dvr-default-settings.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-01 19:05:03 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev S0326 phase-01.1` | Add global 3D/VR default settings fields to AppSettings [branch: DEBUG-v011] |
+| 2026-06-01 19:07:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev S0326 phase-01.2` | Persist global 3D/VR default settings in DataStore [branch: DEBUG-v011] |
+| 2026-06-01 19:12:28 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `spec-dev S0326 phase-01.3` | Add global 3D/VR fields to backup DTO [branch: DEBUG-v011] |
+| 2026-06-01 19:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `spec-dev S0326 phase-01.3` | Round-trip global 3D/VR fields through backup [branch: DEBUG-v011] |
+| 2026-06-01 19:24:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `spec-dev S0326 phase-02` | Add StereoDetectionConfig + per-source gating to detect entry points [branch: DEBUG-v011] |
+| 2026-06-01 19:24:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev S0326 phase-02` | Collect 3D/VR detection config from settings [branch: DEBUG-v011] |
+| 2026-06-01 19:24:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoPlayerTracksObserver.kt` | `spec-dev S0326 phase-02` | Pass detection config to detectForVideo [branch: DEBUG-v011] |
+| 2026-06-01 19:25:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `spec-dev S0326 phase-02` | Pass detection config to detectForImage [branch: DEBUG-v011] |
+| 2026-06-01 19:25:55 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoDetectorConfigTest.kt` | `spec-dev S0326 phase-02` | Tests for configurable detection cascade [branch: DEBUG-v011] |
+| 2026-06-01 19:33:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt` | `spec-dev S0326 phase-03` | Add global-default fallback slot + injectable ioDispatcher [branch: DEBUG-v011] |
+| 2026-06-01 19:33:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `spec-dev S0326 phase-03` | Supply global default stereo mode from settings to coordinator [branch: DEBUG-v011] |
+| 2026-06-01 19:34:23 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinatorTest.kt` | `spec-dev S0326 phase-03` | Tests for coordinator precedence and global-default slot [branch: DEBUG-v011] |
+| 2026-06-01 20:00:38 | `PLAN/S0326_media-3dvr-default-settings.md` | `ui-clarify` | S0326: owner reframe - all 3D/VR settings UI is VR-only (ADR-3); update flavor scope + resolve open Q3 [branch: DEBUG-v011] |
+| 2026-06-01 20:00:38 | `PLAN/S0326_media-3dvr-default-settings/INDEX.md` | `ui-clarify` | S0326: supersede Phase 04, merge groups A/D into VR-only Phase 05 [branch: DEBUG-v011] |
+| 2026-06-01 20:10:03 | `PLAN/S0326_media-3dvr-default-settings/PHASE_05__settings-screen-vr.md` | `spec-tech` | S0326: re-detail Phase 05 (VR-only, all groups A-E in existing VR block) [branch: DEBUG-v011] |
+| 2026-06-01 20:19:41 | `app_v2/src/vr/res/values/strings.xml` | `spec-dev S0326 phase-05.1` | 3D/VR settings strings (en) [branch: DEBUG-v011] |
+| 2026-06-01 20:19:42 | `app_v2/src/vr/res/values-ru/strings.xml` | `spec-dev S0326 phase-05.1` | 3D/VR settings strings (ru) [branch: DEBUG-v011] |
+| 2026-06-01 20:19:42 | `app_v2/src/vr/res/values-uk/strings.xml` | `spec-dev S0326 phase-05.1` | 3D/VR settings strings (uk) [branch: DEBUG-v011] |
+| 2026-06-01 20:19:43 | `app_v2/src/vr/res/layout/fragment_vr_settings_block.xml` | `spec-dev S0326 phase-05.2` | Add 3D/VR settings rows to VR block layout [branch: DEBUG-v011] |
+| 2026-06-01 20:19:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `spec-dev S0326 phase-05.3` | Bind 3D/VR settings controls + unified switch in VR block [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `docs/FEATURES.md` | `spec-dev S0326` | Add 3D/VR default settings feature (EN) [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `docs/FEATURES_RU.md` | `spec-dev S0326` | Add 3D/VR default settings feature (RU) [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `docs/FEATURES_UK.md` | `spec-dev S0326` | Add 3D/VR default settings feature (UK) [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `spec-dev S0326` | Insert BlockNeedUserTest debug tag [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev S0326` | Insert BlockNeedUserTest debug tag [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt` | `spec-dev S0326` | Insert BlockNeedUserTest debug tag [branch: DEBUG-v011] |
+| 2026-06-01 20:26:24 | `PLAN/S0327_device-profile-onboarding.md` | `spec` | Add strategic spec S0327 for device profile onboarding [branch: DEBUG-v011] |
+| 2026-06-01 20:31:28 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Refinement (GPT-5.3-Codex, focus: language/structure/verifiability/completeness) [branch: DEBUG-v011] |
+| 2026-06-01 20:35:43 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Refinement (Claude Opus 4.8, focus: language, style): removed ASCII-arrow flow in 5.4, fixed missing yo [branch: DEBUG-v011] |
+| 2026-06-01 21:09:15 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Refine S0327 owner decisions for device profile onboarding [branch: DEBUG-v011] |
+| 2026-06-01 21:09:52 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Align S0327 TV media box ADR and owner decisions [branch: DEBUG-v011] |
+| 2026-06-01 21:16:14 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Refine S0327 research-first defaults and batch preset semantics [branch: DEBUG-v011] |
+| 2026-06-01 21:16:57 | `PLAN/S0191_browse-create-new-drawing.md` | `spec-arc` | Archive S0191 (browse-create-new-drawing) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 21:16:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/CreateDrawingUseCase.kt` | `spec-arc` | Remove stale S0191 Timber.d verification tags + unused Timber import [branch: DEBUG-v011] |
+| 2026-06-01 21:16:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDrawingCreateManager.kt` | `spec-arc` | Remove stale S0191 Timber.d verification tag [branch: DEBUG-v011] |
+| 2026-06-01 22:21:16 | `temp/S0196/04_measurement_journal.md` | `S0196` | Add measurement journal [branch: DEBUG-v011] |
+| 2026-06-01 22:21:18 | `temp/S0196/04_trace_inventory.md` | `S0196` | Add trace inventory [branch: DEBUG-v011] |
+| 2026-06-01 22:21:20 | `temp/S0196/04_frame_notes.md` | `S0196` | Add frame notes [branch: DEBUG-v011] |
+| 2026-06-01 22:21:22 | `PLAN/S0196_activity-render-priority-research/PHASE_04__perf-measurements.md` | `S0196` | Complete Phase 04 [branch: DEBUG-v011] |
+| 2026-06-01 22:32:33 | `PLAN/S0196_activity-render-priority-research.md` | `S0196` | Close S0196 render-priority research as Verified: transfer consolidated verdict (ADR-4, resolved research items), repair corrupted spec file (drop duplicate stale tail, fix section 5 truncation); no child specs [branch: DEBUG-v011] |
+| 2026-06-01 22:34:48 | `temp/done/S0196_activity-render-priority-research.md` | `spec-arc` | Archive S0196 (activity-render-priority-research) -> temp/done/ [branch: DEBUG-v011] |
+| 2026-06-01 22:50:08 | `PLAN/S0328_color-theme-setting.md` | `spec` | Add strategic spec S0328 for color-theme-setting [branch: DEBUG-v011] |
+| 2026-06-01 23:27:33 | `PLAN/S0328_color-theme-setting/INDEX.md` | `spec-tech` | Create tactical plan for S0328 [branch: DEBUG-v011] |
+| 2026-06-01 23:27:33 | `PLAN/S0328_color-theme-setting/PHASE_01__domain-persistence.md` | `spec-tech` | Phase 01: domain-persistence [branch: DEBUG-v011] |
+| 2026-06-01 23:27:33 | `PLAN/S0328_color-theme-setting/PHASE_02__theme-apply-point.md` | `spec-tech` | Phase 02: theme-apply-point [branch: DEBUG-v011] |
+| 2026-06-01 23:27:33 | `PLAN/S0328_color-theme-setting/PHASE_03__settings-ui.md` | `spec-tech` | Phase 03: settings-ui [branch: DEBUG-v011] |
+| 2026-06-01 23:27:33 | `PLAN/S0328_color-theme-setting/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-01 23:27:34 | `PLAN/S0328_color-theme-setting.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-02 00:12:13 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | S0328 phase-01.1: add colorTheme field to AppSettings [branch: DEBUG-v011] |
+| 2026-06-02 00:14:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | S0328 phase-01.2-01.4: persist+read colorTheme in DataStore [branch: DEBUG-v011] |
+| 2026-06-02 00:15:36 | `app_v2/src/main/java/com/sza/fastmediasorter/core/theme/ColorThemePrefs.kt` | `spec-dev` | S0328 phase-02.1: add ColorThemePrefs startup night-mode applier [branch: DEBUG-v011] |
+| 2026-06-02 00:17:05 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `spec-dev` | S0328 phase-02.2: apply color theme at startup + sync mirror [branch: DEBUG-v011] |
+| 2026-06-02 00:18:58 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0328 phase-03.1: add color_theme label + options array (EN) [branch: DEBUG-v011] |
+| 2026-06-02 00:18:59 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0328 phase-03.1: color_theme strings (RU) [branch: DEBUG-v011] |
+| 2026-06-02 00:18:59 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0328 phase-03.1: color_theme strings (UK) [branch: DEBUG-v011] |
+| 2026-06-02 00:19:55 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `spec-dev` | S0328 phase-03.2: color theme spinner (portrait) [branch: DEBUG-v011] |
+| 2026-06-02 00:19:55 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `spec-dev` | S0328 phase-03.2: color theme spinner (landscape) [branch: DEBUG-v011] |
+| 2026-06-02 00:21:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsColorThemeHelper.kt` | `spec-dev` | S0328 phase-03.3: color theme settings spinner helper [branch: DEBUG-v011] |
+| 2026-06-02 00:22:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev` | S0328 phase-03.4: wire color theme helper into General settings [branch: DEBUG-v011] |
+| 2026-06-02 00:29:42 | `docs/FEATURES.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (EN) [branch: DEBUG-v011] |
+| 2026-06-02 00:29:42 | `docs/FEATURES_RU.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (RU) [branch: DEBUG-v011] |
+| 2026-06-02 00:29:42 | `docs/FEATURES_UK.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (UK) [branch: DEBUG-v011] |
+| 2026-06-02 00:34:27 | `PLAN/S0328_color-theme-setting.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
+| 2026-06-02 00:34:27 | `app_v2/src/main/java/com/sza/fastmediasorter/core/theme/ColorThemePrefs.kt` | `spec-dev` | S0328: insert BlockNeedUserTest debug tag (startup apply) [branch: DEBUG-v011] |
+| 2026-06-02 00:34:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsColorThemeHelper.kt` | `spec-dev` | S0328: insert BlockNeedUserTest debug tag (settings change) [branch: DEBUG-v011] |
+| 2026-06-02 00:56:20 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Clarify Welcome immediate apply and Settings confirmation semantics [branch: DEBUG-v011] |
+| 2026-06-02 01:03:07 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Refine S0327 media-only profiles, shared images task, and docs-first task [branch: DEBUG-v011] |
+| 2026-06-02 01:08:12 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Add S0327 e-book reader profile to profile matrix and spec [branch: DEBUG-v011] |
+| 2026-06-02 01:11:31 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Preserve S0327 preset matrix artifact and require profile values technical documentation [branch: DEBUG-v011] |
+| 2026-06-02 01:13:15 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Define existing installs as Other profile on S0327 migration [branch: DEBUG-v011] |
+| 2026-06-02 01:16:20 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Add localized profile description copy requirement and draft artifact [branch: DEBUG-v011] |
+| 2026-06-02 01:20:30 | `PLAN/S0327_device-profile-onboarding.md` | `spec-update` | Refinement: removed catalog notation, clarified research process, added DISCUSS proposals on profile resolution, detector signals, override tracking [branch: DEBUG-v011] |
+| 2026-06-02 01:33:51 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `spec-tech` | Create tactical plan for S0327 with 9 phases [branch: DEBUG-v011] |
+| 2026-06-02 01:33:51 | `PLAN/S0327_device-profile-onboarding/PHASE_01__foundations.md` | `spec-tech` | Phase 01: foundations (DeviceProfile model, Room schema, interfaces) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:51 | `PLAN/S0327_device-profile-onboarding/PHASE_02__detector.md` | `spec-tech` | Phase 02: detector (auto-detection with confidence levels) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:52 | `PLAN/S0327_device-profile-onboarding/PHASE_03__repository.md` | `spec-tech` | Phase 03: repository (persistence and lifecycle management) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:52 | `PLAN/S0327_device-profile-onboarding/PHASE_04__di-bindings.md` | `spec-tech` | Phase 04: di-bindings (Hilt wiring) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:52 | `PLAN/S0327_device-profile-onboarding/PHASE_05__welcome-ui.md` | `spec-tech` | Phase 05: welcome-ui (first-run profile selector) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:53 | `PLAN/S0327_device-profile-onboarding/PHASE_06__settings-ui.md` | `spec-tech` | Phase 06: settings-ui (Settings profile change) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:53 | `PLAN/S0327_device-profile-onboarding/PHASE_07__preset-apply.md` | `spec-tech` | Phase 07: preset-apply (batch settings application) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:53 | `PLAN/S0327_device-profile-onboarding/PHASE_08__migration-existing.md` | `spec-tech` | Phase 08: migration-existing (upgrade path for existing installs) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:53 | `PLAN/S0327_device-profile-onboarding/PHASE_09__docs-catalog-cleanup.md` | `spec-tech` | Phase 09: docs-catalog-cleanup (final documentation and catalog sync) [branch: DEBUG-v011] |
+| 2026-06-02 01:33:54 | `PLAN/S0327_device-profile-onboarding.md` | `spec-tech` | Status → Tactical; tactical plan created [branch: DEBUG-v011] |
+| 2026-06-02 01:40:10 | `app_v2/src/main/java/com/sza/fastmediasorter/data/model/DeviceProfile.kt` | `spec-dev-phase-01` | Add DeviceProfile enum, DeviceProfileSource, DetectionConfidence, and related data classes [branch: DEBUG-v011] |
+| 2026-06-02 02:08:10 | `temp/S0328_mobile_test_scenario_20260602_0036.md` | `spec-test-device` | Device run aborted: emulator dropped post-install; build+install PASS, UI scenario NOT RUN. Spec stays BlockNeedUserTest [branch: DEBUG-v011] |
+| 2026-06-02 02:15:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/detector/RealDeviceProfileDetector.kt` | `spec-check` | Removed stale debug tag S0327 (status Tactical not BlockNeedUserTest); converted Timber.d to Timber.i [branch: DEBUG-v011] |
+| 2026-06-02 02:15:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/RealDeviceProfileRepository.kt` | `spec-check` | Removed stale debug tag S0327 (status Tactical not BlockNeedUserTest); converted Timber.d to Timber.i [branch: DEBUG-v011] |
+| 2026-06-02 02:16:14 | `PLAN/S0327_device-profile-onboarding.md` | `spec-check` | Audit S0327 -> Broken; 2 FAILs (FEATURES not updated, preset matrix blocker unchecked) + 1 WARN (2 stale debug tags removed) [branch: DEBUG-v011] |
+| 2026-06-02 02:19:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/RealDeviceProfileRepository.kt` | `spec-fix` | Remove ticket id from persistent device profile migration log [branch: DEBUG-v011] |
+| 2026-06-02 02:21:52 | `PLAN/S0327_device-profile-onboarding.md` | `spec-check` | Audit S0327 implementation after mechanical fixes [branch: DEBUG-v011] |
+| 2026-06-02 02:25:14 | `docs/FEATURES.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate [branch: DEBUG-v011] |
+| 2026-06-02 02:25:24 | `docs/FEATURES_RU.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 02:25:31 | `docs/FEATURES_UK.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 02:25:39 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `spec-check` | Marked Completion Gate items done: FEATURES updated, preset matrix deferred to future task [branch: DEBUG-v011] |
+| 2026-06-02 02:27:45 | `PLAN/S0327_device-profile-onboarding.md` | `spec-check` | Final audit: Verified. FAILs fixed (FEATURES updated, blocker deferred). Build verified, 6 core implementation files, catalog regenerated, manual device testing pending. [branch: DEBUG-v011] |
+| 2026-06-02 03:15:41 | `app_v2/proguard-nolegal.pro` | `noLegal R8 release` | Add noLegal-only proguard -dontwarn rules for NewPipeExtractor optional deps (Rhino java.beans.*, jsoup com.google.re2j.*); wire via noLegal proguardFiles. Fixes minifyNoLegalReleaseWithR8 missing-class failure. [branch: DEBUG-v011] |
+| 2026-06-02 13:16:34 | `app_v2/src/main/java/com/sza/fastmediasorter/core/theme/ColorThemePrefs.kt` | `S0328` | Apply night mode in-process on theme change so it takes effect on the in-app restart without force-killing the process [branch: DEBUG-v011] |
+| 2026-06-02 14:35:27 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Indent 'Only OCR' setting under 'Camera OCR Translation' in portrait playback settings [branch: DEBUG-v011] |
+| 2026-06-02 14:38:18 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Place 'Calculator' and 'Embedded Game' toggles on a single row in landscape playback settings [branch: DEBUG-v011] |
+| 2026-06-02 14:57:57 | `PLAN/S0329_calculator-history-and-functions.md` | `spec` | Add strategic spec S0329 for calculator persistent history and scientific functions [branch: DEBUG-v011] |
+| 2026-06-02 15:01:06 | `app_v2/src/main/res/layout/activity_camera_ocr_translate.xml` | `CameraOcrTranslateActivity` | Compact camera OCR result actions into equal icon buttons [branch: DEBUG-v011] |
+| 2026-06-02 15:01:32 | `PLAN/S0329_calculator-history-and-functions/INDEX.md` | `spec-tech` | Create tactical plan for S0329 (5 phases) [branch: DEBUG-v011] |
+| 2026-06-02 15:01:32 | `PLAN/S0329_calculator-history-and-functions.md` | `spec-tech` | S0329 status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-02 15:02:36 | `app_v2/build.gradle.kts` | `Android build config` | Restore version values after validation build [branch: DEBUG-v011] |
+| 2026-06-02 15:11:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `spec-dev` | S0329 P01: add scientific unary functions, power operator, pi, MATH_DOMAIN error [branch: DEBUG-v011] |
+| 2026-06-02 15:11:24 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `spec-dev` | S0329 P01: unit tests for scientific functions and domain errors [branch: DEBUG-v011] |
+| 2026-06-02 15:11:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0329 P01/P03: render MATH_DOMAIN error branch [branch: DEBUG-v011] |
+| 2026-06-02 15:11:24 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0329 P03: calculator_error_math_domain (en) [branch: DEBUG-v011] |
+| 2026-06-02 15:12:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `spec-dev` | S0329 P01: add scientific unary functions, power operator, pi, MATH_DOMAIN error [branch: DEBUG-v011] |
+| 2026-06-02 15:12:01 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `spec-dev` | S0329 P01: unit tests for scientific functions and domain errors [branch: DEBUG-v011] |
+| 2026-06-02 15:12:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0329 P01/P03: render MATH_DOMAIN error branch [branch: DEBUG-v011] |
+| 2026-06-02 15:12:01 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0329 P03: calculator_error_math_domain trilingual [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorExpressionEvaluator.kt` | `spec-dev` | S0329 P06: expression evaluator (precedence, parens, sqrt, implicit sum, decimal normalization) [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorExpressionEvaluatorTest.kt` | `spec-dev` | S0329 P06: evaluator unit tests [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `spec-dev` | S0329 P06/P02: route inputNumber through evaluator; restoreHistory [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorHistoryStore.kt` | `spec-dev` | S0329 P02: persistent file-backed history store [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0329 P02/P03: load/append/clear persisted history; Function submenu [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0329 P03: Function submenu strings (en) [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0329 P03: Function submenu strings (ru) [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0329 P03: Function submenu strings (uk) [branch: DEBUG-v011] |
+| 2026-06-02 15:28:31 | `app_v2/src/main/res/layout/activity_calculator.xml` | `spec-dev` | S0329 P04: portrait buttons pinned to bottom, history fills top [branch: DEBUG-v011] |
+| 2026-06-02 15:33:44 | `docs/FEATURES.md` | `spec-dev` | S0329 P07: calculator persistent history + scientific functions + expression eval (en) [branch: DEBUG-v011] |
+| 2026-06-02 15:33:44 | `docs/FEATURES_RU.md` | `spec-dev` | S0329 P07: calculator feature (ru) [branch: DEBUG-v011] |
+| 2026-06-02 15:33:44 | `docs/FEATURES_UK.md` | `spec-dev` | S0329 P07: calculator feature (uk) [branch: DEBUG-v011] |
+| 2026-06-02 15:33:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0329: defer selection eval until history load; BlockNeedUserTest debug tags [branch: DEBUG-v011] |
+| 2026-06-02 15:35:29 | `PLAN/S0330_player-control-menu-redesign.md` | `spec` | Add strategic spec S0330 for player control menu redesign [branch: DEBUG-v011] |
+| 2026-06-02 15:39:34 | `PLAN/S0330_player-control-menu-redesign.md` | `spec-update` | Approve S0330 owner inputs for implementation [branch: DEBUG-v011] |
+| 2026-06-02 15:41:03 | `PLAN/S0330_player-control-menu-redesign/INDEX.md` | `spec-tech` | Create tactical plan for S0330 [branch: DEBUG-v011] |
+| 2026-06-02 15:41:03 | `PLAN/S0330_player-control-menu-redesign/PHASE_01__navigation-redesign.md` | `spec-tech` | Phase 01 navigation redesign [branch: DEBUG-v011] |
+| 2026-06-02 15:41:03 | `PLAN/S0330_player-control-menu-redesign/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02 docs catalog cleanup [branch: DEBUG-v011] |
+| 2026-06-02 15:41:03 | `PLAN/S0330_player-control-menu-redesign.md` | `spec-tech` | Status to Tactical [branch: DEBUG-v011] |
+| 2026-06-02 15:44:10 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `ui` | Replace playback control radio tabs with portrait segmented menu [branch: DEBUG-v011] |
+| 2026-06-02 15:44:10 | `app_v2/src/main/res/layout-land/dialog_playback_control.xml` | `ui` | Replace playback control landscape tabs with left navigation rail [branch: DEBUG-v011] |
+| 2026-06-02 15:44:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt` | `ui` | Add stable playback control section preference key [branch: DEBUG-v011] |
+| 2026-06-02 15:46:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `ui` | Wire playback control menu navigation to stable sections [branch: DEBUG-v011] |
+| 2026-06-02 15:50:55 | `PLAN/S0330_player-control-menu-redesign.md` | `spec-dev` | Block S0330 closeout on unrelated build failure [branch: DEBUG-v011] |
+| 2026-06-02 15:50:55 | `PLAN/S0330_player-control-menu-redesign/INDEX.md` | `spec-dev` | Record S0330 build blocker [branch: DEBUG-v011] |
+| 2026-06-02 15:50:55 | `PLAN/S0330_player-control-menu-redesign/PHASE_01__navigation-redesign.md` | `spec-dev` | Record Phase 01 build blocker [branch: DEBUG-v011] |
+| 2026-06-02 15:51:31 | `PLAN/S0330_player-control-menu-redesign/PHASE_02__docs-catalog-cleanup.md` | `spec-dev` | Fix S0330 tactical placeholder style [branch: DEBUG-v011] |
+| 2026-06-02 15:54:20 | `PLAN/S0331_calculator-memory-and-modulo.md` | `spec` | Add strategic spec S0331 for calculator memory register and modulo [branch: DEBUG-v011] |
+| 2026-06-02 15:57:37 | `PLAN/S0331_calculator-memory-and-modulo/INDEX.md` | `spec-tech` | Create tactical plan for S0331 (5 phases) [branch: DEBUG-v011] |
+| 2026-06-02 15:57:37 | `PLAN/S0331_calculator-memory-and-modulo.md` | `spec-tech` | S0331 status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-02 16:09:40 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PresetMatrix.kt` | `PresetMatrix` | Add PresetMatrix domain model for device profile configuration defaults [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/RepositoryModule.kt` | `RepositoryModule` | Provide PresetMatrix via Hilt dependency injection [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/SettingsRepository.kt` | `SettingsRepository` | Add applyBatchSettings declaration to repository contract [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Implement applyBatchSettings using DataStore preferences [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyProfilePresetUseCase.kt` | `ApplyProfilePresetUseCase` | Add UseCase to apply configuration presets based on selected device profile [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `WelcomeViewModel` | Inject and invoke ApplyProfilePresetUseCase on profile selection and skip [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsProfileViewModel.kt` | `SettingsProfileViewModel` | Inject and invoke ApplyProfilePresetUseCase on settings profile updates [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsProfileDialogFragment.kt` | `SettingsProfileDialogFragment` | Handle migration explanation hint and dynamic warning message visibility [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/DeviceProfileRepository.kt` | `DeviceProfileRepository` | Add isMigrationExisting declaration to repository contract [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/RealDeviceProfileRepository.kt` | `RealDeviceProfileRepository` | Implement isMigrationExisting and fix existing install migration [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Add settings_profile_migration_hint English resource key [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/res/values-ru/strings.xml` | `strings_ru` | Add settings_profile_migration_hint Russian translation key [branch: DEBUG-v011] |
+| 2026-06-02 16:09:41 | `app_v2/src/main/res/values-uk/strings.xml` | `strings_uk` | Add settings_profile_migration_hint Ukrainian translation key [branch: DEBUG-v011] |
+| 2026-06-02 16:10:07 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeSettingsRepository.kt` | `FakeSettingsRepository` | Implement applyBatchSettings for unit testing settings repository fake [branch: DEBUG-v011] |
+| 2026-06-02 16:12:59 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeSettingsRepository.kt` | `FakeSettingsRepository` | Remove duplicate applyBatchSettings stub to fix compilation conflict [branch: DEBUG-v011] |
+| 2026-06-02 16:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/RealDeviceProfileRepository.kt` | `RealDeviceProfileRepository` | Remove unused deprecated PreferenceManager import [branch: DEBUG-v011] |
+| 2026-06-02 16:13:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `spec-dev` | S0331 P01/P02: memory register, M-ops, mod operator, restoreMemory [branch: DEBUG-v011] |
+| 2026-06-02 16:13:53 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `spec-dev` | S0331 P01: memory and modulo unit tests [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorMemoryStore.kt` | `spec-dev` | S0331 P02: persistent memory + row-state store [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0331 P04: memory buttons, toggle, indicator, mod menu, persistence [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/values/themes.xml` | `spec-dev` | S0331 P03: operator/plus/memory button styles [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/values/dimens.xml` | `spec-dev` | S0331 P03: plus/memory text sizes, memory row height [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/values/colors.xml` | `spec-dev` | S0331 P03: calculator_plus_button_text red [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/layout/activity_calculator.xml` | `spec-dev` | S0331 P03: memory row+toggle+indicator, operator styles (portrait) [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `spec-dev` | S0331 P03: memory row+toggle+indicator, operator styles (landscape) [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0331 P04: mod + memory strings (en) [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0331 P04: mod + memory strings (ru) [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0331 P04: mod + memory strings (uk) [branch: DEBUG-v011] |
+| 2026-06-02 16:13:54 | `docs/FEATURES.md` | `spec-dev` | S0331 P05: calculator memory + modulo (en) [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `spec-dev` | S0331 P01/P02: memory register, M-ops, mod operator, restoreMemory [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `spec-dev` | S0331 P01: memory and modulo unit tests [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorMemoryStore.kt` | `spec-dev` | S0331 P02: persistent memory store [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0331 P04: memory buttons, toggle, indicator, mod menu [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/values/themes.xml` | `spec-dev` | S0331 P03: operator/plus/memory styles [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/values/dimens.xml` | `spec-dev` | S0331 P03: text sizes and row height [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/values/colors.xml` | `spec-dev` | S0331 P03: plus button red [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/layout/activity_calculator.xml` | `spec-dev` | S0331 P03: memory row + operator styles (portrait) [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/layout-land/activity_calculator.xml` | `spec-dev` | S0331 P03: memory row + operator styles (landscape) [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0331 P04: mod + memory strings (en) [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0331 P04: mod + memory strings (ru) [branch: DEBUG-v011] |
+| 2026-06-02 16:14:36 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0331 P04: mod + memory strings (uk) [branch: DEBUG-v011] |
+| 2026-06-02 16:14:37 | `docs/FEATURES.md` | `spec-dev` | S0331 P05: calculator memory + modulo (en) [branch: DEBUG-v011] |
+| 2026-06-02 16:17:02 | `PLAN/S0331_calculator-memory-and-modulo.md` | `spec-dev` | S0331 all phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
+| 2026-06-02 16:52:28 | `app_v2/src/test/java/com/sza/fastmediasorter/data/detector/RealDeviceProfileDetectorTest.kt` | `RealDeviceProfileDetectorTest` | Add unit tests for device profile detector: VR, automotive, TV, tablet, phone signals plus low-confidence fallback and VR priority [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PresetMatrix.kt` | `PresetMatrix` | Mark preset matrix values as provisional pending owner approval; document subset scope [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/RepositoryModule.kt` | `RepositoryModule` | Annotate preset matrix provider values as provisional best-guess, not owner-approved [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding.md` | `spec-check` | Re-audit device profile onboarding: Verified to Partial; reconcile tracking; record open matrix, doc and asset items [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `INDEX` | Reconcile tactical tracking with actual code; add Remaining-for-Verified block; mark matrix provisional [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding/PHASE_01__foundations.md` | `PHASE_01` | Fix database file paths in Files Touched to data/local/db [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding/PHASE_02__detector.md` | `PHASE_02` | Mark detector implementation, test and injection steps done with verification logs [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding/PHASE_03__repository.md` | `PHASE_03` | Correct phase status from Not started to Done; mark all repository steps done [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding/PHASE_07__preset-apply.md` | `PHASE_07` | Mark phase done with provisional matrix note; correct done criteria [branch: DEBUG-v011] |
+| 2026-06-02 16:52:29 | `PLAN/S0327_device-profile-onboarding/PHASE_08__migration-existing.md` | `PHASE_08` | Fix strings resource paths in Files Touched to src/main/res [branch: DEBUG-v011] |
+| 2026-06-02 17:15:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `S0330` | Insert BlockNeedUserTest probe at section-navigation setup [branch: DEBUG-v011] |
+| 2026-06-02 17:15:20 | `PLAN/S0330_player-control-menu-redesign/INDEX.md` | `S0330` | Close Phase 01+02; build green; move to BlockNeedUserTest for device verification [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/RealDeviceProfileRepository.kt` | `RealDeviceProfileRepository` | Move first-run bootstrap fully onto Dispatchers.IO; add device-test probe for existing-install migration [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `WelcomeViewModel` | Add device-test probes for profile auto-detection and welcome save flows [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsProfileViewModel.kt` | `SettingsProfileViewModel` | Add device-test probe for settings profile change flow [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyProfilePresetUseCase.kt` | `ApplyProfilePresetUseCase` | Add device-test probe for preset matrix application [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `app_v2/src/main/res/drawable/ic_profile_personal_smartphone.xml` | `ic_profile_set` | Add unified vector profile icon set (11 icons: smartphone, tablet, tv, car, media, photo frame, video, audio, ebook, vr, other) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `dev/DEVICE_PROFILE_PRESET_MATRIX.md` | `DEVICE_PROFILE_PRESET_MATRIX` | New developer doc: device profile rationale, provisional preset matrix with change rules, and profile icon asset registry [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `CLAUDE.md` | `CLAUDE.md` | Reference device profile preset matrix doc in research order [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `dev/PROJECT_OPERATIONS_INDEX.md` | `PROJECT_OPERATIONS_INDEX` | Reference device profile preset matrix doc in research routing [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `docs/DOCS_MAP.md` | `DOCS_MAP` | Register device profile preset matrix doc in documentation map [branch: DEBUG-v011] |
+| 2026-06-02 17:23:10 | `PLAN/S0327_device-profile-onboarding.md` | `spec-readiness` | Move to BlockNeedUserTest; add device test plan and readiness summary [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `INDEX` | Update status to BlockNeedUserTest; refresh remaining-for-verified block [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/QUICK_START.md` | `QUICK_START` | Add first-launch device profile picker section [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/QUICK_START_RU.md` | `QUICK_START_RU` | Add first-launch device profile picker section (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/QUICK_START_UK.md` | `QUICK_START_UK` | Add first-launch device profile picker section (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/README.md` | `README` | Mention first-launch device profile picker with link to quick start [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/README_RU.md` | `README_RU` | Mention first-launch device profile picker (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/README_UK.md` | `README_UK` | Mention first-launch device profile picker (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/howto/index.md` | `howto-index` | Note device profile picker pre-tunes scenarios [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/howto/index-ru.md` | `howto-index-ru` | Note device profile picker pre-tunes scenarios (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/howto/index-uk.md` | `howto-index-uk` | Note device profile picker pre-tunes scenarios (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 17:53:51 | `app_v2/src/main/res/values/strings.xml` | `device profiles` | Rename HOME_TABLET profile display name from 'Home tablet' to 'Tablet & desktop mode' (EN/RU/UK), reword desc to cover tablets/Chromebook/Samsung DeX; update QUICK_START docs and preset matrix doc [branch: DEBUG-v011] |
+| 2026-06-02 17:59:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MouseEventHandler.kt` | `MouseEventHandler` | Add consumePrimaryClick flag; when false the primary left click is not consumed so it reaches the view under the cursor [branch: DEBUG-v011] |
+| 2026-06-02 17:59:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ActivityMouseDispatchHelper.kt` | `ActivityMouseDispatchHelper` | Set consumePrimaryClick=false so activity-level mouse dispatch never steals left clicks from buttons, dropdowns and other controls [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DeviceProfileUi.kt` | `DeviceProfileUi` | Central mapping of device profile type to icon, title and description resources [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfileTileAdapter.kt` | `DeviceProfileTileAdapter` | Grid adapter of pressable profile tiles with selection highlight and recommended badge [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfilePickerDialogFragment.kt` | `DeviceProfilePickerDialogFragment` | Shared full-screen device profile picker (tile grid + description), returns selection via FragmentResult; reused by Welcome and Settings [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `WelcomePagerAdapter` | Replace profile dropdown with a pressable selected-profile card that opens the picker; drop dead description helper [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Open shared profile picker from the welcome card and apply the FragmentResult selection [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsProfileHelper.kt` | `GeneralSettingsProfileHelper` | Open shared profile picker with overwrite warning and apply selection; centralize title via DeviceProfileUi [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsProfileDialogFragment.kt` | `SettingsProfileDialogFragment` | Remove orphaned spinner-based profile dialog, superseded by the shared tile picker [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/res/layout/item_device_profile_tile.xml` | `item_device_profile_tile` | New pressable MaterialCardView tile (icon plus title) for the profile picker grid [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/res/layout/dialog_device_profile_picker.xml` | `dialog_device_profile_picker` | New shared profile picker dialog layout (tile grid, description, select and cancel) [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/res/layout/page_welcome_enhanced.xml` | `page_welcome_enhanced` | Replace profile dropdown with pressable selected-profile card (portrait and layout-land in sync) [branch: DEBUG-v011] |
+| 2026-06-02 18:23:03 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add profile_picker_title and profile_picker_select (EN/RU/UK) [branch: DEBUG-v011] |
+| 2026-06-02 18:25:35 | `dev/DEVICE_PROFILE_PRESET_MATRIX.md` | `DEVICE_PROFILE_PRESET_MATRIX` | Note profile icons are now wired into the shared device-profile picker [branch: DEBUG-v011] |
+| 2026-06-02 18:25:35 | `PLAN/S0327_device-profile-onboarding.md` | `spec` | Record visual tile picker wired into Welcome and Settings; drop the deferred-UI remaining item [branch: DEBUG-v011] |
+| 2026-06-02 18:25:35 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `INDEX` | Mark profile icon set wired into the shared tile picker [branch: DEBUG-v011] |
+| 2026-06-02 20:43:15 | `app_v2/src/main/res/layout/item_device_profile_tile.xml` | `item_device_profile_tile` | Redesign tile to horizontal info card: small leading icon, large bold title, two-line description [branch: DEBUG-v011] |
+| 2026-06-02 20:43:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfileTileAdapter.kt` | `DeviceProfileTileAdapter` | Bind per-tile description; include it in tile content description [branch: DEBUG-v011] |
+| 2026-06-02 20:43:15 | `app_v2/src/main/res/layout/dialog_device_profile_picker.xml` | `dialog_device_profile_picker` | Remove bottom selected-description (now shown per tile) [branch: DEBUG-v011] |
+| 2026-06-02 20:43:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfilePickerDialogFragment.kt` | `DeviceProfilePickerDialogFragment` | Scale picker columns by smallest width (3/2/1) for readable info tiles; drop bottom-description handling [branch: DEBUG-v011] |
+| 2026-06-02 22:36:16 | `app_v2/src/main/res/layout/dialog_device_profile_picker.xml` | `dialog_device_profile_picker` | Centered content-sized card (rounded, transparent window); remove confirm/cancel buttons and bottom description [branch: DEBUG-v011] |
+| 2026-06-02 22:36:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfilePickerDialogFragment.kt` | `DeviceProfilePickerDialogFragment` | Tap-tile-to-select-and-close (Settings keeps overwrite warning); center window and size to content with transparent background [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/assets/device_profile_presets.csv` | `device_profile_presets` | Owner-authored device profile preset matrix as CSV asset (7 profiles + 4 seeded columns: media/video<-tv, audio<-car, ebook<-home_tablet) [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetCsvDataSource.kt` | `DeviceProfilePresetCsvDataSource` | Parse preset CSV asset into per-profile non-empty override maps (cached) [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt` | `DeviceProfilePresetApplier` | Typed applier: coerce CSV cell to AppSettings field (bool/int/float/size-units/enum/string), skip unknown [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyProfilePresetUseCase.kt` | `ApplyProfilePresetUseCase` | Apply profile by folding CSV overrides over current settings and saving; OTHER and no-override profiles are no-ops [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/SettingsRepository.kt` | `SettingsRepository` | Remove applyBatchSettings (superseded by CSV preset engine) [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Remove applyBatchSettings implementation [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/RepositoryModule.kt` | `RepositoryModule` | Remove providePresetMatrix provider (CSV engine replaces hardcoded matrix) [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PresetMatrix.kt` | `PresetMatrix` | Delete provisional 5-field preset matrix model, replaced by CSV-driven engine [branch: DEBUG-v011] |
+| 2026-06-02 23:08:08 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ApplyProfilePresetUseCaseTest.kt` | `ApplyProfilePresetUseCaseTest` | Rewrite for CSV apply flow (override applied; no-override profile is no-op) [branch: DEBUG-v011] |
+| 2026-06-02 23:10:36 | `dev/DEVICE_PROFILE_PRESET_MATRIX.md` | `DEVICE_PROFILE_PRESET_MATRIX` | Rewrite for CSV-driven owner-authored matrix: format, size-unit conventions, how-to-change, data caveats [branch: DEBUG-v011] |
+| 2026-06-02 23:10:36 | `PLAN/S0327_device-profile-onboarding.md` | `spec` | Record CSV-driven matrix; mark owner-gate 6.1 resolved (matrix now owner-authored CSV, verified on device) [branch: DEBUG-v011] |
+| 2026-06-02 23:10:36 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `INDEX` | Mark matrix owner approval done via CSV; note CSV data fixes remaining [branch: DEBUG-v011] |
+| 2026-06-02 23:38:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetCsvDataSource.kt` | `DeviceProfilePresetCsvDataSource` | Robust CSV field parser: handle quoted spreadsheet exports (strip quotes, unescape doubled quotes, keep embedded commas) [branch: DEBUG-v011] |
+| 2026-06-02 23:38:38 | `scripts/check_device_profile_presets.ps1` | `check_device_profile_presets` | New consistency guard: verify AppSettings fields <-> CSV rows and DeviceProfileType <-> CSV columns; -AddMissing scaffolds empty rows/columns; exit 1 on mismatch [branch: DEBUG-v011] |
+| 2026-06-02 23:38:38 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | KDoc: adding a field requires a matching device-profile preset CSV row (check script) [branch: DEBUG-v011] |
+| 2026-06-02 23:38:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/model/DeviceProfile.kt` | `DeviceProfileType` | KDoc: adding a profile requires a CSV column + COLUMN_TO_PROFILE + DeviceProfileUi mapping [branch: DEBUG-v011] |
+| 2026-06-02 23:38:38 | `dev/DEVICE_PROFILE_PRESET_MATRIX.md` | `DEVICE_PROFILE_PRESET_MATRIX` | Document consistency-check script and quoted/plain CSV support [branch: DEBUG-v011] |
+| 2026-06-02 23:38:38 | `dev/PROJECT_OPERATIONS_INDEX.md` | `PROJECT_OPERATIONS_INDEX` | Reference preset CSV asset and consistency-check script [branch: DEBUG-v011] |
+| 2026-06-02 23:56:58 | `PLAN/S0332_max-translation-ocr-languages.md` | `spec` | Add strategic spec S0332 for maximum translation and OCR language coverage [branch: DEBUG-v011] |
+| 2026-06-03 00:00:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetCsvDataSource.kt` | `DeviceProfilePresetCsvDataSource` | Strip leading UTF-8 BOM from spreadsheet-exported CSV lines [branch: DEBUG-v011] |
+| 2026-06-03 00:08:20 | `PLAN/S0332_max-translation-ocr-languages.md` | `spec-update` | Refinement: added mandatory 3.3 Owner inputs approval-gate section (was failing check-owner-inputs.ps1), Revision History, P-1 structural proposal [branch: DEBUG-v011] |
+| 2026-06-03 00:09:41 | `PLAN/S0332_max-translation-ocr-languages.md` | `spec-update` | Refinement (gemini-3.5-flash, focus: language, structure, completeness, style) [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfileAvailability.kt` | `DeviceProfileAvailability` | New flavor-gated interface for selectable device profiles (VR gated by flavor) [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/vrStub/java/com/sza/fastmediasorter/di/VrStubDeviceProfileAvailabilityModule.kt` | `VrStubDeviceProfileAvailabilityModule` | Non-VR flavors: hide VR headset profile from the picker [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/vr/java/com/sza/fastmediasorter/di/VrDeviceProfileAvailabilityModule.kt` | `VrDeviceProfileAvailabilityModule` | VR-capable flavors (vr/noLegal): all profiles incl VR headset selectable [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfilePickerDialogFragment.kt` | `DeviceProfilePickerDialogFragment` | Inject DeviceProfileAvailability; list flavor-selectable profiles (no BuildConfig in main) [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `WelcomeViewModel` | Fall back recommendation when detected profile is unavailable in this flavor [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfileTileAdapter.kt` | `DeviceProfileTileAdapter` | Brighter thicker frame on the auto-detected (recommended) tile [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/detector/DetectionHelper.kt` | `DetectionHelper` | Add UiModeManager mode type, PC feature, Chromebook (ARC) detection helpers [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/detector/RealDeviceProfileDetector.kt` | `RealDeviceProfileDetector` | Strengthen detection: UiModeManager-first car/TV/VR/desk + Chromebook/PC to tablet-and-desktop [branch: DEBUG-v011] |
+| 2026-06-03 00:22:16 | `app_v2/src/test/java/com/sza/fastmediasorter/data/detector/RealDeviceProfileDetectorTest.kt` | `RealDeviceProfileDetectorTest` | Stub new helpers; add UiMode car + Chromebook detection tests [branch: DEBUG-v011] |
+| 2026-06-03 00:22:17 | `PLAN/S0332_max-translation-ocr-languages.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-03 00:22:17 | `PLAN/S0332_max-translation-ocr-languages/INDEX.md` | `spec-tech` | Create tactical plan for S0332 [branch: DEBUG-v011] |
+| 2026-06-03 00:22:17 | `PLAN/S0332_max-translation-ocr-languages/PHASE_01__foundations.md` | `spec-tech` | Phase 01: foundations [branch: DEBUG-v011] |
+| 2026-06-03 00:22:18 | `PLAN/S0332_max-translation-ocr-languages/PHASE_02__ui-picker.md` | `spec-tech` | Phase 02: ui-picker [branch: DEBUG-v011] |
+| 2026-06-03 00:22:18 | `PLAN/S0332_max-translation-ocr-languages/PHASE_03__integration.md` | `spec-tech` | Phase 03: integration [branch: DEBUG-v011] |
+| 2026-06-03 00:22:18 | `PLAN/S0332_max-translation-ocr-languages/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-03 00:24:09 | `PLAN/S0327_device-profile-onboarding.md` | `spec` | Record VR profile flavor-gating (11.8 done) and recommended-tile highlight; detector strengthened [branch: DEBUG-v011] |

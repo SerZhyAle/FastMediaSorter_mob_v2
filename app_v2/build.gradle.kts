@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260601140
-        versionName = "2.60.6011.405"
+        versionCode = 260603001
+        versionName = "2.60.6030.016"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -303,6 +303,10 @@ android {
             // standard so cloud OAuth/MSAL/Dropbox registrations cover it without per-flavor
             // setup. See policy comment above productFlavors block.
             versionNameSuffix = "-NoLegal"
+            // NewPipeExtractor (noLegal-only dep) drags Rhino + jsoup, which reference
+            // optional JVM classes absent on Android (java.beans.*, com.google.re2j.*).
+            // Flavor-scoped -dontwarn rules keep these warnings out of standard/vr R8.
+            proguardFiles("proguard-nolegal.pro")
             // S0174: Chaquopy 17.x Python 3.12 ships wheels only for arm64-v8a and x86_64.
             // armeabi-v7a and x86 are excluded — 32-bit ARMv7 devices (pre-2017) and x86
             // emulators are not supported for the Python runtime. noLegal is a sideload-only

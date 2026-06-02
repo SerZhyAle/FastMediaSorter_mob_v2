@@ -2,8 +2,49 @@ package com.sza.fastmediasorter.ui.player
 
 import android.os.Bundle
 import androidx.media3.common.Format
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
+
+/**
+ * S0326: user-configurable 3D/VR detection behavior, read from [AppSettings] at detection time.
+ *
+ * [ALL_ENABLED] reproduces the pre-S0326 cascade (every source on, aspect-ratio heuristic on) and
+ * is the default for callers that do not pass a config, so legacy behavior is preserved. Settings
+ * derived via [from] default the aspect-ratio heuristic OFF (it is the main false-positive source).
+ *
+ * When the aspect-ratio heuristic is OFF and no other enabled source identifies the content, the
+ * high-level detect entry points return [StereoMode.UNKNOWN] so the coordinator's global-default
+ * slot can act. With the heuristic ON, the AR result (including a positive [StereoMode.MONO]) is
+ * returned as the conclusive 2D determination, exactly as before.
+ */
+data class StereoDetectionConfig(
+    val autoDetectEnabled: Boolean,
+    val trustFilename: Boolean,
+    val trustMetadata: Boolean,
+    val trustAspectRatio: Boolean,
+    val ambiguityBestGuess: Boolean,
+) {
+    companion object {
+        /** Legacy all-sources-on configuration (aspect-ratio heuristic enabled). */
+        val ALL_ENABLED = StereoDetectionConfig(
+            autoDetectEnabled = true,
+            trustFilename = true,
+            trustMetadata = true,
+            trustAspectRatio = true,
+            ambiguityBestGuess = false,
+        )
+
+        /** Build from user settings. The aspect-ratio heuristic defaults OFF (false-positive source). */
+        fun from(settings: AppSettings) = StereoDetectionConfig(
+            autoDetectEnabled = settings.stereoAutoDetectEnabled,
+            trustFilename = settings.stereoTrustFilename,
+            trustMetadata = settings.stereoTrustMetadata,
+            trustAspectRatio = settings.stereoTrustAspectRatio,
+            ambiguityBestGuess = settings.stereoAmbiguityBestGuess,
+        )
+    }
+}
 
 /**
  * Detects the stereoscopic / spherical format of a piece of media from its track metadata
@@ -189,23 +230,54 @@ class StereoDetector @javax.inject.Inject constructor() {
      * Full video detection path.
      * MP4 spatial metadata is authoritative, so it must run before filename or AR heuristics.
      */
-    fun detectForVideo(path: String?, format: Format): StereoMode {
-        val mp4Result = path?.let { detectFromMp4Path(it) } ?: StereoMode.UNKNOWN
-        if (mp4Result != StereoMode.UNKNOWN) {
-            Timber.d("VR_AUDIT/12: detectForVideo result=%s source=mp4-spatial filename=%s", mp4Result, path)
-            return mp4Result
+    fun detectForVideo(
+        path: String?,
+        format: Format,
+        config: StereoDetectionConfig = StereoDetectionConfig.ALL_ENABLED,
+    ): StereoMode {
+        if (!config.autoDetectEnabled) return StereoMode.MONO
+
+        if (config.trustMetadata) {
+            val mp4Result = path?.let { detectFromMp4Path(it) } ?: StereoMode.UNKNOWN
+            if (mp4Result != StereoMode.UNKNOWN) {
+                Timber.d("VR_AUDIT/12: detectForVideo result=%s source=mp4-spatial filename=%s", mp4Result, path)
+                return mp4Result
+            }
         }
 
-        val filenameResult = path?.let { detectFromFilename(it) } ?: StereoMode.UNKNOWN
-        if (filenameResult != StereoMode.UNKNOWN) {
-            Timber.d("VR_AUDIT/12: detectForVideo result=%s source=filename filename=%s", filenameResult, path)
-            return filenameResult
+        if (config.trustFilename) {
+            val filenameResult = path?.let { detectFromFilename(it) } ?: StereoMode.UNKNOWN
+            if (filenameResult != StereoMode.UNKNOWN) {
+                Timber.d("VR_AUDIT/12: detectForVideo result=%s source=filename filename=%s", filenameResult, path)
+                return filenameResult
+            }
         }
 
-        val formatResult = detectFromFormat(format)
-        Timber.d("VR_AUDIT/12: detectForVideo result=%s source=format-meta filename=%s size=%dx%d",
-            formatResult, path, format.width, format.height)
-        return formatResult
+        if (config.trustMetadata) {
+            val matroskaResult = detectFromMatroskaTag(format)
+            if (matroskaResult != StereoMode.UNKNOWN) {
+                Timber.d("VR_AUDIT/12: detectForVideo result=%s source=matroska-tag filename=%s", matroskaResult, path)
+                return matroskaResult
+            }
+        }
+
+        // Aspect-ratio heuristic. When ON, its result (including a positive MONO) is conclusive.
+        if (config.trustAspectRatio && format.width > 0 && format.height > 0) {
+            val arResult = detectFromAspectRatio(format.width, format.height)
+            Timber.d("VR_AUDIT/12: detectForVideo result=%s source=aspect-ratio filename=%s size=%dx%d",
+                arResult, path, format.width, format.height)
+            return arResult
+        }
+
+        // No enabled source identified the content. Apply ambiguity behavior.
+        if (config.ambiguityBestGuess) {
+            val guess = aggressiveDimensionGuess(format.width, format.height)
+            if (guess != StereoMode.MONO) {
+                Timber.d("VR_AUDIT/12: detectForVideo result=%s source=ambiguity-best-guess filename=%s", guess, path)
+                return guess
+            }
+        }
+        return StereoMode.UNKNOWN
     }
 
     /**
@@ -226,46 +298,69 @@ class StereoDetector @javax.inject.Inject constructor() {
         width: Int? = null,
         height: Int? = null,
         userInitiated: Boolean = false,
+        config: StereoDetectionConfig = StereoDetectionConfig.ALL_ENABLED,
     ): StereoMode {
-        val passive = detectForImagePassive(path, width, height)
-        if (!userInitiated) return passive
+        if (!config.autoDetectEnabled) return StereoMode.MONO
+
+        val passive = detectForImagePassive(path, width, height, config)
         if (passive != StereoMode.UNKNOWN && passive != StereoMode.MONO) return passive
 
-        val aggressive = aggressiveDimensionGuess(width, height)
-        if (aggressive != StereoMode.MONO) {
-            Timber.d(
-                "VR_AUDIT/12: detectForImage result=%s source=user-initiated-tap filename=%s w=%s h=%s",
-                aggressive, path, width, height,
-            )
+        // Best-guess path: explicit user tap (userInitiated) OR the ambiguity-best-guess setting.
+        if (userInitiated || config.ambiguityBestGuess) {
+            val aggressive = aggressiveDimensionGuess(width, height)
+            if (userInitiated) {
+                if (aggressive != StereoMode.MONO) {
+                    Timber.d(
+                        "VR_AUDIT/12: detectForImage result=%s source=user-initiated-tap filename=%s w=%s h=%s",
+                        aggressive, path, width, height,
+                    )
+                }
+                return aggressive
+            }
+            if (aggressive != StereoMode.MONO) {
+                Timber.d("VR_AUDIT/12: detectForImage result=%s source=ambiguity-best-guess filename=%s", aggressive, path)
+                return aggressive
+            }
         }
-        return aggressive
+        return passive
     }
 
     /**
      * Conservative still-image cascade. Extracted so the user-initiated overload can compose it.
+     * Each source is gated by its [config] trust flag; when the aspect-ratio heuristic is OFF and no
+     * other enabled source matches, the result is [StereoMode.UNKNOWN] (coordinator default applies).
      */
-    private fun detectForImagePassive(path: String, width: Int?, height: Int?): StereoMode {
-        val filenameResult = detectFromFilename(path)
-        if (filenameResult != StereoMode.UNKNOWN) {
-            Timber.d("VR_AUDIT/12: detectForImage result=%s source=filename filename=%s", filenameResult, path)
-            return filenameResult
+    private fun detectForImagePassive(
+        path: String,
+        width: Int?,
+        height: Int?,
+        config: StereoDetectionConfig,
+    ): StereoMode {
+        if (config.trustFilename) {
+            val filenameResult = detectFromFilename(path)
+            if (filenameResult != StereoMode.UNKNOWN) {
+                Timber.d("VR_AUDIT/12: detectForImage result=%s source=filename filename=%s", filenameResult, path)
+                return filenameResult
+            }
         }
 
-        val dimensionResult = if (width != null && height != null) {
+        val dimensionResult = if (config.trustAspectRatio && width != null && height != null) {
             detectFromDimensions(width, height)
         } else {
             StereoMode.UNKNOWN
         }
 
-        val photoSphere = photoSphereReader.read(path)
-        if (photoSphere?.isEquirectangular == true) {
-            val r = when {
-                photoSphere.is180Projection() -> StereoMode.EQUIRECT_180_MONO
-                dimensionResult.isSpherical() -> dimensionResult
-                else -> StereoMode.EQUIRECT_360_MONO
+        if (config.trustMetadata) {
+            val photoSphere = photoSphereReader.read(path)
+            if (photoSphere?.isEquirectangular == true) {
+                val r = when {
+                    photoSphere.is180Projection() -> StereoMode.EQUIRECT_180_MONO
+                    dimensionResult.isSpherical() -> dimensionResult
+                    else -> StereoMode.EQUIRECT_360_MONO
+                }
+                Timber.d("VR_AUDIT/12: detectForImage result=%s source=photo-sphere-xmp filename=%s", r, path)
+                return r
             }
-            Timber.d("VR_AUDIT/12: detectForImage result=%s source=photo-sphere-xmp filename=%s", r, path)
-            return r
         }
 
         Timber.d("VR_AUDIT/12: detectForImage result=%s source=dimensions filename=%s w=%s h=%s",

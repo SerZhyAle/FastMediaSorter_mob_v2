@@ -24,7 +24,7 @@
         </LinearLayout>
 
         <!-- Tabs row -->
-        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="24dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:tabTextColor="?attr/colorOnPrimary" app:tabSelectedTextColor="?attr/colorOnPrimary" app:tabIndicatorColor="@color/white" app:tabIndicatorHeight="@dimen/tab_indicator_height" app:tabIndicatorFullWidth="false" app:tabMode="scrollable" app:tabGravity="start">
+        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="48dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:tabTextColor="?attr/colorOnPrimary" app:tabSelectedTextColor="?attr/colorOnPrimary" app:tabIndicatorColor="@color/white" app:tabIndicatorHeight="@dimen/tab_indicator_height" app:tabIndicatorFullWidth="false" app:tabMode="fixed" app:tabGravity="fill">
 
             <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_general" />
 

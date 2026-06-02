@@ -169,7 +169,6 @@ class PdfTextSelectionManager(
         tvText: TextView,
         pageText: String
     ) {
-        Timber.d("S0323: PDF preselect word under long-press")
         val bitmapPoint = PdfSelectionCoordinateMapper.viewToBitmap(
             binding.photoView, viewPoint.x, viewPoint.y
         ) ?: return

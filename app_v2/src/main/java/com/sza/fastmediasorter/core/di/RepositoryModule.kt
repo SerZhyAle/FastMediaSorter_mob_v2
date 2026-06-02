@@ -22,6 +22,10 @@ import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
+import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
+import com.sza.fastmediasorter.data.repository.RealDeviceProfileRepository
+import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
+import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
@@ -111,4 +115,16 @@ abstract class RepositoryModule {
     abstract fun bindStreamingCacheRepository(
         impl: StreamingCacheRepositoryImpl
     ): StreamingCacheRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDeviceProfileRepository(
+        impl: RealDeviceProfileRepository
+    ): DeviceProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDeviceProfileDetector(
+        impl: RealDeviceProfileDetector
+    ): DeviceProfileDetector
 }

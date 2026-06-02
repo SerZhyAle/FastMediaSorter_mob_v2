@@ -38,6 +38,31 @@
 
                     </LinearLayout>
 
+                    <!-- Color theme (S0328) -->
+                    <LinearLayout android:id="@+id/layoutColorThemeSelection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/color_theme" android:textSize="@dimen/toggler_title_text_size" />
+
+                        <Spinner android:id="@+id/spinnerColorTheme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:entries="@array/color_theme_options" android:minWidth="@dimen/settings_spinner_min_width" />
+
+                    </LinearLayout>
+
+                    <!-- Device Profile Row (S0327) -->
+                    <LinearLayout android:id="@+id/rowDeviceProfile" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="center_vertical" android:minHeight="56dp" android:orientation="horizontal">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_profile_title" android:textSize="@dimen/toggler_title_text_size" />
+
+                            <TextView android:id="@+id/tvDeviceProfileValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/welcome_profile_other_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" />
+
+                        </LinearLayout>
+
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" app:tint="?attr/colorPrimary" />
+
+                    </LinearLayout>
+
+
                     <!-- All Files + Show Hidden Files Container -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
@@ -156,14 +181,15 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/setting_allow_separate_window"
+                            app:str_subtitle="@string/setting_allow_separate_window_desc"
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_allow_separate_window_title"
                             app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
 
                     </LinearLayout>
 
-                    <!-- Icon size for grid -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+                    <!-- S0254 follow-up: icon size dropdown + default grid mode share one row to save vertical space. Grid-mode subtitle dropped intentionally to keep the row single-line. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilIconSize" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/fragment_settings_playback_tilIconSize_layout_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:hint="@string/default_icon_size">
 
@@ -173,15 +199,15 @@
 
                         <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_grid_size_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
-                    </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowDefaultGridMode"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            app:str_title="@string/default_grid_mode" />
 
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowDefaultGridMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/default_grid_mode"
-                        app:str_subtitle="@string/setting_default_grid_mode_desc" />
+                    </LinearLayout>
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowHideGridActionButtons"
@@ -313,8 +339,14 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. -->
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. Help icon explains the feature. -->
+                    <LinearLayout android:id="@+id/containerWearCompanion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+
+                        <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -564,7 +596,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPermissionsManagement"
             style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_tiny"

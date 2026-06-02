@@ -14,7 +14,13 @@
     <dimen name="text_size_title_dialog">20sp</dimen>
     <dimen name="text_line_spacing_extra">4dp</dimen>
     <dimen name="calculator_button_text_size">28sp</dimen>
+    <dimen name="calculator_plus_button_text_size">36sp</dimen>
+    <dimen name="calculator_memory_button_text_size">18sp</dimen>
+    <dimen name="calculator_memory_row_height">44dp</dimen>
+    <dimen name="calculator_memory_indicator_text_size">12sp</dimen>
     <dimen name="calculator_display_text_size">40sp</dimen>
+    <dimen name="calculator_display_text_size_min">16sp</dimen>
+    <dimen name="calculator_display_text_size_step">1sp</dimen>
     <dimen name="calculator_history_text_size">12sp</dimen>
     <dimen name="calculator_display_min_height">88dp</dimen>
     <dimen name="calculator_button_height">64dp</dimen>
@@ -45,6 +51,8 @@
     <!-- UI Elements -->
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
+    <dimen name="game_control_button_size">72dp</dimen>
+    <dimen name="game_control_icon_size">32dp</dimen>
     <dimen name="list_item_height">48dp</dimen>
     <dimen name="icon_size_large">48dp</dimen>
     <dimen name="icon_size_normal">32dp</dimen>

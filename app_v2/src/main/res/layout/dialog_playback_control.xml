@@ -33,85 +33,136 @@
             android:text="@string/playback_control_done" />
     </LinearLayout>
 
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_marginBottom="8dp"
+        android:scrollbars="none">
 
-        <RadioGroup
-            android:id="@+id/radioGroupPlaybackSections"
-            android:layout_width="112dp"
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/groupPlaybackSections"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            app:selectionRequired="true"
+            app:singleSelection="true">
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionVolume"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionVolume"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_control_tab_volume" />
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_control_tab_volume"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_notification_audio"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionAudio"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionAudio"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_control_tab_audio" />
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_control_tab_audio"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_audio_track"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionSubtitles"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionSubtitles"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_control_tab_subtitles" />
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_control_tab_subtitles"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_closed_caption"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionStereo"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionStereo"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_settings_3d_tab" />
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_settings_3d_tab"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_stereo_3d"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionHue"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionHue"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_control_tab_hue" />
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_control_tab_hue"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_settings"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionBrightness"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionBrightness"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_control_tab_brightness" />
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_control_tab_brightness"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_night_mode"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbSectionSpeed"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionSpeed"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
-                android:text="@string/playback_control_tab_speed" />
-        </RadioGroup>
+                android:minHeight="48dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/playback_control_tab_speed"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_speed"
+                app:iconGravity="textStart"
+                app:iconPadding="6dp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+    </HorizontalScrollView>
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="8dp"
-            android:background="?attr/colorOnSurfaceVariant" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="12dp"
+        android:background="?attr/colorOutlineVariant" />
 
-        <ScrollView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fillViewport="true">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -509,6 +560,5 @@
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>
-    </LinearLayout>
 
 </LinearLayout>

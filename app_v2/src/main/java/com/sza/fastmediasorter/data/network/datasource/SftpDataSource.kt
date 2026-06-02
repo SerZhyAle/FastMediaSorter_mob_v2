@@ -215,7 +215,6 @@ class SftpDataSource(
                 streamWasOpen = opened,
             )
             if (failure.category == SftpFailureCategory.EXPECTED_STREAM_CLOSE) {
-                Timber.d("S0252: SftpDataSource expected-close branch hit")
                 Timber.d(
                     "SftpDataSource: expected InputStream close outcome (${failure.originalMessage})"
                 )

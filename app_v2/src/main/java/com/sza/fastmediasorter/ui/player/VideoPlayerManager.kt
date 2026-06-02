@@ -302,6 +302,11 @@ class VideoPlayerManager(
     @Volatile
     internal var panelStereoSingleEyeEnabled: Boolean = true
 
+    // S0326: global 3D/VR detection config (master + source-trust flags). Default ALL_ENABLED
+    // (legacy behavior) until the first DataStore emission arrives in init below.
+    @Volatile
+    internal var stereoDetectionConfig: StereoDetectionConfig = StereoDetectionConfig.ALL_ENABLED
+
     // Override: when the VR flavor enters immersive rendering, the immersive renderer
     // owns per-eye crop; suppress panel single-eye crop here to avoid double-cropping.
     // Toggled by the VR flavor via setVrImmersiveActive().
@@ -340,6 +345,16 @@ class VideoPlayerManager(
                     mode = stereoVideoProcessor.getCurrentMode(),
                     singleEyeEnabled = enabled && !vrImmersiveActive,
                 )
+            }
+            .launchIn(managerScope)
+
+        // S0326: keep the 3D/VR detection config in sync with user settings.
+        settingsRepository.getSettings()
+            .map { StereoDetectionConfig.from(it) }
+            .distinctUntilChanged()
+            .onEach { config ->
+                stereoDetectionConfig = config
+                Timber.d("S0326: stereo detection config updated autoDetect=${config.autoDetectEnabled} aspectRatio=${config.trustAspectRatio}")
             }
             .launchIn(managerScope)
     }

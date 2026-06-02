@@ -67,6 +67,7 @@ Dependency version policy:
 - Libraries/protocol specifics: `docs/TECH_STACK.md`
 - Full tech stack, dependencies, constraints, min/recommended requirements: `dev/TECH_REQUIREMENTS.md`
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
+- Device profile presets / first-run onboarding: `dev/DEVICE_PROFILE_PRESET_MATRIX.md` (matrix data: `app_v2/src/main/assets/device_profile_presets.csv`; consistency guard: `scripts/check_device_profile_presets.ps1`)
 - Feature specs, roadmaps, proposals: `PLAN/` folder
 - Documentation map: `docs/DOCS_MAP.md`
 - **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` - query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.

@@ -24,6 +24,9 @@ class ActivityMouseDispatchHelper(
 ) {
 
     private val mouseHandler = MouseEventHandler(
+        // Activity-level helper owns only secondary buttons, wheel and hover. The primary (left)
+        // click must pass through to the view under the cursor, so it is never consumed here.
+        consumePrimaryClick = false,
         callbacks = object : MouseEventHandler.MouseEventCallbacks {
             override fun onRightClick(view: View, x: Float, y: Float) {
                 resolveInteractionTarget()?.let { onContextClick(it, x, y) }

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideEntity
 import com.sza.fastmediasorter.domain.model.StereoMode
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,12 @@ import timber.log.Timber
 class PlayerStereoModeCoordinator(
     private val stereoFormatOverrideDao: StereoFormatOverrideDao,
     private val scope: CoroutineScope,
-    private val getCurrentFilePath: () -> String?
+    private val getCurrentFilePath: () -> String?,
+    // S0326: global default stereo mode applied only when detection yields no result and no
+    // per-file override exists. Defaults to MONO (plain 2D) for call sites that do not supply it.
+    private val getGlobalDefaultStereoMode: () -> StereoMode = { StereoMode.MONO },
+    // Injected so per-file override load/save is deterministic in unit tests.
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     /**
@@ -123,7 +129,7 @@ class PlayerStereoModeCoordinator(
 
         if (filePath.isNullOrBlank()) return
 
-        scope.launch(Dispatchers.IO) {
+        scope.launch(ioDispatcher) {
             val rememberedMode = stereoFormatOverrideDao.getEntry(filePath)?.let { entry ->
                 StereoMode.fromKey(entry.stereoModeKey)
             }?.takeUnless { it == StereoMode.UNKNOWN || it == StereoMode.AUTO }
@@ -144,7 +150,7 @@ class PlayerStereoModeCoordinator(
         val filePath = getCurrentFilePath() ?: return
         currentStereoOverridePath = filePath
 
-        scope.launch(Dispatchers.IO) {
+        scope.launch(ioDispatcher) {
             if (mode == StereoMode.AUTO) {
                 currentStereoOverrideMode = null
                 stereoFormatOverrideDao.deleteEntry(filePath)
@@ -191,10 +197,28 @@ class PlayerStereoModeCoordinator(
 
     private fun resolveAutoStereoMode(): StereoMode {
         val detected = _detectedStereoMode.value
-        if (detected == StereoMode.UNKNOWN) return StereoMode.AUTO
+        // Per-file override is intentionally ignored here (user picked AUTO to drop it); fall back
+        // to the global default when detection produced nothing.
+        if (detected == StereoMode.UNKNOWN) return globalDefaultOrAuto()
         return if (ignoreForcedFormatForCurrentFile) detected else resolveStereoMode(detected)
     }
 
-    private fun resolveStereoMode(detected: StereoMode): StereoMode =
-        currentStereoOverrideMode?.takeUnless { it == StereoMode.AUTO || it == StereoMode.UNKNOWN } ?: detected
+    /**
+     * Resolution chain (S0326): per-file override > positive detection > global default > AUTO.
+     * The global default is consulted only when no override exists and detection is inconclusive.
+     */
+    private fun resolveStereoMode(detected: StereoMode): StereoMode {
+        currentStereoOverrideMode
+            ?.takeUnless { it == StereoMode.AUTO || it == StereoMode.UNKNOWN }
+            ?.let { return it }
+        if (detected != StereoMode.AUTO && detected != StereoMode.UNKNOWN) return detected
+        return globalDefaultOrAuto()
+    }
+
+    /** Global default unless it is itself a sentinel, in which case AUTO (suppressed downstream). */
+    private fun globalDefaultOrAuto(): StereoMode {
+        Timber.d("S0326: global default fallback slot")
+        return getGlobalDefaultStereoMode().takeUnless { it == StereoMode.AUTO || it == StereoMode.UNKNOWN }
+            ?: StereoMode.AUTO
+    }
 }

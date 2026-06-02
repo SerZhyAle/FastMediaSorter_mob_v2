@@ -20,10 +20,18 @@
             android:baselineAligned="false">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetTypes"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_check_all_types" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClearFilter"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dialog_field_spacing"
                 android:text="@string/clear_all" />
 
             <com.google.android.material.button.MaterialButton
@@ -214,10 +222,16 @@
                 android:paddingBottom="0dp"
                 android:text="@string/media_type_epub" />
 
-            <View
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbFilterOffice"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="@string/media_type_office_documents" />
 
             <View
                 android:layout_width="0dp"

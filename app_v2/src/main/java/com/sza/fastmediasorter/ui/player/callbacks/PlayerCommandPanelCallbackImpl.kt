@@ -85,7 +85,6 @@ class PlayerCommandPanelCallbackImpl(
         // PDF page-fullscreen has its own zoomable overlay; the long-press gesture now opens
         // text selection, so the overflow menu_fullscreen is the entry point for PDF fullscreen.
         if (viewModel.state.value.currentFile?.type == MediaType.PDF && activity._pdfViewerManager != null) {
-            Timber.d("S0323: PDF fullscreen via overflow menu")
             activity.pdfViewerManager.requestPdfFullscreen()
             return
         }

@@ -54,8 +54,6 @@ class CommandPanelLayoutPlanner {
         // shown only when a Telegram client is installed.
         SEND_TO_TELEGRAM(35, R.id.menu_send_to_telegram, false, R.string.share_to_telegram,
             R.drawable.ic_share),
-        INFO(40, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
-            R.string.big_btn_short_info),
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen,
             R.string.big_btn_short_fullscreen),
         SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play,
@@ -88,6 +86,10 @@ class CommandPanelLayoutPlanner {
         ROTATION_TOGGLE(490, R.id.menu_rotation_toggle, true,
             R.string.rotation_toggle_title, R.drawable.ic_rotation_unlocked,
             R.string.big_btn_short_rotation),
+        // File details are useful but rarely urgent; keep them bar-capable only after
+        // primary playback, navigation, and media actions have taken their slots.
+        INFO(495, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
+            R.string.big_btn_short_info),
 
         // PDF
         SEARCH_PDF(260, R.id.menu_search, true, R.string.search,
@@ -223,7 +225,6 @@ class CommandPanelLayoutPlanner {
             if (showFavorite) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
             if (telegramInstalled) add(PlayerCommand.SEND_TO_TELEGRAM)
-            add(PlayerCommand.INFO)
             if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
 
@@ -237,6 +238,7 @@ class CommandPanelLayoutPlanner {
             if (isAudio) add(PlayerCommand.SEARCH_YOUTUBE_MUSIC)
             // S0162: Rotation toggle - only when global delegation is OFF and device has accelerometer
             if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
+            add(PlayerCommand.INFO)
 
             if (isPdf) add(PlayerCommand.SEARCH_PDF)
             if (isPdf && state.enableTranslation) add(PlayerCommand.TRANSLATE_PDF)

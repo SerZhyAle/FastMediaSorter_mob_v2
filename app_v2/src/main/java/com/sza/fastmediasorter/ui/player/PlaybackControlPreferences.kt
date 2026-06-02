@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 object PlaybackControlPreferences {
     const val PREFS_NAME = "playback_control_dialog"
     const val KEY_LAST_TAB = "last_tab"
+    const val KEY_LAST_SECTION = "last_section"
     const val KEY_HUE_DEGREES = "hue_degrees"
     const val KEY_BRIGHTNESS_PERCENT = "brightness_percent"
     const val KEY_LAST_NON_ZERO_VOLUME = "last_non_zero_volume"

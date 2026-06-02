@@ -12,6 +12,7 @@
 
     <!-- App specific colors -->
     <color name="delete_button">#FFD32F2F</color>
+    <color name="calculator_plus_button_text">#FFE53935</color>
     <color name="item_selected">#FFE3F2FD</color>
     <color name="item_normal">#FFFFFFFF</color>
     <color name="filter_warning_bg">#FFFFF9C4</color>    <!-- Light yellow for warnings -->

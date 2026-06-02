@@ -136,6 +136,7 @@ class PlayerMediaLoaderManager(
             path = path,
             width = currentFile?.width,
             height = currentFile?.height,
+            config = videoPlayerManager.stereoDetectionConfig,
         )
 
         // Propagate to ViewModel so the 3D tab reflects the current mode
@@ -450,7 +451,6 @@ class PlayerMediaLoaderManager(
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            Timber.d("S0252: SFTP audio early direct-stream fallback (source=${startupPolicy.sourceType.logLabel})")
             Timber.w(
                 "preCacheNetworkAudio: source=${startupPolicy.sourceType.logLabel} reason=${startupPolicy.reason} " +
                     "timed out after ${startupPolicy.timeoutMs}ms for $path - falling back to direct streaming"
@@ -795,7 +795,6 @@ class PlayerMediaLoaderManager(
                 Timber.d("prefetchNextAudio: DONE - ${nextFile.name} cached")
             } else {
                 val recovery = PrefetchPolicyManager.nextTrackPrefetchRecovery(path)
-                Timber.d("S0252: prefetchNextAudio recoverable-failure branch hit")
                 Timber.w(
                     "prefetchNextAudio: RECOVERABLE failure - ${nextFile.name}; " +
                         "source=${recovery.sourceType.logLabel} reason=${recovery.reason} " +

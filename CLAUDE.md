@@ -108,6 +108,7 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
    - Build/flags → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`
    - Dependencies → `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md`
    - Network → `dev/NETWORK_SPECS.md`
+   - Device profile presets / first-run onboarding → `dev/DEVICE_PROFILE_PRESET_MATRIX.md`
    - Flavor-specific work (`vr`, `noLegal`, `lite`, `photos`, `legacy`) → `dev/FLAVOR_DEVELOPMENT_RULES.md` (MANDATORY before any edit targeting a non-`standard` flavor)
 5. Implementation files.
 

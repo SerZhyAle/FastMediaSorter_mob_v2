@@ -67,6 +67,7 @@ Resources for developers, QA, and contributors.
 | Document | Description | Last Updated |
 |---|---|---|
 | [Tech Requirements & Stack](../dev/TECH_REQUIREMENTS.md) | Full tech stack, library inventory, platform constraints, min/recommended requirements. | 2026-03-03 |
+| [Device Profile Preset Matrix](../dev/DEVICE_PROFILE_PRESET_MATRIX.md) | Device-profile rationale, provisional preset matrix + change rules, and profile icon asset registry (S0327). | 2026-06-02 |
 
 ### Cloud Integration (in `/dev` folder)
 | [Cloud Documentation Index](../dev/CLOUD_DOCUMENTATION_INDEX.md) | Entry point for cloud docs. | N/A |

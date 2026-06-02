@@ -35,7 +35,6 @@ class DedupAuthAccountsUseCase @Inject constructor(
     suspend operator fun invoke() {
         val isDone = dataStore.data.first()[KEY_DONE] ?: false
         if (isDone) return
-        Timber.d("S0211: DedupAuthAccountsUseCase.invoke start")
 
         var deleted = 0
         withContext(Dispatchers.IO) {

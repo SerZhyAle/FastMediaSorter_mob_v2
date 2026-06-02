@@ -99,7 +99,10 @@ class EpubViewerManager(
         resourceContentHelper = resourceContentHelper,
         selectionBridge = selectionBridge,
         onPageRendered = {
-            if (!firstChapterRenderedLogged) firstChapterRenderedLogged = true
+            if (!firstChapterRenderedLogged) {
+                firstChapterRenderedLogged = true
+                Timber.d("EpubViewerManager: firstChapterRendered chapter=$currentChapterIndex chapterCount=$chapterCount")
+            }
         },
         swipeGestureProvider = { swipeGestureDetector },
         bookProvider = { currentBook },

@@ -275,7 +275,6 @@ class LinkDownloadWorker @AssistedInject constructor(
                 // - no session yet - heads-up sign-in notification with re-auth CTA.
                 when {
                     result.hadExistingSession -> {
-                        Timber.d("S0211: LinkDownloadWorker notify preview-only-signed-in host=%s", result.host)
                         builder
                             .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                             .setContentText(

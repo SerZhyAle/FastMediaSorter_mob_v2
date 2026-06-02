@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
+import com.google.android.material.button.MaterialButton
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import timber.log.Timber
@@ -29,13 +30,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private enum class ControlSection(val buttonId: Int) {
-        VOLUME(R.id.rbSectionVolume),
-        AUDIO(R.id.rbSectionAudio),
-        SUBTITLES(R.id.rbSectionSubtitles),
-        STEREO(R.id.rbSectionStereo),
-        HUE(R.id.rbSectionHue),
-        BRIGHTNESS(R.id.rbSectionBrightness),
-        SPEED(R.id.rbSectionSpeed)
+        VOLUME(R.id.btnSectionVolume),
+        AUDIO(R.id.btnSectionAudio),
+        SUBTITLES(R.id.btnSectionSubtitles),
+        STEREO(R.id.btnSectionStereo),
+        HUE(R.id.btnSectionHue),
+        BRIGHTNESS(R.id.btnSectionBrightness),
+        SPEED(R.id.btnSectionSpeed)
     }
 
     private var _binding: DialogPlaybackControlBinding? = null
@@ -95,7 +96,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("PlaybackControlDialog: onViewCreated mediaType=$currentMediaType")
-        setupSectionNavigation(savedInstanceState?.getInt(STATE_SELECTED_TAB) ?: prefs.getInt(PlaybackControlPreferences.KEY_LAST_TAB, 0))
+        setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {
             setupAudioTab()
@@ -125,31 +126,72 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(STATE_SELECTED_TAB, selectedSectionIndex())
+        outState.putString(STATE_SELECTED_SECTION, selectedSectionName())
     }
 
-    private fun setupSectionNavigation(selectedIndex: Int) {
+    private fun setupSectionNavigation(savedSectionName: String?) {
+        Timber.d("S0330: section navigation menu setup mediaType=$currentMediaType activeSections=${activeSections.map { it.name }}")
         ControlSection.entries.forEach { section ->
-            binding.root.findViewById<RadioButton>(section.buttonId).isVisible = activeSections.contains(section)
+            sectionButton(section).isVisible = activeSections.contains(section)
         }
 
-        val safeIndex = selectedIndex.coerceIn(0, activeSections.lastIndex.coerceAtLeast(0))
-        val selectedSection = activeSections.getOrElse(safeIndex) { ControlSection.VOLUME }
-        binding.radioGroupPlaybackSections.check(selectedSection.buttonId)
+        val selectedSection = resolveInitialSection(savedSectionName)
+        binding.groupPlaybackSections.check(selectedSection.buttonId)
         updateVisibleSection(selectedSection)
+        updateNavigationState(selectedSection)
 
-        binding.radioGroupPlaybackSections.setOnCheckedChangeListener { _, checkedId ->
-            val section = activeSections.firstOrNull { it.buttonId == checkedId } ?: return@setOnCheckedChangeListener
-            Timber.d("PlaybackControlDialog: tab selected → $section")
-            prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_TAB, activeSections.indexOf(section)).apply()
+        binding.groupPlaybackSections.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val section = activeSections.firstOrNull { it.buttonId == checkedId } ?: return@addOnButtonCheckedListener
+            Timber.d("PlaybackControlDialog: section selected -> $section")
+            prefs.edit()
+                .putString(PlaybackControlPreferences.KEY_LAST_SECTION, section.name)
+                .putInt(PlaybackControlPreferences.KEY_LAST_TAB, activeSections.indexOf(section))
+                .apply()
             updateVisibleSection(section)
+            updateNavigationState(section)
         }
     }
 
-    private fun selectedSectionIndex(): Int {
-        val checkedId = binding.radioGroupPlaybackSections.checkedRadioButtonId
-        return activeSections.indexOfFirst { it.buttonId == checkedId }.coerceAtLeast(0)
+    private fun resolveInitialSection(savedSectionName: String?): ControlSection {
+        sectionByName(savedSectionName)?.takeIf { activeSections.contains(it) }?.let { return it }
+        sectionByName(prefs.getString(PlaybackControlPreferences.KEY_LAST_SECTION, null))
+            ?.takeIf { activeSections.contains(it) }
+            ?.let { return it }
+
+        val legacyIndex = prefs.getInt(PlaybackControlPreferences.KEY_LAST_TAB, 0)
+        return activeSections.getOrNull(legacyIndex)
+            ?: activeSections.firstOrNull()
+            ?: ControlSection.VOLUME
     }
+
+    private fun sectionByName(sectionName: String?): ControlSection? =
+        ControlSection.entries.firstOrNull { it.name == sectionName }
+
+    private fun selectedSectionName(): String {
+        val checkedId = binding.groupPlaybackSections.checkedButtonId
+        return activeSections.firstOrNull { it.buttonId == checkedId }?.name ?: ControlSection.VOLUME.name
+    }
+
+    private fun updateNavigationState(selectedSection: ControlSection) {
+        ControlSection.entries.forEach { section ->
+            val button = sectionButton(section)
+            val isActive = activeSections.contains(section)
+            val isSelected = section == selectedSection
+            button.isVisible = isActive
+            button.isEnabled = isActive
+            button.isSelected = isSelected
+            button.isChecked = isSelected
+            button.contentDescription = button.text
+            ViewCompat.setStateDescription(
+                button,
+                if (isSelected) getString(R.string.selected_label) else null
+            )
+        }
+    }
+
+    private fun sectionButton(section: ControlSection): MaterialButton =
+        binding.root.findViewById(section.buttonId)
 
     private fun updateVisibleSection(section: ControlSection?) {
         binding.sectionVolume.isVisible = false
@@ -611,7 +653,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "PlaybackControlDialog"
-        private const val STATE_SELECTED_TAB = "selected_tab"
+        private const val STATE_SELECTED_SECTION = "selected_section"
 
         fun newInstance(): PlaybackControlDialogFragment = PlaybackControlDialogFragment()
     }

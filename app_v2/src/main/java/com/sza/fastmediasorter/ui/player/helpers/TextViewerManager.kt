@@ -375,6 +375,20 @@ class TextViewerManager(
                 isCalculatorAvailable = { calculatorEnabledFlow.value },
                 onOpenCalculator = callback::launchSelectionCalculator,
             )
+
+        // Editor (EditText) selection: append "Calculator" to the platform selection menu.
+        // Reuses the editor calculator round-trip so the result is inserted after the selection.
+        safeViews.etTextContent.customSelectionActionModeCallback =
+            EditorSelectionActionModeCallback(
+                isCalculatorAvailable = { calculatorEnabledFlow.value },
+                getSelectedText = {
+                    val editable = safeViews.etTextContent.text
+                    val start = safeViews.etTextContent.selectionStart.coerceAtLeast(0)
+                    val end = safeViews.etTextContent.selectionEnd.coerceAtLeast(0)
+                    editable?.substring(minOf(start, end), maxOf(start, end)) ?: ""
+                },
+                onOpenCalculator = callback::launchEditorCalculator,
+            )
     }
 
     /** Setup gesture detectors for horizontal swipe to change font size + vertical swipe for page nav. Delegated to [TextViewerGestureDetectors]. */

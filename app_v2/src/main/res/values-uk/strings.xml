@@ -93,6 +93,15 @@
     <string name="playback_resumed_from">Відновлено з %1$s</string>
 
     <!-- Settings Tabs -->
+    <string name="settings_profile_title">Профіль пристрою</string>
+    <string name="settings_profile_current_label">Поточний профіль: %1$s (%2$s)</string>
+    <string name="settings_profile_source_manual">вручну</string>
+    <string name="settings_profile_source_auto">авто</string>
+    <string name="settings_profile_source_skipped">авто-пропущено</string>
+    <string name="settings_profile_source_migration">мігровано</string>
+    <string name="settings_profile_warning">Увага: зміна профілю скине частину налаштувань на значення за замовчуванням для нового профілю. Ви впевнені, що хочете продовжити?</string>
+    <string name="settings_profile_migration_hint">Ваші поточні налаштування збережено. Виберіть профіль, щоб застосувати нові значення за замовчуванням.</string>
+
     <string name="settings_tab_general">Загальні</string>
     <string name="settings_tab_media">Медіа</string>
     <string name="settings_tab_playback">Відтворення</string>
@@ -394,6 +403,7 @@
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
     <string name="media_type_office_documents">Офісні документи</string>
+    <string name="filter_check_all_types">Позначити всі типи</string>
     <string name="filter_by_size">Фільтр за розміром файлу (МБ)</string>
     <string name="min_date">Мін. дата</string>
     <string name="max_date">Макс. дата</string>
@@ -413,6 +423,12 @@
     <string name="destinations">Швидке сортування</string>
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
+    <string name="color_theme">Колірна тема</string>
+    <string-array name="color_theme_options">
+        <item>Авто (за пристроєм)</item>
+        <item>Світла</item>
+        <item>Темна</item>
+    </string-array>
     <string name="backup_restore_settings">Резервне копіювання</string>
     <string name="backup_info_description">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються - після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
     <string name="tooltip_backup_info_title">Інформація про резервну копію</string>
@@ -701,6 +717,7 @@
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Відкрити в новому вікні</string>
     <string name="setting_allow_separate_window">Дозволити нові вікна</string>
+    <string name="setting_allow_separate_window_desc">Відкривати теки та файли в окремому вікні</string>
     <string name="tooltip_allow_separate_window_title">Дозволити нові вікна</string>
     <string name="tooltip_allow_separate_window_message">Коли увімкнено, на екранах огляду та плеєра з’являється дія «Відкрити в новому вікні», що запускає обрану папку або файл в окремому вікні Android. Корисно на пристроях, що підтримують багатовіконний режим (планшети, складні пристрої, ChromeOS, великі дисплеї). Коли вимкнено, дія прихована і все відкривається в поточному вікні.</string>
     <string name="resource_type_local">Локальні</string>
@@ -2517,7 +2534,7 @@
     <string name="game_help_intro">Дійдіть синім Чудовиськом до зеленого виходу, доки вороги не загнали вас у кут.</string>
     <string name="game_help_legend_title">Легенда</string>
     <string name="game_help_rules_title">Правила</string>
-    <string name="game_help_rules">Використовуйте трикутники, клавіатуру, D-pad або свайп, щоб ходити на одну клітинку.\nЧервона Кривавиця йде до Чудовиська. Фіолетові підкривавиці рухаються випадково.\nШтовхайте сірі стіни у вільні клітинки, щоб розчистити шлях. Товста рамка не дає вийти за поле.\nРахунок: -10 за хід, +10 за поштовх стіни, +50 за розчавлену підкривавицю, +1000 за вихід.\nЯкщо ворог опиняється на сусідній або тій самій клітинці, гра закінчується.</string>
+    <string name="game_help_rules">Використовуйте трикутники, клавіатуру, D-pad, свайп або тап по полю, щоб ходити на одну клітинку.\nЧервона Кривавиця йде до Чудовиська. Фіолетові підкривавиці рухаються випадково.\nШтовхайте сірі стіни у вільні клітинки, щоб розчистити шлях. Товста рамка не дає вийти за поле.\nРахунок: -10 за хід, +10 за поштовх стіни, +50 за розчавлену підкривавицю, +1000 за вихід.\nЯкщо ворог опиняється на сусідній або тій самій клітинці, гра закінчується.</string>
     <string name="game_help_legend_player">Синій - Чудовисько, яким ви керуєте</string>
     <string name="game_help_legend_kryvavitsa">Червоний - Кривавиця, йде до гравця</string>
     <string name="game_help_legend_shadow">Фіолетовий - підкривавиця, ходить випадково</string>
@@ -2911,6 +2928,8 @@
 
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear-супутник</string>
+    <string name="tooltip_wear_companion_title">Wear-супутник</string>
+    <string name="tooltip_wear_companion_message">Надішліть свої мережеві теки (SMB, FTP, хмара) на спарений годинник Wear OS, щоб переглядати та відтворювати їх просто із зап\'ястя. Натисніть кнопку, щоб вибрати, які типи медіа синхронізувати, і налаштувати відтворення на годиннику.</string>
     <string name="wear_sync_description">Передайте мережеві джерела на підключений годинник Wear OS.</string>
     <string name="wear_last_synced">Остання синхр.: %s</string>
     <string name="wear_push_to_watch">Надіслати на годинник</string>
@@ -3579,6 +3598,7 @@
     <string name="calculator_enable_prompt_message">Увімкніть калькулятор у налаштуваннях, щоб використовувати цей віджет.</string>
     <string name="calculator_open_settings">Відкрити налаштування</string>
     <string name="calculator_error_division_by_zero">Ділити на нуль не можна.</string>
+    <string name="calculator_error_math_domain">З цим числом так не можна.</string>
     <string name="calculator_action_clear">Очистити</string>
     <string name="calculator_action_clear_entry">Очистити введення</string>
     <string name="calculator_action_backspace">Видалити останній символ</string>
@@ -3595,6 +3615,27 @@
     <string name="calculator_action_share_result">Надіслати результат</string>
     <string name="calculator_action_save_history">Зберегти історію</string>
     <string name="calculator_action_clear_history">Очистити історію</string>
+    <string name="calculator_action_function">Функція</string>
+    <string name="calculator_fn_sin">sin</string>
+    <string name="calculator_fn_cos">cos</string>
+    <string name="calculator_fn_tan">tg</string>
+    <string name="calculator_fn_cot">ctg</string>
+    <string name="calculator_fn_sqrt">√x</string>
+    <string name="calculator_fn_cbrt">∛x</string>
+    <string name="calculator_fn_square">x²</string>
+    <string name="calculator_fn_power">xʸ</string>
+    <string name="calculator_fn_reciprocal">1/x</string>
+    <string name="calculator_fn_log10">log₁₀</string>
+    <string name="calculator_fn_ln">ln</string>
+    <string name="calculator_fn_factorial">n!</string>
+    <string name="calculator_fn_pi">π</string>
+    <string name="calculator_fn_mod">mod</string>
+    <string name="calculator_action_memory_add">Додати до памʼяті</string>
+    <string name="calculator_action_memory_subtract">Відняти з памʼяті</string>
+    <string name="calculator_action_memory_recall">Викликати з памʼяті</string>
+    <string name="calculator_action_memory_clear">Очистити памʼять</string>
+    <string name="calculator_action_memory_toggle">Показати або сховати кнопки памʼяті</string>
+    <string name="calculator_memory_indicator">M %1$s</string>
     <string name="calculator_history_empty">Історії ще немає.</string>
     <string name="calculator_history_saved_to_downloads">Історію збережено в Завантаження: %1$s</string>
     <string name="calculator_history_save_failed">Не вдалося зберегти історію.</string>
@@ -3603,4 +3644,32 @@
     <string name="widget_calculator_label">Калькулятор</string>
     <string name="widget_calculator_description">Відкрити вбудований калькулятор</string>
     <string name="settings_category_other_features">Інші функції</string>
+
+    <!-- Device Profile Onboarding (S0327) -->
+    <string name="welcome_profile_selector_title">Профіль використання</string>
+    <string name="profile_picker_title">Виберіть профіль пристрою</string>
+    <string name="profile_picker_select">Вибрати</string>
+    <string name="welcome_recommended_badge">(Рекомендується)</string>
+    <string name="welcome_profile_personal_smartphone_title">Особистий смартфон</string>
+    <string name="welcome_profile_personal_smartphone_desc">Оптимально для особистих телефонів. Налаштовує touch-інтерфейс, фонову синхронізацію та стандартні підтвердження безпеки.</string>
+    <string name="welcome_profile_home_tablet_title">Планшет і ПК-режим</string>
+    <string name="welcome_profile_home_tablet_desc">Для планшетів, Chromebook і режиму Samsung DeX. Оптимізує відображення сітки, вмикає великі прев\'ю та багатовіконний режим.</string>
+    <string name="welcome_profile_tv_media_box_title">ТВ-приставка / Медіацентр</string>
+    <string name="welcome_profile_tv_media_box_desc">Для телевізорів та ТВ-приставок. Оптимізує навігацію з пульта (DPAD), збільшує елементи та приховує дрібні touch-кнопки.</string>
+    <string name="welcome_profile_car_head_unit_title">Автомагнітола</string>
+    <string name="welcome_profile_car_head_unit_desc">Для автомобільних магнітол. Збільшує кнопки керування, блокує вимкнення екрана та ставить у пріоритет керування плеєром.</string>
+    <string name="welcome_profile_media_player_title">Спільний медіаплеєр</string>
+    <string name="welcome_profile_media_player_desc">Для спільних медіацентрів. Фокусується на показі фото, відео та музики з автозапуском слайдшоу та відновленням відтворення.</string>
+    <string name="welcome_profile_photo_frame_title">Цифрова фоторамка</string>
+    <string name="welcome_profile_photo_frame_desc">Перетворює планшет на фоторамку. Вимикає відео, audio та документи; відразу запускає слайдшоу зображень.</string>
+    <string name="welcome_profile_video_player_title">Відеопрогравач</string>
+    <string name="welcome_profile_video_player_desc">Для перегляду відео. Приховує фотографії, музику та документи; оптимізує швидкий запуск відеороликів.</string>
+    <string name="welcome_profile_audio_player_title">Аудіопрогравач</string>
+    <string name="welcome_profile_audio_player_desc">Для прослуховування музики. Приховує фото та відео; оптимізує фоновий звук та екран поточного треку.</string>
+    <string name="welcome_profile_ebook_reader_title">Електронна книга</string>
+    <string name="welcome_profile_ebook_reader_desc">Для читання документів. Приховує відео та музику; оптимізує відображення PDF, EPUB та текстових книг.</string>
+    <string name="welcome_profile_vr_headset_title">VR-шолом</string>
+    <string name="welcome_profile_vr_headset_desc">Для VR-окулярів та шоломів. Попередньо вмикає 3D/360°-інтерфейси та імерсивне керування на підтримуваних пристроях.</string>
+    <string name="welcome_profile_other_title">Інший / Без змін</string>
+    <string name="welcome_profile_other_desc">Зберігає поточні системні налаштування без змін. Пакетні передустановки не застосовуються.</string>
 </resources>

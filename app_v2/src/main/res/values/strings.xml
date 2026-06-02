@@ -81,6 +81,15 @@
     <string name="settings_tab_operations">Operations</string>
 
     <!-- General Settings -->
+    <string name="settings_profile_title">Device profile</string>
+    <string name="settings_profile_current_label">Current profile: %1$s (%2$s)</string>
+    <string name="settings_profile_source_manual">manual</string>
+    <string name="settings_profile_source_auto">auto-detected</string>
+    <string name="settings_profile_source_skipped">auto-skipped</string>
+    <string name="settings_profile_source_migration">migrated</string>
+    <string name="settings_profile_warning">Warning: Changing the profile will overwrite some of your settings with the default values of the new profile. Are you sure you want to proceed?</string>
+    <string name="settings_profile_migration_hint">Your previous settings were preserved. Choose a profile to apply new defaults.</string>
+
     <string name="documentation">Documentation Portal</string>
     <string name="settings_category_interface">General app interface</string>
     <string name="settings_category_authorization">Authorization and accounts</string>
@@ -292,6 +301,7 @@
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
     <string name="media_type_office_documents">Office documents</string>
+    <string name="filter_check_all_types">Check all types</string>
 
     <!-- Media Type Checkboxes (for Resource Registration) -->
     <string name="images_i">Images (I)</string>
@@ -317,6 +327,12 @@
     <string name="destinations">Quick Sort</string>
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
+    <string name="color_theme">Color theme</string>
+    <string-array name="color_theme_options">
+        <item>Auto (follow device)</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
     <string name="backup_restore_settings">Backup &amp; Restore</string>
     <string name="settings_tab_backup">Backup</string>
     <string name="backup_to_google_drive">Backup settings to Google Drive</string>
@@ -797,7 +813,7 @@ Close the player and try again.</string>
     <string name="game_help_intro">Reach the green exit with the blue Monster before enemies corner you.</string>
     <string name="game_help_legend_title">Legend</string>
     <string name="game_help_rules_title">Rules</string>
-    <string name="game_help_rules">Use arrows, keyboard, D-pad, or swipe to move one cell.\nThe red Kryvavitsa hunts the Monster. Purple lesser Kryvavitsas wander randomly.\nPush gray walls into free cells to clear a path. The thick border blocks leaving the board.\nScore: -10 per move, +10 for pushing a wall, +50 for crushing a purple enemy, +1000 for reaching the exit.\nIf any enemy reaches the same or neighboring cell, the game ends.</string>
+    <string name="game_help_rules">Use arrows, keyboard, D-pad, swipe, or tap the board to move one cell.\nThe red Kryvavitsa hunts the Monster. Purple lesser Kryvavitsas wander randomly.\nPush gray walls into free cells to clear a path. The thick border blocks leaving the board.\nScore: -10 per move, +10 for pushing a wall, +50 for crushing a purple enemy, +1000 for reaching the exit.\nIf any enemy reaches the same or neighboring cell, the game ends.</string>
     <string name="game_help_legend_player">Blue - Monster, the character you control</string>
     <string name="game_help_legend_kryvavitsa">Red - Kryvavitsa, hunts the player</string>
     <string name="game_help_legend_shadow">Purple - lesser Kryvavitsa, moves randomly</string>
@@ -1036,6 +1052,7 @@ Close the player and try again.</string>
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Open in new window</string>
     <string name="setting_allow_separate_window">Allow new windows</string>
+    <string name="setting_allow_separate_window_desc">Open folders and files in a separate window</string>
     <string name="tooltip_allow_separate_window_title">Allow new windows</string>
     <string name="tooltip_allow_separate_window_message">When enabled, the Browse and Player screens add an "Open in new window" action that launches the picked folder or file in a separate Android window. Useful on devices that support multi-window mode (tablets, foldables, ChromeOS, large displays). When disabled, the action is hidden and everything opens in the current window.</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
@@ -3032,6 +3049,8 @@ Close the player and try again.</string>
 
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear Companion</string>
+    <string name="tooltip_wear_companion_title">Wear Companion</string>
+    <string name="tooltip_wear_companion_message">Send your network folders (SMB, FTP, cloud) to a paired Wear OS watch so you can browse and play them straight from your wrist. Tap the button to choose which media types sync and tune the watch playback settings.</string>
     <string name="wear_sync_description">Push network sources to your connected Wear OS watch.</string>
     <string name="wear_last_synced">Last synced: %s</string>
     <string name="wear_push_to_watch">Push to Watch</string>
@@ -3666,6 +3685,7 @@ Close the player and try again.</string>
     <string name="calculator_enable_prompt_message">Turn on Calculator in Settings to use this widget.</string>
     <string name="calculator_open_settings">Open Settings</string>
     <string name="calculator_error_division_by_zero">Can\'t divide by zero.</string>
+    <string name="calculator_error_math_domain">Can\'t do that with this number.</string>
     <string name="calculator_action_clear">Clear</string>
     <string name="calculator_action_clear_entry">Clear entry</string>
     <string name="calculator_action_backspace">Backspace</string>
@@ -3682,6 +3702,27 @@ Close the player and try again.</string>
     <string name="calculator_action_share_result">Send result</string>
     <string name="calculator_action_save_history">Save history</string>
     <string name="calculator_action_clear_history">Clear history</string>
+    <string name="calculator_action_function">Function</string>
+    <string name="calculator_fn_sin">sin</string>
+    <string name="calculator_fn_cos">cos</string>
+    <string name="calculator_fn_tan">tg</string>
+    <string name="calculator_fn_cot">ctg</string>
+    <string name="calculator_fn_sqrt">√x</string>
+    <string name="calculator_fn_cbrt">∛x</string>
+    <string name="calculator_fn_square">x²</string>
+    <string name="calculator_fn_power">xʸ</string>
+    <string name="calculator_fn_reciprocal">1/x</string>
+    <string name="calculator_fn_log10">log₁₀</string>
+    <string name="calculator_fn_ln">ln</string>
+    <string name="calculator_fn_factorial">n!</string>
+    <string name="calculator_fn_pi">π</string>
+    <string name="calculator_fn_mod">mod</string>
+    <string name="calculator_action_memory_add">Memory add</string>
+    <string name="calculator_action_memory_subtract">Memory subtract</string>
+    <string name="calculator_action_memory_recall">Memory recall</string>
+    <string name="calculator_action_memory_clear">Memory clear</string>
+    <string name="calculator_action_memory_toggle">Show or hide memory keys</string>
+    <string name="calculator_memory_indicator">M %1$s</string>
     <string name="calculator_history_empty">No history yet.</string>
     <string name="calculator_history_saved_to_downloads">History saved to Downloads: %1$s</string>
     <string name="calculator_history_save_failed">Couldn\'t save history.</string>
@@ -3690,4 +3731,32 @@ Close the player and try again.</string>
     <string name="widget_calculator_label">Calculator</string>
     <string name="widget_calculator_description">Open the embedded calculator</string>
     <string name="settings_category_other_features">Other features</string>
+
+    <!-- Device Profile Onboarding (S0327) -->
+    <string name="welcome_profile_selector_title">Device Usage Profile</string>
+    <string name="profile_picker_title">Choose your device profile</string>
+    <string name="profile_picker_select">Select</string>
+    <string name="welcome_recommended_badge">(Recommended)</string>
+    <string name="welcome_profile_personal_smartphone_title">Personal smartphone</string>
+    <string name="welcome_profile_personal_smartphone_desc">Best for personal phones. Optimizes touch layout, enables background synchronization, and keeps default security confirmations.</string>
+    <string name="welcome_profile_home_tablet_title">Tablet &amp; desktop mode</string>
+    <string name="welcome_profile_home_tablet_desc">Best for tablets, Chromebooks, and Samsung DeX. Optimizes grid layout, enables large thumbnails, and allows multi-window browsing.</string>
+    <string name="welcome_profile_tv_media_box_title">TV / media box</string>
+    <string name="welcome_profile_tv_media_box_desc">Best for TV and media centers. Optimizes DPAD/remote navigation, uses large buttons, and hides tiny touch controls.</string>
+    <string name="welcome_profile_car_head_unit_title">Car head unit</string>
+    <string name="welcome_profile_car_head_unit_desc">Best for Android car stereos. Uses extra-large buttons, locks screen on, and prioritizes media playback over file operations.</string>
+    <string name="welcome_profile_media_player_title">Media player</string>
+    <string name="welcome_profile_media_player_desc">Best for dedicated media boxes. Focuses entirely on photos, videos, and music with automatic slideshow and resume features.</string>
+    <string name="welcome_profile_photo_frame_title">Photo frame</string>
+    <string name="welcome_profile_photo_frame_desc">Turns the device into a digital photo frame. Disables video, audio, and file operations; opens slideshow immediately on launch.</string>
+    <string name="welcome_profile_video_player_title">Video player</string>
+    <string name="welcome_profile_video_player_desc">Best for video-only devices. Hides photos, music, and document viewers; prioritizes quick video playback and thumbnails.</string>
+    <string name="welcome_profile_audio_player_title">Audio player</string>
+    <string name="welcome_profile_audio_player_desc">Best for audio-only devices or MP3 players. Hides photos and videos; optimizes background audio and now-playing screen.</string>
+    <string name="welcome_profile_ebook_reader_title">E-book reader</string>
+    <string name="welcome_profile_ebook_reader_desc">Best for e-readers or document tablets. Hides videos and music; optimizes PDF, EPUB, and text reading settings.</string>
+    <string name="welcome_profile_vr_headset_title">VR headset</string>
+    <string name="welcome_profile_vr_headset_desc">Best for virtual reality devices. Pre-enables 3D/360° layouts and immersive controls on supported hardware flavors.</string>
+    <string name="welcome_profile_other_title">Other / Custom</string>
+    <string name="welcome_profile_other_desc">Keeps the default system settings unchanged. No batch presets will be applied automatically.</string>
 </resources>

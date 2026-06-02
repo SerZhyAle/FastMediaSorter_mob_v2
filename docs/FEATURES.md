@@ -1,12 +1,15 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-01*
+*Last updated: 2026-06-02*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
 **Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
+
+## 0. Setup & Configuration
+- **First-run device profile setup** `[Standard / VR]`: On initial launch, select a device profile (phone, tablet, TV/media box, car head unit, media player, photo frame, video player, audio player, e-book reader, VR headset, or Other) with auto-detection recommendations based on platform signals. The selected profile applies optimized defaults for content types, interaction patterns, safety confirmations, screen behavior, command priorities, and feature visibility tailored to the device's intended use case.
 
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, SMB network folders (Windows share/NAS), FTP, SFTP, and cloud drives (Google Drive, Dropbox, OneDrive) in a single interface.
@@ -18,7 +21,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 2. Media Browsing
 - **Extensive sort modes** `[Standard / VR]`: Sort by Name, Date, Size, Type, Artist, Title, Duration, Date Taken, Random, or Manual order (ascending/descending) with memory per resource.
-- **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types.
+- **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types (including Office documents), with a one-tap action to re-check every type.
 - **Hidden files & filter bypass** `[Standard / VR]`: Toggle visibility of system-hidden files, or activate File Manager Mode to bypass media filters and manage any file or archive (ZIP, APK, EXE, etc.).
 - **Office document handoff** `[Standard / VR]`: Open DOC, DOCX, RTF, and ODT files in an installed external application, with full integration in media filters across local, network, and cloud resources.
 - **Protected document fallback** `[Standard / VR]`: Detect protected PDF, Office, and EPUB cases the internal viewer cannot decrypt and route to a clear message or external-open fallback; passwords are not stored.
@@ -73,6 +76,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Virtual cinema** `[VR Only]`: Play standard 2D video and slideshows on a massive, customizable virtual screen inside the VR scene.
 - **Passthrough snapshot** `[VR Only]`: Capture mixed-reality photos using front-facing cameras (on Quest 3).
 - **VR Entry point** `[VR Only]`: Instantly trigger the immersive OpenXR layer from the flat player using a floating `VR` action badge.
+- **3D/VR default settings** `[VR Only]`: Tune how the app auto-detects 3D/VR formats (filename markers, embedded metadata, aspect-ratio guess), pick the default mode for unrecognized media, and set immersive behavior — all from the VR section of Media settings; per-file overrides still take priority.
 
 ## 9. Audio Player
 - **Background playback** `[Standard Only]`: Runs on a persistent foreground service with quick media notification drawer controls.
@@ -120,7 +124,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 15. Smart Widgets & Integration
 - **Resource shortcuts** `[Standard Only]`: Single-tap home screen widgets to open a specific folder or NAS drive immediately.
-- **Embedded calculator** `[Standard / Lite / Photos / Legacy]`: Enable Calculator in General settings -> Other functionality, then open it from the main menu or the Calculator widget; the calculator can share the current result and save or clear calculation history.
+- **Embedded calculator** `[Standard / Lite / Photos / Legacy]`: Enable Calculator in General settings -> Other functionality, then open it from the main menu or the Calculator widget; the calculator can share the current result and save or clear calculation history. It keeps calculation history between sessions (cleared only via Clear history), offers scientific functions through the Function menu (trigonometry in degrees, square and cube roots, powers, reciprocal, log₁₀, ln, factorial and π), and evaluates selected or pasted text as a full math expression with parentheses, operator precedence, and implicit summation of separate numbers. It also has a memory register (M+/M−/MR/MC) shown above the result and kept between sessions in a collapsible row, plus a modulo (remainder) function.
 - **Embedded mini-game** `[Standard / Lite / Photos / Legacy / VR]`: Optional turn-based puzzle, disabled by default, launched from the Settings-enabled main menu entry or a dedicated home-screen widget, with an in-game rules and color legend screen.
 - **Continue Reading beacon** `[Standard Only]`: Interactive widget to quickly resume your exact last document or video session.
 - **Launcher shortcuts** `[Standard Only]`: Long-press app icon to access recent folder history.
@@ -128,6 +132,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 16. Settings & Navigation
 - **Settings search** `[Standard / VR]`: Full-text instant indexing search with yellow spotlight targeting of matched settings.
+- **Color theme** `[Standard / Lite / Photos / Legacy / VR]`: Choose the app color theme — Auto (follow device), Light, or Dark — independently of the system setting, for devices where the system light/dark switch is unavailable or unreliable.
 - **Complete DPAD support** `[Standard / VR]`: Scales all preferences for TV remotes, keyboards, mice, and gamepads with DPAD acceleration.
 - **TV button remapping** `[Standard Only]`: Custom assignments for remote color buttons and Channel Up/Down actions.
 - **Diagnostic logs** `[Standard / VR]`: Integrated stack-trace inspector with sharing actions for troubleshooting.

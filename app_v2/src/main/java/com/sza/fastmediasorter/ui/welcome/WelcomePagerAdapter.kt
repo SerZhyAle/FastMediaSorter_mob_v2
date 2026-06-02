@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.ui.common.DeviceProfileUi
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
@@ -219,12 +221,36 @@ class WelcomePagerAdapter(
                 binding.layoutLanguagePicker.visibility = android.view.View.GONE
             }
 
+            // Profile selector: a pressable card showing the current/recommended profile that opens
+            // the shared tile picker (DeviceProfilePickerDialogFragment). Replaces the old dropdown.
+            if (page.showProfileSelector) {
+                binding.layoutProfileSelector.visibility = View.VISIBLE
+                val recommendedType = page.recommendedProfileType
+                val selectedType = page.selectedProfileType
+                    ?: recommendedType
+                    ?: DeviceProfileType.PERSONAL_SMARTPHONE
+
+                binding.ivSelectedProfileIcon.setImageResource(DeviceProfileUi.iconRes(selectedType))
+                val title = context.getString(DeviceProfileUi.titleRes(selectedType))
+                binding.tvSelectedProfileTitle.text = if (selectedType == recommendedType) {
+                    "$title ${context.getString(R.string.welcome_recommended_badge)}"
+                } else {
+                    title
+                }
+                binding.tvProfileDescription.text = context.getString(DeviceProfileUi.descRes(selectedType))
+
+                binding.cardSelectedProfile.setOnClickListener { page.onOpenProfilePicker?.invoke() }
+            } else {
+                binding.layoutProfileSelector.visibility = View.GONE
+            }
+
             // Staggered entrance animations
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
             animateEntrance(binding.gridFeatures, 400L)
         }
+
     }
 }
 
@@ -303,6 +329,11 @@ data class WelcomePage(
     val showLanguagePicker: Boolean = false,
     /** Invoked with the ISO-639-1 language code when the user taps a picker button. */
     val onLanguageSelected: ((code: String) -> Unit)? = null,
+    val showProfileSelector: Boolean = false,
+    val recommendedProfileType: DeviceProfileType? = null,
+    val selectedProfileType: DeviceProfileType? = null,
+    val onProfileSelected: ((DeviceProfileType) -> Unit)? = null,
+    val onOpenProfilePicker: (() -> Unit)? = null,
 )
 
 data class FeatureCard(

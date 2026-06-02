@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -219,6 +220,14 @@ object BackupMapper {
             vrRenderingMode = settings.vrRenderingMode,
             vrAutoImmersive = settings.vrAutoImmersive,
             disable3dVr = settings.disable3dVr,
+            // S0326: global 3D/VR default settings
+            stereoAutoDetectEnabled = settings.stereoAutoDetectEnabled,
+            stereoTrustFilename = settings.stereoTrustFilename,
+            stereoTrustMetadata = settings.stereoTrustMetadata,
+            stereoTrustAspectRatio = settings.stereoTrustAspectRatio,
+            stereoAmbiguityBestGuess = settings.stereoAmbiguityBestGuess,
+            stereoDefaultLayout = settings.stereoDefaultLayout.name,
+            stereoDefaultProjection = settings.stereoDefaultProjection.name,
         )
     }
 
@@ -372,6 +381,20 @@ object BackupMapper {
             vrAutoImmersive = backup.vrAutoImmersive ?: current.vrAutoImmersive,
             // null in older backup files → preserve current setting (don't force to false on restore)
             disable3dVr = backup.disable3dVr ?: current.disable3dVr,
+            // S0326: null in older backup files → preserve current setting
+            stereoAutoDetectEnabled = backup.stereoAutoDetectEnabled ?: current.stereoAutoDetectEnabled,
+            stereoTrustFilename = backup.stereoTrustFilename ?: current.stereoTrustFilename,
+            stereoTrustMetadata = backup.stereoTrustMetadata ?: current.stereoTrustMetadata,
+            stereoTrustAspectRatio = backup.stereoTrustAspectRatio ?: current.stereoTrustAspectRatio,
+            stereoAmbiguityBestGuess = backup.stereoAmbiguityBestGuess ?: current.stereoAmbiguityBestGuess,
+            stereoDefaultLayout = backup.stereoDefaultLayout
+                ?.let { StereoMode.fromKey(it) }
+                ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
+                ?: current.stereoDefaultLayout,
+            stereoDefaultProjection = backup.stereoDefaultProjection
+                ?.let { StereoMode.fromKey(it) }
+                ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
+                ?: current.stereoDefaultProjection,
         )
     }
 

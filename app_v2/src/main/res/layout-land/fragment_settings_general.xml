@@ -38,7 +38,32 @@
 
                     </LinearLayout>
 
-                    <!-- Row: All Files | Show Hidden Files | Allow Separate Window (S0028) -->
+                    <!-- Color theme (S0328) -->
+                    <LinearLayout android:id="@+id/layoutColorThemeSelection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/color_theme" android:textSize="@dimen/toggler_title_text_size" />
+
+                        <Spinner android:id="@+id/spinnerColorTheme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/settings_spinner_min_width" android:entries="@array/color_theme_options" />
+
+                    </LinearLayout>
+
+                    <!-- Device Profile Row (S0327) -->
+                    <LinearLayout android:id="@+id/rowDeviceProfile" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="center_vertical" android:minHeight="56dp" android:orientation="horizontal">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_profile_title" android:textSize="@dimen/toggler_title_text_size" />
+
+                            <TextView android:id="@+id/tvDeviceProfileValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/welcome_profile_other_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" />
+
+                        </LinearLayout>
+
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" app:tint="?attr/colorPrimary" />
+
+                    </LinearLayout>
+
+
+                    <!-- Row: All Files | Show Hidden Files | Resource Ops in Overflow Menu (S0160) -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
                         <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
@@ -69,17 +94,15 @@
 
                         </LinearLayout>
 
-                        <!-- S0028: Multi-window mode toggle. Landscape-only placement: shares the first interface row with All Files / Show Hidden Files to save vertical space. -->
-                        <LinearLayout android:id="@+id/layoutAllowSeparateWindow" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+                        <!-- S0160: Resource ops overflow toggle. Landscape-only placement: shares the first interface row with All Files / Show Hidden Files to save vertical space. -->
+                        <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowAllowSeparateWindow"
+                                android:id="@+id/rowResourceOpsInOverflowMenu"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                app:str_title="@string/setting_allow_separate_window"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_allow_separate_window_title"
-                                app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
+                                app:str_title="@string/resource_ops_in_overflow_menu"
+                                app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
 
                         </LinearLayout>
 
@@ -118,17 +141,21 @@
 
                     </LinearLayout>
 
-                    <!-- Row: Resource Ops in Overflow Menu (S0160) | Enable Favorites -->
+                    <!-- Row: Allow new windows (S0028) | Enable Favorites -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
+                        <!-- S0028: Multi-window mode toggle. Landscape-only placement: shares this interface row with Enable Favorites to save vertical space. -->
+                        <LinearLayout android:id="@+id/layoutAllowSeparateWindow" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowResourceOpsInOverflowMenu"
+                                android:id="@+id/rowAllowSeparateWindow"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                app:str_title="@string/resource_ops_in_overflow_menu"
-                                app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+                                app:str_title="@string/setting_allow_separate_window"
+                                app:str_subtitle="@string/setting_allow_separate_window_desc"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_allow_separate_window_title"
+                                app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
 
                         </LinearLayout>
 
@@ -148,8 +175,8 @@
 
                     </LinearLayout>
 
-                    <!-- Icon size for grid -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:orientation="horizontal">
+                    <!-- S0254 follow-up: icon size dropdown + default grid mode share one row to save vertical space. Grid-mode subtitle dropped intentionally to keep the row single-line. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilIconSize" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/fragment_settings_playback_tilIconSize_layout_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:hint="@string/default_icon_size">
 
@@ -159,37 +186,38 @@
 
                         <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_grid_size_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
-
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowDefaultGridMode"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/dialog_field_spacing"
-                            app:str_title="@string/default_grid_mode"
-                            app:str_subtitle="@string/setting_default_grid_mode_desc" />
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            app:str_title="@string/default_grid_mode" />
+
+                    </LinearLayout>
+
+                    <!-- S0254 follow-up: hide-grid-buttons now pairs with file-ops-overflow since default grid mode moved up to the icon-size row. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowHideGridActionButtons"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            android:layout_marginEnd="@dimen/dialog_field_spacing"
                             app:str_title="@string/hide_grid_action_buttons"
                             app:str_subtitle="@string/setting_hide_grid_action_buttons_desc" />
 
-                    </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowFileOpsInOverflowMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            app:str_title="@string/file_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
 
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowFileOpsInOverflowMenu"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:str_title="@string/file_ops_in_overflow_menu"
-                        app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -305,8 +333,14 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. -->
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. Help icon explains the feature. -->
+                    <LinearLayout android:id="@+id/containerWearCompanion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+
+                        <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -463,6 +497,8 @@
                                 <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
 
                             </com.google.android.material.textfield.TextInputLayout>
+
+                            <TextView android:id="@+id/tvSyncLastStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/never_synced" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
 
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnSyncNow" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sync_now" app:icon="@drawable/ic_refresh" />
 

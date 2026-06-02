@@ -160,6 +160,12 @@ class BrowseDialogHelper(
             visibility = vis
             isChecked = MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.EPUB) == true)
         }
+        dialogBinding.cbFilterOffice.apply {
+            val vis = if (MediaType.OFFICE_DOCUMENT in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
+            isChecked = MediaType.OFFICE_DOCUMENT in allowed && BuildConfig.SUPPORT_DOCUMENTS && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.OFFICE_DOCUMENT) == true)
+        }
 
         // Date pickers
         var minDate = currentFilter?.minDate
@@ -204,6 +210,22 @@ class BrowseDialogHelper(
             dialog.dismiss()
         }
 
+        dialogBinding.btnResetTypes.setOnClickListener {
+            val typeCheckboxes = listOf(
+                dialogBinding.cbFilterImage,
+                dialogBinding.cbFilterVideo,
+                dialogBinding.cbFilterAudio,
+                dialogBinding.cbFilterGif,
+                dialogBinding.cbFilterText,
+                dialogBinding.cbFilterPdf,
+                dialogBinding.cbFilterEpub,
+                dialogBinding.cbFilterOffice
+            )
+            typeCheckboxes.forEach { checkbox ->
+                if (checkbox.visibility == android.view.View.VISIBLE) checkbox.isChecked = true
+            }
+        }
+
         dialogBinding.btnCancelFilter.setOnClickListener {
             dialog.dismiss()
         }
@@ -222,6 +244,7 @@ class BrowseDialogHelper(
             if (dialogBinding.cbFilterText.isChecked && dialogBinding.cbFilterText.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.TEXT)
             if (dialogBinding.cbFilterPdf.isChecked && dialogBinding.cbFilterPdf.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.PDF)
             if (dialogBinding.cbFilterEpub.isChecked && dialogBinding.cbFilterEpub.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.EPUB)
+            if (dialogBinding.cbFilterOffice.isChecked && dialogBinding.cbFilterOffice.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.OFFICE_DOCUMENT)
 
             // If all allowed types selected, set mediaTypes to null (no filter)
             val allAllowedSelected = selectedTypes == allowed

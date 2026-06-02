@@ -147,6 +147,41 @@ class CommandPanelLayoutPlannerTest {
     }
 
     @Test
+    fun `file info yields direct slot to fullscreen in portrait and big buttons layouts`() {
+        val commands = listOf(
+            CommandPanelLayoutPlanner.PlayerCommand.DELETE,
+            CommandPanelLayoutPlanner.PlayerCommand.FAVORITE,
+            CommandPanelLayoutPlanner.PlayerCommand.SHARE,
+            CommandPanelLayoutPlanner.PlayerCommand.INFO,
+            CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN,
+            CommandPanelLayoutPlanner.PlayerCommand.RANDOM
+        )
+
+        val portrait = planner.planLayout(
+            activeCommands = commands,
+            availableWidthPx = buttonSizePx * 4 + overflowButtonSizePx,
+            buttonSizePx = buttonSizePx,
+            overflowButtonSizePx = overflowButtonSizePx
+        )
+        val bigButtons = planner.planBigButtonsLayout(
+            activeCommands = commands,
+            maxCommandSlots = 5
+        )
+
+        val expectedDirect = listOf(
+            CommandPanelLayoutPlanner.PlayerCommand.DELETE,
+            CommandPanelLayoutPlanner.PlayerCommand.FAVORITE,
+            CommandPanelLayoutPlanner.PlayerCommand.SHARE,
+            CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN
+        )
+
+        assertTrue("Portrait direct commands should prefer fullscreen over file info", portrait.barCommands == expectedDirect)
+        assertTrue("Portrait overflow should keep file info accessible", portrait.overflowCommands.contains(CommandPanelLayoutPlanner.PlayerCommand.INFO))
+        assertTrue("Big buttons direct commands should prefer fullscreen over file info", bigButtons.barCommands == expectedDirect)
+        assertTrue("Big buttons overflow should keep file info accessible", bigButtons.overflowCommands.contains(CommandPanelLayoutPlanner.PlayerCommand.INFO))
+    }
+
+    @Test
     fun `big buttons layout shows all bar capable commands when they fit exactly`() {
         val commands = listOf(
             CommandPanelLayoutPlanner.PlayerCommand.DELETE,

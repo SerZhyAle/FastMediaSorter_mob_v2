@@ -17,7 +17,8 @@
             android:background="?attr/colorPrimary"
             android:elevation="@dimen/toolbar_elevation"
             app:title="@string/onedrive_select_folder"
-            app:navigationIcon="@drawable/ic_arrow_back" />
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

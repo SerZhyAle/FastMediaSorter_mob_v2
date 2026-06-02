@@ -2,4 +2,46 @@
 <resources>
     <string name="vr_settings_master_toggle_label">Увімкнути 3D VR</string>
     <string name="vr_settings_master_toggle_summary">Показувати VR-функції у цьому застосунку</string>
+
+    <!-- S0326: глобальні налаштування 3D/VR за замовчуванням (лише VR). -->
+    <string name="settings_stereo_vr_group_detection_title">Визначення формату</string>
+    <string name="settings_stereo_vr_group_default_title">Режим за замовчуванням</string>
+    <string name="settings_stereo_vr_group_immersive_title">Занурення та діагностика</string>
+
+    <string name="settings_stereo_vr_autodetect_title">Автовизначення форматів 3D/VR</string>
+    <string name="settings_stereo_vr_autodetect_summary">Розпізнавати стерео та панорами автоматично</string>
+    <string name="settings_stereo_vr_trust_filename_title">Враховувати мітки в імені файлу</string>
+    <string name="settings_stereo_vr_trust_filename_summary">Визначати за мітками SBS, OU, 180 чи 360 в імені файлу</string>
+    <string name="settings_stereo_vr_trust_metadata_title">Враховувати вбудовані метадані</string>
+    <string name="settings_stereo_vr_trust_metadata_summary">Визначати за метаданими spatial-відео та фотосфер</string>
+    <string name="settings_stereo_vr_trust_aspect_title">Вгадувати за пропорціями</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Менш надійно — звичайні широкі фото можуть потрапити в 3D</string>
+    <string name="settings_stereo_vr_ambiguity_title">Коли формат незрозумілий</string>
+    <string name="settings_stereo_vr_ambiguity_summary">Увімк: робити припущення. Вимк: відкривати як 2D</string>
+
+    <string name="settings_stereo_vr_default_layout_label">Розкладка за замовчуванням</string>
+    <string name="settings_stereo_vr_default_projection_label">Проєкція за замовчуванням</string>
+
+    <string name="settings_stereo_vr_auto_immersive_title">Входити в занурення автоматично</string>
+    <string name="settings_stereo_vr_auto_immersive_summary">Відкривати 3D/VR у режимі шолома без зайвого дотику</string>
+    <string name="settings_stereo_vr_render_mode_label">Режим відтворення</string>
+    <string name="settings_stereo_vr_show_fps_title">Показувати лічильник FPS</string>
+    <string name="settings_stereo_vr_show_fps_summary">Відображати частоту кадрів у режимі занурення</string>
+
+    <string-array name="settings_stereo_vr_layout_entries">
+        <item>Моно</item>
+        <item>Side-by-Side</item>
+        <item>Over-Under</item>
+    </string-array>
+    <string-array name="settings_stereo_vr_projection_entries">
+        <item>Пласка</item>
+        <item>180°</item>
+        <item>360°</item>
+        <item>Циліндр</item>
+    </string-array>
+    <string-array name="settings_stereo_vr_render_mode_entries">
+        <item>Кінотеатр</item>
+        <item>Повний Side-by-Side</item>
+        <item>Повний Over-Under</item>
+    </string-array>
 </resources>

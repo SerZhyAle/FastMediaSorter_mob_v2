@@ -128,7 +128,7 @@
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
 
-        <activity android:name=".ui.browse.BrowseActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.browse.BrowseActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -136,9 +136,9 @@
 
         <activity android:name=".ui.game.GameHelpActivity" android:exported="false" android:label="@string/game_help_title" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" android:parentActivityName=".ui.game.GameActivity" />
 
-        <activity android:name=".ui.player.PlayerActivity" android:exported="false" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.PlayerActivity" android:exported="true" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
-        <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".ui.settings.SettingsActivity" android:exported="true" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
 
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
@@ -155,11 +155,11 @@
 
         <activity android:name=".ui.welcome.WelcomeActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.NoActionBar" />
 
-        <activity android:name=".ui.cloudfolders.GoogleDriveFolderPickerActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.cloudfolders.GoogleDriveFolderPickerActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.cloudfolders.DropboxFolderPickerActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.cloudfolders.DropboxFolderPickerActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.cloudfolders.OneDriveFolderPickerActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".ui.cloudfolders.OneDriveFolderPickerActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <!-- AppAuth redirect receiver for Google Drive browser OAuth on Quest / XR without GMS. -->
         <activity android:name="net.openid.appauth.RedirectUriReceiverActivity" android:exported="true" tools:node="replace">

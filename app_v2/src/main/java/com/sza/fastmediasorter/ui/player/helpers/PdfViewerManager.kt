@@ -790,6 +790,7 @@ class PdfViewerManager(
                     // S0196 Phase 04: emit once on the first successful page push to the view.
                     if (!firstPageRenderedLogged) {
                         firstPageRenderedLogged = true
+                        Timber.d("PdfViewerManager: firstPageRendered index=$index pageCount=$pdfPageCount")
                     }
 
                     // Apply color filter (night mode / sepia)
@@ -908,7 +909,6 @@ class PdfViewerManager(
     /** Handle long press gesture: open the text-selection overlay for the current page, pre-selecting the word under the long-press point (view coordinates). Returns true if handled (PDF active), false otherwise. */
     fun handlePdfLongPress(x: Float, y: Float): Boolean {
         if (pdfRenderer != null && currentPageBitmap != null) {
-            Timber.d("S0323: PDF long-press opened text-selection overlay")
             openPdfTextSelection(x, y)
             return true
         }

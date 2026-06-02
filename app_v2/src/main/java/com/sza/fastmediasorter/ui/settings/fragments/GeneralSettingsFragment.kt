@@ -36,6 +36,8 @@ import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
+import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import timber.log.Timber
@@ -57,6 +59,7 @@ class GeneralSettingsFragment : Fragment() {
 
     // S0200 Phase 06: ViewModel for the new "Google Account" Settings card.
     private val googleAccountViewModel: com.sza.fastmediasorter.ui.settings.GoogleAccountSettingsViewModel by viewModels()
+    private val profileViewModel: SettingsProfileViewModel by viewModels()
 
     @Inject lateinit var cctChecker: com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 
@@ -139,6 +142,15 @@ class GeneralSettingsFragment : Fragment() {
             cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper
         )
     }
+    // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.
+    private val colorThemeHelper by lazy {
+        com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsColorThemeHelper(
+            binding, viewModel, this, { isUpdatingSpinner }, { isUpdatingSpinner = it }
+        )
+    }
+    private val profileHelper by lazy {
+        GeneralSettingsProfileHelper(binding, profileViewModel, this)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsGeneralBinding.inflate(inflater, container, false)
@@ -154,6 +166,8 @@ class GeneralSettingsFragment : Fragment() {
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
         view.findViewById<View>(R.id.cardGoogleAccount)?.let { googleAccountHelper.bind(it) }
         viewSetupHelper.setup()
+        colorThemeHelper.setup()
+        profileHelper.setup()
         prefetchHelper.setup()
         collectOnLifecycle(viewModel.settings) { settings -> prefetchHelper.updateFromSettings(settings) }
         observersHelper.observeData()
