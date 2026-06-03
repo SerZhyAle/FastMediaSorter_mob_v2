@@ -14895,3 +14895,194 @@ Format: | datetime | file | target | description |
 | 2026-06-03 00:22:18 | `PLAN/S0332_max-translation-ocr-languages/PHASE_03__integration.md` | `spec-tech` | Phase 03: integration [branch: DEBUG-v011] |
 | 2026-06-03 00:22:18 | `PLAN/S0332_max-translation-ocr-languages/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v011] |
 | 2026-06-03 00:24:09 | `PLAN/S0327_device-profile-onboarding.md` | `spec` | Record VR profile flavor-gating (11.8 done) and recommended-tile highlight; detector strengthened [branch: DEBUG-v011] |
+| 2026-06-03 00:28:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalog.kt` | `app_v2` | Add unified translation language catalog [branch: DEBUG-v011] |
+| 2026-06-03 00:30:16 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalogTest.kt` | `app_v2` | Add translation language catalog unit tests [branch: DEBUG-v011] |
+| 2026-06-03 00:36:20 | `app_v2/src/main/res/layout/dialog_searchable_language_picker.xml` | `app_v2` | Add searchable language picker dialog layout [branch: DEBUG-v011] |
+| 2026-06-03 00:36:21 | `app_v2/src/main/res/layout/item_searchable_language.xml` | `app_v2` | Add searchable language picker row layout [branch: DEBUG-v011] |
+| 2026-06-03 00:38:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/SearchableLanguagePickerDialog.kt` | `app_v2` | Add searchable language picker dialog [branch: DEBUG-v011] |
+| 2026-06-03 00:46:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `app_v2` | Integrate searchable translation language picker in settings [branch: DEBUG-v011] |
+| 2026-06-03 00:47:56 | `app_v2/src/main/res/layout/fragment_settings_other.xml` | `app_v2` | Replace settings translation language spinners with clickable selectors [branch: DEBUG-v011] |
+| 2026-06-03 00:47:58 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `app_v2` | Replace landscape settings translation language spinners with clickable selectors [branch: DEBUG-v011] |
+| 2026-06-03 00:51:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `Welcome` | Refresh visible profile card directly; ViewPager2 notifyItemChanged is unreliable for the current page [branch: DEBUG-v011] |
+| 2026-06-03 00:51:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `Welcome` | Call direct profile-card refresh after state change so the summary card matches the pick [branch: DEBUG-v011] |
+| 2026-06-03 00:51:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MouseEventHandler.kt` | `S0333` | Add primary-click passthrough probe tag (BlockNeedUserTest device verification) [branch: DEBUG-v011] |
+| 2026-06-03 00:51:30 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/MouseEventHandlerTest.kt` | `S0333` | Fix stale MotionEvent mock (getToolType/actionButton) and add primary-click passthrough regression guards [branch: DEBUG-v011] |
+| 2026-06-03 00:51:30 | `PLAN/S0333_bugfix-mouse-primary-click-dispatch.md` | `spec` | Add bugfix spec S0333 for mouse primary-click dispatch regression [branch: DEBUG-v011] |
+| 2026-06-03 00:51:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationButtonManager.kt` | `app_v2` | Integrate searchable translation language picker in player dialog [branch: DEBUG-v011] |
+| 2026-06-03 00:52:44 | `app_v2/src/main/res/layout/dialog_translation_settings.xml` | `app_v2` | Replace player translation language spinners with clickable selectors [branch: DEBUG-v011] |
+| 2026-06-03 00:52:45 | `app_v2/src/main/res/layout-land/dialog_translation_settings.xml` | `app_v2` | Replace landscape player translation language spinners with clickable selectors [branch: DEBUG-v011] |
+| 2026-06-03 00:54:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `app_v2` | Integrate searchable language picker in Camera OCR settings [branch: DEBUG-v011] |
+| 2026-06-03 00:55:40 | `app_v2/src/main/res/layout/dialog_camera_ocr_settings.xml` | `app_v2` | Replace Camera OCR language spinners with clickable selectors [branch: DEBUG-v011] |
+| 2026-06-03 00:56:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `app_v2` | Expand ML Kit language mapping through shared catalog [branch: DEBUG-v011] |
+| 2026-06-03 00:57:48 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalogTest.kt` | `app_v2` | Add Czech ML Kit mapping regression test [branch: DEBUG-v011] |
+| 2026-06-03 01:03:05 | `docs/FEATURES.md` | `docs` | Document expanded searchable translation language picker [branch: DEBUG-v011] |
+| 2026-06-03 01:03:06 | `docs/FEATURES_RU.md` | `docs` | Document expanded searchable translation language picker in Russian [branch: DEBUG-v011] |
+| 2026-06-03 01:03:07 | `docs/FEATURES_UK.md` | `docs` | Document expanded searchable translation language picker in Ukrainian [branch: DEBUG-v011] |
+| 2026-06-03 01:05:35 | `PLAN/S0333_bugfix-mouse-primary-click-dispatch.md` | `spec-test-device` | Device run on emulator-5554 (standardDebug) -> PASS/FAIL/SKIPPED 4/0/1; S0333 probe fired once, no crash; Welcome card refresh + S0327 picker confirmed [branch: DEBUG-v011] |
+| 2026-06-03 01:07:49 | `PLAN/S0332_max-translation-ocr-languages.md` | `S0332` | Mark S0332 implemented [branch: DEBUG-v011] |
+| 2026-06-03 01:07:50 | `PLAN/S0332_max-translation-ocr-languages/INDEX.md` | `S0332` | Update S0332 tactical index completion [branch: DEBUG-v011] |
+| 2026-06-03 01:07:50 | `PLAN/S0332_max-translation-ocr-languages/PHASE_01__foundations.md` | `S0332` | Record S0332 foundation phase completion [branch: DEBUG-v011] |
+| 2026-06-03 01:07:51 | `PLAN/S0332_max-translation-ocr-languages/PHASE_02__ui-picker.md` | `S0332` | Record S0332 UI picker phase completion [branch: DEBUG-v011] |
+| 2026-06-03 01:07:51 | `PLAN/S0332_max-translation-ocr-languages/PHASE_03__integration.md` | `S0332` | Record S0332 integration phase completion [branch: DEBUG-v011] |
+| 2026-06-03 01:07:52 | `PLAN/S0332_max-translation-ocr-languages/PHASE_04__docs-catalog-cleanup.md` | `S0332` | Record S0332 docs phase completion [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalog.kt` | `TranslationLanguageCatalog` | Add language capability metadata for translation and OCR picker labels [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/SearchableLanguagePickerDialog.kt` | `SearchableLanguagePickerDialog` | Show localized language capability labels in searchable picker rows [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/main/res/layout/item_searchable_language.xml` | `item_searchable_language` | Add second row for language capability labels [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalogTest.kt` | `TranslationLanguageCatalogTest` | Cover Czech basic OCR and noLegal capability metadata [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/main/res/values/strings.xml` | `language_capability_*` | Add English language capability labels [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/main/res/values-ru/strings.xml` | `language_capability_*` | Add Russian language capability labels [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `app_v2/src/main/res/values-uk/strings.xml` | `language_capability_*` | Add Ukrainian language capability labels [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `docs/FEATURES.md` | `S0332 features` | Document language picker capability labels [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `docs/FEATURES_RU.md` | `S0332 features RU` | Document language picker capability labels in Russian [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `docs/FEATURES_UK.md` | `S0332 features UK` | Document language picker capability labels in Ukrainian [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `PLAN/S0332_max-translation-ocr-languages/PHASE_01__foundations.md` | `S0332 phase 01` | Record capability metadata completion [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `PLAN/S0332_max-translation-ocr-languages/PHASE_02__ui-picker.md` | `S0332 phase 02` | Record picker capability label completion [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `PLAN/S0332_max-translation-ocr-languages/PHASE_04__docs-catalog-cleanup.md` | `S0332 phase 04` | Record capability label docs completion [branch: DEBUG-v011] |
+| 2026-06-03 01:41:38 | `PLAN/S0332_max-translation-ocr-languages.md` | `spec-check` | Audit S0332 -> Partial: implementation complete (PASS 27 / WARN 1 / FAIL 0), but strategic spec artifact corrupted (duplicate S7-S12 tail, mojibake, conflicting S11 counts); flipped Status to Partial and added Last Audit block [branch: DEBUG-v011] |
+| 2026-06-03 01:47:44 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/ViewExtensions.kt` | `ViewExtensions` | Add reusable system bar inset padding helper [branch: DEBUG-v011] |
+| 2026-06-03 01:48:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `CameraOcrTranslateActivity` | Apply system bar safe padding to camera OCR result states [branch: DEBUG-v011] |
+| 2026-06-03 01:49:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameHelpActivity.kt` | `GameHelpActivity` | Apply system bar safe padding to game help screen [branch: DEBUG-v011] |
+| 2026-06-03 01:50:30 | `CLAUDE.md` | `ProjectRules` | Document mandatory system bar safe area rule [branch: DEBUG-v011] |
+| 2026-06-03 01:50:31 | `AGENTS.md` | `ProjectRules` | Document mandatory system bar safe area rule [branch: DEBUG-v011] |
+| 2026-06-03 01:50:31 | `.github/copilot-instructions.md` | `ProjectRules` | Document mandatory system bar safe area rule [branch: DEBUG-v011] |
+| 2026-06-03 02:06:01 | `PLAN/S0332_max-translation-ocr-languages.md` | `spec-check` | Re-audit S0332 -> Verified: implementation passes all static checks; repaired corrupted strategic artifact (split scope/S1 header, removed duplicated S7-S12 tail + mojibake splice, P-1 marked Applied), Status and Last Audit set to Verified [branch: DEBUG-v011] |
+| 2026-06-03 02:06:23 | `PLAN/S0332_max-translation-ocr-languages/INDEX.md` | `spec-check` | Checked Completion Gate item: strategic Status advanced to Verified [branch: DEBUG-v011] |
+| 2026-06-03 02:10:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ActivityMouseDispatchHelper.kt` | `ActivityMouseDispatchHelper` | S0289: mouse wheel walks up to nearest scrollable ancestor so long forms scroll from any focus [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/util/KeyboardShortcutHandler.kt` | `KeyboardShortcutHandler` | S0289: Settings/AddResource use native focus traversal (arrowFocus=false); fixes D-pad Spinner/dropdown reachability [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | S0289: edge-aware slider (FocusFinder) so arrows reach in-page controls; removed dead InputSurface marker [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/res/layout/page_welcome_enhanced.xml` | `page_welcome_enhanced` | S0289: language picker buttons made focusable (portrait+land) [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | S0289: initial focus retargeted from GONE btnPlayPause to always-visible btnBack [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | S0289: initial focus -> first visible resource-type card when btnAddToResources is hidden [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/res/layout/activity_keybinding_remap.xml` | `activity_keybinding_remap` | S0289: explicit focus chain back->search->list->resetAll [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/res/layout/activity_main.xml` | `activity_main` | S0289: empty-state CTA made focusable+clickable with nextFocusUp (portrait+land) [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/res/layout/fragment_duplicates.xml` | `fragment_duplicates` | S0289: rvDuplicates nextFocusDown -> delete FAB so D-pad reaches it [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/CloudFolderAdapter.kt` | `CloudFolderAdapter` | S0289: row ENTER/click navigates into folder; Select button confirms destination (3 cloud pickers) [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0289: removed dead isHudFocused(); restored HUD-focus debug probe [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerInputDispatcher.kt` | `PlayerInputDispatcher` | S0289: added gamepad-analog debug probe (was missing from the verification gate) [branch: DEBUG-v011] |
+| 2026-06-03 02:10:34 | `app_v2/src/test/java/com/sza/fastmediasorter/core/input/TvKeyRouterTest.kt` | `TvKeyRouterTest` | S0289: unit guard for the TvKeyRouter key->action table (was manual-only) [branch: DEBUG-v011] |
+| 2026-06-03 02:37:02 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec-test-device` | Device run emulator-5554: Welcome D-pad FAILED (ViewPager2 focus interception, owner symptom persists); PASS/FAIL/INCONCLUSIVE 1/2/1 [branch: DEBUG-v011] |
+| 2026-06-03 02:51:21 | `PLAN/S0334_translation-model-prewarm.md` | `spec` | Add strategic spec S0334 for translation model prewarm on language selection [branch: DEBUG-v011] |
+| 2026-06-03 02:56:59 | `PLAN/S0334_translation-model-prewarm/INDEX.md` | `spec-tech` | Create tactical plan for S0334 [branch: DEBUG-v011] |
+| 2026-06-03 02:56:59 | `PLAN/S0334_translation-model-prewarm/PHASE_01__prewarm-core.md` | `spec-tech` | Phase 01: prewarm-core [branch: DEBUG-v011] |
+| 2026-06-03 02:56:59 | `PLAN/S0334_translation-model-prewarm/PHASE_02__settings-trigger.md` | `spec-tech` | Phase 02: settings-trigger [branch: DEBUG-v011] |
+| 2026-06-03 02:56:59 | `PLAN/S0334_translation-model-prewarm/PHASE_03__settings-ui-status.md` | `spec-tech` | Phase 03: settings-ui-status [branch: DEBUG-v011] |
+| 2026-06-03 02:56:59 | `PLAN/S0334_translation-model-prewarm/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-03 02:56:59 | `PLAN/S0334_translation-model-prewarm.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-03 02:59:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/TranslationModelPrewarmStatus.kt` | `spec-dev` | S0334 Phase 01.1: add TranslationModelPrewarmStatus domain model [branch: DEBUG-v011] |
+| 2026-06-03 03:01:04 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt` | `spec-dev` | S0334 Phase 01.2: add PrewarmTranslationModelUseCase [branch: DEBUG-v011] |
+| 2026-06-03 03:02:17 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt` | `spec-dev` | S0334 Phase 01.3: add BlockNeedUserTest probe at prewarm entry [branch: DEBUG-v011] |
+| 2026-06-03 03:04:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Force day (light) resource set for onboarding so welcome pages stay pastel with readable dark text in dark mode (fixes white-on-orange) [branch: DEBUG-v011] |
+| 2026-06-03 10:53:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `S0334` | Wire translation model prewarm triggers in settings ViewModel [branch: DEBUG-v011] |
+| 2026-06-03 10:59:03 | `app_v2/src/main/res/values/strings.xml` | `S0334` | Add translation model prewarm status strings [branch: DEBUG-v011] |
+| 2026-06-03 10:59:04 | `app_v2/src/main/res/values-ru/strings.xml` | `S0334` | Add Russian translation model prewarm status strings [branch: DEBUG-v011] |
+| 2026-06-03 10:59:05 | `app_v2/src/main/res/values-uk/strings.xml` | `S0334` | Add Ukrainian translation model prewarm status strings [branch: DEBUG-v011] |
+| 2026-06-03 11:02:18 | `app_v2/src/main/res/layout/fragment_settings_other.xml` | `S0334` | Add translation model prewarm status row [branch: DEBUG-v011] |
+| 2026-06-03 11:02:19 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `S0334` | Add landscape translation model prewarm status row [branch: DEBUG-v011] |
+| 2026-06-03 11:02:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `S0334` | Render translation model prewarm status in settings [branch: DEBUG-v011] |
+| 2026-06-03 11:02:42 | `PLAN/S0335_settings-system-info-dialog.md` | `spec` | Add strategic spec S0335 for Settings-Common System info dialog [branch: DEBUG-v011] |
+| 2026-06-03 11:06:12 | `PLAN/S0335_settings-system-info-dialog/INDEX.md` | `spec-tech` | Create tactical plan for S0335 [branch: DEBUG-v011] |
+| 2026-06-03 11:06:12 | `PLAN/S0335_settings-system-info-dialog/PHASE_01__system-info-collector.md` | `spec-tech` | Phase 01: system-info-collector [branch: DEBUG-v011] |
+| 2026-06-03 11:06:12 | `PLAN/S0335_settings-system-info-dialog/PHASE_02__settings-button-ui.md` | `spec-tech` | Phase 02: settings-button-ui [branch: DEBUG-v011] |
+| 2026-06-03 11:06:12 | `PLAN/S0335_settings-system-info-dialog/PHASE_03__wire-and-show.md` | `spec-tech` | Phase 03: wire-and-show [branch: DEBUG-v011] |
+| 2026-06-03 11:06:12 | `PLAN/S0335_settings-system-info-dialog/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-03 11:06:12 | `PLAN/S0335_settings-system-info-dialog.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-03 11:07:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Add GatherSystemInfoUseCase: collect device/OS/app/memory/storage/display/locale summary [branch: DEBUG-v011] |
+| 2026-06-03 11:08:44 | `dev/CATALOG/app_v2.jsonl` | `S0334` | Regenerate app_v2 catalog for translation model prewarm classes [branch: DEBUG-v011] |
+| 2026-06-03 11:08:45 | `docs/FEATURES.md` | `S0334` | Confirm no feature inventory update needed for translation model prewarm [branch: DEBUG-v011] |
+| 2026-06-03 11:09:47 | `PLAN/S0334_translation-model-prewarm.md` | `S0334` | Move translation model prewarm spec to device verification [branch: DEBUG-v011] |
+| 2026-06-03 11:12:13 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCaseTest.kt` | `spec-dev` | Add GatherSystemInfoUseCaseTest: assert non-blank summary, section labels, version name [branch: DEBUG-v011] |
+| 2026-06-03 11:14:52 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `spec-dev` | Add System info button to General settings diagnostics row (portrait) [branch: DEBUG-v011] |
+| 2026-06-03 11:15:35 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `spec-dev` | Add System info button to General settings diagnostics row (landscape) [branch: DEBUG-v011] |
+| 2026-06-03 11:16:42 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Add settings_system_info_button/title strings (EN/RU/UK) [branch: DEBUG-v011] |
+| 2026-06-03 11:20:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev` | Inject GatherSystemInfoUseCase, pass to log helper [branch: DEBUG-v011] |
+| 2026-06-03 11:21:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Add showSystemInfoDialog + btnSystemInfo binding; S0335 probe tag [branch: DEBUG-v011] |
+| 2026-06-03 11:21:55 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/translation/TranslationLanguageCodeMapper.kt` | `TranslationLanguageCodeMapper` | added shared ML Kit translation language mapper for model prewarm [branch: DEBUG-v011] |
+| 2026-06-03 11:22:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/translation/TranslationModelPrewarmAvailability.kt` | `TranslationModelPrewarmEnabled` | added flavor availability qualifier for translation model prewarm [branch: DEBUG-v011] |
+| 2026-06-03 11:23:53 | `app_v2/src/main/java/com/sza/fastmediasorter/di/TranslationModelPrewarmModule.kt` | `TranslationModelPrewarmModule` | added empty multibinding for translation model prewarm availability [branch: DEBUG-v011] |
+| 2026-06-03 11:24:54 | `app_v2/src/translationEnabled/java/com/sza/fastmediasorter/di/TranslationModelPrewarmAvailabilityModule.kt` | `TranslationModelPrewarmAvailabilityModule` | enabled translation model prewarm only in translation-capable flavors [branch: DEBUG-v011] |
+| 2026-06-03 11:25:34 | `docs/FEATURES.md` | `spec-dev` | Document System info settings feature (EN) [branch: DEBUG-v011] |
+| 2026-06-03 11:25:34 | `docs/FEATURES_RU.md` | `spec-dev` | Document System info settings feature (RU) [branch: DEBUG-v011] |
+| 2026-06-03 11:25:35 | `docs/FEATURES_UK.md` | `spec-dev` | Document System info settings feature (UK) [branch: DEBUG-v011] |
+| 2026-06-03 11:26:22 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt` | `PrewarmTranslationModelUseCase` | removed UI dependency and added silent no-op for disabled translation flavors [branch: DEBUG-v011] |
+| 2026-06-03 11:26:23 | `PLAN/S0335_settings-system-info-dialog.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
+| 2026-06-03 11:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalog.kt` | `TranslationLanguageCatalog` | reused shared translation language mapper for supported code catalog [branch: DEBUG-v011] |
+| 2026-06-03 11:28:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `TranslationManager.languageCodeToMLKit` | delegated ML Kit language code mapping to shared domain mapper [branch: DEBUG-v011] |
+| 2026-06-03 11:29:17 | `app_v2/build.gradle.kts` | `translationEnabled source set` | mounted translation model prewarm providers only for translation-capable flavors [branch: DEBUG-v011] |
+| 2026-06-03 11:30:27 | `dev/CATALOG/scripts/scan.ps1` | `catalog source roots` | included translationEnabled source set in app catalog scanning [branch: DEBUG-v011] |
+| 2026-06-03 11:48:44 | `PLAN/S0334_translation-model-prewarm/PHASE_04__docs-catalog-cleanup.md` | `S0334 validation handoff` | recorded post-audit hardening and validation snapshot [branch: DEBUG-v011] |
+| 2026-06-03 11:48:44 | `PLAN/S0334_translation-model-prewarm/INDEX.md` | `S0334 completion gate` | recorded device verification blocker and hardening summary [branch: DEBUG-v011] |
+| 2026-06-03 11:51:32 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/translation/TranslationLanguageCodeMapperTest.kt` | `TranslationLanguageCodeMapperTest` | covered shared ML Kit language mapping invariants for translation prewarm [branch: DEBUG-v011] |
+| 2026-06-03 11:54:08 | `PLAN/S0334_translation-model-prewarm/PHASE_04__docs-catalog-cleanup.md` | `S0334 validation handoff` | recorded targeted mapper test validation [branch: DEBUG-v011] |
+| 2026-06-03 12:27:04 | `PLAN/S0336_nolegal-extended-system-info.md` | `spec` | Add strategic spec S0336 for noLegal extended system info [branch: DEBUG-v011] |
+| 2026-06-03 12:30:46 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `spec-dev` | Move System info button into Permissions row (portrait) [branch: DEBUG-v011] |
+| 2026-06-03 12:30:46 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `spec-dev` | Move System info button into Permissions row (landscape) [branch: DEBUG-v011] |
+| 2026-06-03 12:30:46 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Shorten System info button label to About system (EN/RU/UK) [branch: DEBUG-v011] |
+| 2026-06-03 12:30:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Add time, timezone, user name to system info summary [branch: DEBUG-v011] |
+| 2026-06-03 12:30:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Remove S0335 probe tag (status leaving BlockNeedUserTest) [branch: DEBUG-v011] |
+| 2026-06-03 12:30:46 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCaseTest.kt` | `spec-dev` | Assert User and Time section labels [branch: DEBUG-v011] |
+| 2026-06-03 12:32:38 | `docs/FEATURES.md` | `spec-dev` | Refine System info feature copy (fields + placement) [branch: DEBUG-v011] |
+| 2026-06-03 12:32:38 | `docs/FEATURES_RU.md` | `spec-dev` | Refine System info feature copy RU [branch: DEBUG-v011] |
+| 2026-06-03 12:32:38 | `docs/FEATURES_UK.md` | `spec-dev` | Refine System info feature copy UK [branch: DEBUG-v011] |
+| 2026-06-03 12:32:38 | `PLAN/S0335_settings-system-info-dialog.md` | `spec-dev` | S0335 -> Implemented; button relocated, time/timezone/user added [branch: DEBUG-v011] |
+| 2026-06-03 12:35:57 | `PLAN/S0337_system-info-extended-fields.md` | `spec` | Add strategic spec S0337 for extended system info fields and benchmarks [branch: DEBUG-v011] |
+| 2026-06-03 12:38:21 | `PLAN/S0337_system-info-extended-fields.md` | `spec` | Resolve S0337 open questions (auto-run, localized labels, include personal fields) [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/INDEX.md` | `spec-tech` | Create tactical plan for S0337 [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/PHASE_01__foundation-sections.md` | `spec-tech` | Phase 01: foundation-sections [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/PHASE_02__hardware-system-personal.md` | `spec-tech` | Phase 02: hardware-system-personal [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/PHASE_03__battery-display.md` | `spec-tech` | Phase 03: battery-display [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/PHASE_04__network.md` | `spec-tech` | Phase 04: network [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/PHASE_05__benchmarks.md` | `spec-tech` | Phase 05: benchmarks [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup [branch: DEBUG-v011] |
+| 2026-06-03 12:43:15 | `PLAN/S0337_system-info-extended-fields.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v011] |
+| 2026-06-03 12:44:17 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoSection.kt` | `spec-dev` | Add SystemInfoSection data model + renderer [branch: DEBUG-v011] |
+| 2026-06-03 12:46:38 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Add sysinfo_ section/field label strings (EN/RU/UK) for S0337 [branch: DEBUG-v011] |
+| 2026-06-03 12:50:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Refactor system info to localized section-based build [branch: DEBUG-v011] |
+| 2026-06-03 12:50:10 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCaseTest.kt` | `spec-dev` | Assert localized section headers [branch: DEBUG-v011] |
+| 2026-06-03 12:50:10 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Escape UK apostrophes in sysinfo strings [branch: DEBUG-v011] |
+| 2026-06-03 12:53:53 | `PLAN/S0338_camera-ocr-crop-region.md` | `spec` | Add strategic spec S0338 for camera-OCR crop region before OCR [branch: DEBUG-v011] |
+| 2026-06-03 12:56:12 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Add Hardware + System + Personal sections [branch: DEBUG-v011] |
+| 2026-06-03 12:56:12 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Add Hardware/System sysinfo strings (EN) [branch: DEBUG-v011] |
+| 2026-06-03 12:56:12 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | Add Hardware/System sysinfo strings (RU) [branch: DEBUG-v011] |
+| 2026-06-03 12:56:12 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Add Hardware/System sysinfo strings (UK) [branch: DEBUG-v011] |
+| 2026-06-03 12:57:46 | `PLAN/S0338_camera-ocr-crop-region/INDEX.md` | `spec-tech` | Create tactical plan for S0338 (5 phases) [branch: DEBUG-v011] |
+| 2026-06-03 12:57:46 | `PLAN/S0338_camera-ocr-crop-region.md` | `spec-tech` | Status -> Tactical for S0338 [branch: DEBUG-v011] |
+| 2026-06-03 13:01:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Add Battery + extended Display sections [branch: DEBUG-v011] |
+| 2026-06-03 13:01:30 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Add Battery/Display sysinfo strings (EN) [branch: DEBUG-v011] |
+| 2026-06-03 13:01:30 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | Add Battery/Display sysinfo strings (RU) [branch: DEBUG-v011] |
+| 2026-06-03 13:01:30 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Add Battery/Display sysinfo strings (UK) [branch: DEBUG-v011] |
+| 2026-06-03 13:04:30 | `PLAN/S0336_nolegal-extended-system-info.md` | `S0336` | Refined strategic spec: removed Section 0, resolved owner inputs in Section 3.3, and enriched noLegal data collection ideas [branch: DEBUG-v011] |
+| 2026-06-03 13:05:55 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Add Network section (transport/metered/vpn/airplane/IP) [branch: DEBUG-v011] |
+| 2026-06-03 13:05:55 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Add Network sysinfo strings (EN) [branch: DEBUG-v011] |
+| 2026-06-03 13:05:55 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | Add Network sysinfo strings (RU) [branch: DEBUG-v011] |
+| 2026-06-03 13:05:55 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Add Network sysinfo strings (UK) [branch: DEBUG-v011] |
+| 2026-06-03 13:07:49 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoBenchmark.kt` | `spec-dev` | Add SystemInfoBenchmark (memory + storage throughput) [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0338 phase: Add camera_ocr_crop_* strings (crop step) [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0338 phase: Add RU camera_ocr_crop_* strings [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0338 phase: Add UK camera_ocr_crop_* strings [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/res/values/colors.xml` | `spec-dev` | S0338 phase: Add crop_frame_red color [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CropRegionManager.kt` | `spec-dev` | S0338 phase: EXIF-aware load + normalized-rect crop helper [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/cameraocr/CropRegionManagerTest.kt` | `spec-dev` | S0338 phase: Unit tests for crop geometry toPixelRect [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CropOverlayView.kt` | `spec-dev` | S0338 phase: Draggable red crop selection overlay view [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/res/layout/activity_camera_ocr_translate.xml` | `spec-dev` | S0338 phase: Add crop state (preview + overlay + Retry/OK) [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrStorageManager.kt` | `spec-dev` | S0338 phase: Add saveBitmapToGallery for cropped region [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-dev` | S0338 phase: Insert crop step between capture and OCR [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `spec-dev` | S0338 phase: Wire crop state UI and Retry/OK actions [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `docs/FEATURES.md` | `spec-dev` | S0338 phase: Document crop-before-OCR in Photo OCR translation [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `docs/FEATURES_RU.md` | `spec-dev` | S0338 phase: RU crop-before-OCR feature note [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `docs/FEATURES_UK.md` | `spec-dev` | S0338 phase: UK crop-before-OCR feature note [branch: DEBUG-v011] |
+| 2026-06-03 13:19:23 | `PLAN/S0338_camera-ocr-crop-region.md` | `spec-dev` | S0338 all phases done; status -> BlockNeedUserTest (3 debug tags) [branch: DEBUG-v011] |
+| 2026-06-03 13:30:16 | `scripts/strings_tool.ps1` | `scripts` | Add strings_tool.ps1: surgical add/get/remove/rename/list of Android string resources across EN/RU/UK locales (text-based, byte-preserving, locale-parity enforced) [branch: DEBUG-v011] |
+| 2026-06-03 13:41:04 | `PLAN/S0339_strings-thematic-split.md` | `spec` | Add strategic spec S0339 for thematic split of strings.xml by feature areas [branch: DEBUG-v011] |
+| 2026-06-03 14:04:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoBenchmark.kt` | `spec-dev` | Use System.nanoTime for benchmark timing (testable) [branch: DEBUG-v011] |
+| 2026-06-03 14:04:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Wire Benchmarks section into system info [branch: DEBUG-v011] |
+| 2026-06-03 14:04:57 | `app_v2/src/test/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoBenchmarkTest.kt` | `spec-dev` | Benchmark unit test (throughput + temp-file cleanup) [branch: DEBUG-v011] |
+| 2026-06-03 14:04:57 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Add Benchmark sysinfo strings (EN) [branch: DEBUG-v011] |
+| 2026-06-03 14:04:57 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | Add Benchmark sysinfo strings (RU) [branch: DEBUG-v011] |
+| 2026-06-03 14:04:57 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Add Benchmark sysinfo strings (UK) [branch: DEBUG-v011] |
+| 2026-06-03 14:09:27 | `scripts/utils/set-android-string.ps1` | `scripts/utils` | Consolidate string tooling: extend set-android-string.ps1 with add/get/remove/rename/list actions (EN/RU/UK lockstep, thematic-file aware); delete duplicate strings_tool.ps1 [branch: DEBUG-v011] |
+| 2026-06-03 14:09:27 | `.claude/commands+agents` | `skills+roles` | Wire set-android-string.ps1 (set/add/get/remove/rename/list) into /spec-dev, /spec-tech, /doc-update, /quick, /spec-check and the 3 agent roles as the preferred byte-preserving string editor [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Insert S0337 BlockNeedUserTest probe tag [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `docs/FEATURES.md` | `spec-dev` | Refresh System info copy: extended sections + benchmarks (EN) [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `docs/FEATURES_RU.md` | `spec-dev` | Refresh System info copy (RU) [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `docs/FEATURES_UK.md` | `spec-dev` | Refresh System info copy (UK) [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `PLAN/S0337_system-info-extended-fields.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |

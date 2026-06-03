@@ -75,11 +75,21 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <Spinner
+        <TextView
             android:id="@+id/spinnerSourceLanguage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:background="@drawable/item_focus_selector"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:minHeight="@dimen/list_item_height"
+            android:paddingStart="@dimen/padding_normal"
+            android:paddingEnd="@dimen/padding_normal"
+            android:textColor="?attr/colorOnSurface" />
 
         <ImageButton
             android:id="@+id/btnSwapLanguages"
@@ -92,11 +102,21 @@
             android:src="@drawable/ic_swap_horizontal"
             app:tint="@color/selector_player_button_tint" />
 
-        <Spinner
+        <TextView
             android:id="@+id/spinnerTargetLanguage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:background="@drawable/item_focus_selector"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:minHeight="@dimen/list_item_height"
+            android:paddingStart="@dimen/padding_normal"
+            android:paddingEnd="@dimen/padding_normal"
+            android:textColor="?attr/colorOnSurface" />
 
     </LinearLayout>
 
@@ -155,4 +175,3 @@
 </LinearLayout>
 
 </ScrollView>
-

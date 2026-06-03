@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val saveLogsLauncher: ActivityResultLauncher<String>,
+    private val gatherSystemInfoUseCase: GatherSystemInfoUseCase,
 ) {
     fun setupVersionInfo() {
         val versionInfo = "${com.sza.fastmediasorter.BuildConfig.VERSION_NAME} | Build ${com.sza.fastmediasorter.BuildConfig.VERSION_CODE} | sza@ukr.net"
@@ -42,6 +44,21 @@ class GeneralSettingsLogHelper(
         binding.btnShowSessionLog.setOnClickListener { showLogDialog(fullLog = false) }
         binding.btnShareLogs?.setOnClickListener { shareLogs() }
         binding.btnSaveLogs?.setOnClickListener { launchSaveLogs() }
+        binding.btnSystemInfo?.setOnClickListener { showSystemInfoDialog() }
+    }
+
+    fun showSystemInfoDialog() {
+        Timber.d("S0337: system info dialog opened")
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val summary = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
+                fragment.requireContext(),
+                fragment.getString(R.string.settings_system_info_title),
+                summary,
+                fragment.getString(R.string.close)
+            )
+        }
     }
 
     fun shareLogs() {

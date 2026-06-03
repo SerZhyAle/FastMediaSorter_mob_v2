@@ -60,6 +60,10 @@
     <string name="string_format_two_args" translatable="false">%1$s %2$s</string>
     <string name="search">Search</string>
     <string name="search_hint">Search…</string>
+    <string name="language_capability_translation">Translation</string>
+    <string name="language_capability_basic_ocr">Basic OCR</string>
+    <string name="language_capability_quality_ocr">Quality OCR</string>
+    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">Translate</string>
     <string name="no_files_selected">No files selected</string>
     <string name="msg_last_filter_restored">Restored last filter: %1$s</string>
@@ -133,6 +137,11 @@
     <string name="camera_ocr_save_error">Failed to save text file</string>
     <string name="camera_ocr_camera_error">Camera failed to launch or capture photo</string>
     <string name="camera_ocr_engine_error">Translation engine is currently unavailable</string>
+    <string name="camera_ocr_crop_title">Select area</string>
+    <string name="camera_ocr_crop_hint">Drag the frame to crop, or tap OK to use the whole photo</string>
+    <string name="camera_ocr_crop_retry">Retry</string>
+    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_frame_desc">Crop selection frame</string>
 
     <!-- Copy Dialog -->
     <string name="copying_files">Copying..</string>
@@ -1079,6 +1088,91 @@ Close the player and try again.</string>
     <string name="show_log">Show Log</string>
     <string name="show_current_session_log">Current Session Log</string>
     <string name="settings_application_log_title">Application Log</string>
+    <string name="settings_system_info_button">About system</string>
+    <string name="settings_system_info_title">System information</string>
+    <!-- System info dialog: section headers (S0337) -->
+    <string name="sysinfo_section_device">Device</string>
+    <string name="sysinfo_section_user">User</string>
+    <string name="sysinfo_section_os">OS</string>
+    <string name="sysinfo_section_app">App</string>
+    <string name="sysinfo_section_memory">Memory</string>
+    <string name="sysinfo_section_storage">Storage</string>
+    <string name="sysinfo_section_display">Display</string>
+    <string name="sysinfo_section_locale">Locale</string>
+    <string name="sysinfo_section_time">Time</string>
+    <!-- System info dialog: field labels (S0337) -->
+    <string name="sysinfo_field_manufacturer">Manufacturer</string>
+    <string name="sysinfo_field_model">Model</string>
+    <string name="sysinfo_field_product">Product</string>
+    <string name="sysinfo_field_user_name">Name</string>
+    <string name="sysinfo_field_android_version">Android</string>
+    <string name="sysinfo_field_api_level">API level</string>
+    <string name="sysinfo_field_app_version">Version</string>
+    <string name="sysinfo_field_build">Build</string>
+    <string name="sysinfo_field_flavor">Flavor</string>
+    <string name="sysinfo_field_ram_total">Total RAM</string>
+    <string name="sysinfo_field_ram_available">Available RAM</string>
+    <string name="sysinfo_field_storage_total">Total</string>
+    <string name="sysinfo_field_storage_available">Available</string>
+    <string name="sysinfo_field_resolution">Resolution</string>
+    <string name="sysinfo_field_density">Density</string>
+    <string name="sysinfo_field_locale_current">Current</string>
+    <string name="sysinfo_field_time_current">Current</string>
+    <string name="sysinfo_field_timezone">Timezone</string>
+    <!-- System info dialog: Hardware section (S0337) -->
+    <string name="sysinfo_section_hardware">Hardware</string>
+    <string name="sysinfo_field_cpu_cores">CPU cores</string>
+    <string name="sysinfo_field_abis">ABIs</string>
+    <string name="sysinfo_field_soc">SoC</string>
+    <string name="sysinfo_field_kernel">Kernel</string>
+    <string name="sysinfo_field_gles">OpenGL ES</string>
+    <string name="sysinfo_field_max_heap">Max heap</string>
+    <string name="sysinfo_field_process_bits">Process</string>
+    <!-- System info dialog: System section (S0337) -->
+    <string name="sysinfo_section_system">System</string>
+    <string name="sysinfo_field_locales">Locales</string>
+    <string name="sysinfo_field_hour_format">Hour format</string>
+    <string name="sysinfo_field_boot_count">Boot count</string>
+    <string name="sysinfo_field_security_patch">Security patch</string>
+    <string name="sysinfo_field_fingerprint">Fingerprint</string>
+    <string name="sysinfo_field_tags">Build tags</string>
+    <string name="sysinfo_field_build_type">Build type</string>
+    <string name="sysinfo_field_installer">Installer</string>
+    <string name="sysinfo_field_first_install">First install</string>
+    <string name="sysinfo_field_last_update">Last update</string>
+    <string name="sysinfo_field_device_name">Device name</string>
+    <string name="sysinfo_field_input_method">Input method</string>
+    <!-- System info dialog: Battery section (S0337) -->
+    <string name="sysinfo_section_battery">Battery</string>
+    <string name="sysinfo_field_battery_level">Level</string>
+    <string name="sysinfo_field_battery_status">Status</string>
+    <string name="sysinfo_field_battery_plug">Power source</string>
+    <string name="sysinfo_field_battery_health">Health</string>
+    <string name="sysinfo_field_battery_temperature">Temperature</string>
+    <string name="sysinfo_field_battery_voltage">Voltage</string>
+    <string name="sysinfo_field_battery_technology">Technology</string>
+    <!-- System info dialog: Display section extra fields (S0337) -->
+    <string name="sysinfo_field_refresh_rate">Refresh rate</string>
+    <string name="sysinfo_field_hdr">HDR</string>
+    <string name="sysinfo_field_wide_gamut">Wide color gamut</string>
+    <string name="sysinfo_field_dark_mode">Dark mode</string>
+    <string name="sysinfo_field_font_scale">Font scale</string>
+    <string name="sysinfo_field_orientation">Orientation</string>
+    <string name="sysinfo_field_smallest_width">Smallest width</string>
+    <string name="sysinfo_field_display_count">Displays</string>
+    <!-- System info dialog: Network section (S0337) -->
+    <string name="sysinfo_section_network">Network</string>
+    <string name="sysinfo_field_net_transport">Type</string>
+    <string name="sysinfo_field_net_metered">Metered</string>
+    <string name="sysinfo_field_net_vpn">VPN</string>
+    <string name="sysinfo_field_net_airplane">Airplane mode</string>
+    <string name="sysinfo_field_net_ip">IP address</string>
+    <!-- System info dialog: Benchmark section (S0337) -->
+    <string name="sysinfo_section_benchmark">Benchmarks</string>
+    <string name="sysinfo_field_bench_memory">Memory speed</string>
+    <string name="sysinfo_field_bench_storage_write">Storage write</string>
+    <string name="sysinfo_field_bench_storage_read">Storage read</string>
+    <string name="sysinfo_benchmark_approx">approx.</string>
     <string name="settings_log_empty">No log entries found.</string>
     <string name="settings_log_last_lines">Last %1$d log lines:
 
@@ -3759,4 +3853,8 @@ Close the player and try again.</string>
     <string name="welcome_profile_vr_headset_desc">Best for virtual reality devices. Pre-enables 3D/360° layouts and immersive controls on supported hardware flavors.</string>
     <string name="welcome_profile_other_title">Other / Custom</string>
     <string name="welcome_profile_other_desc">Keeps the default system settings unchanged. No batch presets will be applied automatically.</string>
+    <string name="translation_model_prewarm_downloading">Downloading translation model..</string>
+    <string name="translation_model_prewarm_ready">Translation model ready.</string>
+    <string name="translation_model_prewarm_failed">Couldn\'t download the translation model. Try again.</string>
+    <string name="translation_model_prewarm_retry">Retry</string>
 </resources>

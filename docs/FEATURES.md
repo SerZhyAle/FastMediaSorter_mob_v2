@@ -111,9 +111,10 @@ This document is the canonical inventory of all user-facing features implemented
 ## 13. Offline OCR & Translation
 - **Local OCR engine** `[Standard / VR]`: Extract text from images and PDFs completely offline using ML Kit and Tesseract.
 - **Language identification** `[Standard / VR]`: Automatically recognizes the source language before performing translation.
+- **Expanded language picker** `[Standard / VR]`: Select translation and OCR source languages in Settings, player translation dialogs, and Camera OCR through a searchable list with regional flags, app-language names, native names, and capability labels for translation, basic OCR, quality OCR, and noLegal OCR; the ML Kit translation catalog includes Czech and the full supported language set.
 - **AR translation overlay** `[Standard / VR]`: Draws translated text precisely over original coordinates on images and PDFs.
 - **Quality models on-demand** `[Standard / VR]`: Download improved Cyrillic/Ukrainian Tesseract models (`tessdata_best`) directly in Settings with SHA-256 validation.
-- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads.
+- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads. After capture you can drag a rectangle to crop the photo so OCR, translation and the saved image apply only to the selected area; leaving the frame untouched processes the whole photo.
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery** `[Standard / VR]`: Scans the local subnet (ports 445, 21, 22) for active SMB, FTP, and SFTP endpoints.
@@ -136,4 +137,5 @@ This document is the canonical inventory of all user-facing features implemented
 - **Complete DPAD support** `[Standard / VR]`: Scales all preferences for TV remotes, keyboards, mice, and gamepads with DPAD acceleration.
 - **TV button remapping** `[Standard Only]`: Custom assignments for remote color buttons and Channel Up/Down actions.
 - **Diagnostic logs** `[Standard / VR]`: Integrated stack-trace inspector with sharing actions for troubleshooting.
+- **System info** `[Standard / Lite / Photos / Legacy / VR]`: View, copy, and share a technical summary of your device and the app from a button next to Permissions in General settings — grouped sections for device, hardware (CPU, ABIs, SoC, kernel), battery, display, network (type, IP, VPN), storage, system and time, plus approximate memory- and storage-speed benchmarks. No permissions beyond network state and no device identifiers are collected.
 - **Wear OS Companion** `[Standard Only]`: Smartwatch application supporting independent NAS/Cloud browsing, photo viewing, and phone playback control.

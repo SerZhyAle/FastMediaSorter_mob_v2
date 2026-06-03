@@ -180,11 +180,18 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     // Player layout has its own immersive insets handling - skip global edge-to-edge
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
-    /** S0289 §2.2: initial focus on play-pause when the standalone player opens on a non-touch device. */
+    /**
+     * Initial focus for a non-touch open. btnPlayPause lives in controlsOverlay, which stays
+     * GONE in the standalone player (standalone uses ExoPlayer's own PlayerView controls), so
+     * focusing it was a silent no-op. The top command bar Back button is always visible here
+     * (setupViews makes topCommandPanel visible) and is the entry point into the command-bar
+     * focus chain. topCommandPanel ImageButtons are focusable by default and show a focus
+     * state via their selectableItemBackgroundBorderless background, so no extra wiring is
+     * needed for D-pad traversal across the bar. S0289.
+     */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: standalone-player initial-focus / HUD btnPlayPause")
-        val target = binding.btnPlayPause
-        return target
+        Timber.d("S0289: standalone-player initial-focus / top command bar btnBack")
+        return binding.btnBack
     }
 
     override fun setupViews() {

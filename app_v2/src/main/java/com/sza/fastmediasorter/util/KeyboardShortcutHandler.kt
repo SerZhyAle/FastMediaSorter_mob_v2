@@ -460,14 +460,12 @@ class KeyboardShortcutHandler(
         shift: Boolean,
         alt: Boolean,
     ): InputAction? {
-        mapNavigation(keyCode, ctrl, shift, alt)?.let { return it }
+        // S0289: native focus traversal on the settings form. Bare D-pad arrows are NOT
+        // converted to MoveFocus here, so the framework moves focus and a focused Spinner /
+        // dropdown receives the arrows itself (otherwise language / theme were not selectable
+        // by D-pad). Tab switching stays on PageUp / PageDown (handled as PageJump downstream).
+        mapNavigation(keyCode, ctrl, shift, alt, arrowFocus = false)?.let { return it }
 
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            return InputAction.MoveFocus(FocusDirection.LEFT)
-        }
-        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            return InputAction.MoveFocus(FocusDirection.RIGHT)
-        }
         if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE) {
             return InputAction.OpenCurrent
         }
@@ -528,7 +526,10 @@ class KeyboardShortcutHandler(
         shift: Boolean,
         alt: Boolean,
     ): InputAction? {
-        mapNavigation(keyCode, ctrl, shift, alt)?.let { return it }
+        // S0289: native focus traversal on the add-resource form (arrowFocus = false), so
+        // bare D-pad arrows traverse fields / type cards via the framework instead of the
+        // manual focusSearch path that mis-navigated weighted horizontal rows.
+        mapNavigation(keyCode, ctrl, shift, alt, arrowFocus = false)?.let { return it }
 
         if (!ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_SPACE) {
             return InputAction.OpenCurrent
@@ -544,14 +545,22 @@ class KeyboardShortcutHandler(
         ctrl: Boolean,
         @Suppress("UNUSED_PARAMETER") shift: Boolean,
         @Suppress("UNUSED_PARAMETER") alt: Boolean,
+        arrowFocus: Boolean = true,
     ): InputAction? {
+        // Form surfaces (Settings / AddResource) pass arrowFocus = false so bare D-pad arrows
+        // and Home / End fall through to native framework focus traversal instead of being
+        // converted to MoveFocus. List surfaces keep the default (true). S0289.
+        if (arrowFocus) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> return InputAction.MoveFocus(FocusDirection.UP)
+                KeyEvent.KEYCODE_DPAD_DOWN -> return InputAction.MoveFocus(FocusDirection.DOWN)
+                KeyEvent.KEYCODE_DPAD_LEFT -> return InputAction.MoveFocus(FocusDirection.LEFT)
+                KeyEvent.KEYCODE_DPAD_RIGHT -> return InputAction.MoveFocus(FocusDirection.RIGHT)
+                KeyEvent.KEYCODE_MOVE_HOME -> return InputAction.MoveFocus(FocusDirection.FIRST)
+                KeyEvent.KEYCODE_MOVE_END -> return InputAction.MoveFocus(FocusDirection.LAST)
+            }
+        }
         when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> return InputAction.MoveFocus(FocusDirection.UP)
-            KeyEvent.KEYCODE_DPAD_DOWN -> return InputAction.MoveFocus(FocusDirection.DOWN)
-            KeyEvent.KEYCODE_DPAD_LEFT -> return InputAction.MoveFocus(FocusDirection.LEFT)
-            KeyEvent.KEYCODE_DPAD_RIGHT -> return InputAction.MoveFocus(FocusDirection.RIGHT)
-            KeyEvent.KEYCODE_MOVE_HOME -> return InputAction.MoveFocus(FocusDirection.FIRST)
-            KeyEvent.KEYCODE_MOVE_END -> return InputAction.MoveFocus(FocusDirection.LAST)
             KeyEvent.KEYCODE_PAGE_UP -> return InputAction.PageJump(-1)
             KeyEvent.KEYCODE_PAGE_DOWN -> return InputAction.PageJump(+1)
             KeyEvent.KEYCODE_ENTER,

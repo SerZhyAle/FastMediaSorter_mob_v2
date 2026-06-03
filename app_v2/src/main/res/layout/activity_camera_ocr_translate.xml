@@ -289,6 +289,82 @@
 
     </LinearLayout>
 
+    <!-- Crop State (Select area before OCR) -->
+    <LinearLayout
+        android:id="@+id/layoutCropState"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#121214"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvCropHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:gravity="center_horizontal"
+            android:text="@string/camera_ocr_crop_hint"
+            android:textColor="#E1E1E6"
+            android:textSize="14sp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/ivCropPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#121214"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter" />
+
+            <com.sza.fastmediasorter.ui.cameraocr.CropOverlayView
+                android:id="@+id/cropOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <!-- Bottom Action Bar: Retry / OK -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCropRetry"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusRight="@+id/btnCropConfirm"
+                android:text="@string/camera_ocr_crop_retry"
+                android:textColor="#E1E1E6"
+                app:strokeColor="#2F2F37" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCropConfirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusLeft="@+id/btnCropRetry"
+                android:text="@string/camera_ocr_crop_confirm"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="?attr/colorPrimary" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
     <!-- Full-Screen Loading overlay -->
     <LinearLayout
         android:id="@+id/layoutLoading"

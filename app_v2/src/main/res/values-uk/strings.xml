@@ -44,6 +44,11 @@
     <string name="camera_ocr_save_error">Не вдалося зберегти текстовий файл</string>
     <string name="camera_ocr_camera_error">Не вдалося запустити камеру або зробити знімок</string>
     <string name="camera_ocr_engine_error">Служба перекладу наразі недоступна</string>
+    <string name="camera_ocr_crop_title">Виділіть область</string>
+    <string name="camera_ocr_crop_hint">Перемістіть рамку для обрізки або натисніть OK, щоб узяти все фото</string>
+    <string name="camera_ocr_crop_retry">Перезняти</string>
+    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_frame_desc">Рамка виділення області</string>
     <string name="start_player">Запустити плеєр</string>
     <string name="add">Додати</string>
     <string name="settings">Налаштування</string>
@@ -79,6 +84,10 @@
     <string name="share">Поділитися</string>
     <string name="search">Пошук</string>
     <string name="search_hint">Пошук…</string>
+    <string name="language_capability_translation">Переклад</string>
+    <string name="language_capability_basic_ocr">Базовий OCR</string>
+    <string name="language_capability_quality_ocr">Якісний OCR</string>
+    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">Перекласти</string>
     <string name="no_files_selected">Файли не вибрані</string>
     <string name="msg_last_filter_restored">Відновлено останній фільтр: %1$s</string>
@@ -894,6 +903,91 @@
     <string name="show_log">Показати лог</string>
     <string name="show_current_session_log">Лог поточної сесії</string>
     <string name="settings_application_log_title">Лог застосунку</string>
+    <string name="settings_system_info_button">Про систему</string>
+    <string name="settings_system_info_title">Відомості про систему</string>
+    <!-- System info dialog: section headers (S0337) -->
+    <string name="sysinfo_section_device">Пристрій</string>
+    <string name="sysinfo_section_user">Користувач</string>
+    <string name="sysinfo_section_os">ОС</string>
+    <string name="sysinfo_section_app">Застосунок</string>
+    <string name="sysinfo_section_memory">Пам\'ять</string>
+    <string name="sysinfo_section_storage">Сховище</string>
+    <string name="sysinfo_section_display">Екран</string>
+    <string name="sysinfo_section_locale">Локаль</string>
+    <string name="sysinfo_section_time">Час</string>
+    <!-- System info dialog: field labels (S0337) -->
+    <string name="sysinfo_field_manufacturer">Виробник</string>
+    <string name="sysinfo_field_model">Модель</string>
+    <string name="sysinfo_field_product">Продукт</string>
+    <string name="sysinfo_field_user_name">Ім\'я</string>
+    <string name="sysinfo_field_android_version">Android</string>
+    <string name="sysinfo_field_api_level">Рівень API</string>
+    <string name="sysinfo_field_app_version">Версія</string>
+    <string name="sysinfo_field_build">Збірка</string>
+    <string name="sysinfo_field_flavor">Варіант</string>
+    <string name="sysinfo_field_ram_total">Усього ОЗП</string>
+    <string name="sysinfo_field_ram_available">Доступно ОЗП</string>
+    <string name="sysinfo_field_storage_total">Усього</string>
+    <string name="sysinfo_field_storage_available">Доступно</string>
+    <string name="sysinfo_field_resolution">Роздільність</string>
+    <string name="sysinfo_field_density">Щільність</string>
+    <string name="sysinfo_field_locale_current">Поточна</string>
+    <string name="sysinfo_field_time_current">Поточний</string>
+    <string name="sysinfo_field_timezone">Часовий пояс</string>
+    <!-- System info dialog: Hardware section (S0337) -->
+    <string name="sysinfo_section_hardware">Обладнання</string>
+    <string name="sysinfo_field_cpu_cores">Ядра CPU</string>
+    <string name="sysinfo_field_abis">ABI</string>
+    <string name="sysinfo_field_soc">SoC</string>
+    <string name="sysinfo_field_kernel">Ядро</string>
+    <string name="sysinfo_field_gles">OpenGL ES</string>
+    <string name="sysinfo_field_max_heap">Макс. купа</string>
+    <string name="sysinfo_field_process_bits">Процес</string>
+    <!-- System info dialog: System section (S0337) -->
+    <string name="sysinfo_section_system">Система</string>
+    <string name="sysinfo_field_locales">Локалі</string>
+    <string name="sysinfo_field_hour_format">Формат часу</string>
+    <string name="sysinfo_field_boot_count">Кількість завантажень</string>
+    <string name="sysinfo_field_security_patch">Патч безпеки</string>
+    <string name="sysinfo_field_fingerprint">Fingerprint</string>
+    <string name="sysinfo_field_tags">Теги збірки</string>
+    <string name="sysinfo_field_build_type">Тип збірки</string>
+    <string name="sysinfo_field_installer">Інсталятор</string>
+    <string name="sysinfo_field_first_install">Перше встановлення</string>
+    <string name="sysinfo_field_last_update">Останнє оновлення</string>
+    <string name="sysinfo_field_device_name">Ім\'я пристрою</string>
+    <string name="sysinfo_field_input_method">Метод введення</string>
+    <!-- System info dialog: Battery section (S0337) -->
+    <string name="sysinfo_section_battery">Батарея</string>
+    <string name="sysinfo_field_battery_level">Рівень</string>
+    <string name="sysinfo_field_battery_status">Стан</string>
+    <string name="sysinfo_field_battery_plug">Джерело живлення</string>
+    <string name="sysinfo_field_battery_health">Здоров\'я</string>
+    <string name="sysinfo_field_battery_temperature">Температура</string>
+    <string name="sysinfo_field_battery_voltage">Напруга</string>
+    <string name="sysinfo_field_battery_technology">Технологія</string>
+    <!-- System info dialog: Display section extra fields (S0337) -->
+    <string name="sysinfo_field_refresh_rate">Частота оновлення</string>
+    <string name="sysinfo_field_hdr">HDR</string>
+    <string name="sysinfo_field_wide_gamut">Широкий колірний охоплення</string>
+    <string name="sysinfo_field_dark_mode">Темна тема</string>
+    <string name="sysinfo_field_font_scale">Масштаб шрифту</string>
+    <string name="sysinfo_field_orientation">Орієнтація</string>
+    <string name="sysinfo_field_smallest_width">Найменша ширина</string>
+    <string name="sysinfo_field_display_count">Дисплеї</string>
+    <!-- System info dialog: Network section (S0337) -->
+    <string name="sysinfo_section_network">Мережа</string>
+    <string name="sysinfo_field_net_transport">Тип</string>
+    <string name="sysinfo_field_net_metered">Лімітована</string>
+    <string name="sysinfo_field_net_vpn">VPN</string>
+    <string name="sysinfo_field_net_airplane">Режим польоту</string>
+    <string name="sysinfo_field_net_ip">IP-адреса</string>
+    <!-- System info dialog: Benchmark section (S0337) -->
+    <string name="sysinfo_section_benchmark">Бенчмарки</string>
+    <string name="sysinfo_field_bench_memory">Швидкість пам\'яті</string>
+    <string name="sysinfo_field_bench_storage_write">Запис на сховище</string>
+    <string name="sysinfo_field_bench_storage_read">Читання зі сховища</string>
+    <string name="sysinfo_benchmark_approx">приблизно</string>
     <string name="settings_log_empty">Записів у лозі не знайдено.</string>
     <string name="settings_log_last_lines">Останні %1$d рядків логу:
 
@@ -2372,6 +2466,8 @@
     <string name="pdf_display_error">Не вдалося показати цей PDF. Спробуйте ще раз.</string>
     <string name="pdf_page_render_failed">Не вдалося відмалювати цю сторінку. Спробуйте ще раз.</string>
     <string name="translation_started">Переклад запущено…</string>
+    <string name="download_translation_model_title">Завантаження моделі перекладу</string>
+    <string name="download_translation_model_message">Для перекладу на %1$s потрібно завантажити модель (~30 МБ). Завантажити зараз?</string>
     <string name="tts_reading">Читаю вголос…</string>
     <string name="vinyl_indicator_description">Індикатор відтворення аудіо</string>
     <string name="widget_continue_reading_description">Відновити слайдшоу з останньої позиції</string>
@@ -3672,4 +3768,8 @@
     <string name="welcome_profile_vr_headset_desc">Для VR-окулярів та шоломів. Попередньо вмикає 3D/360°-інтерфейси та імерсивне керування на підтримуваних пристроях.</string>
     <string name="welcome_profile_other_title">Інший / Без змін</string>
     <string name="welcome_profile_other_desc">Зберігає поточні системні налаштування без змін. Пакетні передустановки не застосовуються.</string>
+    <string name="translation_model_prewarm_downloading">Завантаження моделі перекладу..</string>
+    <string name="translation_model_prewarm_ready">Модель перекладу готова.</string>
+    <string name="translation_model_prewarm_failed">Не вдалося завантажити модель перекладу. Спробуйте ще раз.</string>
+    <string name="translation_model_prewarm_retry">Повторити</string>
 </resources>

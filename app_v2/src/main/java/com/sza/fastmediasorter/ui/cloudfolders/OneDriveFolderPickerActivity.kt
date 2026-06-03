@@ -48,7 +48,7 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
 
     // S0230 Phase 02 - TV initial focus on the folder list.
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: onedrive-picker initial-focus / wheel rvFolders")
+        Timber.d("S0289: onedrive-picker initial-focus / ENTER navigates into folder")
         val firstFolderItem = binding.rvFolders.findViewHolderForAdapterPosition(0)?.itemView
         val folderCount = if (::folderAdapter.isInitialized) folderAdapter.itemCount else -1
         return firstFolderItem

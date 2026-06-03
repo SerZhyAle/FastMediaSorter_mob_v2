@@ -1,7 +1,8 @@
 package com.sza.fastmediasorter.ui.cameraocr.helpers
 
 import android.content.Intent
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.graphics.RectF
 import android.provider.MediaStore
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
@@ -39,6 +40,9 @@ class CameraOcrFlowManager(
         /** Launch the system camera with the prepared capture [intent]. */
         fun launchCamera(intent: Intent)
 
+        /** Show the crop step: preview [bitmap] with the draggable selection frame. */
+        fun showCropStep(bitmap: Bitmap)
+
         /** Show the loading state. A `0` resource id means "no text". */
         fun showLoading(@StringRes statusRes: Int, @StringRes subStatusRes: Int)
 
@@ -57,11 +61,14 @@ class CameraOcrFlowManager(
         fun finishFlow()
     }
 
+    private val cropRegionManager = CropRegionManager()
+
     private var pendingTempFile: File? = null
     private var currentTimestamp: String? = null
     private var recognizedOriginalText: String = ""
     private var translatedOutputText: String = ""
     private var ocrOnlyActive: Boolean = false
+    private var orientedBitmap: Bitmap? = null
 
     fun setOcrOnlyActive(value: Boolean) {
         ocrOnlyActive = value
@@ -125,70 +132,110 @@ class CameraOcrFlowManager(
         }
     }
 
-    /** Called by the Activity when the camera returned RESULT_OK. */
+    /** Called by the Activity when the camera returned RESULT_OK. Shows the crop step. */
     fun onPhotoCaptured() {
         val tempFile = pendingTempFile ?: return
         callback.showLoading(R.string.camera_ocr_loading_processing, 0)
 
         scope.launch {
             val bitmap = withContext(Dispatchers.IO) {
-                try {
-                    BitmapFactory.decodeFile(tempFile.absolutePath)
-                } catch (e: Exception) {
-                    Timber.e(e, "CameraOcrFlowManager: Decode bitmap failed")
-                    null
-                }
+                cropRegionManager.loadOrientedBitmap(tempFile)
             }
+            // Temp capture file is no longer needed once decoded into an oriented bitmap.
+            storageManager.cleanupTempFile(pendingTempFile)
+            pendingTempFile = null
 
             if (bitmap == null) {
                 callback.hideLoading()
                 callback.showToast(R.string.camera_ocr_camera_error)
-                storageManager.cleanupTempFile(pendingTempFile)
-                pendingTempFile = null
                 return@launch
             }
 
-            val timestamp = currentTimestamp ?: newTimestamp()
-            if (!storageManager.savePhotoToGallery(tempFile, timestamp)) {
-                Timber.w("CameraOcrFlowManager: Photo could not be saved to gallery")
-            }
-
-            val settings = settingsRepository.getSettings().first()
-            val sourceLang = settings.translationSourceLanguage
-            val targetLang = settings.translationTargetLanguage
-            val isOcrOnly = settings.cameraOcrOnly
-
-            try {
-                if (isOcrOnly) {
-                    callback.showLoading(R.string.camera_ocr_loading_saving, 0)
-                    val ocrText = translationManager.extractTextOnly(bitmap, sourceLang)
-                    if (ocrText.isNullOrBlank()) {
-                        callback.showEmpty()
-                    } else {
-                        applyResults(ocrText, "")
-                    }
-                } else {
-                    callback.showLoading(R.string.camera_ocr_loading_saving, R.string.please_wait)
-                    val result = translationManager.recognizeAndTranslate(
-                        bitmap = bitmap,
-                        sourceLang = TranslationManager.languageCodeToMLKit(sourceLang),
-                        targetLang = TranslationManager.languageCodeToMLKit(targetLang)
-                    )
-                    if (result == null || result.first.isBlank()) {
-                        callback.showEmpty()
-                    } else {
-                        applyResults(result.first, result.second)
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "CameraOcrFlowManager: OCR/Translation failed")
-                callback.hideLoading()
-                callback.showToast(R.string.camera_ocr_engine_error)
-            } finally {
-                storageManager.cleanupTempFile(pendingTempFile)
-                pendingTempFile = null
-            }
+            recycleOrientedBitmap()
+            orientedBitmap = bitmap
+            callback.hideLoading()
+            Timber.d("S0338: crop step shown after capture")
+            callback.showCropStep(bitmap)
         }
+    }
+
+    /**
+     * Called by the Activity when the user confirms the crop step. When [frameTouched] is true the
+     * selection [normalizedRect] is cropped out; otherwise the full captured frame is used. The
+     * chosen image is saved to the gallery and sent to OCR/translation.
+     */
+    fun onCropConfirmed(normalizedRect: RectF?, frameTouched: Boolean) {
+        val source = orientedBitmap ?: return
+        Timber.d("S0338: crop confirmed, frameTouched=$frameTouched")
+        callback.showLoading(R.string.camera_ocr_loading_processing, 0)
+
+        scope.launch {
+            val target = withContext(Dispatchers.IO) {
+                if (frameTouched && normalizedRect != null) {
+                    cropRegionManager.cropToNormalizedRect(source, normalizedRect)
+                } else {
+                    source
+                }
+            }
+            // Drop the full-size source once a distinct cropped copy exists (memory guard).
+            if (target != source) {
+                source.recycle()
+                orientedBitmap = target
+            }
+
+            val timestamp = currentTimestamp ?: newTimestamp()
+            if (!storageManager.saveBitmapToGallery(target, timestamp)) {
+                Timber.w("CameraOcrFlowManager: Image could not be saved to gallery")
+            }
+
+            runRecognition(target)
+        }
+    }
+
+    /** Called by the Activity when the user taps Retry on the crop step. */
+    fun onCropRetry() {
+        recycleOrientedBitmap()
+        startCapture()
+    }
+
+    private suspend fun runRecognition(bitmap: Bitmap) {
+        val settings = settingsRepository.getSettings().first()
+        val sourceLang = settings.translationSourceLanguage
+        val targetLang = settings.translationTargetLanguage
+        val isOcrOnly = settings.cameraOcrOnly
+
+        try {
+            if (isOcrOnly) {
+                callback.showLoading(R.string.camera_ocr_loading_saving, 0)
+                val ocrText = translationManager.extractTextOnly(bitmap, sourceLang)
+                if (ocrText.isNullOrBlank()) {
+                    callback.showEmpty()
+                } else {
+                    applyResults(ocrText, "")
+                }
+            } else {
+                callback.showLoading(R.string.camera_ocr_loading_saving, R.string.please_wait)
+                val result = translationManager.recognizeAndTranslate(
+                    bitmap = bitmap,
+                    sourceLang = TranslationManager.languageCodeToMLKit(sourceLang),
+                    targetLang = TranslationManager.languageCodeToMLKit(targetLang)
+                )
+                if (result == null || result.first.isBlank()) {
+                    callback.showEmpty()
+                } else {
+                    applyResults(result.first, result.second)
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "CameraOcrFlowManager: OCR/Translation failed")
+            callback.hideLoading()
+            callback.showToast(R.string.camera_ocr_engine_error)
+        }
+    }
+
+    private fun recycleOrientedBitmap() {
+        orientedBitmap?.let { if (!it.isRecycled) it.recycle() }
+        orientedBitmap = null
     }
 
     fun exportTxt() {
@@ -230,6 +277,7 @@ class CameraOcrFlowManager(
     fun cleanup() {
         storageManager.cleanupTempFile(pendingTempFile)
         pendingTempFile = null
+        recycleOrientedBitmap()
     }
 
     private fun applyResults(original: String, translation: String) {

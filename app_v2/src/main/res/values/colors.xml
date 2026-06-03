@@ -183,5 +183,7 @@
     <color name="recording_active_tint">#E53935</color>
     <!-- TV launcher banner background (dark navy) - used by res/drawable/tv_banner.xml -->
     <color name="tv_banner_bg">#1A1A2E</color>
+    <!-- Camera-OCR crop selection frame (bright red) -->
+    <color name="crop_frame_red">#FFFF1744</color>
 </resources>
 

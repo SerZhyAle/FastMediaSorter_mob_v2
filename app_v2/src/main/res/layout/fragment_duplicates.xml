@@ -146,6 +146,7 @@
             android:layout_height="0dp"
             android:clipToPadding="false"
             android:paddingBottom="88dp"
+            android:nextFocusDown="@id/fabDeleteSelected"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintTop_toBottomOf="@id/tvSummary"
             app:layout_constraintBottom_toBottomOf="parent"

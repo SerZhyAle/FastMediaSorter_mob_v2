@@ -47,7 +47,7 @@ class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
     override fun observeData() {}
 
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: duplicates initial-focus / rvDuplicates or scan controls")
+        Timber.d("S0289: duplicates initial-focus / delete-FAB focus chain")
         val duplicatesList = binding.fragmentContainer.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvDuplicates)
         val firstDuplicateItem = duplicatesList?.findViewHolderForAdapterPosition(0)?.itemView
         val startScanButton = binding.fragmentContainer.findViewById<View>(R.id.btnStartScan)

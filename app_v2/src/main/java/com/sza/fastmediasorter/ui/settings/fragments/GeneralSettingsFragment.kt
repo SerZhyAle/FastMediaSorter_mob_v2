@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
+import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
@@ -53,6 +54,7 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
     @Inject lateinit var requestContextualPermission: com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
     @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
+    @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
 
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
@@ -110,7 +112,7 @@ class GeneralSettingsFragment : Fragment() {
     // accessed from onViewCreated, so initialization is always safe.
     private val sectionsHelper by lazy { GeneralSettingsSectionsHelper(binding, this) }
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
-    private val logHelper by lazy { GeneralSettingsLogHelper(binding, this, saveLogsLauncher) }
+    private val logHelper by lazy { GeneralSettingsLogHelper(binding, this, saveLogsLauncher, gatherSystemInfoUseCase) }
     private val permissionsHelper by lazy {
         GeneralSettingsPermissionsHelper(binding, this, mediaPermissionsLauncher, notificationPermissionLauncher, requestContextualPermission, permissionRegistry)
     }

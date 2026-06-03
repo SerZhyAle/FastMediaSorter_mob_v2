@@ -5,23 +5,27 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.FocusFinder
+import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import com.sza.fastmediasorter.core.input.TvNavAction
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.data.model.DeviceProfileType
-import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -121,12 +125,19 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                         pagesList[0] = updatedPage
                         pagerAdapter.notifyItemChanged(0)
                     }
+                    // notifyItemChanged is unreliable for the visible page; refresh the card directly.
+                    pagerAdapter.refreshSelectedProfile(state.recommendedProfile, state.selectedProfile)
                 }
             }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Onboarding is intentionally a bright pastel experience. Force the day (light) resource set
+        // so the welcome pages keep dark-text-on-pastel-background readability even when the system
+        // is in dark mode - the night palette uses saturated backgrounds with white text, which is
+        // unreadable (e.g. white-on-#E65100 on the "Resources and Destinations" page).
+        delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
         super.onCreate(savedInstanceState)
         savedInstanceState?.let { state ->
             restoredPage = state.getInt(KEY_CURRENT_PAGE, 0)
@@ -539,70 +550,183 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     // ── S0230: TV / keyboard navigation ──────────────────────────────────────
 
     /**
-     * Handle D-pad and keyboard navigation for the welcome slider.
+     * The welcome slider owns ALL of its navigation keys here, before they reach TvKeyRouter / the
+     * ViewPager2. This is deliberate: TvKeyRouter drops events whose source carries gamepad bits, and
+     * some TV remotes / emulators report D-pad that way, which would otherwise let the ViewPager2
+     * RecyclerView perform its own focus-escape page scroll. Handling the keys at dispatch time makes
+     * slider navigation source-independent. On the permissions fragment (fragment container visible)
+     * everything falls through to native framework traversal. S0289.
      *
-     * DPAD_RIGHT / TAB → next slide
-     * DPAD_LEFT / SHIFT+TAB → previous slide
-     * DPAD_CENTER / ENTER → activate the visible primary action button (Next or Finish)
-     * BACK → delegated to the system back handler (minimise / finish)
-     *
-     * Returns true when the action is consumed so the event is not re-dispatched.
+     * - LEFT / RIGHT: focus a neighbour within the current scope (page content or bottom bar); flip
+     *   the page only at the scope's true horizontal edge.
+     * - UP / DOWN: move focus between the page content and the bottom bar.
+     * - ENTER / DPAD_CENTER: activate the focused control, else the primary CTA.
+     * - TAB / SHIFT+TAB: cycle focus through page + bar. ESC: Back.
      */
-    override fun onTvNavigation(action: TvNavAction): Boolean {
-        return when (action) {
-            TvNavAction.Next -> {
-                if (!binding.fragmentContainerWelcome.isVisible && currentPage < pagerAdapter.itemCount - 1) {
-                    binding.viewPager.currentItem = currentPage + 1
-                    true
-                } else false
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            Timber.d("S0289DIAG: dispatch key=${event.keyCode} src=0x${Integer.toHexString(event.source)} fragVisible=${binding.fragmentContainerWelcome.isVisible}")
+        }
+        if (event.action == KeyEvent.ACTION_DOWN && !binding.fragmentContainerWelcome.isVisible) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> { handleSliderHorizontal(View.FOCUS_LEFT, forward = false); return true }
+                KeyEvent.KEYCODE_DPAD_RIGHT -> { handleSliderHorizontal(View.FOCUS_RIGHT, forward = true); return true }
+                KeyEvent.KEYCODE_DPAD_UP -> { handleSliderVertical(View.FOCUS_UP); return true }
+                KeyEvent.KEYCODE_DPAD_DOWN -> { handleSliderVertical(View.FOCUS_DOWN); return true }
+                KeyEvent.KEYCODE_DPAD_CENTER,
+                KeyEvent.KEYCODE_ENTER,
+                KeyEvent.KEYCODE_NUMPAD_ENTER -> if (handleSliderSelect()) return true
+                KeyEvent.KEYCODE_TAB -> if (handleSliderSequential(forward = !event.isShiftPressed)) return true
+                KeyEvent.KEYCODE_ESCAPE -> { onBackPressedDispatcher.onBackPressed(); return true }
             }
-            TvNavAction.Prev -> {
-                if (!binding.fragmentContainerWelcome.isVisible && currentPage > 0) {
-                    binding.viewPager.currentItem = currentPage - 1
-                    true
-                } else false
-            }
-            TvNavAction.Select -> {
-                // S0230 device-test 2026-05-17: if a focusable interactive view (button,
-                // toggle) already owns focus - typing ENTER / DPAD_CENTER must activate
-                // THAT view via Android's default focus->click path. Only when no
-                // interactive view is focused (or only a scroll-host) do we synthesise
-                // a click on the visible primary CTA, so D-pad users can advance the
-                // slider without manually focusing the bottom-right Next button first.
-                val focused = currentFocus
-                val focusIsButton = focused is android.widget.Button ||
-                    focused is com.google.android.material.button.MaterialButton
-                when {
-                    binding.fragmentContainerWelcome.isVisible -> false
-                    focusIsButton -> false
-                    binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
-                    binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
-                    else -> false
-                }
-            }
-            TvNavAction.Back -> {
-                onBackPressedDispatcher.onBackPressed()
-                true
-            }
-            // Up/Down have no meaning on the slider - let Android handle focus traversal.
-            TvNavAction.Up, TvNavAction.Down -> false
-            // Media transport and hardware buttons (car wheel, headset, volume, search, menu)
-            // are not meaningful on the welcome slider - let the system handle them natively
-            // (e.g. hardware volume keys must reach AudioManager).
-            is TvNavAction.Media, is TvNavAction.Hardware -> false
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    /**
+     * BACK is the only slider key still routed through TvKeyRouter; D-pad / ENTER / TAB / ESC are
+     * owned by [dispatchKeyEvent] above. On the permissions fragment everything falls through to
+     * native framework traversal.
+     */
+    override fun onTvNavigation(action: TvNavAction): Boolean = when (action) {
+        TvNavAction.Back -> { onBackPressedDispatcher.onBackPressed(); true }
+        else -> false
+    }
+
+    /** ENTER / DPAD_CENTER: activate the focused clickable control, else the visible primary CTA. */
+    private fun handleSliderSelect(): Boolean {
+        val focused = currentFocus
+        if (focused != null && focused.isClickable) {
+            focused.performClick()
+            return true
+        }
+        return when {
+            binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
+            binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
+            else -> false
         }
     }
 
-    /** S0289 Phase 09: multimodal surface marker - first-run / welcome flow. */
-    @Suppress("unused")
-    private val multimodalInputSurface: InputSurface = InputSurface.WELCOME
+    /** The itemView of the currently-visible ViewPager2 page, or null if not laid out yet. */
+    private fun currentPageView(): View? {
+        val recycler = binding.viewPager.getChildAt(0) as? RecyclerView ?: return null
+        return recycler.findViewHolderForAdapterPosition(currentPage)?.itemView
+    }
+
+    private fun isDescendantOf(view: View, parent: View): Boolean {
+        var p = view.parent
+        while (p != null) {
+            if (p === parent) return true
+            p = p.parent
+        }
+        return false
+    }
+
+    /** Horizontal focus scope for [view]: the bottom bar if focus is there, else the current page. */
+    private fun horizontalScope(view: View?): ViewGroup? {
+        if (view == null) return null
+        if (isDescendantOf(view, binding.layoutBottomNav)) return binding.layoutBottomNav
+        val page = currentPageView()
+        return if (page is ViewGroup && isDescendantOf(view, page)) page else null
+    }
+
+    /**
+     * LEFT / RIGHT: move focus to a neighbour inside the current scope; flip the page only at the
+     * scope's horizontal edge. Always consumes so ViewPager2 never performs its own page scroll.
+     */
+    private fun handleSliderHorizontal(direction: Int, forward: Boolean): Boolean {
+        if (binding.fragmentContainerWelcome.isVisible) return false
+        val focused = currentFocus
+        val scope = horizontalScope(focused)
+        if (focused != null && scope != null) {
+            val neighbour = FocusFinder.getInstance().findNextFocus(scope, focused, direction)
+            if (neighbour != null && neighbour !== focused) {
+                neighbour.requestFocus()
+                return true
+            }
+        }
+        return flipPage(forward)
+    }
+
+    /**
+     * UP / DOWN: move focus between the current page content and the bottom bar without letting the
+     * ViewPager2 RecyclerView perform its focus-escape page scroll. Always consumes.
+     */
+    private fun handleSliderVertical(direction: Int): Boolean {
+        if (binding.fragmentContainerWelcome.isVisible) return false
+        val focused = currentFocus
+        val bar = binding.layoutBottomNav
+        val page = currentPageView() as? ViewGroup
+        val inBar = focused != null && isDescendantOf(focused, bar)
+        val inPage = focused != null && page != null && isDescendantOf(focused, page)
+
+        when {
+            inPage -> {
+                val next = FocusFinder.getInstance().findNextFocus(page, focused, direction)
+                if (next != null && next !== focused) {
+                    next.requestFocus()
+                } else if (direction == View.FOCUS_DOWN) {
+                    focusBar()
+                }
+            }
+            inBar -> if (direction == View.FOCUS_UP && page != null) {
+                page.requestFocus(View.FOCUS_UP)
+            }
+            else -> (page ?: bar).requestFocus(View.FOCUS_DOWN)
+        }
+        return true
+    }
+
+    /** Focus the visible primary button in the bottom bar. */
+    private fun focusBar() {
+        val target = binding.btnFinish.takeIf { it.isVisible }
+            ?: binding.btnNext.takeIf { it.isVisible }
+            ?: binding.btnSkip
+        target.requestFocus()
+    }
+
+    /** Visible, focusable controls of the slider in TAB order: current page content, then bottom bar. */
+    private fun sliderFocusables(): List<View> {
+        val list = ArrayList<View>()
+        (currentPageView() as? ViewGroup)?.addFocusables(list, View.FOCUS_FORWARD)
+        binding.layoutBottomNav.addFocusables(list, View.FOCUS_FORWARD)
+        return list.filter { it.isShown && it.isFocusable }
+    }
+
+    /** TAB / SHIFT+TAB: cycle focus within the slider (page + bar) with wraparound, no pager scroll. */
+    private fun handleSliderSequential(forward: Boolean): Boolean {
+        val all = sliderFocusables()
+        if (all.isEmpty()) return false
+        val idx = all.indexOf(currentFocus)
+        val nextIdx = when {
+            idx < 0 -> 0
+            forward -> (idx + 1) % all.size
+            else -> (idx - 1 + all.size) % all.size
+        }
+        all[nextIdx].requestFocus()
+        return true
+    }
+
+    private fun flipPage(forward: Boolean): Boolean {
+        return if (forward) {
+            if (currentPage < pagerAdapter.itemCount - 1) {
+                binding.viewPager.currentItem = currentPage + 1
+                true
+            } else false
+        } else {
+            if (currentPage > 0) {
+                binding.viewPager.currentItem = currentPage - 1
+                true
+            } else false
+        }
+    }
 
     /**
      * On TV, set initial focus to the primary forward-action button so the first D-pad
      * press is immediately actionable without a random "focus init" key press.
      */
     override fun getInitialFocusView(): View {
-        Timber.d("S0289: welcome initial-focus / wheel viewPager step=$currentPage")
+        Timber.d("S0289: welcome initial-focus / edge-aware slider")
         return binding.btnNext
     }
 

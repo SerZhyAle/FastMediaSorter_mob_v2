@@ -24,7 +24,7 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
 
     /** S0289 §2.4: initial focus on the fragment container - inner fragment delegates to first focusable child. */
     override fun getInitialFocusView(): android.view.View? {
-        Timber.d("S0289: resource-editor initial-focus / fragmentContainer")
+        Timber.d("S0289: resource-editor initial-focus / mouse-wheel ancestor scroll")
         return binding.fragmentContainer
     }
 

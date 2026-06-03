@@ -3,11 +3,10 @@ package com.sza.fastmediasorter.ui.cameraocr
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.widget.ArrayAdapter
 import android.widget.CheckBox
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,13 +21,18 @@ import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManager
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
+import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
 import com.sza.fastmediasorter.ui.player.helpers.openGoogleSearch
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -82,9 +86,9 @@ class CameraOcrTranslateActivity :
                 ) {
                     runOnUiThread {
                         AlertDialog.Builder(this@CameraOcrTranslateActivity)
-                            .setTitle(R.string.translation_started)
-                            .setMessage(getString(R.string.please_wait))
-                            .setPositiveButton(R.string.ok) { _, _ -> onConfirm() }
+                            .setTitle(R.string.download_translation_model_title)
+                            .setMessage(getString(R.string.download_translation_model_message, languageName))
+                            .setPositiveButton(R.string.download) { _, _ -> onConfirm() }
                             .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                             .setOnCancelListener { onCancel() }
                             .show()
@@ -108,12 +112,20 @@ class CameraOcrTranslateActivity :
     }
 
     override fun setupViews() {
+        applySystemBarInsets()
         binding.btnSaveTxt.setOnClickListener { flowManager.exportTxt() }
         binding.btnNextPhoto.setOnClickListener { flowManager.startCapture() }
         binding.btnEmptyRetry.setOnClickListener { flowManager.startCapture() }
         binding.btnClose.setOnClickListener { finish() }
         binding.btnEmptyClose.setOnClickListener { finish() }
         binding.btnSettings.setOnClickListener { showCompactSettingsDialog() }
+        binding.btnCropConfirm.setOnClickListener {
+            flowManager.onCropConfirmed(
+                binding.cropOverlay.getNormalizedRect(),
+                binding.cropOverlay.isFrameTouched()
+            )
+        }
+        binding.btnCropRetry.setOnClickListener { flowManager.onCropRetry() }
         installResultSelectionMenu(binding.tvOriginalText)
         installResultSelectionMenu(binding.tvTranslation)
     }
@@ -123,6 +135,13 @@ class CameraOcrTranslateActivity :
             calculatorEnabled = settings.enableCalculator
             flowManager.setOcrOnlyActive(settings.cameraOcrOnly)
         }
+    }
+
+    private fun applySystemBarInsets() {
+        binding.layoutResultContent.applySystemBarInsetPadding()
+        binding.layoutEmptyState.applySystemBarInsetPadding()
+        binding.layoutLoading.applySystemBarInsetPadding()
+        binding.layoutCropState.applySystemBarInsetPadding()
     }
 
     // ---- CameraOcrFlowManager.Callback ----
@@ -136,6 +155,17 @@ class CameraOcrTranslateActivity :
         }
     }
 
+    override fun showCropStep(bitmap: Bitmap) {
+        Timber.d("S0338: crop preview rendered")
+        binding.layoutCropState.isVisible = true
+        binding.layoutResultContent.isVisible = false
+        binding.layoutEmptyState.isVisible = false
+        binding.layoutLoading.isVisible = false
+        binding.ivCropPreview.setImageBitmap(bitmap)
+        binding.cropOverlay.reset()
+        binding.cropOverlay.requestFocus()
+    }
+
     override fun showLoading(statusRes: Int, subStatusRes: Int) {
         binding.layoutLoading.isVisible = true
         binding.tvLoadingStatus.text = if (statusRes != 0) getString(statusRes) else ""
@@ -144,6 +174,7 @@ class CameraOcrTranslateActivity :
         binding.tvLoadingSub.isVisible = sub.isNotEmpty()
         binding.layoutResultContent.isVisible = false
         binding.layoutEmptyState.isVisible = false
+        binding.layoutCropState.isVisible = false
     }
 
     override fun hideLoading() {
@@ -154,6 +185,7 @@ class CameraOcrTranslateActivity :
         binding.layoutResultContent.isVisible = true
         binding.layoutEmptyState.isVisible = false
         binding.layoutLoading.isVisible = false
+        binding.layoutCropState.isVisible = false
 
         binding.tvOriginalText.text = original
 
@@ -170,6 +202,7 @@ class CameraOcrTranslateActivity :
         binding.layoutEmptyState.isVisible = true
         binding.layoutResultContent.isVisible = false
         binding.layoutLoading.isVisible = false
+        binding.layoutCropState.isVisible = false
     }
 
     override fun showToast(messageRes: Int) {
@@ -191,37 +224,51 @@ class CameraOcrTranslateActivity :
             val view = LayoutInflater.from(this@CameraOcrTranslateActivity)
                 .inflate(R.layout.dialog_camera_ocr_settings, null)
 
-            val spinnerSrc = view.findViewById<Spinner>(R.id.spinnerSourceLanguage)
-            val spinnerTgt = view.findViewById<Spinner>(R.id.spinnerTargetLanguage)
+            val sourceView = view.findViewById<TextView>(R.id.spinnerSourceLanguage)
+            val targetView = view.findViewById<TextView>(R.id.spinnerTargetLanguage)
             val cbOcrOnly = view.findViewById<CheckBox>(R.id.cbOcrOnly)
 
             val interfaceLang = settings.language
-            val srcList = TranslationManager.buildSourceLanguageList(interfaceLang)
-            val tgtList = TranslationManager.buildTargetLanguageList(interfaceLang)
+            var selectedSourceLang = settings.translationSourceLanguage
+            var selectedTargetLang = settings.translationTargetLanguage
 
-            spinnerSrc.adapter = ArrayAdapter(
-                this@CameraOcrTranslateActivity,
-                android.R.layout.simple_spinner_item,
-                srcList.map { it.first }
-            ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            fun updateLanguageViews() {
+                sourceView.text = formatLanguageLabel(selectedSourceLang, interfaceLang)
+                targetView.text = formatLanguageLabel(selectedTargetLang, interfaceLang)
+                sourceView.contentDescription =
+                    "${getString(R.string.translation_source_language)}: ${sourceView.text}"
+                targetView.contentDescription =
+                    "${getString(R.string.translation_target_language)}: ${targetView.text}"
+            }
 
-            spinnerTgt.adapter = ArrayAdapter(
-                this@CameraOcrTranslateActivity,
-                android.R.layout.simple_spinner_item,
-                tgtList.map { it.first }
-            ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            sourceView.setOnClickListener {
+                showLanguagePicker(
+                    selectedCode = selectedSourceLang,
+                    mode = SearchableLanguagePickerDialog.Mode.SOURCE,
+                    interfaceLanguage = interfaceLang
+                ) { language ->
+                    selectedSourceLang = language.code
+                    updateLanguageViews()
+                }
+            }
 
-            spinnerSrc.setSelection(
-                srcList.indexOfFirst { it.second == settings.translationSourceLanguage }.coerceAtLeast(0)
-            )
-            spinnerTgt.setSelection(
-                tgtList.indexOfFirst { it.second == settings.translationTargetLanguage }.coerceAtLeast(0)
-            )
+            targetView.setOnClickListener {
+                if (!targetView.isEnabled) return@setOnClickListener
+                showLanguagePicker(
+                    selectedCode = selectedTargetLang,
+                    mode = SearchableLanguagePickerDialog.Mode.TARGET,
+                    interfaceLanguage = interfaceLang
+                ) { language ->
+                    selectedTargetLang = language.code
+                    updateLanguageViews()
+                }
+            }
 
             cbOcrOnly.isChecked = settings.cameraOcrOnly
-            spinnerTgt.isEnabled = !settings.cameraOcrOnly
+            updateLanguageViews()
+            updateTargetLanguageEnabled(targetView, !settings.cameraOcrOnly)
             cbOcrOnly.setOnCheckedChangeListener { _, isChecked ->
-                spinnerTgt.isEnabled = !isChecked
+                updateTargetLanguageEnabled(targetView, !isChecked)
             }
 
             AlertDialog.Builder(this@CameraOcrTranslateActivity)
@@ -229,14 +276,42 @@ class CameraOcrTranslateActivity :
                 .setView(view)
                 .setPositiveButton(R.string.apply) { _, _ ->
                     flowManager.applyLanguageSettings(
-                        sourceLang = srcList[spinnerSrc.selectedItemPosition].second,
-                        targetLang = tgtList[spinnerTgt.selectedItemPosition].second,
+                        sourceLang = selectedSourceLang,
+                        targetLang = selectedTargetLang,
                         ocrOnly = cbOcrOnly.isChecked
                     )
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
+    }
+
+    private fun showLanguagePicker(
+        selectedCode: String,
+        mode: SearchableLanguagePickerDialog.Mode,
+        interfaceLanguage: String,
+        onSelected: (LanguageItem) -> Unit
+    ) {
+        val tag = "${SearchableLanguagePickerDialog.TAG}_camera_${mode.name}"
+        if (supportFragmentManager.findFragmentByTag(tag) != null) return
+        SearchableLanguagePickerDialog.newInstance(
+            selectedCode = selectedCode,
+            mode = mode,
+            interfaceLanguage = interfaceLanguage,
+            onLanguageSelected = onSelected
+        ).show(supportFragmentManager, tag)
+    }
+
+    private fun updateTargetLanguageEnabled(view: TextView, enabled: Boolean) {
+        view.isEnabled = enabled
+        view.alpha = if (enabled) 1.0f else 0.45f
+    }
+
+    private fun formatLanguageLabel(code: String, interfaceLanguage: String): String {
+        val displayLocale = Locale.forLanguageTag(interfaceLanguage)
+        val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
+            ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
+        return item?.let(TranslationLanguageCatalog::formatLanguage) ?: code.uppercase(Locale.ROOT)
     }
 
     private fun installResultSelectionMenu(textView: TextView) {

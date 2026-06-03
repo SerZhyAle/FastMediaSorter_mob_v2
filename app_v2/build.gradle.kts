@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260603001
-        versionName = "2.60.6030.016"
+        versionCode = 260603140
+        versionName = "2.60.6031.408"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -519,6 +519,7 @@ android {
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/translationEnabled/java")
             // S0250 / S0245 wiring closure: NoOp XR Hilt bindings live in src/vrStub/java.
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
@@ -534,15 +535,18 @@ android {
             manifest.srcFile("src/vr/AndroidManifest.xml")
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/translationEnabled/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/vrStub/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/vrOnly/java")
         }
         getByName("photos") {

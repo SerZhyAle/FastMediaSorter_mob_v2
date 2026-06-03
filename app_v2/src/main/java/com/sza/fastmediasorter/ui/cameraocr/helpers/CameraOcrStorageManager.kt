@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.cameraocr.helpers
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -42,8 +43,11 @@ class CameraOcrStorageManager(private val context: Context) {
         null
     }
 
-    /** Copies the temp capture into DCIM/Camera, falling back to Downloads. */
-    suspend fun savePhotoToGallery(tempFile: File, timestamp: String): Boolean =
+    /**
+     * Saves a [bitmap] (e.g. the cropped region, or the full captured frame when no crop was
+     * applied) to DCIM/Camera, falling back to Downloads.
+     */
+    suspend fun saveBitmapToGallery(bitmap: Bitmap, timestamp: String): Boolean =
         withContext(Dispatchers.IO) {
             try {
                 val dcimDir = File(
@@ -53,26 +57,29 @@ class CameraOcrStorageManager(private val context: Context) {
                 if (!dcimDir.exists()) {
                     dcimDir.mkdirs()
                 }
-                val targetFile = File(dcimDir, "OCR_IMG_$timestamp.jpg")
-                tempFile.copyTo(targetFile, overwrite = true)
-                notifyMediaScanner(targetFile)
-                Timber.i("CameraOcrStorageManager: Photo saved to DCIM/Camera: ${targetFile.absolutePath}")
+                writeBitmap(bitmap, File(dcimDir, "OCR_IMG_$timestamp.jpg"))
                 true
             } catch (e: Exception) {
-                Timber.w(e, "CameraOcrStorageManager: Save to DCIM/Camera failed, trying Downloads fallback")
+                Timber.w(e, "CameraOcrStorageManager: Save bitmap to DCIM/Camera failed, trying Downloads fallback")
                 try {
                     val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    val targetFile = File(downloadDir, "OCR_IMG_$timestamp.jpg")
-                    tempFile.copyTo(targetFile, overwrite = true)
-                    notifyMediaScanner(targetFile)
-                    Timber.i("CameraOcrStorageManager: Photo saved to Downloads: ${targetFile.absolutePath}")
+                    writeBitmap(bitmap, File(downloadDir, "OCR_IMG_$timestamp.jpg"))
                     true
                 } catch (ex: Exception) {
-                    Timber.e(ex, "CameraOcrStorageManager: Save photo to gallery completely failed")
+                    Timber.e(ex, "CameraOcrStorageManager: Save bitmap to gallery completely failed")
                     false
                 }
             }
         }
+
+    private fun writeBitmap(bitmap: Bitmap, targetFile: File) {
+        FileOutputStream(targetFile).use { fos ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos)
+            fos.flush()
+        }
+        notifyMediaScanner(targetFile)
+        Timber.i("CameraOcrStorageManager: Bitmap saved to gallery: ${targetFile.absolutePath}")
+    }
 
     /**
      * Writes the result to `Downloads/OCR_TXT_<timestamp>.txt`.

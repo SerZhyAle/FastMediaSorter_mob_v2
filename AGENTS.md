@@ -35,6 +35,7 @@ When files disagree, prefer the stricter rule. For agent-specific execution, `AG
 - For string updates, prefer `scripts/utils/set-android-string.ps1` for single Android string keys.
 - For any layout edit, check the matching `res/layout-land/` file and update it when present.
 - For any user-facing UI/UX change, run the UI ambiguity gate before implementation.
+- Every screen, Activity-backed dialog, fullscreen overlay, toolbar, bottom action bar, and empty/loading/error state must keep important text and touch targets inside Android `systemBars` plus display-cutout safe bounds in portrait and landscape; `fitsSystemWindows` alone is not enough on targetSdk 35 / Android 15.
 
 ## 4. Research Order
 

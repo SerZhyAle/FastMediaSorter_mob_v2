@@ -4,8 +4,10 @@ import android.content.res.Resources
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
 
 /**
@@ -55,4 +57,39 @@ fun WindowInsetsCompat.getStatusBarHeightSafe(resources: Resources): Int {
     if (fromSystemWindow > 0) return fromSystemWindow
     val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
     return if (resourceId > 0) resources.getDimensionPixelSize(resourceId) else 0
+}
+
+/**
+ * Keep important content and action targets inside system-bar safe bounds.
+ *
+ * Android 15 forces edge-to-edge for targetSdk 35, so ordinary form screens must
+ * apply these insets even when they do not explicitly opt into fullscreen UI.
+ */
+fun View.applySystemBarInsetPadding(
+    applyLeft: Boolean = true,
+    applyTop: Boolean = true,
+    applyRight: Boolean = true,
+    applyBottom: Boolean = true,
+) {
+    val baseLeft = paddingLeft
+    val baseTop = paddingTop
+    val baseRight = paddingRight
+    val baseBottom = paddingBottom
+
+    fun apply(insets: WindowInsetsCompat) {
+        val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+        updatePadding(
+            left = baseLeft + if (applyLeft) maxOf(systemBars.left, cutout.left) else 0,
+            top = baseTop + if (applyTop) maxOf(systemBars.top, cutout.top, insets.getStatusBarHeightSafe(resources)) else 0,
+            right = baseRight + if (applyRight) maxOf(systemBars.right, cutout.right) else 0,
+            bottom = baseBottom + if (applyBottom) maxOf(systemBars.bottom, cutout.bottom) else 0
+        )
+    }
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+        apply(insets)
+        insets
+    }
+    ViewCompat.getRootWindowInsets(this)?.let(::apply) ?: ViewCompat.requestApplyInsets(this)
 }

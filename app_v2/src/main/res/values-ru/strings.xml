@@ -45,6 +45,11 @@
     <string name="camera_ocr_save_error">Не удалось сохранить текстовый файл</string>
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
+    <string name="camera_ocr_crop_title">Выделите область</string>
+    <string name="camera_ocr_crop_hint">Передвиньте рамку для обрезки или нажмите OK, чтобы взять всё фото</string>
+    <string name="camera_ocr_crop_retry">Переснять</string>
+    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
     <string name="start_player">Запустить плеер</string>
     <string name="add">Добавить</string>
     <string name="settings">Настройки</string>
@@ -80,6 +85,10 @@
     <string name="share">Поделиться</string>
     <string name="search">Поиск</string>
     <string name="search_hint">Поиск…</string>
+    <string name="language_capability_translation">Перевод</string>
+    <string name="language_capability_basic_ocr">Базовый OCR</string>
+    <string name="language_capability_quality_ocr">Качественный OCR</string>
+    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">Перевести</string>
     <string name="no_files_selected">Файлы не выбраны</string>
     <string name="msg_last_filter_restored">Восстановлен последний фильтр: %1$s</string>
@@ -900,6 +909,91 @@
     <string name="show_log">Показать лог</string>
     <string name="show_current_session_log">Лог текущей сессии</string>
     <string name="settings_application_log_title">Лог приложения</string>
+    <string name="settings_system_info_button">О системе</string>
+    <string name="settings_system_info_title">Сведения о системе</string>
+    <!-- System info dialog: section headers (S0337) -->
+    <string name="sysinfo_section_device">Устройство</string>
+    <string name="sysinfo_section_user">Пользователь</string>
+    <string name="sysinfo_section_os">ОС</string>
+    <string name="sysinfo_section_app">Приложение</string>
+    <string name="sysinfo_section_memory">Память</string>
+    <string name="sysinfo_section_storage">Хранилище</string>
+    <string name="sysinfo_section_display">Экран</string>
+    <string name="sysinfo_section_locale">Локаль</string>
+    <string name="sysinfo_section_time">Время</string>
+    <!-- System info dialog: field labels (S0337) -->
+    <string name="sysinfo_field_manufacturer">Производитель</string>
+    <string name="sysinfo_field_model">Модель</string>
+    <string name="sysinfo_field_product">Продукт</string>
+    <string name="sysinfo_field_user_name">Имя</string>
+    <string name="sysinfo_field_android_version">Android</string>
+    <string name="sysinfo_field_api_level">Уровень API</string>
+    <string name="sysinfo_field_app_version">Версия</string>
+    <string name="sysinfo_field_build">Сборка</string>
+    <string name="sysinfo_field_flavor">Вариант</string>
+    <string name="sysinfo_field_ram_total">Всего ОЗУ</string>
+    <string name="sysinfo_field_ram_available">Доступно ОЗУ</string>
+    <string name="sysinfo_field_storage_total">Всего</string>
+    <string name="sysinfo_field_storage_available">Доступно</string>
+    <string name="sysinfo_field_resolution">Разрешение</string>
+    <string name="sysinfo_field_density">Плотность</string>
+    <string name="sysinfo_field_locale_current">Текущая</string>
+    <string name="sysinfo_field_time_current">Текущее</string>
+    <string name="sysinfo_field_timezone">Часовой пояс</string>
+    <!-- System info dialog: Hardware section (S0337) -->
+    <string name="sysinfo_section_hardware">Оборудование</string>
+    <string name="sysinfo_field_cpu_cores">Ядра CPU</string>
+    <string name="sysinfo_field_abis">ABI</string>
+    <string name="sysinfo_field_soc">SoC</string>
+    <string name="sysinfo_field_kernel">Ядро</string>
+    <string name="sysinfo_field_gles">OpenGL ES</string>
+    <string name="sysinfo_field_max_heap">Макс. куча</string>
+    <string name="sysinfo_field_process_bits">Процесс</string>
+    <!-- System info dialog: System section (S0337) -->
+    <string name="sysinfo_section_system">Система</string>
+    <string name="sysinfo_field_locales">Локали</string>
+    <string name="sysinfo_field_hour_format">Формат времени</string>
+    <string name="sysinfo_field_boot_count">Число загрузок</string>
+    <string name="sysinfo_field_security_patch">Патч безопасности</string>
+    <string name="sysinfo_field_fingerprint">Fingerprint</string>
+    <string name="sysinfo_field_tags">Теги сборки</string>
+    <string name="sysinfo_field_build_type">Тип сборки</string>
+    <string name="sysinfo_field_installer">Установщик</string>
+    <string name="sysinfo_field_first_install">Первая установка</string>
+    <string name="sysinfo_field_last_update">Последнее обновление</string>
+    <string name="sysinfo_field_device_name">Имя устройства</string>
+    <string name="sysinfo_field_input_method">Метод ввода</string>
+    <!-- System info dialog: Battery section (S0337) -->
+    <string name="sysinfo_section_battery">Батарея</string>
+    <string name="sysinfo_field_battery_level">Уровень</string>
+    <string name="sysinfo_field_battery_status">Состояние</string>
+    <string name="sysinfo_field_battery_plug">Источник питания</string>
+    <string name="sysinfo_field_battery_health">Здоровье</string>
+    <string name="sysinfo_field_battery_temperature">Температура</string>
+    <string name="sysinfo_field_battery_voltage">Напряжение</string>
+    <string name="sysinfo_field_battery_technology">Технология</string>
+    <!-- System info dialog: Display section extra fields (S0337) -->
+    <string name="sysinfo_field_refresh_rate">Частота обновления</string>
+    <string name="sysinfo_field_hdr">HDR</string>
+    <string name="sysinfo_field_wide_gamut">Широкий цветовой охват</string>
+    <string name="sysinfo_field_dark_mode">Тёмная тема</string>
+    <string name="sysinfo_field_font_scale">Масштаб шрифта</string>
+    <string name="sysinfo_field_orientation">Ориентация</string>
+    <string name="sysinfo_field_smallest_width">Наименьшая ширина</string>
+    <string name="sysinfo_field_display_count">Дисплеи</string>
+    <!-- System info dialog: Network section (S0337) -->
+    <string name="sysinfo_section_network">Сеть</string>
+    <string name="sysinfo_field_net_transport">Тип</string>
+    <string name="sysinfo_field_net_metered">Лимитированная</string>
+    <string name="sysinfo_field_net_vpn">VPN</string>
+    <string name="sysinfo_field_net_airplane">Режим полёта</string>
+    <string name="sysinfo_field_net_ip">IP-адрес</string>
+    <!-- System info dialog: Benchmark section (S0337) -->
+    <string name="sysinfo_section_benchmark">Бенчмарки</string>
+    <string name="sysinfo_field_bench_memory">Скорость памяти</string>
+    <string name="sysinfo_field_bench_storage_write">Запись на накопитель</string>
+    <string name="sysinfo_field_bench_storage_read">Чтение с накопителя</string>
+    <string name="sysinfo_benchmark_approx">приблизительно</string>
     <string name="settings_log_empty">Записей в логе не найдено.</string>
     <string name="settings_log_last_lines">Последние %1$d строк лога:
 
@@ -3711,4 +3805,8 @@
     <string name="welcome_profile_vr_headset_desc">Для VR-очков и шлемов. Предварительно включает 3D/360°-интерфейсы и иммерсивное управление на поддерживаемых устройствах.</string>
     <string name="welcome_profile_other_title">Другой / Без изменений</string>
     <string name="welcome_profile_other_desc">Сохраняет текущие системные настройки без изменений. Пакетные предустановки не применяются.</string>
+    <string name="translation_model_prewarm_downloading">Загрузка модели перевода..</string>
+    <string name="translation_model_prewarm_ready">Модель перевода готова.</string>
+    <string name="translation_model_prewarm_failed">Не удалось загрузить модель перевода. Попробуйте ещё раз.</string>
+    <string name="translation_model_prewarm_retry">Повторить</string>
 </resources>

@@ -34,6 +34,36 @@ class WelcomePagerAdapter(
         private const val VIEW_TYPE_DEFAULT_PLAYER = 4
     }
 
+    /** Binding of the currently-bound welcome page that hosts the profile selector card (page 0). */
+    private var profileSelectorBinding: PageWelcomeEnhancedBinding? = null
+
+    /**
+     * Refresh the visible welcome profile card directly. ViewPager2 does not reliably rebind the
+     * current page on [notifyItemChanged], so [com.sza.fastmediasorter.ui.welcome.WelcomeActivity]
+     * calls this after the user picks a profile to guarantee the summary card matches the selection.
+     */
+    fun refreshSelectedProfile(recommendedType: DeviceProfileType?, selectedType: DeviceProfileType?) {
+        val binding = profileSelectorBinding ?: return
+        val effective = selectedType ?: recommendedType ?: DeviceProfileType.PERSONAL_SMARTPHONE
+        bindSelectedProfileCard(binding, recommendedType, effective)
+    }
+
+    private fun bindSelectedProfileCard(
+        binding: PageWelcomeEnhancedBinding,
+        recommendedType: DeviceProfileType?,
+        selectedType: DeviceProfileType,
+    ) {
+        val context = binding.root.context
+        binding.ivSelectedProfileIcon.setImageResource(DeviceProfileUi.iconRes(selectedType))
+        val title = context.getString(DeviceProfileUi.titleRes(selectedType))
+        binding.tvSelectedProfileTitle.text = if (selectedType == recommendedType) {
+            "$title ${context.getString(R.string.welcome_recommended_badge)}"
+        } else {
+            title
+        }
+        binding.tvProfileDescription.text = context.getString(DeviceProfileUi.descRes(selectedType))
+    }
+
     override fun getItemViewType(position: Int): Int {
         return when {
             pages[position].isPermissionsPage -> VIEW_TYPE_PERMISSIONS
@@ -183,7 +213,7 @@ class WelcomePagerAdapter(
         }
     }
 
-    class EnhancedViewHolder(
+    inner class EnhancedViewHolder(
         private val binding: PageWelcomeEnhancedBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -225,20 +255,13 @@ class WelcomePagerAdapter(
             // the shared tile picker (DeviceProfilePickerDialogFragment). Replaces the old dropdown.
             if (page.showProfileSelector) {
                 binding.layoutProfileSelector.visibility = View.VISIBLE
-                val recommendedType = page.recommendedProfileType
+                // Keep a handle to the visible selector card: ViewPager2 does not reliably rebind the
+                // current page on notifyItemChanged, so it is refreshed directly after a pick.
+                profileSelectorBinding = binding
                 val selectedType = page.selectedProfileType
-                    ?: recommendedType
+                    ?: page.recommendedProfileType
                     ?: DeviceProfileType.PERSONAL_SMARTPHONE
-
-                binding.ivSelectedProfileIcon.setImageResource(DeviceProfileUi.iconRes(selectedType))
-                val title = context.getString(DeviceProfileUi.titleRes(selectedType))
-                binding.tvSelectedProfileTitle.text = if (selectedType == recommendedType) {
-                    "$title ${context.getString(R.string.welcome_recommended_badge)}"
-                } else {
-                    title
-                }
-                binding.tvProfileDescription.text = context.getString(DeviceProfileUi.descRes(selectedType))
-
+                bindSelectedProfileCard(binding, page.recommendedProfileType, selectedType)
                 binding.cardSelectedProfile.setOnClickListener { page.onOpenProfilePicker?.invoke() }
             } else {
                 binding.layoutProfileSelector.visibility = View.GONE

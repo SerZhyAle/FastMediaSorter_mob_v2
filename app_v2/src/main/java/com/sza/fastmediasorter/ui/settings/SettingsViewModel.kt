@@ -11,8 +11,10 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
+import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
+import com.sza.fastmediasorter.domain.usecase.PrewarmTranslationModelUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -64,7 +66,8 @@ class SettingsViewModel @Inject constructor(
     private val syncNetworkResourcesUseCase: SyncNetworkResourcesUseCase,
     private val cleanupTrashFoldersUseCase: CleanupTrashFoldersUseCase,
     private val workManagerScheduler: WorkManagerScheduler,
-    private val getDeviceStorageUseCase: GetDeviceStorageUseCase
+    private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
+    private val prewarmTranslationModelUseCase: PrewarmTranslationModelUseCase
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
@@ -74,15 +77,64 @@ class SettingsViewModel @Inject constructor(
     private val _deviceStorage = MutableStateFlow<DeviceStorageState>(DeviceStorageState.Error("Loading.."))
     val deviceStorage: StateFlow<DeviceStorageState> = _deviceStorage.asStateFlow()
 
+    val translationModelPrewarmStatus: StateFlow<TranslationModelPrewarmStatus> =
+        prewarmTranslationModelUseCase.status
+
+    private var lastTranslationPrewarmCode: String? = null
+
     init {
         viewModelScope.launch {
             _deviceStorage.value = getDeviceStorageUseCase()
         }
+        observeTranslationPrewarmTriggers()
     }
 
     fun refreshDeviceStorage() {
         viewModelScope.launch {
             _deviceStorage.value = getDeviceStorageUseCase()
+        }
+    }
+
+    fun retryTranslationModelPrewarm() {
+        val targetCode = settings.value.translationTargetLanguage.trim()
+        if (targetCode.isEmpty()) {
+            return
+        }
+        requestTranslationModelPrewarm(targetCode, force = true)
+    }
+
+    private fun observeTranslationPrewarmTriggers() {
+        viewModelScope.launch {
+            var previousSettings: AppSettings? = null
+            settingsRepository.getSettings().collect { current ->
+                val previous = previousSettings
+                previousSettings = current
+                if (!current.enableTranslation) {
+                    lastTranslationPrewarmCode = null
+                    return@collect
+                }
+
+                val targetCode = current.translationTargetLanguage.trim()
+                if (targetCode.isEmpty()) {
+                    return@collect
+                }
+
+                val targetChanged = previous?.translationTargetLanguage != current.translationTargetLanguage
+                val enabledNow = previous?.enableTranslation == false && current.enableTranslation
+                if (previous == null || targetChanged || enabledNow) {
+                    requestTranslationModelPrewarm(targetCode)
+                }
+            }
+        }
+    }
+
+    private fun requestTranslationModelPrewarm(targetCode: String, force: Boolean = false) {
+        if (!force && lastTranslationPrewarmCode == targetCode) {
+            return
+        }
+        lastTranslationPrewarmCode = targetCode
+        viewModelScope.launch {
+            prewarmTranslationModelUseCase.prewarm(targetCode)
         }
     }
 

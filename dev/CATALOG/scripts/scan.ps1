@@ -33,6 +33,7 @@ $srcRoots = @(
     (Join-Path $Root "$Module\src\vrStub\java"),
     (Join-Path $Root "$Module\src\noLegal\java"),
     (Join-Path $Root "$Module\src\streamingEnabled\java"),
+    (Join-Path $Root "$Module\src\translationEnabled\java"),
     (Join-Path $Root "$Module\src\cloudEnabled\java"),
     (Join-Path $Root "$Module\src\cloudDisabled\java")
 ) | Where-Object { Test-Path $_ }

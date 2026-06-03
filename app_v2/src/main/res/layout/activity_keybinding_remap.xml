@@ -24,6 +24,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
+            android:focusable="true"
+            android:nextFocusDown="@id/searchView"
             android:src="@drawable/ic_back" />
 
         <TextView
@@ -43,6 +45,7 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorSurfaceVariant"
         android:queryHint="@string/keybinding_remap_search_hint"
+        android:nextFocusDown="@id/recyclerView"
         app:iconifiedByDefault="false"
         app:queryHint="@string/keybinding_remap_search_hint" />
 
@@ -52,6 +55,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
+        android:nextFocusDown="@id/btnResetAll"
         android:paddingBottom="72dp" />
 
     <com.google.android.material.button.MaterialButton
@@ -62,6 +66,7 @@
         android:layout_gravity="end"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
+        android:nextFocusUp="@id/recyclerView"
         android:text="@string/keybinding_remap_reset_all" />
 
 </LinearLayout>

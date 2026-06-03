@@ -592,18 +592,36 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- PERMISSIONS MANAGEMENT BUTTON - navigates to PermissionsManagementFragment -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPermissionsManagement"
-            style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
-            android:layout_width="wrap_content"
+        <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_tiny"
-            android:layout_marginBottom="@dimen/margin_tiny"
-            android:text="@string/settings_category_permissions"
-            app:icon="@drawable/ic_lock"
-            app:iconGravity="start" />
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPermissionsManagement"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:text="@string/settings_category_permissions"
+                app:icon="@drawable/ic_lock"
+                app:iconGravity="start" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSystemInfo"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_system_info_button"
+                app:icon="@drawable/ic_info"
+                app:iconGravity="start" />
+
+        </LinearLayout>
 
         <!-- ABOUT SECTION (heading removed — content sits flush under permissions section) -->
         <LinearLayout

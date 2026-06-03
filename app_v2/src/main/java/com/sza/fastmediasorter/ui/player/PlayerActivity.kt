@@ -798,20 +798,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     /** S0289 §2.2: initial focus on play-pause when the player opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: player initial-focus / HUD btnPlayPause")
         return binding.btnPlayPause
-    }
-
-    /** S0289: true when the currently-focused view is a HUD control button. Used to arbitrate arrow keys between focus traversal (HUD focused → system handles nextFocus*) and semantic player actions (HUD not focused → existing seek/next/prev logic). */
-    private fun isHudFocused(): Boolean {
-        val focused = currentFocus ?: return false
-        val id = focused.id
-        return id == binding.btnVolumeDown.id ||
-            id == binding.btnPrevious.id ||
-            id == binding.btnPlayPause.id ||
-            id == binding.btnNext.id ||
-            id == binding.btnVolumeUp.id ||
-            id == binding.btnSlideShow.id ||
-            id == binding.btnDelete.id
     }
 
     private val lifecycleBridge by lazy { PlayerActivityLifecycleBridge(this) }

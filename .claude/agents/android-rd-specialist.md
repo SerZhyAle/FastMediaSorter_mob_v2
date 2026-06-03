@@ -67,9 +67,10 @@ For build/flag questions: consult `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`.
 After every code/config change:
 1. Dev Changelog: `./scripts/add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
 2. Feature docs: update `docs/FEATURES.md` + `_RU` + `_UK` for any new user-facing feature.
-3. String locale audit: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` changes. Exit code 1 = must fix before commit.
-4. Catalogue sync: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
-5. Spec catalog sync: `update.ps1 -Id Sxxxx -Status <new>` on every status transition.
+3. String edits: prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` over hand-editing `strings.xml` - it is byte-preserving. `-Action set` updates one key's value in one locale (`-ExpectedOldValue` guard, `-CreateIfMissing`); `-Action add` creates a key across EN/RU/UK in lockstep (`-En -Ru -Uk`, parity-enforced); `-Action get|remove|rename|list` cover lookup/lifecycle across all `strings*.xml`. Hand-edit only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
+4. String locale audit: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` changes. Exit code 1 = must fix before commit.
+5. Catalogue sync: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
+6. Spec catalog sync: `update.ps1 -Id Sxxxx -Status <new>` on every status transition.
 
 ## Multi-step Tasks
 

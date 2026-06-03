@@ -314,7 +314,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
      */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: settings initial-focus / wheel viewPager")
+        Timber.d("S0289: settings initial-focus / native arrow traversal")
         return binding.viewPager
     }
 

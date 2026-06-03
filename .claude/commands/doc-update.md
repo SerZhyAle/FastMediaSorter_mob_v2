@@ -80,11 +80,11 @@ Mirror the B1 change. Identical section numbers and bullet layout.
 
 #### C1. `app_v2/src/main/res/values/strings.xml` (English)
 
-For single-key updates, prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
+For single-locale value updates, prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
 
 #### C2. `values-ru/strings.xml` (Russian) · C3. `values-uk/strings.xml` (Ukrainian)
 
-Mirror the same key with locale-specific values. For single-key updates, prefer `scripts/utils/set-android-string.ps1` once per locale. All three files are mandatory on every new string.
+Mirror the same key with locale-specific values. All three files are mandatory on every new string. For a brand-new key, prefer one lockstep call `scripts/utils/set-android-string.ps1 -Action add -Key "<key>" -En "<text>" -Ru "<text>" -Uk "<text>"` (writes all three locales, parity-enforced) over editing each file by hand. For per-locale wording fixes, use `-Action set` once per locale.
 
 ---
 

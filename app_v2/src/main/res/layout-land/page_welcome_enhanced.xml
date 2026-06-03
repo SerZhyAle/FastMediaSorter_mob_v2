@@ -87,6 +87,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLangEn"
                         style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:focusable="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="48dp"
@@ -98,6 +99,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLangRu"
                         style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:focusable="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="48dp"
@@ -109,6 +111,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLangUk"
                         style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:focusable="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="48dp"

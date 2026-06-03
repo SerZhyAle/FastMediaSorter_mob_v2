@@ -43,23 +43,25 @@
                     android:text="@string/translation_source_language"
                     android:textSize="@dimen/toggler_title_text_size" />
 
-                <androidx.appcompat.widget.AppCompatSpinner
+                <TextView
                     android:id="@+id/spinnerTranslationSourceLanguage"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:minWidth="@dimen/settings_spinner_min_width" />
+                    android:layout_weight="1"
+                    android:background="@drawable/item_focus_selector"
+                    android:clickable="true"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:gravity="end|center_vertical"
+                    android:maxLines="1"
+                    android:minWidth="@dimen/settings_spinner_min_width"
+                    android:paddingStart="@dimen/padding_normal"
+                    android:paddingEnd="@dimen/padding_normal"
+                    android:textColor="?attr/colorOnSurface" />
             </LinearLayout>
 
             <!-- Swap Button -->
-            <ImageButton
-                android:id="@+id/btnSwapLanguages"
-                android:layout_width="@dimen/settings_width_icon"
-                android:layout_height="@dimen/settings_height_icon"
-                android:layout_gravity="center_horizontal"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_swap_horizontal"
-                android:contentDescription="@string/swap_languages"
-                android:layout_marginBottom="@dimen/margin_small" />
+            <ImageButton android:id="@+id/btnSwapLanguages" android:layout_width="@dimen/settings_width_icon" android:layout_height="@dimen/settings_height_icon" android:layout_gravity="center_horizontal" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/swap_languages" android:src="@drawable/ic_swap_horizontal" />
 
             <!-- Target Language -->
             <LinearLayout
@@ -77,12 +79,24 @@
                     android:text="@string/translation_target_language"
                     android:textSize="@dimen/toggler_title_text_size" />
 
-                <androidx.appcompat.widget.AppCompatSpinner
+                <TextView
                     android:id="@+id/spinnerTranslationTargetLanguage"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:minWidth="@dimen/settings_spinner_min_width" />
+                    android:layout_weight="1"
+                    android:background="@drawable/item_focus_selector"
+                    android:clickable="true"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:gravity="end|center_vertical"
+                    android:maxLines="1"
+                    android:minWidth="@dimen/settings_spinner_min_width"
+                    android:paddingStart="@dimen/padding_normal"
+                    android:paddingEnd="@dimen/padding_normal"
+                    android:textColor="?attr/colorOnSurface" />
             </LinearLayout>
+
+            <LinearLayout android:id="@+id/layoutTranslationPrewarmStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone"><TextView android:id="@+id/tvTranslationPrewarmStatus" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" /><Button android:id="@+id/btnTranslationPrewarmRetry" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="true" android:focusable="true" android:text="@string/translation_model_prewarm_retry" android:visibility="gone" /></LinearLayout>
         </LinearLayout>
 
         <!-- Translation Lens Style - help payload folded into the row -->

@@ -457,6 +457,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0289 §2.1: initial focus on the big Play button when the Activity opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: main initial-focus / empty-state CTA reachable")
         return binding.btnStartPlayer
     }
 
