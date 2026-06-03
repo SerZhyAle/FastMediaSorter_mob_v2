@@ -15086,3 +15086,4 @@ Format: | datetime | file | target | description |
 | 2026-06-03 14:10:03 | `docs/FEATURES_RU.md` | `spec-dev` | Refresh System info copy (RU) [branch: DEBUG-v011] |
 | 2026-06-03 14:10:03 | `docs/FEATURES_UK.md` | `spec-dev` | Refresh System info copy (UK) [branch: DEBUG-v011] |
 | 2026-06-03 14:10:03 | `PLAN/S0337_system-info-extended-fields.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
+| 2026-06-03 14:33:45 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.6031.424 - plateau merge from DEBUG-v011 [branch: DEBUG-v011] |

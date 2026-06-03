@@ -1,6 +1,33 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6010.057** (June 2026)
+**Current release: 2.60.6031.424** (June 2026)
+
+> Changes since version 2.60.6010.057
+
+---
+
+## What's New
+
+- **Device profiles** - first-run setup tailors defaults to your device type.
+- **Color theme** - pick Auto, Light, or Dark regardless of system.
+- **System info** - view, copy, and share a device and app summary.
+- **Calculator upgrade** - scientific functions, memory keys, history, and expressions.
+- **Calculator from text** - send selected OCR, translation, or document text in.
+- **Text selection & copy** - long-press to select and copy in documents.
+- **Richer language picker** - searchable list with flags, native names, and Czech.
+- **Office document filter** - filter Office files and recheck all types instantly.
+- **Camera OCR crop** - select a region before recognizing and translating text.
+- **3D/VR defaults** - tune auto-detection and the default immersive mode (VR).
+- **Smoother remote & mouse control** - improved D-pad, wheel scroll, and focus reach.
+
+## What's Fixed
+
+- Mouse left-click now reaches buttons, dialogs, and dropdowns.
+- Camera OCR and Game Help controls stay within safe areas.
+
+---
+
+## Previous Release: 2.60.6010.057 (June 2026)
 
 > Changes since version 2.60.5310.007
 

@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6010.057 (June 2026)
+## What's New in v2.60.6031.424 (June 2026)
 
 **New:**
-Camera OCR translation, text editor calculator, mini game and widgets, release tooling guards.
+Device profiles, color theme, system info, calculator upgrade, text selection & copy, richer language picker, Office document filter, Camera OCR crop, 3D/VR defaults.
 
 **Fixed:**
-Android TV launcher title matches the banner and Play listing. Google Drive backup restore uses scoped GMS auth routing.
+Mouse left-click now reaches buttons, dialogs, and dropdowns. Camera OCR and Game Help controls stay within safe areas.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
