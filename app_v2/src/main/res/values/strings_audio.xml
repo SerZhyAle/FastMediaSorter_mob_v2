@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio">Audio</string>
+    <string name="audio_a">Audio (A)</string>
+    <string name="audio_album_label">Album: %1$s</string>
+    <string name="audio_artist_label">Artist: %1$s</string>
+    <string name="audio_background_photos_load_failed">Couldn\'t load the background photos. Try again.</string>
+    <string name="audio_background_photos_no_photos_found">Couldn\'t find any photos in the selected source.</string>
+    <string name="audio_background_photos_source_label">Background photos source:</string>
+    <string name="audio_bit_depth_label">Bit Depth: %1$d-bit</string>
+    <string name="audio_bitrate_label">Audio Bitrate: %1$s</string>
+    <string name="audio_cache_size_warning_message">Audio cache is using significant storage. Delete old files to free space?</string>
+    <string name="audio_cache_size_warning_title">Large Audio Cache</string>
+    <string name="audio_channels_label">Channels: %1$s</string>
+    <string name="audio_channels_mono">Mono</string>
+    <string name="audio_channels_stereo">Stereo</string>
+    <string name="audio_codec_label">Audio Codec: %1$s</string>
+    <string name="audio_cover_art">Audio cover art</string>
+    <string name="audio_cover_art_cd">Album cover art</string>
+    <string name="audio_duration_label">Duration: %1$s</string>
+    <string name="audio_empty_state_avd_pulse">Music note + pulse rings</string>
+    <string name="audio_empty_state_canvas_bars">Breathing bars (15)</string>
+    <string name="audio_empty_state_canvas_waves">Wave &amp; Particle Animation</string>
+    <string name="audio_empty_state_gif_loop">GIF / WebP loop</string>
+    <string name="audio_empty_state_label">Visualizer when no cover art</string>
+    <string name="audio_empty_state_none">Black background</string>
+    <string name="audio_empty_state_visualization">Visualization (MP4)</string>
+    <string name="audio_info_section">Audio Information</string>
+    <string name="audio_lossless_label">Quality: %1$s</string>
+    <string name="audio_lossless_value_lossless">Lossless</string>
+    <string name="audio_lossless_value_lossy">Lossy</string>
+    <string name="audio_replaygain_album_label">ReplayGain (album): %1$.2f dB</string>
+    <string name="audio_replaygain_track_label">ReplayGain (track): %1$.2f dB</string>
+    <string name="audio_sample_rate_label">Sample Rate: %1$d Hz</string>
+    <string name="audio_size_limit">Audio file size limit</string>
+    <string name="audio_size_limits">Audio size limits (KB)</string>
+    <string name="audio_size_range">0 KB - 100 MB</string>
+    <string name="audio_title_label">Title: %1$s</string>
+    <string name="audio_track">Audio Track</string>
+</resources>

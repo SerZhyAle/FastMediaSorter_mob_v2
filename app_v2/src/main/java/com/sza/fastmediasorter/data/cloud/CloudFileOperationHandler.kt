@@ -163,7 +163,6 @@ class CloudFileOperationHandler @Inject constructor(
 
             operation.sources.forEachIndexed { index, source ->
                 val fileName = extractFileName(source.path, source.name)
-                Timber.d("S0266: cloud copy executeCopy fileName=$fileName cloudPath=${source.path}")
                 // S0266: announce current file to progress UI before the blocking download starts.
                 progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
 
@@ -483,7 +482,6 @@ class CloudFileOperationHandler @Inject constructor(
             when (metadataResult) {
                 is CloudResult.Success -> metadataResult.data.name.takeIf { it.isNotBlank() } ?: fileName
                 else -> {
-                    Timber.w("S0266: getFileMetadata fallback failed for $cloudPath - using original fileName")
                     fileName
                 }
             }

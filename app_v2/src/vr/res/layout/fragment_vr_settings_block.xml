@@ -55,6 +55,16 @@
             android:visibility="gone" />
     </LinearLayout>
 
+    <!-- Detail groups: visible only when XR is present AND the master toggle is ON.
+         Gated at runtime by VrSettingsBlockFragment.applyState(). On non-XR devices or
+         when 3D/VR is disabled, only the advisory + master toggle above stay visible. -->
+    <LinearLayout
+        android:id="@+id/vrDetailGroupsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
     <!-- S0326: Format detection group -->
     <TextView
         android:layout_width="match_parent"
@@ -198,5 +208,7 @@
         android:layout_height="wrap_content"
         app:str_title="@string/settings_stereo_vr_show_fps_title"
         app:str_subtitle="@string/settings_stereo_vr_show_fps_summary" />
+
+    </LinearLayout>
 
 </LinearLayout>

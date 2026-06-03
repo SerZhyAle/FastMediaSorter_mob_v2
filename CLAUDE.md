@@ -221,6 +221,32 @@ Kotlin 1.9+ / Java 17 / `compileSdk 35` / `minSdk 26` (standard), `minSdk 23` (l
 Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer Media3 1.2.1 · Glide 4.15.1 · SMBJ/SSHJ/Apache Commons Net · Google Drive/MSAL/Dropbox SDKs.
 **Logging: Timber only** - `Log.d()` is prohibited. Persistent operational logs must not embed `Sxxxx` ticket ids; ticket ids in log text are reserved for `BlockNeedUserTest` probes only.
 
+## Common Commands
+
+All builds go through the `a.ps1` launcher (never invoke gradle directly - use `/build`):
+
+| Cmd | Action |
+|-----|--------|
+| `.\a.ps1 d` / `db` / `dq` | Debug build (zip / no-zip / quiet) |
+| `.\a.ps1 cd` / `cdb` | Clean + debug (zip / no-zip) |
+| `.\a.ps1 nd` / `nl` | noLegal debug / release |
+| `.\a.ps1 r` | Release AAB (auto-delegates to `../FastMediaSorter_release` worktree on `main`) |
+| `.\a.ps1 cls` | Clean gradle caches |
+| `.\a.ps1 bf` / `bfd` | Last build-failure block / structured digest |
+| `.\a.ps1 ch` | Typo + lint check |
+| `.\a.ps1 ss` | Show unresolved specs |
+| `.\a.ps1 ivn` | Install noLegal debug APK on device |
+
+Per-flavor scripts (standard/lite/photos/legacy/vr) live in `scripts/builders/build-<flavor>-{debug,release,device}.ps1`.
+
+### Tests
+
+- Full unit suite (one variant): `.\gradlew.bat testStandardDebugUnitTest`
+- Single class: `.\gradlew.bat :app_v2:testStandardDebugUnitTest --tests "com.sza.fastmediasorter.<pkg>.<Class>"`
+- Single method: append `.<methodName>` to the `--tests` filter.
+- kapt stall recovery: `pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"`
+- Note: `testStandardDebugUnitTest` carries pre-existing broken tests - verify your own work via per-class XML reports, not a green whole-suite run.
+
 ## Strict Rules
 
 1. No writes to project root - use `temp/` for logs, artifacts, backups.

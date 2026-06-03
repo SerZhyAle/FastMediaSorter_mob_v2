@@ -10,4 +10,12 @@
     <string name="s0183_apk_install_cancelled">Installation cancelled</string>
     <string name="s0183_apk_install_failed">Installation failed</string>
     <string name="setting_support_office_documents_desc">Opens Word, spreadsheet, and presentation files in the built-in viewer when supported</string>
+    <!-- S0336: noLegal extended System info diagnostics (section titles; field labels stay fixed-English technical keys) -->
+    <string name="nolegal_diag_section_os_security">OS &amp; Security</string>
+    <string name="nolegal_diag_section_permissions">Special Permissions</string>
+    <string name="nolegal_diag_section_installer">Installer &amp; Signature</string>
+    <string name="nolegal_diag_section_runtimes">Bundled Runtimes</string>
+    <string name="nolegal_diag_section_mounts">Mounts &amp; Storage</string>
+    <string name="nolegal_diag_section_network">Network Diagnostics</string>
+    <string name="nolegal_diag_section_process">Process Resources</string>
 </resources>

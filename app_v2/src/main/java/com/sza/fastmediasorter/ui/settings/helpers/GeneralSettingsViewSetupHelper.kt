@@ -85,21 +85,18 @@ class GeneralSettingsViewSetupHelper(
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.defaultGridMode == isChecked) return@setOnCheckedChangeListener
-            Timber.d("S0254: General tab default grid mode toggled isChecked=$isChecked")
             viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
         }
         binding.rowHideGridActionButtons.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.hideGridActionButtons == isChecked) return@setOnCheckedChangeListener
-            Timber.d("S0254: General tab hide grid action buttons toggled isChecked=$isChecked")
             viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
         }
         binding.rowFileOpsInOverflowMenu.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
-            Timber.d("S0254: General tab file ops overflow menu toggled isChecked=$isChecked")
             viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
         binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
@@ -240,7 +237,6 @@ class GeneralSettingsViewSetupHelper(
             val size = iconSizeOptions[position].toInt()
             val current = viewModel.settings.value
             if (current.defaultIconSize != size) {
-                Timber.d("S0254: General tab grid icon size selected size=$size")
                 viewModel.updateSettings(current.copy(defaultIconSize = size))
             }
         }

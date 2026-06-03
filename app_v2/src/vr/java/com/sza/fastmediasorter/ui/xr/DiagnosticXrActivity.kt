@@ -672,6 +672,20 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 Timber.e(oom2, "decodeFilePooled: ${file.name} OOM even with inSampleSize=${opts.inSampleSize}; giving up")
                 null
             }
+        } catch (iae: IllegalArgumentException) {
+            // BitmapFactory throws IllegalArgumentException ("Problem decoding into existing bitmap")
+            // when the pool-supplied inBitmap is incompatible with the actual decoded dimensions or
+            // config (e.g. moraine_lake_flat_mono.jpg 7742x5327 after inSampleSize may require a
+            // different stride). Retry without inBitmap so the decoder allocates a fresh buffer.
+            Timber.d("S0291: decodeFilePooled inBitmap incompatible for ${file.name} — retrying without pool reuse")
+            Timber.w(iae, "decodeFilePooled: ${file.name} inBitmap incompatible; retry without pool reuse")
+            opts.inBitmap = null
+            try {
+                BitmapFactory.decodeFile(file.absolutePath, opts)
+            } catch (oom3: OutOfMemoryError) {
+                Timber.e(oom3, "decodeFilePooled: ${file.name} OOM on inBitmap-free retry; giving up")
+                null
+            }
         }
     }
 
@@ -737,9 +751,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                         decoderDetails.append("no cause info")
                     }
 
-                    // Temporary debug-probe tag for S0322 BlockNeedUserTest
-                    Timber.d("S0322: VR video playback error captured on file ${file.name}")
-
+                    Timber.d("S0322: playback error observed — code=${error.errorCode} stage=$stage file=${file.name}")
                     Timber.e(error, "VR diagnostic playback failed! File: ${file.name}, Stage: $stage, Code: ${error.errorCode} (${error.errorCodeName}), Msg: ${error.message}, $decoderDetails")
 
                     runOnUiThread {
@@ -1130,7 +1142,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             runtime.setRenderConfig(config.projection.value, config.layout.value)
             hudRenderer.currentFilename = file.name
             queueFilenameHud(file.name, config.projection, config.layout)
-            Timber.d("S0291: session-ready HUD re-queue (${if (isVideoFilename(file.name)) "video" else "image"}) ${file.name}")
             if (isVideoFilename(file.name)) {
                 if (!startVideoPlayback(file)) {
                     queueErrorHud(file.name, "Playback Start Failed")

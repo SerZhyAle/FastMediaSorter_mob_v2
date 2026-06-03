@@ -2,15 +2,18 @@
 
 - [Frozen app? check TracerPid / lldb-server](feedback_frozen_app_check_tracerpid.md) - UI frozen + no crash + log stops at "blocking GC ProfileSaver" → native LLDB debugger holds VM via ptrace, not a code bug; check /proc/<pid>/status TracerPid
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
+- [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
 
 - [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
 - [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying
 
 - [spec_catalog exit-code contract](project_spec_catalog_exit_code_contract.md) - mutators need trap{exit 1}+exit 0 because _lib.ps1 sets Stop preference, making Write-Error terminating
+- [insert.ps1 -File validation](project_insert_ps1_file_validation.md) - insert.ps1 rejects the skill-doc "PLAN/<placeholder>"; run next-id.ps1 first and pass a real PLAN/Sxxxx_<slug>.md path
 - [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare `pwsh` works in bash via /c/Users/serzh/bin/pwsh; no full path needed (since 2026-05-21)
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
 - [Build gotchas](project_build_gotchas.md) - build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
+- [/skill-release gotchas](project_skill_release_gotchas.md) - version skew tag(.424) vs built artifact(.446); DEBUG-not-rebased-after-main-rebuild merge conflict in release-doc files; gitignored PLAN/ makes Step 12a git-diff empty (use local catalog)
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS] so user can track time spent per step
 - [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code lives in src/<flavor>/java/; BuildConfig flavor guards in src/main forbidden (CLAUDE.md Rule 15)
@@ -40,3 +43,5 @@
 - [Functionality log script leaves non-zero exit](project_func_log_nonzero_exit.md) - add_to_functionality_log.ps1 succeeds but sets non-zero $LASTEXITCODE; run it last/standalone, re-verify journal status
 - [set-android-string.ps1 editor](reference_strings_tool.md) - canonical byte-preserving set/add/get/remove/rename/list of string resources across EN/RU/UK; prefer over hand-editing strings.xml (grep scripts/utils/ before writing new resource tools)
 - [Check existing tooling first](feedback_check_existing_tooling.md) - grep scripts/ + scripts/utils/ + skills for an existing helper before authoring a new script; extend it, don't duplicate (I duplicated set-android-string.ps1)
+- [Research over owner-question on design forks](feedback_research_over_owner_question.md) - best-practice/granularity/grouping forks: research the convention and recommend, don't AskUserQuestion an arbitrary call (S0339: user redirected both questions to "research")
+- [String tools cover src/main/res only](feedback_string_tools_main_res_only.md) - check_strings_localized.ps1 + set-android-string.ps1 ignore src/<flavor>/res; hand-edit flavor strings, grep-verify EN/RU/UK parity (build only proves EN)

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_add_to_home_screen">Додати на головний екран</string>
+    <string name="widget_already_added">Віджет вже додано на головний екран</string>
+    <string name="widget_calculator_description">Відкрити вбудований калькулятор</string>
+    <string name="widget_calculator_label">Калькулятор</string>
+    <string name="widget_camera_ocr_translate_description">Швидке захоплення, розпізнавання та переклад тексту за допомогою камери.</string>
+    <string name="widget_camera_ocr_translate_label">Камера-переклад</string>
+    <string name="widget_camera_photos_description">Швидкий доступ до фото з камери</string>
+    <string name="widget_camera_photos_label">Фото з камери</string>
+    <string name="widget_camera_photos_resource_not_found">Ресурс «Фото з камери» не знайдено</string>
+    <string name="widget_continue_reading_description">Відновити слайдшоу з останньої позиції</string>
+    <string name="widget_continue_reading_label">Продовжити читання</string>
+    <string name="widget_favorites_description">Швидкий доступ до обраних файлів</string>
+    <string name="widget_favorites_label">Обране</string>
+    <string name="widget_pin_not_supported">Закріплення віджетів не підтримується на цьому пристрої</string>
+    <string name="widget_random_music_description">Відтворити випадковий трек</string>
+    <string name="widget_random_music_label">Випадкова музика</string>
+    <string name="widget_random_music_resource_not_found">Ресурс «Випадкова музика» не знайдено</string>
+    <string name="widget_resource_launch_description">Запуск конкретного ресурсу</string>
+    <string name="widget_resource_launch_label">Тека</string>
+    <string name="widget_resource_not_configured">Натисніть для налаштування</string>
+    <string name="widget_select_resource">Виберіть ресурс</string>
+    <string name="widget_unlock_screen_prompt">Розблокуйте екран для додавання віджета</string>
+</resources>

@@ -367,7 +367,6 @@ class LinkDownloadWorker @AssistedInject constructor(
      * launch in [com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter.launchPlayer].
      */
     private fun buildOpenInPlayerPendingIntent(uri: Uri, originalUrl: String): PendingIntent {
-        Timber.d("S0257: building open-in-player PendingIntent for uri=%s", uri)
         val intent = Intent(context, StandalonePlayerActivity::class.java)
             .setData(uri)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)

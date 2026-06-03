@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_add_to_home_screen">Add to Home Screen</string>
+    <string name="widget_already_added">Widget already added to home screen</string>
+    <string name="widget_calculator_description">Open the embedded calculator</string>
+    <string name="widget_calculator_label">Calculator</string>
+    <string name="widget_camera_ocr_translate_description">Quickly capture, recognize, and translate text using the camera.</string>
+    <string name="widget_camera_ocr_translate_label">Camera OCR</string>
+    <string name="widget_camera_photos_description">Quick access to camera photos</string>
+    <string name="widget_camera_photos_label">Camera Photos</string>
+    <string name="widget_camera_photos_resource_not_found">Camera Photos resource not found</string>
+    <string name="widget_continue_reading_description">Resume slideshow from last position</string>
+    <string name="widget_continue_reading_label">Continue Reading</string>
+    <string name="widget_favorites_description">Quick access to favorite files</string>
+    <string name="widget_favorites_label">Favorites</string>
+    <string name="widget_pin_not_supported">Widget pinning is not supported on this device</string>
+    <string name="widget_random_music_description">Play a random music track</string>
+    <string name="widget_random_music_label">Random Music</string>
+    <string name="widget_random_music_resource_not_found">Random Music resource not found</string>
+    <string name="widget_resource_launch_description">Launch specific resource folder</string>
+    <string name="widget_resource_launch_label">Resource Launch</string>
+    <string name="widget_resource_not_configured">Tap to configure</string>
+    <string name="widget_select_resource">Select Resource</string>
+    <string name="widget_unlock_screen_prompt">Unlock the screen to add the widget</string>
+</resources>

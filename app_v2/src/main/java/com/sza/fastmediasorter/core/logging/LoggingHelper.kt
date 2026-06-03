@@ -5,7 +5,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import timber.log.Timber
 import java.io.File
-import java.io.FileWriter
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -296,7 +297,9 @@ object LoggingHelper {
         private fun openNewLogFile() {
             val fileName = "fastmediasorter_${fileNameFormat.format(Date())}.log"
             currentLogFile = File(logDir, fileName)
-            printWriter = PrintWriter(FileWriter(currentLogFile, true), true)
+            // Explicit UTF-8: platform default charset on some devices is CP866/OEM,
+            // which corrupts Cyrillic resource/file names in the log file.
+            printWriter = PrintWriter(OutputStreamWriter(FileOutputStream(currentLogFile, true), Charsets.UTF_8), true)
             printWriter?.println("=== Log started: ${dateFormat.format(Date())} ===")
             printWriter?.println("=== App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
             printWriter?.flush()
@@ -338,7 +341,7 @@ object LoggingHelper {
                 val timestamp = dateFormat.format(now)
                 val crashFile = File(logDir, "fastmediasorter_crash_${fileNameFormat.format(now)}.log")
 
-                PrintWriter(FileWriter(crashFile, false), true).use { pw ->
+                PrintWriter(OutputStreamWriter(FileOutputStream(crashFile, false), Charsets.UTF_8), true).use { pw ->
                     pw.println("=== CRASH REPORT: $timestamp ===")
                     pw.println("=== App: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
                     pw.println("=== Thread: ${thread.name} [id=${thread.id}] ===")

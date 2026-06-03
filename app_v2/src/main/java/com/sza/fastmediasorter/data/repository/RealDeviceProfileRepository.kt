@@ -60,7 +60,6 @@ class RealDeviceProfileRepository @Inject constructor(
             if (prefs.getBoolean("device_profile_initialized", false)) return@launch
 
             if (welcomePrefs.getBoolean("welcome_completed", false)) {
-                Timber.d("S0327: existing-install migration to OTHER profile")
                 // Existing install: migrate to "Other" without applying any preset.
                 val profile = DeviceProfile(
                     type = DeviceProfileType.OTHER,

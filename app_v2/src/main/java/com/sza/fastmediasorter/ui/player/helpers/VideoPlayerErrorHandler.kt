@@ -172,7 +172,13 @@ internal class VideoPlayerErrorHandler(
             }
         }
 
-        if (error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT) {
+        // ERROR_CODE_TIMEOUT (network/IO timeout) and ERROR_CODE_FAILED_RUNTIME_CHECK
+        // (ExoPlayer watchdog "Playback stuck buffering and not loading" - errorCode=1004,
+        // typically a truncated/corrupt local file whose moov/data never loads) both mean the
+        // current file cannot start. Treat them alike: mark the file failed for the session and
+        // show a named message instead of the generic skip toast.
+        if (error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT ||
+            error.errorCode == PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK) {
             manager.currentFilePath?.let(VideoPlaybackFailureSessionCache::markFailed)
             val userMessage = manager.currentFilePath
                 ?.substringAfterLast('/')

@@ -141,10 +141,8 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
      * FileOperationProgressDialog. Operations occur on lifecycleScope of the current Activity.
      */
     private fun downloadAndInstallFromCloud(file: MediaFile) {
-        Timber.d("S0266: noLegal cloud APK install entry for ${file.path}")
         val act = activityRef.get()
         if (act == null || act.isFinishing || act.isDestroyed) {
-            Timber.w("S0266: cloud APK install dropped - no valid activity")
             return
         }
         Toast.makeText(act, R.string.s0266_apk_download_preparing, Toast.LENGTH_SHORT).show()
@@ -161,14 +159,14 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                         fileName = file.name,
                     )
                 }.getOrElse { e ->
-                    Timber.e(e, "S0266: cloud APK download threw")
+                    Timber.e(e, "cloud APK download threw")
                     false
                 }
             }
             if (downloaded && cacheApkFile.exists() && cacheApkFile.length() > 0L) {
                 launchSystemInstaller(cacheApkFile, file.name)
             } else {
-                Timber.w("S0266: cloud APK download reported failure for ${file.name}")
+                Timber.w("cloud APK download reported failure for ${file.name}")
                 Toast.makeText(act, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show()
             }
         }

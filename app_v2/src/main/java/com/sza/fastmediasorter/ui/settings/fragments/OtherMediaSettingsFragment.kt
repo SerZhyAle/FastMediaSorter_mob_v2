@@ -541,7 +541,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             }
         }
         collectOnLifecycle(viewModel.translationModelPrewarmStatus) { status ->
-            Timber.d("S0334: prewarm status rendered ${status.javaClass.simpleName}")
             updateTranslationPrewarmStatus(status)
         }
     }

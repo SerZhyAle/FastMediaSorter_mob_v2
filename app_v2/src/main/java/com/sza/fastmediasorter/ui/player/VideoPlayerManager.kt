@@ -457,7 +457,6 @@ class VideoPlayerManager(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Timber.d("S0274: VideoPlayerManager.onPlayerError delegated to VideoPlayerErrorHandler")
             if (errorHandler.handlePlayerError(error)) return
             playerCallback.onBuffering(false)
             playerCallback.onPlaybackError(error)

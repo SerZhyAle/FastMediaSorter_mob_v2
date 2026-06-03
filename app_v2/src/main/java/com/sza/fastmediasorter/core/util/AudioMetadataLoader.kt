@@ -287,7 +287,6 @@ class AudioMetadataLoader @Inject constructor(
     }
 
     private fun shouldLogMetadataRetrieverFailureAsDebug(filePath: String, throwable: Throwable): Boolean {
-        Timber.d("S0229: shouldLogMetadataRetrieverFailureAsDebug path=$filePath cause=${throwable.javaClass.simpleName}")
         if (!isPartialNetworkMetadataPath(filePath)) return false
         // S0229: EOFException and IOException are expected outcomes when parsing a 64 KB partial
         // header - the truncated buffer makes a complete parse impossible by design. Treat them
@@ -443,7 +442,6 @@ class AudioMetadataLoader @Inject constructor(
             // S0229: runInterruptible ensures coroutine cancellation interrupts the blocking
             // future.get() call. Without this, a cancelled scope leaves MetadataRetriever's
             // internal handler running on a dead thread, producing "Handler on a dead thread".
-            Timber.d("S0229: extractMetadataFromBytes awaiting MetadataRetriever future filePath=$filePath bytes=${bytes.size}")
             val trackGroups = runInterruptible { trackGroupsFuture.get(5, TimeUnit.SECONDS) }
 
             var artist: String? = null

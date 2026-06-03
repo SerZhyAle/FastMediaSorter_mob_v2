@@ -109,10 +109,10 @@ object DetectionHelper {
     fun hasPcFeature(context: Context): Boolean =
         context.packageManager.hasSystemFeature("android.hardware.type.pc")
 
-    /** ChromeOS device running Android apps through ARC (the documented Chromebook signal). */
-    fun isChromebook(context: Context): Boolean {
-        val pm = context.packageManager
-        return pm.hasSystemFeature("org.chromium.arc") ||
-               pm.hasSystemFeature("org.chromium.arc.device_management")
-    }
+    /**
+     * ChromeOS device running Android apps through ARC (the documented Chromebook signal).
+     * Delegates to [ChromeOsCompat.isChromeOs] - the single ARC++ detection source (ADR-3).
+     */
+    fun isChromebook(context: Context): Boolean =
+        com.sza.fastmediasorter.core.compat.ChromeOsCompat.isChromeOs(context)
 }

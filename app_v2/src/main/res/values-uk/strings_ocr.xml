@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ocr_best_download_error">Завантаження не вдалося. Перевірте підключення до мережі.</string>
+    <string name="ocr_best_model_delete">Видалити</string>
+    <string name="ocr_best_model_download">Завантажити</string>
+    <string name="ocr_best_model_downloading">Завантаження: %1$d%% (%2$s)</string>
+    <string name="ocr_best_model_installed">Встановлена</string>
+    <string name="ocr_best_model_size_mb">Якісна модель (~%1$s МБ)</string>
+    <string name="ocr_best_models_title">Якісні офлайн-моделі</string>
+    <string name="ocr_best_rus_title">Російська модель</string>
+    <string name="ocr_best_ukr_title">Українська модель</string>
+    <string name="ocr_button_description">Витягти текст</string>
+    <string name="ocr_engine_type">Двигун OCR</string>
+    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
+    <string name="ocr_engine_type_tesseract">Tesseract (за замовчуванням)</string>
+    <string name="ocr_error">Не вдалося розпізнати текст.</string>
+    <string name="ocr_extract_image_failed">Не вдалося підготувати це зображення для розпізнавання. Спробуйте ще раз.</string>
+    <string name="ocr_font_family">Шрифт для OCR</string>
+    <string name="ocr_font_size">Розмір шрифту для OCR</string>
+    <string name="ocr_images_only">Розпізнавання тексту доступне лише для зображень.</string>
+    <string name="ocr_no_text_found">Текст на зображенні не знайдено</string>
+    <string name="ocr_processing">Розпізнавання тексту…</string>
+    <string name="ocr_requires_newer_device">OCR недоступний на цьому пристрої. %1$s (API: %2$d). Потрібно API 26+ і 3 ГБ+ ОЗП.</string>
+    <string name="ocr_result_title">Розпізнаний текст</string>
+    <string name="ocr_unavailable_reason_os">Версія Android застара</string>
+    <string name="ocr_unavailable_reason_ram">Недостатньо ОЗП пристрою</string>
+    <string name="translation_error">Помилка перекладу</string>
+    <string name="translation_error_no_text">Немає тексту для перекладу</string>
+    <string name="translation_font_family">Шрифт</string>
+    <string name="translation_font_size">Розмір шрифту</string>
+    <string name="translation_lens_style">Результат перекладу в блоках</string>
+    <string name="translation_model_prewarm_downloading">Завантаження моделі перекладу..</string>
+    <string name="translation_model_prewarm_failed">Не вдалося завантажити модель перекладу. Спробуйте ще раз.</string>
+    <string name="translation_model_prewarm_ready">Модель перекладу готова.</string>
+    <string name="translation_model_prewarm_retry">Повторити</string>
+    <string name="translation_no_text_found">Немає тексту для перекладу</string>
+    <string name="translation_settings">Налаштування тексту</string>
+    <string name="translation_source_language">Вихідна мова</string>
+    <string name="translation_source_language_and_ocr">Вихідна мова та OCR</string>
+    <string name="translation_started">Переклад запущено…</string>
+    <string name="translation_target_language">Перекласти на</string>
+</resources>

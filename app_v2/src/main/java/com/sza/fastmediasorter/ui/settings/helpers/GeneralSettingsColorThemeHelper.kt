@@ -73,7 +73,6 @@ class GeneralSettingsColorThemeHelper(
             .setMessage(R.string.restart_required_message)
             .setCancelable(false)
             .setPositiveButton(R.string.restart_now) { _, _ ->
-                Timber.d("S0328: color theme changed in settings -> $newValue, restarting")
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(colorTheme = newValue))
                 ColorThemePrefs.setMode(fragment.requireContext(), newValue)
