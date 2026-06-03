@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.graphics.Color
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -54,7 +53,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
     /**
      * Scales [topCommandPanel] to the Big Buttons top-panel height and distributes
      * [visibleButtons] + [overflowButton] equally across the full panel width.
-     * Each ImageButton is wrapped in a vertical LinearLayout that includes a short-label TextView.
+     * Each visible button is wrapped in a vertical LinearLayout for equal slot distribution.
      * Idempotent: second call with the same panel is a no-op.
      */
     fun applyToTopCommandPanel(
@@ -105,13 +104,12 @@ class PlayerBigButtonsModeManager(private val context: Context) {
             val wrapper = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-                // S0208: 85% icon + 15% label (weights 17 / 3 of weightSum 20).
-                weightSum = 20f
             }
 
-            // S0208: icon dominates 85% of wrapper height; FIT_CENTER scales it up proportionally.
+            // Big Buttons Mode uses icon-only visible slots; labels stay in the overflow menu.
             button.layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 17f
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
             )
             when (button) {
                 is ImageView -> {
@@ -125,25 +123,6 @@ class PlayerBigButtonsModeManager(private val context: Context) {
 
             originalParent.removeView(button)
             wrapper.addView(button)
-
-            if (button !is TextView) {
-                // S0208: label gets 15% of wrapper height; single line + ellipsize prevents
-                // long uk/ru translations from wrapping into the icon area.
-                wrapper.addView(TextView(context).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, 0, 3f
-                    )
-                    text = getShortLabel(button)
-                    setTextSize(
-                        TypedValue.COMPLEX_UNIT_PX,
-                        context.resources.getDimension(R.dimen.player_big_button_top_label_text_size)
-                    )
-                    gravity = Gravity.CENTER
-                    setTextColor(Color.WHITE)
-                    maxLines = 1
-                    ellipsize = android.text.TextUtils.TruncateAt.END
-                })
-            }
 
             topCommandPanel.addView(wrapper)
             topPanelWrappers[button.id] = wrapper
@@ -398,18 +377,6 @@ class PlayerBigButtonsModeManager(private val context: Context) {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────────────────────
-
-    private fun getShortLabel(button: View): String {
-        val contentDesc = button.contentDescription?.toString() ?: ""
-        val cmd = CommandPanelLayoutPlanner.PlayerCommand.entries
-            .find { context.getString(it.titleResId) == contentDesc }
-        return when {
-            cmd != null && cmd.shortTitleResId != 0 -> context.getString(cmd.shortTitleResId)
-            cmd != null -> context.getString(cmd.titleResId)
-            button.id == R.id.btnBack -> context.getString(R.string.back)
-            else -> contentDesc
-        }
-    }
 
     private fun rememberAndHideIntermediateTopPanelContainer(
         topCommandPanel: LinearLayout,

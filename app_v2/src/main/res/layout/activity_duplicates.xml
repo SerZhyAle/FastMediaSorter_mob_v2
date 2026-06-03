@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorControlNormal"
             app:title="@string/duplicate_detection_title" />
 
     </com.google.android.material.appbar.AppBarLayout>

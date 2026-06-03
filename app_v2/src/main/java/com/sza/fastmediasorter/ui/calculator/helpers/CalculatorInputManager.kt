@@ -9,11 +9,13 @@ import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import timber.log.Timber
+import java.io.File
 import kotlin.concurrent.thread
 
 class CalculatorInputManager(
@@ -23,6 +25,13 @@ class CalculatorInputManager(
     private val engine = CalculatorEngine()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var hasReturnableResult = false
+    private val historyStore: CalculatorHistoryStore =
+        FileCalculatorHistoryStore(File(context.applicationContext.filesDir, HISTORY_FILE_NAME))
+    private var persistedHistorySize = 0
+    private var historyLoaded = false
+    private var initialInputText: String? = null
+    private val memoryStore = CalculatorMemoryStore(context)
+    private var memoryRowExpanded = false
 
     fun bind() {
         bindDigitButtons()
@@ -38,16 +47,79 @@ class CalculatorInputManager(
         binding.btnCalculatorMultiply.setOnClickListener { update { inputOperator("×") } }
         binding.btnCalculatorDivide.setOnClickListener { update { inputOperator("÷") } }
         binding.btnCalculatorEquals.setOnClickListener { update { inputEquals() } }
+        bindMemoryButtons()
         render()
+        loadPersistedHistory()
+        loadPersistedMemory()
     }
 
-    fun applyInitialInput(text: String?) {
-        val initialText = text?.trim().orEmpty()
-        if (initialText.isBlank() || !engine.canParseInput(initialText)) return
+    private fun bindMemoryButtons() {
+        binding.btnCalculatorMemoryAdd.setOnClickListener { update { memoryAdd() }.also { persistMemory() } }
+        binding.btnCalculatorMemorySubtract.setOnClickListener { update { memorySubtract() }.also { persistMemory() } }
+        binding.btnCalculatorMemoryRecall.setOnClickListener { update { memoryRecall() } }
+        binding.btnCalculatorMemoryClear.setOnClickListener { update { memoryClear() }.also { persistMemory() } }
+        binding.btnCalculatorMemoryToggle.setOnClickListener { toggleMemoryRow() }
+    }
 
-        engine.inputNumber(initialText)
-        hasReturnableResult = engine.error == null
-        render()
+    private fun loadPersistedMemory() {
+        Timber.d("S0331: calculator memory load on open")
+        thread(name = "CalculatorMemoryLoad") {
+            val stored = memoryStore.loadMemory()
+            val expanded = memoryStore.loadRowExpanded()
+            mainHandler.post {
+                stored?.toBigDecimalOrNull()?.let { engine.restoreMemory(it) }
+                memoryRowExpanded = expanded
+                applyMemoryRowState()
+                render()
+            }
+        }
+    }
+
+    private fun toggleMemoryRow() {
+        Timber.d("S0331: calculator memory row toggle")
+        memoryRowExpanded = !memoryRowExpanded
+        applyMemoryRowState()
+        val expanded = memoryRowExpanded
+        thread(name = "CalculatorMemoryRowState") { memoryStore.saveRowExpanded(expanded) }
+    }
+
+    private fun applyMemoryRowState() {
+        binding.calculatorMemoryRow.isVisible = memoryRowExpanded
+    }
+
+    private fun persistMemory() {
+        Timber.d("S0331: calculator memory persist")
+        val value = engine.memory.toPlainString()
+        thread(name = "CalculatorMemorySave") { memoryStore.saveMemory(value) }
+    }
+
+    private fun loadPersistedHistory() {
+        Timber.d("S0329: calculator history load on open")
+        thread(name = "CalculatorHistoryLoad") {
+            val entries = historyStore.load()
+            mainHandler.post {
+                engine.restoreHistory(entries)
+                persistedHistorySize = entries.size
+                historyLoaded = true
+                applyPendingInitialInput()
+                render()
+            }
+        }
+    }
+
+    // Called by the Activity right after bind(); the actual evaluation is deferred until persisted
+    // history has loaded, so a selection result is appended after the restored entries and persisted.
+    fun applyInitialInput(text: String?) {
+        initialInputText = text
+        if (historyLoaded) applyPendingInitialInput()
+    }
+
+    private fun applyPendingInitialInput() {
+        val initialText = initialInputText?.trim().orEmpty()
+        initialInputText = null
+        if (initialText.isBlank() || !engine.canParseInput(initialText)) return
+        Timber.d("S0329: calculator evaluate selected/pasted text")
+        update { inputNumber(initialText) }
     }
 
     fun currentResultOrNull(): String? =
@@ -84,11 +156,23 @@ class CalculatorInputManager(
         binding.calculatorDisplay.text = when (engine.error) {
             CalculatorEngine.CalculatorError.DIVISION_BY_ZERO ->
                 context.getString(R.string.calculator_error_division_by_zero)
+            CalculatorEngine.CalculatorError.MATH_DOMAIN ->
+                context.getString(R.string.calculator_error_math_domain)
             null -> engine.display
         }
         binding.calculatorHistory.text = buildVisibleHistory()
         binding.calculatorHistoryScroll.post {
             binding.calculatorHistoryScroll.fullScroll(View.FOCUS_DOWN)
+        }
+        renderMemoryIndicator()
+    }
+
+    private fun renderMemoryIndicator() {
+        val hasMemory = engine.memory.compareTo(java.math.BigDecimal.ZERO) != 0
+        binding.calculatorMemoryIndicator.isVisible = hasMemory
+        if (hasMemory) {
+            binding.calculatorMemoryIndicator.text =
+                context.getString(R.string.calculator_memory_indicator, engine.memoryDisplay)
         }
     }
 
@@ -109,40 +193,52 @@ class CalculatorInputManager(
             menu.add(0, MENU_COPY, 0, R.string.copy)
             menu.add(0, MENU_PASTE, 1, R.string.calculator_action_paste)
             menu.add(0, MENU_ROUND, 2, R.string.calculator_action_round)
-            menu.add(0, MENU_SHARE_RESULT, 3, R.string.calculator_action_share_result)
-            menu.add(0, MENU_SAVE_HISTORY, 4, R.string.calculator_action_save_history)
-            menu.add(0, MENU_CLEAR_HISTORY, 5, R.string.calculator_action_clear_history)
-            setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    MENU_COPY -> {
-                        copyDisplay()
-                        true
-                    }
-                    MENU_PASTE -> {
-                        pasteNumber()
-                        true
-                    }
-                    MENU_ROUND -> {
-                        update { roundDisplay() }
-                        true
-                    }
-                    MENU_SHARE_RESULT -> {
-                        shareResult()
-                        true
-                    }
-                    MENU_SAVE_HISTORY -> {
-                        saveHistory()
-                        true
-                    }
-                    MENU_CLEAR_HISTORY -> {
-                        clearHistory()
-                        true
-                    }
-                    else -> false
-                }
+            menu.addSubMenu(0, MENU_FUNCTION, 3, R.string.calculator_action_function).apply {
+                add(0, FN_SIN, 0, R.string.calculator_fn_sin)
+                add(0, FN_COS, 1, R.string.calculator_fn_cos)
+                add(0, FN_TAN, 2, R.string.calculator_fn_tan)
+                add(0, FN_COT, 3, R.string.calculator_fn_cot)
+                add(0, FN_SQRT, 4, R.string.calculator_fn_sqrt)
+                add(0, FN_CBRT, 5, R.string.calculator_fn_cbrt)
+                add(0, FN_SQUARE, 6, R.string.calculator_fn_square)
+                add(0, FN_POWER, 7, R.string.calculator_fn_power)
+                add(0, FN_RECIPROCAL, 8, R.string.calculator_fn_reciprocal)
+                add(0, FN_LOG10, 9, R.string.calculator_fn_log10)
+                add(0, FN_LN, 10, R.string.calculator_fn_ln)
+                add(0, FN_FACTORIAL, 11, R.string.calculator_fn_factorial)
+                add(0, FN_PI, 12, R.string.calculator_fn_pi)
+                add(0, FN_MOD, 13, R.string.calculator_fn_mod)
             }
+            menu.add(0, MENU_SHARE_RESULT, 4, R.string.calculator_action_share_result)
+            menu.add(0, MENU_SAVE_HISTORY, 5, R.string.calculator_action_save_history)
+            menu.add(0, MENU_CLEAR_HISTORY, 6, R.string.calculator_action_clear_history)
+            setOnMenuItemClickListener { item -> handleMenuItem(item.itemId) }
             show()
         }
+    }
+
+    private fun handleMenuItem(itemId: Int): Boolean = when (itemId) {
+        MENU_COPY -> { copyDisplay(); true }
+        MENU_PASTE -> { pasteNumber(); true }
+        MENU_ROUND -> { update { roundDisplay() }; true }
+        MENU_SHARE_RESULT -> { shareResult(); true }
+        MENU_SAVE_HISTORY -> { saveHistory(); true }
+        MENU_CLEAR_HISTORY -> { clearHistory(); true }
+        FN_SIN -> { update { sine() }; true }
+        FN_COS -> { update { cosine() }; true }
+        FN_TAN -> { update { tangent() }; true }
+        FN_COT -> { update { cotangent() }; true }
+        FN_SQRT -> { update { squareRoot() }; true }
+        FN_CBRT -> { update { cubeRoot() }; true }
+        FN_SQUARE -> { update { square() }; true }
+        FN_POWER -> { update { inputOperator("^") }; true }
+        FN_RECIPROCAL -> { update { reciprocal() }; true }
+        FN_LOG10 -> { update { log10() }; true }
+        FN_LN -> { update { naturalLog() }; true }
+        FN_FACTORIAL -> { update { factorial() }; true }
+        FN_PI -> { update { inputPi() }; true }
+        FN_MOD -> { update { inputOperator("mod") }; true }
+        else -> false
     }
 
     private fun copyDisplay() {
@@ -195,7 +291,10 @@ class CalculatorInputManager(
     }
 
     private fun clearHistory() {
+        Timber.d("S0329: calculator clear persistent history")
         engine.clearHistory()
+        persistedHistorySize = 0
+        thread(name = "CalculatorHistoryClear") { historyStore.clear() }
         render()
         Toast.makeText(context, R.string.calculator_history_cleared, Toast.LENGTH_SHORT).show()
     }
@@ -235,7 +334,22 @@ class CalculatorInputManager(
     private fun update(action: CalculatorEngine.() -> String) {
         engine.action()
         hasReturnableResult = engine.error == null
+        persistNewHistoryEntries()
         render()
+    }
+
+    private fun persistNewHistoryEntries() {
+        val history = engine.calculationHistory
+        if (history.size <= persistedHistorySize) {
+            if (history.size < persistedHistorySize) persistedHistorySize = history.size
+            return
+        }
+        val newEntries = history.subList(persistedHistorySize, history.size).toList()
+        persistedHistorySize = history.size
+        Timber.d("S0329: calculator persist history entry")
+        thread(name = "CalculatorHistoryAppend") {
+            newEntries.forEach { historyStore.append(it) }
+        }
     }
 
     private companion object {
@@ -245,6 +359,22 @@ class CalculatorInputManager(
         const val MENU_SHARE_RESULT = 4
         const val MENU_SAVE_HISTORY = 5
         const val MENU_CLEAR_HISTORY = 6
+        const val MENU_FUNCTION = 7
+        const val FN_SIN = 100
+        const val FN_COS = 101
+        const val FN_TAN = 102
+        const val FN_COT = 103
+        const val FN_SQRT = 104
+        const val FN_CBRT = 105
+        const val FN_SQUARE = 106
+        const val FN_POWER = 107
+        const val FN_RECIPROCAL = 108
+        const val FN_LOG10 = 109
+        const val FN_LN = 110
+        const val FN_FACTORIAL = 111
+        const val FN_PI = 112
+        const val FN_MOD = 113
         const val CLIP_LABEL = "calculator"
+        const val HISTORY_FILE_NAME = "calculator_history.txt"
     }
 }

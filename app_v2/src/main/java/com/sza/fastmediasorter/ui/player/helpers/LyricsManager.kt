@@ -8,7 +8,12 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -26,11 +31,24 @@ class LyricsManager(
     private val context: Context,
     private val binding: ActivityPlayerUnifiedBinding,
     private val lifecycleScope: LifecycleCoroutineScope,
+    private val settingsRepository: SettingsRepository,
     private val searchLyricsUseCase: SearchLyricsUseCase,
     private val getTranslationSessionSettings: () -> com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private var ttsManager: TtsReadAloudManager? = null
+    private val calculatorEnabledFlow = MutableStateFlow(false)
+
+    init {
+        lifecycleScope.launch {
+            settingsRepository.getSettings()
+                .map { it.enableCalculator }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    calculatorEnabledFlow.value = enabled
+                }
+        }
+    }
     
     /**
      * Search and display song lyrics for audio files.
@@ -172,7 +190,9 @@ class LyricsManager(
                     tv.text?.substring(minOf(start, end), maxOf(start, end)) ?: ""
                 },
                 onTranslate    = { },
-                onSearchGoogle = { },
+                onSearchGoogle = { openGoogleSearch(context, it) },
+                isCalculatorAvailable = { calculatorEnabledFlow.value },
+                onOpenCalculator = { openCalculatorForSelection(context, it) },
                 onReadAloud = { _ ->
                     ensureTtsManager().startReading(safeViews.tvLyricsContent.text.toString())
                 }

@@ -80,7 +80,7 @@ Gate features via `BuildConfig.*` fields - never with raw flavor name strings.
 
 1. After each file change, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
 2. After any new user-facing feature, update `docs/FEATURES.md`, `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md`.
-3. After any `strings.xml` key add/remove, run `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit code 1 = fix before commit).
+3. Edit strings via `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving), not by hand: `-Action set` updates one key in one locale; `-Action add -En -Ru -Uk` creates a key across EN/RU/UK in lockstep; `-Action get|remove|rename|list` cover lookup/lifecycle. Hand-edit only for `plurals`, `string-array`, comments, regrouping, bulk rewrites. After any key add/remove, run `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit code 1 = fix before commit).
 4. After **every** `.kt` change, run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot wrapper for scan + render in a single PowerShell process); for new classes fill `role` + `status` via `set.ps1`. Commit the updated `dev/CATALOG/<module>.jsonl` + `<module>.md` with the code change.
 5. On any spec status transition, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.
 

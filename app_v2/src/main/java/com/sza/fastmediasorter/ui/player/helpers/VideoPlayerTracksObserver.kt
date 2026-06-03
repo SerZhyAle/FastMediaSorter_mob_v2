@@ -40,7 +40,7 @@ internal class VideoPlayerTracksObserver(
             manager.managerScope.launch {
                 // MP4 spatial metadata can live in moov at EOF, so detection cannot block main.
                 val detected = withContext(Dispatchers.IO) {
-                    manager.stereoDetector.detectForVideo(detectionPath, videoFormat)
+                    manager.stereoDetector.detectForVideo(detectionPath, videoFormat, manager.stereoDetectionConfig)
                 }
                 if (detectionPath == manager.currentFilePath && detected != StereoMode.UNKNOWN) {
                     Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected path=$detectionPath")

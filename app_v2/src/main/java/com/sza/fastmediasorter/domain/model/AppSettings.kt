@@ -3,11 +3,22 @@ package com.sza.fastmediasorter.domain.model
 /**
  * Application settings model
  * Based on V2 Specification: Settings Screen
+ *
+ * Device-profile presets (S0327): every preset-able field here has a row in
+ * `app_v2/src/main/assets/device_profile_presets.csv`. When you ADD a field, add a matching CSV row
+ * (run `scripts/check_device_profile_presets.ps1` to verify, or `-AddMissing` to scaffold an empty
+ * row) and, if it should be applied, a `when` case in `DeviceProfilePresetApplier`. State/credential
+ * fields (e.g. defaultUser, lastUsedResourceId) intentionally have empty CSV rows and are never
+ * applied. See `dev/DEVICE_PROFILE_PRESET_MATRIX.md`.
  */
 data class AppSettings(
     // UI State settings (Persisted view modes)
     val isResourceGridMode: Boolean = false, // Resource list view mode (List/Grid)
     val resourceOpsInOverflowMenu: Boolean = false, // S0160: collapse resource action buttons into ⋮ overflow menu
+
+    // S0328: app color theme override. AUTO = follow device night-mode (default, no behavior change),
+    // LIGHT = force light, DARK = force dark. Applied at process start via AppCompatDelegate.
+    val colorTheme: String = "AUTO",
 
     // General settings
     val language: String = "en",
@@ -195,6 +206,19 @@ data class AppSettings(
     val panelStereoSingleEye: Boolean = true,
     val vrShowFps: Boolean = false,                  // Display diagnostic FPS counter in immersive HUD
     val playerShowFps: Boolean = false,              // S0021: Display diagnostic FPS counter over the flat (non-immersive) player
+
+    // S0326: Global 3D/VR default settings (Settings → Media → 3D/VR).
+    // Detection-source flags below are flavor-independent (flat stereo exists on every flavor);
+    // they configure StereoDetector and feed the global-default fallback slot in
+    // PlayerStereoModeCoordinator. Per-file override and a positive detection always win over these.
+    val stereoAutoDetectEnabled: Boolean = true,     // Master switch for automatic 3D/VR format recognition
+    val stereoTrustFilename: Boolean = true,         // Trust filename markers (_SBS, _TB, 180, 360, ..)
+    val stereoTrustMetadata: Boolean = true,         // Trust embedded metadata (MP4 st3d/sv3d, Matroska StereoMode, GPano/PhotoSphere XMP)
+    val stereoTrustAspectRatio: Boolean = false,     // Aspect-ratio heuristic — off by default (the false-positive source)
+    val stereoAmbiguityBestGuess: Boolean = false,   // On ambiguity: false → open as 2D, true → apply best guess
+    // Global default applied by the coordinator ONLY when detection returned UNKNOWN; MONO == plain 2D.
+    val stereoDefaultLayout: StereoMode = StereoMode.MONO,      // Flat-stereo default: MONO / SBS_FULL / OU
+    val stereoDefaultProjection: StereoMode = StereoMode.MONO,  // Projection default: MONO (flat) / EQUIRECT_180_MONO / EQUIRECT_360_MONO / CYLINDER_180
 
     // Playback resume on next launch: if true, app reopens last played file on cold start
     val resumeOnNextLaunch: Boolean = true,

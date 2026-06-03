@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,6 +30,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     companion object {
         private val KEY_LANGUAGE = stringPreferencesKey("language")
+        private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
         private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
@@ -196,6 +198,14 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_PANEL_STEREO_SINGLE_EYE = booleanPreferencesKey("panel_stereo_single_eye")
         private val KEY_VR_SHOW_FPS = booleanPreferencesKey("vr_show_fps")
         private val KEY_PLAYER_SHOW_FPS = booleanPreferencesKey("player_show_fps")
+        // S0326: global 3D/VR default settings (detection-source flags + UNKNOWN-fallback defaults)
+        private val KEY_STEREO_AUTO_DETECT_ENABLED = booleanPreferencesKey("stereo_auto_detect_enabled")
+        private val KEY_STEREO_TRUST_FILENAME = booleanPreferencesKey("stereo_trust_filename")
+        private val KEY_STEREO_TRUST_METADATA = booleanPreferencesKey("stereo_trust_metadata")
+        private val KEY_STEREO_TRUST_ASPECT_RATIO = booleanPreferencesKey("stereo_trust_aspect_ratio")
+        private val KEY_STEREO_AMBIGUITY_BEST_GUESS = booleanPreferencesKey("stereo_ambiguity_best_guess")
+        private val KEY_STEREO_DEFAULT_LAYOUT = stringPreferencesKey("stereo_default_layout")
+        private val KEY_STEREO_DEFAULT_PROJECTION = stringPreferencesKey("stereo_default_projection")
 
         // S0028: Multi-window mode
         private val KEY_ALLOW_SEPARATE_WINDOW = booleanPreferencesKey("allow_separate_window")
@@ -227,7 +237,6 @@ class SettingsRepositoryImpl @Inject constructor(
         runCatching {
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
             val fresh = info.firstInstallTime == info.lastUpdateTime
-            Timber.d("S0253: install discriminator firstInstall=${info.firstInstallTime} lastUpdate=${info.lastUpdateTime} fresh=$fresh")
             fresh
         }.getOrDefault(false)
     }
@@ -262,6 +271,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 
                 AppSettings(
                     language = language,
+                    colorTheme = preferences[KEY_COLOR_THEME] ?: "AUTO",
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
@@ -412,6 +422,20 @@ class SettingsRepositoryImpl @Inject constructor(
                     panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
                     vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
+                    // S0326: global 3D/VR default settings. Layout/projection fall back to MONO (plain 2D).
+                    stereoAutoDetectEnabled = preferences[KEY_STEREO_AUTO_DETECT_ENABLED] ?: true,
+                    stereoTrustFilename = preferences[KEY_STEREO_TRUST_FILENAME] ?: true,
+                    stereoTrustMetadata = preferences[KEY_STEREO_TRUST_METADATA] ?: true,
+                    stereoTrustAspectRatio = preferences[KEY_STEREO_TRUST_ASPECT_RATIO] ?: false,
+                    stereoAmbiguityBestGuess = preferences[KEY_STEREO_AMBIGUITY_BEST_GUESS] ?: false,
+                    stereoDefaultLayout = preferences[KEY_STEREO_DEFAULT_LAYOUT]
+                        ?.let { StereoMode.fromKey(it) }
+                        ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
+                        ?: StereoMode.MONO,
+                    stereoDefaultProjection = preferences[KEY_STEREO_DEFAULT_PROJECTION]
+                        ?.let { StereoMode.fromKey(it) }
+                        ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
+                        ?: StereoMode.MONO,
 
                     // Default true: resumes playback on fresh installs and on update from old versions
                     // (absent key → null → default true, matching the user's existing behaviour)
@@ -462,6 +486,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
         dataStore.edit { preferences ->
             preferences[KEY_LANGUAGE] = settings.language
+            preferences[KEY_COLOR_THEME] = settings.colorTheme
             preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
             preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
@@ -608,6 +633,14 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
             preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
             preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
+            // S0326: global 3D/VR default settings
+            preferences[KEY_STEREO_AUTO_DETECT_ENABLED] = settings.stereoAutoDetectEnabled
+            preferences[KEY_STEREO_TRUST_FILENAME] = settings.stereoTrustFilename
+            preferences[KEY_STEREO_TRUST_METADATA] = settings.stereoTrustMetadata
+            preferences[KEY_STEREO_TRUST_ASPECT_RATIO] = settings.stereoTrustAspectRatio
+            preferences[KEY_STEREO_AMBIGUITY_BEST_GUESS] = settings.stereoAmbiguityBestGuess
+            preferences[KEY_STEREO_DEFAULT_LAYOUT] = settings.stereoDefaultLayout.name
+            preferences[KEY_STEREO_DEFAULT_PROJECTION] = settings.stereoDefaultProjection.name
 
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
             // S0050: Black Screen button (opt-in)

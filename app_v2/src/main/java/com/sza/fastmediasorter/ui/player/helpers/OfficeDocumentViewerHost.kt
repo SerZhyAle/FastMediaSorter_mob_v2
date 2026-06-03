@@ -48,11 +48,18 @@ interface OfficeDocumentViewerHost {
      */
     fun extractPlainText(): String?
 
+    /**
+     * Return a floating text-selection ActionMode callback for the active WebView, or null when
+     * the host has no selectable in-app document surface.
+     */
+    fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback?
+
     /** UI callbacks routed back to the hosting player (errors, fullscreen transitions). */
     interface Callback {
         fun showError(message: String)
         fun onEnterFullscreenMode()
         fun onExitFullscreenMode()
+        fun onTranslateSelection(text: String) {}
 
         /**
          * The engine could not render [mediaFile] internally (legacy binary format or a parse
@@ -77,4 +84,5 @@ object NoOpOfficeDocumentViewerHost : OfficeDocumentViewerHost {
     override fun release() {}
     override fun print(): Boolean = false
     override fun extractPlainText(): String? = null
+    override fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback? = null
 }

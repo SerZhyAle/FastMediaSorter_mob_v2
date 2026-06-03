@@ -1,9 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
-import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -15,9 +16,11 @@ import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Locale
 
 /**
  * Manages translation button setup and configuration for PlayerActivity.
@@ -189,31 +192,52 @@ class TranslationButtonManager(
         lifecycleOwner.lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             
-            // Build language lists dynamically based on interface language
             val interfaceLang = settings.language
-            val sourceLanguages = TranslationManager.buildSourceLanguageList(interfaceLang)
-            val targetLanguages = TranslationManager.buildTargetLanguageList(interfaceLang)
-            
-            val sourceLanguageNames = sourceLanguages.map { it.first }.toTypedArray()
-            val targetLanguageNames = targetLanguages.map { it.first }.toTypedArray()
-            
-            val spinnerSource = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerSourceLanguage)
-            val spinnerTarget = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerTargetLanguage)
+            var selectedSourceLang = settings.translationSourceLanguage
+            var selectedTargetLang = settings.translationTargetLanguage
+
+            val sourceLanguageCodes = TranslationLanguageCatalog.buildSourceLanguageList(interfaceLang).map { it.code }.toSet()
+            val targetLanguageCodes = TranslationLanguageCatalog.buildTargetLanguageList(interfaceLang).map { it.code }.toSet()
+
+            val sourceLanguageView = dialogView.findViewById<TextView>(R.id.spinnerSourceLanguage)
+            val targetLanguageView = dialogView.findViewById<TextView>(R.id.spinnerTargetLanguage)
             val btnSwapLanguages = dialogView.findViewById<android.widget.ImageButton>(R.id.btnSwapLanguages)
             val switchLensStyle = dialogView.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.switchLensStyle)
             val spinnerFontSize = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerFontSize)
             val spinnerFontFamily = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerFontFamily)
             val btnOk = dialogView.findViewById<android.widget.Button>(R.id.btnOk)
             val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnCancel)
-            
-            // Setup language adapters
-            val sourceAdapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, sourceLanguageNames)
-            sourceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerSource.adapter = sourceAdapter
-            
-            val targetAdapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, targetLanguageNames)
-            targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerTarget.adapter = targetAdapter
+
+            fun updateLanguageViews() {
+                sourceLanguageView.text = formatLanguageLabel(selectedSourceLang, interfaceLang)
+                targetLanguageView.text = formatLanguageLabel(selectedTargetLang, interfaceLang)
+                sourceLanguageView.contentDescription =
+                    "${context.getString(R.string.translation_source_language_and_ocr)}: ${sourceLanguageView.text}"
+                targetLanguageView.contentDescription =
+                    "${context.getString(R.string.translation_target_language)}: ${targetLanguageView.text}"
+            }
+
+            sourceLanguageView.setOnClickListener {
+                showLanguagePicker(
+                    selectedCode = selectedSourceLang,
+                    mode = SearchableLanguagePickerDialog.Mode.SOURCE,
+                    interfaceLanguage = interfaceLang
+                ) { language ->
+                    selectedSourceLang = language.code
+                    updateLanguageViews()
+                }
+            }
+
+            targetLanguageView.setOnClickListener {
+                showLanguagePicker(
+                    selectedCode = selectedTargetLang,
+                    mode = SearchableLanguagePickerDialog.Mode.TARGET,
+                    interfaceLanguage = interfaceLang
+                ) { language ->
+                    selectedTargetLang = language.code
+                    updateLanguageViews()
+                }
+            }
             
             // Setup font size adapter
             val fontSizeOptions = TranslationFontSize.values()
@@ -229,11 +253,7 @@ class TranslationButtonManager(
             fontFamilyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerFontFamily.adapter = fontFamilyAdapter
             
-            // Set current values
-            val sourceIndex = sourceLanguages.indexOfFirst { it.second == settings.translationSourceLanguage }.coerceAtLeast(0)
-            val targetIndex = targetLanguages.indexOfFirst { it.second == settings.translationTargetLanguage }.coerceAtLeast(0)
-            spinnerSource.setSelection(sourceIndex)
-            spinnerTarget.setSelection(targetIndex)
+            updateLanguageViews()
             switchLensStyle.isChecked = settings.translationLensStyle
             
             // Load font settings from repository (not session) for persistence across app restarts
@@ -254,22 +274,15 @@ class TranslationButtonManager(
             
             // Swap languages button
             btnSwapLanguages.setOnClickListener {
-                val currentSourcePos = spinnerSource.selectedItemPosition
-                val currentTargetPos = spinnerTarget.selectedItemPosition
-                
-                // Get current language codes
-                val currentSourceLang = sourceLanguages[currentSourcePos].second
-                val currentTargetLang = targetLanguages[currentTargetPos].second
-                
-                // Find new positions (source becomes target, target becomes source)
-                // Note: source list has "auto" option, target doesn't - handle gracefully
-                val newSourcePos = sourceLanguages.indexOfFirst { it.second == currentTargetLang }.coerceAtLeast(0)
-                val newTargetPos = targetLanguages.indexOfFirst { it.second == currentSourceLang }
-                
-                // Only swap if target language exists in source list
-                if (newTargetPos >= 0) {
-                    spinnerSource.setSelection(newSourcePos)
-                    spinnerTarget.setSelection(newTargetPos)
+                if (
+                    selectedSourceLang != "auto" &&
+                    selectedSourceLang in targetLanguageCodes &&
+                    selectedTargetLang in sourceLanguageCodes
+                ) {
+                    val oldSource = selectedSourceLang
+                    selectedSourceLang = selectedTargetLang
+                    selectedTargetLang = oldSource
+                    updateLanguageViews()
                 }
             }
             
@@ -279,8 +292,6 @@ class TranslationButtonManager(
             }
             
             btnOk.setOnClickListener {
-                val newSourceLang = sourceLanguages[spinnerSource.selectedItemPosition].second
-                val newTargetLang = targetLanguages[spinnerTarget.selectedItemPosition].second
                 val newLensStyle = switchLensStyle.isChecked
                 val newFontSize = fontSizeOptions[spinnerFontSize.selectedItemPosition]
                 val newFontFamily = fontFamilyOptions[spinnerFontFamily.selectedItemPosition]
@@ -288,8 +299,8 @@ class TranslationButtonManager(
                 // Save all settings to repository (including font settings for persistence)
                 lifecycleOwner.lifecycleScope.launch {
                     val updatedSettings = settings.copy(
-                        translationSourceLanguage = newSourceLang,
-                        translationTargetLanguage = newTargetLang,
+                        translationSourceLanguage = selectedSourceLang,
+                        translationTargetLanguage = selectedTargetLang,
                         translationLensStyle = newLensStyle,
                         enableTranslation = true, // Ensure translation is enabled
                         ocrDefaultFontSize = newFontSize.name, // Save font size to repository
@@ -345,6 +356,34 @@ class TranslationButtonManager(
             
             dialog.show()
         }
+    }
+
+    private fun showLanguagePicker(
+        selectedCode: String,
+        mode: SearchableLanguagePickerDialog.Mode,
+        interfaceLanguage: String,
+        onSelected: (LanguageItem) -> Unit
+    ) {
+        val fragmentActivity = context as? FragmentActivity
+        if (fragmentActivity == null) {
+            Timber.w("TranslationButtonManager: Cannot show language picker without FragmentActivity context")
+            return
+        }
+        val tag = "${SearchableLanguagePickerDialog.TAG}_player_${mode.name}"
+        if (fragmentActivity.supportFragmentManager.findFragmentByTag(tag) != null) return
+        SearchableLanguagePickerDialog.newInstance(
+            selectedCode = selectedCode,
+            mode = mode,
+            interfaceLanguage = interfaceLanguage,
+            onLanguageSelected = onSelected
+        ).show(fragmentActivity.supportFragmentManager, tag)
+    }
+
+    private fun formatLanguageLabel(code: String, interfaceLanguage: String): String {
+        val displayLocale = Locale.forLanguageTag(interfaceLanguage)
+        val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
+            ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
+        return item?.let(TranslationLanguageCatalog::formatLanguage) ?: code.uppercase(Locale.ROOT)
     }
     
     /**

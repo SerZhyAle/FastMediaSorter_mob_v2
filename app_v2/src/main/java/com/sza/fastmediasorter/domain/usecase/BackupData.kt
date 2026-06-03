@@ -159,6 +159,14 @@ data class BackupSettings(
     val vrAutoImmersive: Boolean? = null,
     // Global VR kill-switch (spec §3.0.2); nullable for forward-compat with older backup files
     val disable3dVr: Boolean? = null,
+    // S0326: global 3D/VR default settings; nullable for forward-compat with older backup files
+    val stereoAutoDetectEnabled: Boolean? = null,
+    val stereoTrustFilename: Boolean? = null,
+    val stereoTrustMetadata: Boolean? = null,
+    val stereoTrustAspectRatio: Boolean? = null,
+    val stereoAmbiguityBestGuess: Boolean? = null,
+    val stereoDefaultLayout: String? = null,
+    val stereoDefaultProjection: String? = null,
     // Deprecated since S0251 - kept only so old JSON backups still deserialize.
     val vrForcedFormat: String? = null
 )

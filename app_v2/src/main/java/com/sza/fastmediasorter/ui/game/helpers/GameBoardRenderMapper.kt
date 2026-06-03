@@ -32,12 +32,23 @@ class GameBoardRenderMapper {
         }
 
         val player = levelState.player.position
+        val exitHighlights = board.exitPositions().map { position ->
+            GameBoardHighlightCell(position.row, position.col)
+        }
+        val startHighlights = (exitHighlights + GameBoardHighlightCell(player.row, player.col)).distinct()
         return GameBoardRenderState(
             boardWidth = board.width,
             boardHeight = board.height,
             levelNumber = ready.levelNumber,
             isLargeBoard = ready.customBoard && (board.width > LARGE_BOARD_SIZE || board.height > LARGE_BOARD_SIZE),
             cells = cells,
+            playerRow = player.row,
+            playerColumn = player.col,
+            startHighlights = startHighlights,
+            introHighlightKey = listOf(
+                ready.levelNumber,
+                levelState.config.seed
+            ).hashCode(),
             defeatConnection = ready.defeatConnection?.let { connection ->
                 GameBoardDefeatConnection(
                     playerRow = connection.playerPosition.row,
@@ -77,8 +88,17 @@ data class GameBoardRenderState(
     val levelNumber: Int,
     val isLargeBoard: Boolean,
     val cells: List<GameBoardRenderCell>,
+    val playerRow: Int,
+    val playerColumn: Int,
+    val startHighlights: List<GameBoardHighlightCell>,
+    val introHighlightKey: Int,
     val defeatConnection: GameBoardDefeatConnection?,
     val contentDescription: String
+)
+
+data class GameBoardHighlightCell(
+    val row: Int,
+    val column: Int
 )
 
 data class GameBoardDefeatConnection(

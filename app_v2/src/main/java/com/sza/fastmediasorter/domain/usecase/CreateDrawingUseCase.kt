@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
@@ -103,7 +102,6 @@ class CreateDrawingUseCase @Inject constructor(
             location = LocalStagingRegistry.Location.LOCAL_DEFERRED,
         )
 
-        Timber.d("S0191: CreateDrawingUseCase created local blank drawing %s", targetFile.absolutePath)
         return targetFile
     }
 
@@ -127,7 +125,6 @@ class CreateDrawingUseCase @Inject constructor(
             location = LocalStagingRegistry.Location.NETWORK_STAGED,
         )
 
-        Timber.d("S0191: CreateDrawingUseCase created staged blank drawing %s -> %s", stagingFile.absolutePath, parentPath)
         return stagingFile
     }
 

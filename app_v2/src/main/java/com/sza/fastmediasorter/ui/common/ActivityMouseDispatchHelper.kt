@@ -24,6 +24,9 @@ class ActivityMouseDispatchHelper(
 ) {
 
     private val mouseHandler = MouseEventHandler(
+        // Activity-level helper owns only secondary buttons, wheel and hover. The primary (left)
+        // click must pass through to the view under the cursor, so it is never consumed here.
+        consumePrimaryClick = false,
         callbacks = object : MouseEventHandler.MouseEventCallbacks {
             override fun onRightClick(view: View, x: Float, y: Float) {
                 resolveInteractionTarget()?.let { onContextClick(it, x, y) }
@@ -78,6 +81,19 @@ class ActivityMouseDispatchHelper(
         val focused = focusedViewProvider()
         if (focused != null && isScrollable(focused)) return focused
 
+        // No explicit target and the focused view itself does not scroll: walk up the focused
+        // view's ancestor chain to the nearest scrollable container (ScrollView / NestedScrollView /
+        // RecyclerView). Without this, a mouse-only user on a long form cannot wheel-scroll to a
+        // field or the Save button when focus sits on a non-scrollable child. S0289.
+        return focused?.let { findScrollableAncestor(it) }
+    }
+
+    private fun findScrollableAncestor(start: View): View? {
+        var parent = start.parent
+        while (parent is View) {
+            if (isScrollable(parent)) return parent
+            parent = parent.parent
+        }
         return null
     }
 

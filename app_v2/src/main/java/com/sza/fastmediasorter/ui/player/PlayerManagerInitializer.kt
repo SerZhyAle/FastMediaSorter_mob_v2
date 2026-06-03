@@ -507,6 +507,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             context = activity,
             binding = activity.activityBinding,
             lifecycleScope = activity.lifecycleScope,
+            settingsRepository = activity.settingsRepository,
             searchLyricsUseCase = activity.searchLyricsUseCase,
             getTranslationSessionSettings = { activity.translationSessionSettings }
         )

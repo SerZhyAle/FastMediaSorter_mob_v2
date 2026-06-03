@@ -35,13 +35,25 @@ class MouseEventHandler(
     private val keyBindingManager: KeyBindingManager?,
     private val surface: DomainInputSurface = DomainInputSurface.PLAYER,
     private val callbacks: MouseEventCallbacks,
+    /**
+     * When false, the primary (left) click is NOT consumed: [handleMouseUp] returns false so the
+     * event keeps propagating to the view under the cursor for normal click handling. Activity-level
+     * dispatch (see [ActivityMouseDispatchHelper]) sets this false - it only owns secondary buttons,
+     * wheel and hover; stealing the left click there breaks click delivery to every control. Surfaces
+     * that genuinely want a left-click action (player tap-to-toggle, etc.) keep the default true.
+     */
+    private val consumePrimaryClick: Boolean = true,
 ) {
 
     /** Legacy constructor for callers that have not yet migrated to the resolver path. */
-    constructor(callbacks: MouseEventCallbacks) : this(
+    constructor(
+        callbacks: MouseEventCallbacks,
+        consumePrimaryClick: Boolean = true,
+    ) : this(
         keyBindingManager = null,
         surface = DomainInputSurface.PLAYER,
         callbacks = callbacks,
+        consumePrimaryClick = consumePrimaryClick,
     )
 
     interface MouseEventCallbacks {
@@ -153,6 +165,13 @@ class MouseEventHandler(
         val released = event.actionButton
         if (released != 0 && released != MotionEvent.BUTTON_PRIMARY) return false
         if (released == 0 && event.buttonState != 0) return false
+        // Activity-level dispatch must not steal the primary (left) click from the view under the
+        // cursor - consuming the UP here stops super.dispatchTouchEvent and breaks click delivery to
+        // buttons, dropdowns and every other control. Only surfaces that opt in consume the click.
+        if (!consumePrimaryClick) {
+            Timber.d("S0333: mouse primary click passthrough")
+            return false
+        }
         val now = System.currentTimeMillis()
         val since = now - lastClickTime
         val sameView = lastClickView == view

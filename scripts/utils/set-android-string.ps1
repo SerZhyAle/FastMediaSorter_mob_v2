@@ -1,57 +1,90 @@
 <#
 .SYNOPSIS
-    Updates a single Android <string> resource by key for one locale.
+    Surgical editor for Android <string> resources: set / add / get / remove / rename / list.
 
 .DESCRIPTION
-    Safe targeted editor for values/strings.xml, values-ru/strings.xml, or values-uk/strings.xml.
-    Preserves the surrounding file text, supports an ExpectedOldValue guard, and can append
-    a missing key before </resources> when -CreateIfMissing is supplied.
+    Safe text-surgical tool for values/strings.xml, values-ru/strings.xml, values-uk/strings.xml and
+    their thematic split files (strings_*.xml). Preserves surrounding file text, escaping, comments,
+    BOM, and line endings - it never reserializes the file through [xml].
+
+    Actions (-Action, default 'set' for backward compatibility):
+      set    - update one key's value in ONE locale (-Locale -Key -Value). Original behavior.
+               Supports -ExpectedOldValue guard and -CreateIfMissing upsert. Operates on strings.xml.
+      add    - create a new key in ALL THREE locales in lockstep (-Key -En -Ru -Uk [-File]).
+               Fails if the key already exists in any strings*.xml of any locale.
+      get    - print one key's value across EN/RU/UK (scans all strings*.xml). Exit 1 if missing anywhere.
+      remove - delete one key from every locale (scans all strings*.xml). Reports .kt/@string references.
+      rename - rename one key across every locale (-Key -NewKey). Reports .kt/@string references.
+      list   - list strings*.xml files per locale with their string counts.
+
+    Locale parity: add/get/remove/rename always work on EN (values), RU (values-ru), UK (values-uk)
+    together. set is single-locale by design (per-locale tone fixes).
+
+.PARAMETER Action
+    set | add | get | remove | rename | list (default: set).
 
 .PARAMETER Module
-    Module path relative to repo root, for example: app_v2, wear, or temp\string_tool_test.
+    Module path relative to repo root, e.g. app_v2, wear.
 
 .PARAMETER Locale
-    Target locale file: en -> values, ru -> values-ru, uk -> values-uk.
+    Target locale for 'set': en -> values, ru -> values-ru, uk -> values-uk.
 
 .PARAMETER Key
     Android string resource key.
 
 .PARAMETER Value
-    New string body. Pass the intended Android string text.
+    New string body for 'set'. Raw Android string text.
+
+.PARAMETER En / -Ru / -Uk
+    Raw (unescaped) per-locale values for 'add'. All three required - parity is mandatory.
+
+.PARAMETER NewKey
+    New key name for 'rename'.
+
+.PARAMETER File
+    Target strings file basename for 'add' (default strings.xml).
 
 .PARAMETER ExpectedOldValue
-    Optional safety guard. If provided and the current decoded value differs, the script aborts.
+    'set' safety guard. If the current decoded value differs, the script aborts.
 
 .PARAMETER CreateIfMissing
-    Appends a new <string> entry before </resources> if the key does not exist.
+    'set' only. Appends a new <string> before </resources> if the key does not exist.
 
 .PARAMETER DryRun
-    Prints the planned change without writing the file.
+    Prints the planned change without writing.
 
 .EXAMPLE
-    pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
+    pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
 
 .EXAMPLE
-    pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale ru -Key "cloud_check_failed" -ExpectedOldValue "Не удалось проверить подключение к облаку. Повторите попытку." -Value "Не удалось проверить подключение к облаку. Попробуйте ещё раз."
+    pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action add -Key foo_title -En "Foo" -Ru "Фу" -Uk "Фу" -DryRun
 
 .EXAMPLE
-    pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale uk -Key "new_key" -Value "New string value" -CreateIfMissing
+    pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action get -Key app_name
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action rename -Key old_key -NewKey new_key
 #>
 [CmdletBinding()]
 param(
-    [string]$Module = "app_v2",
+    [ValidateSet('set', 'add', 'get', 'remove', 'rename', 'list')]
+    [string]$Action = 'set',
 
-    [Parameter(Mandatory)]
+    [string]$Module = 'app_v2',
+
     [ValidateSet('en', 'ru', 'uk')]
     [string]$Locale,
 
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [string]$Key,
 
-    [Parameter(Mandatory)]
     [AllowEmptyString()]
     [string]$Value,
+
+    [string]$En,
+    [string]$Ru,
+    [string]$Uk,
+    [string]$NewKey,
+    [string]$File = 'strings.xml',
 
     [string]$ExpectedOldValue,
     [switch]$CreateIfMissing,
@@ -61,134 +94,270 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-if ($Key -notmatch '^[A-Za-z0-9_.]+$') {
-    throw "Invalid Android string key '$Key'. Use letters, digits, underscore, or dot only."
-}
+# Capture at script scope: $PSBoundParameters inside a function refers to the function, not the script.
+$valueBound = $PSBoundParameters.ContainsKey('Value')
+$expectedOldBound = $PSBoundParameters.ContainsKey('ExpectedOldValue')
 
 $repoRoot = Split-Path -Parent $PSScriptRoot | Split-Path -Parent
-$localeDirByTag = @{
-    en = 'values'
-    ru = 'values-ru'
-    uk = 'values-uk'
+$resDir = Join-Path $repoRoot (Join-Path $Module 'src/main/res')
+if (-not (Test-Path $resDir)) {
+    throw "Resource dir not found for module '$Module': $resDir"
 }
 
-$filePath = Join-Path $repoRoot (Join-Path $Module "src/main/res/$($localeDirByTag[$Locale])/strings.xml")
-if (-not (Test-Path $filePath)) {
-    throw "strings.xml not found for module '$Module' locale '$Locale': $filePath"
+$locales = @(
+    @{ Tag = 'EN'; Dir = 'values';    Value = $En },
+    @{ Tag = 'RU'; Dir = 'values-ru'; Value = $Ru },
+    @{ Tag = 'UK'; Dir = 'values-uk'; Value = $Uk }
+)
+$localeDirByTag = @{ en = 'values'; ru = 'values-ru'; uk = 'values-uk' }
+
+function Test-KeySyntax([string]$k) {
+    if ($k -notmatch '^[A-Za-z0-9_.]+$') {
+        throw "Invalid Android string key '$k'. Use letters, digits, underscore, or dot only."
+    }
 }
 
-function Get-FileEncodingForWrite {
-    param([Parameter(Mandatory)][string]$Path)
-
+function Get-FileEncodingForWrite([string]$Path) {
     $bytes = [System.IO.File]::ReadAllBytes($Path)
-    $hasBom =
-    $bytes.Length -ge 3 -and
-    $bytes[0] -eq 0xEF -and
-    $bytes[1] -eq 0xBB -and
-    $bytes[2] -eq 0xBF
-
+    $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
     return [System.Text.UTF8Encoding]::new($hasBom)
 }
 
-function ConvertTo-XmlText {
-    param([AllowEmptyString()][string]$Text)
-
+function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
     $escaped = [System.Security.SecurityElement]::Escape($Text)
-    if ($null -eq $escaped) {
-        return ''
-    }
-
+    if ($null -eq $escaped) { return '' }
     return $escaped.Replace('&apos;', "\'")
 }
 
-function ConvertFrom-XmlText {
-    param([AllowEmptyString()][string]$Text)
-
+function ConvertFrom-XmlText([AllowEmptyString()][string]$Text) {
     return ([System.Net.WebUtility]::HtmlDecode($Text)).Replace("\'", "'")
 }
 
-$content = [System.IO.File]::ReadAllText($filePath)
-$newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
-$keyRegex = [regex]::Escape($Key)
-$pattern = '<string\b(?=[^>]*\bname\s*=\s*"' + $keyRegex + '")(?:[^>]*)>(?<value>.*?)</string>'
-$stringEntries = @()
-$currentEntry = [regex]::Match($content, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-while ($currentEntry.Success) {
-    $stringEntries += $currentEntry
-    $currentEntry = $currentEntry.NextMatch()
+function Get-LocaleDir([string]$dir) { Join-Path $resDir $dir }
+
+function Get-StringFiles([string]$dir) {
+    if (-not (Test-Path $dir)) { return @() }
+    Get-ChildItem -Path $dir -Filter 'strings*.xml' -File | Sort-Object Name
 }
 
-if ($stringEntries.Count -gt 1) {
-    throw "Key '$Key' appears $($stringEntries.Count) times in $filePath. Refuse to guess which entry to update."
+function Save-File([string]$path, [string]$content) {
+    $encoding = Get-FileEncodingForWrite -Path $path
+    [System.IO.File]::WriteAllText($path, $content, $encoding)
 }
 
-$escapedValue = ConvertTo-XmlText $Value
-$updatedContent = $content
-$action = ''
-$oldDecodedValue = $null
-
-if ($stringEntries.Count -eq 1) {
-    $match = $stringEntries[0]
-    $currentRawValue = $match.Groups['value'].Value
-    $oldDecodedValue = ConvertFrom-XmlText $currentRawValue
-
-    if ($PSBoundParameters.ContainsKey('ExpectedOldValue') -and $oldDecodedValue -ne $ExpectedOldValue) {
-        throw "ExpectedOldValue mismatch for key '$Key' in $filePath.`nExpected: $ExpectedOldValue`nActual:   $oldDecodedValue"
+# Returns @{ File=<FileInfo>; Raw=<raw inner xml> } for the first strings*.xml containing key, else $null.
+function Find-Key([string]$dir, [string]$key) {
+    $esc = [regex]::Escape($key)
+    $rx = '<string\b(?=[^>]*\bname\s*=\s*"' + $esc + '")(?:[^>]*)>(?<value>.*?)</string>'
+    foreach ($f in Get-StringFiles $dir) {
+        $content = [System.IO.File]::ReadAllText($f.FullName)
+        $m = [regex]::Match($content, $rx, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        if ($m.Success) { return @{ File = $f; Raw = $m.Groups['value'].Value } }
     }
-
-    $tagText = $match.Value
-    $openTagEnd = $tagText.IndexOf('>')
-    $closeTagStart = $tagText.LastIndexOf('</string>', [System.StringComparison]::Ordinal)
-    if ($openTagEnd -lt 0 -or $closeTagStart -lt 0) {
-        throw "Could not rewrite key '$Key' in $filePath."
-    }
-
-    $newTagText = $tagText.Substring(0, $openTagEnd + 1) + $escapedValue + $tagText.Substring($closeTagStart)
-    $updatedContent = $content.Substring(0, $match.Index) + $newTagText + $content.Substring($match.Index + $match.Length)
-    $action = 'update'
-}
-else {
-    if (-not $CreateIfMissing) {
-        throw "Key '$Key' not found in $filePath. Use -CreateIfMissing to append it."
-    }
-
-    if ($PSBoundParameters.ContainsKey('ExpectedOldValue')) {
-        throw "ExpectedOldValue cannot be used together with -CreateIfMissing for a missing key."
-    }
-
-    $closingTag = '</resources>'
-    $closingIndex = $content.LastIndexOf($closingTag, [System.StringComparison]::Ordinal)
-    if ($closingIndex -lt 0) {
-        throw "Could not find </resources> in $filePath."
-    }
-
-    $prefix = $content.Substring(0, $closingIndex)
-    $separator = if ($prefix.EndsWith("`n") -or $prefix.EndsWith("`r")) { '' } else { $newline }
-    $newEntry = '    <string name="' + $Key + '">' + $escapedValue + '</string>' + $newline
-
-    $updatedContent = $prefix + $separator + $newEntry + $content.Substring($closingIndex)
-    $action = 'create'
+    return $null
 }
 
-if ($updatedContent -eq $content) {
-    Write-Host "[no change] ${Locale}:$Key in $filePath already matches the requested value." -ForegroundColor Yellow
-    exit 0
+function Report-References([string]$key) {
+    Write-Host ''
+    Write-Host "Code references to '$key' (NOT modified - handle manually):" -ForegroundColor Yellow
+    $srcRoot = Join-Path $resDir '..'
+    $patterns = @(
+        @{ Glob = '*.kt';   Pat = "R\.string\.$([regex]::Escape($key))\b" },
+        @{ Glob = '*.java'; Pat = "R\.string\.$([regex]::Escape($key))\b" },
+        @{ Glob = '*.xml';  Pat = "@string/$([regex]::Escape($key))\b" }
+    )
+    $found = 0
+    foreach ($p in $patterns) {
+        $hits = Get-ChildItem -Path $srcRoot -Recurse -Filter $p.Glob -File -ErrorAction SilentlyContinue |
+            Select-String -Pattern $p.Pat -Encoding UTF8 -ErrorAction SilentlyContinue
+        foreach ($h in $hits) { $found++; Write-Host ("  {0}:{1}" -f $h.Path, $h.LineNumber) -ForegroundColor DarkYellow }
+    }
+    if ($found -eq 0) { Write-Host '  none' -ForegroundColor DarkGray }
 }
 
-if ($DryRun) {
-    Write-Host "[dry-run] $action ${Locale}:$Key in $filePath" -ForegroundColor Cyan
-    if ($null -ne $oldDecodedValue) {
-        Write-Host "Old: $oldDecodedValue" -ForegroundColor DarkGray
+# ----- single-locale set (original behavior, byte-for-byte compatible) -----
+function Invoke-Set {
+    if (-not $Locale) { throw "set requires -Locale en|ru|uk." }
+    if (-not $Key) { throw "set requires -Key." }
+    if (-not $valueBound) { throw "set requires -Value." }
+    Test-KeySyntax $Key
+
+    $filePath = Join-Path $resDir (Join-Path $localeDirByTag[$Locale] 'strings.xml')
+    if (-not (Test-Path $filePath)) { throw "strings.xml not found for module '$Module' locale '$Locale': $filePath" }
+
+    $content = [System.IO.File]::ReadAllText($filePath)
+    $newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
+    $keyRegex = [regex]::Escape($Key)
+    $pattern = '<string\b(?=[^>]*\bname\s*=\s*"' + $keyRegex + '")(?:[^>]*)>(?<value>.*?)</string>'
+
+    $stringEntries = @()
+    $currentEntry = [regex]::Match($content, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    while ($currentEntry.Success) { $stringEntries += $currentEntry; $currentEntry = $currentEntry.NextMatch() }
+    if ($stringEntries.Count -gt 1) {
+        throw "Key '$Key' appears $($stringEntries.Count) times in $filePath. Refuse to guess which entry to update."
     }
+
+    $escapedValue = ConvertTo-XmlText $Value
+    $updatedContent = $content
+    $action = ''
+    $oldDecodedValue = $null
+
+    if ($stringEntries.Count -eq 1) {
+        $match = $stringEntries[0]
+        $oldDecodedValue = ConvertFrom-XmlText $match.Groups['value'].Value
+        if ($expectedOldBound -and $oldDecodedValue -ne $ExpectedOldValue) {
+            throw "ExpectedOldValue mismatch for key '$Key' in $filePath.`nExpected: $ExpectedOldValue`nActual:   $oldDecodedValue"
+        }
+        $tagText = $match.Value
+        $openTagEnd = $tagText.IndexOf('>')
+        $closeTagStart = $tagText.LastIndexOf('</string>', [System.StringComparison]::Ordinal)
+        if ($openTagEnd -lt 0 -or $closeTagStart -lt 0) { throw "Could not rewrite key '$Key' in $filePath." }
+        $newTagText = $tagText.Substring(0, $openTagEnd + 1) + $escapedValue + $tagText.Substring($closeTagStart)
+        $updatedContent = $content.Substring(0, $match.Index) + $newTagText + $content.Substring($match.Index + $match.Length)
+        $action = 'update'
+    }
+    else {
+        if (-not $CreateIfMissing) { throw "Key '$Key' not found in $filePath. Use -CreateIfMissing to append it." }
+        if ($expectedOldBound) { throw "ExpectedOldValue cannot be used together with -CreateIfMissing for a missing key." }
+        $closingIndex = $content.LastIndexOf('</resources>', [System.StringComparison]::Ordinal)
+        if ($closingIndex -lt 0) { throw "Could not find </resources> in $filePath." }
+        $prefix = $content.Substring(0, $closingIndex)
+        $separator = if ($prefix.EndsWith("`n") -or $prefix.EndsWith("`r")) { '' } else { $newline }
+        $newEntry = '    <string name="' + $Key + '">' + $escapedValue + '</string>' + $newline
+        $updatedContent = $prefix + $separator + $newEntry + $content.Substring($closingIndex)
+        $action = 'create'
+    }
+
+    if ($updatedContent -eq $content) {
+        Write-Host "[no change] ${Locale}:$Key in $filePath already matches the requested value." -ForegroundColor Yellow
+        return
+    }
+    if ($DryRun) {
+        Write-Host "[dry-run] $action ${Locale}:$Key in $filePath" -ForegroundColor Cyan
+        if ($null -ne $oldDecodedValue) { Write-Host "Old: $oldDecodedValue" -ForegroundColor DarkGray }
+        Write-Host "New: $Value" -ForegroundColor Green
+        return
+    }
+    Save-File $filePath $updatedContent
+    Write-Host "[done] $action ${Locale}:$Key in $filePath" -ForegroundColor Green
+    if ($null -ne $oldDecodedValue) { Write-Host "Old: $oldDecodedValue" -ForegroundColor DarkGray }
     Write-Host "New: $Value" -ForegroundColor Green
-    exit 0
 }
 
-$encoding = Get-FileEncodingForWrite -Path $filePath
-[System.IO.File]::WriteAllText($filePath, $updatedContent, $encoding)
+switch ($Action) {
 
-Write-Host "[done] $action ${Locale}:$Key in $filePath" -ForegroundColor Green
-if ($null -ne $oldDecodedValue) {
-    Write-Host "Old: $oldDecodedValue" -ForegroundColor DarkGray
+    'set' { Invoke-Set; exit 0 }
+
+    'list' {
+        foreach ($loc in $locales) {
+            $dir = Get-LocaleDir $loc.Dir
+            Write-Host ''
+            Write-Host "[$($loc.Tag)] $dir" -ForegroundColor Cyan
+            foreach ($f in Get-StringFiles $dir) {
+                $n = ([regex]::Matches([System.IO.File]::ReadAllText($f.FullName), '<string name=')).Count
+                Write-Host ("  {0,-40} {1,5} strings" -f $f.Name, $n)
+            }
+        }
+        exit 0
+    }
+
+    'get' {
+        if (-not $Key) { throw "get requires -Key." }
+        Write-Host ''
+        $anyMiss = $false
+        foreach ($loc in $locales) {
+            $hit = Find-Key (Get-LocaleDir $loc.Dir) $Key
+            if ($hit) {
+                Write-Host ("[{0}] {1}" -f $loc.Tag, $hit.File.Name) -ForegroundColor Green
+                Write-Host ("      {0}" -f (ConvertFrom-XmlText $hit.Raw))
+            }
+            else { $anyMiss = $true; Write-Host ("[{0}] MISSING" -f $loc.Tag) -ForegroundColor Red }
+        }
+        if ($anyMiss) { exit 1 } else { exit 0 }
+    }
+
+    'add' {
+        if (-not $Key) { throw "add requires -Key." }
+        Test-KeySyntax $Key
+        if (($null -eq $En) -or ($null -eq $Ru) -or ($null -eq $Uk)) {
+            throw "add requires -En, -Ru and -Uk (locale parity is mandatory)."
+        }
+        foreach ($loc in $locales) {
+            $existing = Find-Key (Get-LocaleDir $loc.Dir) $Key
+            if ($existing) { throw "Key '$Key' already exists in [$($loc.Tag)] $($existing.File.Name) - aborting." }
+        }
+        foreach ($loc in $locales) {
+            $target = Join-Path (Get-LocaleDir $loc.Dir) $File
+            if (-not (Test-Path $target)) { throw "Target file not found: $target" }
+            $content = [System.IO.File]::ReadAllText($target)
+            $newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
+            $escaped = ConvertTo-XmlText $loc.Value
+            $line = '    <string name="' + $Key + '">' + $escaped + '</string>'
+            $idx = $content.LastIndexOf('</resources>', [System.StringComparison]::Ordinal)
+            if ($idx -lt 0) { throw "No </resources> in $target" }
+            $prefix = $content.Substring(0, $idx)
+            $separator = if ($prefix.EndsWith("`n") -or $prefix.EndsWith("`r")) { '' } else { $newline }
+            $newContent = $prefix + $separator + $line + $newline + $content.Substring($idx)
+            if ($DryRun) {
+                Write-Host "[$($loc.Tag)] would insert into $File :" -ForegroundColor Yellow
+                Write-Host "  $line"
+            }
+            else { Save-File $target $newContent; Write-Host "[$($loc.Tag)] added to $File" -ForegroundColor Green }
+        }
+        if (-not $DryRun) {
+            Write-Host ''
+            Write-Host "Validate parity: scripts/check_strings_localized.ps1 -KeyPrefix `"$Key`"" -ForegroundColor Cyan
+        }
+        exit 0
+    }
+
+    'remove' {
+        if (-not $Key) { throw "remove requires -Key." }
+        $esc = [regex]::Escape($Key)
+        $rx = "(?m)^[ \t]*<string\b(?=[^>]*\bname\s*=\s*`"$esc`")(?:[^>]*)>(?s:.*?)</string>[ \t]*\r?\n"
+        $removed = $false
+        foreach ($loc in $locales) {
+            foreach ($f in Get-StringFiles (Get-LocaleDir $loc.Dir)) {
+                $content = [System.IO.File]::ReadAllText($f.FullName)
+                if ($content -match $rx) {
+                    $new = [regex]::Replace($content, $rx, '', 1)
+                    if ($DryRun) { Write-Host "[$($loc.Tag)] would remove '$Key' from $($f.Name)" -ForegroundColor Yellow }
+                    else { Save-File $f.FullName $new; Write-Host "[$($loc.Tag)] removed '$Key' from $($f.Name)" -ForegroundColor Green }
+                    $removed = $true
+                    break
+                }
+            }
+        }
+        if (-not $removed) { Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow }
+        Report-References $Key
+        exit 0
+    }
+
+    'rename' {
+        if (-not $Key) { throw "rename requires -Key." }
+        if (-not $NewKey) { throw "rename requires -NewKey." }
+        Test-KeySyntax $NewKey
+        foreach ($loc in $locales) {
+            $clash = Find-Key (Get-LocaleDir $loc.Dir) $NewKey
+            if ($clash) { throw "Target key '$NewKey' already exists in [$($loc.Tag)] $($clash.File.Name) - aborting." }
+        }
+        $esc = [regex]::Escape($Key)
+        $rx = "(<string\b[^>]*\bname\s*=\s*`")$esc(`")"
+        $renamed = $false
+        foreach ($loc in $locales) {
+            foreach ($f in Get-StringFiles (Get-LocaleDir $loc.Dir)) {
+                $content = [System.IO.File]::ReadAllText($f.FullName)
+                if ($content -match $rx) {
+                    $new = [regex]::Replace($content, $rx, "`${1}$NewKey`${2}", 1)
+                    if ($DryRun) { Write-Host "[$($loc.Tag)] would rename '$Key' -> '$NewKey' in $($f.Name)" -ForegroundColor Yellow }
+                    else { Save-File $f.FullName $new; Write-Host "[$($loc.Tag)] renamed '$Key' -> '$NewKey' in $($f.Name)" -ForegroundColor Green }
+                    $renamed = $true
+                    break
+                }
+            }
+        }
+        if (-not $renamed) { Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow }
+        Report-References $Key
+        exit 0
+    }
 }
-Write-Host "New: $Value" -ForegroundColor Green

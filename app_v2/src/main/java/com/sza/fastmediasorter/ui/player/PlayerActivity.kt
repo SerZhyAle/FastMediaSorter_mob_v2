@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.ActionMode
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -44,6 +45,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFpsMeter
@@ -198,6 +201,30 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
     internal lateinit var textEditorCalculatorBridge: com.sza.fastmediasorter.ui.player.helpers.TextEditorCalculatorBridge
     internal var playerVrLaunchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerVrLaunchManager? = null
+
+    override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? {
+        val documentCallback = if (type == ActionMode.TYPE_FLOATING) {
+            getDocumentSelectionActionModeCallback()
+        } else {
+            null
+        }
+        return if (documentCallback != null && callback != null) {
+            super.startActionMode(DocumentSelectionActionModeAugmentingCallback(callback, documentCallback), type)
+        } else {
+            super.startActionMode(callback, type)
+        }
+    }
+
+    private fun getDocumentSelectionActionModeCallback(): DocumentSelectionActionModeCallback? {
+        val officeCallback = _officeDocumentViewerManager
+            ?.takeIf { it.isActive }
+            ?.getSelectionActionModeCallback()
+        if (officeCallback != null) return officeCallback
+
+        return _epubViewerManager
+            ?.takeIf { activityBinding.epubWebView.isVisible }
+            ?.getSelectionActionModeCallback()
+    }
 
     // S0200 Phase 04c: googleSignInLauncher removed - Credential Manager replaces the
     // activity-result handshake. Drive sign-in goes through GoogleIdentityRepository.signInPrimary.
@@ -771,20 +798,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     /** S0289 §2.2: initial focus on play-pause when the player opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: player initial-focus / HUD btnPlayPause")
         return binding.btnPlayPause
-    }
-
-    /** S0289: true when the currently-focused view is a HUD control button. Used to arbitrate arrow keys between focus traversal (HUD focused → system handles nextFocus*) and semantic player actions (HUD not focused → existing seek/next/prev logic). */
-    private fun isHudFocused(): Boolean {
-        val focused = currentFocus ?: return false
-        val id = focused.id
-        return id == binding.btnVolumeDown.id ||
-            id == binding.btnPrevious.id ||
-            id == binding.btnPlayPause.id ||
-            id == binding.btnNext.id ||
-            id == binding.btnVolumeUp.id ||
-            id == binding.btnSlideShow.id ||
-            id == binding.btnDelete.id
     }
 
     private val lifecycleBridge by lazy { PlayerActivityLifecycleBridge(this) }

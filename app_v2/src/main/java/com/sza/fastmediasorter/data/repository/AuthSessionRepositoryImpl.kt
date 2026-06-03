@@ -60,7 +60,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
         cookies: List<HttpCookie>,
         userAgent: String?,
     ): String? {
-        Timber.d("S0211: AuthSessionRepositoryImpl.saveSessionFromWebView host=%s cookies=%d", host, cookies.size)
         if (host.isBlank() || cookies.isEmpty()) {
             Timber.i("AuthSessionRepositoryImpl: skipped empty webview save host=%s", host)
             return null

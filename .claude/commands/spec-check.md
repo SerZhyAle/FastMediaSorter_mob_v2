@@ -53,7 +53,7 @@ Verification mechanics:
 | File exists | `Glob` with exact path |
 | Class/function declared | `Grep` for `class <Name>` / `fun <name>` - verify hit is declaration, not comment/string |
 | No forbidden call | `Grep` for pattern; PASS iff zero hits |
-| String resource present | `Grep` for `name="<key>"` in all three `values/strings.xml` files |
+| String resource present | `scripts/utils/set-android-string.ps1 -Action get -Key <key>` (checks EN/RU/UK at once, exit 1 if missing anywhere) or `Grep` for `name="<key>"` in all three `values/strings.xml` files |
 | Room version | Read `AppDatabase.kt`, match `@Database(version = N` |
 | Dev log entry | `Grep` for file path in `dev/CHANGELOG.md` |
 | Catalog up-to-date | `Grep` for class name in `dev/CATALOG/<module>.jsonl` |

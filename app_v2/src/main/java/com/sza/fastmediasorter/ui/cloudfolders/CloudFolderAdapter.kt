@@ -36,7 +36,10 @@ class CloudFolderAdapter(
             binding.tvFolderName.text = folder.name
             binding.btnBack.isVisible = !isRootLevel()
 
-            binding.root.setOnClickListener { onFolderSelect(folder) }
+            // S0289: a click / ENTER on the row navigates INTO the folder (file-browser
+            // convention) so a D-pad / keyboard user descends with the natural gesture. The
+            // explicit Select button stays the confirm-as-destination action.
+            binding.root.setOnClickListener { onFolderNavigate(folder) }
             binding.btnSelect.setOnClickListener { onFolderSelect(folder) }
             binding.btnEnter.setOnClickListener { onFolderNavigate(folder) }
             binding.btnBack.setOnClickListener { onNavigateBack() }

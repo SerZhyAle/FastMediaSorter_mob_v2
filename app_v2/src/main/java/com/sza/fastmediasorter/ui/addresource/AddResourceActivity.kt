@@ -127,10 +127,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
 
-    /** S0289 §2.4: initial focus on the primary "Add to resources" action button. */
+    /**
+     * Initial focus for a non-touch open. On the first open the type-selection screen is shown
+     * and btnAddToResources stays GONE until a local resource exists, so focusing it was a
+     * no-op. Prefer the first visible resource-type card; fall back to btnAddToResources once
+     * it becomes visible. S0289.
+     */
     override fun getInitialFocusView(): android.view.View? {
-        Timber.d("S0289: add-resource initial-focus / btnAddToResources")
-        return binding.btnAddToResources
+        Timber.d("S0289: add-resource initial-focus / first visible type card")
+        val isShown = { v: android.view.View -> v.visibility == android.view.View.VISIBLE }
+        if (isShown(binding.btnAddToResources)) return binding.btnAddToResources
+        return listOf(
+            binding.cardLocalFolder,
+            binding.cardNetworkFolder,
+            binding.cardSftpFolder,
+            binding.cardCloudStorage,
+        ).firstOrNull(isShown) ?: binding.btnAddToResources
     }
 
     override fun setupViews() {

@@ -68,6 +68,8 @@ For exact feature-by-flavor availability, use the canonical documentation:
 - [Quick Start (flavor chooser)](QUICK_START.md)
 - [Program Limitations](LIMITATIONS.md)
 
+> 🧭 **First launch:** right under the language picker, the app lets you pick a **device profile** (phone, tablet, TV, car, photo frame, VR, and more) that tailors the starting defaults for you - changeable anytime in Settings. See [First Launch: Choose Your Device Profile](QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-).
+
 ## Download 📥
 
 📲 **[Get it on Google Play](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter)**
@@ -109,6 +111,7 @@ Full-size images:
 - ⭐ **Favorites System:** Mark important files as favorites and access them quickly from a dedicated tab that aggregates favorites across all sources.
 - 🔒 **PIN Protection:** Secure individual resources with access PIN codes to prevent unauthorized browsing and editing.
 - ⚙️ **Per-Resource Configuration:** Customize slideshow interval, scan depth (subdirectories), and thumbnail generation for each folder individually.
+- 🧭 **Device Profile Setup:** Choose a first-run profile for phones, tablets, TV/media boxes, car head units, media players, photo frames, audio players, e-book readers, VR headsets, or custom defaults; the app applies matching safety, screen, content, and command-priority defaults.
 - 📋 **Predefined Smart Resources:** Built-in virtual resources - **All Music**, **All Videos**, **All Photos** - that aggregate media from your entire device with zero configuration. Instantly access your full media library without manually adding individual folders.
 - 🖥️ **Network and Cloud Support:** Work with files on your network drives (SMB with automatic network scanning), SFTP servers, FTP, and in cloud storage (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Flexible Viewing:** Display files as a customizable grid or detailed list with pagination support for large collections (1000+ files).
@@ -430,4 +433,3 @@ Project legal information:
 - [Terms of Service](TERMS_OF_SERVICE.md)
 - [Privacy Policy](PRIVACY_POLICY.md)
 - [Open Source Components](OPEN_SOURCE.md)
-

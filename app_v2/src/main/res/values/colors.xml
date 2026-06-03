@@ -12,6 +12,7 @@
 
     <!-- App specific colors -->
     <color name="delete_button">#FFD32F2F</color>
+    <color name="calculator_plus_button_text">#FFE53935</color>
     <color name="item_selected">#FFE3F2FD</color>
     <color name="item_normal">#FFFFFFFF</color>
     <color name="filter_warning_bg">#FFFFF9C4</color>    <!-- Light yellow for warnings -->
@@ -182,5 +183,7 @@
     <color name="recording_active_tint">#E53935</color>
     <!-- TV launcher banner background (dark navy) - used by res/drawable/tv_banner.xml -->
     <color name="tv_banner_bg">#1A1A2E</color>
+    <!-- Camera-OCR crop selection frame (bright red) -->
+    <color name="crop_frame_red">#FFFF1744</color>
 </resources>
 

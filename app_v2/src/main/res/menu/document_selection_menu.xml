@@ -10,6 +10,10 @@
         android:title="@string/action_search_google"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_open_calculator_selection"
+        android:title="@string/calculator_title"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_read_aloud_selection"
         android:title="@string/action_read_aloud_selection"
         app:showAsAction="ifRoom" />

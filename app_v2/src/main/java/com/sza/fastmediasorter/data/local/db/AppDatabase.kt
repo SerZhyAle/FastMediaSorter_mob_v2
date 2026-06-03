@@ -24,9 +24,10 @@ import timber.log.Timber
         ScheduledOperationEntity::class,
         DuplicateHashCacheEntity::class,
         StreamingCacheEntry::class,
-        InputBindingEntity::class
+        InputBindingEntity::class,
+        DeviceProfileEntity::class
     ],
-    version = 31,
+    version = 32,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -44,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun duplicateHashCacheDao(): DuplicateHashCacheDao
     abstract fun streamingCacheDao(): StreamingCacheDao
     abstract fun inputBindingDao(): InputBindingDao
+    abstract fun deviceProfileDao(): DeviceProfileDao
 
     companion object {
         /**

@@ -17,6 +17,7 @@
             android:background="?attr/colorPrimary"
             android:elevation="@dimen/toolbar_elevation"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary"
             app:title="@string/dropbox_select_folder" />
 
     </com.google.android.material.appbar.AppBarLayout>

@@ -5,15 +5,18 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import android.view.ViewConfiguration
 import com.sza.fastmediasorter.domain.game.GameDirection
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardActorCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardBaseCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardDefeatConnection
+import com.sza.fastmediasorter.ui.game.helpers.GameBoardHighlightCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
@@ -27,10 +30,17 @@ class GameBoardView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     var onSwipeDirection: ((GameDirection) -> Unit)? = null
+    var onTapDirection: ((GameDirection) -> Unit)? = null
 
     private val scalingManager = GameScalingManager()
     private var renderState: GameBoardRenderState? = null
     private var renderedLevelNumber: Int? = null
+    private var renderedIntroHighlightKey: Int? = null
+    private var introHighlightUntilMs: Long = 0L
+    private var tapCandidate = false
+    private var downX = 0f
+    private var downY = 0f
+    private val tapSlop = ViewConfiguration.get(context).scaledTouchSlop
 
     private val cellRect = RectF()
     private val boardRect = RectF()
@@ -47,6 +57,22 @@ class GameBoardView @JvmOverloads constructor(
     private val defeatPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#FFE53935")
         strokeCap = Paint.Cap.ROUND
+        style = Paint.Style.STROKE
+    }
+    private val startHighlightFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#55FFD54F")
+        style = Paint.Style.FILL
+    }
+    private val startHighlightStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FFFFD54F")
+        style = Paint.Style.STROKE
+    }
+    private val defeatHighlightFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#66FF5252")
+        style = Paint.Style.FILL
+    }
+    private val defeatHighlightStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FFFF7043")
         style = Paint.Style.STROKE
     }
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -108,6 +134,14 @@ class GameBoardView @JvmOverloads constructor(
             scalingManager.reset()
             renderedLevelNumber = nextRenderState?.levelNumber
         }
+        val nextIntroKey = nextRenderState?.introHighlightKey
+        if (nextIntroKey != null && nextIntroKey != renderedIntroHighlightKey) {
+            renderedIntroHighlightKey = nextIntroKey
+            introHighlightUntilMs = SystemClock.uptimeMillis() + START_HIGHLIGHT_MS
+        } else if (nextIntroKey == null) {
+            renderedIntroHighlightKey = null
+            introHighlightUntilMs = 0L
+        }
         renderState = nextRenderState
         contentDescription = nextRenderState?.contentDescription
         invalidate()
@@ -133,14 +167,28 @@ class GameBoardView @JvmOverloads constructor(
             canvas.drawRect(cellRect, gridPaint)
             cell.actorCell?.let { actorCell -> drawActor(canvas, cellRect, actorCell) }
         }
+        drawIntroHighlights(canvas, scale, currentRenderState)
+        currentRenderState.defeatConnection?.let { connection -> drawDefeatHighlights(canvas, scale, connection) }
         drawBoardBorder(canvas, scale, currentRenderState)
         currentRenderState.defeatConnection?.let { connection -> drawDefeatConnection(canvas, scale, connection) }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        trackTapCandidate(event)
         val scaleHandled = scaleGestureDetector.onTouchEvent(event)
         val gestureHandled = gestureDetector.onTouchEvent(event)
-        if (event.action == MotionEvent.ACTION_UP) performClick()
+        if (event.actionMasked == MotionEvent.ACTION_UP) {
+            val tapDirection = if (tapCandidate && !scaleGestureDetector.isInProgress) {
+                directionFromTap(event.x, event.y)
+            } else {
+                null
+            }
+            performClick()
+            tapDirection?.let { direction ->
+                onTapDirection?.invoke(direction)
+                return true
+            }
+        }
         return scaleHandled || gestureHandled || true
     }
 
@@ -165,6 +213,48 @@ class GameBoardView @JvmOverloads constructor(
             GameBoardActorCell.SHADOW -> shadowPaint
         }
         canvas.drawCircle(centerX, centerY, radius, paint)
+    }
+
+    private fun drawIntroHighlights(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
+        if (SystemClock.uptimeMillis() >= introHighlightUntilMs) return
+        drawCellHighlights(
+            canvas,
+            scale,
+            renderState.startHighlights,
+            startHighlightFillPaint,
+            startHighlightStrokePaint
+        )
+        postInvalidateOnAnimation()
+    }
+
+    private fun drawDefeatHighlights(canvas: Canvas, scale: GameBoardScale, connection: GameBoardDefeatConnection) {
+        drawCellHighlights(
+            canvas,
+            scale,
+            listOf(
+                GameBoardHighlightCell(connection.playerRow, connection.playerColumn),
+                GameBoardHighlightCell(connection.enemyRow, connection.enemyColumn)
+            ).distinct(),
+            defeatHighlightFillPaint,
+            defeatHighlightStrokePaint
+        )
+    }
+
+    private fun drawCellHighlights(
+        canvas: Canvas,
+        scale: GameBoardScale,
+        highlights: List<GameBoardHighlightCell>,
+        fillPaint: Paint,
+        strokePaint: Paint
+    ) {
+        strokePaint.strokeWidth = max(MIN_HIGHLIGHT_WIDTH, scale.cellSize * HIGHLIGHT_WIDTH_FACTOR)
+        highlights.forEach { highlight ->
+            val left = scale.offsetX + highlight.column * scale.cellSize
+            val top = scale.offsetY + highlight.row * scale.cellSize
+            cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
+            canvas.drawRoundRect(cellRect, scale.cellSize * 0.12f, scale.cellSize * 0.12f, fillPaint)
+            canvas.drawRoundRect(cellRect, scale.cellSize * 0.12f, scale.cellSize * 0.12f, strokePaint)
+        }
     }
 
     private fun drawBoardBorder(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
@@ -192,6 +282,56 @@ class GameBoardView @JvmOverloads constructor(
         }
     }
 
+    private fun trackTapCandidate(event: MotionEvent) {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = event.x
+                downY = event.y
+                tapCandidate = true
+            }
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_CANCEL -> tapCandidate = false
+            MotionEvent.ACTION_MOVE -> {
+                if (abs(event.x - downX) > tapSlop || abs(event.y - downY) > tapSlop) {
+                    tapCandidate = false
+                }
+            }
+        }
+    }
+
+    private fun directionFromTap(x: Float, y: Float): GameDirection? {
+        val currentRenderState = renderState ?: return null
+        val scale = scalingManager.compute(
+            width,
+            height,
+            currentRenderState.boardWidth,
+            currentRenderState.boardHeight,
+            currentRenderState.isLargeBoard
+        )
+        if (scale == GameBoardScale.EMPTY) return null
+
+        val boardLeft = scale.offsetX
+        val boardTop = scale.offsetY
+        val boardRight = boardLeft + currentRenderState.boardWidth * scale.cellSize
+        val boardBottom = boardTop + currentRenderState.boardHeight * scale.cellSize
+        if (x < boardLeft || x > boardRight || y < boardTop || y > boardBottom) return null
+
+        val playerCenterX = boardLeft + (currentRenderState.playerColumn + 0.5f) * scale.cellSize
+        val playerCenterY = boardTop + (currentRenderState.playerRow + 0.5f) * scale.cellSize
+        val deltaX = x - playerCenterX
+        val deltaY = y - playerCenterY
+        if (abs(deltaX) < scale.cellSize * MIN_TAP_VECTOR_FACTOR &&
+            abs(deltaY) < scale.cellSize * MIN_TAP_VECTOR_FACTOR) {
+            return null
+        }
+
+        return if (abs(deltaY) >= abs(deltaX)) {
+            if (deltaY < 0f) GameDirection.UP else GameDirection.DOWN
+        } else {
+            if (deltaX < 0f) GameDirection.LEFT else GameDirection.RIGHT
+        }
+    }
+
     private fun directionFromVelocity(velocityX: Float, velocityY: Float): GameDirection? {
         if (abs(velocityX) < FLING_THRESHOLD && abs(velocityY) < FLING_THRESHOLD) return null
         return if (abs(velocityX) > abs(velocityY)) {
@@ -207,5 +347,9 @@ class GameBoardView @JvmOverloads constructor(
         private const val BORDER_WIDTH_FACTOR = 0.08f
         private const val MIN_DEFEAT_WIDTH = 5f
         private const val DEFEAT_WIDTH_FACTOR = 0.10f
+        private const val MIN_HIGHLIGHT_WIDTH = 4f
+        private const val HIGHLIGHT_WIDTH_FACTOR = 0.07f
+        private const val MIN_TAP_VECTOR_FACTOR = 0.18f
+        private const val START_HIGHLIGHT_MS = 1_000L
     }
 }

@@ -212,6 +212,8 @@ internal class PlayerVrLaunchManager(
         val currentFilePath = viewModel.state.value.currentFile?.path ?: return
         if (currentFilePath != target.sourceFilePath) return
 
+        Timber.d("S0292: applyPendingReturnIfReady consumed, photoZoom=${target.snapshot.photoZoom}")
+
         if (target.snapshot.commandPanelVisible) {
             viewModel.enterCommandPanelMode()
             activity.isExplicitFullscreenMode = false
@@ -230,6 +232,18 @@ internal class PlayerVrLaunchManager(
                     videoPlayer.play()
                 } else {
                     videoPlayer.pause()
+                }
+            }
+
+            val photoView = activity.activityBinding.photoView
+            if (photoView.isVisible) {
+                photoView.post {
+                    photoView.setScale(
+                        target.snapshot.photoZoom,
+                        target.snapshot.photoPanX,
+                        target.snapshot.photoPanY,
+                        false
+                    )
                 }
             }
         }

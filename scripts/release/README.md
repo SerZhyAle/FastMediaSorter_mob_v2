@@ -10,6 +10,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 |--------|---------|
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
+| `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: upload bundle, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
 | `extract-release-notes.ps1` | Helper used by `publish-github-release.ps1`. Emits the section from `docs/WHATS_NEW.md` for a given `-Version`. Exit 0 on match, 2 if not found. |
 | `expected-signing-fingerprint.txt` | (Phase 04) Pinned SHA-256 of the release signing key. Aborts the publisher on mismatch. |
 
@@ -39,9 +40,13 @@ pwsh -File scripts/release/apply-github-store-metadata.ps1
 .\a.ps1 r
 .\a.ps1 vr
 
-# 3. Publish.
+# 3. Publish to GitHub.
 pwsh -File scripts/release/publish-github-release.ps1 -DryRun
 pwsh -File scripts/release/publish-github-release.ps1
+
+# 4. Publish to Google Play Console.
+# (Track defaults to "internal", Status defaults to "completed" - automated rollout).
+pwsh -File scripts/release/publish-play-release.ps1
 ```
 
 ---
@@ -65,6 +70,13 @@ pwsh -File scripts/release/publish-github-release.ps1
 | `-Owner <name>` | Override repo owner (default: `SerZhyAle`). |
 | `-Repo <name>` | Override repo name (default: `FastMediaSorter_mob_v2`). |
 
+### `publish-play-release.ps1`
+
+| Flag | Effect |
+|------|--------|
+| `-Track <name>` | Target track in Google Play. Default: `internal`. Supported: `internal`, `alpha`, `beta`, `production`. |
+| `-Status <status>` | Rollout status. Default: `completed`. Supported: `completed` (fully rolled out to track), `draft` (requires manual review in Play Console). |
+
 ---
 
 ## Order of Operations (publish-github-release.ps1)
@@ -81,7 +93,21 @@ pwsh -File scripts/release/publish-github-release.ps1
 
 ---
 
-## Worked Example
+## Order of Operations (publish-play-release.ps1)
+
+1. **Prerequisite Check** — verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
+2. **Version & Path Discovery** — retrieve current `versionName` from `app_v2/build.gradle.kts`. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
+3. **Edit Transaction** — open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `play-console-key.json`.
+4. **Resumable Upload** — upload the 100 MB AAB file using resumable chunk transfers with automatic socket retry guards. Retrieve the uploaded `versionCode`.
+5. **Release Notes Discovery** — check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.
+6. **Track Update** — apply the uploaded AAB, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).
+7. **API Commit** — commit the edit transaction with `changesNotSentForReview=true` to comply with Google Play's review pipeline requirements, making it immediately live on the track.
+
+---
+
+## Worked Examples
+
+### GitHub Release
 
 Given current `versionName = "2.62.0501.151"` in `app_v2/build.gradle.kts`, an EU-time-zone evening release:
 
@@ -95,10 +121,16 @@ pwsh -File scripts/release/publish-github-release.ps1 -DryRun
 
 # Publish for real.
 pwsh -File scripts/release/publish-github-release.ps1
-# Release v2.62.0501.151 created.
-# Uploading FastMediaSorter-standard-2.62.0501.151.apk ..
-# Uploading FastMediaSorter-vr-2.62.0501.151.apk ..
-# OK - release v2.62.0501.151 has both expected assets: FastMediaSorter-standard-2.62.0501.151.apk, FastMediaSorter-vr-2.62.0501.151.apk
 ```
 
-After publication, GitHub Store typically indexes the new tag within 24h via its public-search-API rescan. To force-check earlier, search for `FastMediaSorter` directly inside the GitHub Store mobile app.
+### Google Play Release
+
+Publishing the compiled AAB to the internal testing track as a completed automated rollout:
+
+```powershell
+# Publish AAB with full automated rollout
+pwsh -File scripts/release/publish-play-release.ps1
+
+# Alternative: upload AAB as a draft to the internal track for manual review
+pwsh -File scripts/release/publish-play-release.ps1 -Status draft
+```

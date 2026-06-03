@@ -151,6 +151,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // verdict=FAIL events reach the player UI even in non-DEBUG builds.
         com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker.wireDegradationSignal(memoryDegradationSignal)
 
+        // S0328: apply the saved app color theme (Auto/Light/Dark) before any Activity inflates.
+        com.sza.fastmediasorter.core.theme.ColorThemePrefs.applySavedMode(this)
+
         // Material You: apply wallpaper-based dynamic colors on Android 12+
         DynamicColors.applyToActivitiesIfAvailable(this)
 
@@ -246,6 +249,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.setCompact(
                     this@FastMediaSorterApp,
                     settings.useCompactElements
+                )
+                // S0328: keep the synchronous color-theme mirror in sync with the authoritative
+                // DataStore value (covers upgrades / settings import where the mirror is stale).
+                com.sza.fastmediasorter.core.theme.ColorThemePrefs.setMode(
+                    this@FastMediaSorterApp,
+                    settings.colorTheme
                 )
                 // S0194: dereference Lazy<WorkManagerScheduler> once per coroutine entry.
                 val scheduler = workManagerScheduler.get()

@@ -41,7 +41,6 @@ class BrowseDrawingCreateManager(
     }
 
     fun createDrawing(name: String) {
-        Timber.d("S0191: BrowseDrawingCreateManager.createDrawing")
         scope.launch(ioDispatcher) {
             val resource = stateFlow.value.resource ?: return@launch
             val currentPath = stateFlow.value.currentPath ?: resource.path

@@ -35,7 +35,7 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
 
     /** S0289 §2.4: initial focus on the bindings list. */
     override fun getInitialFocusView(): android.view.View? {
-        Timber.d("S0289: keybinding-remap initial-focus / wheel recyclerView")
+        Timber.d("S0289: keybinding-remap initial-focus / focus chain")
         return binding.recyclerView
     }
 

@@ -318,7 +318,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 - Room schema change: bump `@Database(version)`, add `Migration`, never rename prior migrations. One phase per schema change.
 - Hilt bindings: every new `@Inject`/`@Provides` names the `@Module` file in the step body.
-- Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications.
+- Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications; the step body should use `scripts/utils/set-android-string.ps1 -Action add -Key -En -Ru -Uk` (one lockstep call, parity-enforced) rather than three manual edits.
 - Timber only: `Grep -n "Log\.d\("` returning zero hits mandatory for any file the step modifies.
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
 - Do not duplicate strategic content - tactical says *what*, not *why*.

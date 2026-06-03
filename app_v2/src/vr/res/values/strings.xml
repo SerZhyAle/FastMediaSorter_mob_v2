@@ -7,4 +7,46 @@
          the layout that consumes them is referenced from main-level Media container. -->
     <string name="vr_settings_master_toggle_label">Enable 3D VR</string>
     <string name="vr_settings_master_toggle_summary">Show VR features in this app</string>
+
+    <!-- S0326: global 3D/VR default settings (VR-only). -->
+    <string name="settings_stereo_vr_group_detection_title">Format detection</string>
+    <string name="settings_stereo_vr_group_default_title">Default mode</string>
+    <string name="settings_stereo_vr_group_immersive_title">Immersive &amp; diagnostics</string>
+
+    <string name="settings_stereo_vr_autodetect_title">Auto-detect 3D/VR formats</string>
+    <string name="settings_stereo_vr_autodetect_summary">Recognize stereo and panoramic media automatically</string>
+    <string name="settings_stereo_vr_trust_filename_title">Use filename markers</string>
+    <string name="settings_stereo_vr_trust_filename_summary">Detect from tags like SBS, OU, 180 or 360 in the file name</string>
+    <string name="settings_stereo_vr_trust_metadata_title">Use embedded metadata</string>
+    <string name="settings_stereo_vr_trust_metadata_summary">Detect from spatial-video and photo-sphere metadata</string>
+    <string name="settings_stereo_vr_trust_aspect_title">Guess by aspect ratio</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Less reliable — may tag ordinary wide photos as 3D</string>
+    <string name="settings_stereo_vr_ambiguity_title">When the format is unclear</string>
+    <string name="settings_stereo_vr_ambiguity_summary">On: make a best guess. Off: open as 2D</string>
+
+    <string name="settings_stereo_vr_default_layout_label">Default layout</string>
+    <string name="settings_stereo_vr_default_projection_label">Default projection</string>
+
+    <string name="settings_stereo_vr_auto_immersive_title">Enter immersive automatically</string>
+    <string name="settings_stereo_vr_auto_immersive_summary">Open 3D/VR media in the headset view without an extra tap</string>
+    <string name="settings_stereo_vr_render_mode_label">Render mode</string>
+    <string name="settings_stereo_vr_show_fps_title">Show FPS overlay</string>
+    <string name="settings_stereo_vr_show_fps_summary">Display a frame-rate counter in the immersive view</string>
+
+    <string-array name="settings_stereo_vr_layout_entries">
+        <item>Mono</item>
+        <item>Side-by-Side</item>
+        <item>Over-Under</item>
+    </string-array>
+    <string-array name="settings_stereo_vr_projection_entries">
+        <item>Flat</item>
+        <item>180°</item>
+        <item>360°</item>
+        <item>Cylinder</item>
+    </string-array>
+    <string-array name="settings_stereo_vr_render_mode_entries">
+        <item>Cinema</item>
+        <item>Full Side-by-Side</item>
+        <item>Full Over-Under</item>
+    </string-array>
 </resources>

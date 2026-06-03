@@ -143,63 +143,85 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettings"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="6dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="4dp"
+                android:contentDescription="@string/settings"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/settings"
                 android:textColor="#A1A1AA"
-                app:strokeColor="#2F2F37"
                 app:icon="@drawable/ic_settings"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 app:iconSize="20dp"
                 app:iconTint="#A1A1AA"
-                android:contentDescription="@string/settings"
-                android:tooltipText="@string/settings" />
+                app:strokeColor="#2F2F37" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveTxt"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginHorizontal="6dp"
-                android:text="@string/camera_ocr_btn_save"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="4dp"
+                android:contentDescription="@string/camera_ocr_btn_save"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/camera_ocr_btn_save"
                 android:textColor="#4CAF50"
-                app:strokeColor="#2F4F37"
                 app:icon="@drawable/ic_text_save"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 app:iconSize="20dp"
-                app:iconTint="#4CAF50" />
+                app:iconTint="#4CAF50"
+                app:strokeColor="#2F4F37" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNextPhoto"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginHorizontal="6dp"
-                android:text="@string/camera_ocr_btn_next"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="4dp"
+                android:contentDescription="@string/camera_ocr_btn_next"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/camera_ocr_btn_next"
                 android:textColor="#FFFFFF"
                 app:backgroundTint="?attr/colorPrimary"
                 app:icon="@drawable/ic_camera_ocr_translate"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 app:iconSize="20dp"
                 app:iconTint="#FFFFFF" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="6dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="4dp"
+                android:contentDescription="@string/close"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:tooltipText="@string/close"
                 android:textColor="#E1E1E6"
-                app:strokeColor="#2F2F37"
                 app:icon="@drawable/ic_cancel"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 app:iconSize="20dp"
                 app:iconTint="#E1E1E6"
-                android:contentDescription="@string/close" />
+                app:strokeColor="#2F2F37" />
 
         </LinearLayout>
 
@@ -261,6 +283,82 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/camera_ocr_btn_next"
+                app:backgroundTint="?attr/colorPrimary" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Crop State (Select area before OCR) -->
+    <LinearLayout
+        android:id="@+id/layoutCropState"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#121214"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvCropHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:gravity="center_horizontal"
+            android:text="@string/camera_ocr_crop_hint"
+            android:textColor="#E1E1E6"
+            android:textSize="14sp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/ivCropPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#121214"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter" />
+
+            <com.sza.fastmediasorter.ui.cameraocr.CropOverlayView
+                android:id="@+id/cropOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <!-- Bottom Action Bar: Retry / OK -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCropRetry"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusRight="@+id/btnCropConfirm"
+                android:text="@string/camera_ocr_crop_retry"
+                android:textColor="#E1E1E6"
+                app:strokeColor="#2F2F37" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCropConfirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusLeft="@+id/btnCropRetry"
+                android:text="@string/camera_ocr_crop_confirm"
+                android:textColor="#FFFFFF"
                 app:backgroundTint="?attr/colorPrimary" />
 
         </LinearLayout>

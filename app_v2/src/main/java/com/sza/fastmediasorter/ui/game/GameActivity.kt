@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.ui.game
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
+import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +11,10 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityGameBinding
@@ -18,7 +23,11 @@ import com.sza.fastmediasorter.ui.game.helpers.GameBoardAccessibilityLabels
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderMapper
 import com.sza.fastmediasorter.ui.game.helpers.GameInputManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class GameActivity : BaseActivity<ActivityGameBinding>() {
@@ -28,6 +37,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
     private lateinit var boardView: GameBoardView
     private lateinit var inputManager: GameInputManager
     private var previousStatus: GameStatus? = null
+    private var autoAdvanceJob: Job? = null
 
     private val accessibilityLabels by lazy(LazyThreadSafetyMode.NONE) {
         GameBoardAccessibilityLabels(
@@ -46,6 +56,13 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun getViewBinding(): ActivityGameBinding = ActivityGameBinding.inflate(layoutInflater)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (shouldEnableEdgeToEdge() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            applySystemBarInsets()
+        }
+    }
 
     override fun setupViews() {
         boardView = GameBoardView(this)
@@ -126,6 +143,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         boardView.setRenderState(null)
         binding.btnGameReset.isEnabled = false
         binding.btnGameReset.setText(R.string.game_new_game)
+        cancelAutoAdvance()
         previousStatus = null
     }
 
@@ -138,6 +156,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         binding.btnGameReset.isEnabled = true
         binding.btnGameReset.text = resetActionText(ready)
         maybeShowDefeatToast(ready)
+        maybeScheduleAutoAdvance(ready)
         previousStatus = ready.levelState.status
     }
 
@@ -147,6 +166,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         boardView.setRenderState(null)
         binding.btnGameReset.isEnabled = false
         binding.btnGameReset.setText(R.string.game_new_game)
+        cancelAutoAdvance()
         previousStatus = null
     }
 
@@ -156,6 +176,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         boardView.setRenderState(null)
         binding.btnGameReset.isEnabled = true
         binding.btnGameReset.setText(R.string.game_new_game)
+        cancelAutoAdvance()
         previousStatus = null
     }
 
@@ -169,5 +190,56 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         if (previousStatus == GameStatus.GAME_OVER) return
         if (ready.levelState.status != GameStatus.GAME_OVER || ready.defeatConnection == null) return
         Toast.makeText(this, R.string.game_defeat_toast, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun applySystemBarInsets() {
+        val root = binding.root
+        val baseLeft = root.paddingLeft
+        val baseTop = root.paddingTop
+        val baseRight = root.paddingRight
+        val baseBottom = root.paddingBottom
+
+        fun apply(insets: WindowInsetsCompat) {
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            root.setPadding(
+                baseLeft + maxOf(systemBars.left, cutout.left),
+                baseTop + maxOf(systemBars.top, cutout.top, insets.getStatusBarHeightSafe(resources)),
+                baseRight + maxOf(systemBars.right, cutout.right),
+                baseBottom + maxOf(systemBars.bottom, cutout.bottom)
+            )
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
+            apply(insets)
+            insets
+        }
+        ViewCompat.getRootWindowInsets(root)?.let(::apply) ?: ViewCompat.requestApplyInsets(root)
+    }
+
+    private fun maybeScheduleAutoAdvance(ready: GameUiState.Ready) {
+        if (ready.levelState.status != GameStatus.LEVEL_WON) {
+            cancelAutoAdvance()
+            return
+        }
+        if (previousStatus == GameStatus.LEVEL_WON || autoAdvanceJob?.isActive == true) return
+
+        val levelNumber = ready.levelNumber
+        autoAdvanceJob = lifecycleScope.launch {
+            delay(AUTO_ADVANCE_DELAY_MS)
+            val current = viewModel.state.value as? GameUiState.Ready ?: return@launch
+            if (current.levelState.status == GameStatus.LEVEL_WON && current.levelNumber == levelNumber) {
+                viewModel.advanceLevel()
+            }
+        }
+    }
+
+    private fun cancelAutoAdvance() {
+        autoAdvanceJob?.cancel()
+        autoAdvanceJob = null
+    }
+
+    companion object {
+        private const val AUTO_ADVANCE_DELAY_MS = 1_000L
     }
 }

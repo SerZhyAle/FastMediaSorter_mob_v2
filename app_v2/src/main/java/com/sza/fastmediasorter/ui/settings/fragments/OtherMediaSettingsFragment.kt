@@ -11,12 +11,18 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
+import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.util.Locale
 
 class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
@@ -100,6 +106,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             // After migration the row IS the visible element; no extra wrapper container.
             binding.rowEnableTranslation.isVisible = false
             binding.layoutTranslationLanguages.isVisible = false
+            binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.rowTranslationLensStyle.isVisible = false
 
             // Hide Google Lens row
@@ -124,8 +131,12 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             updateTranslationVisibility(isChecked)
         }
 
-        // Translation language spinners
-        setupLanguageSpinners()
+        setupLanguageSelectors()
+        binding.btnTranslationPrewarmRetry.contentDescription =
+            getString(R.string.translation_model_prewarm_retry)
+        binding.btnTranslationPrewarmRetry.setOnClickListener {
+            viewModel.retryTranslationModelPrewarm()
+        }
 
         // Swap languages button
         binding.btnSwapLanguages.setOnClickListener {
@@ -181,161 +192,60 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
     }
 
-    private fun setupLanguageSpinners() {
-        val sourceLanguages = arrayOf(
-            "Auto-detect", "English", "Russian", "Ukrainian", "Spanish", "French", "German",
-            "Chinese", "Japanese", "Korean", "Arabic", "Portuguese", "Hindi",
-            "Italian", "Turkish", "Polish", "Dutch", "Thai", "Persian", "Greek",
-            "Indonesian", "Maltese"
-        )
-
-        val targetLanguages = arrayOf(
-            "English", "Russian", "Ukrainian", "Spanish", "French", "German",
-            "Chinese", "Japanese", "Korean", "Arabic", "Portuguese", "Hindi",
-            "Italian", "Turkish", "Polish", "Dutch", "Thai", "Persian", "Greek",
-            "Indonesian", "Maltese"
-        )
-
-        val sourceAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sourceLanguages)
-        sourceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
-        val targetAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, targetLanguages)
-        targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
-        binding.spinnerTranslationSourceLanguage.adapter = sourceAdapter
-        binding.spinnerTranslationTargetLanguage.adapter = targetAdapter
-
-        binding.spinnerTranslationSourceLanguage.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings) {
-                    val langCode = getLanguageCode(position, isSource = true)
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(translationSourceLanguage = langCode))
-                }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+    private fun setupLanguageSelectors() {
+        binding.spinnerTranslationSourceLanguage.setOnClickListener {
+            showLanguagePicker(SearchableLanguagePickerDialog.Mode.SOURCE)
         }
-
-        binding.spinnerTranslationTargetLanguage.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings) {
-                    val langCode = getLanguageCode(position, isSource = false)
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(translationTargetLanguage = langCode))
-                }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        binding.spinnerTranslationTargetLanguage.setOnClickListener {
+            showLanguagePicker(SearchableLanguagePickerDialog.Mode.TARGET)
         }
     }
 
-    private fun getLanguageCode(position: Int, isSource: Boolean = true): String {
-        return if (isSource) {
-            when (position) {
-                0 -> "auto"
-                1 -> "en"
-                2 -> "ru"
-                3 -> "uk"
-                4 -> "es"
-                5 -> "fr"
-                6 -> "de"
-                7 -> "zh"
-                8 -> "ja"
-                9 -> "ko"
-                10 -> "ar"
-                11 -> "pt"
-                12 -> "hi"
-                13 -> "it"
-                14 -> "tr"
-                15 -> "pl"
-                16 -> "nl"
-                17 -> "th"
-                18 -> "fa"
-                19 -> "el"
-                20 -> "id"
-                21 -> "mt"
-                else -> "auto"
-            }
-        } else {
-            when (position) {
-                0 -> "en"
-                1 -> "ru"
-                2 -> "uk"
-                3 -> "es"
-                4 -> "fr"
-                5 -> "de"
-                6 -> "zh"
-                7 -> "ja"
-                8 -> "ko"
-                9 -> "ar"
-                10 -> "pt"
-                11 -> "hi"
-                12 -> "it"
-                13 -> "tr"
-                14 -> "pl"
-                15 -> "nl"
-                16 -> "th"
-                17 -> "fa"
-                18 -> "el"
-                19 -> "id"
-                20 -> "mt"
-                else -> "en"
-            }
+    private fun showLanguagePicker(mode: SearchableLanguagePickerDialog.Mode) {
+        val settings = viewModel.settings.value
+        val selectedCode = when (mode) {
+            SearchableLanguagePickerDialog.Mode.SOURCE -> settings.translationSourceLanguage
+            SearchableLanguagePickerDialog.Mode.TARGET -> settings.translationTargetLanguage
         }
+        val tag = "${SearchableLanguagePickerDialog.TAG}_${mode.name}"
+        if (childFragmentManager.findFragmentByTag(tag) != null) return
+
+        SearchableLanguagePickerDialog.newInstance(
+            selectedCode = selectedCode,
+            mode = mode,
+            interfaceLanguage = settings.language
+        ) { language ->
+            val current = viewModel.settings.value
+            val updated = when (mode) {
+                SearchableLanguagePickerDialog.Mode.SOURCE ->
+                    current.copy(translationSourceLanguage = language.code)
+                SearchableLanguagePickerDialog.Mode.TARGET ->
+                    current.copy(translationTargetLanguage = language.code)
+            }
+            viewModel.updateSettings(updated)
+        }.show(childFragmentManager, tag)
     }
 
-    private fun getLanguagePosition(code: String, isSource: Boolean = true): Int {
-        return if (isSource) {
-            when (code) {
-                "auto" -> 0
-                "en" -> 1
-                "ru" -> 2
-                "uk" -> 3
-                "es" -> 4
-                "fr" -> 5
-                "de" -> 6
-                "zh" -> 7
-                "ja" -> 8
-                "ko" -> 9
-                "ar" -> 10
-                "pt" -> 11
-                "hi" -> 12
-                "it" -> 13
-                "tr" -> 14
-                "pl" -> 15
-                "nl" -> 16
-                "th" -> 17
-                "fa" -> 18
-                "el" -> 19
-                "id" -> 20
-                "mt" -> 21
-                else -> 0
-            }
-        } else {
-            when (code) {
-                "en" -> 0
-                "ru" -> 1
-                "uk" -> 2
-                "es" -> 3
-                "fr" -> 4
-                "de" -> 5
-                "zh" -> 6
-                "ja" -> 7
-                "ko" -> 8
-                "ar" -> 9
-                "pt" -> 10
-                "hi" -> 11
-                "it" -> 12
-                "tr" -> 13
-                "pl" -> 14
-                "nl" -> 15
-                "th" -> 16
-                "fa" -> 17
-                "el" -> 18
-                "id" -> 19
-                "mt" -> 20
-                else -> 0
-            }
-        }
+    private fun updateLanguageSelectors(settings: AppSettings) {
+        binding.spinnerTranslationSourceLanguage.text = formatLanguageCode(
+            code = settings.translationSourceLanguage,
+            interfaceLanguage = settings.language
+        )
+        binding.spinnerTranslationTargetLanguage.text = formatLanguageCode(
+            code = settings.translationTargetLanguage,
+            interfaceLanguage = settings.language
+        )
+        binding.spinnerTranslationSourceLanguage.contentDescription =
+            "${getString(R.string.translation_source_language)}: ${binding.spinnerTranslationSourceLanguage.text}"
+        binding.spinnerTranslationTargetLanguage.contentDescription =
+            "${getString(R.string.translation_target_language)}: ${binding.spinnerTranslationTargetLanguage.text}"
+    }
+
+    private fun formatLanguageCode(code: String, interfaceLanguage: String): String {
+        val displayLocale = Locale.forLanguageTag(interfaceLanguage)
+        val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
+            ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
+        return item?.let(TranslationLanguageCatalog::formatLanguage) ?: code.uppercase(Locale.ROOT)
     }
 
     private fun updateTranslationVisibility(enabled: Boolean) {
@@ -427,7 +337,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                         1 -> "PADDLE_OCR"
                         else -> "TESSERACT"
                     }
-                    timber.log.Timber.d("S0288: settings ocr engine selector picked engine=$engineValue")
+                    Timber.d("S0288: settings ocr engine selector picked engine=$engineValue")
                     val current = viewModel.settings.value
                     viewModel.updateSettings(current.copy(ocrEngineType = engineValue))
                     
@@ -585,8 +495,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowEnableTranslation, settings.enableTranslation)
                 updateTranslationVisibility(settings.enableTranslation)
 
-                binding.spinnerTranslationSourceLanguage.setSelection(getLanguagePosition(settings.translationSourceLanguage, isSource = true))
-                binding.spinnerTranslationTargetLanguage.setSelection(getLanguagePosition(settings.translationTargetLanguage, isSource = false))
+                updateLanguageSelectors(settings)
 
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
                 setSwitchChecked(binding.rowEnableGoogleLens, settings.enableGoogleLens)
@@ -630,6 +539,33 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 }
                 binding.spinnerOcrFontFamily?.setSelection(fontFamilyPosition)
             }
+        }
+        collectOnLifecycle(viewModel.translationModelPrewarmStatus) { status ->
+            Timber.d("S0334: prewarm status rendered ${status.javaClass.simpleName}")
+            updateTranslationPrewarmStatus(status)
+        }
+    }
+
+    private fun updateTranslationPrewarmStatus(status: TranslationModelPrewarmStatus) {
+        if (!BuildConfig.ENABLE_TRANSLATION || !viewModel.settings.value.enableTranslation) {
+            binding.layoutTranslationPrewarmStatus.isVisible = false
+            binding.btnTranslationPrewarmRetry.isVisible = false
+            return
+        }
+
+        val statusTextRes = when (status) {
+            TranslationModelPrewarmStatus.Idle -> null
+            is TranslationModelPrewarmStatus.Downloading -> R.string.translation_model_prewarm_downloading
+            is TranslationModelPrewarmStatus.Ready -> R.string.translation_model_prewarm_ready
+            is TranslationModelPrewarmStatus.Failed -> R.string.translation_model_prewarm_failed
+        }
+
+        binding.layoutTranslationPrewarmStatus.isVisible = statusTextRes != null
+        binding.btnTranslationPrewarmRetry.isVisible = status is TranslationModelPrewarmStatus.Failed
+        if (statusTextRes != null) {
+            binding.tvTranslationPrewarmStatus.text = getString(statusTextRes)
+            binding.tvTranslationPrewarmStatus.contentDescription =
+                binding.tvTranslationPrewarmStatus.text
         }
     }
 

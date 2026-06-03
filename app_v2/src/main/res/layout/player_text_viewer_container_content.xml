@@ -308,6 +308,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
                 android:clickable="true"
+                android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save"
                 android:src="@drawable/ic_text_save"
                 app:tint="@color/selector_player_button_tint" />
@@ -330,6 +331,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
                 android:clickable="true"
+                android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save_send"
                 android:src="@drawable/ic_text_save_send"
                 app:tint="@color/selector_player_button_tint" />
@@ -353,7 +355,6 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
                 android:clickable="true"
-                android:visibility="gone"
                 android:contentDescription="@string/more_actions"
                 android:src="@drawable/ic_more_vert"
                 app:tint="@color/selector_player_button_tint" />

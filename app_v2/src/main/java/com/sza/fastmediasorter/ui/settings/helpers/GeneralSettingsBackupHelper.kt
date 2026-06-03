@@ -20,7 +20,7 @@ class GeneralSettingsBackupHelper(
 ) {
     fun setupWearCompanionButton() {
         if (!BuildConfig.SUPPORT_WEAR_COMPANION) {
-            binding.btnWearCompanion?.visibility = View.GONE
+            binding.containerWearCompanion?.visibility = View.GONE
             return
         }
         binding.btnWearCompanion?.setOnClickListener {
@@ -28,6 +28,13 @@ class GeneralSettingsBackupHelper(
                 com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment()
                     .show(fragment.childFragmentManager, "wear_sync")
             }
+        }
+        binding.iconHelpWearCompanion?.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                fragment.requireContext(),
+                R.string.tooltip_wear_companion_title,
+                R.string.tooltip_wear_companion_message
+            )
         }
     }
 

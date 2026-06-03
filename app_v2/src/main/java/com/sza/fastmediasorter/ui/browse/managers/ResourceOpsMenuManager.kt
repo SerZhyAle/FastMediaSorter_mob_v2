@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -60,17 +62,20 @@ class ResourceOpsMenuManager @Inject constructor(
                 && resource.showSubfoldersAsItems
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
-        popup.menu.findItem(R.id.action_create_folder)?.isVisible = canCreateFolder
+        popup.menu.findItem(R.id.action_create_folder)?.isVisible =
+            canCreateFolder && !isControlVisibleOnScreen(anchor, R.id.btnCreateFolder)
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
-        popup.menu.findItem(R.id.action_create_text_file)?.isVisible = canCreateTextNote
+        popup.menu.findItem(R.id.action_create_text_file)?.isVisible =
+            canCreateTextNote && !isControlVisibleOnScreen(anchor, R.id.btnCreateTextFile)
 
         val canCreateDrawing = resource != null
             && !resource.isReadOnly
             && !VirtualPathUtils.isVirtualPath(resource.path)
             && resource.supportsImages()
-        popup.menu.findItem(R.id.action_create_drawing)?.isVisible = canCreateDrawing
+        popup.menu.findItem(R.id.action_create_drawing)?.isVisible =
+            canCreateDrawing && !isControlVisibleOnScreen(anchor, R.id.btnCreateDrawing)
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
@@ -163,6 +168,11 @@ class ResourceOpsMenuManager @Inject constructor(
             }
         }
         popup.show()
+    }
+
+    private fun isControlVisibleOnScreen(anchor: View, viewId: Int): Boolean {
+        val control = anchor.rootView.findViewById<View>(viewId) ?: return false
+        return control.isShown && control.getGlobalVisibleRect(Rect())
     }
 
     // -------------------------------------------------------------------------

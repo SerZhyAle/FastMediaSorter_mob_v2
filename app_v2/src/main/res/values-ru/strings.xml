@@ -45,6 +45,11 @@
     <string name="camera_ocr_save_error">Не удалось сохранить текстовый файл</string>
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
+    <string name="camera_ocr_crop_title">Выделите область</string>
+    <string name="camera_ocr_crop_hint">Передвиньте рамку для обрезки или нажмите OK, чтобы взять всё фото</string>
+    <string name="camera_ocr_crop_retry">Переснять</string>
+    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
     <string name="start_player">Запустить плеер</string>
     <string name="add">Добавить</string>
     <string name="settings">Настройки</string>
@@ -80,6 +85,10 @@
     <string name="share">Поделиться</string>
     <string name="search">Поиск</string>
     <string name="search_hint">Поиск…</string>
+    <string name="language_capability_translation">Перевод</string>
+    <string name="language_capability_basic_ocr">Базовый OCR</string>
+    <string name="language_capability_quality_ocr">Качественный OCR</string>
+    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">Перевести</string>
     <string name="no_files_selected">Файлы не выбраны</string>
     <string name="msg_last_filter_restored">Восстановлен последний фильтр: %1$s</string>
@@ -94,6 +103,15 @@
     <string name="playback_resumed_from">Возобновлено с %1$s</string>
 
     <!-- Settings Tabs -->
+    <string name="settings_profile_title">Профиль устройства</string>
+    <string name="settings_profile_current_label">Текущий профиль: %1$s (%2$s)</string>
+    <string name="settings_profile_source_manual">вручную</string>
+    <string name="settings_profile_source_auto">авто</string>
+    <string name="settings_profile_source_skipped">авто-пропущено</string>
+    <string name="settings_profile_source_migration">мигрировано</string>
+    <string name="settings_profile_warning">Внимание: изменение профиля сбросит часть настроек на значения по умолчанию для нового профиля. Вы уверены, что хотите продолжить?</string>
+    <string name="settings_profile_migration_hint">Ваши текущие настройки сохранены. Выберите профиль, чтобы применить новые значения по умолчанию.</string>
+
     <string name="settings_tab_general">Общие</string>
     <string name="settings_tab_media">Медиа</string>
     <string name="settings_tab_playback">Воспроизведение</string>
@@ -400,6 +418,7 @@
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
     <string name="media_type_office_documents">Офисные документы</string>
+    <string name="filter_check_all_types">Отметить все типы</string>
     <string name="filter_by_size">Фильтр по размеру файла (МБ)</string>
     <string name="min_date">Мин. дата</string>
     <string name="max_date">Макс. дата</string>
@@ -414,6 +433,12 @@
     <string name="destinations">Быстрая сортировка</string>
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
+    <string name="color_theme">Цветовая тема</string>
+    <string-array name="color_theme_options">
+        <item>Авто (за устройством)</item>
+        <item>Светлая</item>
+        <item>Тёмная</item>
+    </string-array>
     <string name="backup_restore_settings">Резервное копирование</string>
     <string name="backup_info_description">Резервная копия содержит все настройки и список ресурсов. Учетные данные не резервируются - после восстановления вам потребуется повторно аутентифицировать сетевые и облачные ресурсы.</string>
     <string name="tooltip_backup_info_title">Информация о резервной копии</string>
@@ -700,6 +725,7 @@
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Открыть в новом окне</string>
     <string name="setting_allow_separate_window">Разрешить новые окна</string>
+    <string name="setting_allow_separate_window_desc">Открывать папки и файлы в отдельном окне</string>
     <string name="tooltip_allow_separate_window_title">Разрешить новые окна</string>
     <string name="tooltip_allow_separate_window_message">Когда включено, на экранах обзора и плеера появляется действие «Открыть в новом окне», запускающее выбранную папку или файл в отдельном окне Android. Полезно на устройствах, поддерживающих многооконный режим (планшеты, складные устройства, ChromeOS, большие дисплеи). Когда выключено, действие скрыто и всё открывается в текущем окне.</string>
 
@@ -883,6 +909,91 @@
     <string name="show_log">Показать лог</string>
     <string name="show_current_session_log">Лог текущей сессии</string>
     <string name="settings_application_log_title">Лог приложения</string>
+    <string name="settings_system_info_button">О системе</string>
+    <string name="settings_system_info_title">Сведения о системе</string>
+    <!-- System info dialog: section headers (S0337) -->
+    <string name="sysinfo_section_device">Устройство</string>
+    <string name="sysinfo_section_user">Пользователь</string>
+    <string name="sysinfo_section_os">ОС</string>
+    <string name="sysinfo_section_app">Приложение</string>
+    <string name="sysinfo_section_memory">Память</string>
+    <string name="sysinfo_section_storage">Хранилище</string>
+    <string name="sysinfo_section_display">Экран</string>
+    <string name="sysinfo_section_locale">Локаль</string>
+    <string name="sysinfo_section_time">Время</string>
+    <!-- System info dialog: field labels (S0337) -->
+    <string name="sysinfo_field_manufacturer">Производитель</string>
+    <string name="sysinfo_field_model">Модель</string>
+    <string name="sysinfo_field_product">Продукт</string>
+    <string name="sysinfo_field_user_name">Имя</string>
+    <string name="sysinfo_field_android_version">Android</string>
+    <string name="sysinfo_field_api_level">Уровень API</string>
+    <string name="sysinfo_field_app_version">Версия</string>
+    <string name="sysinfo_field_build">Сборка</string>
+    <string name="sysinfo_field_flavor">Вариант</string>
+    <string name="sysinfo_field_ram_total">Всего ОЗУ</string>
+    <string name="sysinfo_field_ram_available">Доступно ОЗУ</string>
+    <string name="sysinfo_field_storage_total">Всего</string>
+    <string name="sysinfo_field_storage_available">Доступно</string>
+    <string name="sysinfo_field_resolution">Разрешение</string>
+    <string name="sysinfo_field_density">Плотность</string>
+    <string name="sysinfo_field_locale_current">Текущая</string>
+    <string name="sysinfo_field_time_current">Текущее</string>
+    <string name="sysinfo_field_timezone">Часовой пояс</string>
+    <!-- System info dialog: Hardware section (S0337) -->
+    <string name="sysinfo_section_hardware">Оборудование</string>
+    <string name="sysinfo_field_cpu_cores">Ядра CPU</string>
+    <string name="sysinfo_field_abis">ABI</string>
+    <string name="sysinfo_field_soc">SoC</string>
+    <string name="sysinfo_field_kernel">Ядро</string>
+    <string name="sysinfo_field_gles">OpenGL ES</string>
+    <string name="sysinfo_field_max_heap">Макс. куча</string>
+    <string name="sysinfo_field_process_bits">Процесс</string>
+    <!-- System info dialog: System section (S0337) -->
+    <string name="sysinfo_section_system">Система</string>
+    <string name="sysinfo_field_locales">Локали</string>
+    <string name="sysinfo_field_hour_format">Формат времени</string>
+    <string name="sysinfo_field_boot_count">Число загрузок</string>
+    <string name="sysinfo_field_security_patch">Патч безопасности</string>
+    <string name="sysinfo_field_fingerprint">Fingerprint</string>
+    <string name="sysinfo_field_tags">Теги сборки</string>
+    <string name="sysinfo_field_build_type">Тип сборки</string>
+    <string name="sysinfo_field_installer">Установщик</string>
+    <string name="sysinfo_field_first_install">Первая установка</string>
+    <string name="sysinfo_field_last_update">Последнее обновление</string>
+    <string name="sysinfo_field_device_name">Имя устройства</string>
+    <string name="sysinfo_field_input_method">Метод ввода</string>
+    <!-- System info dialog: Battery section (S0337) -->
+    <string name="sysinfo_section_battery">Батарея</string>
+    <string name="sysinfo_field_battery_level">Уровень</string>
+    <string name="sysinfo_field_battery_status">Состояние</string>
+    <string name="sysinfo_field_battery_plug">Источник питания</string>
+    <string name="sysinfo_field_battery_health">Здоровье</string>
+    <string name="sysinfo_field_battery_temperature">Температура</string>
+    <string name="sysinfo_field_battery_voltage">Напряжение</string>
+    <string name="sysinfo_field_battery_technology">Технология</string>
+    <!-- System info dialog: Display section extra fields (S0337) -->
+    <string name="sysinfo_field_refresh_rate">Частота обновления</string>
+    <string name="sysinfo_field_hdr">HDR</string>
+    <string name="sysinfo_field_wide_gamut">Широкий цветовой охват</string>
+    <string name="sysinfo_field_dark_mode">Тёмная тема</string>
+    <string name="sysinfo_field_font_scale">Масштаб шрифта</string>
+    <string name="sysinfo_field_orientation">Ориентация</string>
+    <string name="sysinfo_field_smallest_width">Наименьшая ширина</string>
+    <string name="sysinfo_field_display_count">Дисплеи</string>
+    <!-- System info dialog: Network section (S0337) -->
+    <string name="sysinfo_section_network">Сеть</string>
+    <string name="sysinfo_field_net_transport">Тип</string>
+    <string name="sysinfo_field_net_metered">Лимитированная</string>
+    <string name="sysinfo_field_net_vpn">VPN</string>
+    <string name="sysinfo_field_net_airplane">Режим полёта</string>
+    <string name="sysinfo_field_net_ip">IP-адрес</string>
+    <!-- System info dialog: Benchmark section (S0337) -->
+    <string name="sysinfo_section_benchmark">Бенчмарки</string>
+    <string name="sysinfo_field_bench_memory">Скорость памяти</string>
+    <string name="sysinfo_field_bench_storage_write">Запись на накопитель</string>
+    <string name="sysinfo_field_bench_storage_read">Чтение с накопителя</string>
+    <string name="sysinfo_benchmark_approx">приблизительно</string>
     <string name="settings_log_empty">Записей в логе не найдено.</string>
     <string name="settings_log_last_lines">Последние %1$d строк лога:
 
@@ -2509,7 +2620,7 @@
     <string name="game_help_intro">Дойдите с синим Чудовищем до зелёного выхода, пока враги не загнали вас в угол.</string>
     <string name="game_help_legend_title">Легенда</string>
     <string name="game_help_rules_title">Правила</string>
-    <string name="game_help_rules">Используйте треугольники, клавиатуру, D-pad или свайп, чтобы ходить на одну клетку.\nКрасная Крывавица идёт к Чудовищу. Фиолетовые подкровавницы двигаются беспорядочно.\nТолкайте серые стены в свободные клетки, чтобы расчистить путь. Толстая рамка не даёт выйти за поле.\nСчёт: -10 за ход, +10 за толчок стены, +50 за раздавленную подкровавницу, +1000 за выход.\nЕсли враг оказывается на соседней или той же клетке, игра заканчивается.</string>
+    <string name="game_help_rules">Используйте треугольники, клавиатуру, D-pad, свайп или тап по полю, чтобы ходить на одну клетку.\nКрасная Крывавица идёт к Чудовищу. Фиолетовые подкровавницы двигаются беспорядочно.\nТолкайте серые стены в свободные клетки, чтобы расчистить путь. Толстая рамка не даёт выйти за поле.\nСчёт: -10 за ход, +10 за толчок стены, +50 за раздавленную подкровавницу, +1000 за выход.\nЕсли враг оказывается на соседней или той же клетке, игра заканчивается.</string>
     <string name="game_help_legend_player">Синий - Чудовище, которым вы управляете</string>
     <string name="game_help_legend_kryvavitsa">Красный - Крывавица, идёт к игроку</string>
     <string name="game_help_legend_shadow">Фиолетовый - подкровавница, ходит случайно</string>
@@ -2950,6 +3061,8 @@
 
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear-компаньон</string>
+    <string name="tooltip_wear_companion_title">Wear-компаньон</string>
+    <string name="tooltip_wear_companion_message">Отправьте свои сетевые папки (SMB, FTP, облако) на сопряжённые часы Wear OS, чтобы просматривать и воспроизводить их прямо с запястья. Нажмите кнопку, чтобы выбрать, какие типы медиа синхронизировать, и настроить воспроизведение на часах.</string>
     <string name="wear_sync_description">Передайте сетевые источники на подключённые часы Wear OS.</string>
     <string name="wear_last_synced">Последняя синхр.: %s</string>
     <string name="wear_push_to_watch">Отправить на часы</string>
@@ -3618,6 +3731,7 @@
     <string name="calculator_enable_prompt_message">Включите калькулятор в настройках, чтобы использовать этот виджет.</string>
     <string name="calculator_open_settings">Открыть настройки</string>
     <string name="calculator_error_division_by_zero">Делить на ноль нельзя.</string>
+    <string name="calculator_error_math_domain">С этим числом так нельзя.</string>
     <string name="calculator_action_clear">Очистить</string>
     <string name="calculator_action_clear_entry">Очистить ввод</string>
     <string name="calculator_action_backspace">Удалить последний символ</string>
@@ -3634,6 +3748,27 @@
     <string name="calculator_action_share_result">Отправить результат</string>
     <string name="calculator_action_save_history">Сохранить историю</string>
     <string name="calculator_action_clear_history">Очистить историю</string>
+    <string name="calculator_action_function">Функция</string>
+    <string name="calculator_fn_sin">sin</string>
+    <string name="calculator_fn_cos">cos</string>
+    <string name="calculator_fn_tan">tg</string>
+    <string name="calculator_fn_cot">ctg</string>
+    <string name="calculator_fn_sqrt">√x</string>
+    <string name="calculator_fn_cbrt">∛x</string>
+    <string name="calculator_fn_square">x²</string>
+    <string name="calculator_fn_power">xʸ</string>
+    <string name="calculator_fn_reciprocal">1/x</string>
+    <string name="calculator_fn_log10">log₁₀</string>
+    <string name="calculator_fn_ln">ln</string>
+    <string name="calculator_fn_factorial">n!</string>
+    <string name="calculator_fn_pi">π</string>
+    <string name="calculator_fn_mod">mod</string>
+    <string name="calculator_action_memory_add">Прибавить к памяти</string>
+    <string name="calculator_action_memory_subtract">Вычесть из памяти</string>
+    <string name="calculator_action_memory_recall">Вызвать из памяти</string>
+    <string name="calculator_action_memory_clear">Очистить память</string>
+    <string name="calculator_action_memory_toggle">Показать или скрыть кнопки памяти</string>
+    <string name="calculator_memory_indicator">M %1$s</string>
     <string name="calculator_history_empty">Истории пока нет.</string>
     <string name="calculator_history_saved_to_downloads">История сохранена в Загрузки: %1$s</string>
     <string name="calculator_history_save_failed">Не удалось сохранить историю.</string>
@@ -3642,4 +3777,36 @@
     <string name="widget_calculator_label">Калькулятор</string>
     <string name="widget_calculator_description">Открыть встроенный калькулятор</string>
     <string name="settings_category_other_features">Прочий функционал</string>
+
+    <!-- Device Profile Onboarding (S0327) -->
+    <string name="welcome_profile_selector_title">Профиль использования</string>
+    <string name="profile_picker_title">Выберите профиль устройства</string>
+    <string name="profile_picker_select">Выбрать</string>
+    <string name="welcome_recommended_badge">(Рекомендуется)</string>
+    <string name="welcome_profile_personal_smartphone_title">Личный смартфон</string>
+    <string name="welcome_profile_personal_smartphone_desc">Оптимально для личных телефонов. Настраивает touch-интерфейс, фоновую синхронизацию и стандартные подтверждения безопасности.</string>
+    <string name="welcome_profile_home_tablet_title">Планшет и ПК-режим</string>
+    <string name="welcome_profile_home_tablet_desc">Для планшетов, Chromebook и режима Samsung DeX. Оптимизирует отображение сетки, включает крупные превью и многооконный режим.</string>
+    <string name="welcome_profile_tv_media_box_title">ТВ-приставка / Медиацентр</string>
+    <string name="welcome_profile_tv_media_box_desc">Для телевизоров и ТВ-приставок. Оптимизирует навигацию с пульта (DPAD), увеличивает элементы и скрывает мелкие touch-кнопки.</string>
+    <string name="welcome_profile_car_head_unit_title">Автомагнитола</string>
+    <string name="welcome_profile_car_head_unit_desc">Для автомобильных магнитол. Увеличивает кнопки управления, блокирует выключение экрана и ставит в приоритет управление плеером.</string>
+    <string name="welcome_profile_media_player_title">Общий медиаплеер</string>
+    <string name="welcome_profile_media_player_desc">Для общих медиацентров. Фокусируется на показе фото, видео и музыки с автозапуском слайдшоу и возобновлением воспроизведения.</string>
+    <string name="welcome_profile_photo_frame_title">Цифровая фоторамка</string>
+    <string name="welcome_profile_photo_frame_desc">Превращает планшет в фоторамку. Отключает видео, аудио и документы; сразу запускает слайдшоу изображений.</string>
+    <string name="welcome_profile_video_player_title">Видеопроигрыватель</string>
+    <string name="welcome_profile_video_player_desc">Для просмотра видео. Скрывает фотографии, музыку и документы; оптимизирует быстрый запуск видеороликов.</string>
+    <string name="welcome_profile_audio_player_title">Аудиопроигрыватель</string>
+    <string name="welcome_profile_audio_player_desc">Для прослушивания музыки. Скрывает фото и видео; оптимизирует фоновый звук и экран текущего трека.</string>
+    <string name="welcome_profile_ebook_reader_title">Электронная книга</string>
+    <string name="welcome_profile_ebook_reader_desc">Для чтения документов. Скрывает видео и музыку; оптимизирует отображение PDF, EPUB и текстовых книг.</string>
+    <string name="welcome_profile_vr_headset_title">VR-шлем</string>
+    <string name="welcome_profile_vr_headset_desc">Для VR-очков и шлемов. Предварительно включает 3D/360°-интерфейсы и иммерсивное управление на поддерживаемых устройствах.</string>
+    <string name="welcome_profile_other_title">Другой / Без изменений</string>
+    <string name="welcome_profile_other_desc">Сохраняет текущие системные настройки без изменений. Пакетные предустановки не применяются.</string>
+    <string name="translation_model_prewarm_downloading">Загрузка модели перевода..</string>
+    <string name="translation_model_prewarm_ready">Модель перевода готова.</string>
+    <string name="translation_model_prewarm_failed">Не удалось загрузить модель перевода. Попробуйте ещё раз.</string>
+    <string name="translation_model_prewarm_retry">Повторить</string>
 </resources>

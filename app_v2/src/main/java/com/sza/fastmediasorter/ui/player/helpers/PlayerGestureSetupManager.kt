@@ -35,6 +35,11 @@ class PlayerGestureSetupManager(
     private lateinit var gestureDetector: GestureDetector
     private lateinit var imageTouchGestureDetector: GestureDetector
 
+    // Last ACTION_DOWN point on the PDF PhotoView (view coordinates), used to pre-select
+    // the word under a long-press. NaN until the first PDF touch-down is observed.
+    private var lastPdfDownX: Float = Float.NaN
+    private var lastPdfDownY: Float = Float.NaN
+
     // ════════════════════════════════════════════════════════════════════════
     // DUAL-SURFACE SUPPORT (D.5 Gesture Unification)
     // ════════════════════════════════════════════════════════════════════════
@@ -396,13 +401,26 @@ class PlayerGestureSetupManager(
             }
         )
 
-        // Handle long press - route to PDF fullscreen or image zoom
+        // Record the PDF touch-down point so a long-press can pre-select the word under it.
+        // Forward every event to the PhotoView attacher so zoom/pan/fling stay intact.
+        val attacher = photoView.attacher
+        photoView.setOnTouchListener { v, ev ->
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN &&
+                viewModel.state.value.currentFile?.type == MediaType.PDF
+            ) {
+                lastPdfDownX = ev.x
+                lastPdfDownY = ev.y
+            }
+            attacher.onTouch(v, ev)
+        }
+
+        // Handle long press - route to PDF text selection or image zoom
         photoView.setOnLongClickListener {
             if (isOverlayBlocking()) return@setOnLongClickListener false
-            
+
             // Route to PDF handler if PDF is active, else image zoom
             if (viewModel.state.value.currentFile?.type == MediaType.PDF) {
-                activity.pdfViewerManager.handlePdfLongPress()
+                activity.pdfViewerManager.handlePdfLongPress(lastPdfDownX, lastPdfDownY)
             } else {
                 touchZoneGestureManager.handleImageLongPress()
             }

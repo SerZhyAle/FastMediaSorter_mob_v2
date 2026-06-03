@@ -2,4 +2,46 @@
 <resources>
     <string name="vr_settings_master_toggle_label">Включить 3D VR</string>
     <string name="vr_settings_master_toggle_summary">Показывать VR-функции в этом приложении</string>
+
+    <!-- S0326: глобальные настройки 3D/VR по умолчанию (только VR). -->
+    <string name="settings_stereo_vr_group_detection_title">Определение формата</string>
+    <string name="settings_stereo_vr_group_default_title">Режим по умолчанию</string>
+    <string name="settings_stereo_vr_group_immersive_title">Погружение и диагностика</string>
+
+    <string name="settings_stereo_vr_autodetect_title">Автоопределение форматов 3D/VR</string>
+    <string name="settings_stereo_vr_autodetect_summary">Распознавать стерео и панорамы автоматически</string>
+    <string name="settings_stereo_vr_trust_filename_title">Учитывать метки в имени файла</string>
+    <string name="settings_stereo_vr_trust_filename_summary">Определять по меткам SBS, OU, 180 или 360 в имени файла</string>
+    <string name="settings_stereo_vr_trust_metadata_title">Учитывать встроенные метаданные</string>
+    <string name="settings_stereo_vr_trust_metadata_summary">Определять по метаданным spatial-видео и фотосфер</string>
+    <string name="settings_stereo_vr_trust_aspect_title">Угадывать по пропорциям</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Менее надёжно — обычные широкие фото могут попасть в 3D</string>
+    <string name="settings_stereo_vr_ambiguity_title">Когда формат неясен</string>
+    <string name="settings_stereo_vr_ambiguity_summary">Вкл: делать предположение. Выкл: открывать как 2D</string>
+
+    <string name="settings_stereo_vr_default_layout_label">Раскладка по умолчанию</string>
+    <string name="settings_stereo_vr_default_projection_label">Проекция по умолчанию</string>
+
+    <string name="settings_stereo_vr_auto_immersive_title">Входить в погружение автоматически</string>
+    <string name="settings_stereo_vr_auto_immersive_summary">Открывать 3D/VR в режиме шлема без лишнего нажатия</string>
+    <string name="settings_stereo_vr_render_mode_label">Режим отрисовки</string>
+    <string name="settings_stereo_vr_show_fps_title">Показывать счётчик FPS</string>
+    <string name="settings_stereo_vr_show_fps_summary">Отображать частоту кадров в режиме погружения</string>
+
+    <string-array name="settings_stereo_vr_layout_entries">
+        <item>Моно</item>
+        <item>Side-by-Side</item>
+        <item>Over-Under</item>
+    </string-array>
+    <string-array name="settings_stereo_vr_projection_entries">
+        <item>Плоская</item>
+        <item>180°</item>
+        <item>360°</item>
+        <item>Цилиндр</item>
+    </string-array>
+    <string-array name="settings_stereo_vr_render_mode_entries">
+        <item>Кинотеатр</item>
+        <item>Полный Side-by-Side</item>
+        <item>Полный Over-Under</item>
+    </string-array>
 </resources>

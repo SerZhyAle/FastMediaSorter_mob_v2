@@ -78,6 +78,7 @@ class TextViewerManager(
         fun setTouchZonesEnabled(enabled: Boolean)
         fun showEncodingDialog()
         fun launchEditorCalculator(initialInput: String)
+        fun launchSelectionCalculator(initialInput: String)
         // S0189: invoked by Save & Close to return the user to Browse with the new file.
         fun finishActivity()
     }
@@ -370,7 +371,23 @@ class TextViewerManager(
                         ?.substring(minOf(start, end), maxOf(start, end)) ?: ""
                 },
                 onTranslate = { translationOverlayManager.translateSelectedText(it) },
-                onSearchGoogle = { openGoogleSearch(context, it) }
+                onSearchGoogle = { openGoogleSearch(context, it) },
+                isCalculatorAvailable = { calculatorEnabledFlow.value },
+                onOpenCalculator = callback::launchSelectionCalculator,
+            )
+
+        // Editor (EditText) selection: append "Calculator" to the platform selection menu.
+        // Reuses the editor calculator round-trip so the result is inserted after the selection.
+        safeViews.etTextContent.customSelectionActionModeCallback =
+            EditorSelectionActionModeCallback(
+                isCalculatorAvailable = { calculatorEnabledFlow.value },
+                getSelectedText = {
+                    val editable = safeViews.etTextContent.text
+                    val start = safeViews.etTextContent.selectionStart.coerceAtLeast(0)
+                    val end = safeViews.etTextContent.selectionEnd.coerceAtLeast(0)
+                    editable?.substring(minOf(start, end), maxOf(start, end)) ?: ""
+                },
+                onOpenCalculator = callback::launchEditorCalculator,
             )
     }
 

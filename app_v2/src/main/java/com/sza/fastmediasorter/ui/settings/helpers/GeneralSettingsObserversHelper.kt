@@ -40,6 +40,12 @@ class GeneralSettingsObserversHelper(
             // S0028: Multi-window toggle observation. Lives in General → Interface (bottom).
             if (binding.rowAllowSeparateWindow.isChecked != settings.allowSeparateWindow)
                 binding.rowAllowSeparateWindow.setCheckedSilently(settings.allowSeparateWindow)
+            if (binding.rowDefaultGridMode.isChecked != settings.defaultGridMode)
+                binding.rowDefaultGridMode.setCheckedSilently(settings.defaultGridMode)
+            if (binding.rowHideGridActionButtons.isChecked != settings.hideGridActionButtons)
+                binding.rowHideGridActionButtons.setCheckedSilently(settings.hideGridActionButtons)
+            if (binding.rowFileOpsInOverflowMenu.isChecked != settings.fileOpsInOverflowMenu)
+                binding.rowFileOpsInOverflowMenu.setCheckedSilently(settings.fileOpsInOverflowMenu)
             if (binding.rowSmallControls.isChecked != settings.showSmallControls)
                 binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
             if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
@@ -80,6 +86,10 @@ class GeneralSettingsObserversHelper(
             val currentCacheSize = binding.actvCacheSizeLimit.text.toString().toIntOrNull()
             if (currentCacheSize != settings.cacheSizeMb)
                 binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, settings.cacheSizeMb), false)
+
+            val currentIconSize = binding.etIconSize.text.toString().toIntOrNull()
+            if (currentIconSize != settings.defaultIconSize)
+                binding.etIconSize.setText(fragment.getString(R.string.number_format, settings.defaultIconSize), false)
 
             val syncMinutes = settings.backgroundSyncIntervalHours * 60
             binding.actvSyncInterval?.let { syncIntervalView ->

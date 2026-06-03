@@ -1,12 +1,15 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-05-31*
+*Last updated: 2026-06-02*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
 **Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
+
+## 0. Setup & Configuration
+- **First-run device profile setup** `[Standard / VR]`: On initial launch, select a device profile (phone, tablet, TV/media box, car head unit, media player, photo frame, video player, audio player, e-book reader, VR headset, or Other) with auto-detection recommendations based on platform signals. The selected profile applies optimized defaults for content types, interaction patterns, safety confirmations, screen behavior, command priorities, and feature visibility tailored to the device's intended use case.
 
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, SMB network folders (Windows share/NAS), FTP, SFTP, and cloud drives (Google Drive, Dropbox, OneDrive) in a single interface.
@@ -18,7 +21,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 2. Media Browsing
 - **Extensive sort modes** `[Standard / VR]`: Sort by Name, Date, Size, Type, Artist, Title, Duration, Date Taken, Random, or Manual order (ascending/descending) with memory per resource.
-- **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types.
+- **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types (including Office documents), with a one-tap action to re-check every type.
 - **Hidden files & filter bypass** `[Standard / VR]`: Toggle visibility of system-hidden files, or activate File Manager Mode to bypass media filters and manage any file or archive (ZIP, APK, EXE, etc.).
 - **Office document handoff** `[Standard / VR]`: Open DOC, DOCX, RTF, and ODT files in an installed external application, with full integration in media filters across local, network, and cloud resources.
 - **Protected document fallback** `[Standard / VR]`: Detect protected PDF, Office, and EPUB cases the internal viewer cannot decrypt and route to a clear message or external-open fallback; passwords are not stored.
@@ -73,6 +76,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Virtual cinema** `[VR Only]`: Play standard 2D video and slideshows on a massive, customizable virtual screen inside the VR scene.
 - **Passthrough snapshot** `[VR Only]`: Capture mixed-reality photos using front-facing cameras (on Quest 3).
 - **VR Entry point** `[VR Only]`: Instantly trigger the immersive OpenXR layer from the flat player using a floating `VR` action badge.
+- **3D/VR default settings** `[VR Only]`: Tune how the app auto-detects 3D/VR formats (filename markers, embedded metadata, aspect-ratio guess), pick the default mode for unrecognized media, and set immersive behavior — all from the VR section of Media settings; per-file overrides still take priority.
 
 ## 9. Audio Player
 - **Background playback** `[Standard Only]`: Runs on a persistent foreground service with quick media notification drawer controls.
@@ -94,20 +98,23 @@ This document is the canonical inventory of all user-facing features implemented
 - **EPUB custom formatting** `[Standard / VR]`: Configure Serif, Sans, or Monospace fonts, adjust line spacing, margins, and custom themes (including OLED black).
 - **Read Aloud (TTS)** `[Standard / VR]`: Synthesizes current pages or chapters through the system text-to-speech engine.
 - **Print support** `[Standard Only]`: Print PDF documents, notes, and photos natively via the Android Print service.
+- **Text selection & copy** `[Standard / VR]`: Long-press to select a word in PDF, EPUB and TXT/MD, drag the handles to adjust the range, and use the floating Copy action; in PDF the selection opens through the on-page text mode (TXT button).
 
 ## 12. Text Editor
 - **Rendering & syntax** `[Standard / VR]`: Auto-detects charsets, renders Markdown, and highlights code syntax.
 - **In-place editing** `[Standard / VR]`: Modify `.txt` and `.md` files with auto-save and undo history (Undo/Redo) for local and remote files.
 - **Quick notes** `[Standard / VR]`: Create new text notes directly from the Browse toolbar with auto-saving and name conflict resolution.
 - **Action panel** `[Standard / VR]`: Dedicated control buttons (Save, Close, Share, Send to Keep) with unsaved change highlights.
-- **Embedded calculator round-trip** `[Standard / VR]`: Opens the embedded calculator from the editor action menu, sends selected text as input, and inserts the returned result at the caret.
+- **Embedded calculator from text** `[Standard / VR]`: Opens the embedded calculator from the editor action menu with result insertion, and from read-only text selection menus for OCR, translations, PDF/EPUB text, and lyrics without writing the result back.
 - **Font auto-fit** `[Standard / VR]`: Scales text size automatically to fit the screen, with swipe-based manual size lock.
 
 ## 13. Offline OCR & Translation
 - **Local OCR engine** `[Standard / VR]`: Extract text from images and PDFs completely offline using ML Kit and Tesseract.
 - **Language identification** `[Standard / VR]`: Automatically recognizes the source language before performing translation.
+- **Expanded language picker** `[Standard / VR]`: Select translation and OCR source languages in Settings, player translation dialogs, and Camera OCR through a searchable list with regional flags, app-language names, native names, and capability labels for translation, basic OCR, quality OCR, and noLegal OCR; the ML Kit translation catalog includes Czech and the full supported language set.
 - **AR translation overlay** `[Standard / VR]`: Draws translated text precisely over original coordinates on images and PDFs.
 - **Quality models on-demand** `[Standard / VR]`: Download improved Cyrillic/Ukrainian Tesseract models (`tessdata_best`) directly in Settings with SHA-256 validation.
+- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads. After capture you can drag a rectangle to crop the photo so OCR, translation and the saved image apply only to the selected area; leaving the frame untouched processes the whole photo.
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery** `[Standard / VR]`: Scans the local subnet (ports 445, 21, 22) for active SMB, FTP, and SFTP endpoints.
@@ -118,7 +125,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 15. Smart Widgets & Integration
 - **Resource shortcuts** `[Standard Only]`: Single-tap home screen widgets to open a specific folder or NAS drive immediately.
-- **Embedded calculator** `[Standard / Lite / Photos / Legacy]`: Enable Calculator in General settings -> Other functionality, then open it from the main menu or the Calculator widget; the calculator can share the current result and save or clear calculation history.
+- **Embedded calculator** `[Standard / Lite / Photos / Legacy]`: Enable Calculator in General settings -> Other functionality, then open it from the main menu or the Calculator widget; the calculator can share the current result and save or clear calculation history. It keeps calculation history between sessions (cleared only via Clear history), offers scientific functions through the Function menu (trigonometry in degrees, square and cube roots, powers, reciprocal, log₁₀, ln, factorial and π), and evaluates selected or pasted text as a full math expression with parentheses, operator precedence, and implicit summation of separate numbers. It also has a memory register (M+/M−/MR/MC) shown above the result and kept between sessions in a collapsible row, plus a modulo (remainder) function.
 - **Embedded mini-game** `[Standard / Lite / Photos / Legacy / VR]`: Optional turn-based puzzle, disabled by default, launched from the Settings-enabled main menu entry or a dedicated home-screen widget, with an in-game rules and color legend screen.
 - **Continue Reading beacon** `[Standard Only]`: Interactive widget to quickly resume your exact last document or video session.
 - **Launcher shortcuts** `[Standard Only]`: Long-press app icon to access recent folder history.
@@ -126,7 +133,9 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 16. Settings & Navigation
 - **Settings search** `[Standard / VR]`: Full-text instant indexing search with yellow spotlight targeting of matched settings.
+- **Color theme** `[Standard / Lite / Photos / Legacy / VR]`: Choose the app color theme — Auto (follow device), Light, or Dark — independently of the system setting, for devices where the system light/dark switch is unavailable or unreliable.
 - **Complete DPAD support** `[Standard / VR]`: Scales all preferences for TV remotes, keyboards, mice, and gamepads with DPAD acceleration.
 - **TV button remapping** `[Standard Only]`: Custom assignments for remote color buttons and Channel Up/Down actions.
 - **Diagnostic logs** `[Standard / VR]`: Integrated stack-trace inspector with sharing actions for troubleshooting.
+- **System info** `[Standard / Lite / Photos / Legacy / VR]`: View, copy, and share a technical summary of your device and the app from a button next to Permissions in General settings — grouped sections for device, hardware (CPU, ABIs, SoC, kernel), battery, display, network (type, IP, VPN), storage, system and time, plus approximate memory- and storage-speed benchmarks. No permissions beyond network state and no device identifiers are collected.
 - **Wear OS Companion** `[Standard Only]`: Smartwatch application supporting independent NAS/Cloud browsing, photo viewing, and phone playback control.

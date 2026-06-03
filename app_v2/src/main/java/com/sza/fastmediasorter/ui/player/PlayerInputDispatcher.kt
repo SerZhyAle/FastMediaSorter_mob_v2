@@ -6,6 +6,7 @@ import android.view.MotionEvent
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.utils.UserActionLogger
+import timber.log.Timber
 
 /** Routes key/motion/gamepad input for [PlayerActivity] - extracted to keep the host class under the 1000-LOC budget. */
 internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
@@ -40,6 +41,7 @@ internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
     }
 
     fun dispatchGenericMotionEvent(event: MotionEvent, superHandler: (MotionEvent) -> Boolean): Boolean {
+        Timber.d("S0289: player gamepad-analog dispatchGenericMotionEvent")
         // S0289 Phase 08: gamepad analog stays player-specific; pointer events fall through to the
         // bespoke player-mouse handler first, then to the shared BaseActivity foundation.
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {

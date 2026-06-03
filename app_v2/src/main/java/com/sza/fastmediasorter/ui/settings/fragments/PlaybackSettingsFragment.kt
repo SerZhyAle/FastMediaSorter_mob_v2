@@ -74,7 +74,6 @@ class PlaybackSettingsFragment : Fragment() {
     private fun applyFlavorRestrictions() {
         val hasOcrAndTranslation = BuildConfig.ENABLE_TRANSLATION && 
             com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
-        binding.tvSubcategoryCameraOcr.isVisible = hasOcrAndTranslation
         binding.rowCameraOcrTranslationEnabled.isVisible = hasOcrAndTranslation
         binding.layoutCameraOcrOnly.isVisible = hasOcrAndTranslation
         if (!hasOcrAndTranslation) {
@@ -164,18 +163,6 @@ class PlaybackSettingsFragment : Fragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(playToEndInSlideshow = isChecked))
-        }
-
-        binding.rowDefaultGridMode.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
-        }
-
-        binding.rowFileOpsInOverflowMenu.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
 
         binding.rowAllowRename.setOnCheckedChangeListener { isChecked ->
@@ -411,12 +398,6 @@ class PlaybackSettingsFragment : Fragment() {
                     // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
                     if (binding.rowPlayToEnd.isChecked != settings.playToEndInSlideshow) {
                         binding.rowPlayToEnd.setCheckedSilently(settings.playToEndInSlideshow)
-                    }
-                    if (binding.rowDefaultGridMode.isChecked != settings.defaultGridMode) {
-                        binding.rowDefaultGridMode.setCheckedSilently(settings.defaultGridMode)
-                    }
-                    if (binding.rowFileOpsInOverflowMenu.isChecked != settings.fileOpsInOverflowMenu) {
-                        binding.rowFileOpsInOverflowMenu.setCheckedSilently(settings.fileOpsInOverflowMenu)
                     }
                     if (binding.rowAllowRename.isChecked != settings.allowRename) {
                         binding.rowAllowRename.setCheckedSilently(settings.allowRename)

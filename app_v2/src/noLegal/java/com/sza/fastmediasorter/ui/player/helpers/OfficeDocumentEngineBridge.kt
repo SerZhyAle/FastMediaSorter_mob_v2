@@ -256,6 +256,13 @@ class OfficeDocumentEngineBridge {
           td { border: 1px solid #ccc; padding: 4px 8px; font-size: 0.9em; vertical-align: top; }
           section.slide { border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin: 0 0 16px; }
         </style>
+        <script>
+          document.addEventListener('selectionchange', function() {
+            if (typeof OfficeSelectionBridge !== 'undefined') {
+              OfficeSelectionBridge.onSelectionChanged(window.getSelection().toString());
+            }
+          });
+        </script>
         </head><body>${escape(title).let { "<!-- $it -->" }}$body</body></html>
     """.trimIndent()
 }

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.room.Room
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.StreamingCacheDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
+import com.sza.fastmediasorter.data.local.db.DeviceProfileDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -92,7 +94,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_27_28,
                 AppDatabase.MIGRATION_28_29,
                 AppDatabase.MIGRATION_29_30,
-                AppDatabase.MIGRATION_30_31
+                AppDatabase.MIGRATION_30_31,
+                MIGRATION_31_32
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
@@ -175,4 +178,10 @@ object DatabaseModule {
     fun provideCachedMediaMetadataExtractor(
         dao: FileMetadataCacheDao
     ): CachedMediaMetadataExtractor = CachedMediaMetadataExtractor(dao)
+
+    @Provides
+    @Singleton
+    fun provideDeviceProfileDao(database: AppDatabase): DeviceProfileDao {
+        return database.deviceProfileDao()
+    }
 }

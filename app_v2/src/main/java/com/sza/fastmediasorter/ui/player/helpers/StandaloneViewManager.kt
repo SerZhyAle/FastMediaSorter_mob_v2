@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.VideoColorProcessor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -422,6 +423,18 @@ class StandaloneViewManager(
     fun getEpubSelectionActionModeCallback(): DocumentSelectionActionModeCallback? =
         _epubViewerManager?.getSelectionActionModeCallback()
 
+    /** Returns the active document WebView selection callback, prioritizing Office over EPUB. */
+    fun getDocumentSelectionActionModeCallback(): DocumentSelectionActionModeCallback? {
+        val officeCallback = if (officeDocumentViewerHostDelegate.isInitialized() && officeDocumentViewerHost.isActive) {
+            officeDocumentViewerHost.getSelectionActionModeCallback()
+        } else {
+            null
+        }
+        return officeCallback ?: _epubViewerManager
+            ?.takeIf { binding.epubWebView.isVisible }
+            ?.getSelectionActionModeCallback()
+    }
+
     /**
      * Updates the ExoPlayer media item in AudioPlaybackService after a SAF rename.
      * Uses replaceMediaItem() so playback continues without interruption.
@@ -451,7 +464,7 @@ class StandaloneViewManager(
     // S0301 Phase 03: embedded Office viewer host for standalone mode. Market = no-op host,
     // noLegal = engine-backed read-only in-app viewer. Fullscreen toggling is a no-op here;
     // standalone mode has no system-bars manager wired.
-    private val officeDocumentViewerHost: OfficeDocumentViewerHost by lazy {
+    private val officeDocumentViewerHostDelegate = lazy {
         OfficeDocumentViewerProviderFactory().createViewerHost(
             binding = binding,
             coroutineScope = lifecycleScope,
@@ -459,6 +472,7 @@ class StandaloneViewManager(
                 override fun showError(message: String) = showToastError(message)
                 override fun onEnterFullscreenMode() {}
                 override fun onExitFullscreenMode() {}
+                override fun onTranslateSelection(text: String) = translateOfficeSelection(text)
                 override fun onRequireExternalFallback(mediaFile: MediaFile) {
                     // S0301 Phase 05: engine could not render internally - show the explicit
                     // external / share / cancel dialog. Cancel keeps the current screen open per
@@ -468,6 +482,7 @@ class StandaloneViewManager(
             },
         )
     }
+    private val officeDocumentViewerHost: OfficeDocumentViewerHost by officeDocumentViewerHostDelegate
 
     private fun displayOfficeDocument(mediaFile: MediaFile) {
         val session = officeDocumentViewerProvider.resolve(mediaFile)
@@ -593,6 +608,23 @@ class StandaloneViewManager(
             }
             .setNegativeButton(R.string.close, null)
             .show()
+    }
+
+    private fun translateOfficeSelection(text: String) {
+        if (text.isBlank()) return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val settings = settingsRepository.getSettings().first()
+            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+            val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
+            val translated = translationManager.translate(text, sourceLang, targetLang)
+            withContext(Dispatchers.Main) {
+                if (translated != null) {
+                    showTranslatedTextDialog(translated)
+                } else {
+                    showToastError(activity.getString(R.string.translation_error))
+                }
+            }
+        }
     }
 
     private fun acquireWakeLock() {
@@ -736,6 +768,9 @@ class StandaloneViewManager(
                 override fun setTouchZonesEnabled(enabled: Boolean) { /* not exposed in standalone */ }
                 override fun showEncodingDialog() { /* not exposed in standalone */ }
                 override fun launchEditorCalculator(initialInput: String) { /* Standalone text viewing is read-only */ }
+                override fun launchSelectionCalculator(initialInput: String) {
+                    openCalculatorForSelection(activity, initialInput)
+                }
                 override fun finishActivity() { /* StandalonePlayer does not create notes */ }
             },
             translationManager = translationManager

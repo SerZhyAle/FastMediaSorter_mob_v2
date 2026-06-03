@@ -21,10 +21,18 @@
         android:baselineAligned="false">
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetTypes"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_check_all_types" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClearFilter"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_field_spacing"
             android:text="@string/clear_all" />
 
         <com.google.android.material.button.MaterialButton
@@ -118,7 +126,8 @@
         android:text="@string/filter_by_type"
         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-    <!-- Row 1: Images, Videos -->
+    <!-- Type grid: 4 rows x 2 columns (Image/Video, Audio/GIF, Text/PDF, EPUB/Office) -->
+    <!-- Row 1: Image, Video -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -176,7 +185,7 @@
 
     </LinearLayout>
 
-    <!-- Row 2: Audio, GIFs -->
+    <!-- Row 2: Audio, GIF -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -233,7 +242,7 @@
 
     </LinearLayout>
 
-    <!-- Row 3: Text, PDF, EPUB -->
+    <!-- Row 3: Text, PDF -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -288,6 +297,15 @@
 
         </LinearLayout>
 
+    </LinearLayout>
+
+    <!-- Row 4: EPUB, Office -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
         <!-- EPUB -->
         <LinearLayout
             android:layout_width="0dp"
@@ -308,6 +326,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/media_type_epub"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+        </LinearLayout>
+
+        <!-- Office -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/resource_checkbox_min_height">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbFilterOffice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/media_type_office_documents"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
         </LinearLayout>

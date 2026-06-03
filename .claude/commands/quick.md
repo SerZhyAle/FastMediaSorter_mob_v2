@@ -57,6 +57,8 @@ Examples:
 
 > **⚠ LAYOUT_ORIENTATION:** Если правится `res/layout/*.xml` - **сразу проверить** `res/layout-land/<тот же файл>.xml`. Файл существует? → внести эквивалентную правку туда же в рамках того же `/quick`. Файл отсутствует, а экран поддерживает обе ориентации? → это уже не «очень незначительная» правка: отказать и предложить `/spec`.
 
+> **⚠ STRINGS:** Правки `<string>` (например опечатка) делать через `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action set -Locale en|ru|uk -Key <key> -Value <text>` (байт-сохраняюще, можно `-ExpectedOldValue` для защиты), а не ручным редактированием `strings.xml`. Ручная правка - только для `plurals`, `string-array`, комментариев, перегруппировки.
+
 **Step 4 - Закрыть правку через `scripts/post-change.ps1`.**
 Обязательно - одной командой:
 ```powershell

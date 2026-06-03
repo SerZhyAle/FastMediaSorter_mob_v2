@@ -6,16 +6,29 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
+import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
+import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
+import com.sza.fastmediasorter.ui.profile.DeviceProfileAvailability
+import com.sza.fastmediasorter.data.model.DeviceProfile
+import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.data.model.DeviceProfileSource
+import com.sza.fastmediasorter.data.model.DetectionConfidence
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val deviceProfileRepository: DeviceProfileRepository,
+    private val deviceProfileDetector: DeviceProfileDetector,
+    private val applyProfilePresetUseCase: ApplyProfilePresetUseCase,
+    private val deviceProfileAvailability: DeviceProfileAvailability
 ) : BaseViewModel<WelcomeState, WelcomeEvent>() {
 
     companion object {
@@ -28,6 +41,76 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun getInitialState(): WelcomeState = WelcomeState()
+
+    init {
+        detectDeviceProfile()
+    }
+
+    private fun detectDeviceProfile() {
+        viewModelScope.launch(exceptionHandler) {
+            Timber.d("S0327: welcome device-profile auto-detection")
+            val result = deviceProfileDetector.detectProfile()
+            // The VR profile may be hidden in this flavor; never recommend an unavailable profile.
+            val recommended = if (deviceProfileAvailability.isAvailable(result.profile)) {
+                result.profile
+            } else {
+                DeviceProfileType.PERSONAL_SMARTPHONE
+            }
+            val confidence = if (recommended == result.profile) result.confidence else DetectionConfidence.LOW
+            updateState {
+                it.copy(
+                    recommendedProfile = recommended,
+                    selectedProfile = recommended,
+                    detectorConfidence = confidence
+                )
+            }
+            Timber.i("Device profile auto-detected: detected=${result.profile}, recommended=$recommended, confidence=$confidence")
+        }
+    }
+
+    fun onProfileSelected(type: DeviceProfileType) {
+        updateState { it.copy(selectedProfile = type) }
+        Timber.i("Device profile manually selected in Welcome: $type")
+    }
+
+    fun saveDeviceProfile(isSkipped: Boolean) {
+        viewModelScope.launch(exceptionHandler) {
+            Timber.d("S0327: welcome device-profile save (isSkipped=$isSkipped)")
+            val currentState = state.value
+            val finalType = if (isSkipped) {
+                currentState.recommendedProfile ?: DeviceProfileType.PERSONAL_SMARTPHONE
+            } else {
+                currentState.selectedProfile ?: DeviceProfileType.PERSONAL_SMARTPHONE
+            }
+
+            val finalSource = if (isSkipped) {
+                DeviceProfileSource.AUTO_SKIPPED
+            } else {
+                DeviceProfileSource.MANUAL_SELECTION
+            }
+
+            val finalConfidence = if (isSkipped) {
+                currentState.detectorConfidence
+            } else {
+                DetectionConfidence.NONE
+            }
+
+            val profile = DeviceProfile(
+                type = finalType,
+                source = finalSource,
+                confidence = finalConfidence,
+                presetVersion = 0,
+                appliedAtInstallTime = finalType != DeviceProfileType.OTHER,
+                lastModified = System.currentTimeMillis()
+            )
+
+            deviceProfileRepository.saveProfile(profile)
+            Timber.i("Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped)")
+
+            // Apply preset values for this profile after the selected profile is persisted.
+            applyProfilePresetUseCase.apply(finalType, presetVersion = 1)
+        }
+    }
 
     fun setWelcomeCompleted() {
         StrictModeHelper.allowDiskWrites {
@@ -104,5 +187,10 @@ class WelcomeViewModel @Inject constructor(
     }
 }
 
-data class WelcomeState(val dummy: Boolean = false)
+data class WelcomeState(
+    val recommendedProfile: DeviceProfileType? = null,
+    val selectedProfile: DeviceProfileType? = null,
+    val detectorConfidence: DetectionConfidence = DetectionConfidence.NONE
+)
+
 sealed class WelcomeEvent

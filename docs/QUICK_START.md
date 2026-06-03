@@ -26,6 +26,32 @@ FastMediaSorter v2 is available in **4 versions**. Pick the one that fits your n
 
 ---
 
+## First Launch: Choose Your Device Profile (30 seconds) 🧭
+
+On the very first launch, right under the language picker, the welcome screen asks **how you'll use this device**. Pick a profile and the app starts with sensible defaults for that style - layout, thumbnails, fullscreen, keep-screen-awake, background audio, and delete/move confirmations. It's a one-time starting preset, not a lock - you can change anything afterwards.
+
+- 🎯 **Recommended badge:** the app guesses a likely profile for your device and marks it **(Recommended)**. If it guessed right, you barely have to do anything.
+- ⏭️ **Skip:** in a hurry? **Skip** simply applies the recommended profile. No wrong answer here.
+- ⚙️ **Change it later:** **Settings → Interface → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
+- 🧩 **Other / Custom:** keeps your current settings exactly as they are. No preset applied - handy if you like tuning things by hand.
+- ⬆️ **Upgrading from an older version?** Your profile shows as **Other** and your previous settings are kept untouched - no preset was auto-applied. Want one anyway? Pick a profile in Settings.
+
+**The 11 profiles:**
+
+- 📱 **Personal smartphone** - touch layout, background sync, default security confirmations
+- 🖥️ **Tablet &amp; desktop mode** - tablets, Chromebooks, Samsung DeX; grid layout, large thumbnails, multi-window browsing
+- 📺 **TV / media box** - DPAD/remote navigation, large buttons, no tiny touch controls
+- 🚗 **Car head unit** - extra-large buttons, screen stays on, playback over file ops
+- 🎬 **Media player** - photos, videos, music with slideshow and resume
+- 🖼️ **Photo frame** - opens straight into a slideshow; file ops step aside
+- 🎞️ **Video player** - quick video playback and thumbnails
+- 🎵 **Audio player** - background audio and the now-playing screen
+- 📚 **E-book reader** - PDF, EPUB, and text reading
+- 🥽 **VR headset** - 3D/360° layouts and immersive controls on supported hardware
+- 🧩 **Other / Custom** - keeps default settings unchanged, no preset applied
+
+---
+
 ## Step 1: Add Your First Folder (30 seconds)
 
 1. **Open the app** - you'll see the main screen

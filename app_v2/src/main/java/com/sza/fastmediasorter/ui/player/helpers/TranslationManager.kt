@@ -18,6 +18,8 @@ import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
+import com.sza.fastmediasorter.domain.translation.TranslationLanguageCodeMapper
+import kotlin.coroutines.resume
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -112,36 +114,10 @@ class TranslationManager(
         
         /**
          * Convert language code from settings to ML Kit constant.
-         * Supports major world languages by native speakers population + Maltese
+         * Supports every code exposed by the shared ML Kit translation catalog.
          */
-        fun languageCodeToMLKit(code: String): String {
-            return when (code.lowercase()) {
-                "en" -> TranslateLanguage.ENGLISH
-                "ru" -> TranslateLanguage.RUSSIAN
-                "uk" -> TranslateLanguage.UKRAINIAN
-                "es" -> TranslateLanguage.SPANISH
-                "fr" -> TranslateLanguage.FRENCH
-                "de" -> TranslateLanguage.GERMAN
-                "zh" -> TranslateLanguage.CHINESE
-                "ja" -> TranslateLanguage.JAPANESE
-                "ko" -> TranslateLanguage.KOREAN
-                "ar" -> TranslateLanguage.ARABIC
-                "pt" -> TranslateLanguage.PORTUGUESE
-                "bn" -> TranslateLanguage.BENGALI
-                "hi" -> TranslateLanguage.HINDI
-                "it" -> TranslateLanguage.ITALIAN
-                "tr" -> TranslateLanguage.TURKISH
-                "pl" -> TranslateLanguage.POLISH
-                "nl" -> TranslateLanguage.DUTCH
-                "th" -> TranslateLanguage.THAI
-                "vi" -> TranslateLanguage.VIETNAMESE
-                "id" -> TranslateLanguage.INDONESIAN
-                "fa" -> TranslateLanguage.PERSIAN
-                "el" -> TranslateLanguage.GREEK
-                "mt" -> TranslateLanguage.MALTESE
-                else -> TranslateLanguage.ENGLISH // Fallback
-            }
-        }
+        fun languageCodeToMLKit(code: String): String =
+            TranslationLanguageCodeMapper.languageCodeToMLKit(code)
         
         /**
          * Get language name in English (for source language list)
@@ -601,31 +577,12 @@ class TranslationManager(
                 val isModelDownloaded = modelManager.isModelDownloaded(targetModel).await()
                 
                 if (!isModelDownloaded) {
-                    val languageName = getLanguageName(targetLang)
-                    var downloadConfirmed = false
-                    var downloadCancelled = false
-                    
-                    // Show prompt on main thread
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        callback.showModelDownloadPrompt(
-                            languageName,
-                            onConfirm = { downloadConfirmed = true },
-                            onCancel = { downloadCancelled = true }
-                        )
-                    }
-                    
-                    // Wait for user decision (simple polling, replace with suspendCancellableCoroutine for production)
-                    var waitTime = 0
-                    while (!downloadConfirmed && !downloadCancelled && waitTime < 30000) {
-                        kotlinx.coroutines.delay(100)
-                        waitTime += 100
-                    }
-                    
-                    if (downloadCancelled || waitTime >= 30000) {
-                        Timber.d("Translation model download cancelled by user or timeout")
+                    // Wait (race-free) for the user to confirm the download in the prompt dialog.
+                    if (!awaitModelDownloadConfirmation(targetLang)) {
+                        Timber.d("Translation model download declined by user")
                         return null
                     }
-                    
+
                     // Download model and wait for completion (no WiFi-only restriction)
                     Timber.d("Starting translation model download: $targetLang")
                     val conditions = DownloadConditions.Builder().build()
@@ -652,32 +609,13 @@ class TranslationManager(
                     val targetModel = TranslateRemoteModel.Builder(targetLang).build()
                     modelManager.deleteDownloadedModel(targetModel).await()
                     Timber.i("Deleted corrupted translation model: $targetLang")
-                    
-                    // Show message to user and prompt for re-download
-                    val languageName = getLanguageName(targetLang)
-                    var downloadConfirmed = false
-                    var downloadCancelled = false
-                    
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        callback.showModelDownloadPrompt(
-                            languageName,
-                            onConfirm = { downloadConfirmed = true },
-                            onCancel = { downloadCancelled = true }
-                        )
-                    }
-                    
-                    // Wait for user decision
-                    var waitTime = 0
-                    while (!downloadConfirmed && !downloadCancelled && waitTime < 30000) {
-                        kotlinx.coroutines.delay(100)
-                        waitTime += 100
-                    }
-                    
-                    if (downloadCancelled || waitTime >= 30000) {
-                        Timber.d("Translation model re-download cancelled by user or timeout")
+
+                    // Prompt for re-download and wait (race-free) for the user's decision.
+                    if (!awaitModelDownloadConfirmation(targetLang)) {
+                        Timber.d("Translation model re-download declined by user")
                         return null
                     }
-                    
+
                     // Re-download model (no WiFi-only restriction)
                     Timber.d("Starting translation model re-download: $targetLang")
                     val conditions = DownloadConditions.Builder().build()
@@ -694,7 +632,29 @@ class TranslationManager(
             return null
         }
     }
-    
+
+    /**
+     * Suspend until the user confirms or declines downloading a translation model.
+     *
+     * Replaces the previous fixed-polling wait: that approach read plain local flags
+     * mutated on the UI thread from a coroutine thread without a memory barrier, so a
+     * user tap on "OK" was frequently not observed and the wait expired on its arbitrary
+     * 30s timeout without ever starting the download. A continuation resumes reliably from
+     * any thread, and cancelling the enclosing scope (e.g. activity destroyed) cancels it
+     * cleanly instead of leaking a 30s poll loop.
+     *
+     * @return true if the user confirmed the download, false if declined/cancelled.
+     */
+    private suspend fun awaitModelDownloadConfirmation(targetLang: String): Boolean =
+        kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+            val languageName = getLanguageName(targetLang)
+            callback.showModelDownloadPrompt(
+                languageName,
+                onConfirm = { if (cont.isActive) cont.resume(true) },
+                onCancel = { if (cont.isActive) cont.resume(false) }
+            )
+        }
+
     /**
      * Clean OCR text from garbage symbols and pseudographics.
      * Removes box-drawing characters, control characters, and other visual noise.
@@ -966,6 +926,43 @@ class TranslationManager(
         }
     }
     
+    /**
+     * Recognize word-level text boxes for in-place selection mapping (no translation).
+     * Returns each recognized word as a [TranslatedTextBlock] carrying its original text and
+     * pixel bounding box (in bitmap coordinates); [TranslatedTextBlock.translatedText] is empty.
+     * Used by the PDF text-selection overlay to pre-select the word under a long-press point.
+     */
+    suspend fun recognizeTextBlocksForSelection(bitmap: Bitmap): List<TranslatedTextBlock>? {
+        return try {
+            val recognizer = getTextRecognizer()
+            val image = InputImage.fromBitmap(bitmap, 0)
+            val result = recognizer.process(image).await()
+            if (result.textBlocks.isEmpty()) return null
+            val words = mutableListOf<TranslatedTextBlock>()
+            for (block in result.textBlocks) {
+                for (line in block.lines) {
+                    for (element in line.elements) {
+                        val box = element.boundingBox ?: continue
+                        val text = element.text
+                        if (text.isBlank()) continue
+                        words.add(
+                            TranslatedTextBlock(
+                                originalText = text,
+                                translatedText = "",
+                                boundingBox = box,
+                                confidence = 1.0f
+                            )
+                        )
+                    }
+                }
+            }
+            words.ifEmpty { null }
+        } catch (e: Exception) {
+            Timber.w(e, "recognizeTextBlocksForSelection failed")
+            null
+        }
+    }
+
     private fun getLanguageName(langCode: String): String =
         TranslationTextUtils.getLanguageName(langCode)
     

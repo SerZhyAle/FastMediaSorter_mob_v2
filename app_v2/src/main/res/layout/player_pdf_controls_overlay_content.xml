@@ -138,7 +138,7 @@
         android:layout_width="wrap_content"
         android:layout_height="@dimen/player_pdf_button_size"
         android:background="@drawable/bg_circle_dark"
-        android:text="T"
+        android:text="TXT"
         android:textColor="@color/selector_player_button_tint"
         android:textSize="@dimen/player_audio_info_text_size"
         android:textStyle="bold"

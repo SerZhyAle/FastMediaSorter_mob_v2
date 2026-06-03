@@ -19,11 +19,19 @@
             android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
-        <Spinner
+        <TextView
             android:id="@+id/spinnerSourceLanguage"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginBottom="16dp" />
+            android:background="@drawable/item_focus_selector"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#FFFFFF" />
 
         <!-- Target Language Header -->
         <TextView
@@ -34,11 +42,19 @@
             android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
-        <Spinner
+        <TextView
             android:id="@+id/spinnerTargetLanguage"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginBottom="16dp" />
+            android:background="@drawable/item_focus_selector"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#FFFFFF" />
 
         <!-- OCR Only Checkbox -->
         <LinearLayout

@@ -180,10 +180,17 @@ class PlayerViewModel @Inject constructor(
     // ── Stereo / 3D video state ──────────────────────────────────────────────
     // Separate flow from PlayerState because the effective stereo mode needs to react
     // immediately to auto-detection, dialog overrides, and remembered VR format settings.
+    // S0326: latest global default stereo mode for unidentified content. Prefer a user-set
+    // spherical projection default; otherwise fall back to the flat layout default. Updated by the
+    // settings collector below; read synchronously by the coordinator's global-default slot.
+    @Volatile
+    private var globalDefaultStereoMode: StereoMode = StereoMode.MONO
+
     private val stereoCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator(
         stereoFormatOverrideDao = stereoFormatOverrideDao,
         scope = viewModelScope,
-        getCurrentFilePath = { state.value.currentFile?.path }
+        getCurrentFilePath = { state.value.currentFile?.path },
+        getGlobalDefaultStereoMode = { globalDefaultStereoMode },
     )
 
     val stereoMode: StateFlow<StereoMode> = stereoCoordinator.stereoMode
@@ -598,6 +605,17 @@ class PlayerViewModel @Inject constructor(
      */
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
+    // S0326: keep the coordinator's global-default slot in sync with user settings.
+    private val globalDefaultStereoCollector = viewModelScope.launch {
+        settings.collect { s -> globalDefaultStereoMode = resolveGlobalDefaultStereoMode(s) }
+    }
+
+    /** Prefer a user-set spherical projection default; otherwise use the flat layout default. */
+    private fun resolveGlobalDefaultStereoMode(s: AppSettings): StereoMode {
+        val projection = s.stereoDefaultProjection
+        return if (projection != StereoMode.MONO && projection.isSpherical()) projection else s.stereoDefaultLayout
+    }
 
     // S0162: set once from PlayerActivity.onCreate via initRotationCapability()
     private var hasAccelerometer: Boolean = false

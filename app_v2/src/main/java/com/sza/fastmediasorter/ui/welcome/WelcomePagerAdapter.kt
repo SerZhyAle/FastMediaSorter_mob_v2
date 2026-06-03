@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.ui.common.DeviceProfileUi
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
@@ -30,6 +32,36 @@ class WelcomePagerAdapter(
         private const val VIEW_TYPE_PERMISSIONS = 2
         private const val VIEW_TYPE_ENHANCED = 3
         private const val VIEW_TYPE_DEFAULT_PLAYER = 4
+    }
+
+    /** Binding of the currently-bound welcome page that hosts the profile selector card (page 0). */
+    private var profileSelectorBinding: PageWelcomeEnhancedBinding? = null
+
+    /**
+     * Refresh the visible welcome profile card directly. ViewPager2 does not reliably rebind the
+     * current page on [notifyItemChanged], so [com.sza.fastmediasorter.ui.welcome.WelcomeActivity]
+     * calls this after the user picks a profile to guarantee the summary card matches the selection.
+     */
+    fun refreshSelectedProfile(recommendedType: DeviceProfileType?, selectedType: DeviceProfileType?) {
+        val binding = profileSelectorBinding ?: return
+        val effective = selectedType ?: recommendedType ?: DeviceProfileType.PERSONAL_SMARTPHONE
+        bindSelectedProfileCard(binding, recommendedType, effective)
+    }
+
+    private fun bindSelectedProfileCard(
+        binding: PageWelcomeEnhancedBinding,
+        recommendedType: DeviceProfileType?,
+        selectedType: DeviceProfileType,
+    ) {
+        val context = binding.root.context
+        binding.ivSelectedProfileIcon.setImageResource(DeviceProfileUi.iconRes(selectedType))
+        val title = context.getString(DeviceProfileUi.titleRes(selectedType))
+        binding.tvSelectedProfileTitle.text = if (selectedType == recommendedType) {
+            "$title ${context.getString(R.string.welcome_recommended_badge)}"
+        } else {
+            title
+        }
+        binding.tvProfileDescription.text = context.getString(DeviceProfileUi.descRes(selectedType))
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -181,7 +213,7 @@ class WelcomePagerAdapter(
         }
     }
 
-    class EnhancedViewHolder(
+    inner class EnhancedViewHolder(
         private val binding: PageWelcomeEnhancedBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -219,12 +251,29 @@ class WelcomePagerAdapter(
                 binding.layoutLanguagePicker.visibility = android.view.View.GONE
             }
 
+            // Profile selector: a pressable card showing the current/recommended profile that opens
+            // the shared tile picker (DeviceProfilePickerDialogFragment). Replaces the old dropdown.
+            if (page.showProfileSelector) {
+                binding.layoutProfileSelector.visibility = View.VISIBLE
+                // Keep a handle to the visible selector card: ViewPager2 does not reliably rebind the
+                // current page on notifyItemChanged, so it is refreshed directly after a pick.
+                profileSelectorBinding = binding
+                val selectedType = page.selectedProfileType
+                    ?: page.recommendedProfileType
+                    ?: DeviceProfileType.PERSONAL_SMARTPHONE
+                bindSelectedProfileCard(binding, page.recommendedProfileType, selectedType)
+                binding.cardSelectedProfile.setOnClickListener { page.onOpenProfilePicker?.invoke() }
+            } else {
+                binding.layoutProfileSelector.visibility = View.GONE
+            }
+
             // Staggered entrance animations
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
             animateEntrance(binding.gridFeatures, 400L)
         }
+
     }
 }
 
@@ -303,6 +352,11 @@ data class WelcomePage(
     val showLanguagePicker: Boolean = false,
     /** Invoked with the ISO-639-1 language code when the user taps a picker button. */
     val onLanguageSelected: ((code: String) -> Unit)? = null,
+    val showProfileSelector: Boolean = false,
+    val recommendedProfileType: DeviceProfileType? = null,
+    val selectedProfileType: DeviceProfileType? = null,
+    val onProfileSelected: ((DeviceProfileType) -> Unit)? = null,
+    val onOpenProfilePicker: (() -> Unit)? = null,
 )
 
 data class FeatureCard(

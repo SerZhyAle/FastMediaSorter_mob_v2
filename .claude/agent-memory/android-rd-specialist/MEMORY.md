@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Frozen app? check TracerPid / lldb-server](feedback_frozen_app_check_tracerpid.md) - UI frozen + no crash + log stops at "blocking GC ProfileSaver" → native LLDB debugger holds VM via ptrace, not a code bug; check /proc/<pid>/status TracerPid
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
 
@@ -35,3 +36,7 @@
 - [Persistent log lines must not contain Sxxxx](feedback_persistent_logs_no_ticket_id.md) - ticket id inside Timber.* is reserved for BlockNeedUserTest probes; permanent info/warn/error logs describe the subject in plain English, never embed a ticket id
 - [VR HUD rendering pitfalls](project_vr_hud_quirks.md) - 4 hidden traps caused "HUD invisible" for hours; multiply_matrices column-major formula required, no per-frame queueHud from native callbacks, use ByteBuffer.allocateDirect not wrap, Android Skia copyPixelsToBuffer is RGBA (no R/B swap)
 - [S0002 decomposition toolkit](project_s0002_decomposition_toolkit.md) - reusable scripts (collapse_*/strip_trace_logs/fix_empty_else) + extraction patterns + Wave 54 backlog (TextViewer/PdfViewer/PlayerActivity/CommandPanelController still over 1000)
+- [adb location + .debug package suffix](reference_adb_and_debug_package.md) - adb not on PATH (user SDK platform-tools); debug builds install as com.sza.fastmediasorter.debug; Quest3 logcat buffer short, prefer app file logs in logs/
+- [Functionality log script leaves non-zero exit](project_func_log_nonzero_exit.md) - add_to_functionality_log.ps1 succeeds but sets non-zero $LASTEXITCODE; run it last/standalone, re-verify journal status
+- [set-android-string.ps1 editor](reference_strings_tool.md) - canonical byte-preserving set/add/get/remove/rename/list of string resources across EN/RU/UK; prefer over hand-editing strings.xml (grep scripts/utils/ before writing new resource tools)
+- [Check existing tooling first](feedback_check_existing_tooling.md) - grep scripts/ + scripts/utils/ + skills for an existing helper before authoring a new script; extend it, don't duplicate (I duplicated set-android-string.ps1)

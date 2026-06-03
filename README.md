@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6010.151 (June 2026)
+## What's New in v2.60.6031.424 (June 2026)
 
 **New:**
-Camera OCR translation, text editor calculator, mini game and widgets, release tooling guards.
+Device profiles, color theme, system info, calculator upgrade, text selection & copy, richer language picker, Office document filter, Camera OCR crop, 3D/VR defaults.
 
 **Fixed:**
-Android TV launcher title matches the banner and Play listing. Google Drive backup restore uses scoped GMS auth routing.
+Mouse left-click now reaches buttons, dialogs, and dropdowns. Camera OCR and Game Help controls stay within safe areas.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -130,6 +130,7 @@ Full-size images:
 - ⭐ **Favorites System:** Mark important files as favorites and access them quickly from a dedicated tab that aggregates favorites across all sources.
 - 🔒 **PIN Protection:** Secure individual resources with access PIN codes to prevent unauthorized browsing and editing.
 - ⚙️ **Per-Resource Configuration:** Customize slideshow interval, scan depth (subdirectories), and thumbnail generation for each folder individually.
+- 🧭 **Device Profile Setup:** Choose a first-run profile for phones, tablets, TV/media boxes, car head units, media players, photo frames, audio players, e-book readers, VR headsets, or custom defaults; the app applies matching safety, screen, content, and command-priority defaults.
 - 📋 **Predefined Smart Resources:** Built-in virtual resources - **All Music**, **All Videos**, **All Photos** - that aggregate media from your entire device with zero configuration. Instantly access your full media library without manually adding individual folders.
 - 🖥️ **Network and Cloud Support:** Work with files on your network drives (SMB with automatic network scanning), SFTP servers, FTP, and in cloud storage (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Flexible Viewing:** Display files as a customizable grid or detailed list with pagination support for large collections (1000+ files).

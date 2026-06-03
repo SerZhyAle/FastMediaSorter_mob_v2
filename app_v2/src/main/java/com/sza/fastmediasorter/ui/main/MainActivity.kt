@@ -457,6 +457,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0289 §2.1: initial focus on the big Play button when the Activity opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
+        Timber.d("S0289: main initial-focus / empty-state CTA reachable")
         return binding.btnStartPlayer
     }
 
@@ -546,7 +547,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     true
                 }
                 MENU_ITEM_CAMERA_OCR -> {
-                    Timber.d("S0320: main menu camera ocr launch")
                     startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this))
                     true
                 }

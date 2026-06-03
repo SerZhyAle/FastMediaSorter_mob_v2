@@ -13,6 +13,7 @@ class GameInputManager(
 
     fun attachBoard(boardView: GameBoardView) {
         boardView.onSwipeDirection = onDirection
+        boardView.onTapDirection = onDirection
         boardView.isFocusable = true
         boardView.isFocusableInTouchMode = true
     }

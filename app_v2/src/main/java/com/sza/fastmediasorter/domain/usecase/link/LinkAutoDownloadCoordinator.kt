@@ -273,7 +273,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             // cancellation still propagates.
                             if (throwable is kotlinx.coroutines.CancellationException) throw throwable
                             Timber.w(throwable, "LinkAutoDownloadCoordinator: open threw for %s", strategy.id)
-                            Timber.d("S0186: open() threw for %s, continuing cascade", strategy.id)
                             continue
                         }
                         val urlHost = url.toHttpUrlOrNull()?.host ?: ""
