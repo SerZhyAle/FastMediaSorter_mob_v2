@@ -14,7 +14,7 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6050.116 (June 2026)
+## What's New in v2.60.6050.126 (June 2026)
 
 **New:**
 Camera OCR crop-screen languages, re-translate OCR results, icon-style home widgets, Camera OCR / Audio Now Playing / Random Photo Frame / Quick Recorder / Scheduled Tasks widgets, add widgets from Settings.
