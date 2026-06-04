@@ -141,11 +141,13 @@ def main():
         print("Track updated successfully.")
 
         # 6. Commit Edit
+        # Do NOT pass changesNotSentForReview: the Play API rejects it for apps
+        # whose changes are sent for review automatically (HTTP 400). Omitting it
+        # lets the release follow the standard automatic review flow.
         print("\nCommitting changes to Google Play Console...")
         commit_response = service.edits().commit(
-            packageName=PACKAGE_NAME, 
-            editId=edit_id,
-            changesNotSentForReview=True
+            packageName=PACKAGE_NAME,
+            editId=edit_id
         ).execute()
         print(f"SUCCESS: Edit transaction committed. AAB version {version_code} is now published on '{track_name}' track as '{status}'!")
         
