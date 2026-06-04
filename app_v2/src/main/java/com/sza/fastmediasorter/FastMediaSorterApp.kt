@@ -275,8 +275,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 enqueueDeferredStartupWorker()
                 // Streaming-offload cache GC (spec §5.7). TTL pulled from settings; 0 = off.
                 scheduler.scheduleStreamingCacheGc(settings.streamingCacheTtlDays)
-                // Reschedule all enabled scheduled file operations (survived force-stop / app update)
-                if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS && settings.enableScheduledOperations) {
+                // Reschedule all enabled scheduled file operations (survived force-stop / app update).
+                // A durably-paused scheduler stays paused across process death (S0353).
+                if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS &&
+                    settings.enableScheduledOperations &&
+                    !settings.scheduledOperationsPaused
+                ) {
                     scheduler.rescheduleAll()
                     Timber.d("FastMediaSorterApp: Scheduled operations rescheduled on startup")
                 }

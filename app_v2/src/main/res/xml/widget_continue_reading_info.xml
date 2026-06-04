@@ -10,4 +10,5 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:theme="@style/Widget.FastMediaSorter"
-    android:previewImage="@drawable/widget_preview_continue_reading" />
+    android:previewImage="@drawable/widget_preview_continue_reading"
+    android:previewLayout="@layout/widget_continue_reading" />

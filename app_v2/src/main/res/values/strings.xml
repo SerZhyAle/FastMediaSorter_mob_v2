@@ -2430,4 +2430,14 @@ Close the player and try again.</string>
     <string name="system_info_copy_full_report">Copy full report</string>
     <string name="system_info_reveal_confirm_title">Copy full report?</string>
     <string name="system_info_reveal_confirm_message">The copy will include sensitive values (signature hash, local addresses, mount paths). Continue?</string>
+    <string name="audio_next_track_loading">Loading next track..</string>
+    <string name="widget_quick_audio_recorder_label">Quick Recorder</string>
+    <string name="widget_quick_audio_recorder_description">Tap to start a voice recording; tap again to stop and save</string>
+    <string name="quick_recorder_notification_recording">Recording…</string>
+    <string name="quick_recorder_notification_channel">Voice recording</string>
+    <string name="quick_recorder_action_stop">Stop</string>
+    <string name="quick_recorder_saved">Recording saved: %1$s</string>
+    <string name="quick_recorder_error">Could not record audio</string>
+    <string name="quick_recorder_permission_needed">Microphone access is needed to record</string>
+    <string name="quick_recorder_permission_settings">Enable microphone access in Settings</string>
 </resources>

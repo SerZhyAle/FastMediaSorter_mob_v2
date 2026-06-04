@@ -37,6 +37,9 @@ import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsWidgetHelper
+import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
+import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,6 +58,8 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var requestContextualPermission: com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
     @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
+    @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
+    @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
 
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
@@ -153,6 +158,9 @@ class GeneralSettingsFragment : Fragment() {
     private val profileHelper by lazy {
         GeneralSettingsProfileHelper(binding, profileViewModel, this)
     }
+    private val widgetHelper by lazy {
+        GeneralSettingsWidgetHelper(binding, this, homeWidgetCatalog, homeWidgetPinner)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsGeneralBinding.inflate(inflater, container, false)
@@ -170,6 +178,7 @@ class GeneralSettingsFragment : Fragment() {
         viewSetupHelper.setup()
         colorThemeHelper.setup()
         profileHelper.setup()
+        widgetHelper.setup()
         prefetchHelper.setup()
         collectOnLifecycle(viewModel.settings) { settings -> prefetchHelper.updateFromSettings(settings) }
         observersHelper.observeData()

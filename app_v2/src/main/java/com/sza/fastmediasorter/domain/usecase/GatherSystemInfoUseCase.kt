@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoBenchmark
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.core.systeminfo.renderSystemInfo
@@ -395,14 +396,23 @@ class GatherSystemInfoUseCase @Inject constructor(
     private inline fun safe(block: () -> String): String = try {
         block()
     } catch (e: Exception) {
-        Timber.w(e, "System info: failed to read a device field")
+        if (SystemInfoAccessClassifier.isExpectedAccessDenial(e)) {
+            Timber.d("S0345: system info field unavailable on this device")
+            Timber.i("System info: device field unavailable on this device (${e.javaClass.simpleName})")
+        } else {
+            Timber.w(e, "System info: failed to read a device field")
+        }
         UNKNOWN
     }
 
     private inline fun safeList(block: () -> List<Pair<String, String>>): List<Pair<String, String>>? = try {
         block()
     } catch (e: Exception) {
-        Timber.w(e, "System info: failed to read a device section")
+        if (SystemInfoAccessClassifier.isExpectedAccessDenial(e)) {
+            Timber.i("System info: device section unavailable on this device (${e.javaClass.simpleName})")
+        } else {
+            Timber.w(e, "System info: failed to read a device section")
+        }
         null
     }
 

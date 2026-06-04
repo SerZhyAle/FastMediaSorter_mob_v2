@@ -31,22 +31,24 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 
 ## Invocation Order
 
+Normal release publication is owned by `/skill-release`. Use the manual sequence below only for a repair window or an operator-driven release completion.
+
 ```powershell
 # 1. Prepare repo metadata (one-time, re-run if DECISIONS.md changes).
-pwsh -File scripts/release/apply-github-store-metadata.ps1 -DryRun
-pwsh -File scripts/release/apply-github-store-metadata.ps1
+pwsh -NoProfile -File scripts/release/apply-github-store-metadata.ps1 -DryRun
+pwsh -NoProfile -File scripts/release/apply-github-store-metadata.ps1
 
-# 2. Build the two release APKs (from the release worktree on main).
+# 2. Build release artifacts (from the release worktree on main).
 .\a.ps1 r
 .\a.ps1 vr
 
-# 3. Publish to GitHub.
-pwsh -File scripts/release/publish-github-release.ps1 -DryRun
-pwsh -File scripts/release/publish-github-release.ps1
+# 3. Publish GitHub Store source release.
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -DryRun
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1
 
-# 4. Publish to Google Play Console.
-# (Track defaults to "internal", Status defaults to "completed" - automated rollout).
-pwsh -File scripts/release/publish-play-release.ps1
+# 4. Publish Google Play standard_release in the same release window.
+# (Track defaults to "production", Status defaults to "completed" - automated rollout).
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 ```
 
 ---
@@ -74,7 +76,7 @@ pwsh -File scripts/release/publish-play-release.ps1
 
 | Flag | Effect |
 |------|--------|
-| `-Track <name>` | Target track in Google Play. Default: `internal`. Supported: `internal`, `alpha`, `beta`, `production`. |
+| `-Track <name>` | Target track in Google Play. Default: `production`. Supported: `internal`, `alpha`, `beta`, `production`. |
 | `-Status <status>` | Rollout status. Default: `completed`. Supported: `completed` (fully rolled out to track), `draft` (requires manual review in Play Console). |
 
 ---
@@ -113,24 +115,24 @@ Given current `versionName = "2.62.0501.151"` in `app_v2/build.gradle.kts`, an E
 
 ```powershell
 # Pre-flight (no mutations).
-pwsh -File scripts/release/publish-github-release.ps1 -DryRun
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -DryRun
 # Plan: gh release create v2.62.0501.151 --repo SerZhyAle/FastMediaSorter_mob_v2 --target main --title "FastMediaSorter 2.62.0501.151" --notes-file P:\..\temp\release\2.62.0501.151\release-notes.md
 # Staged:
 #   P:\..\temp\release\2.62.0501.151\FastMediaSorter-standard-2.62.0501.151.apk
 #   P:\..\temp\release\2.62.0501.151\FastMediaSorter-vr-2.62.0501.151.apk
 
 # Publish for real.
-pwsh -File scripts/release/publish-github-release.ps1
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1
 ```
 
 ### Google Play Release
 
-Publishing the compiled AAB to the internal testing track as a completed automated rollout:
+Publishing the compiled AAB to the production track as a completed automated rollout:
 
 ```powershell
 # Publish AAB with full automated rollout
-pwsh -File scripts/release/publish-play-release.ps1
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 
 # Alternative: upload AAB as a draft to the internal track for manual review
-pwsh -File scripts/release/publish-play-release.ps1 -Status draft
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -Track internal -Status draft
 ```

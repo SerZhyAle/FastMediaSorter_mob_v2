@@ -5,7 +5,7 @@
 > 2. **STRICTLY TECHNICAL LANGUAGE** - dry prose only in all outputs and commits.
 > 3. **HARD BLOCKERS ONLY** - stop and report only for: merge conflict, dirty working tree, not on a DEBUG branch, release worktree missing. Everything else: decide and proceed.
 
-Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, and triggers a release build - all in one unattended pipeline.
+Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, builds release artifacts, publishes the standard AAB to Google Play, and publishes standard + VR APK assets to GitHub Releases for GitHub Store indexing - all in one unattended pipeline.
 
 ## Usage
 
@@ -309,12 +309,13 @@ In both cases: after this step the dev directory is on `$NEXT_DEBUG` and the rel
 
 ---
 
-### Step 12 - Trigger release build
+### Step 12 - Build release artifacts
 
 ```bash
 # From development directory - a.ps1 auto-delegates to the release worktree
 cd P:/ANDROID/FastMediaSorter_mob_v2
 .\a.ps1 r
+.\a.ps1 vr
 ```
 
 `a.ps1 r` does the following automatically before building:
@@ -322,9 +323,36 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 2. Runs the release build script from inside `P:/ANDROID/FastMediaSorter_release`.
 3. Copies build artifacts back to `DOWNLOADS/` in the dev directory.
 
+`a.ps1 vr` runs after `a.ps1 r` and reuses the current release `versionName`; it must not bump the version. This keeps the GitHub Store assets aligned as `FastMediaSorter-standard-$NEW_VERSION.apk` and `FastMediaSorter-vr-$NEW_VERSION.apk`.
+
 ---
 
-### Step 12a - Functionality log sanity check
+### Step 12a - Publish store channels
+
+Run GitHub Store publication in the release worktree and Google Play publication from the development directory. Both operations belong to the same release window as `standard_release`; do not publish GitHub Store assets as a standalone version.
+
+```powershell
+# GitHub Store source release (release worktree on main)
+cd P:/ANDROID/FastMediaSorter_release
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -DryRun
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1
+
+# Google Play standard release (development worktree, uses mirrored DOWNLOADS AAB)
+cd P:/ANDROID/FastMediaSorter_mob_v2
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1
+```
+
+If GitHub publication succeeds, add this manual follow-up to the final report:
+
+```text
+[S0214 STORE CHECK] Owner checks GitHub Store search/install after indexing.
+```
+
+If either publisher fails, abort with the command, exit code, and first actionable error. Do not retry with different assets or a different version.
+
+---
+
+### Step 12b - Functionality log sanity check
 
 The plateau release does not generate functionality-log entries on its own - those should already exist, one per spec, recorded by `/spec-dev` (ADD/CHANGE) or `/spec-fix` (FIX) during the DEBUG cycle.
 
@@ -351,10 +379,13 @@ Release pipeline complete.
   Version:  v$NEW_VERSION
   Tag:      release/v$NEW_VERSION
   Next branch: $NEXT_DEBUG (tracking origin/$NEXT_DEBUG)
-  Build:    triggered via .\a r
+  Build:    standard + vr release artifacts built
+  GitHub Store: GitHub Release assets published
+  Google Play: standard release published
 
 Manual follow-ups (if any):
   [FUNC_LOG MISSED] Sxxxx - confirm whether spec delivered user-visible change; add entry via add_to_functionality_log.ps1
+  [S0214 STORE CHECK] Owner checks GitHub Store search/install after indexing.
 ```
 
 If there are no missed entries, omit the "Manual follow-ups" block. No other prose.

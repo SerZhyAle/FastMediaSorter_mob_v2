@@ -7,6 +7,7 @@ $ErrorActionPreference = 'Stop'
 $libDir = $PSScriptRoot
 if (-not $libDir) { $libDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $repoRoot = (Resolve-Path (Join-Path $libDir '..\..')).Path
+$script:RepoRoot = $repoRoot
 $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 
 $script:RequiredFields = @('id', 'name', 'status', 'priority', 'file', 'created', 'updated')
@@ -144,6 +145,47 @@ function Find-Record {
     $records = Read-Catalog
     foreach ($r in $records) { if ($r.id -eq $Id) { return $r } }
     return $null
+}
+
+function Resolve-SpecPath {
+    # Resolve a record's `file` (repo-relative, e.g. 'PLAN/S0290_*.md') or an
+    # already-absolute path to an absolute filesystem path.
+    param([Parameter(Mandatory)][string] $PathRef)
+    $p = $PathRef -replace '/', '\'
+    if ([System.IO.Path]::IsPathRooted($p)) { return $p }
+    return (Join-Path $script:RepoRoot $p)
+}
+
+function Sync-SpecHeaderStatus {
+    # Mirror a status change into the FIRST '**Status:**' header line of a spec
+    # .md so the human-readable header never drifts from the journal (the owner
+    # reads that header directly). Fail-soft: a missing file or absent header
+    # returns $false and never throws, so the caller's journal write is never
+    # rolled back by a header problem. Only the first match is rewritten -
+    # deeper '**Status:**' lines (ADR / Proposal blocks) keep their own status.
+    # Returns $true when the header now reads $Status (changed or already so).
+    param(
+        [Parameter(Mandatory)][string] $PathRef,   # record.file (repo-relative) or absolute path
+        [Parameter(Mandatory)][string] $Status
+    )
+    try {
+        $abs = Resolve-SpecPath -PathRef $PathRef
+        if (-not (Test-Path -LiteralPath $abs -PathType Leaf)) { return $false }
+        $raw = Get-Content -LiteralPath $abs -Raw
+        $rx  = [regex]'(?m)^\*\*Status:\*\*[^\r\n]*$'
+        $m   = $rx.Match($raw)
+        if (-not $m.Success) { return $false }
+        $newHeader = '**Status:** ' + $Status
+        if ($m.Value -ne $newHeader) {
+            $patched = $rx.Replace($raw, $newHeader, 1)
+            $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($abs, $patched, $utf8NoBom)
+        }
+        return $true
+    } catch {
+        Write-Host ("  header sync warning ({0}): {1}" -f $PathRef, $_.Exception.Message) -ForegroundColor DarkYellow
+        return $false
+    }
 }
 
 function Get-DaysSinceUpdated {

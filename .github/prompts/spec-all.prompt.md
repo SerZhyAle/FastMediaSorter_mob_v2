@@ -8,7 +8,7 @@ description: "Use when: asked to run the full spec pipeline from a raw idea to v
 Execute the complete spec pipeline from idea to verified implementation, fully automated.
 Forward bias over correctness theatre - patch the spec and continue. Stop only when forward progress is genuinely impossible without a human. Ready to pick up a spec at any stage, any status. Defers unresolvable human questions to the final report - never blocks mid-pipeline on something that can be skipped and revisited.
 
-Strategic approval is the explicit exception to full automation: newly written strategic or compact specs must not be auto-promoted from `Draft` without the owner-input gate defined by `/spec` (`## 0. Approval Gate (owner input)`).
+Strategic approval is automated in `/spec-all` when the auto-approval check finds no blockers and no ambiguity that must be solved by the owner. Newly written or resumed strategic/compact specs may be promoted from `Draft` after that check. If the check finds a required human decision, keep the spec in `Draft`, report the blocking items, and stop before tactical planning.
 
 ## Usage
 
@@ -58,7 +58,7 @@ If resolved → read strategic spec file, read current `Status:` → **jump to t
 
 | Current `Status:` | Resume stage |
 | --- | --- |
-| `Draft` | Validate `## 0. Approval Gate (owner input)`. If complete, promote to `Approved` and continue to the next post-draft stage (`F2` for strategic, `S2` for compact). If incomplete, stop and report missing owner inputs. |
+| `Draft` | Run the `/spec-all` auto-approval check. If it passes, complete or normalize `## 0. Approval Gate (owner input)` with `Delegated by user - /spec-all auto-approval` where needed, promote to `Approved`, and continue to the next post-draft stage (`F2` for strategic, `S2` for compact). If it fails, stop and report only the owner decisions that block implementation. |
 | `Approved` | F2 (tactical plan) |
 | `Tactical` | F3 (implementation, first non-done step) |
 | `In Progress` | F3 (continue, `--resume`) |
@@ -89,6 +89,32 @@ Derive `short-name`: kebab-case slug, 3–5 words. Glob `PLAN/Sxxxx_*.md` for sl
 
 Log complexity decision in chat: `Complexity: Simple | Full - <one-line reason>.`
 
+### 0d - Auto-approval check
+
+Use this check before any `Draft` → `Approved` transition performed by `/spec-all`, including newly created specs and resumed specs.
+
+Auto-approval PASS requires all of the following:
+
+1. The goal, local anchor, and done signal are either present in the spec/request or can be derived from code/docs without inventing product behavior.
+2. Scope boundaries are explicit enough to avoid read-only zones, unrelated refactors, schema changes, or flavor leakage.
+3. Every §6 research item is either resolved from local context or not required before tactical planning.
+4. UI/UX decisions are either already explicit or can be made as reversible implementation assumptions consistent with existing project patterns.
+5. No hard-stop condition is visible: missing external dependency, unchosen Room migration/version, unspecified Hilt scope/qualifier, read-only-zone touch, legal/compliance decision, or destructive data behavior.
+
+If PASS:
+
+- Patch `## 0. Approval Gate (owner input)` so every mandatory line is present.
+- Use `Provided by user` only for facts present in the user request.
+- Use `Delegated by user - /spec-all auto-approval` for decisions made by the orchestrator, followed by the concrete assumption.
+- Resolve answerable §6 items in the strategic spec before promoting.
+- Promote `Draft` → `Approved` with `scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Approved`.
+
+If FAIL:
+
+- Keep `Status: Draft`.
+- Do not create tactical files.
+- Report the minimal list of owner decisions needed to unblock the spec.
+
 ---
 
 ## Simple Path
@@ -99,12 +125,12 @@ Allocate `Sxxxx` via `insert.ps1`. Write a single `PLAN/Sxxxx_<short-name>.md` t
 Use the `spec_tech` phase template directly (English, imperative steps with Verification predicates).
 Include a brief **Goal** section (2–4 sentences, Russian) before the phases. Auto-derive priority per `/spec` rules.
 
-Add the same owner-input gate used by `/spec` (`## 0. Approval Gate (owner input)`) and fill it only from the human request. Unknown items stay `MISSING - requires owner input`.
+Add the same owner-input gate used by `/spec` (`## 0. Approval Gate (owner input)`). Fill facts from the human request first; then run the Stage 0d auto-approval check. Unknown items that are not blockers may be completed as `Delegated by user - /spec-all auto-approval` with explicit assumptions.
 
-Keep `Status: Draft` for a newly created compact spec. Do not auto-promote it in the same run.
+Keep `Status: Draft` for a newly created compact spec only when Stage 0d fails.
 Run dev log: `.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Compact spec: <Sxxxx>"`
 
-If this was a new idea flow, stop here and report: `Draft created. Waiting for owner approval gate / explicit resume.`
+If this was a new idea flow and Stage 0d fails, stop here and report: `Draft created. Waiting for owner approval decisions: <items>.`
 
 ### Stage S2 - Implementation
 
@@ -125,9 +151,9 @@ Audit loop max 3 iterations (not 5). Otherwise same as **Stage F5** below.
 ### Stage F1 - Strategic Spec
 
 Follow `/spec` process with `roadmap-id: ad-hoc`. The id is allocated by `insert.ps1` inside `/spec`.
-Do **not** auto-promote the newly written strategic draft. Run dev log for the strategic spec file and stop if this run created a new draft.
+After the draft is written, run Stage 0d. If it passes, patch the approval gate, promote to `Approved`, and continue to F2. If it fails, run dev log for the strategic spec file and stop with the blocking owner decisions.
 
-Resume beyond F1 only when the spec already has a complete `## 0. Approval Gate (owner input)` and the current `/spec-all <Sxxxx|slug>` invocation is the explicit human proceed signal.
+Resume beyond F1 when the spec already has a complete `## 0. Approval Gate (owner input)` or Stage 0d passes for the current `/spec-all <Sxxxx|slug>` invocation.
 
 ### Stage F2 - Tactical Plan
 
@@ -236,7 +262,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 
 ## Constraints
 
-- **No user prompts between stages.** Resolve ambiguity from code/docs context. If unresolvable, defer to manual items and keep moving.
+- **No user prompts between stages.** Resolve ambiguity from code/docs context. If unresolvable but non-blocking, defer to manual items and keep moving. If unresolved ambiguity is required for auto-approval, keep the spec in `Draft` and report the owner decision.
 - **Resume-first.** When given an existing spec id or slug, always resume from current state - never recreate stages that are already done.
 - **Defer-first.** Blocked steps don't stop the pipeline. Skip and continue; collect all blocked items in the manual list for the final report.
 - **Specs are mutable inside `/spec-all`** - patch and continue. Status locks (`Implemented`, `Verified`) do not apply inside this skill.
@@ -255,7 +281,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 
 - **Argument resolution.** Accept `Sxxxx`, a slug, or a path (`PLAN/Sxxxx_<slug>.md`). For `Sxxxx`, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` and skip Stage 0 short-name derivation.
 - **Stage transitions** (orchestrator does not duplicate sub-skill updates - these fire from the underlying skills as documented in their own "Spec Catalog hooks" sections):
-  - F1 (Strategic Spec): `/spec` performs `insert.ps1` (Status `Draft`); `/spec-all` then auto-flips `Draft → Approved` via `update.ps1 -Status Approved`.
+  - F1 (Strategic Spec): `/spec` performs `insert.ps1` (Status `Draft`); `/spec-all` then runs Stage 0d and auto-flips `Draft → Approved` via `update.ps1 -Status Approved` only if the check passes.
   - F2 (Tactical): `/spec-tech` flips to `Tactical`.
   - F3 (Implementation): `/spec-dev` flips to `In Progress` then `Implemented`.
   - F5 (Audit): `/spec-check` flips to `Verified` / `Partial` / `Broken`.

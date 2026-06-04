@@ -17,6 +17,7 @@ interface SettingsRepository {
     suspend fun getLastUsedResourceId(): Long
     suspend fun setResourceGridMode(isGridMode: Boolean)
     suspend fun updateEmbeddedGameEnabled(enabled: Boolean)
+    suspend fun updateScheduledOperationsPaused(paused: Boolean)
     suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean
     suspend fun setTouchZoneHintShown(type: TouchZoneHintType, shown: Boolean)
     suspend fun resetAllTouchZoneHints()

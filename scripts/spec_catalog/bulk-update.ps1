@@ -92,5 +92,15 @@ if ($errors.Count -gt 0) {
 # Phase 3: single atomic write
 Write-Catalog -Records $allRecords.ToArray()
 
+# Phase 4: mirror each new status into its spec file's **Status:** header so the
+# in-file header never drifts from the journal (shared fail-soft helper; only on
+# status changes - a priority-only batch leaves headers untouched).
+if ($PSBoundParameters.ContainsKey('Status')) {
+    foreach ($ticketId in $Id) {
+        $rec = $allRecords[$indexMap[$ticketId]]
+        [void](Sync-SpecHeaderStatus -PathRef $rec.file -Status $rec.status)
+    }
+}
+
 foreach ($line in $results) { Write-Output $line }
 exit 0

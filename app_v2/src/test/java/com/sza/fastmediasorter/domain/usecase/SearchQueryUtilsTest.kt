@@ -57,4 +57,75 @@ class SearchQueryUtilsTest {
         assertEquals("Track", SearchQueryUtils.cleanForSearch("Track {Remastered 2011}"))
         assertEquals("Pink Floyd", SearchQueryUtils.cleanForSearch("Pink Floyd"))
     }
+
+    // ── S0347: structural parse ──────────────────────────────────────────────
+
+    @Test
+    fun `parseArtistTitle splits artist and title on spaced dash`() {
+        val parsed = SearchQueryUtils.parseArtistTitle("Pink Floyd - Time.mp3")
+        assertEquals("Pink Floyd", parsed.artist)
+        assertEquals("Time", parsed.title)
+    }
+
+    @Test
+    fun `parseArtistTitle strips leading track number before splitting`() {
+        val parsed = SearchQueryUtils.parseArtistTitle("01 - Pink Floyd - Time.flac")
+        assertEquals("Pink Floyd", parsed.artist)
+        assertEquals("Time", parsed.title)
+    }
+
+    @Test
+    fun `parseArtistTitle splits dash without surrounding spaces`() {
+        val parsed = SearchQueryUtils.parseArtistTitle("Beatles-Help.mp3")
+        assertEquals("Beatles", parsed.artist)
+        assertEquals("Help", parsed.title)
+    }
+
+    @Test
+    fun `parseArtistTitle returns null artist when no separator`() {
+        val parsed = SearchQueryUtils.parseArtistTitle("Time.mp3")
+        assertNull(parsed.artist)
+        assertEquals("Time", parsed.title)
+    }
+
+    // ── S0347: confidence scoring ────────────────────────────────────────────
+
+    @Test
+    fun `matchConfidence is high when artist and title both match`() {
+        val score = SearchQueryUtils.matchConfidence(
+            queryArtist = "Pink Floyd", queryTitle = "Time",
+            candidateArtist = "Pink Floyd", candidateTitle = "Time",
+        )
+        assertTrue("expected >= threshold, was $score", score >= SearchQueryUtils.COVER_MATCH_CONFIDENCE_THRESHOLD)
+    }
+
+    @Test
+    fun `matchConfidence rejects same title by different artist`() {
+        // The core false positive: title matches, artist does not.
+        val score = SearchQueryUtils.matchConfidence(
+            queryArtist = "Nirvana", queryTitle = "Come As You Are",
+            candidateArtist = "Some Cover Band", candidateTitle = "Come As You Are",
+        )
+        assertTrue("expected < threshold, was $score", score < SearchQueryUtils.COVER_MATCH_CONFIDENCE_THRESHOLD)
+    }
+
+    @Test
+    fun `matchConfidence uses dir artist as fallback signal`() {
+        // Query artist missing, but the album-folder artist matches the candidate.
+        val score = SearchQueryUtils.matchConfidence(
+            queryArtist = null, queryTitle = "Time",
+            candidateArtist = "Pink Floyd", candidateTitle = "Time",
+            dirArtist = "Pink Floyd",
+        )
+        assertTrue("expected >= threshold, was $score", score >= SearchQueryUtils.COVER_MATCH_CONFIDENCE_THRESHOLD)
+    }
+
+    @Test
+    fun `matchConfidence normalizes case and diacritics`() {
+        val score = SearchQueryUtils.matchConfidence(
+            queryArtist = "Beyonce", queryTitle = "Halo",
+            candidateArtist = "Beyoncé", candidateTitle = "HALO",
+        )
+        assertTrue("expected >= threshold, was $score", score >= SearchQueryUtils.COVER_MATCH_CONFIDENCE_THRESHOLD)
+    }
 }

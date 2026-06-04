@@ -12,6 +12,7 @@ import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsField
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
 import com.sza.fastmediasorter.core.xr.XrEnvironmentDetector
 import timber.log.Timber
 import java.io.File
@@ -289,7 +290,11 @@ internal class NoLegalDiagnosticsCollectors(
     private inline fun safe(block: () -> String): String = try {
         block()
     } catch (e: Exception) {
-        Timber.w(e, "noLegal diagnostics: failed to read a field")
+        if (SystemInfoAccessClassifier.isExpectedAccessDenial(e)) {
+            Timber.i("noLegal diagnostics: field unavailable on this device (${e.javaClass.simpleName})")
+        } else {
+            Timber.w(e, "noLegal diagnostics: failed to read a field")
+        }
         "unknown"
     }
 

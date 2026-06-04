@@ -125,9 +125,8 @@
         android:paddingBottom="@dimen/settings_padding_vertical">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/settings_stereo_vr_default_layout_label"
             android:textSize="@dimen/toggler_title_text_size" />
@@ -148,9 +147,8 @@
         android:paddingBottom="@dimen/settings_padding_vertical">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/settings_stereo_vr_default_projection_label"
             android:textSize="@dimen/toggler_title_text_size" />
@@ -187,9 +185,8 @@
         android:paddingBottom="@dimen/settings_padding_vertical">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/settings_stereo_vr_render_mode_label"
             android:textSize="@dimen/toggler_title_text_size" />

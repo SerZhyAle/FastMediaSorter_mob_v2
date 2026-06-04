@@ -1,0 +1,273 @@
+package com.sza.fastmediasorter.widget
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.MediaRecorder
+import android.os.Build
+import android.os.Environment
+import android.os.IBinder
+import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import com.sza.fastmediasorter.R
+import timber.log.Timber
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+/**
+ * S0349 - microphone foreground service backing the Quick Audio Recorder widget.
+ *
+ * Owns a single [MediaRecorder] for the lifetime of one recording. Started/stopped via the
+ * [start]/[stop] helpers (driven by [QuickAudioRecorderActivity]); pushes widget icon updates
+ * through [QuickAudioRecorderWidgetProvider.updateAllWidgets] on each state transition.
+ *
+ * Recorder configuration mirrors the proven `BrowseMicRecordingManager` (MIC -> MPEG_4/AAC,
+ * mono, 44.1 kHz, 128 kbps, `.m4a`). Files land in the app's external `Music/` directory
+ * (no storage permission required; works down to API 23 - see S0349 §4.3).
+ */
+class QuickAudioRecorderService : Service() {
+
+    private var mediaRecorder: MediaRecorder? = null
+    private var recorderStarted = false
+    private var outputFile: File? = null
+    private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_STOP -> stopAndSave()
+            else -> handleStart()
+        }
+        return START_NOT_STICKY
+    }
+
+    private fun handleStart() {
+        Timber.d("S0349: service handleStart")
+        if (isRecording) return
+
+        createChannel()
+        startForegroundCompat()
+
+        if (!requestFocus()) {
+            Timber.w("QuickAudioRecorder: audio focus not granted - aborting")
+            failAndStop()
+            return
+        }
+
+        val dir = (getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: filesDir).apply { mkdirs() }
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val file = File(dir, "REC_$timestamp.m4a")
+        outputFile = file
+
+        val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaRecorder(this)
+        } else {
+            @Suppress("DEPRECATION")
+            MediaRecorder()
+        }
+        mediaRecorder = recorder
+
+        try {
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            recorder.setAudioChannels(1)
+            recorder.setAudioSamplingRate(44100)
+            recorder.setAudioEncodingBitRate(128_000)
+            recorder.setOutputFile(file.absolutePath)
+            recorder.prepare()
+            recorder.start()
+            recorderStarted = true
+            isRecording = true
+            QuickAudioRecorderWidgetProvider.updateAllWidgets(this, true)
+        } catch (e: Exception) {
+            Timber.e(e, "QuickAudioRecorder: failed to prepare/start recorder")
+            failAndStop()
+        }
+    }
+
+    private fun stopAndSave() {
+        Timber.d("S0349: service stopAndSave")
+        val file = outputFile
+        var saved = false
+        if (recorderStarted) {
+            try {
+                mediaRecorder?.stop()
+                saved = file != null && file.exists() && file.length() > 0
+            } catch (e: Exception) {
+                // stop() throws when stopped before any frame is captured - the clip is unusable.
+                Timber.w(e, "QuickAudioRecorder: stop() threw - discarding empty recording")
+                file?.delete()
+            }
+        }
+        releaseRecorder()
+        abandonFocus()
+        isRecording = false
+        QuickAudioRecorderWidgetProvider.updateAllWidgets(this, false)
+
+        if (saved && file != null) {
+            toast(getString(R.string.quick_recorder_saved, file.name))
+        } else {
+            toast(getString(R.string.quick_recorder_error))
+        }
+        outputFile = null
+        stopForegroundCompat()
+        stopSelf()
+    }
+
+    private fun failAndStop() {
+        releaseRecorder()
+        abandonFocus()
+        outputFile?.delete()
+        outputFile = null
+        isRecording = false
+        QuickAudioRecorderWidgetProvider.updateAllWidgets(this, false)
+        toast(getString(R.string.quick_recorder_error))
+        stopForegroundCompat()
+        stopSelf()
+    }
+
+    private fun releaseRecorder() {
+        recorderStarted = false
+        try {
+            mediaRecorder?.reset()
+            mediaRecorder?.release()
+        } catch (e: Exception) {
+            Timber.w(e, "QuickAudioRecorder: recorder release failed")
+        }
+        mediaRecorder = null
+    }
+
+    private fun requestFocus(): Boolean {
+        val audioManager = getSystemService<AudioManager>() ?: return false
+        val listener = AudioManager.OnAudioFocusChangeListener { change ->
+            if (change == AudioManager.AUDIOFOCUS_LOSS ||
+                change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
+            ) {
+                // Something took the mic - keep what was captured so far.
+                stopAndSave()
+            }
+        }
+        audioFocusListener = listener
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                .setOnAudioFocusChangeListener(listener)
+                .build()
+            audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                listener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
+            ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        }
+    }
+
+    private fun abandonFocus() {
+        val audioManager = getSystemService<AudioManager>() ?: return
+        val listener = audioFocusListener ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                .setOnAudioFocusChangeListener(listener)
+                .build()
+            audioManager.abandonAudioFocusRequest(request)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.abandonAudioFocus(listener)
+        }
+        audioFocusListener = null
+    }
+
+    private fun createChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService<NotificationManager>() ?: return
+        if (manager.getNotificationChannel(CHANNEL_ID) != null) return
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.quick_recorder_notification_channel),
+            NotificationManager.IMPORTANCE_LOW
+        )
+        manager.createNotificationChannel(channel)
+    }
+
+    private fun startForegroundCompat() {
+        val stopIntent = Intent(this, QuickAudioRecorderService::class.java).apply {
+            action = ACTION_STOP
+        }
+        val stopPending = PendingIntent.getService(
+            this,
+            0,
+            stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_widget_quick_audio_recorder_idle)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.quick_recorder_notification_recording))
+            .setOngoing(true)
+            .setSilent(true)
+            .addAction(
+                0,
+                getString(R.string.quick_recorder_action_stop),
+                stopPending
+            )
+            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
+    }
+
+    private fun stopForegroundCompat() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    companion object {
+        /** Read by the widget provider and the trampoline to decide start vs stop. */
+        @Volatile
+        var isRecording: Boolean = false
+            private set
+
+        const val ACTION_START = "com.sza.fastmediasorter.action.QUICK_RECORDER_START"
+        const val ACTION_STOP = "com.sza.fastmediasorter.action.QUICK_RECORDER_STOP"
+
+        private const val CHANNEL_ID = "quick_audio_recorder"
+        private const val NOTIFICATION_ID = 0xA349
+
+        fun start(context: Context) {
+            val intent = Intent(context, QuickAudioRecorderService::class.java).apply {
+                action = ACTION_START
+            }
+            ContextCompat.startForegroundService(context, intent)
+        }
+
+        fun stop(context: Context) {
+            val intent = Intent(context, QuickAudioRecorderService::class.java).apply {
+                action = ACTION_STOP
+            }
+            ContextCompat.startForegroundService(context, intent)
+        }
+    }
+}

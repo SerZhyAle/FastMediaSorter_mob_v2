@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_scheduled_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/widget_item_background"
+    android:padding="@dimen/padding_small"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/widget_scheduled_item_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="@dimen/item_subtitle_text_size"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="COPY" />
+
+    <TextView
+        android:id="@+id/widget_scheduled_item_next"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/padding_normal"
+        android:textColor="@color/white"
+        android:textSize="@dimen/item_subtitle_text_size"
+        android:gravity="end"
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="Next: 14:30" />
+
+</LinearLayout>

@@ -12,13 +12,17 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import kotlin.math.abs
+import kotlin.math.min
 
 /**
  * Draws a bright-red, wide-stroke draggable rectangle over the captured photo for the Camera-OCR
- * crop step. The area outside the selection is dimmed so the selection is distinguishable without
- * relying on colour alone. Exposes the selection as a normalized [RectF] via [getNormalizedRect]
- * and whether the user moved it via [isFrameTouched] - an untouched frame means "use the whole
- * photo" (no crop). Supports touch drag/resize and D-pad / keyboard adjustment (Strict Rule 17).
+ * crop step. The frame is constrained to the rectangle the photo actually occupies inside the view
+ * (the `fitCenter` content rect), so it hugs the image rather than the screen edges and the
+ * normalized selection it exposes maps 1:1 onto the source bitmap. The area outside the selection is
+ * dimmed so the selection is distinguishable without relying on colour alone. Exposes the selection
+ * as a normalized [RectF] via [getNormalizedRect] and whether the user moved it via [isFrameTouched]
+ * - an untouched frame means "use the whole photo" (no crop). Supports touch drag/resize and D-pad /
+ * keyboard adjustment (Strict Rule 17).
  */
 class CropOverlayView @JvmOverloads constructor(
     context: Context,
@@ -33,6 +37,12 @@ class CropOverlayView @JvmOverloads constructor(
     private val keyStepPx = KEY_STEP_DP * density
 
     private val selection = RectF()
+
+    /** Rectangle the `fitCenter` photo occupies inside this view; the frame lives inside it. */
+    private val contentRect = RectF()
+    private var imageWidth = 0
+    private var imageHeight = 0
+
     private var initialized = false
     private var touched = false
     private var keyResizeMode = false
@@ -58,25 +68,37 @@ class CropOverlayView @JvmOverloads constructor(
         contentDescription = context.getString(R.string.camera_ocr_crop_frame_desc)
     }
 
-    /** Resets the frame to the default near-full position and clears the touched flag. */
-    fun reset() {
+    /**
+     * Binds the overlay to a freshly shown photo of [imageWidth] x [imageHeight] pixels and resets
+     * the frame to the default near-full position. Call this whenever a new preview bitmap is set.
+     * The content rect and frame are (re)computed immediately when the view already has bounds, and
+     * otherwise lazily once [onSizeChanged] / [onDraw] sees a valid size.
+     */
+    fun setImageSize(imageWidth: Int, imageHeight: Int) {
+        this.imageWidth = imageWidth
+        this.imageHeight = imageHeight
         initialized = false
         touched = false
         keyResizeMode = false
-        if (width > 0 && height > 0) {
+        recomputeContentRect()
+        if (!contentRect.isEmpty) {
             applyDefaultFrame()
-            invalidate()
         }
+        // Always invalidate: forces a redraw even when bounds are not ready yet, so a re-shown
+        // crop step never reuses an empty hardware render node (the "frame never appears" bug).
+        invalidate()
     }
 
-    /** Selection in normalized [0f,1f] coordinates relative to the view (left/top/right/bottom). */
+    /** Selection normalized to the photo content rect (left/top/right/bottom in [0f, 1f]). */
     fun getNormalizedRect(): RectF {
-        if (width == 0 || height == 0) return RectF(0f, 0f, 1f, 1f)
+        if (contentRect.isEmpty) return RectF(0f, 0f, 1f, 1f)
+        val w = contentRect.width()
+        val h = contentRect.height()
         return RectF(
-            selection.left / width,
-            selection.top / height,
-            selection.right / width,
-            selection.bottom / height
+            ((selection.left - contentRect.left) / w).coerceIn(0f, 1f),
+            ((selection.top - contentRect.top) / h).coerceIn(0f, 1f),
+            ((selection.right - contentRect.left) / w).coerceIn(0f, 1f),
+            ((selection.bottom - contentRect.top) / h).coerceIn(0f, 1f)
         )
     }
 
@@ -85,26 +107,53 @@ class CropOverlayView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (!initialized && w > 0 && h > 0) {
+        recomputeContentRect()
+        if (!initialized && !contentRect.isEmpty) {
             applyDefaultFrame()
         }
+        invalidate()
+    }
+
+    private fun recomputeContentRect() {
+        if (imageWidth <= 0 || imageHeight <= 0 || width <= 0 || height <= 0) {
+            contentRect.setEmpty()
+            return
+        }
+        // fitCenter: scale the image down/up to fit, centred, preserving aspect ratio.
+        val scale = min(width.toFloat() / imageWidth, height.toFloat() / imageHeight)
+        val drawnW = imageWidth * scale
+        val drawnH = imageHeight * scale
+        val left = (width - drawnW) / 2f
+        val top = (height - drawnH) / 2f
+        contentRect.set(left, top, left + drawnW, top + drawnH)
     }
 
     private fun applyDefaultFrame() {
+        if (contentRect.isEmpty) return
         selection.set(
-            defaultInsetPx,
-            defaultInsetPx,
-            width - defaultInsetPx,
-            height - defaultInsetPx
+            contentRect.left + defaultInsetPx,
+            contentRect.top + defaultInsetPx,
+            contentRect.right - defaultInsetPx,
+            contentRect.bottom - defaultInsetPx
         )
+        // Tiny content rect: the inset could invert the frame - fall back to the full content rect.
+        if (selection.right - selection.left < minSidePx || selection.bottom - selection.top < minSidePx) {
+            selection.set(contentRect)
+        }
         initialized = true
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (!initialized) return
+        // Lazy init: reset()/setImageSize may run before layout (size 0); compute the frame the
+        // first time the view is actually drawn with valid bounds so it can never stay invisible.
+        if (!initialized) {
+            recomputeContentRect()
+            if (contentRect.isEmpty) return
+            applyDefaultFrame()
+        }
 
-        // Dim everything outside the selection (four bands).
+        // Dim everything outside the selection (four bands across the whole view).
         canvas.drawRect(0f, 0f, width.toFloat(), selection.top, scrimPaint)
         canvas.drawRect(0f, selection.bottom, width.toFloat(), height.toFloat(), scrimPaint)
         canvas.drawRect(0f, selection.top, selection.left, selection.bottom, scrimPaint)
@@ -223,24 +272,24 @@ class CropOverlayView @JvmOverloads constructor(
     private fun moveBy(dx: Float, dy: Float) {
         var nx = dx
         var ny = dy
-        if (selection.left + nx < 0f) nx = -selection.left
-        if (selection.right + nx > width) nx = width - selection.right
-        if (selection.top + ny < 0f) ny = -selection.top
-        if (selection.bottom + ny > height) ny = height - selection.bottom
+        if (selection.left + nx < contentRect.left) nx = contentRect.left - selection.left
+        if (selection.right + nx > contentRect.right) nx = contentRect.right - selection.right
+        if (selection.top + ny < contentRect.top) ny = contentRect.top - selection.top
+        if (selection.bottom + ny > contentRect.bottom) ny = contentRect.bottom - selection.bottom
         selection.offset(nx, ny)
     }
 
     private fun clampLeft(value: Float): Float =
-        value.coerceIn(0f, selection.right - minSidePx)
+        value.coerceIn(contentRect.left, selection.right - minSidePx)
 
     private fun clampRight(value: Float): Float =
-        value.coerceIn(selection.left + minSidePx, width.toFloat())
+        value.coerceIn(selection.left + minSidePx, contentRect.right)
 
     private fun clampTop(value: Float): Float =
-        value.coerceIn(0f, selection.bottom - minSidePx)
+        value.coerceIn(contentRect.top, selection.bottom - minSidePx)
 
     private fun clampBottom(value: Float): Float =
-        value.coerceIn(selection.top + minSidePx, height.toFloat())
+        value.coerceIn(selection.top + minSidePx, contentRect.bottom)
 
     private enum class Handle {
         NONE, INSIDE, LEFT, RIGHT, TOP, BOTTOM, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT

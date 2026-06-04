@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0249 / S0326 landscape variant: same control set as the portrait
+     layout/fragment_vr_settings_block.xml, re-flowed into two columns to cut vertical
+     scrolling on wide XR screens. VrSettingsBlockFragment binds every control by id via
+     findViewById, so this file MUST keep the exact id set of the portrait layout:
+       xrUnavailableAdvisory, masterToggleRow, testImmersiveRow, vrDetailGroupsContainer,
+       autoDetectRow, trustFilenameRow, trustMetadataRow, trustAspectRatioRow,
+       ambiguityBestGuessRow, defaultLayoutSpinner, defaultProjectionSpinner,
+       vrAutoImmersiveRow, renderModeSpinner, vrShowFpsRow.
+     Two-column rules (owner-confirmed):
+       - toggle rows are paired two-per-row;
+       - the two default-mode spinners share one row; renderMode pairs with the
+         auto-immersive toggle so reading order (autoImmersive -> renderMode -> showFps)
+         is preserved;
+       - section titles stay full-width in the flow (left column), unchanged.
+     Spinner rows keep the label and the value adjacent (label wrap_content, no weight),
+     matching the portrait layout so the value never flies to the screen edge. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/settings_padding_horizontal_large">
+
+    <!-- Advisory shown only on non-XR devices (XrDetectionFacade.state == NONE). -->
+    <TextView
+        android:id="@+id/xrUnavailableAdvisory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/settings_padding_vertical"
+        android:text="@string/vr_settings_xr_unavailable_advisory"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textStyle="italic"
+        android:visibility="gone" />
+
+    <!-- Master toggle row + trailing Test Immersive button share one horizontal line. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/masterToggleRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:str_title="@string/vr_settings_master_toggle_label"
+            app:str_subtitle="@string/vr_settings_master_toggle_summary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/testImmersiveRow"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_switch_margin_end"
+            android:contentDescription="@string/vr_settings_test_immersive_content_description"
+            android:text="@string/vr_settings_test_immersive_label"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Detail groups: visible only when XR is present AND the master toggle is ON.
+         Gated at runtime by VrSettingsBlockFragment.applyState(). -->
+    <LinearLayout
+        android:id="@+id/vrDetailGroupsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- S0326: Format detection group (title full-width). -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/settings_padding_vertical"
+            android:text="@string/settings_stereo_vr_group_detection_title"
+            android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+        <!-- Detection toggles, two per row. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/autoDetectRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/settings_stereo_vr_autodetect_title"
+                app:str_subtitle="@string/settings_stereo_vr_autodetect_summary" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/trustFilenameRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_medium"
+                app:str_title="@string/settings_stereo_vr_trust_filename_title"
+                app:str_subtitle="@string/settings_stereo_vr_trust_filename_summary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/trustMetadataRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/settings_stereo_vr_trust_metadata_title"
+                app:str_subtitle="@string/settings_stereo_vr_trust_metadata_summary" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/trustAspectRatioRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_medium"
+                app:str_title="@string/settings_stereo_vr_trust_aspect_title"
+                app:str_subtitle="@string/settings_stereo_vr_trust_aspect_summary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/ambiguityBestGuessRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/settings_stereo_vr_ambiguity_title"
+                app:str_subtitle="@string/settings_stereo_vr_ambiguity_summary" />
+
+            <!-- Spacer keeps the lone toggle in the left column. -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_medium" />
+        </LinearLayout>
+
+        <!-- S0326: Default mode group (title full-width). -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/settings_padding_vertical"
+            android:text="@string/settings_stereo_vr_group_default_title"
+            android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+        <!-- Both default-mode spinners share one row; label and value stay adjacent. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/settings_padding_vertical"
+            android:paddingBottom="@dimen/settings_padding_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:text="@string/settings_stereo_vr_default_layout_label"
+                    android:textSize="@dimen/toggler_title_text_size" />
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/defaultLayoutSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/settings_stereo_vr_layout_entries"
+                    android:minWidth="@dimen/settings_spinner_min_width" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:text="@string/settings_stereo_vr_default_projection_label"
+                    android:textSize="@dimen/toggler_title_text_size" />
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/defaultProjectionSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/settings_stereo_vr_projection_entries"
+                    android:minWidth="@dimen/settings_spinner_min_width" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- S0326: Immersive & diagnostics group (title full-width). -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/settings_padding_vertical"
+            android:text="@string/settings_stereo_vr_group_immersive_title"
+            android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+        <!-- auto-immersive toggle + render-mode spinner share one row. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/settings_padding_vertical"
+            android:paddingBottom="@dimen/settings_padding_vertical">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/vrAutoImmersiveRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/settings_stereo_vr_auto_immersive_title"
+                app:str_subtitle="@string/settings_stereo_vr_auto_immersive_summary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:text="@string/settings_stereo_vr_render_mode_label"
+                    android:textSize="@dimen/toggler_title_text_size" />
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/renderModeSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/settings_stereo_vr_render_mode_entries"
+                    android:minWidth="@dimen/settings_spinner_min_width" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- showFps toggle in the left column; spacer holds the right column. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/vrShowFpsRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/settings_stereo_vr_show_fps_title"
+                app:str_subtitle="@string/settings_stereo_vr_show_fps_summary" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_medium" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

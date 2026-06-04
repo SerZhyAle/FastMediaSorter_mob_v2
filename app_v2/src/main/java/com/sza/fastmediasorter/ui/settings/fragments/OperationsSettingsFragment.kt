@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 class OperationsSettingsFragment : BaseSettingsFragment() {
@@ -79,6 +80,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         setupExpandableSections()
         setupScheduledSection()
         observeData()
+        checkAndExpandScheduledSection()
     }
     
     override fun onResume() {
@@ -109,6 +111,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             prefilledSourceId = sourceId,
             onSave = { op -> scheduledViewModel.upsert(op) }
         ).show()
+    }
+
+    /**
+     * If SettingsActivity was launched from the Scheduled Tasks widget with EXTRA_OPEN_SCHEDULED,
+     * expand the scheduled-operations section so the user lands directly on it. Extra is consumed
+     * so it doesn't re-trigger on orientation change.
+     */
+    private fun checkAndExpandScheduledSection() {
+        if (!BuildConfig.ENABLE_SCHEDULED_OPERATIONS) return
+        if (!requireActivity().intent.getBooleanExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED, false)) return
+        requireActivity().intent.removeExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED)
+        Timber.d("S0353: settings opened to scheduled section from widget")
+        binding.headerScheduled.setExpanded(true, notify = true)
     }
 
     override fun onDestroyView() {

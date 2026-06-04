@@ -117,6 +117,12 @@ class SmbDataSource(
         if (!PermissionHelper.hasLocalNetworkPermission(context)) {
             throw LocalNetworkPermissionDeniedException()
         }
+        // Establish the source identity synchronously, before the blocking open work runs on the
+        // watchdog worker thread. The media3 stats wrapper reads getUri() right after open() and
+        // asserts it is non-null; binding the URI here (and never clearing it on close) keeps that
+        // identity stable even when a concurrent close() from rapid file switching races the read.
+        Timber.d("S0343: SMB data source URI bound at open entry")
+        this.uri = dataSpec.uri
         val key = connectionKey()
         val tracker = smbClient.playbackConnectionTracker
         // S0148: fail-fast is attempt-scoped - a recent watchdog blocks only a retry of the
@@ -243,9 +249,14 @@ class SmbDataSource(
             // CRITICAL: Validate seek position to prevent negative bytesRemaining
             // ExoPlayer may reuse DataSpec with position from previous file
             if (fileLength != C.LENGTH_UNSET.toLong() && position >= fileLength) {
-                Timber.e(
-                    "SmbDataSource: INVALID SEEK POSITION - position=$position >= fileLength=$fileLength " +
-                    "for file=$finalPath. Resetting to start. (This suggests ExoPlayer DataSpec reuse bug)"
+                // Recovered state, not a failure: media3 occasionally reuses a DataSpec whose
+                // position equals the file length (seek/re-open artifact). We reset to start and
+                // playback continues normally - so log at INFO. Logging it at ERROR would mirror it
+                // to the on-screen debug error notification (S0341) as if something broke.
+                Timber.d("S0344: SMB seek-past-EOF reset recovered at info level")
+                Timber.i(
+                    "SmbDataSource: seek position past EOF (position=$position >= fileLength=$fileLength) " +
+                    "for file=$finalPath - reset to start, playback continues (DataSpec reuse)"
                 )
                 currentPosition = 0
                 bytesRemaining = fileLength
@@ -571,8 +582,10 @@ class SmbDataSource(
     override fun getUri(): Uri? = uri
 
     override fun close() {
-        uri = null
-
+        // Do NOT clear `uri` here. The source URI is identity, not open-state: nulling it on close
+        // races the media3 stats wrapper's non-null getUri() check during rapid file switching and
+        // surfaces as a spurious Source error (errorCode=2000 / NullPointerException). Resources are
+        // still released below; the next open() rebinds the URI to the new request.
         try {
             file?.close()
         } catch (e: Exception) {

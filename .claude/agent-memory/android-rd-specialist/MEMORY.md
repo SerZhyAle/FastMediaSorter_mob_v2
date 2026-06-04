@@ -1,5 +1,8 @@
 # Memory Index
 
+- [Draft style is approval-gate, not drafting friction](feedback_draft_style_gate.md) - spec `..`/ё + lists-over-tables sanitation enforced only at Draft->Approved; drafts may stay rough, no hygiene-only sweeps
+- [Spec **Status:** header auto-syncs from journal](feedback_spec_header_autosync.md) - owner reads in-file header; update.ps1 now rewrites first **Status:** line on every status change (fail-soft, first-match only)
+
 - [Frozen app? check TracerPid / lldb-server](feedback_frozen_app_check_tracerpid.md) - UI frozen + no crash + log stops at "blocking GC ProfileSaver" → native LLDB debugger holds VM via ptrace, not a code bug; check /proc/<pid>/status TracerPid
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
@@ -45,3 +48,4 @@
 - [Check existing tooling first](feedback_check_existing_tooling.md) - grep scripts/ + scripts/utils/ + skills for an existing helper before authoring a new script; extend it, don't duplicate (I duplicated set-android-string.ps1)
 - [Research over owner-question on design forks](feedback_research_over_owner_question.md) - best-practice/granularity/grouping forks: research the convention and recommend, don't AskUserQuestion an arbitrary call (S0339: user redirected both questions to "research")
 - [String tools cover src/main/res only](feedback_string_tools_main_res_only.md) - check_strings_localized.ps1 + set-android-string.ps1 ignore src/<flavor>/res; hand-edit flavor strings, grep-verify EN/RU/UK parity (build only proves EN)
+- [Cyrillic corrupts through bash→pwsh args](feedback_cyrillic_bash_pwsh_boundary.md) - never pass RU/UK literals as pwsh CLI args from Bash tool (mojibake); author a UTF-8 .ps1 via Write, verify with Grep/Read not console

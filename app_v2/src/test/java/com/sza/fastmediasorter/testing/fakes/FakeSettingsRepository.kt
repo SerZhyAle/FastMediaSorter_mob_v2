@@ -68,6 +68,10 @@ class FakeSettingsRepository(
         updateSettings(settingsFlow.value.copy(embeddedGameEnabled = enabled))
     }
 
+    override suspend fun updateScheduledOperationsPaused(paused: Boolean) {
+        updateSettings(settingsFlow.value.copy(scheduledOperationsPaused = paused))
+    }
+
     override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean =
         touchZoneHints[type] ?: false
 

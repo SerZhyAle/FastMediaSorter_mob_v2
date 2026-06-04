@@ -2382,4 +2382,14 @@
     <string name="system_info_copy_full_report">Скопировать полный отчёт</string>
     <string name="system_info_reveal_confirm_title">Скопировать полный отчёт?</string>
     <string name="system_info_reveal_confirm_message">В копию войдут чувствительные данные (хэш подписи, локальные адреса, точки монтирования). Продолжить?</string>
+    <string name="audio_next_track_loading">Загружается следующий трек..</string>
+    <string name="widget_quick_audio_recorder_label">Быстрый диктофон</string>
+    <string name="widget_quick_audio_recorder_description">Нажмите, чтобы начать запись голоса; нажмите ещё раз, чтобы остановить и сохранить</string>
+    <string name="quick_recorder_notification_recording">Идёт запись…</string>
+    <string name="quick_recorder_notification_channel">Запись голоса</string>
+    <string name="quick_recorder_action_stop">Стоп</string>
+    <string name="quick_recorder_saved">Запись сохранена: %1$s</string>
+    <string name="quick_recorder_error">Не удалось записать звук</string>
+    <string name="quick_recorder_permission_needed">Для записи нужен доступ к микрофону</string>
+    <string name="quick_recorder_permission_settings">Включите доступ к микрофону в настройках</string>
 </resources>

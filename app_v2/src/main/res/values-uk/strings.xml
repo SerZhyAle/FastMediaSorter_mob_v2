@@ -2345,4 +2345,14 @@
     <string name="system_info_copy_full_report">Скопіювати повний звіт</string>
     <string name="system_info_reveal_confirm_title">Скопіювати повний звіт?</string>
     <string name="system_info_reveal_confirm_message">До копії увійдуть чутливі дані (хеш підпису, локальні адреси, точки монтування). Продовжити?</string>
+    <string name="audio_next_track_loading">Завантажується наступний трек..</string>
+    <string name="widget_quick_audio_recorder_label">Швидкий диктофон</string>
+    <string name="widget_quick_audio_recorder_description">Натисніть, щоб почати запис голосу; натисніть ще раз, щоб зупинити та зберегти</string>
+    <string name="quick_recorder_notification_recording">Триває запис…</string>
+    <string name="quick_recorder_notification_channel">Запис голосу</string>
+    <string name="quick_recorder_action_stop">Стоп</string>
+    <string name="quick_recorder_saved">Запис збережено: %1$s</string>
+    <string name="quick_recorder_error">Не вдалося записати звук</string>
+    <string name="quick_recorder_permission_needed">Для запису потрібен доступ до мікрофона</string>
+    <string name="quick_recorder_permission_settings">Увімкніть доступ до мікрофона в налаштуваннях</string>
 </resources>

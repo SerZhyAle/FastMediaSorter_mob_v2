@@ -78,6 +78,13 @@ class PlayerMediaLoaderManager(
     private var servicePlaybackPlayer: Player? = null
     private var audioPrefetchJob: Job? = null
     private var audioPrefetchPath: String? = null
+
+    // S0346 Pillar B: readiness-delay feedback. When the next network/cloud audio track takes
+    // longer than the threshold to become playable (e.g. a large MP3 still downloading over SFTP),
+    // the metadata/name has already changed but the sound has not - which reads as "the button did
+    // nothing". A delayed toast tells the user the track is loading; it is cancelled the moment the
+    // track actually starts. Scheduled on the main-looper [loadingIndicatorHandler].
+    private var audioReadinessFeedbackRunnable: Runnable? = null
     private val servicePlaybackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             onAudioServicePlaybackChanged(isPlaying)
@@ -121,6 +128,10 @@ class PlayerMediaLoaderManager(
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
+
+        // S0346 Pillar B: how long the next track may take to start before the user gets a
+        // "loading next track" toast. Approximate per strategic spec; tuned on the car scenario.
+        private const val AUDIO_READINESS_FEEDBACK_THRESHOLD_MS = 2000L
     }
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
@@ -283,6 +294,8 @@ class PlayerMediaLoaderManager(
                 return
             }
             Timber.d("playAudioViaService: CLOUD audio - downloading ${currentFile.name} (${currentFile.size / 1024} KB) to cache")
+            // S0346 Pillar B: arm readiness feedback for the cloud download (same silent-gap risk).
+            scheduleAudioReadinessFeedback()
             lifecycleScope.launch {
                 // If prefetch is already running for this file, await it instead of re-downloading
                 if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
@@ -292,6 +305,8 @@ class PlayerMediaLoaderManager(
                 val cachedFile = preCacheCloudAudio(path, currentFile)
                 if (cachedFile != null) {
                     Timber.d("playAudioViaService: CLOUD pre-cache OK - playing via service: ${cachedFile.absolutePath}")
+                    // Track ready - readiness feedback served its purpose.
+                    cancelAudioReadinessFeedback()
                     // Set original cloud path as the position key (ADR-3, S0173)
                     AudioPlaybackService.currentOriginalPath = path
                     val uri = Uri.fromFile(cachedFile)
@@ -311,6 +326,7 @@ class PlayerMediaLoaderManager(
                     }
                 } else {
                     Timber.w("playAudioViaService: cloud pre-cache failed, falling back to in-app player")
+                    cancelAudioReadinessFeedback()
                     val resource = viewModel.state.value.resource
                     playVideoWithResourceType(path, resourceType, currentFile, resource)
                 }
@@ -329,6 +345,9 @@ class PlayerMediaLoaderManager(
         } else {
             resource?.credentialsId
         }
+        // S0346 Pillar B: the next track may still be downloading - arm readiness feedback so a slow
+        // start is communicated instead of looking like an ignored button press.
+        scheduleAudioReadinessFeedback()
         lifecycleScope.launch {
             // For Favorites, resolve credentialsId from the original resource
             val resolvedCredentialsId = if (resource?.id == -100L && currentFile?.resourceId != null) {
@@ -359,12 +378,16 @@ class PlayerMediaLoaderManager(
                     )
                 } ?: 0L
 
+                // Track is ready to play - the readiness feedback (if any) has served its purpose.
+                cancelAudioReadinessFeedback()
                 controller.playAudioWithMetadata(uri, netTitle, mimeType = midiMimeTypeFor(path)) { player ->
                     if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
                     activity.runOnUiThread { bindServicePlayerToView(player) }
                 }
             } else {
                 Timber.w("playAudioViaService: pre-cache failed, falling back to in-app player")
+                // The in-app stream path shows its own spinner below; drop the toast feedback.
+                cancelAudioReadinessFeedback()
                 val currentFile = viewModel.state.value.currentFile
                 val resource = viewModel.state.value.resource
                 // Re-post loading indicator: the original 1-second delayed post from playVideo() has
@@ -809,6 +832,30 @@ class PlayerMediaLoaderManager(
         audioPrefetchJob?.cancel()
         audioPrefetchJob = null
         audioPrefetchPath = null
+        // A pending readiness toast for an abandoned load would be misleading - drop it too.
+        cancelAudioReadinessFeedback()
+    }
+
+    /**
+     * S0346 Pillar B: arm the readiness-delay feedback. If the next track has not started playing
+     * within [AUDIO_READINESS_FEEDBACK_THRESHOLD_MS], show a brief "loading next track" toast so the
+     * user gets honest feedback instead of a silent gap while the file streams/downloads. Replaces
+     * any previously armed feedback (one in flight at a time).
+     */
+    private fun scheduleAudioReadinessFeedback() {
+        cancelAudioReadinessFeedback()
+        Timber.d("S0346: armed next-track readiness feedback")
+        val runnable = Runnable {
+            Toast.makeText(activity, activity.getString(R.string.audio_next_track_loading), Toast.LENGTH_SHORT).show()
+        }
+        audioReadinessFeedbackRunnable = runnable
+        loadingIndicatorHandler.postDelayed(runnable, AUDIO_READINESS_FEEDBACK_THRESHOLD_MS)
+    }
+
+    /** Cancel the readiness-delay feedback - the track started, or the load was abandoned. */
+    private fun cancelAudioReadinessFeedback() {
+        audioReadinessFeedbackRunnable?.let { loadingIndicatorHandler.removeCallbacks(it) }
+        audioReadinessFeedbackRunnable = null
     }
 
     /** Show audio file info overlay */

@@ -385,7 +385,7 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## Constraints
 
-- Language and format: Body in Russian. Frontmatter, code identifiers, and file paths in English. Use `..`, not `...`. Always use `ё`/`Ё`.
+- Language and format: Body in Russian. Frontmatter, code identifiers, and file paths in English. Use `..`, not `...`; always use `ё`/`Ё`. These two style rules plus the Spec Writing Style sanitation (lists over tables, no pseudographics, one idea per bullet, no section summaries) are an enforced gate only at the `Draft` -> `Approved` flip (Process step 6). A spec that stays in `Draft` may keep rough phrasing, `...`, missing `ё`, or tables; clean it as part of approval, never as a standalone draft sweep.
 - §5: no class names, file paths, line budgets, Room versions, Hilt modules - architectural roles only. Strategic scope stays at architecture-role level only.
 - §11: observable outcomes only, no internal architecture claims.
 - Required sections: §6 and §7 are mandatory even if trivial - write explicit "нет" rather than skipping. Sections §10 and §11 must not be omitted - write "No changes" if not applicable.

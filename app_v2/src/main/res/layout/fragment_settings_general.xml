@@ -348,6 +348,9 @@
 
                     </LinearLayout>
 
+                    <!-- Add an existing widget to the home screen via the in-app picker + system pinning -->
+                    <com.google.android.material.button.MaterialButton android:id="@+id/buttonAddHomeWidget" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:clickable="true" android:focusable="true" android:text="@string/settings_add_home_widget_title" app:icon="@drawable/ic_add" app:iconGravity="start" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

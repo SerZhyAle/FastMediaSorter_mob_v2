@@ -16,6 +16,9 @@ interface ScheduledOperationDao {
     @Query("SELECT * FROM scheduled_operations WHERE is_enabled = 1 ORDER BY id ASC")
     suspend fun getAllEnabled(): List<ScheduledOperationEntity>
 
+    @Query("SELECT * FROM scheduled_operations WHERE is_enabled = 1 ORDER BY next_run_at ASC")
+    suspend fun getUpcomingEnabled(): List<ScheduledOperationEntity>
+
     @Query("SELECT * FROM scheduled_operations WHERE id = :id")
     suspend fun getById(id: Long): ScheduledOperationEntity?
 

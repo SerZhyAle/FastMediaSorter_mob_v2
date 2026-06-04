@@ -162,7 +162,7 @@ class CameraOcrTranslateActivity :
         binding.layoutEmptyState.isVisible = false
         binding.layoutLoading.isVisible = false
         binding.ivCropPreview.setImageBitmap(bitmap)
-        binding.cropOverlay.reset()
+        binding.cropOverlay.setImageSize(bitmap.width, bitmap.height)
         binding.cropOverlay.requestFocus()
     }
 

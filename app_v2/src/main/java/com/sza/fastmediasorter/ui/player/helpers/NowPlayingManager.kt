@@ -85,10 +85,14 @@ class NowPlayingManager(
             val mimeType = if (MidiPlaybackPolicy.isMidiPath(file.path)) MimeTypes.AUDIO_MIDI else null
             MediaItemWithMeta(
                 uri = buildPlaybackUri(file),
-                title = file.name.substringBeforeLast('.'),
-                artist = null,       // ID3 artist extracted natively by ExoPlayer after load
+                title = file.title?.takeIf { it.isNotBlank() } ?: file.name.substringBeforeLast('.'),
+                artist = file.artist,
                 albumArtUri = null,  // cover art resolved lazily in ImageLoadingManager
-                mimeType = mimeType
+                mimeType = mimeType,
+                sourcePath = file.path,
+                resourceId = file.resourceId ?: AudioPlaybackService.currentResourceId,
+                size = file.size,
+                dateModified = file.lastModified.takeIf { it > 0L } ?: file.createdDate
             )
         }
         audioServiceController.playAudioPlaylistWithMetadata(items, startIndex, onPlayerReady)

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="110dp"
-    android:minHeight="110dp"
-    android:targetCellWidth="2"
-    android:targetCellHeight="2"
+    android:minWidth="48dp"
+    android:minHeight="48dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_camera_ocr_translate"
     android:description="@string/widget_camera_ocr_translate_description"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="none"
     android:widgetCategory="home_screen"
-    android:theme="@style/Theme.FastMediaSorter" />
+    android:theme="@style/Theme.FastMediaSorter"
+    android:previewImage="@drawable/ic_camera_ocr_translate"
+    android:previewLayout="@layout/widget_camera_ocr_translate" />

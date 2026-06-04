@@ -29,6 +29,7 @@ Targets:
 
 - Strategic body: Russian. Tactical body: English. No mixed sentences.
 - `..` not `...`; `ё`/`Ё` in Russian where grammatically correct.
+- Style timing: the `..`/`ё` and Spec Writing Style sanitation rules are an enforced gate only at `Draft` -> `Approved`. If the target spec is in `Draft`, do not raise ellipsis / `ё` / table-vs-list / section-summary findings - drafting may stay rough. Apply this hygiene as part of an explicit promotion to `Approved`, never as a standalone draft sweep. Language correctness for `Approved` or later specs is enforced as before.
 
 ### 2. `structure`
 

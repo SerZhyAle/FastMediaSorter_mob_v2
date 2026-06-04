@@ -53,6 +53,8 @@
     <!-- Scheduled file operations -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- S0349: microphone foreground service type for the Quick Audio Recorder widget (API 34+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Screen sizes and densities supported -->
@@ -228,8 +230,14 @@
             </intent-filter>
         </activity>
 
-        <!-- Widget Configuration Activity -->
+        <!-- Widget Configuration Activities -->
         <activity android:name=".widget.ResourceLaunchWidgetConfigActivity" android:exported="true" android:theme="@style/Theme.FastMediaSorter">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".widget.RandomPhotoFrameConfigActivity" android:exported="true" android:theme="@style/Theme.FastMediaSorter">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
@@ -245,6 +253,17 @@
 
         <!-- Favorites Widget Service -->
         <service android:name=".widget.FavoritesWidgetService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
+
+        <!-- Scheduled Tasks Widget (S0353) -->
+        <receiver android:name=".widget.ScheduledTasksWidgetProvider" android:exported="true" android:label="@string/widget_scheduled_tasks_label" android:icon="@drawable/ic_widget_scheduled_tasks">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.sza.fastmediasorter.action.SCHEDULED_RUN_ALL" />
+                <action android:name="com.sza.fastmediasorter.action.SCHEDULED_TOGGLE_PAUSE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_scheduled_tasks_info" />
+        </receiver>
+        <service android:name=".widget.ScheduledTasksWidgetService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
 
         <!-- Audio background playback service (Media3 MediaSessionService) -->
         <service android:name=".ui.player.AudioPlaybackService" android:foregroundServiceType="mediaPlayback" android:exported="true">
@@ -294,6 +313,14 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_photos_info" />
         </receiver>
 
+        <!-- Random Photo Frame Widget -->
+        <receiver android:name=".widget.RandomPhotoFrameWidgetProvider" android:exported="true" android:label="@string/widget_random_photo_frame_label" android:icon="@drawable/ic_widget_camera_photos">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_random_photo_frame_info" />
+        </receiver>
+
         <!-- Random Music Widget (S0134) - removed in photos flavor (no audio support) -->
         <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true" android:label="@string/widget_random_music_label" android:icon="@drawable/ic_widget_random_music">
             <intent-filter>
@@ -301,6 +328,29 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_random_music_info" />
         </receiver>
+
+        <!-- Audio Now Playing Widget -->
+        <receiver android:name=".widget.AudioNowPlayingWidgetProvider" android:exported="true" android:label="@string/widget_audio_now_playing_label" android:icon="@drawable/ic_widget_random_music">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.sza.fastmediasorter.action.AUDIO_WIDGET_TOGGLE_FAVORITE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_audio_now_playing_info" />
+        </receiver>
+
+        <!-- Quick Audio Recorder Widget (S0349) - removed in lite/photos (SUPPORT_MIC_RECORDING=false) -->
+        <receiver android:name=".widget.QuickAudioRecorderWidgetProvider" android:exported="true" android:label="@string/widget_quick_audio_recorder_label" android:icon="@drawable/ic_widget_quick_audio_recorder">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quick_audio_recorder_info" />
+        </receiver>
+
+        <!-- Quick Audio Recorder: transparent trampoline that toggles recording from a widget tap (S0349) -->
+        <activity android:name=".widget.QuickAudioRecorderActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- Quick Audio Recorder: microphone foreground service that owns MediaRecorder (S0349) -->
+        <service android:name=".widget.QuickAudioRecorderService" android:exported="false" android:foregroundServiceType="microphone" />
 
         <!-- Calculator Widget -->
         <receiver android:name=".widget.CalculatorWidgetProvider" android:exported="true" android:label="@string/widget_calculator_label" android:icon="@drawable/ic_widget_calculator">
@@ -316,6 +366,14 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_ocr_translate_info" />
+        </receiver>
+
+        <!-- Capture & OCR Panel Widget -->
+        <receiver android:name=".widget.CaptureOcrPanelWidgetProvider" android:exported="true" android:label="@string/widget_capture_ocr_panel_label" android:icon="@drawable/ic_camera_ocr_translate">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_capture_ocr_panel_info" />
         </receiver>
 
         <!-- Embedded Game Widget -->

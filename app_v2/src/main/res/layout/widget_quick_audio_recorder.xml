@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0349: icon-only 1x1 Quick Audio Recorder widget. Icon colour is baked into the drawable
+     (white idle / red recording) because RemoteViews cannot toggle a static tint per state. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_quick_audio_recorder_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:contentDescription="@string/widget_quick_audio_recorder_label"
+    android:padding="@dimen/padding_tiny"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/widget_quick_audio_recorder_icon"
+        android:layout_width="@dimen/widget_icon_size_large"
+        android:layout_height="@dimen/widget_icon_size_large"
+        android:src="@drawable/ic_widget_quick_audio_recorder_idle"
+        android:contentDescription="@string/widget_quick_audio_recorder_label" />
+
+</LinearLayout>

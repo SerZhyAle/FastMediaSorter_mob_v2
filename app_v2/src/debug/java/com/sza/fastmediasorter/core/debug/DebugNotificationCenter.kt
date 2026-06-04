@@ -38,7 +38,6 @@ object DebugNotificationCenter : Application.ActivityLifecycleCallbacks {
     private fun show(message: String, throwable: Throwable?, isError: Boolean) {
         val activity = resumedActivityRef?.get() ?: return
         activity.runOnUiThread {
-            Timber.d("S0341: debug notification show isError=$isError")
             val label = if (isError) {
                 activity.getString(R.string.debug_error_prefix)
             } else {

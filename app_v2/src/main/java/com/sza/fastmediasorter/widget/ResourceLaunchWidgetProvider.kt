@@ -97,8 +97,6 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_resource_launch)
 
             if (resourceId != -1L && resourceName != null) {
-                views.setTextViewText(R.id.widget_resource_name, resourceName)
-
                 val iconRes = resolveIcon(resourcePath, resourceTypeName)
                 views.setImageViewResource(R.id.widget_resource_icon, iconRes)
                 views.setInt(R.id.widget_resource_icon, "setColorFilter", Color.WHITE)
@@ -114,10 +112,6 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.widget_resource_container, pendingIntent)
             } else {
-                views.setTextViewText(
-                    R.id.widget_resource_name,
-                    context.getString(R.string.widget_resource_not_configured)
-                )
                 views.setImageViewResource(R.id.widget_resource_icon, R.drawable.ic_folder)
                 views.setInt(R.id.widget_resource_icon, "setColorFilter", Color.WHITE)
 

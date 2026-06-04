@@ -12,6 +12,8 @@ param(
 #   - The gate validates only what is actually present in §3.3 - every bullet
 #     must carry a concrete value (not a bracketed placeholder, not empty).
 #     "n/a - <reason>" counts as a concrete value.
+#   - Draft text may be rough, but promotion to Approved also enforces basic
+#     author-style hygiene: no raw three-dot ellipsis in non-code-fence text.
 #   - Universally required: 'Related tickets'. This is the only field that
 #     must be present regardless of spec scope. It encodes dependency chains
 #     consumed by /spec-next and bulk-update.ps1.
@@ -86,13 +88,26 @@ if (-not $found.ContainsKey('Related tickets')) {
     $blockers.Add("Missing required field: 'Related tickets' (universally required in §3.3 regardless of scope; use 'none' if no dependencies)")
 }
 
+$inFence = $false
+for ($i = 0; $i -lt $lines.Count; $i++) {
+    $line = $lines[$i]
+    if ($line -match '^\s*```') {
+        $inFence = -not $inFence
+        continue
+    }
+    if (-not $inFence -and $line.Contains('...')) {
+        $blockers.Add(("Line {0}: replace three-dot ellipsis with '..' before Approved" -f ($i + 1)))
+    }
+}
+
 if ($blockers.Count -gt 0) {
     Write-Output "FAIL $Id"
     foreach ($b in $blockers) { Write-Output "- $b" }
     Write-Output ""
     Write-Output "Spec '$Id' cannot transition Draft -> Approved until:"
     Write-Output "  1. every bullet present in §3.3 carries a concrete value, and"
-    Write-Output "  2. 'Related tickets' is present (use 'none' if no dependencies)."
+    Write-Output "  2. 'Related tickets' is present (use 'none' if no dependencies), and"
+    Write-Output "  3. approval-only author-style hygiene passes."
     Write-Output "The gate validates only what /spec emitted into §3.3 - it does not"
     Write-Output "require fields irrelevant to the spec's detected scope."
     exit 1

@@ -36,6 +36,9 @@ class FakeScheduledOperationRepository : ScheduledOperationRepository {
     override suspend fun getAllEnabled(): List<ScheduledOperation> =
         operationsFlow.value.filter { it.isEnabled }
 
+    override suspend fun getUpcomingEnabled(): List<ScheduledOperation> =
+        operationsFlow.value.filter { it.isEnabled }.sortedBy { it.nextRunAt }
+
     override suspend fun getById(id: Long): ScheduledOperation? =
         operationsFlow.value.firstOrNull { it.id == id }
 
