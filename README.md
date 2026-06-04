@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6031.424 (June 2026)
+## What's New in v2.60.6050.116 (June 2026)
 
 **New:**
-Device profiles, color theme, system info, calculator upgrade, text selection & copy, richer language picker, Office document filter, Camera OCR crop, 3D/VR defaults.
+Camera OCR crop-screen languages, re-translate OCR results, icon-style home widgets, Camera OCR / Audio Now Playing / Random Photo Frame / Quick Recorder / Scheduled Tasks widgets, add widgets from Settings.
 
 **Fixed:**
-Mouse left-click now reaches buttons, dialogs, and dropdowns. Camera OCR and Game Help controls stay within safe areas.
+Network video playback no longer freezes on buffering. Opening network media no longer crashes on bad entries. Camera OCR crop frame now renders and aligns correctly.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

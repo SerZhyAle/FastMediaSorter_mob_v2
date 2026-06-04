@@ -1,6 +1,33 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6031.424** (June 2026)
+**Current release: 2.60.6050.116** (June 2026)
+
+> Changes since version 2.60.6031.424
+
+---
+
+## What's New
+
+- **Camera OCR languages** - choose OCR and translation language on the crop screen.
+- **Re-translate OCR results** - switch target language without re-capturing.
+- **Icon-style home widgets** - compact 1×1 widgets look like clean launcher icons.
+- **Camera OCR widget** - launch Camera OCR from its own home-screen widget.
+- **Add widgets from Settings** - pin a widget to the home screen in-app.
+- **Capture & OCR panel** - one home-screen panel for Camera Photos and OCR.
+- **Audio Now Playing widget** - control background audio from the home screen.
+- **Random Photo Frame widget** - rotating random photo from a chosen source.
+- **Quick Recorder widget** - one tap records voice, the next tap saves.
+- **Scheduled Tasks widget** - view and run scheduled file operations from home.
+
+## What's Fixed
+
+- Network video playback no longer freezes on buffering.
+- Opening network media no longer crashes on bad entries.
+- Camera OCR crop frame now renders and aligns correctly.
+
+---
+
+## Previous Release: 2.60.6031.424 (June 2026)
 
 > Changes since version 2.60.6010.151
 
