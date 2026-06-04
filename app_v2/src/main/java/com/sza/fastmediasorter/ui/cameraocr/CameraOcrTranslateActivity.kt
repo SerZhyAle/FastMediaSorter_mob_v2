@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
@@ -50,6 +51,12 @@ class CameraOcrTranslateActivity :
 
     private lateinit var flowManager: CameraOcrFlowManager
     private var calculatorEnabled = false
+
+    // Crop-step language cluster state (S0354). Interface language drives the localized labels;
+    // source/target codes are mirrored from settings via renderCropLanguages for the picker.
+    private var cropInterfaceLang = "en"
+    private var cropSourceLang = "auto"
+    private var cropTargetLang = "ru"
 
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -126,6 +133,20 @@ class CameraOcrTranslateActivity :
             )
         }
         binding.btnCropRetry.setOnClickListener { flowManager.onCropRetry() }
+        binding.btnCropOcrLang.setOnClickListener {
+            showLanguagePicker(
+                selectedCode = cropSourceLang,
+                mode = SearchableLanguagePickerDialog.Mode.SOURCE,
+                interfaceLanguage = cropInterfaceLang
+            ) { language -> flowManager.setCropSourceLanguage(language.code) }
+        }
+        binding.btnCropTargetLang.setOnClickListener {
+            showLanguagePicker(
+                selectedCode = cropTargetLang,
+                mode = SearchableLanguagePickerDialog.Mode.TARGET,
+                interfaceLanguage = cropInterfaceLang
+            ) { language -> flowManager.setCropTargetLanguage(language.code) }
+        }
         installResultSelectionMenu(binding.tvOriginalText)
         installResultSelectionMenu(binding.tvTranslation)
     }
@@ -133,7 +154,8 @@ class CameraOcrTranslateActivity :
     override fun observeData() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             calculatorEnabled = settings.enableCalculator
-            flowManager.setOcrOnlyActive(settings.cameraOcrOnly)
+            cropInterfaceLang = settings.language
+            flowManager.setOcrOnlyActive(!settings.enableTranslation || settings.cameraOcrOnly)
         }
     }
 
@@ -164,6 +186,48 @@ class CameraOcrTranslateActivity :
         binding.ivCropPreview.setImageBitmap(bitmap)
         binding.cropOverlay.setImageSize(bitmap.width, bitmap.height)
         binding.cropOverlay.requestFocus()
+    }
+
+    override fun renderCropLanguages(sourceCode: String, targetCode: String, translationAvailable: Boolean) {
+        cropSourceLang = sourceCode
+        cropTargetLang = targetCode
+        // Disable all-caps transformation: it rebuilds the text and would strip the flag ImageSpan
+        // for ru/be. The compact label already upper-cases the language code, so visible text is unchanged.
+        binding.btnCropOcrLang.isAllCaps = false
+        binding.btnCropTargetLang.isAllCaps = false
+        binding.btnCropOcrLang.text = compactLanguageLabel(binding.btnCropOcrLang, sourceCode)
+        binding.btnCropOcrLang.contentDescription = cropLanguageContentDescription(
+            titleRes = R.string.camera_ocr_crop_lang_ocr_desc,
+            code = sourceCode
+        )
+        binding.ivCropLangArrow.isVisible = translationAvailable
+        binding.btnCropTargetLang.isVisible = translationAvailable
+        if (translationAvailable) {
+            binding.btnCropTargetLang.text = compactLanguageLabel(binding.btnCropTargetLang, targetCode)
+            binding.btnCropTargetLang.contentDescription = cropLanguageContentDescription(
+                titleRes = R.string.camera_ocr_crop_lang_target_desc,
+                code = targetCode
+            )
+            binding.btnCropOcrLang.nextFocusRightId = binding.btnCropTargetLang.id
+            binding.btnCropConfirm.nextFocusLeftId = binding.btnCropTargetLang.id
+        } else {
+            binding.btnCropOcrLang.nextFocusRightId = binding.btnCropConfirm.id
+            binding.btnCropConfirm.nextFocusLeftId = binding.btnCropOcrLang.id
+        }
+    }
+
+    /** Compact crop-cluster label: flag plus the language code in upper case (e.g. "🌐 AUTO", "🇷🇺 RU"). */
+    private fun compactLanguageLabel(view: TextView, code: String): CharSequence {
+        val displayLocale = Locale.forLanguageTag(cropInterfaceLang)
+        val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
+        return LanguageFlagFormatter.compactLabel(view, item, code)
+    }
+
+    private fun cropLanguageContentDescription(@androidx.annotation.StringRes titleRes: Int, code: String): String {
+        val displayLocale = Locale.forLanguageTag(cropInterfaceLang)
+        val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
+        val languageName = item?.localizedName ?: code.uppercase(Locale.ROOT)
+        return "${getString(titleRes)}: $languageName"
     }
 
     override fun showLoading(statusRes: Int, subStatusRes: Int) {
@@ -224,32 +288,17 @@ class CameraOcrTranslateActivity :
             val view = LayoutInflater.from(this@CameraOcrTranslateActivity)
                 .inflate(R.layout.dialog_camera_ocr_settings, null)
 
-            val sourceView = view.findViewById<TextView>(R.id.spinnerSourceLanguage)
+            // Result screen rework (S0354): OCR over the captured image is already done, so only the
+            // translation target language is editable here. Changing it re-translates the existing
+            // recognized text. The OCR source language is chosen at capture time on the crop step.
             val targetView = view.findViewById<TextView>(R.id.spinnerTargetLanguage)
             val cbOcrOnly = view.findViewById<CheckBox>(R.id.cbOcrOnly)
 
             val interfaceLang = settings.language
-            var selectedSourceLang = settings.translationSourceLanguage
             var selectedTargetLang = settings.translationTargetLanguage
 
-            fun updateLanguageViews() {
-                sourceView.text = formatLanguageLabel(selectedSourceLang, interfaceLang)
-                targetView.text = formatLanguageLabel(selectedTargetLang, interfaceLang)
-                sourceView.contentDescription =
-                    "${getString(R.string.translation_source_language)}: ${sourceView.text}"
-                targetView.contentDescription =
-                    "${getString(R.string.translation_target_language)}: ${targetView.text}"
-            }
-
-            sourceView.setOnClickListener {
-                showLanguagePicker(
-                    selectedCode = selectedSourceLang,
-                    mode = SearchableLanguagePickerDialog.Mode.SOURCE,
-                    interfaceLanguage = interfaceLang
-                ) { language ->
-                    selectedSourceLang = language.code
-                    updateLanguageViews()
-                }
+            fun updateTargetView() {
+                applyLanguageLabel(targetView, selectedTargetLang, interfaceLang)
             }
 
             targetView.setOnClickListener {
@@ -260,15 +309,15 @@ class CameraOcrTranslateActivity :
                     interfaceLanguage = interfaceLang
                 ) { language ->
                     selectedTargetLang = language.code
-                    updateLanguageViews()
+                    updateTargetView()
                 }
             }
 
             cbOcrOnly.isChecked = settings.cameraOcrOnly
-            updateLanguageViews()
-            updateTargetLanguageEnabled(targetView, !settings.cameraOcrOnly)
+            updateTargetView()
+            updateTargetLanguageEnabled(targetView, settings.enableTranslation && !settings.cameraOcrOnly)
             cbOcrOnly.setOnCheckedChangeListener { _, isChecked ->
-                updateTargetLanguageEnabled(targetView, !isChecked)
+                updateTargetLanguageEnabled(targetView, settings.enableTranslation && !isChecked)
             }
 
             AlertDialog.Builder(this@CameraOcrTranslateActivity)
@@ -276,7 +325,6 @@ class CameraOcrTranslateActivity :
                 .setView(view)
                 .setPositiveButton(R.string.apply) { _, _ ->
                     flowManager.applyLanguageSettings(
-                        sourceLang = selectedSourceLang,
                         targetLang = selectedTargetLang,
                         ocrOnly = cbOcrOnly.isChecked
                     )
@@ -307,11 +355,19 @@ class CameraOcrTranslateActivity :
         view.alpha = if (enabled) 1.0f else 0.45f
     }
 
-    private fun formatLanguageLabel(code: String, interfaceLanguage: String): String {
+    private fun applyLanguageLabel(view: TextView, code: String, interfaceLanguage: String) {
         val displayLocale = Locale.forLanguageTag(interfaceLanguage)
         val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
             ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
-        return item?.let(TranslationLanguageCatalog::formatLanguage) ?: code.uppercase(Locale.ROOT)
+        if (item != null) {
+            LanguageFlagFormatter.applyLabel(view, item)
+            view.contentDescription =
+                "${getString(R.string.translation_target_language)}: ${LanguageFlagFormatter.plainLabel(item)}"
+        } else {
+            val fallback = code.uppercase(Locale.ROOT)
+            view.text = fallback
+            view.contentDescription = "${getString(R.string.translation_target_language)}: $fallback"
+        }
     }
 
     private fun installResultSelectionMenu(textView: TextView) {

@@ -286,6 +286,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     // Track current file path to avoid reloading when only metadata changes (e.g., isFavorite)
     internal var currentFilePath: String? = null
+    private var playbackOrderContextKey: String? = null
 
     // Current settings cached for overlay visibility
     internal var currentSettings: AppSettings? = null
@@ -495,14 +496,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     private fun setupCommandPanelControls() {
         commandPanelController.setupCommandPanelControls()
-        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
-        val audioMode = PlaybackOrderMode.fromPrefsString(
-            prefs.getString(PlaybackControlPreferences.KEY_PLAYBACK_ORDER_AUDIO, null) ?: "")
-        val videoMode = PlaybackOrderMode.fromPrefsString(
-            prefs.getString(PlaybackControlPreferences.KEY_PLAYBACK_ORDER_VIDEO, null) ?: "")
-        val initialMode = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO) audioMode else videoMode
-        viewModel.setPlaybackOrderMode(initialMode)
-        applyPlaybackOrderModeToActivePlayer(initialMode)
         exoPlayerControlsManager.updatePlaybackOrderButtonState()
     }
 
@@ -520,7 +513,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal fun adjustTouchZonesForVideo(isVideo: Boolean) =
         mediaLoaderManager.adjustTouchZonesForVideo(isVideo, useTouchZones)
 
-    private fun updateUI(state: PlayerViewModel.PlayerState) = observerManager.updateUI(state)
+    private fun updateUI(state: PlayerViewModel.PlayerState) {
+        if (syncPlaybackOrderForCurrentResource(state)) {
+            return
+        }
+        observerManager.updateUI(state)
+    }
 
     internal fun updatePanelVisibility(showCommandPanel: Boolean) {
         dialogAndUiStateManager.updatePanelVisibility(showCommandPanel)
@@ -771,10 +769,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal fun updateAudioFormatInfo() = imageLoadingManager.updateAudioFormatInfo()
 
     internal fun updateTrackButtonsVisibility() {
+        applyPlaybackOrderModeToActivePlayer(viewModel.state.value.playbackOrderMode)
         exoPlayerControlsManager.updateTrackButtonsVisibility(
             viewModel.state.value.currentFile?.type == MediaType.VIDEO ||
                 viewModel.state.value.currentFile?.type == MediaType.AUDIO
         )
+        exoPlayerControlsManager.updatePlaybackOrderButtonState()
     }
 
     internal fun prefetchNextAudio() {
@@ -951,14 +951,52 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         }
     }
 
+    private fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
+        val resourceId = state.resource?.id ?: return false
+        val mediaType = state.currentFile?.type ?: return false
+        val contextKey = "$resourceId:${PlaybackControlPreferences.modeScopeFor(mediaType)}"
+        if (playbackOrderContextKey == contextKey) {
+            return false
+        }
+
+        playbackOrderContextKey = contextKey
+        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
+        val overrideValue = intent.getStringExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
+        val overrideMode = overrideValue?.let(PlaybackOrderMode::fromPrefsString)
+        val resolvedMode = overrideMode ?: PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
+
+        if (overrideMode != null) {
+            Timber.d("S0358: player consumed shuffle override for resource=$resourceId")
+            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
+            intent.removeExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
+        } else {
+            Timber.d("S0358: player restored playback order for resource=$resourceId mode=${resolvedMode.name}")
+        }
+
+        applyPlaybackOrderModeToActivePlayer(resolvedMode)
+        exoPlayerControlsManager.updatePlaybackOrderButtonState()
+        if (state.playbackOrderMode == resolvedMode) {
+            return false
+        }
+
+        viewModel.setPlaybackOrderMode(resolvedMode)
+        return true
+    }
+
     internal fun onPlaybackOrderClicked() {
         val newMode = viewModel.cyclePlaybackOrderMode()
-        val prefKey = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO)
-            PlaybackControlPreferences.KEY_PLAYBACK_ORDER_AUDIO
-        else
-            PlaybackControlPreferences.KEY_PLAYBACK_ORDER_VIDEO
-        getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
-            .edit().putString(prefKey, newMode.toPrefsString()).apply()
+        val currentState = viewModel.state.value
+        val resourceId = currentState.resource?.id
+        val mediaType = currentState.currentFile?.type
+        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
+        if (resourceId != null) {
+            Timber.d("S0358: player playback-order changed by user for resource=$resourceId")
+            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
+        } else {
+            prefs.edit()
+                .putString(PlaybackControlPreferences.globalKeyFor(mediaType), newMode.toPrefsString())
+                .apply()
+        }
         applyPlaybackOrderModeToActivePlayer(newMode)
         exoPlayerControlsManager.updatePlaybackOrderButtonState()
         val label = getString(newMode.toPlaybackOrderUiState().labelResId)

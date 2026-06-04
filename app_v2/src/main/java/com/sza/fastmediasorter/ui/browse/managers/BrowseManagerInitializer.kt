@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -49,6 +50,7 @@ import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -827,7 +829,17 @@ class BrowseManagerInitializer(
         if (viewModel.state.value.mediaFiles.isEmpty()) return Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         viewModel.reshuffleRandom()
         val resource = viewModel.state.value.resource
-        val intent = PlayerActivity.createPanelIntent(activity, resource?.id ?: 0L, 0, isSkipAvailabilityCheck)
+        Timber.d("S0358: Browse play-random launches player with shuffle override")
+        val intent = PlayerActivity.createPanelIntent(
+            context = activity,
+            resourceId = resource?.id ?: 0L,
+            initialIndex = 0,
+            skipAvailabilityCheck = isSkipAvailabilityCheck,
+            shuffleOnStart = true,
+        ).putExtra(
+            PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE,
+            PlaybackOrderMode.SHUFFLE.toPrefsString()
+        )
         activity.startActivity(intent)
     }
 

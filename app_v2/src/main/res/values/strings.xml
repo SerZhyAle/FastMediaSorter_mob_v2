@@ -2440,4 +2440,6 @@ Close the player and try again.</string>
     <string name="quick_recorder_error">Could not record audio</string>
     <string name="quick_recorder_permission_needed">Microphone access is needed to record</string>
     <string name="quick_recorder_permission_settings">Enable microphone access in Settings</string>
+    <string name="camera_ocr_crop_lang_ocr_desc">OCR language</string>
+    <string name="camera_ocr_crop_lang_target_desc">Translation language</string>
 </resources>

@@ -2506,7 +2506,23 @@ class IntegrationTestRunner @Inject constructor(
         file.writeText(content)
         return file
     }
-    
+
+    /**
+     * Render any non-Success [FileOperationResult] into a human-readable detail string for test
+     * reports. Callers that only cast to [FileOperationResult.Failure] print "null" for
+     * AuthenticationRequired / PartialSuccess / PermissionRequired - e.g. an expired Dropbox token
+     * surfaces as "Upload failed: null" instead of a re-authentication hint.
+     */
+    private fun FileOperationResult.toFailureDetail(): String = when (this) {
+        is FileOperationResult.Success -> "unexpected success"
+        is FileOperationResult.Failure -> error
+        is FileOperationResult.PartialSuccess ->
+            "Partial success: processed=$processedCount, failed=$failedCount" +
+                (errors.firstOrNull()?.let { " ($it)" } ?: "")
+        is FileOperationResult.AuthenticationRequired -> "Authentication required for $provider: $message"
+        is FileOperationResult.PermissionRequired -> "Permission required"
+    }
+
     private fun recordResult(
         testName: String,
         operation: String,
@@ -3448,7 +3464,7 @@ class IntegrationTestRunner @Inject constructor(
                 }
                 else -> {
                     recordResult(testName, "Copy", provider.name, destinationPath, false, duration,
-                        error = "Unexpected result type")
+                        error = result.toFailureDetail())
                 }
             }
             
@@ -3510,7 +3526,7 @@ class IntegrationTestRunner @Inject constructor(
             if (uploadResult !is FileOperationResult.Success) {
                 val duration = System.currentTimeMillis() - startTime
                 recordResult(testName, "Rename", provider.name, null, false, duration,
-                    error = "Upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                    error = "Upload failed: ${uploadResult.toFailureDetail()}")
                 testFile.delete()
                 return
             }
@@ -3538,7 +3554,7 @@ class IntegrationTestRunner @Inject constructor(
                 }
                 else -> {
                     recordResult(testName, "Rename", provider.name, cloudPath, false, duration,
-                        error = "Unexpected result type")
+                        error = renameResult.toFailureDetail())
                 }
             }
             
@@ -3604,7 +3620,7 @@ class IntegrationTestRunner @Inject constructor(
                 }
                 else -> {
                     recordResult(testName, "Upload", provider.name, cloudPath, false, duration,
-                        error = "Unexpected result type")
+                        error = result.toFailureDetail())
                 }
             }
             
@@ -3659,7 +3675,7 @@ class IntegrationTestRunner @Inject constructor(
             if (uploadResult !is FileOperationResult.Success) {
                 val duration = System.currentTimeMillis() - startTime
                 recordResult(testName, "Download", provider.name, null, false, duration,
-                    error = "Upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                    error = "Upload failed: ${uploadResult.toFailureDetail()}")
                 testFile.delete()
                 return
             }
@@ -3696,7 +3712,7 @@ class IntegrationTestRunner @Inject constructor(
                 }
                 else -> {
                     recordResult(testName, "Download", provider.name, cloudPath, false, duration,
-                        error = "Unexpected result type")
+                        error = downloadResult.toFailureDetail())
                 }
             }
             
@@ -3752,7 +3768,7 @@ class IntegrationTestRunner @Inject constructor(
             if (uploadResult !is FileOperationResult.Success) {
                 val duration = System.currentTimeMillis() - startTime
                 recordResult(testName, "Delete", provider.name, null, false, duration,
-                    error = "Upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                    error = "Upload failed: ${uploadResult.toFailureDetail()}")
                 testFile.delete()
                 return
             }
@@ -3779,7 +3795,7 @@ class IntegrationTestRunner @Inject constructor(
                 }
                 else -> {
                     recordResult(testName, "Delete", provider.name, cloudPath, false, duration,
-                        error = "Unexpected result type")
+                        error = deleteResult.toFailureDetail())
                 }
             }
             
@@ -3855,7 +3871,7 @@ class IntegrationTestRunner @Inject constructor(
                     provider.name,
                     false,
                     System.currentTimeMillis() - startTime,
-                    error = "Setup upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}"
+                    error = "Setup upload failed: ${uploadResult.toFailureDetail()}"
                 )
                 localSource.delete()
                 return
@@ -3967,7 +3983,7 @@ class IntegrationTestRunner @Inject constructor(
                     destProvider.name,
                     false,
                     System.currentTimeMillis() - startTime,
-                    error = "Setup upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}"
+                    error = "Setup upload failed: ${uploadResult.toFailureDetail()}"
                 )
                 localSource.delete()
                 return
@@ -4211,7 +4227,7 @@ class IntegrationTestRunner @Inject constructor(
             if (uploadResult !is FileOperationResult.Success) {
                 val duration = System.currentTimeMillis() - startTime
                 recordResult(testName, "Download", protocol, null, false, duration,
-                    error = "Upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                    error = "Upload failed: ${uploadResult.toFailureDetail()}")
                 sourceFile.delete()
                 return
             }
@@ -4302,7 +4318,7 @@ class IntegrationTestRunner @Inject constructor(
             if (uploadResult !is FileOperationResult.Success) {
                 val duration = System.currentTimeMillis() - startTime
                 recordResult(testName, "ImageEdit", protocol, null, false, duration,
-                    error = "Upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                    error = "Upload failed: ${uploadResult.toFailureDetail()}")
                 testImage.delete()
                 return
             }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -148,13 +149,20 @@ class SftpMediaScanner @Inject constructor(
                         }
                     }
                     
+                    val safeFields = MediaFileIntegrity.sanitize(
+                        name = fileName,
+                        path = fullPath,
+                        type = mediaType,
+                        sourcePath = fullPath
+                    )
                     mediaFiles.add(
                         MediaFile(
-                            name = fileName,
-                            path = fullPath,
+                            name = safeFields.name,
+                            path = safeFields.path,
                             size = fileSize,
                             createdDate = fileDate, // Use mtime as creation date
-                            type = mediaType
+                            type = safeFields.type,
+                            metadataState = safeFields.metadataState
                         )
                     )
                     
@@ -276,13 +284,20 @@ class SftpMediaScanner @Inject constructor(
                         }
                     }
                     
+                    val safeFields = MediaFileIntegrity.sanitize(
+                        name = fileName,
+                        path = fullPath,
+                        type = mediaType,
+                        sourcePath = fullPath
+                    )
                     allMediaFiles.add(
                         MediaFile(
-                            name = fileName,
-                            path = fullPath,
+                            name = safeFields.name,
+                            path = safeFields.path,
                             size = fileSize,
                             createdDate = fileDate,
-                            type = mediaType
+                            type = safeFields.type,
+                            metadataState = safeFields.metadataState
                         )
                     )
                 }
@@ -393,28 +408,44 @@ class SftpMediaScanner @Inject constructor(
                         childCountResult.isSuccess -> childCountResult.getOrNull()?.size ?: 0
                         else -> 0
                     }
+                    val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
+                    val safeFields = MediaFileIntegrity.sanitize(
+                        name = fileName,
+                        path = fullPath,
+                        type = MediaType.IMAGE,
+                        sourcePath = fullPath
+                    )
 
                     MediaFile(
-                        name = fileName,
-                        path = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}",
+                        name = safeFields.name,
+                        path = safeFields.path,
                         size = 0L,
                         createdDate = listing.modifiedDate,
-                        type = MediaType.IMAGE, // Placeholder for directories
+                        type = safeFields.type, // Placeholder for directories
                         isDirectory = true,
-                        childCount = childCount
+                        childCount = childCount,
+                        metadataState = safeFields.metadataState
                     )
                 } else {
                     // Regular file
                     val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
                         if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(listing.size, mediaType, sizeFilter)) {
-                            MediaFile(
+                            val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
+                            val safeFields = MediaFileIntegrity.sanitize(
                                 name = fileName,
-                                path = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}",
+                                path = fullPath,
+                                type = mediaType,
+                                sourcePath = fullPath
+                            )
+                            MediaFile(
+                                name = safeFields.name,
+                                path = safeFields.path,
                                 size = listing.size,
                                 createdDate = listing.modifiedDate,
-                                type = mediaType,
-                                isDirectory = false
+                                type = safeFields.type,
+                                isDirectory = false,
+                                metadataState = safeFields.metadataState
                             )
                         } else null
                     } else null

@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,23 +55,28 @@ class VrApkArchiveResolver @Inject constructor(
     }
 
     private suspend fun resolveCloudArchive(mediaFile: MediaFile): File? {
-        val cacheDir = File(context.cacheDir, CLOUD_CACHE_DIR_NAME).apply { mkdirs() }
-        // Cloud Browse paths are not readable by PackageManager, so the classifier needs a
-        // reusable on-disk APK copy keyed by the original cloud path and file size.
-        val cacheFile = File(
-            cacheDir,
-            "${mediaFile.path.hashCode()}_${mediaFile.size}_${mediaFile.name}",
-        )
-        if (cacheFile.exists() && cacheFile.isFile && cacheFile.length() > 0L) {
-            return cacheFile
-        }
+        return try {
+            val cacheDir = File(context.cacheDir, CLOUD_CACHE_DIR_NAME).apply { mkdirs() }
+            // Cloud Browse paths are not readable by PackageManager, so the classifier needs a
+            // reusable on-disk APK copy keyed by the original cloud path and file size.
+            val cacheFile = File(
+                cacheDir,
+                "${mediaFile.path.hashCode()}_${mediaFile.size}_${mediaFile.name}",
+            )
+            if (cacheFile.exists() && cacheFile.isFile && cacheFile.length() > 0L) {
+                return cacheFile
+            }
 
-        val downloadOk = cloudFileOperationHandler.downloadFromCloudToPublic(
-            cloudPath = mediaFile.path,
-            destPath = cacheDir.absolutePath,
-            fileName = cacheFile.name,
-        )
-        return cacheFile.takeIf { downloadOk && it.exists() && it.length() > 0L }
+            val downloadOk = cloudFileOperationHandler.downloadFromCloudToPublic(
+                cloudPath = mediaFile.path,
+                destPath = cacheDir.absolutePath,
+                fileName = cacheFile.name,
+            )
+            cacheFile.takeIf { downloadOk && it.exists() && it.length() > 0L }
+        } catch (e: Exception) {
+            Timber.w(e, "resolveCloudArchive: failed to copy cloud APK for classification")
+            null
+        }
     }
 
     private val networkDownloader by lazy {

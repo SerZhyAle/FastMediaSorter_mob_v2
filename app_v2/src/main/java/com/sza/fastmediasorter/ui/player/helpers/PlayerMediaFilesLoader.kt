@@ -35,6 +35,32 @@ import timber.log.Timber
  * Lifetime: bound to `viewModelScope` supplied by the VM. `cancelLoading()` cancels the
  * active load coroutine without tearing down the coordinator itself.
  */
+// Copier injection lets the unit test model a corrupted MediaFile instance without
+// having to manufacture an illegal Kotlin object with null in a non-null field.
+internal fun reconcileFavoriteFlags(
+    files: List<MediaFile>,
+    favoriteMap: Map<String, Boolean>,
+    copyFavorite: (MediaFile, Boolean) -> MediaFile = { file, isFavorite ->
+        file.copy(isFavorite = isFavorite)
+    },
+    onFailure: (MediaFile, Throwable) -> Unit = { _, _ -> }
+): List<MediaFile> = files.map { file ->
+    val favoritePath = runCatching { file.path }.getOrNull()
+    val isFavorite = favoritePath != null && favoriteMap[favoritePath] == true
+    runCatching {
+        copyFavorite(file, isFavorite)
+    }.onFailure { error ->
+        onFailure(file, error)
+    }.getOrElse {
+        file
+    }
+}
+
+internal fun describeMediaFileForLog(file: MediaFile): String =
+    runCatching { file.path }.getOrNull()
+        ?: runCatching { file.name }.getOrNull()
+        ?: "<unknown>"
+
 class PlayerMediaFilesLoader(
     private val context: Context,
     private val scope: CoroutineScope,
@@ -128,6 +154,7 @@ class PlayerMediaFilesLoader(
 
     fun loadMediaFiles() {
         loadingJob = scope.launch {
+            Timber.d("S0356: player media load integrity probe")
             setLoading(true)
             try {
                 // Save current file path to restore position after reload
@@ -350,11 +377,23 @@ class PlayerMediaFilesLoader(
                     if (files.isEmpty()) {
                         files
                     } else {
-                        val favoriteMap = favoritesUseCase.getFavoritesForPaths(files.map { it.path })
-                        files.map { file -> file.copy(isFavorite = favoriteMap[file.path] == true) }
+                        val favoriteMap = favoritesUseCase.getFavoritesForPaths(
+                            files.mapNotNull { file -> runCatching { file.path }.getOrNull() }
+                        )
+                        reconcileFavoriteFlags(
+                            files = files,
+                            favoriteMap = favoriteMap,
+                            onFailure = { file, error ->
+                                Timber.w(
+                                    error,
+                                    "Player media files: skipped favorite reconcile for %s",
+                                    describeMediaFileForLog(file)
+                                )
+                            }
+                        )
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "PlayerViewModel.loadMediaFiles: Failed to reconcile favorites, using existing flags")
+                    Timber.w(e, "Player media files: failed to reconcile favorites, using existing flags")
                     files
                 }
 

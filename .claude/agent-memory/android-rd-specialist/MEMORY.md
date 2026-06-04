@@ -7,6 +7,8 @@
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
+- [/spec-dev continue: verify code before checkboxes](feedback_spec_dev_continue_verify_code_first.md) - In-Progress spec may have code done but tracking at 0/N; reconcile via git status + grep first (S0356)
+- [Search duplicate tickets by symptom](feedback_search_duplicates_by_symptom.md) - before new bugfix spec from logs, search catalog by errorCode/class/subsystem + same-day created; I dup'd S0343/S0344 as S0357
 
 - [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
 - [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying

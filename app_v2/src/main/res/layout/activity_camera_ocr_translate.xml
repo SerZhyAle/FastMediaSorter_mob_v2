@@ -342,13 +342,79 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
+                android:layout_marginEnd="8dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:nextFocusRight="@+id/btnCropConfirm"
+                android:nextFocusRight="@+id/btnCropOcrLang"
                 android:text="@string/camera_ocr_crop_retry"
                 android:textColor="#E1E1E6"
                 app:strokeColor="#2F2F37" />
+
+            <!-- S0354: language cluster — OCR lang, direction arrow, translation lang.
+                 Arrow + target button are shown only when translation is available. -->
+            <LinearLayout
+                android:id="@+id/layoutCropLangCluster"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCropOcrLang"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:clickable="true"
+                    android:contentDescription="@string/camera_ocr_crop_lang_ocr_desc"
+                    android:focusable="true"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:maxLines="1"
+                    android:minWidth="0dp"
+                    android:minHeight="48dp"
+                    android:nextFocusLeft="@+id/btnCropRetry"
+                    android:nextFocusRight="@+id/btnCropTargetLang"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:textColor="#E1E1E6"
+                    android:textSize="14sp"
+                    app:strokeColor="#2F2F37"
+                    tools:text="🌐 AUTO" />
+
+                <ImageView
+                    android:id="@+id/ivCropLangArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_arrow_forward"
+                    android:tint="#A1A1AA" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCropTargetLang"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:clickable="true"
+                    android:contentDescription="@string/camera_ocr_crop_lang_target_desc"
+                    android:focusable="true"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:maxLines="1"
+                    android:minWidth="0dp"
+                    android:minHeight="48dp"
+                    android:nextFocusLeft="@+id/btnCropOcrLang"
+                    android:nextFocusRight="@+id/btnCropConfirm"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:textColor="#E1E1E6"
+                    android:textSize="14sp"
+                    app:strokeColor="#2F2F37"
+                    tools:text="🇷🇺 RU" />
+
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCropConfirm"
@@ -356,7 +422,7 @@
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
-                android:nextFocusLeft="@+id/btnCropRetry"
+                android:nextFocusLeft="@+id/btnCropTargetLang"
                 android:text="@string/camera_ocr_crop_confirm"
                 android:textColor="#FFFFFF"
                 app:backgroundTint="?attr/colorPrimary" />

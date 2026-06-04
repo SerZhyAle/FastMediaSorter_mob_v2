@@ -2355,4 +2355,6 @@
     <string name="quick_recorder_error">Не вдалося записати звук</string>
     <string name="quick_recorder_permission_needed">Для запису потрібен доступ до мікрофона</string>
     <string name="quick_recorder_permission_settings">Увімкніть доступ до мікрофона в налаштуваннях</string>
+    <string name="camera_ocr_crop_lang_ocr_desc">Мова розпізнавання</string>
+    <string name="camera_ocr_crop_lang_target_desc">Мова перекладу</string>
 </resources>

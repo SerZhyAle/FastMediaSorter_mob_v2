@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import kotlinx.coroutines.Dispatchers
@@ -227,25 +228,37 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateLanguageSelectors(settings: AppSettings) {
-        binding.spinnerTranslationSourceLanguage.text = formatLanguageCode(
+        applyLanguageLabel(
+            view = binding.spinnerTranslationSourceLanguage,
             code = settings.translationSourceLanguage,
-            interfaceLanguage = settings.language
+            interfaceLanguage = settings.language,
+            titleRes = R.string.translation_source_language
         )
-        binding.spinnerTranslationTargetLanguage.text = formatLanguageCode(
+        applyLanguageLabel(
+            view = binding.spinnerTranslationTargetLanguage,
             code = settings.translationTargetLanguage,
-            interfaceLanguage = settings.language
+            interfaceLanguage = settings.language,
+            titleRes = R.string.translation_target_language
         )
-        binding.spinnerTranslationSourceLanguage.contentDescription =
-            "${getString(R.string.translation_source_language)}: ${binding.spinnerTranslationSourceLanguage.text}"
-        binding.spinnerTranslationTargetLanguage.contentDescription =
-            "${getString(R.string.translation_target_language)}: ${binding.spinnerTranslationTargetLanguage.text}"
     }
 
-    private fun formatLanguageCode(code: String, interfaceLanguage: String): String {
+    private fun applyLanguageLabel(
+        view: android.widget.TextView,
+        code: String,
+        interfaceLanguage: String,
+        @androidx.annotation.StringRes titleRes: Int
+    ) {
         val displayLocale = Locale.forLanguageTag(interfaceLanguage)
         val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
             ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
-        return item?.let(TranslationLanguageCatalog::formatLanguage) ?: code.uppercase(Locale.ROOT)
+        if (item != null) {
+            LanguageFlagFormatter.applyLabel(view, item)
+            view.contentDescription = "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
+        } else {
+            val fallback = code.uppercase(Locale.ROOT)
+            view.text = fallback
+            view.contentDescription = "${getString(titleRes)}: $fallback"
+        }
     }
 
     private fun updateTranslationVisibility(enabled: Boolean) {
