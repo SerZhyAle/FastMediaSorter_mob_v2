@@ -1,12 +1,10 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
 import androidx.activity.result.contract.ActivityResultContracts
-import android.app.KeyguardManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import android.view.LayoutInflater
@@ -36,12 +34,14 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.widget.ResourceLaunchWidgetProvider
+import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
 
@@ -53,6 +53,8 @@ class ResourceEditorFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ResourceFormViewModel by viewModels()
+
+    @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
 
     private var mode: ResourceEditorMode = ResourceEditorMode.CREATE
     private var resourceId: Long? = null
@@ -460,19 +462,12 @@ class ResourceEditorFragment : Fragment() {
         val ctx = requireContext()
         val currentResourceId = resourceId ?: return
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        if (!homeWidgetPinner.isSupported()) {
             Toast.makeText(ctx, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
             return
         }
 
-        val manager = AppWidgetManager.getInstance(ctx)
-        if (!manager.isRequestPinAppWidgetSupported) {
-            Toast.makeText(ctx, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val km = ctx.getSystemService(KeyguardManager::class.java)
-        if (km.isKeyguardLocked) {
+        if (homeWidgetPinner.isKeyguardLocked()) {
             MaterialAlertDialogBuilder(ctx)
                 .setMessage(R.string.widget_unlock_screen_prompt)
                 .setPositiveButton(R.string.ok, null)
@@ -480,6 +475,7 @@ class ResourceEditorFragment : Fragment() {
             return
         }
 
+        val manager = AppWidgetManager.getInstance(ctx)
         val provider = ComponentName(ctx, ResourceLaunchWidgetProvider::class.java)
         val existingIds = manager.getAppWidgetIds(provider)
         val prefs = ctx.getSharedPreferences(ResourceLaunchWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
@@ -507,7 +503,7 @@ class ResourceEditorFragment : Fragment() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        manager.requestPinAppWidget(provider, null, successCallback)
+        homeWidgetPinner.requestPin(provider, successCallback)
     }
 
     private fun getProfileLabelResId(profile: ResourceProfile): Int = when (profile) {

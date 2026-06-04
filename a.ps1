@@ -7,6 +7,7 @@
 .PARAMETER Command
     Script command to execute:
     r    - Build AAB Release
+    vr   - Build VR Release APK
     ivn  - Install noLegal Debug APK on device (no launch)
     dc   - Build Debug Clean
     d    - Build Debug
@@ -49,6 +50,7 @@ $ProjectRoot = $PSScriptRoot
 # Each value is `$true` for a switch, or a string/int for a typed param.
 $scripts = @{
     'r'         = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @{} }
+    'vr'        = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @{} }
     'ivn'       = @{ Path = 'scripts\builders\install-nolegal-debug-to-device.ps1'; Args = @{} }
     'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
     'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{} }
@@ -77,6 +79,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host ""
     Write-Host "Available commands:" -ForegroundColor Yellow
     Write-Host "  r    - Build AAB Release" -ForegroundColor Cyan
+    Write-Host "  vr   - Build VR Release APK" -ForegroundColor Cyan
     Write-Host "  ivn  - Install noLegal Debug APK on device (NO launch)" -ForegroundColor Cyan
     Write-Host "  dc   - Build Debug Clean" -ForegroundColor Cyan
     Write-Host "  d    - Build Debug" -ForegroundColor Cyan
@@ -116,7 +119,7 @@ if (-not (Test-Path $scriptPath)) {
 # Release commands are always built from the release worktree (main branch).
 # The worktree lives at ../FastMediaSorter_release - created via:
 #   git worktree add ../FastMediaSorter_release main
-$releaseCommands = @('r', 'nl')
+$releaseCommands = @('r', 'nl', 'vr')
 if ($releaseCommands -contains $Command) {
     $worktreePath = Join-Path (Split-Path $ProjectRoot -Parent) "FastMediaSorter_release"
     if (Test-Path $worktreePath) {

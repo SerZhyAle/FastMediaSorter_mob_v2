@@ -27,19 +27,8 @@
         android:textSize="@dimen/text_size_large"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/btnGameBack"
-        app:layout_constraintEnd_toStartOf="@id/btnGameReset"
-        app:layout_constraintStart_toEndOf="@id/btnGameBack"
-        app:layout_constraintTop_toTopOf="@id/btnGameBack" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnGameReset"
-        style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/button_height_small"
-        android:minWidth="@dimen/button_height"
-        android:text="@string/game_reset"
-        app:layout_constraintBottom_toBottomOf="@id/btnGameBack"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnGameBack"
         app:layout_constraintTop_toTopOf="@id/btnGameBack" />
 
     <LinearLayout
@@ -99,13 +88,24 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutGameControlPanel"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:minHeight="@dimen/game_control_button_size"
         android:paddingTop="@dimen/margin_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/gameBoardContainer">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGameReset"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_small"
+            android:minWidth="@dimen/button_height"
+            android:text="@string/game_reset"
+            app:layout_constraintBottom_toBottomOf="@id/btnGameHelp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnGameHelp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGameHelp"
@@ -120,13 +120,12 @@
             android:id="@+id/layoutGameControls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_normal"
             android:columnCount="3"
             android:rowCount="3"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.38">
+            app:layout_constraintTop_toBottomOf="@id/btnGameHelp">
 
             <Space
                 android:layout_width="@dimen/game_control_button_size"

@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -92,16 +93,24 @@ class VrApkClassificationCache @Inject constructor(
     }
 
     private suspend fun classifyForCache(mediaFile: MediaFile): ClassificationTaskResult {
-        val localArchive = archiveResolver.resolve(mediaFile)
-            ?: return ClassificationTaskResult(
+        return try {
+            val localArchive = archiveResolver.resolve(mediaFile)
+                ?: return ClassificationTaskResult(
+                    classification = VrApkClassification.NOT_VR,
+                    cacheable = false,
+                )
+
+            ClassificationTaskResult(
+                classification = classifier.classify(localArchive),
+                cacheable = true,
+            )
+        } catch (e: Exception) {
+            Timber.w(e, "classifyForCache: APK classification failed; degrading to NOT_VR")
+            ClassificationTaskResult(
                 classification = VrApkClassification.NOT_VR,
                 cacheable = false,
             )
-
-        return ClassificationTaskResult(
-            classification = classifier.classify(localArchive),
-            cacheable = true,
-        )
+        }
     }
 
     private data class ClassificationTaskResult(

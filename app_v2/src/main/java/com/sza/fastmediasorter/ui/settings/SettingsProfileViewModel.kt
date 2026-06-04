@@ -31,7 +31,6 @@ class SettingsProfileViewModel @Inject constructor(
 
     fun saveProfile(type: DeviceProfileType) {
         viewModelScope.launch {
-            Timber.d("S0327: settings device-profile change ($type)")
             val profile = DeviceProfile(
                 type = type,
                 source = DeviceProfileSource.MANUAL_SELECTION,

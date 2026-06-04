@@ -13,6 +13,32 @@
             android:name=".widget.RandomMusicWidgetProvider"
             tools:node="remove" />
 
+        <!-- Remove Camera OCR Translate Widget from photos flavor (no translation: ENABLE_TRANSLATION=false) -->
+        <receiver
+            android:name=".widget.CameraOcrTranslateWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Remove Capture & OCR panel from photos flavor (no translation: ENABLE_TRANSLATION=false) -->
+        <receiver
+            android:name=".widget.CaptureOcrPanelWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Remove Audio Now Playing widget from photos flavor (no audio support) -->
+        <receiver
+            android:name=".widget.AudioNowPlayingWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Remove Quick Audio Recorder from photos flavor (SUPPORT_MIC_RECORDING=false, S0349) -->
+        <receiver
+            android:name=".widget.QuickAudioRecorderWidgetProvider"
+            tools:node="remove" />
+        <activity
+            android:name=".widget.QuickAudioRecorderActivity"
+            tools:node="remove" />
+        <service
+            android:name=".widget.QuickAudioRecorderService"
+            tools:node="remove" />
+
         <!-- Remove Audio Quick Settings Tile from photos flavor (no audio support) -->
         <service
             android:name=".core.AudioToggleTileService"

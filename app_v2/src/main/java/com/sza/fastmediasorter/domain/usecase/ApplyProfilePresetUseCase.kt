@@ -24,7 +24,6 @@ class ApplyProfilePresetUseCase @Inject constructor(
     private val profileRepository: DeviceProfileRepository
 ) {
     suspend fun apply(profileType: DeviceProfileType, presetVersion: Int = 1): Result<Unit> {
-        Timber.d("S0327: preset CSV apply ($profileType)")
         Timber.i("ApplyProfilePresetUseCase: Applying preset for $profileType (v$presetVersion)")
 
         val overrides = presetDataSource.load()[profileType].orEmpty()

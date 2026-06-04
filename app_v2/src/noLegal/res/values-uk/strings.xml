@@ -10,4 +10,12 @@
     <string name="s0183_apk_install_cancelled">Встановлення скасовано</string>
     <string name="s0183_apk_install_failed">Помилка встановлення</string>
     <string name="setting_support_office_documents_desc">Відкриває Word, таблиці та презентації у вбудованому переглядачі, якщо формат підтримується</string>
+    <!-- S0336: noLegal extended System info diagnostics (section titles; field labels stay fixed-English technical keys) -->
+    <string name="nolegal_diag_section_os_security">ОС та безпека</string>
+    <string name="nolegal_diag_section_permissions">Спеціальні дозволи</string>
+    <string name="nolegal_diag_section_installer">Інсталятор та підпис</string>
+    <string name="nolegal_diag_section_runtimes">Вбудовані середовища</string>
+    <string name="nolegal_diag_section_mounts">Монтування та сховище</string>
+    <string name="nolegal_diag_section_network">Мережева діагностика</string>
+    <string name="nolegal_diag_section_process">Ресурси процесу</string>
 </resources>

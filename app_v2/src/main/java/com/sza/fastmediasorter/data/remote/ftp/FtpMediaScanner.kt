@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.remote.ftp
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -125,13 +126,21 @@ class FtpMediaScanner @Inject constructor(
                             return@mapNotNull null
                         }
                     }
+                    val fullPath = buildFullFtpPath(connectionInfo, ftpFile.name)
+                    val safeFields = MediaFileIntegrity.sanitize(
+                        name = ftpFile.name,
+                        path = fullPath,
+                        type = mediaType,
+                        sourcePath = fullPath
+                    )
                     
                     MediaFile(
-                        name = ftpFile.name,
-                        path = buildFullFtpPath(connectionInfo, ftpFile.name),
+                        name = safeFields.name,
+                        path = safeFields.path,
                         size = fileSize,
                         createdDate = timestamp,
-                        type = mediaType
+                        type = safeFields.type,
+                        metadataState = safeFields.metadataState
                     )
                 } else null
             } ?: emptyList()
@@ -411,15 +420,23 @@ class FtpMediaScanner @Inject constructor(
                         childCountResult.isSuccess -> childCountResult.getOrNull()?.size ?: 0
                         else -> 0
                     }
+                    val fullPath = "ftp://${connectionInfo.host}:${connectionInfo.port}${connectionInfo.remotePath}/$fileName"
+                    val safeFields = MediaFileIntegrity.sanitize(
+                        name = fileName,
+                        path = fullPath,
+                        type = MediaType.IMAGE,
+                        sourcePath = fullPath
+                    )
 
                     MediaFile(
-                        name = fileName,
-                        path = "ftp://${connectionInfo.host}:${connectionInfo.port}${connectionInfo.remotePath}/$fileName",
+                        name = safeFields.name,
+                        path = safeFields.path,
                         size = 0L,
                         createdDate = ftpFile.timestamp?.timeInMillis ?: 0L,
-                        type = MediaType.IMAGE, // Placeholder for directories
+                        type = safeFields.type, // Placeholder for directories
                         isDirectory = true,
-                        childCount = childCount
+                        childCount = childCount,
+                        metadataState = safeFields.metadataState
                     )
                 } else {
                     // Regular file
@@ -427,13 +444,21 @@ class FtpMediaScanner @Inject constructor(
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
                         val fileSize = ftpFile.size
                         if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(fileSize, mediaType, sizeFilter)) {
-                            MediaFile(
+                            val fullPath = "ftp://${connectionInfo.host}:${connectionInfo.port}${connectionInfo.remotePath}/$fileName"
+                            val safeFields = MediaFileIntegrity.sanitize(
                                 name = fileName,
-                                path = "ftp://${connectionInfo.host}:${connectionInfo.port}${connectionInfo.remotePath}/$fileName",
+                                path = fullPath,
+                                type = mediaType,
+                                sourcePath = fullPath
+                            )
+                            MediaFile(
+                                name = safeFields.name,
+                                path = safeFields.path,
                                 size = fileSize,
                                 createdDate = ftpFile.timestamp?.timeInMillis ?: 0L,
-                                type = mediaType,
-                                isDirectory = false
+                                type = safeFields.type,
+                                isDirectory = false,
+                                metadataState = safeFields.metadataState
                             )
                         } else null
                     } else null
@@ -556,12 +581,21 @@ class FtpMediaScanner @Inject constructor(
             return null
         }
 
-        return MediaFile(
+        val fullPath = buildFullFtpPath(connectionInfo, ftpFile.name)
+        val safeFields = MediaFileIntegrity.sanitize(
             name = ftpFile.name,
-            path = buildFullFtpPath(connectionInfo, ftpFile.name),
+            path = fullPath,
+            type = mediaType,
+            sourcePath = fullPath
+        )
+
+        return MediaFile(
+            name = safeFields.name,
+            path = safeFields.path,
             size = fileSize,
             createdDate = ftpFile.timestamp?.timeInMillis ?: 0L,
-            type = mediaType
+            type = safeFields.type,
+            metadataState = safeFields.metadataState
         )
     }
 

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_scheduled_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="@dimen/padding_small">
+
+    <!-- Status row: active count + last-run status/time -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_scheduled_active_count"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="@dimen/item_subtitle_text_size"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="2 active" />
+
+        <TextView
+            android:id="@+id/widget_scheduled_last_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_small"
+            android:textSize="@dimen/item_subtitle_text_size"
+            android:textColor="@color/white"
+            android:alpha="0.85"
+            android:gravity="end"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Last: OK 14:05" />
+
+    </LinearLayout>
+
+    <!-- Controls row: Run All + Pause/Resume toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/widget_scheduled_run_all"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/widget_scheduled_run_all"
+            android:contentDescription="@string/widget_scheduled_run_all"
+            android:textColor="@color/white"
+            android:focusable="true"
+            android:clickable="true"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <Button
+            android:id="@+id/widget_scheduled_toggle_pause"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@string/widget_scheduled_pause_all"
+            android:contentDescription="@string/widget_scheduled_pause_all"
+            android:textColor="@color/white"
+            android:focusable="true"
+            android:clickable="true"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+    <!-- Upcoming list (visible when the widget is tall, 2x2). Degrades gracefully at 2x1. -->
+    <ListView
+        android:id="@+id/widget_scheduled_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/margin_small"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="@dimen/margin_tiny"
+        tools:listitem="@layout/widget_scheduled_tasks_item"
+        tools:itemCount="3" />
+
+    <!-- Empty view shown via setEmptyView when no upcoming tasks exist. -->
+    <TextView
+        android:id="@+id/widget_scheduled_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="center"
+        android:text="@string/widget_scheduled_empty"
+        android:textSize="@dimen/item_subtitle_text_size"
+        android:textColor="@color/white"
+        android:alpha="0.7"
+        android:visibility="gone" />
+
+</LinearLayout>

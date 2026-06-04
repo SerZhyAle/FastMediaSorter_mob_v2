@@ -141,7 +141,9 @@ object TranslationLanguageCatalog {
             countryCode = countryCode,
             localizedName = locale.getDisplayLanguage(displayLocale).capitalized(displayLocale),
             nativeName = locale.getDisplayLanguage(locale).capitalized(locale),
-            flagEmoji = getFlagEmoji(countryCode),
+            // ru/be use a custom image flag rendered by LanguageFlagFormatter, so no state-flag emoji
+            // is attached here - it would otherwise surface 🇷🇺/🇧🇾 wherever flagEmoji is read directly.
+            flagEmoji = if (code in CUSTOM_FLAG_CODES) "" else getFlagEmoji(countryCode),
             capabilities = capabilitiesFor(code)
         )
     }
@@ -182,4 +184,7 @@ object TranslationLanguageCatalog {
     }
 
     private const val REGIONAL_INDICATOR_OFFSET = 0x1F1E6
+
+    /** Languages whose flag has no Unicode emoji and is drawn as an image by LanguageFlagFormatter. */
+    private val CUSTOM_FLAG_CODES = setOf("ru", "be")
 }

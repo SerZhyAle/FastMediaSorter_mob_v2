@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="draw_color_custom_cd">Пользовательский цвет</string>
+    <string name="draw_keep_not_installed">Google Keep не установлен</string>
+    <string name="draw_overflow_keep">Отправить в Google Keep</string>
+    <string name="draw_overflow_save_inplace">Сохранить</string>
+    <string name="draw_overflow_save_new">Сохранить как..</string>
+    <string name="draw_overflow_settings">Настройки</string>
+    <string name="draw_overflow_undo_all">Отменить всё</string>
+    <string name="draw_overflow_undo_last">Отменить последнее</string>
+    <string name="draw_overlay_filename_hint">Имя файла</string>
+    <string name="draw_overlay_save_failed">Не получилось сохранить рисунок. Попробуйте ещё раз.</string>
+    <string name="draw_overlay_saved_to_downloads">Сохранено в Загрузки: %s</string>
+    <string name="draw_overlay_toolbar_brush">Кисть</string>
+    <string name="draw_overlay_toolbar_eraser">Ластик</string>
+    <string name="draw_overlay_toolbar_rect">Прямоугольник</string>
+    <string name="draw_save_failed_toast">Не удалось сохранить</string>
+    <string name="draw_save_ok_toast">Сохранено</string>
+    <string name="draw_save_remote_failed">Не получилось сохранить в эту папку. Рисунок остался на этом устройстве - попробуйте ещё раз.</string>
+    <string name="draw_settings_brush_size">Размер кисти</string>
+    <string name="draw_settings_opacity">Прозрачность</string>
+    <string name="draw_settings_text_large">Большой</string>
+    <string name="draw_settings_text_medium">Средний</string>
+    <string name="draw_settings_text_size">Размер текста</string>
+    <string name="draw_settings_text_small">Маленький</string>
+    <string name="draw_settings_title">Настройки рисования</string>
+    <string name="draw_text_input_hint">Введите текст</string>
+    <string name="draw_tool_oval">Овал</string>
+    <string name="draw_tool_selector_cd">Выбрать инструмент</string>
+    <string name="draw_tool_text">Текст</string>
+</resources>

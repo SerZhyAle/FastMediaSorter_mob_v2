@@ -44,9 +44,6 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
                 }
             },
         )
-        if (intent.getBooleanExtra(EXTRA_FROM_WIDGET, false)) {
-            Timber.d("S0317: calculator widget launch")
-        }
         inputManager = CalculatorInputManager(binding, this).also {
             it.bind()
             it.applyInitialInput(intent.getStringExtra(EXTRA_INITIAL_INPUT))
@@ -75,9 +72,6 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
     private fun renderAvailability(enabled: Boolean) {
         binding.calculatorContentGroup.isVisible = enabled
         binding.calculatorFallbackGroup.isVisible = !enabled
-        if (!enabled) {
-            Timber.d("S0317: calculator disabled fallback")
-        }
         if (enabled && ::inputManager.isInitialized) {
             inputManager.render()
         }

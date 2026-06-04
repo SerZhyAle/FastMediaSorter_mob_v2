@@ -15,6 +15,32 @@
             android:name=".ui.player.MediaButtonRestartReceiver"
             tools:node="remove" />
 
+        <!-- Remove Camera OCR Translate Widget from lite flavor (no translation: ENABLE_TRANSLATION=false) -->
+        <receiver
+            android:name=".widget.CameraOcrTranslateWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Remove Capture & OCR panel from lite flavor (no translation: ENABLE_TRANSLATION=false) -->
+        <receiver
+            android:name=".widget.CaptureOcrPanelWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Remove Audio Now Playing widget from lite flavor (no persistent audio playback) -->
+        <receiver
+            android:name=".widget.AudioNowPlayingWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Remove Quick Audio Recorder from lite flavor (SUPPORT_MIC_RECORDING=false, S0349) -->
+        <receiver
+            android:name=".widget.QuickAudioRecorderWidgetProvider"
+            tools:node="remove" />
+        <activity
+            android:name=".widget.QuickAudioRecorderActivity"
+            tools:node="remove" />
+        <service
+            android:name=".widget.QuickAudioRecorderService"
+            tools:node="remove" />
+
         <!-- Remove ACTION_VIEW aliases from lite -->
         <activity-alias
             android:name=".StandaloneAudioPlayer"

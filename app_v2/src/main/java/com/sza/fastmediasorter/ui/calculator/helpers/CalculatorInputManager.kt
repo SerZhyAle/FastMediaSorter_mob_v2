@@ -62,7 +62,6 @@ class CalculatorInputManager(
     }
 
     private fun loadPersistedMemory() {
-        Timber.d("S0331: calculator memory load on open")
         thread(name = "CalculatorMemoryLoad") {
             val stored = memoryStore.loadMemory()
             val expanded = memoryStore.loadRowExpanded()
@@ -76,7 +75,6 @@ class CalculatorInputManager(
     }
 
     private fun toggleMemoryRow() {
-        Timber.d("S0331: calculator memory row toggle")
         memoryRowExpanded = !memoryRowExpanded
         applyMemoryRowState()
         val expanded = memoryRowExpanded
@@ -88,13 +86,11 @@ class CalculatorInputManager(
     }
 
     private fun persistMemory() {
-        Timber.d("S0331: calculator memory persist")
         val value = engine.memory.toPlainString()
         thread(name = "CalculatorMemorySave") { memoryStore.saveMemory(value) }
     }
 
     private fun loadPersistedHistory() {
-        Timber.d("S0329: calculator history load on open")
         thread(name = "CalculatorHistoryLoad") {
             val entries = historyStore.load()
             mainHandler.post {
@@ -118,7 +114,6 @@ class CalculatorInputManager(
         val initialText = initialInputText?.trim().orEmpty()
         initialInputText = null
         if (initialText.isBlank() || !engine.canParseInput(initialText)) return
-        Timber.d("S0329: calculator evaluate selected/pasted text")
         update { inputNumber(initialText) }
     }
 
@@ -291,7 +286,6 @@ class CalculatorInputManager(
     }
 
     private fun clearHistory() {
-        Timber.d("S0329: calculator clear persistent history")
         engine.clearHistory()
         persistedHistorySize = 0
         thread(name = "CalculatorHistoryClear") { historyStore.clear() }
@@ -346,7 +340,6 @@ class CalculatorInputManager(
         }
         val newEntries = history.subList(persistedHistorySize, history.size).toList()
         persistedHistorySize = history.size
-        Timber.d("S0329: calculator persist history entry")
         thread(name = "CalculatorHistoryAppend") {
             newEntries.forEach { historyStore.append(it) }
         }

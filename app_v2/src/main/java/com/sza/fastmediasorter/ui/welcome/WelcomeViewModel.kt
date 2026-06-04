@@ -48,7 +48,6 @@ class WelcomeViewModel @Inject constructor(
 
     private fun detectDeviceProfile() {
         viewModelScope.launch(exceptionHandler) {
-            Timber.d("S0327: welcome device-profile auto-detection")
             val result = deviceProfileDetector.detectProfile()
             // The VR profile may be hidden in this flavor; never recommend an unavailable profile.
             val recommended = if (deviceProfileAvailability.isAvailable(result.profile)) {
@@ -75,7 +74,6 @@ class WelcomeViewModel @Inject constructor(
 
     fun saveDeviceProfile(isSkipped: Boolean) {
         viewModelScope.launch(exceptionHandler) {
-            Timber.d("S0327: welcome device-profile save (isSkipped=$isSkipped)")
             val currentState = state.value
             val finalType = if (isSkipped) {
                 currentState.recommendedProfile ?: DeviceProfileType.PERSONAL_SMARTPHONE

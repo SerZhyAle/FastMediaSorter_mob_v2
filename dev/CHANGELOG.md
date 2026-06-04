@@ -15099,3 +15099,447 @@ Format: | datetime | file | target | description |
 | 2026-06-03 14:10:03 | `docs/FEATURES_UK.md` | `spec-dev` | Refresh System info copy (UK) [branch: DEBUG-v011] |
 | 2026-06-03 14:10:03 | `PLAN/S0337_system-info-extended-fields.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
 | 2026-06-03 14:33:45 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.6031.424 - plateau merge from DEBUG-v011 [branch: DEBUG-v011] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/INDEX.md` | `spec-tech` | Create tactical plan for S0339 [branch: DEBUG-v012] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/PHASE_01__move-tooling.md` | `spec-tech` | Phase 01: move-tooling [branch: DEBUG-v012] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/PHASE_02__taxonomy-baseline.md` | `spec-tech` | Phase 02: taxonomy-baseline [branch: DEBUG-v012] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/PHASE_03__execute-migration.md` | `spec-tech` | Phase 03: execute-migration [branch: DEBUG-v012] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/PHASE_04__validation.md` | `spec-tech` | Phase 04: validation [branch: DEBUG-v012] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v012] |
+| 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v012] |
+| 2026-06-03 15:30:04 | `PLAN/S0339_strings-thematic-split/PHASE_01__move-tooling.md` | `spec-fix` | Fix Step 01.3 audit oracle: 3479->3471 (vr count was double-added) [branch: DEBUG-v012] |
+| 2026-06-03 15:34:11 | `PLAN/S0336_nolegal-extended-system-info/INDEX.md` | `spec-tech` | Create tactical plan for S0336 [branch: DEBUG-v012] |
+| 2026-06-03 15:34:11 | `PLAN/S0336_nolegal-extended-system-info/PHASE_01__diagnostics-contract.md` | `spec-tech` | Phase 01: diagnostics contract and aggregation [branch: DEBUG-v012] |
+| 2026-06-03 15:34:11 | `PLAN/S0336_nolegal-extended-system-info/PHASE_02__nolegal-contributor.md` | `spec-tech` | Phase 02: noLegal diagnostics contributor [branch: DEBUG-v012] |
+| 2026-06-03 15:34:11 | `PLAN/S0336_nolegal-extended-system-info/PHASE_03__redaction-reveal-ui.md` | `spec-tech` | Phase 03: redaction reveal UI [branch: DEBUG-v012] |
+| 2026-06-03 15:34:11 | `PLAN/S0336_nolegal-extended-system-info/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs catalog cleanup [branch: DEBUG-v012] |
+| 2026-06-03 15:34:11 | `PLAN/S0336_nolegal-extended-system-info.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v012] |
+| 2026-06-03 15:36:00 | `scripts/utils/set-android-string.ps1` | `spec-dev` | S0339: add move (single/-Prefix bulk) + audit actions; atomic byte-preserving multi-file move [branch: DEBUG-v012] |
+| 2026-06-03 15:36:00 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0339: split residual strings.xml into 21 thematic files x3 locales (1521 keys moved, union invariant preserved) [branch: DEBUG-v012] |
+| 2026-06-03 15:36:00 | `PLAN/S0339_strings-thematic-split/taxonomy.psd1` | `spec-dev` | S0339: deterministic prefix->thematic-file taxonomy [branch: DEBUG-v012] |
+| 2026-06-03 15:37:21 | `PLAN/S0339_strings-thematic-split/INDEX.md` | `spec-dev` | S0339: all 5 phases done; build green; status -> Implemented [branch: DEBUG-v012] |
+| 2026-06-03 15:38:25 | `PLAN/S0339_strings-thematic-split.md` | `spec-check` | Audit S0339 -> Verified; PASS/WARN/FAIL 11/0/0 [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `PLAN/S0336_nolegal-extended-system-info.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest; S0336 probes inserted [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/ExtendedDiagnostics.kt` | `spec-dev` | Phase 01: diagnostics contract, section/field models, redaction mapper [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoReport.kt` | `spec-dev` | Phase 01: aggregated masked/full report value type [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/java/com/sza/fastmediasorter/di/ExtendedDiagnosticsModule.kt` | `spec-dev` | Phase 01: Multibinds contributor set [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-dev` | Phase 01: aggregate contributors into masked/full report [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCaseTest.kt` | `spec-dev` | Phase 01: update test for SystemInfoReport signature [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/diagnostics/NoLegalDiagnosticsCollectors.kt` | `spec-dev` | Phase 02: seven noLegal diagnostic category collectors [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/diagnostics/NoLegalExtendedDiagnosticsContributor.kt` | `spec-dev` | Phase 02: noLegal contributor with S0336 probe [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalExtendedDiagnosticsModule.kt` | `spec-dev` | Phase 02: IntoSet binding into contributor set [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/noLegal/res/values/strings.xml` | `spec-dev` | Phase 02: noLegal diagnostics section titles EN [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/noLegal/res/values-ru/strings.xml` | `spec-dev` | Phase 02: noLegal diagnostics section titles RU [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/noLegal/res/values-uk/strings.xml` | `spec-dev` | Phase 02: noLegal diagnostics section titles UK [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Phase 03: reveal-action strings EN [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | Phase 03: reveal-action strings RU [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Phase 03: reveal-action strings UK [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Phase 03: data-driven full-report reveal with S0336 probe [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal.md` | `spec-dev` | Phase 04: section 7 extended diagnostics EN [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | Phase 04: section 7 extended diagnostics RU [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | Phase 04: section 7 extended diagnostics UK [branch: DEBUG-v012] |
+| 2026-06-03 17:17:48 | `PLAN/S0174_nolegal-ytdlp-universal-extractor.md` | `spec-arc` | Archive S0174 (nolegal-ytdlp-universal-extractor) -> temp/done/ [branch: DEBUG-v012] |
+| 2026-06-03 17:23:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `AudioCoverArtLoader` | Remove stale S0265 debug tag before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:24:27 | `PLAN/S0082_chromeos-support.md` | `spec-check` | Audit S0082 -> Partial; PASS/WARN/FAIL 30/1/0. Pillar C resolved (rescheduleAll on startup); residual WARN ADR-3 DetectionHelper; on-device gated on Chromebook [branch: DEBUG-v012] |
+| 2026-06-03 17:25:18 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | Remove stale S0260 debug tags before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:26:48 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | Remove stale S0229 debug tags before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:27:12 | `PLAN/S0312_build-failure-digest.md` | `S0312` | Archive S0312 build-failure-digest (no code changes, no stale tags) [branch: DEBUG-v012] |
+| 2026-06-03 17:27:33 | `PLAN/S0313_flavor-isolation-diff-guard.md` | `S0313` | Archive S0313 flavor-isolation-diff-guard (no code changes, no stale tags) [branch: DEBUG-v012] |
+| 2026-06-03 17:29:33 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt,app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/BrowseApkInstallHandlerImpl.kt` | `CloudFileOperationHandler,BrowseApkInstallHandlerImpl` | Remove stale S0266 debug/warn/error tags before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:30:55 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | Remove stale S0257 debug tag before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:31:17 | `PLAN/S0315_rule-prompt-drift-audit.md` | `S0315` | Archive S0315 rule-prompt-drift-audit (no stale debug tags, no code changes) [branch: DEBUG-v012] |
+| 2026-06-03 17:31:35 | `PLAN/S0314_catalog-dependency-test-enrichment.md` | `S0314` | Archive S0314 catalog-dependency-test-enrichment (no stale debug tags, no code changes) [branch: DEBUG-v012] |
+| 2026-06-03 17:32:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Remove stale S0274 debug tag before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:34:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `GeneralSettingsViewSetupHelper` | Remove stale S0254 debug tags before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:34:37 | `PLAN/S0307_emulator-user-test-sweep.md` | `S0307` | Archive S0307 emulator-user-test-sweep (no stale debug tags, no code changes) [branch: DEBUG-v012] |
+| 2026-06-03 17:34:55 | `PLAN/S0311_agent-workflow-tooling-overhaul.md` | `S0311` | Archive S0311 agent-workflow-tooling-overhaul (no stale debug tags, no code changes) [branch: DEBUG-v012] |
+| 2026-06-03 17:36:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/CalculatorActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0317` | Remove 3 stale S0317 debug tags from CalculatorActivity and MainActivity before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:38:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/theme/ColorThemePrefs.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsColorThemeHelper.kt` | `S0328` | Remove 2 stale S0328 debug tags from ColorThemePrefs and GeneralSettingsColorThemeHelper before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:38:19 | `PLAN/S0140_extend-market-url-coverage.md` | `spec-arc` | Archive S0140 (extend-market-url-coverage) -> temp/done/; code shipped, device-round regression baseline left unverified by owner decision [branch: DEBUG-v012] |
+| 2026-06-03 17:39:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `S0329` | Remove 4 stale S0329 debug tags from CalculatorInputManager before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:41:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `S0331` | Remove 3 stale S0331 debug tags from CalculatorInputManager before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:42:51 | `app_v2/src/.../RealDeviceProfileRepository.kt, ApplyProfilePresetUseCase.kt, SettingsProfileViewModel.kt, WelcomeViewModel.kt` | `S0327` | Remove 5 stale S0327 debug tags from 4 files before archiving ticket [branch: DEBUG-v012] |
+| 2026-06-03 17:50:49 | `PLAN/S0082_chromeos-support.md` | `spec-all` | Audit S0082 -> Verified; Q1-Q4 resolved by research, ADR-3 enforced, ADR-4 added, P1-P4 deferred to S0340 [branch: DEBUG-v012] |
+| 2026-06-03 17:50:49 | `app_v2/src/main/java/com/sza/fastmediasorter/core/compat/ChromeOsCompat.kt` | `S0082` | ADR-3: centralize ARC++ detection - org.chromium.arc + device_management [branch: DEBUG-v012] |
+| 2026-06-03 17:50:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/detector/DetectionHelper.kt` | `S0082` | ADR-3: isChromebook delegates to ChromeOsCompat (single detection source) [branch: DEBUG-v012] |
+| 2026-06-03 17:50:49 | `PLAN/S0340_chromeos-3d-single-eye-crop.md` | `spec-all` | Spin follow-on spec S0340 for 3D single-eye GL-free crop [branch: DEBUG-v012] |
+| 2026-06-03 19:04:41 | `temp/done/S0340_chromeos-3d-single-eye-crop.md` | `spec-tech` | Archive S0340 - superseded by S0264 (PanelStereoCropApplier already ships GL-free TextureView crop for all devices incl ARC++) [branch: DEBUG-v012] |
+| 2026-06-03 19:04:41 | `PLAN/S0082_chromeos-support.md` | `spec-tech` | Correct S0082 6.Q3/ADR-4/10/P1-P4 refs: point to existing S0264 impl instead of redundant S0340 [branch: DEBUG-v012] |
+| 2026-06-03 19:58:52 | `PLAN/S0046_sftp-key-auth-hardening.md` | `spec-check` | Audit S0046 -> Partial; PASS/WARN/FAIL 7/0/4; Phase 01-02 verified, 03-06 not started [branch: DEBUG-v012] |
+| 2026-06-03 20:26:31 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_03__sftp-pin-wiring.md` | `spec-update` | Realign Phase 03 from stale SSHJ to actual JSch transport (PinnedHostKeyRepository / setHostKeyRepository); fix verification predicates [branch: DEBUG-v012] |
+| 2026-06-03 20:33:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameBoardView.kt` | `GameBoardView + legend drawables` | Mini-game shapes: exit as framed square with diagonal cross, main enemy as triangle, player as five-pointed star; mirrored in help legend drawables [branch: DEBUG-v012] |
+| 2026-06-03 20:37:30 | `app_v2/src/main/res/layout-land/activity_game.xml` | `activity_game portrait+landscape` | Move multi-purpose reset button into the same row as Help (left side) in portrait; redesign landscape so the board fills the left part and all buttons (back, reset, help, D-pad) move to a right side panel [branch: DEBUG-v012] |
+| 2026-06-03 20:44:29 | `app_v2/src/main/res/layout/activity_game.xml` | `activity_game portrait board sizing` | Portrait: control panel switched to wrap_content so the 1:1 board square expands to full window width; D-pad re-anchored below the reset/help row (landscape already fills full height) [branch: DEBUG-v012] |
+| 2026-06-03 21:03:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt` | `GameViewModel level-scaled board size` | Board size now scales with level: 1-5 -> 10x10, 6-10 -> 15x15, 11-20 -> 20x20, 21+ -> 25x25; wall count stays density-proportional to cell count [branch: DEBUG-v012] |
+| 2026-06-03 21:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt` | `Game resume + actor shape sizing` | Resume now regenerates a playable level when the saved game is GAME_OVER/LEVEL_WON so controls work right after launch; star and triangle actors enlarged to fill the cell (radius 0.5) [branch: DEBUG-v012] |
+| 2026-06-03 22:02:36 | `app_v2/src/main/AndroidManifest.xml` | `GameActivity rotation` | Drop orientation/screenSize/screenLayout from GameActivity configChanges so rotation recreates the activity and the landscape layout (board left, controls right) is actually used; game state survives via retained ViewModel [branch: DEBUG-v012] |
+| 2026-06-03 23:00:17 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `log-encoding` | Write log + crash files explicitly in UTF-8 (OutputStreamWriter) instead of platform default charset that was CP866, fixing garbled Cyrillic resource/file names [branch: DEBUG-v012] |
+| 2026-06-03 23:00:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoPlayerErrorHandler.kt` | `player-error` | Handle ExoPlayer ERROR_CODE_FAILED_RUNTIME_CHECK (1004 stuck-buffering) like TIMEOUT: mark file failed for session + named user message instead of generic skip [branch: DEBUG-v012] |
+| 2026-06-03 23:07:01 | `PLAN/S0334_translation-model-prewarm.md` | `spec-check` | Audit S0334 -> Verified; PASS/WARN/FAIL 13/0/0 [branch: DEBUG-v012] |
+| 2026-06-03 23:07:01 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt` | `spec-check` | Remove S0334 debug verification tag on Verified [branch: DEBUG-v012] |
+| 2026-06-03 23:07:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `spec-check` | Remove S0334 debug verification tag on Verified [branch: DEBUG-v012] |
+| 2026-06-03 23:14:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `app_v2 vr flavor` | Hide 3D/VR detail setting groups (format detection, default mode, immersive/diagnostics) and Test Immersive button when master 3D/VR toggle is off or XR is unavailable; advisory + master toggle + section header stay visible [branch: DEBUG-v012] |
+| 2026-06-03 23:15:12 | `app_v2/src/vr/res/layout/fragment_vr_settings_block.xml` | `app_v2 vr flavor` | Wrap 3D/VR detail setting groups in vrDetailGroupsContainer (default gone) for runtime visibility gating by master toggle / XR availability [branch: DEBUG-v012] |
+| 2026-06-03 23:55:51 | `PLAN/S0341_bugfix-debug-notification-theme-crash.md` | `spec` | Add strategic spec S0341: debug error-notification crash under non-Material Activity themes (debug-only FATAL, blocks S0322/S0291 device test) [branch: DEBUG-v012] |
+| 2026-06-03 23:59:59 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `code` | Remove S0322 debug verification tag (spec left BlockNeedUserTest -> BlockByOtherTask) [branch: DEBUG-v012] |
+| 2026-06-03 23:59:59 | `PLAN/S0322_bugfix-vr-diagnostic-video-playback.md` | `spec-update` | Resolve 3 research items from on-device log (Quest 3 decoder ceiling on 8640x2160 AVC); re-point to S0341+S0291 blockers; BlockNeedUserTest -> BlockByOtherTask [branch: DEBUG-v012] |
+| 2026-06-04 00:04:10 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `code` | Remove S0291 debug verification tag (spec re-opened BlockNeedUserTest -> Tactical) [branch: DEBUG-v012] |
+| 2026-06-04 00:04:10 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-update` | Reopen S0291 6.2 (360 SBS 8640x2160 exceeds Quest3 AVC decoder) and 6.4 (moraine flat-image decode failure) from on-device log; link S0322+S0341; BlockNeedUserTest -> Tactical [branch: DEBUG-v012] |
+| 2026-06-04 00:13:39 | `app_v2/src/debug/java/com/sza/fastmediasorter/core/debug/DebugNotificationCenter.kt` | `code` | S0341: theme-safe debug notifications - Material-themed Snackbar context + Toast fallback to stop FATAL under non-Material Activity themes; add S0341 debug probe [branch: DEBUG-v012] |
+| 2026-06-04 00:15:08 | `PLAN/S0341_bugfix-debug-notification-theme-crash.md` | `spec-tech` | S0341 implemented directly (PRIMITIVE): theme-safe debug notifications; Approved -> BlockNeedUserTest [branch: DEBUG-v012] |
+| 2026-06-04 00:18:32 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `decodeFilePooled` | S0291 §6.4: catch IllegalArgumentException (inBitmap incompatible) and retry without pool reuse — fixes moraine_lake_flat_mono/sbs.jpg decode failure [branch: DEBUG-v012] |
+| 2026-06-04 00:18:32 | `scripts/utils/setup_test_vr.ps1` | `New-LoopedVideo` | S0291 §6.2: cap SBS synthetic half-width to 2160px before hstack so total output stays at <=4320x2160 (Quest 3 AVC decoder ceiling) [branch: DEBUG-v012] |
+| 2026-06-04 00:18:32 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_06__lifecycle-round10-exit-and-hud-rebind.md` | `S0291` | Close Phase 06 (Step 06.2 formally deferred); fix §6.2 and §6.4; move S0291 to BlockNeedUserTest [branch: DEBUG-v012] |
+| 2026-06-04 00:18:32 | `PLAN/S0322_bugfix-vr-diagnostic-video-playback.md` | `S0322` | Unblock S0322 (S0341 done, S0291 §6.2/§6.4 fixed); all three criteria met — move to BlockNeedUserTest for Quest 3 owner verification [branch: DEBUG-v012] |
+| 2026-06-04 00:19:46 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `onPlayerError` | S0322: add BlockNeedUserTest probe at playback error entry point [branch: DEBUG-v012] |
+| 2026-06-04 01:01:33 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrRenderThread.kt, app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `noLegal` | Fix VR re-entry immersive bug: await onWindowFocusChanged(true) via CompletableDeferred before nativeStartSession to ensure HzOS volumetric window is registered (xrCreateSession Activity-ready race condition) [branch: DEBUG-v012] |
+| 2026-06-04 01:01:49 | `app_v2/src/vr/cpp/xr_session.cpp` | `noLegal` | Fix frame loop busy-wait: add usleep(1000) in !sessionRunning branch to prevent 100% CPU burn while waiting for XR_SESSION_STATE_READY [branch: DEBUG-v012] |
+| 2026-06-04 01:04:49 | `app_v2/src/vr/res/layout/fragment_vr_settings_block.xml` | `fragment_vr_settings_block (portrait)` | VR media settings: place spinner label and value adjacent (drop weight) for default layout/projection/render mode [branch: DEBUG-v012] |
+| 2026-06-04 01:04:49 | `app_v2/src/vr/res/layout-land/fragment_vr_settings_block.xml` | `fragment_vr_settings_block (landscape)` | Add landscape variant: two-column reflow of 3D/VR toggle rows and paired spinners; adjacent label/value [branch: DEBUG-v012] |
+| 2026-06-04 01:49:15 | `PLAN/S0341_bugfix-debug-notification-theme-crash.md` | `spec-check` | Audit S0341 -> Verified; on-device log confirms no crash under non-Material theme; PASS/WARN/FAIL 5/0/0 [branch: DEBUG-v012] |
+| 2026-06-04 01:49:15 | `app_v2/src/debug/java/com/sza/fastmediasorter/core/debug/DebugNotificationCenter.kt` | `spec-check` | Remove S0341 BlockNeedUserTest debug probe on Verified flip [branch: DEBUG-v012] |
+| 2026-06-04 01:50:39 | `PLAN/S0322_bugfix-vr-diagnostic-video-playback.md` | `spec-check` | Audit S0322 -> Verified; on-device retest after S0341 fix confirms predictable degradation; PASS/WARN/FAIL 4/0/0 [branch: DEBUG-v012] |
+| 2026-06-04 01:50:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `spec-check` | Remove S0322 BlockNeedUserTest debug probe on Verified flip [branch: DEBUG-v012] |
+| 2026-06-04 01:54:24 | `PLAN/S0342_bugfix-avi-seek-empty-index-crash.md` | `spec` | Add strategic spec S0342 for AVI seek empty-index playback crash [branch: DEBUG-v012] |
+| 2026-06-04 01:55:59 | `PLAN/S0343_bugfix-smb-datasource-uri-null-race.md` | `spec` | Add strategic spec S0343 for SMB datasource uri null race NPE [branch: DEBUG-v012] |
+| 2026-06-04 01:57:52 | `PLAN/S0344_smb-streaming-playback-robustness.md` | `spec` | Add strategic spec S0344 for SMB streaming playback robustness and log-level discipline [branch: DEBUG-v012] |
+| 2026-06-04 01:59:15 | `PLAN/S0345_log-hygiene-expected-permission-denials.md` | `spec` | Add strategic spec S0345 for log hygiene of expected permission denials in diagnostics [branch: DEBUG-v012] |
+| 2026-06-04 02:09:54 | `PLAN/S0346_sftp-audio-next-prefetch-feedback.md` | `spec` | Add strategic spec S0346 for SFTP next-track prefetch + readiness-timeout feedback [branch: DEBUG-v012] |
+| 2026-06-04 02:10:34 | `PLAN/S0347_audio-cover-artist-priority-confidence.md` | `spec` | Add strategic spec S0347 for audio cover artist-priority + confidence threshold [branch: DEBUG-v012] |
+| 2026-06-04 10:11:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-all` | S0342: track last-good playback position for in-place seek recovery [branch: DEBUG-v012] |
+| 2026-06-04 10:11:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt` | `spec-all` | S0342: update lastGoodPositionMs from position save loop [branch: DEBUG-v012] |
+| 2026-06-04 10:11:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoPlayerErrorHandler.kt` | `spec-all` | S0342/S0344: classify AVI seek-index failure (recover in place) and honest log levels for recoverable error classes [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `spec-all` | S0343/S0344: stable URI identity across close; INFO log for recovered seek-past-EOF reset [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `spec-all` | S0343: preserve URI identity on close (avoid getUri NPE race) [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/FtpDataSource.kt` | `spec-all` | S0343: preserve URI identity on close (avoid getUri NPE race) [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoAccessClassifier.kt` | `spec-all` | S0345: shared classifier for expected access denials in diagnostics [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt` | `spec-all` | S0345: quiet logging for expected device-field access denials [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/diagnostics/NoLegalDiagnosticsCollectors.kt` | `spec-all` | S0345: quiet logging for expected access denials in noLegal diagnostics [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt` | `spec-all` | S0347: structural artist-title parse + artist-weighted confidence scoring [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchAudioCoverUseCase.kt` | `spec-all` | S0347: multi-candidate fetch + confidence gate (suppress wrong-artist covers) [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SearchQueryUtilsTest.kt` | `spec-all` | S0347: unit tests for parse + confidence [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `spec-all` | S0346: next-track readiness-delay feedback toast [branch: DEBUG-v012] |
+| 2026-06-04 10:11:09 | `app_v2/src/main/res/values/strings.xml` | `spec-all` | S0346: add audio_next_track_loading (EN/RU/UK) [branch: DEBUG-v012] |
+| 2026-06-04 10:36:56 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec` | Add strategic spec S0348 for icon-style home screen widgets [branch: DEBUG-v012] |
+| 2026-06-04 10:39:16 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec-update` | Update S0348 with Settings widget placement flow [branch: DEBUG-v012] |
+| 2026-06-04 10:40:44 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec-update` | Update S0348 with future widget opportunity research [branch: DEBUG-v012] |
+| 2026-06-04 10:42:17 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec-update` | Update S0348 with interactive widget feasibility research [branch: DEBUG-v012] |
+| 2026-06-04 10:46:03 | `CLAUDE.md` | `workflow-docs` | Relax draft spec hygiene until approval gate [branch: DEBUG-v012] |
+| 2026-06-04 10:46:04 | `AGENTS.md` | `workflow-docs` | Relax draft spec hygiene until approval gate [branch: DEBUG-v012] |
+| 2026-06-04 10:46:04 | `.github/copilot-instructions.md` | `workflow-docs` | Relax draft spec hygiene until approval gate [branch: DEBUG-v012] |
+| 2026-06-04 10:46:04 | `.github/prompts/spec.prompt.md` | `spec-prompt` | Make spec hygiene an approval gate concern [branch: DEBUG-v012] |
+| 2026-06-04 10:46:05 | `.github/prompts/spec-update.prompt.md` | `spec-update-prompt` | Skip hygiene-only draft spec rewrites [branch: DEBUG-v012] |
+| 2026-06-04 10:46:05 | `scripts/spec_catalog/check-owner-inputs.ps1` | `spec-catalog` | Enforce ellipsis hygiene during approval gate [branch: DEBUG-v012] |
+| 2026-06-04 10:46:33 | `.github/copilot-instructions.md` | `workflow-docs` | Clarify draft spec exception for author style [branch: DEBUG-v012] |
+| 2026-06-04 10:49:20 | `CLAUDE.md;.claude/commands/spec.md;.claude/commands/spec-update.md` | `rules` | Relax spec style sanitation (.. /ё + lists-over-tables) during Draft; enforce only as a gate at Draft->Approved [branch: DEBUG-v012] |
+| 2026-06-04 10:55:16 | `PLAN/S0348_home-widget-icon-refresh.md` | `S0348` | Resolved widget research findings and interactive widget feasibility matrix [branch: DEBUG-v012] |
+| 2026-06-04 10:58:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CropOverlayView.kt` | `S0338` | Fix Camera-OCR crop frame not rendering: lazy-init in onDraw + invalidate on size/show so the overlay never reuses an empty render node; bind the draggable frame to the fitCenter photo content rect so it hugs the image and getNormalizedRect maps onto the source bitmap (CameraOcrTranslateActivity now calls setImageSize) [branch: DEBUG-v012] |
+| 2026-06-04 11:26:34 | `PLAN/S0348_home-widget-icon-refresh.md` | `PLAN/S0348_home-widget-icon-refresh.md` | Update research findings in strategic spec with specific API restrictions, widget configurations, and runtime flags [branch: DEBUG-v012] |
+| 2026-06-04 11:33:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `S0290` | Insert BlockNeedUserTest probes for Phase 09 (session init/exit), Phase 11 Step 11.5 (texture-copy buffer reuse), Phase 10 (input next/prev navigation) on manual status transition to BlockNeedUserTest [branch: DEBUG-v012] |
+| 2026-06-04 11:35:09 | `PLAN/S0290_vr_test_quality_overhaul/INDEX.md` | `S0290` | Record journal flip Tactical->BlockNeedUserTest and device-test probe insertion in Blockers Log [branch: DEBUG-v012] |
+| 2026-06-04 11:36:56 | `PLAN/S0348_home-widget-icon-refresh.md` | `PLAN/S0348_home-widget-icon-refresh.md` | Add new widgets implementation details and scheduled tasks manager widget [branch: DEBUG-v012] |
+| 2026-06-04 11:40:19 | `PLAN/S0290_vr_test_quality_overhaul.md` | `S0290` | Sync stale strategic header Status field Tactical->BlockNeedUserTest to match journal [branch: DEBUG-v012] |
+| 2026-06-04 11:45:38 | `.claude/commands/skill-release.md` | `skill-release` | Add GitHub Store publication to release pipeline [branch: DEBUG-v012] |
+| 2026-06-04 11:45:38 | `a.ps1` | `release launcher` | Add vr release command for GitHub Store publication flow [branch: DEBUG-v012] |
+| 2026-06-04 11:45:38 | `scripts/builders/build-vr-release.ps1` | `build-vr-release` | Add VR release APK builder that reuses current release version [branch: DEBUG-v012] |
+| 2026-06-04 11:45:38 | `scripts/release/README.md` | `release handbook` | Document skill-release ownership of GitHub Store and Google Play publication [branch: DEBUG-v012] |
+| 2026-06-04 11:45:39 | `PLAN/S0214_github-store-publication.md` | `S0214` | Record owner decisions for deferred GitHub Store publication [branch: DEBUG-v012] |
+| 2026-06-04 11:45:39 | `PLAN/S0214_github-store-publication/INDEX.md` | `S0214` | Move remaining blocker to release-window and owner verification [branch: DEBUG-v012] |
+| 2026-06-04 11:47:15 | `PLAN/S0214_github-store-publication.md` | `S0214` | Align resolved research items and ADR with tactical decisions [branch: DEBUG-v012] |
+| 2026-06-04 11:49:32 | `scripts/spec_catalog/update.ps1` | `spec-catalog` | update.ps1 now mirrors new status into spec file first **Status:** header line (fail-soft, first match only) so the in-file header never drifts from the journal [branch: DEBUG-v012] |
+| 2026-06-04 11:50:11 | `CLAUDE.md` | `spec-catalog` | Document update.ps1 header auto-sync behaviour in Spec Catalog section [branch: DEBUG-v012] |
+| 2026-06-04 11:54:14 | `scripts/spec_catalog/_lib.ps1` | `spec-catalog` | Add shared fail-soft Sync-SpecHeaderStatus + Resolve-SpecPath helpers mirroring a status change into the first **Status:** header line of a spec .md [branch: DEBUG-v012] |
+| 2026-06-04 11:54:14 | `scripts/spec_catalog/update.ps1` | `spec-catalog` | Refactor header auto-sync to shared Sync-SpecHeaderStatus helper [branch: DEBUG-v012] |
+| 2026-06-04 11:54:15 | `scripts/spec_catalog/archive.ps1` | `spec-catalog` | Sync spec header to Archived before moving artefact to temp/done [branch: DEBUG-v012] |
+| 2026-06-04 11:54:15 | `scripts/spec_catalog/bulk-update.ps1` | `spec-catalog` | Sync each spec header to new status after atomic journal write (status changes only) [branch: DEBUG-v012] |
+| 2026-06-04 11:54:16 | `CLAUDE.md` | `spec-catalog` | Refine header auto-sync note: full mutator coverage via shared helper [branch: DEBUG-v012] |
+| 2026-06-04 12:01:46 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec-update` | Approve S0348 strategic spec owner gate [branch: DEBUG-v012] |
+| 2026-06-04 12:26:16 | `PLAN/S0348_home-widget-icon-refresh/INDEX.md` | `spec-tech` | Create tactical plan (first wave) for S0348 [branch: DEBUG-v012] |
+| 2026-06-04 12:26:16 | `PLAN/S0348_home-widget-icon-refresh/PHASE_01__icon-style-layouts.md` | `spec-tech` | Phase 01: icon-style 1x1 layouts [branch: DEBUG-v012] |
+| 2026-06-04 12:26:16 | `PLAN/S0348_home-widget-icon-refresh/PHASE_02__camera-ocr-compact.md` | `spec-tech` | Phase 02: Camera-OCR compact sizing [branch: DEBUG-v012] |
+| 2026-06-04 12:26:16 | `PLAN/S0348_home-widget-icon-refresh/PHASE_03__widget-registry.md` | `spec-tech` | Phase 03: home widget catalog/registry [branch: DEBUG-v012] |
+| 2026-06-04 12:26:16 | `PLAN/S0348_home-widget-icon-refresh/PHASE_04__settings-pin-picker.md` | `spec-tech` | Phase 04: settings pin picker [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0348_home-widget-icon-refresh/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog cleanup [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec-tech` | Status to Tactical; descope new widgets to sub-specs S0349-S0353 [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0349_widget-quick-audio-recorder.md` | `spec-tech` | New sub-spec Draft: Quick Audio Recorder widget [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0350_widget-capture-ocr-panel.md` | `spec-tech` | New sub-spec Draft: Capture and OCR Panel widget [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0351_widget-audio-now-playing.md` | `spec-tech` | New sub-spec Draft: Audio Now Playing widget [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0352_widget-random-photo-frame.md` | `spec-tech` | New sub-spec Draft: Random Photo Frame widget [branch: DEBUG-v012] |
+| 2026-06-04 12:26:17 | `PLAN/S0353_widget-scheduled-tasks.md` | `spec-tech` | New sub-spec Draft: Scheduled Tasks Manager widget [branch: DEBUG-v012] |
+| 2026-06-04 12:38:56 | `.github/prompts/spec-all.prompt.md` | `spec-all` | Allow spec-all auto-approval when no blocking ambiguity remains [branch: DEBUG-v012] |
+| 2026-06-04 12:41:57 | `PLAN/S0350_widget-capture-ocr-panel.md` | `spec-all` | Auto-approve S0350 with deferred S0349 audio dependency [branch: DEBUG-v012] |
+| 2026-06-04 12:42:17 | `PLAN/S0350_widget-capture-ocr-panel.md` | `spec-all` | Add owner-input section for S0350 auto-approval [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/values/dimens.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_calculator.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_camera_photos.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_continue_reading.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_random_music.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_camera_ocr_translate.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_resource_launch.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/layout/widget_game_launch.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/xml/widget_calculator_info.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/xml/widget_camera_photos_info.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/xml/widget_continue_reading_info.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/xml/widget_random_music_info.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/xml/widget_resource_launch_info.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/res/xml/widget_game_launch_info.xml` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:42:28 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/GameLaunchWidgetProvider.kt` | `spec-dev` | S0348 Phase 01: icon-style 1x1 widgets (remove labels, enlarge icon, previewLayout, provider updates) [branch: DEBUG-v012] |
+| 2026-06-04 12:43:43 | `PLAN/S0350_widget-capture-ocr-panel/INDEX.md` | `spec-tech` | Create S0350 tactical index [branch: DEBUG-v012] |
+| 2026-06-04 12:43:43 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_01__widget-surface.md` | `spec-tech` | Create S0350 widget surface phase [branch: DEBUG-v012] |
+| 2026-06-04 12:43:44 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_02__manifest-provider.md` | `spec-tech` | Create S0350 manifest provider phase [branch: DEBUG-v012] |
+| 2026-06-04 12:43:44 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Create S0350 cleanup phase [branch: DEBUG-v012] |
+| 2026-06-04 12:43:45 | `PLAN/S0350_widget-capture-ocr-panel.md` | `spec-tech` | Set S0350 tactical status [branch: DEBUG-v012] |
+| 2026-06-04 12:45:20 | `app_v2/src/main/res/values/strings_widget.xml` | `S0350` | Add capture OCR panel widget strings [branch: DEBUG-v012] |
+| 2026-06-04 12:45:21 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `S0350` | Add Russian capture OCR panel widget strings [branch: DEBUG-v012] |
+| 2026-06-04 12:45:22 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `S0350` | Add Ukrainian capture OCR panel widget strings [branch: DEBUG-v012] |
+| 2026-06-04 12:45:23 | `app_v2/src/main/res/layout/widget_capture_ocr_panel.xml` | `S0350` | Add capture OCR panel widget layout [branch: DEBUG-v012] |
+| 2026-06-04 12:45:23 | `app_v2/src/main/res/xml/widget_capture_ocr_panel_info.xml` | `S0350` | Add capture OCR panel widget provider info [branch: DEBUG-v012] |
+| 2026-06-04 12:45:24 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/CaptureOcrPanelWidgetProvider.kt` | `S0350` | Add capture OCR panel widget provider [branch: DEBUG-v012] |
+| 2026-06-04 12:46:11 | `app_v2/src/main/AndroidManifest.xml` | `S0350` | Register capture OCR panel widget provider [branch: DEBUG-v012] |
+| 2026-06-04 12:47:23 | `PLAN/S0350_widget-capture-ocr-panel/INDEX.md` | `spec-dev` | Update S0350 tactical progress [branch: DEBUG-v012] |
+| 2026-06-04 12:47:23 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_01__widget-surface.md` | `spec-dev` | Mark S0350 phase 01 done [branch: DEBUG-v012] |
+| 2026-06-04 12:47:24 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_02__manifest-provider.md` | `spec-dev` | Mark S0350 phase 02 done [branch: DEBUG-v012] |
+| 2026-06-04 12:47:24 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Mark S0350 catalog step done [branch: DEBUG-v012] |
+| 2026-06-04 12:50:32 | `app_v2/src/lite/AndroidManifest.xml` | `S0350` | Remove capture OCR panel widget from lite flavor [branch: DEBUG-v012] |
+| 2026-06-04 12:50:33 | `app_v2/src/photos/AndroidManifest.xml` | `S0350` | Remove capture OCR panel widget from photos flavor [branch: DEBUG-v012] |
+| 2026-06-04 12:57:12 | `docs/FEATURES.md` | `S0350` | Document Capture & OCR panel widget in English feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 12:57:12 | `docs/FEATURES_RU.md` | `S0350` | Document Capture & OCR panel widget in Russian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 12:57:12 | `docs/FEATURES_UK.md` | `S0350` | Document Capture & OCR panel widget in Ukrainian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 12:57:34 | `app_v2/src/main/res/xml/widget_camera_ocr_translate_info.xml` | `spec-dev` | S0348 Phase 02: Camera-OCR widget resized to 1x1 (provider info + previewLayout) [branch: DEBUG-v012] |
+| 2026-06-04 12:57:34 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetEntry.kt` | `spec-dev` | S0348 Phase 03: HomeWidgetEntry catalog model [branch: DEBUG-v012] |
+| 2026-06-04 12:57:34 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `spec-dev` | S0348 Phase 03: HomeWidgetCatalog availability registry (installedProviders + settings gate, no BuildConfig) [branch: DEBUG-v012] |
+| 2026-06-04 12:57:34 | `app_v2/src/lite/AndroidManifest.xml` | `spec-dev` | S0348 Phase 03: remove Camera-OCR widget receiver in lite (ENABLE_TRANSLATION=false) [branch: DEBUG-v012] |
+| 2026-06-04 12:57:34 | `app_v2/src/photos/AndroidManifest.xml` | `spec-dev` | S0348 Phase 03: remove Camera-OCR widget receiver in photos (ENABLE_TRANSLATION=false) [branch: DEBUG-v012] |
+| 2026-06-04 12:58:15 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_03__docs-catalog-cleanup.md` | `S0350` | Mark S0350 docs and catalog cleanup complete [branch: DEBUG-v012] |
+| 2026-06-04 12:58:15 | `PLAN/S0350_widget-capture-ocr-panel/INDEX.md` | `S0350` | Mark S0350 tactical plan complete [branch: DEBUG-v012] |
+| 2026-06-04 12:58:15 | `PLAN/S0350_widget-capture-ocr-panel.md` | `S0350` | Mark S0350 implementation ready for final audit [branch: DEBUG-v012] |
+| 2026-06-04 12:58:16 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_02__manifest-provider.md` | `S0350` | Record flavor overlay handling for Capture OCR panel widget [branch: DEBUG-v012] |
+| 2026-06-04 12:59:10 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_02__manifest-provider.md` | `S0350` | Adjust S0350 manifest line budget for final audit [branch: DEBUG-v012] |
+| 2026-06-04 12:59:11 | `PLAN/S0350_widget-capture-ocr-panel/PHASE_03__docs-catalog-cleanup.md` | `S0350` | Adjust S0350 feature docs line budgets for final audit [branch: DEBUG-v012] |
+| 2026-06-04 13:00:08 | `PLAN/S0350_widget-capture-ocr-panel.md` | `spec-check` | Audit S0350 to Verified; PASS/WARN/FAIL 52/0/0 [branch: DEBUG-v012] |
+| 2026-06-04 13:00:36 | `PLAN/S0350_widget-capture-ocr-panel.md` | `spec-check` | Sync S0350 strategic header to Verified [branch: DEBUG-v012] |
+| 2026-06-04 13:06:10 | `PLAN/S0351_widget-audio-now-playing.md` | `S0351` | Auto-approve S0351 and resolve now-playing widget research [branch: DEBUG-v012] |
+| 2026-06-04 13:06:28 | `PLAN/S0351_widget-audio-now-playing.md` | `S0351` | Add owner-input section for S0351 auto-approval [branch: DEBUG-v012] |
+| 2026-06-04 13:08:15 | `PLAN/S0351_widget-audio-now-playing/INDEX.md` | `spec-tech` | Create tactical plan for S0351 [branch: DEBUG-v012] |
+| 2026-06-04 13:08:16 | `PLAN/S0351_widget-audio-now-playing/PHASE_02__service-snapshot.md` | `spec-tech` | Phase 02: service snapshot [branch: DEBUG-v012] |
+| 2026-06-04 13:08:16 | `PLAN/S0351_widget-audio-now-playing/PHASE_01__widget-surface.md` | `spec-tech` | Phase 01: widget surface [branch: DEBUG-v012] |
+| 2026-06-04 13:08:27 | `PLAN/S0351_widget-audio-now-playing/PHASE_03__provider-manifest.md` | `spec-tech` | Phase 03: provider manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:08:28 | `PLAN/S0351_widget-audio-now-playing.md` | `spec-tech` | Status to Tactical for S0351 [branch: DEBUG-v012] |
+| 2026-06-04 13:08:28 | `PLAN/S0351_widget-audio-now-playing/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs catalog cleanup [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetPinner.kt` | `spec-dev` | S0348 Phase 04: HomeWidgetPinner shared pin primitives (SDK/support/keyguard/requestPin) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsWidgetHelper.kt` | `spec-dev` | S0348 Phase 04: settings widget-picker helper (available-only list + pin + fallback) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev` | S0348 Phase 04: wire GeneralSettingsWidgetHelper (inject catalog+pinner, setup in onViewCreated) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `spec-dev` | S0348 Phase 04: route resource widget pin through HomeWidgetPinner [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `spec-dev` | S0348 Phase 04: Add widget to home screen button (portrait) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `spec-dev` | S0348 Phase 04: Add widget to home screen button (landscape) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/res/values/strings_widget.xml` | `spec-dev` | S0348 Phase 04: settings_add_home_widget_title + widget_picker_dialog_title (EN) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `spec-dev` | S0348 Phase 04: widget picker strings (RU) [branch: DEBUG-v012] |
+| 2026-06-04 13:09:35 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `spec-dev` | S0348 Phase 04: widget picker strings (UK) [branch: DEBUG-v012] |
+| 2026-06-04 13:10:24 | `app_v2/src/main/res/values/strings_widget.xml` | `S0351` | Add Audio Now Playing widget English strings [branch: DEBUG-v012] |
+| 2026-06-04 13:10:24 | `app_v2/src/main/res/xml/widget_audio_now_playing_info.xml` | `S0351` | Add Audio Now Playing widget provider info [branch: DEBUG-v012] |
+| 2026-06-04 13:10:24 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `S0351` | Add Audio Now Playing widget Ukrainian strings [branch: DEBUG-v012] |
+| 2026-06-04 13:10:25 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `S0351` | Add Audio Now Playing widget Russian strings [branch: DEBUG-v012] |
+| 2026-06-04 13:10:25 | `app_v2/src/main/res/layout/widget_audio_now_playing.xml` | `S0351` | Add Audio Now Playing widget layout [branch: DEBUG-v012] |
+| 2026-06-04 13:10:50 | `PLAN/S0351_widget-audio-now-playing/PHASE_01__widget-surface.md` | `S0351` | Record S0351 widget surface verification [branch: DEBUG-v012] |
+| 2026-06-04 13:10:51 | `PLAN/S0351_widget-audio-now-playing/INDEX.md` | `S0351` | Mark S0351 phase 01 complete [branch: DEBUG-v012] |
+| 2026-06-04 13:13:08 | `docs/FEATURES.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (EN) [branch: DEBUG-v012] |
+| 2026-06-04 13:13:08 | `docs/FEATURES_RU.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (RU) [branch: DEBUG-v012] |
+| 2026-06-04 13:13:08 | `docs/FEATURES_UK.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (UK) [branch: DEBUG-v012] |
+| 2026-06-04 13:13:10 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/AudioNowPlayingSnapshotStore.kt` | `S0351` | Add Audio Now Playing widget snapshot store [branch: DEBUG-v012] |
+| 2026-06-04 13:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `S0351` | Publish Audio Now Playing widget snapshot from playback service [branch: DEBUG-v012] |
+| 2026-06-04 13:14:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt` | `S0351` | Carry Audio Now Playing widget identity metadata [branch: DEBUG-v012] |
+| 2026-06-04 13:15:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt` | `S0351` | Attach source identity to now-playing media items [branch: DEBUG-v012] |
+| 2026-06-04 13:16:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0351` | Persist now-playing identity extras in Media3 metadata [branch: DEBUG-v012] |
+| 2026-06-04 13:18:37 | `PLAN/S0353_widget-scheduled-tasks.md` | `spec-all` | F1: strategic spec for scheduled-tasks home widget, research-resolved, approved [branch: DEBUG-v012] |
+| 2026-06-04 13:18:55 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/AudioNowPlayingWidgetProvider.kt` | `S0351` | Add Audio Now Playing widget provider [branch: DEBUG-v012] |
+| 2026-06-04 13:19:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsWidgetHelper.kt` | `spec-dev` | S0348: BlockNeedUserTest debug probes (picker open + pin request) [branch: DEBUG-v012] |
+| 2026-06-04 13:19:20 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/GameLaunchWidgetProvider.kt` | `spec-dev` | S0348: BlockNeedUserTest debug probe (game widget render) [branch: DEBUG-v012] |
+| 2026-06-04 13:19:42 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `S0351` | Add Audio Now Playing widget to picker registry [branch: DEBUG-v012] |
+| 2026-06-04 13:20:29 | `app_v2/src/main/AndroidManifest.xml` | `S0351` | Register Audio Now Playing widget provider [branch: DEBUG-v012] |
+| 2026-06-04 13:20:29 | `app_v2/src/lite/AndroidManifest.xml` | `S0351` | Remove Audio Now Playing widget from lite flavor [branch: DEBUG-v012] |
+| 2026-06-04 13:20:30 | `app_v2/src/photos/AndroidManifest.xml` | `S0351` | Remove Audio Now Playing widget from photos flavor [branch: DEBUG-v012] |
+| 2026-06-04 13:21:07 | `PLAN/S0351_widget-audio-now-playing/INDEX.md` | `S0351` | Mark S0351 phases 02 and 03 complete [branch: DEBUG-v012] |
+| 2026-06-04 13:21:07 | `PLAN/S0351_widget-audio-now-playing/PHASE_03__provider-manifest.md` | `S0351` | Record S0351 provider manifest verification [branch: DEBUG-v012] |
+| 2026-06-04 13:21:08 | `PLAN/S0351_widget-audio-now-playing/PHASE_02__service-snapshot.md` | `S0351` | Record S0351 service snapshot verification [branch: DEBUG-v012] |
+| 2026-06-04 13:21:49 | `docs/FEATURES.md` | `S0351` | Document Audio Now Playing widget in English feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 13:21:49 | `docs/FEATURES_RU.md` | `S0351` | Document Audio Now Playing widget in Russian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 13:21:49 | `docs/FEATURES_UK.md` | `S0351` | Document Audio Now Playing widget in Ukrainian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/INDEX.md` | `spec-tech` | Create tactical plan for S0353 (4 phases) [branch: DEBUG-v012] |
+| 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/PHASE_01__scheduler-controls.md` | `spec-tech` | Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/PHASE_02__widget-surface.md` | `spec-tech` | Phase 02: widget provider, service, layouts, manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/PHASE_03__wiring-refresh-nav.md` | `spec-tech` | Phase 03: refresh hook, registry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs, catalog, functionality log [branch: DEBUG-v012] |
+| 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v012] |
+| 2026-06-04 13:27:37 | `dev/CATALOG/app_v2.md` | `S0351` | Render app_v2 catalog for Audio Now Playing widget [branch: DEBUG-v012] |
+| 2026-06-04 13:27:37 | `dev/CATALOG/app_v2.jsonl` | `S0351` | Regenerate app_v2 catalog for Audio Now Playing widget [branch: DEBUG-v012] |
+| 2026-06-04 13:27:53 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/AudioNowPlayingWidgetProvider.kt` | `S0351` | Keep Audio Now Playing provider within line budget [branch: DEBUG-v012] |
+| 2026-06-04 13:31:49 | `PLAN/S0351_widget-audio-now-playing/INDEX.md` | `spec-dev` | Close S0351 tactical index after all phases pass [branch: DEBUG-v012] |
+| 2026-06-04 13:31:49 | `PLAN/S0351_widget-audio-now-playing/PHASE_02__service-snapshot.md` | `spec-dev` | Record Audio Service Controller metadata extras in S0351 phase 02 [branch: DEBUG-v012] |
+| 2026-06-04 13:31:50 | `PLAN/S0351_widget-audio-now-playing/PHASE_03__provider-manifest.md` | `spec-dev` | Record merged manifest verification for S0351 phase 03 [branch: DEBUG-v012] |
+| 2026-06-04 13:31:50 | `PLAN/S0351_widget-audio-now-playing/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | Close S0351 docs catalog and build cleanup phase [branch: DEBUG-v012] |
+| 2026-06-04 13:31:50 | `PLAN/S0351_widget-audio-now-playing.md` | `spec-dev` | Move S0351 to Implemented after tactical phases pass [branch: DEBUG-v012] |
+| 2026-06-04 13:33:34 | `PLAN/S0351_widget-audio-now-playing.md` | `spec-check` | Audit S0351 to Verified; PASS/WARN/FAIL 83/0/0; debug tags removed 0 [branch: DEBUG-v012] |
+| 2026-06-04 13:33:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/SettingsRepository.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:42 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ScheduledOperationDao.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ScheduledOperationRepository.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ScheduledOperationRepositoryImpl.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/WorkManagerScheduler.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/ScheduledOperationsViewModel.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/ScheduledOperationsBootReceiver.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeSettingsRepository.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:33:43 | `app_v2/src/test/java/com/sza/fastmediasorter/testing/fakes/FakeScheduledOperationRepository.kt` | `spec-dev` | S0353 Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
+| 2026-06-04 13:45:02 | `app_v2/src/main/res/drawable/ic_widget_scheduled_tasks.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:02 | `app_v2/src/main/res/xml/widget_scheduled_tasks_info.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/res/layout/widget_scheduled_tasks.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/res/layout/widget_scheduled_tasks_item.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetProvider.kt` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetService.kt` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/AndroidManifest.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/res/values/strings_widget.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:45:03 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `spec-dev` | S0353 Phase 02: scheduled-tasks widget provider/service/layouts/strings/manifest [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetRefresher.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/ScheduledOperationsWorker.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/WorkManagerScheduler.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetProvider.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetService.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
+| 2026-06-04 13:56:16 | `docs/FEATURES.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
+| 2026-06-04 13:56:16 | `docs/FEATURES_RU.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
+| 2026-06-04 13:56:16 | `docs/FEATURES_UK.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
+| 2026-06-04 13:57:41 | `PLAN/S0353_widget-scheduled-tasks.md` | `spec-dev` | All 4 phases done; build OK; status -> BlockNeedUserTest with S0353 debug probes [branch: DEBUG-v012] |
+| 2026-06-04 13:57:41 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetProvider.kt` | `spec-dev` | S0353 BlockNeedUserTest debug probes (render/RunAll/Pause-Resume) [branch: DEBUG-v012] |
+| 2026-06-04 13:57:41 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/ScheduledOperationsWorker.kt` | `spec-dev` | S0353 BlockNeedUserTest debug probe (widget refresh after run) [branch: DEBUG-v012] |
+| 2026-06-04 13:57:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0353 BlockNeedUserTest debug probe (settings deep-link) [branch: DEBUG-v012] |
+| 2026-06-04 14:00:37 | `PLAN/S0353_widget-scheduled-tasks.md` | `spec-all` | Pipeline BlockNeedUserTest: S0353 scheduled-tasks widget implemented, built, unit-tested; awaiting on-device verification [branch: DEBUG-v012] |
+| 2026-06-04 14:59:12 | `PLAN/S0352_widget-random-photo-frame.md` | `spec-all` | Auto-approve strategic spec S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:07:17 | `PLAN/S0349_widget-quick-audio-recorder.md` | `spec-all` | S0349 strategic finalized: resolved open questions, Draft->Approved [branch: DEBUG-v012] |
+| 2026-06-04 15:07:26 | `PLAN/S0352_widget-random-photo-frame.md` | `spec-tech` | Link tactical plan and advance S0352 to Tactical [branch: DEBUG-v012] |
+| 2026-06-04 15:07:26 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-tech` | Create tactical index for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:07:27 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-tech` | Create Phase 01 plan for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:07:27 | `PLAN/S0352_widget-random-photo-frame/PHASE_02__photo-surface.md` | `spec-tech` | Create Phase 02 plan for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:07:27 | `PLAN/S0352_widget-random-photo-frame/PHASE_03__refresh-scheduling.md` | `spec-tech` | Create Phase 03 plan for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:07:27 | `PLAN/S0352_widget-random-photo-frame/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Create Phase 04 plan for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:09:03 | `PLAN/S0352_widget-random-photo-frame.md` | `spec-dev` | Advance S0352 to In Progress [branch: DEBUG-v012] |
+| 2026-06-04 15:09:03 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Start Phase 01 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:09:03 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Close Step 01.1 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:09:03 | `app_v2/src/main/res/values/strings_widget.xml` | `spec-dev` | Add Random Photo Frame EN strings [branch: DEBUG-v012] |
+| 2026-06-04 15:09:04 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `spec-dev` | Add Random Photo Frame RU strings [branch: DEBUG-v012] |
+| 2026-06-04 15:09:05 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `spec-dev` | Add Random Photo Frame UK strings [branch: DEBUG-v012] |
+| 2026-06-04 15:10:11 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 01 progress to 2 of 6 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:10:11 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Close Step 01.2 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:10:11 | `app_v2/src/main/res/layout/widget_random_photo_frame.xml` | `spec-dev` | Add Random Photo Frame widget layout [branch: DEBUG-v012] |
+| 2026-06-04 15:10:12 | `app_v2/src/main/res/xml/widget_random_photo_frame_info.xml` | `spec-dev` | Add Random Photo Frame widget metadata [branch: DEBUG-v012] |
+| 2026-06-04 15:10:36 | `PLAN/S0349_widget-quick-audio-recorder/INDEX.md` | `spec-all` | S0349 tactical plan: 5 phases (widget shell, mic FGS, trampoline, flavor gating, docs) [branch: DEBUG-v012] |
+| 2026-06-04 15:10:58 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 01 progress to 3 of 6 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:10:58 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Close Step 01.3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:10:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameSnapshotStore.kt` | `spec-dev` | Add Random Photo Frame snapshot store [branch: DEBUG-v012] |
+| 2026-06-04 15:13:47 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 01 progress to 4 of 6 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:13:48 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Close Step 01.4 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:13:48 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameConfigActivity.kt` | `spec-dev` | Add Random Photo Frame config activity [branch: DEBUG-v012] |
+| 2026-06-04 15:15:37 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 01 progress to 5 of 6 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:15:37 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Close Step 01.5 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:15:38 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameWidgetProvider.kt` | `spec-dev` | Add Random Photo Frame widget provider skeleton [branch: DEBUG-v012] |
+| 2026-06-04 15:18:29 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 01 progress to 6 of 6 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:18:29 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Close Step 01.6 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:18:29 | `app_v2/src/main/AndroidManifest.xml` | `spec-dev` | Register Random Photo Frame widget manifest declarations [branch: DEBUG-v012] |
+| 2026-06-04 15:18:30 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `spec-dev` | Register Random Photo Frame widget in picker catalog [branch: DEBUG-v012] |
+| 2026-06-04 15:22:32 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Mark Phase 01 done for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:22:32 | `PLAN/S0352_widget-random-photo-frame/PHASE_01__config-foundation.md` | `spec-dev` | Record Phase 01 closure checks for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderWidgetProvider.kt` | `spec-all` | S0349: Quick Audio Recorder widget provider (1x1 icon-only, toggle via trampoline, icon state) [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderService.kt` | `spec-all` | S0349: microphone foreground service (MediaRecorder, notification+Stop, save to Music/) [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderActivity.kt` | `spec-all` | S0349: transparent trampoline activity hosting RECORD_AUDIO launcher [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderLaunchManager.kt` | `spec-all` | S0349: launch manager (toggle, permission request, settings fallback) [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/res/layout/widget_quick_audio_recorder.xml` | `spec-all` | S0349: widget layout + info xml + idle/recording/themed drawables + EN/RU/UK strings [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/AndroidManifest.xml` | `spec-all` | S0349: receiver+activity+service+FOREGROUND_SERVICE_MICROPHONE; lite/photos manifest removals [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `spec-all` | S0349: register Quick Audio Recorder in in-app widget picker [branch: DEBUG-v012] |
+| 2026-06-04 15:25:58 | `docs/FEATURES.md` | `spec-all` | S0349: Quick Recorder widget feature entry (EN/RU/UK) [branch: DEBUG-v012] |
+| 2026-06-04 15:27:16 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Start Phase 02 and mark Step 02.1 done for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:27:16 | `PLAN/S0352_widget-random-photo-frame/PHASE_02__photo-surface.md` | `spec-dev` | Record Step 02.1 completion for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:27:16 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameSnapshotStore.kt` | `spec-dev` | Allow silent snapshot updates for widget refresh [branch: DEBUG-v012] |
+| 2026-06-04 15:28:23 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameWidgetRefresher.kt` | `spec-dev` | Add cache-backed random photo widget refresher [branch: DEBUG-v012] |
+| 2026-06-04 15:30:06 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 02 progress to 2 of 3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:30:06 | `PLAN/S0352_widget-random-photo-frame/PHASE_02__photo-surface.md` | `spec-dev` | Close Step 02.2 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:30:06 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameWidgetProvider.kt` | `spec-dev` | Render cached photo and fallback state in Random Photo Frame widget [branch: DEBUG-v012] |
+| 2026-06-04 15:31:55 | `PLAN/S0349_widget-quick-audio-recorder.md` | `spec-all` | Pipeline BlockNeedUserTest: S0349 implemented (3 flavors build), device-test deferred (no device) [branch: DEBUG-v012] |
+| 2026-06-04 15:32:10 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 02 progress to 3 of 3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:32:11 | `PLAN/S0352_widget-random-photo-frame/PHASE_02__photo-surface.md` | `spec-dev` | Close Step 02.3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:32:11 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameWidgetProvider.kt` | `spec-dev` | Bind direct-open and browse fallback intents for Random Photo Frame widget [branch: DEBUG-v012] |
+| 2026-06-04 15:34:05 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Mark Phase 02 done for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:34:05 | `PLAN/S0352_widget-random-photo-frame/PHASE_02__photo-surface.md` | `spec-dev` | Record Phase 02 closure checks for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:35:42 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Start Phase 03 and mark Step 03.1 done for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:35:42 | `PLAN/S0352_widget-random-photo-frame/PHASE_03__refresh-scheduling.md` | `spec-dev` | Record Step 03.1 completion for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:35:43 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/RandomPhotoFrameRefreshWorker.kt` | `spec-dev` | Add periodic Random Photo Frame refresh worker [branch: DEBUG-v012] |
+| 2026-06-04 15:37:44 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 03 progress to 2 of 3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:37:45 | `PLAN/S0352_widget-random-photo-frame/PHASE_03__refresh-scheduling.md` | `spec-dev` | Close Step 03.2 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:37:45 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameWidgetProvider.kt` | `spec-dev` | Schedule periodic Random Photo Frame widget refresh from provider lifecycle [branch: DEBUG-v012] |
+| 2026-06-04 15:39:35 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Update Phase 03 progress to 3 of 3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:39:35 | `PLAN/S0352_widget-random-photo-frame/PHASE_03__refresh-scheduling.md` | `spec-dev` | Close Step 03.3 for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:39:35 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameConfigActivity.kt` | `spec-dev` | Trigger immediate Random Photo Frame refresh after configuration [branch: DEBUG-v012] |
+| 2026-06-04 15:42:13 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Mark Phase 03 done for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:42:14 | `PLAN/S0352_widget-random-photo-frame/PHASE_03__refresh-scheduling.md` | `spec-dev` | Record Phase 03 closure checks for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:43:43 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Start Phase 04 and mark Step 04.1 done for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:43:43 | `PLAN/S0352_widget-random-photo-frame/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | Record Step 04.1 completion for S0352 [branch: DEBUG-v012] |
+| 2026-06-04 15:43:44 | `docs/FEATURES.md` | `doc-update` | Document Random Photo Frame widget feature [branch: DEBUG-v012] |
+| 2026-06-04 15:43:44 | `docs/FEATURES_RU.md` | `doc-update` | Document Random Photo Frame widget feature in Russian [branch: DEBUG-v012] |
+| 2026-06-04 15:43:44 | `docs/FEATURES_UK.md` | `doc-update` | Document Random Photo Frame widget feature in Ukrainian [branch: DEBUG-v012] |
+| 2026-06-04 15:48:37 | `PLAN/S0352_widget-random-photo-frame.md` | `spec` | Record final S0352 audit block and verified status [branch: DEBUG-v012] |
+| 2026-06-04 15:48:37 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `tactical-plan` | Close S0352 tactical plan after final audit [branch: DEBUG-v012] |
+| 2026-06-04 15:48:38 | `PLAN/S0352_widget-random-photo-frame/PHASE_04__docs-catalog-cleanup.md` | `phase-04` | Close S0352 phase 04 after docs, catalog, and changelog verification [branch: DEBUG-v012] |
+| 2026-06-04 16:55:47 | `PLAN/S0354_camera-ocr-crop-language-buttons.md` | `spec` | Add draft strategic spec S0354 for camera OCR crop-screen language buttons [branch: DEBUG-v012] |
+| 2026-06-04 17:04:17 | `PLAN/S0354_camera-ocr-crop-language-buttons.md` | `spec` | Refine S0354 draft: language cluster in crop action row, global settings persistence, target hidden when translation unavailable [branch: DEBUG-v012] |
+| 2026-06-04 17:27:19 | `PLAN/S0354_camera-ocr-crop-language-buttons.md` | `spec` | Resolve S0354 open questions: no languages in crop hint; results-screen dialog keeps only target language and re-translates existing OCR text, OCR language picker removed there [branch: DEBUG-v012] |
+| 2026-06-04 17:37:57 | `PLAN/S0354_camera-ocr-crop-language-buttons.md` | `spec-all` | Approve strategic spec S0354 (owner-inputs PASS, drift CLEAN) [branch: DEBUG-v012] |
+| 2026-06-04 17:41:00 | `PLAN/S0354_camera-ocr-crop-language-buttons/INDEX.md` | `spec-all` | Tactical plan S0354: 4 phases (crop cluster, wiring, results-dialog rework, docs) [branch: DEBUG-v012] |
+| 2026-06-04 17:51:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `spec-all` | S0354: crop-screen OCR/translation language cluster, results dialog target-only re-translate, raw-source auto-detect fix [branch: DEBUG-v012] |
+| 2026-06-04 17:51:48 | `docs/FEATURES.md` | `spec-all` | S0354: document camera OCR crop-screen language selection and results re-translate [branch: DEBUG-v012] |
+| 2026-06-04 17:55:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-all` | S0354: insert BlockNeedUserTest debug probes at crop language render/pick and results re-translate [branch: DEBUG-v012] |
+| 2026-06-04 17:55:50 | `PLAN/S0354_camera-ocr-crop-language-buttons.md` | `spec-all` | Pipeline BlockNeedUserTest: S0354 implemented + built; device test deferred (no device) [branch: DEBUG-v012] |
+| 2026-06-04 18:04:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `S0354 camera OCR crop language buttons` | Fix crop-language accessibility and translation gating [branch: DEBUG-v012] |
+| 2026-06-04 18:05:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `S0354 camera OCR crop language buttons` | Fix camera OCR translation gating and re-translate error handling [branch: DEBUG-v012] |
+| 2026-06-04 18:07:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `S0354 camera OCR crop language buttons` | Align effective OCR-only state with global translation toggle [branch: DEBUG-v012] |
+| 2026-06-04 21:08:21 | `PLAN/S0355_bugfix-cloud-apk-classify-crash.md` | `spec` | Add strategic spec S0355 for cloud APK classification FATAL crash (NoSuchFileException on temp copy) [branch: DEBUG-v012] |
+| 2026-06-04 21:11:26 | `PLAN/S0356_bugfix-player-media-load-npe.md` | `spec` | Add strategic spec S0356 for MediaFile.copy NPE on player media load (null in non-null field) [branch: DEBUG-v012] |
+| 2026-06-04 21:14:44 | `PLAN/S0357_smb-video-playback-robustness.md` | `spec` | Add strategic spec S0357 for SMB network video playback robustness (DataSource uri contract, stuck buffering, decoder) [branch: DEBUG-v012] |
+| 2026-06-04 21:19:43 | `PLAN/S0289_tv-keyboard-dpad-navigation.md` | `spec-update` | Log observation 2026-06-04: S0289 probe floods log (30073 hits/session in analog-stick handler); throttle recommendation, status/probes untouched [branch: DEBUG-v012] |
+| 2026-06-04 21:19:43 | `PLAN/S0336_nolegal-extended-system-info.md` | `spec-update` | Log observation 2026-06-04: selinux EACCES caught but logs full stacktrace on Quest; quiet-logging recommendation, status/probes untouched [branch: DEBUG-v012] |
+| 2026-06-04 21:19:44 | `PLAN/S0337_system-info-extended-fields.md` | `spec-update` | Log observation 2026-06-04: getUserName SecurityException caught but logs full stacktrace on Quest; quiet-logging recommendation, status/probes untouched [branch: DEBUG-v012] |
+| 2026-06-04 21:20:05 | `PLAN/S0358_player-resource-playback-order.md` | `spec` | Add primitive spec S0358 for player resource playback order [branch: DEBUG-v012] |
+| 2026-06-04 21:20:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `app_v2 browse random playback` | Launch player with shuffle override from Browse random play [branch: DEBUG-v012] |
+| 2026-06-04 21:20:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt` | `app_v2 playback order prefs` | Add per-resource playback order preference helpers [branch: DEBUG-v012] |
+| 2026-06-04 21:21:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `app_v2 player playback order` | Restore and persist playback order per resource [branch: DEBUG-v012] |
+| 2026-06-04 21:22:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `app_v2 browse random playback` | Launch player with shuffle override from Browse random play [branch: DEBUG-v012] |
+| 2026-06-04 21:22:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `app_v2 player playback order` | Restore and persist playback order per resource [branch: DEBUG-v012] |
+| 2026-06-04 21:51:44 | `PLAN/S0355_bugfix-cloud-apk-classify-crash/INDEX.md` | `spec-tech` | Create tactical plan for S0355 (4 phases) [branch: DEBUG-v012] |
+| 2026-06-04 21:51:44 | `PLAN/S0355_bugfix-cloud-apk-classify-crash.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v012] |
+| 2026-06-04 21:51:45 | `PLAN/S0356_bugfix-player-media-load-npe/INDEX.md` | `spec-tech` | Create tactical plan for S0356 (5 phases) [branch: DEBUG-v012] |
+| 2026-06-04 21:51:45 | `PLAN/S0356_bugfix-player-media-load-npe.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v012] |
+| 2026-06-04 21:51:45 | `PLAN/S0357_smb-video-playback-robustness/INDEX.md` | `spec-tech` | Create tactical plan for S0357 (5 phases) [branch: DEBUG-v012] |
+| 2026-06-04 21:51:45 | `PLAN/S0357_smb-video-playback-robustness.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v012] |
+| 2026-06-04 22:34:57 | `PLAN/S0357_smb-video-playback-robustness.md` | `spec-arc` | Archive S0357 -> temp/done/; duplicate of implemented S0343 (errorCode 2000 getUri null) + S0344 (errorCode 1004 stuck buffering); 8K decoder line was VR diagnostic S0322 [branch: DEBUG-v012] |
+| 2026-06-04 23:02:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt` | `spec-dev S0355 phase-01` | Fault-tolerant cloud temp-copy transfer: exists() precheck + IOException catch (return false/null) across LOCAL/SMB/SFTP/FTP in downloadFromCloudTo and downloadFromCloud; entry probe added [branch: DEBUG-v012] |
+| 2026-06-04 23:04:41 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkArchiveResolver.kt` | `spec-dev S0355 phase-02` | Defensive try/catch(Exception) around resolveCloudArchive: any cloud-copy failure degrades to null (no archive) instead of propagating [branch: DEBUG-v012] |
+| 2026-06-04 23:05:25 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/VrApkClassificationCache.kt` | `spec-dev S0355 phase-02` | classifyForCache wrapped in try/catch(Exception): any resolver/classifier failure degrades that single item to non-cacheable NOT_VR without crashing the launching coroutine [branch: DEBUG-v012] |
+| 2026-06-04 23:10:21 | `PLAN/S0355_bugfix-cloud-apk-classify-crash.md` | `spec-dev S0355 phase-03` | Resolved research items: root cause = OS getCacheDir() eviction under storage pressure; verdict = interception sufficient, no temp protection (Step 03.3 skipped) [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFileIntegrity.kt` | `MediaFileIntegrity` | Added reusable guard for mandatory MediaFile scanner inputs [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `PlayerMediaFilesLoader` | Isolated favorite reconcile failures per element and lowered handled fallback logging [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt` | `SmbMediaScanner` | Routed MediaFile construction through MediaFileIntegrity [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `SftpMediaScanner` | Routed MediaFile construction through MediaFileIntegrity [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt` | `FtpMediaScanner` | Routed MediaFile construction through MediaFileIntegrity [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoaderReconcileTest.kt` | `PlayerMediaFilesLoaderReconcileTest` | Added focused reconcile isolation unit test [branch: DEBUG-v012] |
+| 2026-06-04 23:11:04 | `PLAN/S0356_bugfix-player-media-load-npe.md` | `S0356` | Recorded the handled favorite reconcile warning-level decision [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFileIntegrity.kt` | `spec-dev S0356` | New reusable guard: sanitizes platform-typed scanner inputs (name/path/type/metadataState) to non-null MediaFile fields, logs substitutions [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt` | `spec-dev S0356` | Route all MediaFile() construction sites through MediaFileIntegrity to prevent null in non-null fields [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `spec-dev S0356` | Route all MediaFile() construction sites through MediaFileIntegrity (SFTP is the confirmed crash source) [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt` | `spec-dev S0356` | Route all MediaFile() construction sites through MediaFileIntegrity [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `spec-dev S0356` | Per-element favorites-reconcile isolation (reconcileFavoriteFlags), reconcile log lowered to Timber.w, S0356 device probe tag [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoaderReconcileTest.kt` | `spec-dev S0356` | Unit test: one corrupted element kept, siblings still reconciled (reconcile isolation) [branch: DEBUG-v012] |
+| 2026-06-04 23:48:43 | `PLAN/S0356_bugfix-player-media-load-npe.md` | `spec-dev S0356` | Resolved research items 6.1 (creation site = network scanners/SFTP) and 6.2 (log level Timber.w) [branch: DEBUG-v012] |
+| 2026-06-05 00:57:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LanguageFlagFormatter.kt` | `LanguageFlagFormatter` | Render modern white-blue-white (ru) and white-red-white (be) flags as vector images across translation/OCR language pickers, spinners and labels instead of state emoji [branch: DEBUG-v012] |
+| 2026-06-05 01:23:54 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.6050.116 - plateau merge from DEBUG-v012 [branch: DEBUG-v012] |

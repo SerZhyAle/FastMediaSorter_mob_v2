@@ -50,15 +50,45 @@ class GeneralSettingsLogHelper(
     fun showSystemInfoDialog() {
         Timber.d("S0337: system info dialog opened")
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val summary = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
+            val report = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
             if (!fragment.isAdded || fragment.view == null) return@launch
-            com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                fragment.requireContext(),
-                fragment.getString(R.string.settings_system_info_title),
-                summary,
-                fragment.getString(R.string.close)
-            )
+            val title = fragment.getString(R.string.settings_system_info_title)
+            // Offer the full-report reveal only when the report actually carries sensitive
+            // values. This is false on every flavor whose contributor set is empty (no extended
+            // diagnostics) - the branch is data-driven, not flavor-gated.
+            if (report.hasSensitive) {
+                com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
+                    fragment.requireContext(),
+                    title,
+                    report.maskedText,
+                    positiveButtonText = fragment.getString(R.string.close),
+                    negativeButtonText = fragment.getString(R.string.system_info_copy_full_report),
+                    onNegative = { confirmAndCopyFullReport(report.fullText) },
+                )
+            } else {
+                com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
+                    fragment.requireContext(),
+                    title,
+                    report.maskedText,
+                    fragment.getString(R.string.close)
+                )
+            }
         }
+    }
+
+    private fun confirmAndCopyFullReport(fullText: String) {
+        val context = fragment.requireContext()
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.system_info_reveal_confirm_title)
+            .setMessage(R.string.system_info_reveal_confirm_message)
+            .setPositiveButton(R.string.system_info_copy_full_report) { _, _ ->
+                Timber.d("S0336: full diagnostics report copy confirmed")
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("System info", fullText))
+                Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     fun shareLogs() {

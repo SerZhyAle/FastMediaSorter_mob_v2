@@ -84,6 +84,9 @@ if ($record.status -eq 'Archived') {
 $moved = New-Object System.Collections.Generic.List[string]
 
 if ($null -ne $specFile) {
+    # Set the in-file header to Archived before moving, so the artefact in
+    # temp/done/ matches the journal (shared fail-soft helper, first line only).
+    [void](Sync-SpecHeaderStatus -PathRef $specFile -Status 'Archived')
     $specFileName = Split-Path -Path $specFile -Leaf
     Move-Item -LiteralPath $specFile -Destination (Join-Path $doneDir $specFileName) -Force
     $moved.Add($specFileName)

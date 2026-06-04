@@ -8,12 +8,14 @@ references live in `dev/` and `docs/`.
 - **Language**: RUSSIAN in chat, ENGLISH in code/docs/logs/commits.
 - **Tone**: professional, dry, concise. Ask if ambiguous - do not guess paths or values.
 
-## Author Style (all user-facing text, docs, UI strings)
+## Author Style (production text, docs, UI strings)
 
 - Ellipsis: `..` (two dots), never `...`.
 - Always use `ё`/`Ё` in Russian where grammatically correct (e.g. `всё`, `ещё`, `приём`).
 
-Non-negotiable - not typos.
+Non-negotiable for production docs, UI strings, chat, and specs in `Approved` or later statuses - not typos.
+
+`PLAN/Sxxxx_*.md` files in `Draft` are the exception: drafting may stay rough. Do not run hygiene-only sweeps, block draft creation, or report draft validation solely for ellipsis / `ё` / wording sanitation unless the owner asks for cleanup. Before `Draft` -> `Approved`, the approval gate must clean and enforce this style.
 
 ## Caveman Mode (optional)
 
@@ -33,6 +35,8 @@ Applied by all `/spec*` skills when writing `.md` artefacts. Reader is a senior 
 - **No self-evident links.** Skip "ViewModel observes Repository", "§5 feeds §6" - reader knows Clean/MVVM.
 - **One idea per bullet.** No elaboration paragraphs inside list items. If it needs WHY, it belongs in ADR, not in the list.
 - **No section summaries.** Don't close sections with "this ensures X" or "together these achieve Y".
+
+These are an enforced gate at the `Draft` -> `Approved` transition, not a constraint on drafting. While a `PLAN/Sxxxx_*.md` spec is in `Draft`, content comes first - tables, rough phrasing, or a stray section summary are acceptable and must not block draft creation or trigger a hygiene-only sweep. The skill that promotes the spec to `Approved` owns cleaning the draft to this style before flipping the status. Same timing as the Author Style ellipsis / `ё` rule above.
 
 ## Debug Verification Tags (code specs)
 
@@ -90,6 +94,7 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
 - **Statuses:** active - `Draft`, `Approved`, `Tactical`, `In Progress`, `Implemented`, `Verified`, `Partial`, `Broken`. Block - `BlockByOtherTask`, `BlockNeedUserTest`, `BlockQuestions`, `BlockExternal`. Terminal - `Archived` (soft delete; ids never reused).
 - **Stale signal:** `a.ps1 ss` flags any active spec with `updated` ≥ 14 days (`!`) or ≥ 30 days (`!!`); consider `/spec-update <Sxxxx>`.
 - **CLI - primitives:** `insert.ps1`, `update.ps1`, `select.ps1`, `delete.ps1`, `validate.ps1` under `scripts/spec_catalog/`. **Never edit `PLAN/spec-catalog.jsonl` by hand.**
+- **Header auto-sync:** every status change through a catalog mutator (`update.ps1`, the facades `complete.ps1` / `close.ps1` / `close-and-log.ps1` that call it, and `archive.ps1` / `bulk-update.ps1` directly) rewrites the **first** `**Status:**` line of the spec file named in the record's `file` field, so the human-readable in-file header never drifts from the journal. Shared fail-soft helper `Sync-SpecHeaderStatus` in `scripts/spec_catalog/_lib.ps1` (a missing file or absent header never fails the journal write); only the header line is touched - deeper `**Status:**` lines in ADR / Proposal blocks are left alone. The journal stays the single source of truth; resolve any `Sxxxx` status via `select.ps1`, not by reading the header.
 - **CLI - operator facade:** `next-id.ps1`, `search.ps1`, `close.ps1`, `stats.ps1`, `bulk-update.ps1`, `complete.ps1`, `archive.ps1` - prefer these for id allocation, lookup, finalization, summary, batch changes, one-shot completion, and archiving (move to `temp/done/` + set Archived).
 - **Lifecycle hooks:** `/spec` calls `insert`; `/spec-tech` flips status to `Tactical`; `/spec-dev` flips to `In Progress` then `Implemented`; `/spec-check` flips to `Verified` / `Partial` / `Broken` (writes summary into ticket's `## Last Audit`); `/spec-fix` touches `updated`. Block-states are set explicitly via `update.ps1 -Status Block...`.
 - **Soft delete only:** `delete.ps1` sets status `Archived`; record stays in the journal forever.
@@ -220,6 +225,32 @@ Gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 Kotlin 1.9+ / Java 17 / `compileSdk 35` / `minSdk 26` (standard), `minSdk 23` (legacy).
 Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer Media3 1.2.1 · Glide 4.15.1 · SMBJ/SSHJ/Apache Commons Net · Google Drive/MSAL/Dropbox SDKs.
 **Logging: Timber only** - `Log.d()` is prohibited. Persistent operational logs must not embed `Sxxxx` ticket ids; ticket ids in log text are reserved for `BlockNeedUserTest` probes only.
+
+## Common Commands
+
+All builds go through the `a.ps1` launcher (never invoke gradle directly - use `/build`):
+
+| Cmd | Action |
+|-----|--------|
+| `.\a.ps1 d` / `db` / `dq` | Debug build (zip / no-zip / quiet) |
+| `.\a.ps1 cd` / `cdb` | Clean + debug (zip / no-zip) |
+| `.\a.ps1 nd` / `nl` | noLegal debug / release |
+| `.\a.ps1 r` | Release AAB (auto-delegates to `../FastMediaSorter_release` worktree on `main`) |
+| `.\a.ps1 cls` | Clean gradle caches |
+| `.\a.ps1 bf` / `bfd` | Last build-failure block / structured digest |
+| `.\a.ps1 ch` | Typo + lint check |
+| `.\a.ps1 ss` | Show unresolved specs |
+| `.\a.ps1 ivn` | Install noLegal debug APK on device |
+
+Per-flavor scripts (standard/lite/photos/legacy/vr) live in `scripts/builders/build-<flavor>-{debug,release,device}.ps1`.
+
+### Tests
+
+- Full unit suite (one variant): `.\gradlew.bat testStandardDebugUnitTest`
+- Single class: `.\gradlew.bat :app_v2:testStandardDebugUnitTest --tests "com.sza.fastmediasorter.<pkg>.<Class>"`
+- Single method: append `.<methodName>` to the `--tests` filter.
+- kapt stall recovery: `pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"`
+- Note: `testStandardDebugUnitTest` carries pre-existing broken tests - verify your own work via per-class XML reports, not a green whole-suite run.
 
 ## Strict Rules
 

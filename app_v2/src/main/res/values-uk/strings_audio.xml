@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio">Аудіо</string>
+    <string name="audio_a">Audio (A)</string>
+    <string name="audio_album_label">Альбом: %1$s</string>
+    <string name="audio_artist_label">Виконавець: %1$s</string>
+    <string name="audio_background_photos_load_failed">Не вдалося завантажити фонові фотографії. Спробуйте ще раз.</string>
+    <string name="audio_background_photos_no_photos_found">Не вдалося знайти фотографії в обраному ресурсі.</string>
+    <string name="audio_background_photos_source_label">Джерело фонових фото:</string>
+    <string name="audio_bit_depth_label">Бітова глибина: %1$d-біт</string>
+    <string name="audio_bitrate_label">Аудіо бітрейт: %1$s</string>
+    <string name="audio_cache_size_warning_message">Аудіокеш займає значний обсяг. Видалити старі файли для звільнення місця?</string>
+    <string name="audio_cache_size_warning_title">Великий аудіокеш</string>
+    <string name="audio_channels_label">Каналів: %1$s</string>
+    <string name="audio_channels_mono">Моно</string>
+    <string name="audio_channels_stereo">Стерео</string>
+    <string name="audio_codec_label">Аудіо кодек: %1$s</string>
+    <string name="audio_cover_art">Обкладинка аудіо</string>
+    <string name="audio_cover_art_cd">Обкладинка альбому</string>
+    <string name="audio_duration_label">Тривалість: %1$s</string>
+    <string name="audio_empty_state_avd_pulse">Нота + пульсуючі кільця</string>
+    <string name="audio_empty_state_canvas_bars">Дихаючі стовпчики (15)</string>
+    <string name="audio_empty_state_canvas_waves">Хвилі та частинки</string>
+    <string name="audio_empty_state_gif_loop">GIF / WebP у циклі</string>
+    <string name="audio_empty_state_label">Візуалізатор при відсутності обкладинки</string>
+    <string name="audio_empty_state_none">Чорний фон</string>
+    <string name="audio_empty_state_visualization">Візуалізація (MP4)</string>
+    <string name="audio_info_section">Інформація про аудіо</string>
+    <string name="audio_lossless_label">Якість: %1$s</string>
+    <string name="audio_lossless_value_lossless">Без втрат</string>
+    <string name="audio_lossless_value_lossy">Зі втратами</string>
+    <string name="audio_replaygain_album_label">ReplayGain (альбом): %1$.2f дБ</string>
+    <string name="audio_replaygain_track_label">ReplayGain (трек): %1$.2f дБ</string>
+    <string name="audio_sample_rate_label">Частота дискретизації: %1$d Гц</string>
+    <string name="audio_size_limit">Обмеження розміру аудіо</string>
+    <string name="audio_size_limits">Обмеження розміру аудіо (КБ)</string>
+    <string name="audio_size_range">0 КБ - 100 МБ</string>
+    <string name="audio_title_label">Title: %1$s</string>
+    <string name="audio_track">Аудіодоріжка</string>
+</resources>

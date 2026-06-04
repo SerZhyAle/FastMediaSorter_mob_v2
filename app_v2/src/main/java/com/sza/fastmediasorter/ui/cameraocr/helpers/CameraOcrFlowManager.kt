@@ -43,6 +43,13 @@ class CameraOcrFlowManager(
         /** Show the crop step: preview [bitmap] with the draggable selection frame. */
         fun showCropStep(bitmap: Bitmap)
 
+        /**
+         * Render the crop-step language cluster: OCR [sourceCode] and translation [targetCode]
+         * as flag-plus-code chips. When [translationAvailable] is false the direction arrow and
+         * the target chip are hidden (only the OCR chip stays).
+         */
+        fun renderCropLanguages(sourceCode: String, targetCode: String, translationAvailable: Boolean)
+
         /** Show the loading state. A `0` resource id means "no text". */
         fun showLoading(@StringRes statusRes: Int, @StringRes subStatusRes: Int)
 
@@ -156,6 +163,43 @@ class CameraOcrFlowManager(
             callback.hideLoading()
             Timber.d("S0338: crop step shown after capture")
             callback.showCropStep(bitmap)
+            emitCropLanguages()
+        }
+    }
+
+    /** Reads the current OCR/translation languages and pushes them to the crop-step cluster. */
+    private suspend fun emitCropLanguages() {
+        val settings = settingsRepository.getSettings().first()
+        // Translation availability inside this screen depends only on the global translation
+        // master toggle and the per-capture OCR-only mode. The flavor capability gate is already
+        // satisfied — this Activity only launches in translation-capable flavors (Rule 15: no
+        // BuildConfig flavor guard in src/main).
+        val translationAvailable = isTranslationAvailable(settings.enableTranslation, settings.cameraOcrOnly)
+        Timber.d("S0354: crop language cluster rendered, translationAvailable=$translationAvailable")
+        callback.renderCropLanguages(
+            sourceCode = settings.translationSourceLanguage,
+            targetCode = settings.translationTargetLanguage,
+            translationAvailable = translationAvailable
+        )
+    }
+
+    /** Persists the chosen OCR source language to global settings and re-renders the cluster. */
+    fun setCropSourceLanguage(code: String) {
+        scope.launch {
+            Timber.d("S0354: crop OCR language changed to $code")
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(translationSourceLanguage = code))
+            emitCropLanguages()
+        }
+    }
+
+    /** Persists the chosen translation target language to global settings and re-renders the cluster. */
+    fun setCropTargetLanguage(code: String) {
+        scope.launch {
+            Timber.d("S0354: crop target language changed to $code")
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(translationTargetLanguage = code))
+            emitCropLanguages()
         }
     }
 
@@ -202,7 +246,9 @@ class CameraOcrFlowManager(
         val settings = settingsRepository.getSettings().first()
         val sourceLang = settings.translationSourceLanguage
         val targetLang = settings.translationTargetLanguage
-        val isOcrOnly = settings.cameraOcrOnly
+        val translationAvailable = isTranslationAvailable(settings.enableTranslation, settings.cameraOcrOnly)
+        val isOcrOnly = !translationAvailable
+        ocrOnlyActive = isOcrOnly
 
         try {
             if (isOcrOnly) {
@@ -215,9 +261,12 @@ class CameraOcrFlowManager(
                 }
             } else {
                 callback.showLoading(R.string.camera_ocr_loading_saving, R.string.please_wait)
+                // Pass the raw source code so "auto" stays auto: recognizeText detects the OCR script
+                // and translate() detects the language of the recognized text and translates FROM it.
+                // Mapping "auto" through languageCodeToMLKit collapses it to English (wrong source).
                 val result = translationManager.recognizeAndTranslate(
                     bitmap = bitmap,
-                    sourceLang = TranslationManager.languageCodeToMLKit(sourceLang),
+                    sourceLang = sourceLang,
                     targetLang = TranslationManager.languageCodeToMLKit(targetLang)
                 )
                 if (result == null || result.first.isBlank()) {
@@ -258,20 +307,51 @@ class CameraOcrFlowManager(
         }
     }
 
-    /** Persists the dialog choices as global settings and re-renders the current result. */
-    fun applyLanguageSettings(sourceLang: String, targetLang: String, ocrOnly: Boolean) {
+    /**
+     * Persists the result-screen dialog choices (translation target + OCR-only) as global settings.
+     * The OCR source language is intentionally not part of this dialog: OCR over the current image is
+     * already done. When translation is on and recognized text exists, re-translates that text to the
+     * new target language without re-running OCR or re-capturing; otherwise just re-renders.
+     */
+    fun applyLanguageSettings(targetLang: String, ocrOnly: Boolean) {
         scope.launch {
             val current = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(
                 current.copy(
-                    translationSourceLanguage = sourceLang,
                     translationTargetLanguage = targetLang,
                     cameraOcrOnly = ocrOnly
                 )
             )
-            ocrOnlyActive = ocrOnly
-            callback.showResults(recognizedOriginalText, translatedOutputText, ocrOnly)
+            val translationAvailable = isTranslationAvailable(current.enableTranslation, ocrOnly)
+            ocrOnlyActive = !translationAvailable
+
+            if (!translationAvailable || recognizedOriginalText.isBlank()) {
+                callback.showResults(recognizedOriginalText, "", ocrOnlyActive)
+                return@launch
+            }
+
+            Timber.d("S0354: results-screen re-translate to $targetLang")
+            callback.showLoading(R.string.camera_ocr_loading_saving, R.string.please_wait)
+            // Pass the raw source code (e.g. "auto") so the translator auto-detects the language of
+            // the already-recognized text and translates FROM it. Mapping "auto" through
+            // languageCodeToMLKit would force English and mistranslate non-English captures.
+            val retranslated = translationManager.translate(
+                text = recognizedOriginalText,
+                sourceLang = current.translationSourceLanguage,
+                targetLang = TranslationManager.languageCodeToMLKit(targetLang)
+            )
+            callback.hideLoading()
+            if (retranslated != null) {
+                translatedOutputText = retranslated
+            } else {
+                callback.showToast(R.string.camera_ocr_engine_error)
+            }
+            callback.showResults(recognizedOriginalText, translatedOutputText, ocrOnly = false)
         }
+    }
+
+    private fun isTranslationAvailable(enableTranslation: Boolean, cameraOcrOnly: Boolean): Boolean {
+        return enableTranslation && !cameraOcrOnly
     }
 
     fun cleanup() {

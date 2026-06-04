@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/widget_audio_now_playing_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:contentDescription="@string/widget_audio_now_playing_label"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/padding_small">
+
+    <ImageView
+        android:id="@+id/widget_audio_now_playing_artwork"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/widget_audio_now_playing_label"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_music_note" />
+
+    <LinearLayout
+        android:id="@+id/widget_audio_now_playing_text_group"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/padding_small"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_audio_now_playing_title"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="bottom"
+            android:singleLine="true"
+            android:text="@string/widget_audio_now_playing_empty_title"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_audio_now_playing_artist"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="top"
+            android:singleLine="true"
+            android:text="@string/widget_audio_now_playing_empty_subtitle"
+            android:textColor="@color/white"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_audio_now_playing_actions"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/widget_audio_now_playing_previous"
+            android:layout_width="36dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/widget_audio_now_playing_action_previous"
+            android:padding="@dimen/padding_tiny"
+            android:src="@drawable/ic_skip_previous"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/widget_audio_now_playing_play_pause"
+            android:layout_width="36dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/widget_audio_now_playing_action_play_pause"
+            android:padding="@dimen/padding_tiny"
+            android:src="@drawable/ic_play"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/widget_audio_now_playing_next"
+            android:layout_width="36dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/widget_audio_now_playing_action_next"
+            android:padding="@dimen/padding_tiny"
+            android:src="@drawable/ic_skip_next"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/widget_audio_now_playing_favorite"
+            android:layout_width="36dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/widget_audio_now_playing_action_favorite"
+            android:padding="@dimen/padding_tiny"
+            android:src="@drawable/ic_star_outline"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

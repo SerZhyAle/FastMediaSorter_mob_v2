@@ -90,6 +90,7 @@
 "rendererMigrationEnabled",,,,,,,,,,,
 "enableSafeMode","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE",
 "enableScheduledOperations",,,,,,,,,,,
+"scheduledOperationsPaused",,,,,,,,,,,
 "enableCopying","TRUE","TRUE","TRUE","TRUE","TRUE","FALSE","TRUE","TRUE","TRUE","TRUE",
 "goToNextAfterCopy","TRUE","TRUE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","TRUE","TRUE",
 "overwriteOnCopy","FALSE","FALSE","FALSE","TRUE","FALSE","FALSE","FALSE","TRUE","FALSE","FALSE",

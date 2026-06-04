@@ -96,5 +96,16 @@ Assert-Record -Record $updated
 $records[$idx] = $updated
 Write-Catalog -Records $records.ToArray()
 
+# Mirror the new status into the spec file's human-readable **Status:** header so
+# it never drifts from the journal (the owner reads that header directly). Shared
+# fail-soft helper in _lib.ps1; only the first header line is touched, deeper
+# ADR / Proposal **Status:** lines are left alone. The journal write above is the
+# source of truth and is never rolled back by a header problem.
+if ($PSBoundParameters.ContainsKey('Status') -and $oldStatus -ne $updated.status) {
+    if (Sync-SpecHeaderStatus -PathRef $updated.file -Status $updated.status) {
+        Write-Host ("  header synced -> {0}" -f $updated.status) -ForegroundColor DarkGray
+    }
+}
+
 Write-Output ("{0} {1} -> {2}" -f $Id, $oldStatus, $updated.status)
 exit 0

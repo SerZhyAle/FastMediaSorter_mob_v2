@@ -97,6 +97,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
         /** Intent extra: String - scroll/focus a concrete Settings row after opening its tab. */
         const val EXTRA_HIGHLIGHT_SETTING = "extra_highlight_setting"
+        /** Intent extra: Boolean - open the Operations tab and expand the Scheduled section (S0353 widget deep-link). */
+        const val EXTRA_OPEN_SCHEDULED = "extra_open_scheduled"
         const val HIGHLIGHT_EMBEDDED_GAME = "embedded_game"
         const val TAB_GENERAL = 0
         const val TAB_PLAYBACK = 2
@@ -166,8 +168,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         // If opened to create a new scheduled operation from Browse, jump to Operations tab
         val sourceResourceId = intent.getLongExtra(EXTRA_SOURCE_RESOURCE_ID, -1L)
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
+        val openScheduled = intent.getBooleanExtra(EXTRA_OPEN_SCHEDULED, false)
         when {
-            sourceResourceId != -1L && BuildConfig.ENABLE_SCHEDULED_OPERATIONS -> {
+            (sourceResourceId != -1L || openScheduled) && BuildConfig.ENABLE_SCHEDULED_OPERATIONS -> {
                 binding.viewPager.post { binding.viewPager.setCurrentItem(3, false) }
             }
             initialTab in 0 until adapter.itemCount -> {

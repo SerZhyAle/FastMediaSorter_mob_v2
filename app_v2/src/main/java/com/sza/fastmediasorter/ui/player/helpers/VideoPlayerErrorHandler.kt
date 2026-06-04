@@ -81,11 +81,27 @@ internal class VideoPlayerErrorHandler(
             Timber.e("VideoPlayerManager: EOFException - max retries exceeded")
         }
 
+        // Honest log levels for recoverable / gracefully-handled error classes. Each of these is
+        // resolved further down (mark + clean advance, or recover in place) - the same quality the
+        // decoder-failure path already achieves. Logging them at ERROR would misrepresent severity
+        // and mirror them to the on-screen debug error notification (S0341) as if playback broke.
+        val isBufferingHang = error.errorCode == PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK
+        val isNetworkTimeout = error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT
+        val isSeekIndexFailureClass = error.errorCode == PlaybackException.ERROR_CODE_UNSPECIFIED &&
+            generateSequence<Throwable>(error) { it.cause }.any { it is ArrayIndexOutOfBoundsException }
+
         if (isMediaCodecError) {
             // S0213 Pillar A: arm cooldown so the very next replay of this same source is
             // short-circuited by PlayerMediaLoaderManager before media3 rebuilds its graph.
             manager.currentFilePath?.let(manager.decoderFailureTracker::markFailed)
             Timber.w("VideoPlayerManager: MediaCodec error - errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
+        } else if (isBufferingHang) {
+            Timber.d("S0344: SMB streaming buffering hang classified at warn level")
+            Timber.w("VideoPlayerManager: buffering hang (stuck buffering, not loading) - errorCode=${error.errorCode}, will mark file and advance")
+        } else if (isNetworkTimeout) {
+            Timber.w("VideoPlayerManager: playback timeout - errorCode=${error.errorCode}, will mark file and advance")
+        } else if (isSeekIndexFailureClass) {
+            Timber.w("VideoPlayerManager: seek index failure - errorCode=${error.errorCode}, will recover playback in place")
         } else {
             Timber.e(error, "VideoPlayerManager: Playback error - errorCode=${error.errorCode}")
         }
@@ -172,7 +188,13 @@ internal class VideoPlayerErrorHandler(
             }
         }
 
-        if (error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT) {
+        // ERROR_CODE_TIMEOUT (network/IO timeout) and ERROR_CODE_FAILED_RUNTIME_CHECK
+        // (ExoPlayer watchdog "Playback stuck buffering and not loading" - errorCode=1004,
+        // typically a truncated/corrupt local file whose moov/data never loads) both mean the
+        // current file cannot start. Treat them alike: mark the file failed for the session and
+        // show a named message instead of the generic skip toast.
+        if (error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT ||
+            error.errorCode == PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK) {
             manager.currentFilePath?.let(VideoPlaybackFailureSessionCache::markFailed)
             val userMessage = manager.currentFilePath
                 ?.substringAfterLast('/')
@@ -181,6 +203,30 @@ internal class VideoPlayerErrorHandler(
                 ?: manager.context.getString(R.string.error_loading_media)
             manager.playerCallback.onBuffering(false)
             manager.playerCallback.onPlaybackError(error, userMessage)
+            return true
+        }
+
+        // Seek failure on an otherwise-playable file. AVI files with an empty/absent track index
+        // crash the extractor with ArrayIndexOutOfBoundsException when the seek point is computed;
+        // media3 surfaces it as ERROR_CODE_UNSPECIFIED (1000, "Unexpected runtime error"). This is
+        // not a source/open failure - the file plays, only exact seeking is impossible. Recover
+        // playback in place at the last genuine playback position instead of treating it as a file
+        // failure and auto-navigating to the next file (which the user perceives as a crash).
+        // Guarded by lastGoodPositionMs > 0: if the file never produced a real playback position,
+        // the failure is at open time and must propagate normally.
+        val isSeekIndexFailure = error.errorCode == PlaybackException.ERROR_CODE_UNSPECIFIED &&
+            generateSequence<Throwable>(error) { it.cause }
+                .any { it is ArrayIndexOutOfBoundsException }
+        if (isSeekIndexFailure && manager.lastGoodPositionMs > 0L && !manager.playerCallback.isActivityDestroyed()) {
+            Timber.d("S0342: AVI seek index failure recovered in place")
+            val resumePosition = manager.lastGoodPositionMs
+            Timber.w("VideoPlayerManager: seek index failure (empty/absent track index) - resuming at ${resumePosition}ms instead of skipping file")
+            manager.playerCallback.onBuffering(false)
+            manager.exoPlayer?.let { player ->
+                player.prepare()
+                player.seekTo(resumePosition)
+                player.play()
+            }
             return true
         }
 

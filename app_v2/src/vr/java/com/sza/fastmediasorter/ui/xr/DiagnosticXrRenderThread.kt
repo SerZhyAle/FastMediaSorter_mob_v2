@@ -4,7 +4,9 @@ import android.app.Activity
 import android.view.Surface
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 
 /**
@@ -30,6 +32,17 @@ class DiagnosticXrRenderThread(
     private val textureBytes: ByteArray,
     private val textureWidth: Int,
     private val textureHeight: Int,
+    /**
+     * Completed by [DiagnosticXrActivity.onWindowFocusChanged] when the Activity gains window
+     * focus. On re-entry sessions the XrInstance is reused and xrCreateSession is called
+     * immediately, before HzOS registers the volumetric window (VolumetricWindowInfo is null).
+     * Awaiting this deferred before [DiagnosticXrRuntime.startSession] ensures the window is
+     * registered so the XR runtime sees "Activity is already in the ready state" instead of
+     * deferring and never firing nativeOnActivityReady. Cold-start: deferred is already
+     * completed by the time the render thread reaches this point (5-second XrInstance init
+     * provides the natural window registration window), so await returns instantly.
+     */
+    private val windowFocused: Deferred<Unit>,
     private val onSessionReady: () -> Unit,
     private val onExitDelivered: () -> Unit,
     private val onStartFailed: (DiagnosticXrNativeResult) -> Unit,
@@ -63,6 +76,21 @@ class DiagnosticXrRenderThread(
             if (attachResult != DiagnosticXrNativeResult.Ok) {
                 Timber.w("DiagnosticXrRenderThread: attachSurface failed -> $attachResult")
                 onStartFailed(attachResult); return
+            }
+            // Wait for Activity window focus before starting the XR session. On re-entry the
+            // XrInstance is reused so xrCreateSession fires ~0 ms after the Activity starts,
+            // before HzOS has registered the volumetric window; the runtime then defers
+            // nativeOnActivityReady indefinitely (session stays in IDLE, user sees black
+            // screen). Window focus is the first reliable observable signal that HzOS is done
+            // with window registration. 5-second timeout: proceed anyway if focus is late
+            // (same outcome as before the fix; harmless for fresh cold starts where the
+            // deferred is already complete from the 5-second XrInstance init window).
+            val focusWaitMs = System.currentTimeMillis()
+            val focused = runBlocking { withTimeoutOrNull(5_000L) { windowFocused.await() } }
+            if (focused == null) {
+                Timber.w("DiagnosticXrRenderThread: timed out waiting for window focus (${System.currentTimeMillis() - focusWaitMs} ms); proceeding anyway")
+            } else {
+                Timber.d("DiagnosticXrRenderThread: window focus received in ${System.currentTimeMillis() - focusWaitMs} ms")
             }
             val startResult = runBlocking { runtime.startSession() }
             if (startResult != DiagnosticXrNativeResult.Ok) {

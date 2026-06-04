@@ -49,6 +49,8 @@ Each line in `§0` must be marked `Provided by user`, `Delegated by user`, or `M
 
 The current `/spec` invocation counts as a request to author the draft, not as approval to proceed. A free-form or empty request still stays `Draft` unless the owner explicitly asks to approve/proceed. Promotion to `Approved` requires either an explicit follow-up approval from the user or an explicit human-triggered `/spec-tech <Sxxxx>` on a draft whose `§0` gate is complete.
 
+Style hygiene is part of the approval gate, not the draft-writing gate. When creating or extending a `Draft`, do not run a separate cleanup pass or block the ticket solely for ellipsis / `ё` / wording sanitation. Before promotion to `Approved`, clean and enforce the Author Style.
+
 ---
 
 ## Process
@@ -381,7 +383,7 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## Constraints
 
-- Language and format: Body in Russian. Frontmatter, code identifiers, and file paths in English. Use `..`, not `...`. Always use `ё`/`Ё`.
+- Language and format: Body in Russian. Frontmatter, code identifiers, and file paths in English. For `Draft`, prefer Author Style but do not block drafting on style hygiene alone. Before `Draft` -> `Approved`, enforce `..` instead of `...` and `ё`/`Ё` where grammatically correct.
 - §0 approval gate is mandatory for every new strategic draft. Missing owner-input lines block `Approved`.
 - §5: no class names, file paths, line budgets, Room versions, Hilt modules - architectural roles only. Strategic scope stays at architecture-role level only.
 - §11: observable outcomes only, no internal architecture claims.

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
+import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -195,12 +196,19 @@ class AudioServiceController(
                 if (item.mimeType != null) {
                     mediaItemBuilder.setMimeType(item.mimeType)
                 }
+                val extras = Bundle().apply {
+                    item.sourcePath?.let { putString(EXTRA_SOURCE_PATH, it) }
+                    putLong(EXTRA_RESOURCE_ID, item.resourceId)
+                    putLong(EXTRA_SIZE, item.size)
+                    putLong(EXTRA_DATE_MODIFIED, item.dateModified)
+                }
                 mediaItemBuilder
                     .setMediaMetadata(
                         MediaMetadata.Builder()
                             .setTitle(item.title)
                             .setArtist(item.artist)
                             .setArtworkUri(item.albumArtUri)
+                            .setExtras(extras)
                             .build()
                     )
                     .build()
@@ -284,5 +292,12 @@ class AudioServiceController(
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
         mediaController = null
+    }
+
+    companion object {
+        const val EXTRA_SOURCE_PATH = "fms.source_path"
+        const val EXTRA_RESOURCE_ID = "fms.resource_id"
+        const val EXTRA_SIZE = "fms.size"
+        const val EXTRA_DATE_MODIFIED = "fms.date_modified"
     }
 }

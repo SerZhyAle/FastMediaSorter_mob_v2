@@ -16,10 +16,11 @@ When any web browsing, page reading, or URL navigation is needed:
 
 ## Author Style (MANDATORY)
 
-Applies to ALL text output - docs, UI strings (`strings.xml`), chat responses, specs:
+Applies to chat responses, production docs, UI strings (`strings.xml`), and specs in `Approved` or later statuses. Draft spec exception is listed below:
 
-1. **Ellipsis**: Use `..` (two dots) - NEVER `...` (three dots).
+1. **Ellipsis**: Use `..` (two dots) - NEVER `...` (three dots) for chat, production docs, UI strings, and specs in `Approved` or later statuses.
 2. **Ё/ё**: Always use `ё`/`Ё` in Russian text where grammatically correct - NEVER substitute with `е`/`Е`. Common cases: `всё`, `ещё`, `чёрный`, `объём`, `тёмный`, `учётный`, `надёжный`, `удалённый`, `лёгкий`, `жёсткий`. When editing Russian text - read and fix manually; do NOT use blind script replacement.
+3. **Draft specs**: `PLAN/Sxxxx_*.md` files in `Draft` may stay rough. Do not run hygiene-only sweeps or block drafting solely for ellipsis / `ё` / wording sanitation. Enforce this style before `Draft` -> `Approved`.
 
 ## Caveman Mode (OPTIONAL)
 

@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.view.View
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
@@ -53,11 +52,8 @@ class GameLaunchWidgetProvider : AppWidgetProvider() {
             enabled: Boolean
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_game_launch)
-            views.setTextViewText(R.id.widget_game_label, context.getString(R.string.game_widget_label))
-            views.setViewVisibility(
-                R.id.widget_game_disabled_label,
-                if (enabled) View.GONE else View.VISIBLE
-            )
+            Timber.d("S0348: game widget render icon-only enabled=$enabled")
+            views.setInt(R.id.widget_game_icon, "setImageAlpha", if (enabled) 255 else 110)
             views.setOnClickPendingIntent(
                 R.id.widget_game_container,
                 createPendingIntent(context, appWidgetId, enabled)

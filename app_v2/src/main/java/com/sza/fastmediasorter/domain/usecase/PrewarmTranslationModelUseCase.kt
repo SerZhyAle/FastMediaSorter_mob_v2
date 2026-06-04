@@ -41,7 +41,6 @@ class PrewarmTranslationModelUseCase @Inject constructor(
             _status.value = TranslationModelPrewarmStatus.Idle
             return
         }
-        Timber.d("S0334: prewarm requested for $targetSettingsCode")
         val targetMlKit = TranslationLanguageCodeMapper.languageCodeToMLKit(targetSettingsCode)
         val required = requiredModels(targetMlKit)
         try {

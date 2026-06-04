@@ -209,12 +209,18 @@ class TranslationButtonManager(
             val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnCancel)
 
             fun updateLanguageViews() {
-                sourceLanguageView.text = formatLanguageLabel(selectedSourceLang, interfaceLang)
-                targetLanguageView.text = formatLanguageLabel(selectedTargetLang, interfaceLang)
-                sourceLanguageView.contentDescription =
-                    "${context.getString(R.string.translation_source_language_and_ocr)}: ${sourceLanguageView.text}"
-                targetLanguageView.contentDescription =
-                    "${context.getString(R.string.translation_target_language)}: ${targetLanguageView.text}"
+                applyLanguageLabel(
+                    sourceLanguageView,
+                    selectedSourceLang,
+                    interfaceLang,
+                    R.string.translation_source_language_and_ocr
+                )
+                applyLanguageLabel(
+                    targetLanguageView,
+                    selectedTargetLang,
+                    interfaceLang,
+                    R.string.translation_target_language
+                )
             }
 
             sourceLanguageView.setOnClickListener {
@@ -379,11 +385,24 @@ class TranslationButtonManager(
         ).show(fragmentActivity.supportFragmentManager, tag)
     }
 
-    private fun formatLanguageLabel(code: String, interfaceLanguage: String): String {
+    private fun applyLanguageLabel(
+        view: TextView,
+        code: String,
+        interfaceLanguage: String,
+        @androidx.annotation.StringRes titleRes: Int
+    ) {
         val displayLocale = Locale.forLanguageTag(interfaceLanguage)
         val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
             ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
-        return item?.let(TranslationLanguageCatalog::formatLanguage) ?: code.uppercase(Locale.ROOT)
+        if (item != null) {
+            LanguageFlagFormatter.applyLabel(view, item)
+            view.contentDescription =
+                "${context.getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
+        } else {
+            val fallback = code.uppercase(Locale.ROOT)
+            view.text = fallback
+            view.contentDescription = "${context.getString(titleRes)}: $fallback"
+        }
     }
     
     /**

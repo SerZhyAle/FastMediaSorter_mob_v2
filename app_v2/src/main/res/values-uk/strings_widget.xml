@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_add_to_home_screen">Додати на головний екран</string>
+    <string name="widget_already_added">Віджет вже додано на головний екран</string>
+    <string name="widget_calculator_description">Відкрити вбудований калькулятор</string>
+    <string name="widget_calculator_label">Калькулятор</string>
+    <string name="widget_camera_ocr_translate_description">Швидке захоплення, розпізнавання та переклад тексту за допомогою камери.</string>
+    <string name="widget_camera_ocr_translate_label">Камера-переклад</string>
+    <string name="widget_camera_photos_description">Швидкий доступ до фото з камери</string>
+    <string name="widget_camera_photos_label">Фото з камери</string>
+    <string name="widget_camera_photos_resource_not_found">Ресурс «Фото з камери» не знайдено</string>
+    <string name="widget_audio_now_playing_action_favorite">Додати до обраного</string>
+    <string name="widget_audio_now_playing_action_next">Наступний трек</string>
+    <string name="widget_audio_now_playing_action_play_pause">Відтворити / Пауза</string>
+    <string name="widget_audio_now_playing_action_previous">Попередній трек</string>
+    <string name="widget_audio_now_playing_artist_unknown">Невідомий виконавець</string>
+    <string name="widget_audio_now_playing_description">Керування фоновим аудіо з домашнього екрана</string>
+    <string name="widget_audio_now_playing_empty_title">Аудіо не грає</string>
+    <string name="widget_audio_now_playing_empty_subtitle">Увімкніть музику, щоб заповнити цей віджет.</string>
+    <string name="widget_audio_now_playing_label">Зараз грає аудіо</string>
+    <string name="widget_capture_ocr_panel_description">Швидкий доступ до фото з камери та Camera OCR.</string>
+    <string name="widget_capture_ocr_panel_label">Захоплення й OCR</string>
+    <string name="widget_continue_reading_description">Відновити слайдшоу з останньої позиції</string>
+    <string name="widget_continue_reading_label">Продовжити читання</string>
+    <string name="widget_favorites_description">Швидкий доступ до обраних файлів</string>
+    <string name="widget_favorites_label">Обране</string>
+    <string name="widget_pin_not_supported">Закріплення віджетів не підтримується на цьому пристрої</string>
+    <string name="widget_random_music_description">Відтворити випадковий трек</string>
+    <string name="widget_random_music_label">Випадкова музика</string>
+    <string name="widget_random_music_resource_not_found">Ресурс «Випадкова музика» не знайдено</string>
+    <string name="widget_resource_launch_description">Запуск конкретного ресурсу</string>
+    <string name="widget_resource_launch_label">Тека</string>
+    <string name="widget_resource_not_configured">Натисніть для налаштування</string>
+    <string name="widget_select_resource">Виберіть ресурс</string>
+    <string name="widget_unlock_screen_prompt">Розблокуйте екран для додавання віджета</string>
+    <string name="settings_add_home_widget_title">Додати віджет на головний екран..</string>
+    <string name="widget_picker_dialog_title">Виберіть віджет</string>
+    <!-- S0353 Scheduled Tasks widget -->
+    <string name="widget_scheduled_tasks_label">Завдання за розкладом</string>
+    <string name="widget_scheduled_tasks_description">Статус і керування запланованими операціями</string>
+    <string name="widget_scheduled_run_all">Запустити всі</string>
+    <string name="widget_scheduled_pause_all">Призупинити всі</string>
+    <string name="widget_scheduled_resume_all">Відновити всі</string>
+    <string name="widget_scheduled_empty">Немає запланованих завдань</string>
+    <string name="widget_scheduled_active_count">Активних: %1$d</string>
+    <string name="widget_scheduled_last_ok">Остання: OK %1$s</string>
+    <string name="widget_scheduled_last_error">Остання: помилка %1$s</string>
+    <string name="widget_scheduled_next_run">Наступний запуск: %1$s</string>
+    <!-- S0352 Random Photo Frame widget -->
+    <string name="widget_random_photo_frame_label">Випадковий кадр</string>
+    <string name="widget_random_photo_frame_description">Показує випадкове фото з вибраного ресурсу</string>
+    <string name="widget_random_photo_frame_empty_title">Немає фото в кеші</string>
+    <string name="widget_random_photo_frame_empty_subtitle">Відкрийте ресурс, щоб оновити кеш.</string>
+    <string name="widget_random_photo_frame_resource_missing">Вибраний ресурс не знайдено</string>
+    <string name="widget_random_photo_frame_cache_empty">Кешованих фото ще немає</string>
+</resources>

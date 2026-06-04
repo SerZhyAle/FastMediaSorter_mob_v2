@@ -50,7 +50,6 @@ object ColorThemePrefs {
             .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
             .getString(KEY_COLOR_THEME, DEFAULT) ?: DEFAULT
         AppCompatDelegate.setDefaultNightMode(toNightMode(value))
-        Timber.d("S0328: applied saved color theme at startup mode=$value")
         Timber.i("ColorThemePrefs: applied color theme mode=$value")
     }
 }

@@ -14,6 +14,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +36,8 @@ import javax.inject.Singleton
 @Singleton
 class WorkManagerScheduler @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val scheduledOperationRepository: ScheduledOperationRepository
+    private val scheduledOperationRepository: ScheduledOperationRepository,
+    private val settingsRepository: SettingsRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
@@ -250,6 +252,64 @@ class WorkManagerScheduler @Inject constructor(
             Timber.i("WorkManagerScheduler: rescheduled ${ops.size} scheduled operations")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: rescheduleAll failed")
+        }
+    }
+
+    /**
+     * Run every enabled operation once, as a single serialized WorkManager chain so at most one
+     * operation runs at a time (no parallel foreground services). Skipped while the scheduler is
+     * paused. The timed schedule continues independently of this manual burst.
+     */
+    suspend fun runAllNow() {
+        try {
+            if (settingsRepository.getSettings().first().scheduledOperationsPaused) {
+                Timber.i("WorkManagerScheduler: runAllNow skipped - scheduler paused")
+                return
+            }
+            val ops = scheduledOperationRepository.getAllEnabled()
+            if (ops.isEmpty()) {
+                Timber.i("WorkManagerScheduler: runAllNow - no enabled operations")
+                return
+            }
+            val requests = ops.map { op ->
+                OneTimeWorkRequestBuilder<ScheduledOperationsWorker>()
+                    .setInputData(Data.Builder().putLong(ScheduledOperationsWorker.KEY_OPERATION_ID, op.id).build())
+                    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                    .addTag("sched_op_run_all")
+                    .build()
+            }
+            var continuation = WorkManager.getInstance(context)
+                .beginUniqueWork("sched_op_run_all", ExistingWorkPolicy.REPLACE, requests.first())
+            for (r in requests.drop(1)) { continuation = continuation.then(r) }
+            continuation.enqueue()
+            Timber.i("WorkManagerScheduler: runAllNow enqueued ${requests.size} serialized op(s)")
+            com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: runAllNow failed")
+        }
+    }
+
+    /** Durably pause the scheduler: persist the paused flag and cancel all scheduled workers. */
+    suspend fun pauseAll() {
+        try {
+            settingsRepository.updateScheduledOperationsPaused(true)
+            cancelAllScheduledOperations()
+            Timber.i("WorkManagerScheduler: pauseAll - scheduler paused, workers cancelled")
+            com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: pauseAll failed")
+        }
+    }
+
+    /** Durably resume the scheduler: clear the paused flag and reschedule all enabled operations. */
+    suspend fun resumeAll() {
+        try {
+            settingsRepository.updateScheduledOperationsPaused(false)
+            rescheduleAll()
+            Timber.i("WorkManagerScheduler: resumeAll - scheduler resumed, operations rescheduled")
+            com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: resumeAll failed")
         }
     }
 

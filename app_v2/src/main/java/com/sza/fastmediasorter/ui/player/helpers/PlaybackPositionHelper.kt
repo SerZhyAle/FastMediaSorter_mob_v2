@@ -26,7 +26,12 @@ internal fun VideoPlayerManager.startPositionSaving() {
         getPositionMs = { exoPlayer?.currentPosition ?: -1L },
         getDurationMs = { exoPlayer?.duration ?: -1L },
         scope = managerScope,
-        onSave = { path, pos, dur -> playbackPositionRepository.savePosition(path, pos, dur) }
+        onSave = { path, pos, dur ->
+            playbackPositionRepository.savePosition(path, pos, dur)
+            // Track the last genuine playback position (not a transient mid-seek value) so a
+            // seek that crashes the extractor can resume in place instead of skipping the file.
+            if (pos > 0L && exoPlayer?.isPlaying == true) lastGoodPositionMs = pos
+        }
     )
     positionSaveLoop!!.start()
     Timber.d("VideoPlayerManager: Started position auto-save")

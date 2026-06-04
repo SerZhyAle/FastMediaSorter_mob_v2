@@ -5,6 +5,7 @@ import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.util.LruCache
 import androidx.exifinterface.media.ExifInterface
+import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
@@ -189,13 +190,21 @@ class SmbMediaScanner @Inject constructor(
                             // S0248 Phase 3: derive per-file enrichment state from the strongest
                             // negative result (Broken trumps Partial, which trumps Complete).
                             val state = combineState(exifResult, videoResult)
+                            val fullPath = buildFullSmbPath(connectionInfo, fileInfo.path)
+                            val safeFields = MediaFileIntegrity.sanitize(
+                                name = fileInfo.name,
+                                path = fullPath,
+                                type = mediaType,
+                                sourcePath = fullPath,
+                                metadataState = state
+                            )
 
                             MediaFile(
-                                name = fileInfo.name,
-                                path = buildFullSmbPath(connectionInfo, fileInfo.path),
+                                name = safeFields.name,
+                                path = safeFields.path,
                                 size = fileInfo.size,
                                 createdDate = fileInfo.lastModified,
-                                type = mediaType,
+                                type = safeFields.type,
                                 duration = videoMetadata?.duration,
                                 width = exifMetadata?.width ?: videoMetadata?.width,
                                 height = exifMetadata?.height ?: videoMetadata?.height,
@@ -207,7 +216,7 @@ class SmbMediaScanner @Inject constructor(
                                 videoBitrate = videoMetadata?.bitrate,
                                 videoFrameRate = videoMetadata?.frameRate,
                                 videoRotation = videoMetadata?.rotation,
-                                metadataState = state
+                                metadataState = safeFields.metadataState
                             )
                         } else null
                     }
@@ -270,12 +279,20 @@ class SmbMediaScanner @Inject constructor(
                         Timber.d("getFileByPath: Unsupported media type for ${smbFile.name}")
                         null
                     } else {
-                        MediaFile(
+                        val fullPath = buildFullSmbPath(connectionInfo, smbFile.path)
+                        val safeFields = MediaFileIntegrity.sanitize(
                             name = smbFile.name,
-                            path = buildFullSmbPath(connectionInfo, smbFile.path),
+                            path = fullPath,
+                            type = mediaType,
+                            sourcePath = fullPath
+                        )
+                        MediaFile(
+                            name = safeFields.name,
+                            path = safeFields.path,
                             size = smbFile.size,
                             createdDate = smbFile.lastModified,
-                            type = mediaType
+                            type = safeFields.type,
+                            metadataState = safeFields.metadataState
                         )
                     }
                 }
@@ -331,7 +348,21 @@ class SmbMediaScanner @Inject constructor(
                         val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                         if (mediaType == null || !supportedTypes.contains(mediaType)) return@mapNotNull null
                         if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
-                        MediaFile(name = fileInfo.name, path = buildFullSmbPath(connectionInfo, fileInfo.path), size = fileInfo.size, createdDate = fileInfo.lastModified, type = mediaType)
+                        val fullPath = buildFullSmbPath(connectionInfo, fileInfo.path)
+                        val safeFields = MediaFileIntegrity.sanitize(
+                            name = fileInfo.name,
+                            path = fullPath,
+                            type = mediaType,
+                            sourcePath = fullPath
+                        )
+                        MediaFile(
+                            name = safeFields.name,
+                            path = safeFields.path,
+                            size = fileInfo.size,
+                            createdDate = fileInfo.lastModified,
+                            type = safeFields.type,
+                            metadataState = safeFields.metadataState
+                        )
                     }
                     
                     Timber.d("scanFolderChunked: Returning ${mediaFiles.size} MediaFile objects")
@@ -387,7 +418,21 @@ class SmbMediaScanner @Inject constructor(
                         val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                         if (mediaType == null || !supportedTypes.contains(mediaType)) return@mapNotNull null
                         if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
-                        MediaFile(name = fileInfo.name, path = buildFullSmbPath(connectionInfo, fileInfo.path), size = fileInfo.size, createdDate = fileInfo.lastModified, type = mediaType)
+                        val fullPath = buildFullSmbPath(connectionInfo, fileInfo.path)
+                        val safeFields = MediaFileIntegrity.sanitize(
+                            name = fileInfo.name,
+                            path = fullPath,
+                            type = mediaType,
+                            sourcePath = fullPath
+                        )
+                        MediaFile(
+                            name = safeFields.name,
+                            path = safeFields.path,
+                            size = fileInfo.size,
+                            createdDate = fileInfo.lastModified,
+                            type = safeFields.type,
+                            metadataState = safeFields.metadataState
+                        )
                     }
                     
                     // If we got fewer files than requested, no more pages
@@ -479,6 +524,13 @@ class SmbMediaScanner @Inject constructor(
                         if (fileInfo.isDirectory && TrashFolderContract.matchesTrashSegment(fileInfo.name)) return@mapNotNull null
 
                         if (fileInfo.isDirectory) {
+                            val fullPath = buildFullSmbPath(connectionInfo, fileInfo.path)
+                            val safeFields = MediaFileIntegrity.sanitize(
+                                name = fileInfo.name,
+                                path = fullPath,
+                                type = MediaType.IMAGE,
+                                sourcePath = fullPath
+                            )
                             // For directories, count immediate children
                             val childCount = smbClient.scanMediaFiles(
                                 connectionInfo = connectionInfo.connectionInfo,
@@ -494,25 +546,34 @@ class SmbMediaScanner @Inject constructor(
                             }
 
                             MediaFile(
-                                name = fileInfo.name,
-                                path = buildFullSmbPath(connectionInfo, fileInfo.path),
+                                name = safeFields.name,
+                                path = safeFields.path,
                                 size = 0L,
                                 createdDate = fileInfo.lastModified,
-                                type = MediaType.IMAGE, // Placeholder for folders
+                                type = safeFields.type, // Placeholder for folders
                                 isDirectory = true,
-                                childCount = childCount
+                                childCount = childCount,
+                                metadataState = safeFields.metadataState
                             )
                         } else {
                             val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                             if (mediaType != null && supportedTypes.contains(mediaType)) {
                                 if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
-                                    MediaFile(
+                                    val fullPath = buildFullSmbPath(connectionInfo, fileInfo.path)
+                                    val safeFields = MediaFileIntegrity.sanitize(
                                         name = fileInfo.name,
-                                        path = buildFullSmbPath(connectionInfo, fileInfo.path),
+                                        path = fullPath,
+                                        type = mediaType,
+                                        sourcePath = fullPath
+                                    )
+                                    MediaFile(
+                                        name = safeFields.name,
+                                        path = safeFields.path,
                                         size = fileInfo.size,
                                         createdDate = fileInfo.lastModified,
-                                        type = mediaType,
-                                        isDirectory = false
+                                        type = safeFields.type,
+                                        isDirectory = false,
+                                        metadataState = safeFields.metadataState
                                     )
                                 } else null
                             } else null

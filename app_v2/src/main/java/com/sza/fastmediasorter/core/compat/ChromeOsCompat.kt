@@ -11,7 +11,12 @@ object ChromeOsCompat {
 
     fun isChromeOs(context: Context): Boolean {
         _isChromeOs?.let { return it }
-        val result = context.packageManager.hasSystemFeature("org.chromium.arc")
+        // Single ARC++ detection site for the whole app (ADR-3). Cover both the
+        // standard Chromebook signal and the managed-device variant, so managed
+        // Chromebooks that only report device_management are detected too.
+        val pm = context.packageManager
+        val result = pm.hasSystemFeature("org.chromium.arc") ||
+            pm.hasSystemFeature("org.chromium.arc.device_management")
         _isChromeOs = result
         Timber.d("ChromeOsCompat: isChromeOs=$result")
         return result

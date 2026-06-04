@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="audio">Аудио</string>
+    <string name="audio_a">Audio (A)</string>
+    <string name="audio_album_label">Альбом: %1$s</string>
+    <string name="audio_artist_label">Исполнитель: %1$s</string>
+    <string name="audio_background_photos_load_failed">Не получилось загрузить фоновые фотографии. Попробуйте ещё раз.</string>
+    <string name="audio_background_photos_no_photos_found">Не получилось найти фотографии в выбранном ресурсе.</string>
+    <string name="audio_background_photos_source_label">Источник фоновых фото:</string>
+    <string name="audio_bit_depth_label">Битовая глубина: %1$d-бит</string>
+    <string name="audio_bitrate_label">Аудио битрейт: %1$s</string>
+    <string name="audio_cache_size_warning_message">Аудиокэш занимает значительное место. Удалить старые файлы для освобождения пространства?</string>
+    <string name="audio_cache_size_warning_title">Большой аудиокэш</string>
+    <string name="audio_channels_label">Каналов: %1$s</string>
+    <string name="audio_channels_mono">Моно</string>
+    <string name="audio_channels_stereo">Стерео</string>
+    <string name="audio_codec_label">Аудио кодек: %1$s</string>
+    <string name="audio_cover_art">Обложка аудио</string>
+    <string name="audio_cover_art_cd">Обложка альбома</string>
+    <string name="audio_duration_label">Длительность: %1$s</string>
+    <string name="audio_empty_state_avd_pulse">Нота + пульсирующие кольца</string>
+    <string name="audio_empty_state_canvas_bars">Дышащие столбики (15)</string>
+    <string name="audio_empty_state_canvas_waves">Волны и частицы</string>
+    <string name="audio_empty_state_gif_loop">GIF / WebP в цикле</string>
+    <string name="audio_empty_state_label">Визуализатор при отсутствии обложки</string>
+    <string name="audio_empty_state_none">Чёрный фон</string>
+    <string name="audio_empty_state_visualization">Визуализация (MP4)</string>
+    <string name="audio_info_section">Информация об аудио</string>
+    <string name="audio_lossless_label">Качество: %1$s</string>
+    <string name="audio_lossless_value_lossless">Без потерь</string>
+    <string name="audio_lossless_value_lossy">С потерями</string>
+    <string name="audio_replaygain_album_label">ReplayGain (альбом): %1$.2f дБ</string>
+    <string name="audio_replaygain_track_label">ReplayGain (трек): %1$.2f дБ</string>
+    <string name="audio_sample_rate_label">Частота дискретизации: %1$d Гц</string>
+    <string name="audio_size_limit">Ограничение размера аудио</string>
+    <string name="audio_size_limits">Ограничения размера аудио (КБ)</string>
+    <string name="audio_size_range">0 КБ - 100 МБ</string>
+    <string name="audio_title_label">Title: %1$s</string>
+    <string name="audio_track">Аудиодорожка</string>
+</resources>

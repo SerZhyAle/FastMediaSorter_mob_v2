@@ -163,7 +163,6 @@ class CloudFileOperationHandler @Inject constructor(
 
             operation.sources.forEachIndexed { index, source ->
                 val fileName = extractFileName(source.path, source.name)
-                Timber.d("S0266: cloud copy executeCopy fileName=$fileName cloudPath=${source.path}")
                 // S0266: announce current file to progress UI before the blocking download starts.
                 progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
 
@@ -461,6 +460,7 @@ class CloudFileOperationHandler @Inject constructor(
         fileName: String,
         progressCallback: ByteProgressCallback? = null
     ): Boolean {
+        Timber.d("S0355: cloud download temp-transfer guard reached")
         val normalizedDestPath = normalizeNetworkPath(destPath)
         Timber.d("downloadFromCloudTo: $cloudPath → $normalizedDestPath (orig: $destPath)")
         // S0266: build a scope bound to the current suspend context so the cloud progress adapter
@@ -483,7 +483,6 @@ class CloudFileOperationHandler @Inject constructor(
             when (metadataResult) {
                 is CloudResult.Success -> metadataResult.data.name.takeIf { it.isNotBlank() } ?: fileName
                 else -> {
-                    Timber.w("S0266: getFileMetadata fallback failed for $cloudPath - using original fileName")
                     fileName
                 }
             }
@@ -517,15 +516,28 @@ class CloudFileOperationHandler @Inject constructor(
             return when (destType) {
                     ResourceType.LOCAL -> {
                         // Copy temp file to local destination
+                        if (!tempFile.exists()) {
+                            Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->local transfer")
+                            return false
+                        }
                         val localFile = File(normalizedDestPath, resolvedFileName)
                         localFile.parentFile?.mkdirs()
-                        tempFile.copyTo(localFile, overwrite = true)
+                        try {
+                            tempFile.copyTo(localFile, overwrite = true)
+                        } catch (e: java.io.IOException) {
+                            Timber.w(e, "downloadFromCloudTo: cloud->local transfer failed")
+                            return false
+                        }
                         Timber.i("downloadFromCloudTo: SUCCESS - wrote to local ${localFile.absolutePath}")
                         MediaStoreNotifier.notifyFile(context, localFile.absolutePath, "cloud-download")
                         true
                     }
                     ResourceType.SMB -> {
                         // Upload to SMB
+                        if (!tempFile.exists()) {
+                            Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->SMB transfer")
+                            return false
+                        }
                         val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
                         if (credentials == null) {
                             Timber.e("downloadFromCloudTo: No credentials for SMB path $normalizedDestPath")
@@ -535,13 +547,18 @@ class CloudFileOperationHandler @Inject constructor(
                         val remotePath = normalizedDestPath.removePrefix(prefix).removePrefix("/")
                         val remoteFilePath = if (remotePath.isEmpty()) resolvedFileName else "$remotePath/$resolvedFileName"
 
-                        val uploadResult = smbClient.uploadFile(
-                            networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
-                            remoteFilePath,
-                            tempFile.inputStream(),
-                            tempFile.length(),
-                        progressCallback
-                    )
+                        val uploadResult = try {
+                            smbClient.uploadFile(
+                                networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
+                                remoteFilePath,
+                                tempFile.inputStream(),
+                                tempFile.length(),
+                                progressCallback
+                            )
+                        } catch (e: java.io.IOException) {
+                            Timber.w(e, "downloadFromCloudTo: cloud->SMB transfer failed")
+                            return false
+                        }
 
                     when (uploadResult) {
                         is SmbResult.Success -> {
@@ -556,6 +573,10 @@ class CloudFileOperationHandler @Inject constructor(
                 }
                 ResourceType.SFTP -> {
                     // Upload to SFTP
+                    if (!tempFile.exists()) {
+                        Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->SFTP transfer")
+                        return false
+                    }
                     val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
                     if (credentials == null) {
                         Timber.e("downloadFromCloudTo: No credentials for SFTP path $normalizedDestPath")
@@ -564,12 +585,17 @@ class CloudFileOperationHandler @Inject constructor(
                     val remotePath = extractSftpRemotePath(normalizedDestPath, credentials)
                     val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") resolvedFileName else "$remotePath/$resolvedFileName"
 
-                    val uploadResult = sftpClient.uploadFile(
-                        networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
-                        remoteFilePath,
-                        tempFile.inputStream(),
-                        tempFile.length()
-                    )
+                    val uploadResult = try {
+                        sftpClient.uploadFile(
+                            networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
+                            remoteFilePath,
+                            tempFile.inputStream(),
+                            tempFile.length()
+                        )
+                    } catch (e: java.io.IOException) {
+                        Timber.w(e, "downloadFromCloudTo: cloud->SFTP transfer failed")
+                        return false
+                    }
 
                     uploadResult.fold(
                         onSuccess = {
@@ -584,6 +610,10 @@ class CloudFileOperationHandler @Inject constructor(
                 }
                 ResourceType.FTP -> {
                     // Upload to FTP
+                    if (!tempFile.exists()) {
+                        Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->FTP transfer")
+                        return false
+                    }
                     val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
                     if (credentials == null) {
                         Timber.e("downloadFromCloudTo: No credentials for FTP path $normalizedDestPath")
@@ -607,12 +637,17 @@ class CloudFileOperationHandler @Inject constructor(
                         val remotePath = extractFtpRemotePath(normalizedDestPath, credentials)
                         val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") resolvedFileName else "$remotePath/$resolvedFileName"
 
-                        val uploadResult = ftpClient.uploadFile(
-                            remoteFilePath,
-                            tempFile.inputStream(),
-                            tempFile.length(),
-                            progressCallback
-                        )
+                        val uploadResult = try {
+                            ftpClient.uploadFile(
+                                remoteFilePath,
+                                tempFile.inputStream(),
+                                tempFile.length(),
+                                progressCallback
+                            )
+                        } catch (e: java.io.IOException) {
+                            Timber.w(e, "downloadFromCloudTo: cloud->FTP transfer failed")
+                            return false
+                        }
 
                         if (uploadResult.isSuccess) {
                             Timber.i("downloadFromCloudTo: SUCCESS - uploaded to FTP $remoteFilePath")
@@ -665,8 +700,17 @@ class CloudFileOperationHandler @Inject constructor(
 
             when (result) {
                 is CloudResult.Success -> {
+                    if (!tempFile.exists()) {
+                        Timber.w("downloadFromCloud: downloaded temp copy vanished before local transfer")
+                        return null
+                    }
                     localFile.parentFile?.mkdirs()
-                    tempFile.copyTo(localFile, overwrite = true)
+                    try {
+                        tempFile.copyTo(localFile, overwrite = true)
+                    } catch (e: java.io.IOException) {
+                        Timber.w(e, "downloadFromCloud: local transfer failed")
+                        return null
+                    }
                     Timber.i("downloadFromCloud: SUCCESS - ${tempFile.length()} bytes written to ${localFile.name}")
                     localFile
                 }

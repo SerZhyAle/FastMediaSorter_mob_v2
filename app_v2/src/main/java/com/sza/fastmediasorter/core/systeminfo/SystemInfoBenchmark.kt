@@ -57,7 +57,11 @@ object SystemInfoBenchmark {
             val block = ByteArray(STORAGE_BLOCK_BYTES) { it.toByte() }
 
             val writeStart = System.nanoTime()
-            RandomAccessFile(file, "rws").use { raf ->
+            // WHY "rw" (buffered) + single fd.sync() below, not "rws": "rws" forces a synchronous
+            // content+metadata flush to storage on EVERY write() call. With 64KB blocks that turns a
+            // sequential-throughput measurement into per-block sync latency, collapsing the reported
+            // write speed to ~tens of MB/s on devices whose real UFS write is hundreds of MB/s.
+            RandomAccessFile(file, "rw").use { raf ->
                 var written = 0
                 while (written < STORAGE_FILE_BYTES) {
                     raf.write(block)

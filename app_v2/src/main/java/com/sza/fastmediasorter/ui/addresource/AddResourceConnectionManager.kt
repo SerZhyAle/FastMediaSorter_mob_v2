@@ -290,7 +290,21 @@ internal class AddResourceConnectionManager(
 
     // ========== Account Picker ==========
 
+    private fun providerFromName(providerName: String): CloudProvider? = when (providerName) {
+        CloudProvider.GOOGLE_DRIVE.name -> CloudProvider.GOOGLE_DRIVE
+        CloudProvider.ONEDRIVE.name -> CloudProvider.ONEDRIVE
+        CloudProvider.DROPBOX.name -> CloudProvider.DROPBOX
+        else -> null
+    }
+
     fun showAccountPicker(providerName: String, accounts: List<String>) {
+        // No stored accounts yet -> the picker would contain only "Add new account".
+        // Skip the redundant one-item dialog and start interactive sign-in directly
+        // (the auth flow itself drives the native account picker / browser OAuth per platform).
+        if (accounts.isEmpty()) {
+            providerFromName(providerName)?.let { unifiedAuthManager.startInteractiveSignIn(activity, it) }
+            return
+        }
         val options = accounts.toMutableList().also { it.add(activity.getString(R.string.add_new_account)) }
         val titleRes = when (providerName) {
             CloudProvider.GOOGLE_DRIVE.name -> R.string.google_drive
@@ -302,12 +316,7 @@ internal class AddResourceConnectionManager(
             .setTitle(activity.getString(titleRes))
             .setItems(options.toTypedArray()) { _, which ->
                 if (which == options.size - 1) {
-                    val provider = when (providerName) {
-                        CloudProvider.GOOGLE_DRIVE.name -> CloudProvider.GOOGLE_DRIVE
-                        CloudProvider.ONEDRIVE.name -> CloudProvider.ONEDRIVE
-                        CloudProvider.DROPBOX.name -> CloudProvider.DROPBOX
-                        else -> return@setItems
-                    }
+                    val provider = providerFromName(providerName) ?: return@setItems
                     unifiedAuthManager.startInteractiveSignIn(activity, provider)
                 } else {
                     when (providerName) {

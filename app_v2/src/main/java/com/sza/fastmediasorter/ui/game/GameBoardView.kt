@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.os.SystemClock
 import android.util.AttributeSet
@@ -20,8 +21,11 @@ import com.sza.fastmediasorter.ui.game.helpers.GameBoardHighlightCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.sin
 
 class GameBoardView @JvmOverloads constructor(
     context: Context,
@@ -44,9 +48,15 @@ class GameBoardView @JvmOverloads constructor(
 
     private val cellRect = RectF()
     private val boardRect = RectF()
+    private val actorPath = Path()
     private val floorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FFF5F5F5") }
     private val wallPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF5F6368") }
-    private val exitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF2E7D32") }
+    private val exitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FF2E7D32")
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+    }
     private val playerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF1976D2") }
     private val kryvavitsaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FFD32F2F") }
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF7B1FA2") }
@@ -163,7 +173,12 @@ class GameBoardView @JvmOverloads constructor(
             val left = scale.offsetX + cell.column * scale.cellSize
             val top = scale.offsetY + cell.row * scale.cellSize
             cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
-            canvas.drawRect(cellRect, paintFor(cell.baseCell))
+            if (cell.baseCell == GameBoardBaseCell.EXIT) {
+                canvas.drawRect(cellRect, floorPaint)
+                drawExit(canvas, cellRect)
+            } else {
+                canvas.drawRect(cellRect, paintFor(cell.baseCell))
+            }
             canvas.drawRect(cellRect, gridPaint)
             cell.actorCell?.let { actorCell -> drawActor(canvas, cellRect, actorCell) }
         }
@@ -204,15 +219,56 @@ class GameBoardView @JvmOverloads constructor(
     }
 
     private fun drawActor(canvas: Canvas, bounds: RectF, actorCell: GameBoardActorCell) {
-        val radius = bounds.width() * 0.34f
         val centerX = bounds.centerX()
         val centerY = bounds.centerY()
-        val paint = when (actorCell) {
-            GameBoardActorCell.PLAYER -> playerPaint
-            GameBoardActorCell.KRYVAVITSA -> kryvavitsaPaint
-            GameBoardActorCell.SHADOW -> shadowPaint
+        // Star/triangle have less visual mass than a filled disc, so they get a larger radius to fill the cell.
+        val circleRadius = bounds.width() * CIRCLE_RADIUS_FACTOR
+        val polygonRadius = bounds.width() * POLYGON_RADIUS_FACTOR
+        when (actorCell) {
+            GameBoardActorCell.PLAYER -> drawStar(canvas, centerX, centerY, polygonRadius, playerPaint)
+            GameBoardActorCell.KRYVAVITSA -> drawTriangle(canvas, centerX, centerY, polygonRadius, kryvavitsaPaint)
+            GameBoardActorCell.SHADOW -> canvas.drawCircle(centerX, centerY, circleRadius, shadowPaint)
         }
-        canvas.drawCircle(centerX, centerY, radius, paint)
+    }
+
+    private fun drawExit(canvas: Canvas, bounds: RectF) {
+        // Wider walls than the grid lines: scaled stroke plus a fixed +2px so the square reads as a frame.
+        val wallWidth = max(MIN_EXIT_WALL_WIDTH, bounds.width() * EXIT_WALL_WIDTH_FACTOR) + 2f
+        exitPaint.strokeWidth = wallWidth
+        val inset = wallWidth / 2f + bounds.width() * EXIT_INSET_FACTOR
+        val left = bounds.left + inset
+        val top = bounds.top + inset
+        val right = bounds.right - inset
+        val bottom = bounds.bottom - inset
+        canvas.drawRect(left, top, right, bottom, exitPaint)
+        canvas.drawLine(left, top, right, bottom, exitPaint)
+        canvas.drawLine(right, top, left, bottom, exitPaint)
+    }
+
+    private fun drawTriangle(canvas: Canvas, centerX: Float, centerY: Float, radius: Float, paint: Paint) {
+        actorPath.reset()
+        for (vertex in 0 until 3) {
+            val angle = -PI / 2 + vertex * (2 * PI / 3)
+            val x = centerX + radius * cos(angle).toFloat()
+            val y = centerY + radius * sin(angle).toFloat()
+            if (vertex == 0) actorPath.moveTo(x, y) else actorPath.lineTo(x, y)
+        }
+        actorPath.close()
+        canvas.drawPath(actorPath, paint)
+    }
+
+    private fun drawStar(canvas: Canvas, centerX: Float, centerY: Float, radius: Float, paint: Paint) {
+        val innerRadius = radius * STAR_INNER_RADIUS_FACTOR
+        actorPath.reset()
+        for (point in 0 until 10) {
+            val pointRadius = if (point % 2 == 0) radius else innerRadius
+            val angle = -PI / 2 + point * (PI / 5)
+            val x = centerX + pointRadius * cos(angle).toFloat()
+            val y = centerY + pointRadius * sin(angle).toFloat()
+            if (point == 0) actorPath.moveTo(x, y) else actorPath.lineTo(x, y)
+        }
+        actorPath.close()
+        canvas.drawPath(actorPath, paint)
     }
 
     private fun drawIntroHighlights(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
@@ -351,5 +407,11 @@ class GameBoardView @JvmOverloads constructor(
         private const val HIGHLIGHT_WIDTH_FACTOR = 0.07f
         private const val MIN_TAP_VECTOR_FACTOR = 0.18f
         private const val START_HIGHLIGHT_MS = 1_000L
+        private const val MIN_EXIT_WALL_WIDTH = 3f
+        private const val EXIT_WALL_WIDTH_FACTOR = 0.07f
+        private const val EXIT_INSET_FACTOR = 0.12f
+        private const val STAR_INNER_RADIUS_FACTOR = 0.4f
+        private const val CIRCLE_RADIUS_FACTOR = 0.34f
+        private const val POLYGON_RADIUS_FACTOR = 0.5f
     }
 }

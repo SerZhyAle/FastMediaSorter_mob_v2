@@ -126,6 +126,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
         private val KEY_ENABLE_SAFE_MODE = booleanPreferencesKey("enable_safe_mode")
         private val KEY_ENABLE_SCHEDULED_OPERATIONS = booleanPreferencesKey("enable_scheduled_operations")
+        private val KEY_SCHEDULED_OPERATIONS_PAUSED = booleanPreferencesKey("scheduled_operations_paused")
 
         private val KEY_ENABLE_COPYING = booleanPreferencesKey("enable_copying")
         private val KEY_GO_TO_NEXT_AFTER_COPY = booleanPreferencesKey("go_to_next_after_copy")
@@ -370,6 +371,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     rendererMigrationEnabled = preferences[KEY_RENDERER_MIGRATION_ENABLED] ?: false,
                     enableSafeMode = preferences[KEY_ENABLE_SAFE_MODE] ?: true,
                     enableScheduledOperations = preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] ?: true,
+                    scheduledOperationsPaused = preferences[KEY_SCHEDULED_OPERATIONS_PAUSED] ?: false,
                     enableCopying = preferences[KEY_ENABLE_COPYING] ?: true,
                     goToNextAfterCopy = preferences[KEY_GO_TO_NEXT_AFTER_COPY] ?: true,
                     overwriteOnCopy = preferences[KEY_OVERWRITE_ON_COPY] ?: false,
@@ -581,6 +583,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_RENDERER_MIGRATION_ENABLED] = settings.rendererMigrationEnabled
             preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode
             preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] = settings.enableScheduledOperations
+            preferences[KEY_SCHEDULED_OPERATIONS_PAUSED] = settings.scheduledOperationsPaused
             preferences[KEY_ENABLE_COPYING] = settings.enableCopying
             preferences[KEY_GO_TO_NEXT_AFTER_COPY] = settings.goToNextAfterCopy
             preferences[KEY_OVERWRITE_ON_COPY] = settings.overwriteOnCopy
@@ -683,6 +686,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
         dataStore.edit { it[KEY_EMBEDDED_GAME_ENABLED] = enabled }
+    }
+
+    override suspend fun updateScheduledOperationsPaused(paused: Boolean) {
+        dataStore.edit { it[KEY_SCHEDULED_OPERATIONS_PAUSED] = paused }
     }
 
     private fun <T> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {

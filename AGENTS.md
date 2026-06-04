@@ -19,8 +19,8 @@ When files disagree, prefer the stricter rule. For agent-specific execution, `AG
 - English in code, docs, logs, commits, changelog entries.
 - Professional, dry, concise.
 - Ask for missing files/data. Do not invent paths, values, decisions, or results.
-- Ellipsis is always `..`; the three-dot form is forbidden.
-- Use `ё`/`Ё` in Russian where grammatically correct.
+- Ellipsis is `..` and Russian uses `ё`/`Ё` where grammatically correct for chat, production docs, UI strings, and specs in `Approved` or later statuses.
+- `PLAN/Sxxxx_*.md` files in `Draft` may stay rough; do not treat ellipsis / `ё` / wording sanitation as mandatory until the ticket moves toward `Approved`.
 
 ## 3. Core Project Rules
 

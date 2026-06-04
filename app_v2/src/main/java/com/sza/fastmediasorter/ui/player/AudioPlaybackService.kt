@@ -12,6 +12,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -29,6 +30,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
+import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
+import com.sza.fastmediasorter.widget.AudioNowPlayingSnapshotStore
 import com.sza.fastmediasorter.ui.player.helpers.createPlaybackRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +78,12 @@ class AudioPlaybackService : MediaSessionService() {
         private const val AUTO_STOP_DELAY_MS = 10_000L
         /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
         private const val POSITION_SAVE_INTERVAL_MS = 15_000L
+        const val ACTION_WIDGET_COMMAND = "com.sza.fastmediasorter.action.AUDIO_WIDGET_COMMAND"
+        const val EXTRA_WIDGET_COMMAND = "extra_widget_command"
+        const val WIDGET_COMMAND_PLAY_PAUSE = "play_pause"
+        const val WIDGET_COMMAND_NEXT = "next"
+        const val WIDGET_COMMAND_PREVIOUS = "previous"
+        const val WIDGET_COMMAND_FAVORITE_REFRESH = "favorite_refresh"
 
         @Volatile
         var isRunning: Boolean = false
@@ -164,6 +173,7 @@ class AudioPlaybackService : MediaSessionService() {
                         // S0172: stop save loop and persist final position before track ends
                         stopPositionSaving()
                         saveCurrentPosition()
+                        AudioNowPlayingSnapshotStore.clear(this@AudioPlaybackService)
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                         autoStopHandler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
                     }
@@ -172,13 +182,16 @@ class AudioPlaybackService : MediaSessionService() {
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                         // S0172: begin periodic save once player is ready
                         startPositionSaving()
+                        publishWidgetSnapshot()
                     }
                     Player.STATE_BUFFERING -> {
                         // New track loading - cancel auto-stop; save loop starts on STATE_READY
                         autoStopHandler.removeCallbacks(autoStopRunnable)
+                        publishWidgetSnapshot()
                     }
                     Player.STATE_IDLE -> {
                         stopPositionSaving()
+                        AudioNowPlayingSnapshotStore.clear(this@AudioPlaybackService)
                     }
                 }
             }
@@ -188,6 +201,15 @@ class AudioPlaybackService : MediaSessionService() {
                     // S0172: persist position on pause so it survives a kill
                     saveCurrentPosition()
                 }
+                publishWidgetSnapshot()
+            }
+
+            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                publishWidgetSnapshot()
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                publishWidgetSnapshot()
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -196,6 +218,7 @@ class AudioPlaybackService : MediaSessionService() {
                 // immediately so the mini bar disappears and isRunning flips to false.
                 Timber.e(error, "AudioPlaybackService: playback error - stopping service (errorCode=${error.errorCode})")
                 autoStopHandler.removeCallbacks(autoStopRunnable)
+                AudioNowPlayingSnapshotStore.clear(this@AudioPlaybackService)
                 stopSelf()
             }
         })
@@ -285,6 +308,13 @@ class AudioPlaybackService : MediaSessionService() {
         return mediaSession
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_WIDGET_COMMAND) {
+            handleWidgetCommand(intent.getStringExtra(EXTRA_WIDGET_COMMAND))
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
         val currentPlayer = mediaSession?.player
         if (currentPlayer == null || !currentPlayer.playWhenReady
@@ -318,6 +348,7 @@ class AudioPlaybackService : MediaSessionService() {
             }
         }
         serviceScope.cancel()
+        AudioNowPlayingSnapshotStore.clear(this)
 
         mediaSession?.run {
             player.release()
@@ -373,6 +404,64 @@ class AudioPlaybackService : MediaSessionService() {
             "navigation.previous_file" -> p.seekToPrevious()
             else -> Timber.d("AudioPlaybackService: dispatchCommand ignored commandId=%s", commandId)
         }
+        publishWidgetSnapshot()
+    }
+
+    private fun handleWidgetCommand(command: String?) {
+        when (command) {
+            WIDGET_COMMAND_PLAY_PAUSE -> dispatchCommand("playback.pause_play")
+            WIDGET_COMMAND_NEXT -> dispatchCommand("navigation.next_file")
+            WIDGET_COMMAND_PREVIOUS -> dispatchCommand("navigation.previous_file")
+            WIDGET_COMMAND_FAVORITE_REFRESH -> publishWidgetSnapshot()
+            else -> Timber.d("AudioPlaybackService: widget command ignored command=%s", command)
+        }
+    }
+
+    private fun publishWidgetSnapshot() {
+        val p = player ?: run {
+            AudioNowPlayingSnapshotStore.clear(this)
+            return
+        }
+        val active = p.playbackState == Player.STATE_READY || p.playbackState == Player.STATE_BUFFERING
+        if (!active) {
+            AudioNowPlayingSnapshotStore.clear(this)
+            return
+        }
+
+        val item = p.currentMediaItem
+        val metadata = p.mediaMetadata
+        val itemMetadata = item?.mediaMetadata
+        val extras = itemMetadata?.extras ?: metadata.extras
+        val sourcePath = extras?.getString(AudioServiceController.EXTRA_SOURCE_PATH).orEmpty()
+        val mediaUri = sourcePath.ifBlank {
+            currentOriginalPath.ifBlank {
+                item?.localConfiguration?.uri?.toString().orEmpty()
+            }
+        }
+        val previous = AudioNowPlayingSnapshotStore.read(this)
+        val title = metadata.title?.toString()
+            ?: itemMetadata?.title?.toString()
+            ?: mediaUri.substringAfterLast('/').substringBeforeLast('.')
+        val artist = metadata.artist?.toString()
+            ?: itemMetadata?.artist?.toString()
+            ?: ""
+
+        AudioNowPlayingSnapshotStore.write(
+            this,
+            AudioNowPlayingSnapshotStore.Snapshot(
+                active = true,
+                title = title,
+                artist = artist,
+                artworkUri = (metadata.artworkUri ?: itemMetadata?.artworkUri)?.toString().orEmpty(),
+                isPlaying = p.isPlaying,
+                mediaUri = mediaUri,
+                resourceId = extras?.getLong(AudioServiceController.EXTRA_RESOURCE_ID, currentResourceId)
+                    ?: currentResourceId,
+                size = extras?.getLong(AudioServiceController.EXTRA_SIZE, 0L) ?: 0L,
+                dateModified = extras?.getLong(AudioServiceController.EXTRA_DATE_MODIFIED, 0L) ?: 0L,
+                isFavorite = previous.mediaUri == mediaUri && previous.isFavorite
+            )
+        )
     }
 
     /**

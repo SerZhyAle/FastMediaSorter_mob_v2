@@ -406,7 +406,11 @@ function New-LoopedVideo {
         $left  = Build-LabelFilter 'L' 'lime'
         $right = Build-LabelFilter 'R' 'red'
         $stack = if ($Layout -eq 'TB') { 'vstack' } else { 'hstack' }
-        $filter = '-filter_complex', "[0:v]split=2[a][b];[a]${left}[la];[b]${right}[ra];[la][ra]${stack}=inputs=2[out]", '-map', '[out]'
+        # For SBS the hstack doubles the width. Cap each half to 2160px wide so the combined
+        # output stays at ≤4320x2160 — the Quest 3 AVC decoder ceiling for H.264 High profile.
+        # For TB, vstack doubles the height, which is much less likely to exceed device limits.
+        $scaleStep = if ($Layout -eq 'SBS') { '[0:v]scale=min(iw\,2160):-2[scaled];[scaled]' } else { '[0:v]' }
+        $filter = '-filter_complex', "${scaleStep}split=2[a][b];[a]${left}[la];[b]${right}[ra];[la][ra]${stack}=inputs=2[out]", '-map', '[out]'
     }
 
     Invoke-Ffmpeg -Description "$Layout video $(Split-Path $Target -Leaf)" -Arguments (@(

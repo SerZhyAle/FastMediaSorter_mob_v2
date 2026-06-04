@@ -53,6 +53,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -87,12 +88,19 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var renderThread: DiagnosticXrRenderThread? = null
     private lateinit var surfaceView: SurfaceView
 
+    // Completed when the Activity gains window focus. Render thread awaits this before calling
+    // nativeStartSession so that HzOS has registered the volumetric window by that time.
+    // A new instance is created per Activity lifetime in maybeStartRenderThread to support
+    // multiple sessions within one process (each new DiagnosticXrActivity is a fresh instance).
+    private var windowFocusedDeferred = CompletableDeferred<Unit>()
+
     @Volatile private var reusableDirectBuffer: ByteBuffer? = null
     @Volatile private var reusableHudBuffer: ByteBuffer? = null
 
     @Synchronized
     private fun getReusableDirectBuffer(size: Int): ByteBuffer {
         val current = reusableDirectBuffer
+        Timber.d("S0290: texture-copy direct buffer reuse=${current != null && current.capacity() >= size} size=$size (Phase 11 Step 11.5)")
         if (current != null && current.capacity() >= size) {
             current.clear()
             return current
@@ -221,6 +229,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun proceedWithInitialization() {
+        Timber.d("S0290: diagnostic session init / re-entry path (Phase 09)")
         // 1. Initialize VR HUD Canvas buffers and helpers (Step 03.2)
         hudRenderer = HudCanvasRenderer()
         hapticBridge = HudHapticBridge(runtime)
@@ -672,6 +681,20 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 Timber.e(oom2, "decodeFilePooled: ${file.name} OOM even with inSampleSize=${opts.inSampleSize}; giving up")
                 null
             }
+        } catch (iae: IllegalArgumentException) {
+            // BitmapFactory throws IllegalArgumentException ("Problem decoding into existing bitmap")
+            // when the pool-supplied inBitmap is incompatible with the actual decoded dimensions or
+            // config (e.g. moraine_lake_flat_mono.jpg 7742x5327 after inSampleSize may require a
+            // different stride). Retry without inBitmap so the decoder allocates a fresh buffer.
+            Timber.d("S0291: decodeFilePooled inBitmap incompatible for ${file.name} — retrying without pool reuse")
+            Timber.w(iae, "decodeFilePooled: ${file.name} inBitmap incompatible; retry without pool reuse")
+            opts.inBitmap = null
+            try {
+                BitmapFactory.decodeFile(file.absolutePath, opts)
+            } catch (oom3: OutOfMemoryError) {
+                Timber.e(oom3, "decodeFilePooled: ${file.name} OOM on inBitmap-free retry; giving up")
+                null
+            }
         }
     }
 
@@ -737,9 +760,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                         decoderDetails.append("no cause info")
                     }
 
-                    // Temporary debug-probe tag for S0322 BlockNeedUserTest
-                    Timber.d("S0322: VR video playback error captured on file ${file.name}")
-
                     Timber.e(error, "VR diagnostic playback failed! File: ${file.name}, Stage: $stage, Code: ${error.errorCode} (${error.errorCodeName}), Msg: ${error.message}, $decoderDetails")
 
                     runOnUiThread {
@@ -788,12 +808,14 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun navigateToNextMedia() {
+        Timber.d("S0290: input next navigation (Phase 10 edge-detection)")
         if (mediaPlaylist.isEmpty()) return
         currentPlaylistIndex = (currentPlaylistIndex + 1) % mediaPlaylist.size
         loadCurrentMediaItem()
     }
 
     private fun navigateToPrevMedia() {
+        Timber.d("S0290: input prev navigation (Phase 10 edge-detection)")
         if (mediaPlaylist.isEmpty()) return
         currentPlaylistIndex = if (currentPlaylistIndex - 1 < 0) {
             mediaPlaylist.size - 1
@@ -883,6 +905,14 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Signal the render thread that HzOS has registered the volumetric window so
+        // nativeStartSession will see "Activity is already in the ready state" instead of
+        // deferring. CompletableDeferred.complete() is idempotent after the first call.
+        if (hasFocus) windowFocusedDeferred.complete(Unit)
+    }
+
     override fun surfaceCreated(holder: SurfaceHolder) {
         maybeStartRenderThread("surfaceCreated")
     }
@@ -912,6 +942,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             textureBytes = textureBytes,
             textureWidth = textureWidth,
             textureHeight = textureHeight,
+            windowFocused = windowFocusedDeferred,
             onSessionReady = ::onRenderThreadSessionReady,
             onExitDelivered = ::onRenderThreadExit,
             onStartFailed = ::onRenderThreadStartFailed,
@@ -930,6 +961,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
+        Timber.d("S0290: diagnostic session exit / paired native shutdown (Phase 09)")
         // S0290 Phase 09 + owner round 3 (2026-05-22): order matters. Release ExoPlayer FIRST so it lets go of the Surface it received from runtime.getVideoSurface(); only then tear down the native side which destroys the underlying SurfaceTexture / GL texture. The reverse order caused VideoFrameReleaseHelper to call Surface.setFrameRate on an already-released Surface (logcat: "Surface has already been released") and MediaCodec.flush on a Released codec at every immersive exit.
         releasePlaybackResources()
         shutdownRenderThreadSync(PAUSE_SHUTDOWN_TIMEOUT_MS)
@@ -1130,7 +1162,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             runtime.setRenderConfig(config.projection.value, config.layout.value)
             hudRenderer.currentFilename = file.name
             queueFilenameHud(file.name, config.projection, config.layout)
-            Timber.d("S0291: session-ready HUD re-queue (${if (isVideoFilename(file.name)) "video" else "image"}) ${file.name}")
             if (isVideoFilename(file.name)) {
                 if (!startVideoPlayback(file)) {
                     queueErrorHud(file.name, "Playback Start Failed")

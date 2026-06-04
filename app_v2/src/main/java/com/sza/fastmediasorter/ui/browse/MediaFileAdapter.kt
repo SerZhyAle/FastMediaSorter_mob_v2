@@ -517,6 +517,13 @@ class MediaFileAdapter(
                 if (!file.isDirectory) onFileLongClick(file)
                 true
             }
+            // The clickable thumbnail otherwise swallows the long press (firing its open-player
+            // click); give it the same range-select long-click as the row root.
+            binding.ivThumbnail.setOnLongClickListener {
+                val file = getFile() ?: return@setOnLongClickListener false
+                if (!file.isDirectory) onFileLongClick(file)
+                true
+            }
             binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             binding.btnFavorite.bindFileClick(getFile, onFavoriteClick)
             binding.btnCopyItem.bindFileClick(getFile, onCopyClick)
@@ -835,6 +842,14 @@ class MediaFileAdapter(
             binding.root.bindFileTypeClick(getFile)
             binding.root.bindRightClickContextMenu(getFile)
             binding.root.setOnLongClickListener {
+                val file = getFile() ?: return@setOnLongClickListener false
+                onFileLongClick(file)
+                true
+            }
+            // Grid cells are dominated by the clickable thumbnail; without its own
+            // long-click handler the long press fires the thumbnail's click (open player)
+            // instead of bubbling to root for range selection.
+            binding.ivThumbnail.setOnLongClickListener {
                 val file = getFile() ?: return@setOnLongClickListener false
                 onFileLongClick(file)
                 true

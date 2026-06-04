@@ -542,7 +542,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } else {
                 when (item.itemId) {
                 MENU_ITEM_CALCULATOR -> {
-                    Timber.d("S0317: main menu calculator launch")
                     startActivity(CalculatorActivity.createIntent(this))
                     true
                 }

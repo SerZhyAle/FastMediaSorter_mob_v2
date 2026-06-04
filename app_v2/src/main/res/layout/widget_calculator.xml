@@ -5,29 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
+    android:contentDescription="@string/widget_calculator_label"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="@dimen/padding_tiny">
 
     <ImageView
         android:id="@+id/widget_calculator_icon"
-        android:layout_width="@dimen/item_icon_size_small"
-        android:layout_height="@dimen/item_icon_size_small"
+        android:layout_width="@dimen/widget_icon_size_large"
+        android:layout_height="@dimen/widget_icon_size_large"
         android:contentDescription="@string/widget_calculator_label"
         android:src="@drawable/ic_widget_calculator"
         app:tint="@color/white" />
-
-    <TextView
-        android:id="@+id/widget_calculator_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_tiny"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1"
-        android:text="@string/widget_calculator_label"
-        android:textColor="@color/white"
-        android:textSize="@dimen/item_detail_text_size_small"
-        android:textStyle="bold" />
 
 </LinearLayout>

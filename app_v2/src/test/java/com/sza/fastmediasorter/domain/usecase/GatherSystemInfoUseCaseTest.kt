@@ -15,18 +15,18 @@ import org.robolectric.annotation.Config
 class GatherSystemInfoUseCaseTest {
 
     private val context: Context = RuntimeEnvironment.getApplication()
-    private val useCase = GatherSystemInfoUseCase(context)
+    private val useCase = GatherSystemInfoUseCase(context, emptySet())
 
     @Test
     fun `invoke returns non-blank summary`() {
-        val summary = useCase()
+        val summary = useCase().maskedText
 
         assertTrue("summary must not be blank", summary.isNotBlank())
     }
 
     @Test
     fun `invoke contains localized section headers`() {
-        val summary = useCase()
+        val summary = useCase().maskedText
 
         listOf(
             R.string.sysinfo_section_device,
@@ -46,11 +46,19 @@ class GatherSystemInfoUseCaseTest {
 
     @Test
     fun `invoke contains app version name`() {
-        val summary = useCase()
+        val summary = useCase().maskedText
 
         assertTrue(
             "summary must contain app version name",
             summary.contains(BuildConfig.VERSION_NAME),
         )
+    }
+
+    @Test
+    fun `invoke with no contributors keeps masked equal to full`() {
+        val report = useCase()
+
+        assertTrue("masked must equal full when no contributor is present", report.maskedText == report.fullText)
+        assertTrue("hasSensitive must be false when no contributor is present", !report.hasSensitive)
     }
 }

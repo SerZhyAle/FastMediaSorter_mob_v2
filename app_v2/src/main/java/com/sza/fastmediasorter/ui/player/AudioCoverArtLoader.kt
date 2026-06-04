@@ -107,7 +107,6 @@ class AudioCoverArtLoader(
         // S0265: abort any pending Glide request from the previous track so a late-arriving
         // bitmap cannot momentarily appear in the ImageView before the new load reaches into().
         Glide.with(binding.audioCoverArtView.context).clear(binding.audioCoverArtView)
-        Timber.d("S0265: loadAudioCoverArt entry path=${file.path}")
 
         val callId = System.currentTimeMillis()
         Timber.d("loadAudioCoverArt[$callId]: file=${file.name}")

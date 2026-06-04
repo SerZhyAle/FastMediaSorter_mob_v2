@@ -67,6 +67,8 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         }
 
         Timber.i("ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
+        Timber.d("S0353: scheduled-tasks widget refreshed after run")
+        com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
         return Result.success()
     }
 

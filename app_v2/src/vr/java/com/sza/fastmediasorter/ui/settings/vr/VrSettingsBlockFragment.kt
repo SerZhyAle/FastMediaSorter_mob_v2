@@ -99,6 +99,7 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
         val advisory = view.findViewById<TextView>(R.id.xrUnavailableAdvisory)
         val masterRow = view.findViewById<SettingsToggleRow>(R.id.masterToggleRow)
         val testRow = view.findViewById<View>(R.id.testImmersiveRow)
+        val detailGroups = view.findViewById<View>(R.id.vrDetailGroupsContainer)
 
         val autoDetectRow = view.findViewById<SettingsToggleRow>(R.id.autoDetectRow)
         val trustFilenameRow = view.findViewById<SettingsToggleRow>(R.id.trustFilenameRow)
@@ -150,7 +151,7 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
                 combine(detection.state(), preferences.enabled) { state, masterOn ->
                     state to masterOn
                 }.onEach { (state, masterOn) ->
-                    applyState(advisory, masterRow, testRow, state, masterOn)
+                    applyState(advisory, masterRow, testRow, detailGroups, state, masterOn)
                 }.collect()
             }
         }
@@ -184,6 +185,7 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
         advisory: View,
         masterRow: SettingsToggleRow,
         testRow: View,
+        detailGroups: View,
         state: XrDetectionState,
         masterOn: Boolean,
     ) {
@@ -193,10 +195,13 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
         if (masterRow.isChecked != masterOn) {
             masterRow.setCheckedSilently(masterOn)
         }
-        val showButton = xrPresent && masterOn
-        testRow.visibility = if (showButton) View.VISIBLE else View.GONE
-        testRow.isClickable = showButton
-        testRow.isFocusable = showButton
+        // Detail groups + Test Immersive appear only when 3D/VR is available and enabled.
+        // When disabled or on a non-XR device, the advisory + master toggle stay; the rest hides.
+        val showDetails = xrPresent && masterOn
+        detailGroups.visibility = if (showDetails) View.VISIBLE else View.GONE
+        testRow.visibility = if (showDetails) View.VISIBLE else View.GONE
+        testRow.isClickable = showDetails
+        testRow.isFocusable = showDetails
     }
 
     private fun launchDiagnosticImmerse() {

@@ -23,6 +23,9 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
     override suspend fun getAllEnabled(): List<ScheduledOperation> =
         dao.getAllEnabled().map { it.toDomain() }
 
+    override suspend fun getUpcomingEnabled(): List<ScheduledOperation> =
+        dao.getUpcomingEnabled().map { it.toDomain() }
+
     override suspend fun getById(id: Long): ScheduledOperation? =
         dao.getById(id)?.toDomain()
 

@@ -34,6 +34,7 @@ Targets:
 
 - Strategic body: Russian. Tactical body: English. No mixed sentences.
 - `..` not `...`; `ё`/`Ё` in Russian where grammatically correct.
+- For strategic specs in `Draft`, language hygiene is not a blocking draft concern. Do not auto-apply or report hygiene-only changes unless the user explicitly asks for cleanup or the update is preparing `Draft` -> `Approved`.
 
 ### 2. `structure`
 
@@ -111,7 +112,7 @@ Classification rules:
 
 | Kind of change | Classification |
 | --- | --- |
-| Typo, `...`→`..`, missing `ё`, blank lines around list/fence | ACCEPT |
+| Typo, `...`→`..`, missing `ё`, blank lines around list/fence | ACCEPT for `Approved`+ specs, tactical specs, explicit cleanup requests, or approval preparation; otherwise skip for `Draft` |
 | Missing mandatory section skeleton | ACCEPT |
 | Rewording ambiguous `Verification:` predicate (obvious fix) | ACCEPT |
 | Removing class names/paths from strategic spec | ACCEPT |
@@ -126,6 +127,7 @@ Classification rules:
 Per memory rule: **fix all non-structural issues silently**. Only structural decisions go into a DISCUSS block.
 
 - **ACCEPT** - apply via `Edit`. Append a single Revision History line covering the run.
+- **Draft hygiene skip** - when the target is a strategic `Draft` and the finding is only ellipsis / `ё` / wording sanitation, do not apply it and do not count it as a proposal. Approval preparation owns that cleanup.
 - **DISCUSS** - record in "Proposed Structural Changes" block with `Status: Proposed`. Never apply regardless of `--apply-all`.
 
 Edits are minimal and localized. Never renumber steps/phases unless that is the specific finding - structural changes that would renumber steps/phases stay in DISCUSS until explicitly accepted.

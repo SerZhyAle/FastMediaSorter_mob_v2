@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.game.GameDifficulty
 import com.sza.fastmediasorter.domain.game.GameDirection
 import com.sza.fastmediasorter.domain.game.GameEvent
 import com.sza.fastmediasorter.domain.game.GameLevelConfig
+import com.sza.fastmediasorter.domain.game.GameLevelState
 import com.sza.fastmediasorter.domain.game.GameRulesEngine
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.game.GameStateSnapshot
@@ -41,7 +42,7 @@ class GameViewModel @Inject constructor(
             _state.value = GameUiState.Loading
             try {
                 val snapshot = gameStateRepository.loadOrCreate(defaultConfig())
-                _state.value = readyFromSnapshot(snapshot)
+                _state.value = ensurePlayableOnResume(readyFromSnapshot(snapshot))
             } catch (exception: RuntimeException) {
                 Timber.e(exception, "GameViewModel: failed to load game")
                 _state.value = GameUiState.Error(exception.message)
@@ -130,6 +131,39 @@ class GameViewModel @Inject constructor(
         )
     }
 
+    // A persisted terminal level (won or lost) restored as-is would keep the controls locked until a manual
+    // reset, since moves are only accepted while PLAYING. Regenerate a playable level so launch is interactive.
+    private suspend fun ensurePlayableOnResume(ready: GameUiState.Ready): GameUiState.Ready =
+        when (ready.levelState.status) {
+            GameStatus.PLAYING -> ready
+            GameStatus.GAME_OVER -> {
+                val restartConfig = ready.levelState.config.copy(seed = nextSeed(ready.levelNumber))
+                val generated = boardGenerator.createInitialState(restartConfig)
+                persistResumeHeal(ready, rulesEngine.restartLevel(ready.levelState, generated))
+            }
+            GameStatus.LEVEL_WON -> {
+                val nextConfig = defaultConfig(
+                    levelNumber = ready.levelNumber + 1,
+                    difficulty = ready.levelState.config.difficulty
+                )
+                val generated = boardGenerator.createInitialState(nextConfig)
+                persistResumeHeal(ready, rulesEngine.advanceLevel(ready.levelState, generated))
+            }
+        }
+
+    private suspend fun persistResumeHeal(ready: GameUiState.Ready, healed: GameLevelState): GameUiState.Ready {
+        val next = ready.copy(
+            levelState = healed,
+            unreadableBoardWarning = shouldWarnForUnreadableBoard(healed.config, ready.customBoard),
+            defeatConnection = null,
+            lastRejectReason = null
+        )
+        gameStateRepository.saveSnapshot(
+            GameStateSnapshot.fromLevelState(next.levelState, customBoard = next.customBoard)
+        )
+        return next
+    }
+
     private fun readyFromSnapshot(snapshot: GameStateSnapshot): GameUiState.Ready {
         val levelState = snapshot.toLevelState()
         return GameUiState.Ready(
@@ -143,14 +177,23 @@ class GameViewModel @Inject constructor(
         levelNumber: Int = 1,
         difficulty: GameDifficulty = GameDifficulty.NORMAL
     ): GameLevelConfig {
+        val boardSize = boardSizeForLevel(levelNumber)
         return GameLevelConfig(
             levelNumber = levelNumber,
             difficulty = difficulty,
-            width = DEFAULT_BOARD_SIZE,
-            height = DEFAULT_BOARD_SIZE,
+            width = boardSize,
+            height = boardSize,
             shadowCount = levelNumber.coerceAtLeast(1),
             seed = nextSeed(levelNumber)
         )
+    }
+
+    // Board grows in steps with the level; wall count stays proportional to the cell count inside the generator.
+    private fun boardSizeForLevel(levelNumber: Int): Int = when {
+        levelNumber <= LEVEL_THRESHOLD_SMALL -> BOARD_SIZE_SMALL
+        levelNumber <= LEVEL_THRESHOLD_MEDIUM -> BOARD_SIZE_MEDIUM
+        levelNumber <= LEVEL_THRESHOLD_LARGE -> BOARD_SIZE_LARGE
+        else -> BOARD_SIZE_HUGE
     }
 
     private fun nextSeed(levelNumber: Int): Long {
@@ -176,7 +219,13 @@ class GameViewModel @Inject constructor(
     }
 
     companion object {
-        private const val DEFAULT_BOARD_SIZE = 10
+        private const val LEVEL_THRESHOLD_SMALL = 5
+        private const val LEVEL_THRESHOLD_MEDIUM = 10
+        private const val LEVEL_THRESHOLD_LARGE = 20
+        private const val BOARD_SIZE_SMALL = 10
+        private const val BOARD_SIZE_MEDIUM = 15
+        private const val BOARD_SIZE_LARGE = 20
+        private const val BOARD_SIZE_HUGE = 25
         private const val LARGE_CUSTOM_BOARD_SIZE = 18
         private const val SEED_NONCE_STEP = 104729L
     }

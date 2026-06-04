@@ -123,6 +123,7 @@ data class AppSettings(
     
     // Scheduled operations
     val enableScheduledOperations: Boolean = true,
+    val scheduledOperationsPaused: Boolean = false, // S0353: durable Pause All state for scheduled operations
 
     // Destinations settings
     val enableCopying: Boolean = true,

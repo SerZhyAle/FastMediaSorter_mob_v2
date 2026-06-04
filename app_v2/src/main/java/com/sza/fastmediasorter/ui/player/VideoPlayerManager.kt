@@ -251,6 +251,12 @@ class VideoPlayerManager(
     // a setter on every error.
     internal var playbackRetryCount = 0
     internal var lastPlaybackPosition = 0L
+
+    // Last position captured while the player was genuinely playing (not a mid-seek artifact).
+    // Used to recover playback in place when a seek crashes the extractor (e.g. AVI with an
+    // empty/absent index), so a failed seek resumes near the prior position instead of skipping
+    // the file. Updated by the position auto-save loop only when the player is actively playing.
+    internal var lastGoodPositionMs = 0L
     internal val retryHandler = Handler(Looper.getMainLooper())
     internal var retryRunnable: Runnable? = null
 
@@ -457,7 +463,6 @@ class VideoPlayerManager(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Timber.d("S0274: VideoPlayerManager.onPlayerError delegated to VideoPlayerErrorHandler")
             if (errorHandler.handlePlayerError(error)) return
             playerCallback.onBuffering(false)
             playerCallback.onPlaybackError(error)

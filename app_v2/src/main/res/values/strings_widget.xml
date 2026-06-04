@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_add_to_home_screen">Add to Home Screen</string>
+    <string name="widget_already_added">Widget already added to home screen</string>
+    <string name="widget_calculator_description">Open the embedded calculator</string>
+    <string name="widget_calculator_label">Calculator</string>
+    <string name="widget_camera_ocr_translate_description">Quickly capture, recognize, and translate text using the camera.</string>
+    <string name="widget_camera_ocr_translate_label">Camera OCR</string>
+    <string name="widget_camera_photos_description">Quick access to camera photos</string>
+    <string name="widget_camera_photos_label">Camera Photos</string>
+    <string name="widget_camera_photos_resource_not_found">Camera Photos resource not found</string>
+    <string name="widget_audio_now_playing_action_favorite">Add to favorites</string>
+    <string name="widget_audio_now_playing_action_next">Next track</string>
+    <string name="widget_audio_now_playing_action_play_pause">Play / Pause</string>
+    <string name="widget_audio_now_playing_action_previous">Previous track</string>
+    <string name="widget_audio_now_playing_artist_unknown">Unknown artist</string>
+    <string name="widget_audio_now_playing_description">Control background audio from the home screen</string>
+    <string name="widget_audio_now_playing_empty_title">No audio playing</string>
+    <string name="widget_audio_now_playing_empty_subtitle">Play music to fill this widget.</string>
+    <string name="widget_audio_now_playing_label">Audio Now Playing</string>
+    <string name="widget_capture_ocr_panel_description">Quick access to camera photos and Camera OCR.</string>
+    <string name="widget_capture_ocr_panel_label">Capture &amp; OCR</string>
+    <string name="widget_continue_reading_description">Resume slideshow from last position</string>
+    <string name="widget_continue_reading_label">Continue Reading</string>
+    <string name="widget_favorites_description">Quick access to favorite files</string>
+    <string name="widget_favorites_label">Favorites</string>
+    <string name="widget_pin_not_supported">Widget pinning is not supported on this device</string>
+    <string name="widget_random_music_description">Play a random music track</string>
+    <string name="widget_random_music_label">Random Music</string>
+    <string name="widget_random_music_resource_not_found">Random Music resource not found</string>
+    <string name="widget_resource_launch_description">Launch specific resource folder</string>
+    <string name="widget_resource_launch_label">Resource Launch</string>
+    <string name="widget_resource_not_configured">Tap to configure</string>
+    <string name="widget_select_resource">Select Resource</string>
+    <string name="widget_unlock_screen_prompt">Unlock the screen to add the widget</string>
+    <string name="settings_add_home_widget_title">Add widget to home screen..</string>
+    <string name="widget_picker_dialog_title">Choose a widget</string>
+    <!-- S0353 Scheduled Tasks widget -->
+    <string name="widget_scheduled_tasks_label">Scheduled Tasks</string>
+    <string name="widget_scheduled_tasks_description">Status and controls for scheduled file operations</string>
+    <string name="widget_scheduled_run_all">Run All</string>
+    <string name="widget_scheduled_pause_all">Pause All</string>
+    <string name="widget_scheduled_resume_all">Resume All</string>
+    <string name="widget_scheduled_empty">No scheduled tasks</string>
+    <string name="widget_scheduled_active_count">%1$d active</string>
+    <string name="widget_scheduled_last_ok">Last: OK %1$s</string>
+    <string name="widget_scheduled_last_error">Last: error %1$s</string>
+    <string name="widget_scheduled_next_run">Next: %1$s</string>
+    <!-- S0352 Random Photo Frame widget -->
+    <string name="widget_random_photo_frame_label">Random Photo Frame</string>
+    <string name="widget_random_photo_frame_description">Show a random photo from the selected resource</string>
+    <string name="widget_random_photo_frame_empty_title">No cached photos</string>
+    <string name="widget_random_photo_frame_empty_subtitle">Open the resource to refresh the cache.</string>
+    <string name="widget_random_photo_frame_resource_missing">Selected resource not found</string>
+    <string name="widget_random_photo_frame_cache_empty">No cached photos yet</string>
+</resources>

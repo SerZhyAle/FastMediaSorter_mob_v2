@@ -656,13 +656,10 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     ): Result? {
         return when (val outcome = contract.validate(originalUrl, canonicalAudioOnly, resultMime, resultFileName)) {
             YtMusicAudioOnlyContract.ValidationOutcome.Accept -> {
-                Timber.d("S0260: contract outcome=Accept reason=%s", "none")
                 null
             }
             is YtMusicAudioOnlyContract.ValidationOutcome.Reject -> {
-                Timber.d("S0260: contract outcome=Reject reason=%s", outcome.reasonCode)
                 if (outcome.fallbackAllowed) {
-                    Timber.d("S0260: contract fallback permitted reason=%s", outcome.reasonCode)
                     null
                 } else {
                     Result.Failed.Other(IllegalStateException(YtMusicAudioOnlyContract.USER_FACING_ERROR_KEY))

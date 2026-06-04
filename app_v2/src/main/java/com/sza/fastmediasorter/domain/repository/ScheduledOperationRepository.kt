@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface ScheduledOperationRepository {
     fun getAll(): Flow<List<ScheduledOperation>>
     suspend fun getAllEnabled(): List<ScheduledOperation>
+    suspend fun getUpcomingEnabled(): List<ScheduledOperation>
     suspend fun getById(id: Long): ScheduledOperation?
     suspend fun upsert(operation: ScheduledOperation): Long
     suspend fun update(operation: ScheduledOperation)

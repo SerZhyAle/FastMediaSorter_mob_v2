@@ -22,9 +22,14 @@ import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
+import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoBenchmark
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.core.systeminfo.renderSystemInfo
+import com.sza.fastmediasorter.core.systeminfo.toSystemInfoSections
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.net.Inet4Address
@@ -45,9 +50,24 @@ import javax.inject.Inject
  */
 class GatherSystemInfoUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val extendedDiagnosticsContributors: Set<@JvmSuppressWildcards ExtendedDiagnosticsContributor>,
 ) {
 
-    operator fun invoke(): String = buildSections().renderSystemInfo()
+    operator fun invoke(): SystemInfoReport {
+        val base = buildSections()
+        // Collect flavor-contributed sections defensively: a throwing contributor degrades the
+        // extended part to empty, never breaking the base report (matches safe/safeList style).
+        val extended: List<ExtendedDiagnosticsSection> = try {
+            extendedDiagnosticsContributors.flatMap { it.sections() }
+        } catch (e: Exception) {
+            Timber.w(e, "System info: failed to collect extended diagnostics")
+            emptyList()
+        }
+        val maskedText = (base + extended.toSystemInfoSections(reveal = false)).renderSystemInfo()
+        val fullText = (base + extended.toSystemInfoSections(reveal = true)).renderSystemInfo()
+        val hasSensitive = extended.any { section -> section.fields.any { it.sensitive } }
+        return SystemInfoReport(maskedText = maskedText, fullText = fullText, hasSensitive = hasSensitive)
+    }
 
     private fun buildSections(): List<SystemInfoSection> = listOf(
         SystemInfoSection(
@@ -376,14 +396,23 @@ class GatherSystemInfoUseCase @Inject constructor(
     private inline fun safe(block: () -> String): String = try {
         block()
     } catch (e: Exception) {
-        Timber.w(e, "System info: failed to read a device field")
+        if (SystemInfoAccessClassifier.isExpectedAccessDenial(e)) {
+            Timber.d("S0345: system info field unavailable on this device")
+            Timber.i("System info: device field unavailable on this device (${e.javaClass.simpleName})")
+        } else {
+            Timber.w(e, "System info: failed to read a device field")
+        }
         UNKNOWN
     }
 
     private inline fun safeList(block: () -> List<Pair<String, String>>): List<Pair<String, String>>? = try {
         block()
     } catch (e: Exception) {
-        Timber.w(e, "System info: failed to read a device section")
+        if (SystemInfoAccessClassifier.isExpectedAccessDenial(e)) {
+            Timber.i("System info: device section unavailable on this device (${e.javaClass.simpleName})")
+        } else {
+            Timber.w(e, "System info: failed to read a device section")
+        }
         null
     }
 
