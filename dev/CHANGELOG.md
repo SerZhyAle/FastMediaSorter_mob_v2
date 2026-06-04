@@ -15543,3 +15543,5 @@ Format: | datetime | file | target | description |
 | 2026-06-04 23:48:43 | `PLAN/S0356_bugfix-player-media-load-npe.md` | `spec-dev S0356` | Resolved research items 6.1 (creation site = network scanners/SFTP) and 6.2 (log level Timber.w) [branch: DEBUG-v012] |
 | 2026-06-05 00:57:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LanguageFlagFormatter.kt` | `LanguageFlagFormatter` | Render modern white-blue-white (ru) and white-red-white (be) flags as vector images across translation/OCR language pickers, spinners and labels instead of state emoji [branch: DEBUG-v012] |
 | 2026-06-05 01:23:54 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.6050.116 - plateau merge from DEBUG-v012 [branch: DEBUG-v012] |
+| 2026-06-05 01:47:43 | `scripts/release/publish-github-release.ps1` | `release-publish` | Resolve gh CLI from standard install dir when missing from PATH (was failing into unwired REST branch) [branch: DEBUG-v013] |
+| 2026-06-05 01:47:43 | `scripts/release/publish-play-release.py` | `release-publish` | Drop changesNotSentForReview on Play commit (API HTTP 400 for auto-review apps) [branch: DEBUG-v013] |
