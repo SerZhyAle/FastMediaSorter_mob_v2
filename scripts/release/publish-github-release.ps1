@@ -55,6 +55,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Ensure the GitHub CLI is resolvable even when PATH (e.g. under -NoProfile)
+# omits the standard install directory. Without this, gh detection below
+# falls through to the unwired REST branch and publication aborts.
+if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+    foreach ($ghDir in @(
+        (Join-Path ${env:ProgramFiles} "GitHub CLI"),
+        (Join-Path ${env:ProgramW6432} "GitHub CLI"),
+        (Join-Path ${env:LOCALAPPDATA} "Microsoft\WinGet\Links")
+    )) {
+        if ($ghDir -and (Test-Path -LiteralPath (Join-Path $ghDir "gh.exe"))) {
+            $env:PATH = "$ghDir;$env:PATH"
+            break
+        }
+    }
+}
+
 $repoRoot      = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $buildGradle   = Join-Path $repoRoot "app_v2/build.gradle.kts"
 $standardApkDir = Join-Path $repoRoot "app_v2/build/outputs/apk/standard/release"
