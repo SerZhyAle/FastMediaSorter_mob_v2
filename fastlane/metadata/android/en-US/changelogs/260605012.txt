@@ -1,0 +1,12 @@
+
+
+---
+
+
+• Camera OCR languages - choose OCR and translation language on the crop screen.
+• Re-translate OCR results - switch target language without re-capturing.
+• Icon-style home widgets - compact 1×1 widgets look like clean launcher icons.
+• Camera OCR widget - launch Camera OCR from its own home-screen widget.
+• Add widgets from Settings - pin a widget to the home screen in-app.
+• Capture & OCR panel - one home-screen panel for Camera Photos and OCR.
+..
