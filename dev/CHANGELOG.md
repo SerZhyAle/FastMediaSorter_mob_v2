@@ -15547,3 +15547,4 @@ Format: | datetime | file | target | description |
 | 2026-06-05 01:47:43 | `scripts/release/publish-play-release.py` | `release-publish` | Drop changesNotSentForReview on Play commit (API HTTP 400 for auto-review apps) [branch: DEBUG-v013] |
 | 2026-06-05 02:01:18 | `gradle.properties` | `ci-build` | Remove machine-specific java.io.tmpdir/org.sqlite.tmpdir absolute path that aborted Linux CI before any task [branch: DEBUG-v013] |
 | 2026-06-05 02:48:01 | `gradlew` | `ci-build` | Drop unexpanded -Djava.io.tmpdir from gradlew/gradlew.bat DEFAULT_JVM_OPTS (literal APP_HOME aborted Linux CI); mkdir+TMP redirect retained [branch: DEBUG-v013] |
+| 2026-06-05 02:59:41 | `.claude/commands/skill-release.md` | `skill-release` | Document full 5-channel distribution matrix (Play, GitHub Store, Google Drive, 4pda, IzzyOnDroid) with per-channel per-release actions and gotchas [branch: DEBUG-v013] |

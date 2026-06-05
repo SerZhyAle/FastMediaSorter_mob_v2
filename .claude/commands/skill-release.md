@@ -7,6 +7,8 @@
 
 Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, builds release artifacts, publishes the standard AAB to Google Play, and publishes standard + VR APK assets to GitHub Releases for GitHub Store indexing - all in one unattended pipeline.
 
+**Distribution channels** (full matrix in Step 12a): Google Play (automated), GitHub Store (automated), Google Drive (automated inside `a.ps1 r` - password-protected ZIP), 4pda forum (manual post, cumulative since the last 4pda post), IzzyOnDroid (one-time RFP, then auto-pull from GitHub releases).
+
 ## Usage
 
 ```
@@ -350,6 +352,24 @@ If GitHub publication succeeds, add this manual follow-up to the final report:
 
 If either publisher fails, abort with the command, exit code, and first actionable error. Do not retry with different assets or a different version.
 
+#### Distribution channels - full matrix
+
+The automated steps above cover Google Play + GitHub Store. A complete plateau release reaches five channels:
+
+1. **Google Play** (`standard` AAB) - automated via `publish-play-release.ps1` (track `production`, status `completed` = full rollout, then Google review).
+   - One-time gate that blocks the commit: **Foreground service permissions** declaration in Play Console -> App content. Re-declare whenever a NEW `FOREGROUND_SERVICE_*` type ships (e.g. `FOREGROUND_SERVICE_MICROPHONE` arrived with the Quick Recorder widget). Microphone/camera/location FGS require a short demo video link in the declaration. The AAB uploads fine but the commit returns HTTP 403 until the declaration is saved; the uncommitted edit is harmless - re-run the publisher after saving.
+   - Do NOT pass `changesNotSentForReview` (Play API returns HTTP 400 for apps whose changes auto-review; already removed from the script).
+
+2. **GitHub Store** (`standard` + `vr` APK) - automated via `publish-github-release.ps1`: creates GitHub Release `v<version>` from `main` with both APKs (deterministic names, signing fingerprint pinned). github-store.org indexes the repo's releases automatically; its `app?repo=` web page is only a deep-link launcher into the Android client (it sits on "Redirecting.." with no client installed - not a failure). Needs `gh` CLI (the script auto-resolves it from the standard install dir).
+
+3. **Google Drive** - automated inside `a.ps1 r` (`build-aab-release.ps1`): copies the standard AAB+APK to the synced Drive folder and writes a password-protected ZIP (`FastMediaSorter_standard_release.zip`, password `1`). Other flavors (`lite`/`photos`/`legacy`) refresh their Drive ZIPs only when their own `a.ps1` build runs. No separate step - just ensure the Drive desktop-sync folder is present (the script warns and skips if absent).
+
+4. **4pda forum** (Russian) - MANUAL post. Aggregate `Что нового` / `Что исправлено` since the LAST 4pda post, NOT since the last release (4pda is posted less often - union all `docs/WHATS_NEW.md` blocks between the previous 4pda version and the new one). Three spoilers: `Что нового..`, `Что исправлено..`, `noLegal`. Attach `FastMediaSorter_standard_release.apk` + `FastMediaSorter_nolegal_debug.apk` (build noLegal via `a.ps1 nd` for a fresh asset). Author style applies (`..` not `...`, `ё`); noLegal items come from the gitignored `docs/FEATURES_noLegal*` / `dev/FUNCTIONALITY.log`, never the public files.
+
+5. **IzzyOnDroid** (S0215, `standard` APK) - one-time RFP at https://codeberg.org/IzzyOnDroid/repodata/issues (owner-only; needs a Codeberg account). After acceptance IzzyOnDroid auto-pulls the standard APK from each GitHub release - no per-release action beyond channel 2. The RFP must declare Anti-Features `NonFreeDep` + `NonFreeNet` and specify the APK name pattern `FastMediaSorter-standard-*.apk` (the `vr` asset shares `applicationId com.sza.fastmediasorter` per S0232, so an unfiltered scan can grab the wrong APK). Commit the fastlane changelog `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` so the listing shows the current notes.
+
+**Version skew (applies to all channels):** the Step-2 `$NEW_VERSION` is a pre-build guess; `a.ps1 r` self-stamps a fresh build-time `versionName`. After the build, read the real version from the build log / `build.gradle.kts` and align `WHATS_NEW.md` + `README.md` + the `release/v` tag to it - the GitHub publisher matches the `WHATS_NEW.md` `**Current release:**` header VERBATIM and aborts the listing on mismatch. Google Play is skew-tolerant (it keys on the AAB versionCode + fastlane changelogs).
+
 ---
 
 ### Step 12b - Functionality log sanity check
@@ -381,11 +401,17 @@ Release pipeline complete.
   Next branch: $NEXT_DEBUG (tracking origin/$NEXT_DEBUG)
   Build:    standard + vr release artifacts built
   GitHub Store: GitHub Release assets published
-  Google Play: standard release published
+  Google Play: standard release published (or BLOCKED on FGS declaration)
+  Google Drive: standard ZIP (password 1) synced by a.ps1 r
+  4pda:        manual post pending (channel 4)
+  IzzyOnDroid: auto-pull after acceptance (RFP one-time, channel 5)
 
 Manual follow-ups (if any):
   [FUNC_LOG MISSED] Sxxxx - confirm whether spec delivered user-visible change; add entry via add_to_functionality_log.ps1
   [S0214 STORE CHECK] Owner checks GitHub Store search/install after indexing.
+  [PLAY FGS] If a new FOREGROUND_SERVICE_* type shipped, declare it in Play Console App content (video for mic/cam/loc), then re-run publish-play-release.ps1.
+  [4PDA] Compose forum post (cumulative since last 4pda version); attach standard_release.apk + nolegal_debug.apk.
+  [IZZY RFP] First time only: submit RFP at codeberg.org/IzzyOnDroid/repodata/issues (NonFreeDep + NonFreeNet, APK pattern FastMediaSorter-standard-*).
 ```
 
 If there are no missed entries, omit the "Manual follow-ups" block. No other prose.
