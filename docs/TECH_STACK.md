@@ -9,7 +9,7 @@ Ref: `gradle/libs.versions.toml`
 ## Dependencies
 - **Core**: Hilt, Room
 - **Media**: ExoPlayer
-- **Image**: Glide (App), Coil (Wear)
+- **Image**: Glide (App), Coil (Wear), CameraX 1.5.3 (in-app camera preview/capture)
 - **Network**: SMBJ, SSHJ, Commons Net, OkHttp
 - **Cloud**: Drive, OneDrive, Dropbox
 - **OCR/AI**: ML Kit, Tesseract4Android

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101114"
+    android:keepScreenOn="true"
+    tools:context=".ui.cameracapture.CameraCaptureActivity">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewViewCamera"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:implementationMode="performance"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:scaleType="fillCenter" />
+
+    <LinearLayout
+        android:id="@+id/cameraTopBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCloseCamera"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/close"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/close"
+            app:backgroundTint="#CC15171C"
+            app:icon="@drawable/ic_cancel"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            app:iconTint="@android:color/white"
+            app:strokeColor="#33FFFFFF" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/cameraActionBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCapturePhoto"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/cmd_camera_capture"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:tooltipText="@string/cmd_camera_capture"
+            app:backgroundTint="@android:color/white"
+            app:cornerRadius="36dp"
+            app:icon="@drawable/ic_camera_capture"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="28dp"
+            app:iconTint="#111318" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

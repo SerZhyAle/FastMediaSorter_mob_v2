@@ -140,3 +140,43 @@ adjacent code is touched.
 | `settings_help_icon_size` | - | Help icon button size |
 | `settings_help_icon_margin` | - | Gap between text group and help icon |
 | `checkbox_subtitle_margin_start` | - | Help text indent under checkbox |
+
+## Performance & Resource Optimization
+
+To maintain fast startup times (cold start), low memory consumption, and efficient CPU usage, the following patterns must be strictly enforced:
+
+### 1. Lazy Dependency Injection (dagger.Lazy)
+Heavy singletons, network managers, and protocol clients (e.g., `SmbClient`, `SftpClient`, `DropboxClient`) must NOT be eagerly injected into global scopes like `Application` or entry points like `PlayerActivity`. 
+- **Rule:** Wrap heavy/optional dependencies using `dagger.Lazy<T>` and retrieve them via `.get()` only when requested.
+- **Example:**
+  ```kotlin
+  @Inject lateinit var smbClient: dagger.Lazy<SmbClient>
+  ```
+
+### 2. Layout Optimization via ViewStub
+Do not use `android:visibility="gone"` for complex, format-specific, or optional layout elements (e.g., search overlays, specific player controls, game modules) in main activity XML layouts. 
+- **Rule:** Declare optional layout overlays inside a `<ViewStub>` and inflate them programmatically on demand. This avoids parsing overhead and unnecessary View hierarchy memory allocations on startup.
+- **Example:**
+  ```xml
+  <ViewStub
+      android:id="@+id/searchPanelStub"
+      android:layout="@layout/player_search_panel_content"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content" />
+  ```
+
+### 3. On-Demand Media Lifecycle Management
+Media players (`ExoPlayer`, `MediaPlayer`) and image loading caches (Glide) must only allocate system resources (decoders, native memory) when active playback is running.
+- **Rule:** Release media player resources (`release()`) immediately when pausing, transitioning to other media types, or backgrounding the activity. Avoid preloading multiple heavy assets unless explicitly requested.
+
+### 4. Dynamic OS Component Gating
+Optional background elements like widget receivers (`AppWidgetProvider`) should not consume system resources when disabled by user settings.
+- **Rule:** Use `PackageManager.setComponentEnabledSetting` to dynamically enable or disable widget receivers, services, or activities at runtime depending on the configuration in `AppSettings`.
+- **Example:**
+  ```kotlin
+  context.packageManager.setComponentEnabledSetting(
+      ComponentName(context, GameLaunchWidgetProvider::class.java),
+      if (enabled) COMPONENT_ENABLED_STATE_ENABLED else COMPONENT_ENABLED_STATE_DISABLED,
+      DONT_KILL_APP
+  )
+  ```

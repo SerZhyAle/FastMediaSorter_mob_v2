@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260605012
-        versionName = "2.60.6050.126"
+        versionCode = 260605164
+        versionName = "2.60.6051.646"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -1066,6 +1066,10 @@ dependencies {
     implementation("com.google.mlkit:translate:17.0.3")
     implementation("com.google.mlkit:text-recognition:16.0.1")          // Latin script (also works for Cyrillic to some extent)
     implementation("com.google.mlkit:language-id:17.0.6")
+    implementation("androidx.camera:camera-core:1.5.3")
+    implementation("androidx.camera:camera-camera2:1.5.3")
+    implementation("androidx.camera:camera-lifecycle:1.5.3")
+    implementation("androidx.camera:camera-view:1.5.3")
     
     // Tesseract OCR (Offline, better Cyrillic support)
     implementation("cz.adaptech:tesseract4android:4.8.0") {

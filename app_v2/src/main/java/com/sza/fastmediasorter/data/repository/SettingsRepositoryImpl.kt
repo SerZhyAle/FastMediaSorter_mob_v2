@@ -138,6 +138,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_FAVORITES = booleanPreferencesKey("enable_favorites")
         private val KEY_DISABLE_CAMERA_CAPTURE = booleanPreferencesKey("disable_camera_capture")
         private val KEY_SKIP_CAMERA_FILENAME_DIALOG = booleanPreferencesKey("skip_camera_filename_dialog")
+        private val KEY_CAMERA_OPEN_FOR_EDITING = booleanPreferencesKey("camera_open_for_editing")
         // S0100: Microphone recording feature
         private val KEY_MIC_RECORDING_ENABLED = booleanPreferencesKey("mic_recording_enabled")
         private val KEY_MIC_RECORDING_ASK_FILENAME = booleanPreferencesKey("mic_recording_ask_filename")
@@ -382,6 +383,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     enableFavorites = preferences[KEY_ENABLE_FAVORITES] ?: true,
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
+                    cameraCaptureOpenForEditing = preferences[KEY_CAMERA_OPEN_FOR_EDITING] ?: false,
                     micRecordingEnabled = preferences[KEY_MIC_RECORDING_ENABLED] ?: false,
                     micRecordingAskFilename = preferences[KEY_MIC_RECORDING_ASK_FILENAME] ?: true,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
@@ -594,6 +596,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_FAVORITES] = settings.enableFavorites
             preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
             preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
+            preferences[KEY_CAMERA_OPEN_FOR_EDITING] = settings.cameraCaptureOpenForEditing
             preferences[KEY_MIC_RECORDING_ENABLED] = settings.micRecordingEnabled
             preferences[KEY_MIC_RECORDING_ASK_FILENAME] = settings.micRecordingAskFilename
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed

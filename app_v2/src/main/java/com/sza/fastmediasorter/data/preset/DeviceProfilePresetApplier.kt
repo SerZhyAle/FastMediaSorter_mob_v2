@@ -101,6 +101,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableFavorites" -> settings.copy(enableFavorites = raw.toBool())
             "disableCameraCapture" -> settings.copy(disableCameraCapture = raw.toBool())
             "skipCameraFilenameDialog" -> settings.copy(skipCameraFilenameDialog = raw.toBool())
+            "cameraCaptureOpenForEditing" -> settings.copy(cameraCaptureOpenForEditing = raw.toBool())
             "micRecordingEnabled" -> settings.copy(micRecordingEnabled = raw.toBool())
             "micRecordingAskFilename" -> settings.copy(micRecordingAskFilename = raw.toBool())
             "copyPanelCollapsed" -> settings.copy(copyPanelCollapsed = raw.toBool())

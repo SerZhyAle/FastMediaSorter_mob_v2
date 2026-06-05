@@ -461,34 +461,6 @@
 
                     </LinearLayout>
 
-                    <!-- Landscape: Camera Capture disable + Skip filename dialog on one row. Skip-filename keeps visibility gate (only shown when disable=true). -->
-                    <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowDisableCameraCapture"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/margin_small"
-                            app:str_title="@string/setting_disable_camera_capture"
-                            app:str_subtitle="@string/setting_disable_camera_capture_summary"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_camera_capture_title"
-                            app:str_helpMessage="@string/tooltip_camera_capture_message" />
-
-                        <!-- Skip filename dialog (dependent row gated by disableCameraCapture; visibility toggled in Fragment) -->
-                        <LinearLayout android:id="@+id/layoutSkipCameraFilename" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_small" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowSkipCameraFilenameDialog"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/setting_skip_camera_filename_dialog" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
                     <!-- S0050: Show Black Screen button toggle (moved from Behaviour, S0318; full width per landscape decision) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowShowBlackScreenButton"

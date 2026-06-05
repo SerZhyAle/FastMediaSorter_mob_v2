@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
+import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
@@ -70,10 +71,8 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_create_text_file)?.isVisible =
             canCreateTextNote && !isControlVisibleOnScreen(anchor, R.id.btnCreateTextFile)
 
-        val canCreateDrawing = resource != null
-            && !resource.isReadOnly
-            && !VirtualPathUtils.isVirtualPath(resource.path)
-            && resource.supportsImages()
+        // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
+        val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         popup.menu.findItem(R.id.action_create_drawing)?.isVisible =
             canCreateDrawing && !isControlVisibleOnScreen(anchor, R.id.btnCreateDrawing)
 
@@ -418,11 +417,7 @@ class ResourceOpsMenuManager @Inject constructor(
 
     fun showCreateDrawingDialog(viewModel: BrowseViewModel) {
         val resource = viewModel.state.value.resource
-        if (resource == null
-            || resource.isReadOnly
-            || VirtualPathUtils.isVirtualPath(resource.path)
-            || !resource.supportsImages()
-        ) {
+        if (!DrawingTargetPolicy.canCreateDrawing(resource)) {
             return
         }
 

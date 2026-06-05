@@ -81,6 +81,15 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             group = PermissionGroup.NETWORK, optional = true,
             minSdk = 37,
         ),
+        // CAMERA
+        PermissionEntry(
+            id = "camera",
+            manifestName = Manifest.permission.CAMERA,
+            titleRes = R.string.perm_title_camera,
+            descriptionRes = R.string.perm_desc_camera,
+            iconRes = 0,
+            group = PermissionGroup.CAMERA, optional = true,
+        ),
         // MICROPHONE
         PermissionEntry(
             id = "record_audio",
@@ -131,11 +140,11 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
                     titleRes = when (group) {
                         PermissionGroup.STORAGE -> R.string.perm_group_storage
                         PermissionGroup.NETWORK -> R.string.perm_group_network
+                        PermissionGroup.CAMERA -> R.string.perm_group_camera
                         PermissionGroup.MICROPHONE -> R.string.perm_group_microphone
                         PermissionGroup.NOTIFICATION -> R.string.perm_group_notification
                         PermissionGroup.SYSTEM -> R.string.perm_group_system
                         PermissionGroup.VR -> R.string.perm_group_vr
-                        else -> 0
                     }
                 )
             }

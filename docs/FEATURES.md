@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-04*
+*Last updated: 2026-06-05*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
@@ -35,7 +35,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Batch processing** `[Standard / VR]`: Multi-select items for batch copying, moving, deleting, or sharing.
 - **Duplicate file finder** `[Standard / VR]`: Locate and remove identical files across all storage using a 3-phase scanning engine (Size -> Hash -> SHA-256) with review and auto-delete modes.
 - **Archive management** `[Standard / VR]`: Pack selected files into a single background ZIP archive; extract archives into the current folder with percentage progress, including password-protected ZIPs after a one-time password prompt.
-- **Camera & Mic capture** `[Standard / VR]`: Take photos or record audio directly into the current folder (local, network, or cloud).
+- **Camera & Mic capture** `[Standard / VR]`: Take photos or record audio directly into the current folder (local, network, or cloud). In Audio settings, the new Camera-to-Resource section lets you disable photo capture, ask for a filename before saving, or open the saved photo straight in the drawing editor; photo capture requests the CAMERA permission only when used.
 - **Smooth progress indication** `[Standard / VR]`: Progress bar displays byte percentage, transfer speed, and estimated time remaining (ETA) for all operations.
 
 ## 4. Destination Management
@@ -49,13 +49,14 @@ This document is the canonical inventory of all user-facing features implemented
 - **Quick operations** `[Standard / VR]`: Rotate, flip, and crop an image with changes saved destructively directly to the source file.
 - **Color adjustments & Filters** `[Standard / VR]`: Fine-tune brightness, contrast, and saturation, or apply Grayscale, Sepia, and Negative filters natively.
 - **GIF controls** `[Standard / VR]`: Adjust GIF playback speed from 0.25× to 4× with file-specific memory; save the first frame as static or explode the animation into individual static images.
-- **Send to Telegram** `[Standard / VR]`: Instantly send files to an installed Telegram client from both the browser and the player (button appears automatically if Telegram is installed).
+- **Send to Telegram** `[Standard / VR]`: Instantly send files to an installed Telegram client from both the file browser and the player (button appears automatically if Telegram is installed).
 
 ## 6. Drawing & Annotations Editor
 - **Drawing tools** `[Standard / VR]`: Full-screen canvas with brush, oval, rectangle, eraser, and text annotation tools.
 - **Palette & Sizes** `[Standard / VR]`: Choose from 16 colors with adjustable brush size, text size, and opacity.
-- **Blank canvas creation** `[Standard / VR]`: Create a new empty `.jpg` drawing directly from the Browse toolbar in local, network, or cloud folders.
+- **Blank canvas creation** `[Standard / VR]`: Create a new empty `.jpg` drawing directly from the file browser toolbar in local, network, or cloud folders, as well as in the All Images, Camera Photos, and Downloads resources - a drawing created from All Images is saved to Downloads.
 - **Export & integration** `[Standard / VR]`: Undo changes and export finished drawings directly to Google Keep or other external apps.
+- **Delete file** `[Standard / VR]`: Delete the file you are editing straight from the drawing editor's overflow menu - confirm once and you are taken back to Browse.
 
 ## 7. Video Player
 - **Session save & restore** `[Standard / VR]`: Remembers the exact playback position and restores active network/cloud sessions upon cold start.
@@ -103,7 +104,7 @@ This document is the canonical inventory of all user-facing features implemented
 ## 12. Text Editor
 - **Rendering & syntax** `[Standard / VR]`: Auto-detects charsets, renders Markdown, and highlights code syntax.
 - **In-place editing** `[Standard / VR]`: Modify `.txt` and `.md` files with auto-save and undo history (Undo/Redo) for local and remote files.
-- **Quick notes** `[Standard / VR]`: Create new text notes directly from the Browse toolbar with auto-saving and name conflict resolution.
+- **Quick notes** `[Standard / VR]`: Create new text notes directly from the file browser toolbar with auto-saving and name conflict resolution.
 - **Action panel** `[Standard / VR]`: Dedicated control buttons (Save, Close, Share, Send to Keep) with unsaved change highlights.
 - **Embedded calculator from text** `[Standard / VR]`: Opens the embedded calculator from the editor action menu with result insertion, and from read-only text selection menus for OCR, translations, PDF/EPUB text, and lyrics without writing the result back.
 - **Font auto-fit** `[Standard / VR]`: Scales text size automatically to fit the screen, with swipe-based manual size lock.
@@ -114,7 +115,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Expanded language picker** `[Standard / VR]`: Select translation and OCR source languages in Settings, player translation dialogs, and Camera OCR through a searchable list with regional flags, app-language names, native names, and capability labels for translation, basic OCR, quality OCR, and noLegal OCR; the ML Kit translation catalog includes Czech and the full supported language set.
 - **AR translation overlay** `[Standard / VR]`: Draws translated text precisely over original coordinates on images and PDFs.
 - **Quality models on-demand** `[Standard / VR]`: Download improved Cyrillic/Ukrainian Tesseract models (`tessdata_best`) directly in Settings with SHA-256 validation.
-- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads. After capture you can drag a rectangle to crop the photo so OCR, translation and the saved image apply only to the selected area; leaving the frame untouched processes the whole photo. On the crop screen you also see and change the OCR and translation languages — shown as a flag plus two-letter code — before recognition runs; with OCR language set to auto-detect the translation is performed from the language detected in the recognized text. The results screen lets you re-translate the recognized text into another language without re-capturing.
+- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads. The capture step now uses the in-app camera, so after pressing the shutter there is no extra OEM confirmation screen before OCR continues. After capture you can drag a rectangle to crop the photo so OCR, translation and the saved image apply only to the selected area; leaving the frame untouched processes the whole photo. On the crop screen you also see and change the OCR and translation languages — shown as a flag plus two-letter code — before recognition runs; with OCR language set to auto-detect the translation is performed from the language detected in the recognized text. On the results screen you can change the OCR language to re-run recognition over the captured (cropped) image, or change the translation language to re-translate the recognized text — both without re-capturing.
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery** `[Standard / VR]`: Scans the local subnet (ports 445, 21, 22) for active SMB, FTP, and SFTP endpoints.

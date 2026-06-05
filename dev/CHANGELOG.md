@@ -15549,3 +15549,158 @@ Format: | datetime | file | target | description |
 | 2026-06-05 02:48:01 | `gradlew` | `ci-build` | Drop unexpanded -Djava.io.tmpdir from gradlew/gradlew.bat DEFAULT_JVM_OPTS (literal APP_HOME aborted Linux CI); mkdir+TMP redirect retained [branch: DEBUG-v013] |
 | 2026-06-05 02:59:41 | `.claude/commands/skill-release.md` | `skill-release` | Document full 5-channel distribution matrix (Play, GitHub Store, Google Drive, 4pda, IzzyOnDroid) with per-channel per-release actions and gotchas [branch: DEBUG-v013] |
 | 2026-06-05 03:18:08 | `fastlane/metadata/android/ru-RU/changelogs/260605012.txt` | `fastlane-changelog` | Fix stale RU/UK fastlane changelogs for v2.60.6050.126 (advance WHATS_NEW_RU/UK mirrors + regenerate); skill Step 4 now mandates localized mirror updates [branch: DEBUG-v013] |
+| 2026-06-05 10:35:33 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec` | Add skeletal strategic spec S0359 - CAMERA permission + in-app fast capture (CameraX), system-camera fallback, camera-to-resource settings section by analogy with voice recorder, open-for-drawing option [branch: DEBUG-v013] |
+| 2026-06-05 10:53:11 | `PLAN/S0360_drawing-editor-delete-file.md` | `spec` | Add strategic spec S0360 - Delete file action in drawing editor overflow menu, reuses existing per-resource delete [branch: DEBUG-v013] |
+| 2026-06-05 11:00:20 | `PLAN/S0361_result-screen-ocr-language-reocr.md` | `spec` | Add strategic spec S0361 - return OCR language to result screen with re-OCR [branch: DEBUG-v013] |
+| 2026-06-05 11:05:02 | `PLAN/S0361_result-screen-ocr-language-reocr/INDEX.md` | `spec-tech` | Create tactical plan for S0361 [branch: DEBUG-v013] |
+| 2026-06-05 11:05:03 | `PLAN/S0361_result-screen-ocr-language-reocr/PHASE_01__reocr-orchestration.md` | `spec-tech` | Phase 01: reocr-orchestration [branch: DEBUG-v013] |
+| 2026-06-05 11:05:03 | `PLAN/S0361_result-screen-ocr-language-reocr/PHASE_02__dialog-ocr-language.md` | `spec-tech` | Phase 02: dialog-ocr-language [branch: DEBUG-v013] |
+| 2026-06-05 11:05:03 | `PLAN/S0361_result-screen-ocr-language-reocr/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-05 11:05:03 | `PLAN/S0361_result-screen-ocr-language-reocr.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-05 11:05:14 | `PLAN/S0362_keep-share-editor-regression.md` | `spec` | Add strategic spec S0362 for Google Keep share regression in text and draw editors [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `PLAN/S0361_result-screen-ocr-language-reocr.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-dev` | Result screen OCR language re-runs recognition over retained image; add hasRetainedSourceImage; debug tag [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `spec-dev` | Return OCR source-language control to result-screen settings dialog [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `app_v2/src/main/res/layout/dialog_camera_ocr_settings.xml` | `spec-dev` | Add OCR source-language picker to camera OCR settings dialog [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `docs/FEATURES.md` | `spec-dev` | Document result-screen OCR-language re-recognition [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `docs/FEATURES_RU.md` | `spec-dev` | Document result-screen OCR-language re-recognition (RU) [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `docs/FEATURES_UK.md` | `spec-dev` | Document result-screen OCR-language re-recognition (UK) [branch: DEBUG-v013] |
+| 2026-06-05 11:31:04 | `app_v2/src/main/AndroidManifest.xml` | `manifest` | S0362: declare Google Keep package visibility in <queries> so editor Send-to-Keep resolves on Android 11+ [branch: DEBUG-v013] |
+| 2026-06-05 11:31:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `draw-editor` | S0362: hide draw overflow Send-to-Keep item when Keep is not installed (unified fallback) [branch: DEBUG-v013] |
+| 2026-06-05 11:31:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/editor/actions/EditorActionPanelBinder.kt` | `text-editor` | S0362: device-test probe for text editor Keep item visibility [branch: DEBUG-v013] |
+| 2026-06-05 11:39:04 | `PLAN/S0363_drawing-command-image-resources.md` | `spec` | Add strategic spec S0363 for drawing command on image resources (all-images/camera/downloads, save routing) [branch: DEBUG-v013] |
+| 2026-06-05 11:43:37 | `PLAN/S0363_drawing-command-image-resources/INDEX.md` | `spec-tech` | Create tactical plan for S0363 [branch: DEBUG-v013] |
+| 2026-06-05 11:43:37 | `PLAN/S0363_drawing-command-image-resources/PHASE_01__drawing-target-policy.md` | `spec-tech` | Phase 01: drawing-target-policy [branch: DEBUG-v013] |
+| 2026-06-05 11:43:37 | `PLAN/S0363_drawing-command-image-resources/PHASE_02__save-routing-indexing.md` | `spec-tech` | Phase 02: save-routing-indexing [branch: DEBUG-v013] |
+| 2026-06-05 11:43:37 | `PLAN/S0363_drawing-command-image-resources/PHASE_03__visibility-wiring.md` | `spec-tech` | Phase 03: visibility-wiring [branch: DEBUG-v013] |
+| 2026-06-05 11:43:37 | `PLAN/S0363_drawing-command-image-resources/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-05 11:43:38 | `PLAN/S0363_drawing-command-image-resources.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-05 11:44:57 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec-tech` | S0359 blocked on API constraint: declaring CAMERA breaks ACTION_IMAGE_CAPTURE fallback (SecurityException since API 23); status -> BlockQuestions pending owner decision [branch: DEBUG-v013] |
+| 2026-06-05 12:17:00 | `app_v2/src/main/java/com/sza/fastmediasorter/util/DrawingTargetPolicy.kt` | `S0363` | Add DrawingTargetPolicy: visibility + target-dir routing for Create drawing on image resources [branch: DEBUG-v013] |
+| 2026-06-05 12:19:00 | `app_v2/src/test/java/com/sza/fastmediasorter/util/DrawingTargetPolicyTest.kt` | `S0363` | Add DrawingTargetPolicyTest: canCreateDrawing visibility cases [branch: DEBUG-v013] |
+| 2026-06-05 12:23:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/CreateDrawingUseCase.kt` | `S0363` | Route drawing save dir via DrawingTargetPolicy + index new local file in MediaStore [branch: DEBUG-v013] |
+| 2026-06-05 12:25:57 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec` | S0359 owner resolved Variant 1: CAMERA mandatory, in-app CameraX is the sole capture path, OEM confirmation screen removed; §6.6 closed; status -> Approved [branch: DEBUG-v013] |
+| 2026-06-05 12:29:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `S0363` | Route Create drawing overflow item + dialog guard through DrawingTargetPolicy [branch: DEBUG-v013] |
+| 2026-06-05 12:29:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseStateUiUpdater.kt` | `S0363` | Route Create drawing toolbar button visibility through DrawingTargetPolicy [branch: DEBUG-v013] |
+| 2026-06-05 12:30:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDrawingCreateManager.kt` | `S0363` | Align isAvailableFor predicate with DrawingTargetPolicy [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/INDEX.md` | `spec-tech` | Create tactical plan INDEX for S0359 (8 phases) [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_01__foundations-permission-deps.md` | `spec-tech` | Phase 01: CameraX deps, CAMERA permission, registry entry, strings [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_02__inapp-camera-screen.md` | `spec-tech` | Phase 02: in-app CameraX capture screen [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_03__ocr-inapp-capture.md` | `spec-tech` | Phase 03: OCR flow uses in-app capture [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_04__settings-keys.md` | `spec-tech` | Phase 04: open-for-editing setting key + backup [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_05__camera-resource-settings-ui.md` | `spec-tech` | Phase 05: Camera-to-Resource settings section [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_06__browse-inapp-capture-editing.md` | `spec-tech` | Phase 06: Browse in-app capture + open-for-editing [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_07__optional-permissions-grouping.md` | `spec-tech` | Phase 07: Optional permissions visual grouping [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs, functionality log, catalog cleanup [branch: DEBUG-v013] |
+| 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec-tech` | S0359 status to Tactical [branch: DEBUG-v013] |
+| 2026-06-05 12:33:35 | `docs/FEATURES.md` | `S0363` | Extend drawing entry: command available on All Images / Camera / Downloads; All Images -> Downloads [branch: DEBUG-v013] |
+| 2026-06-05 12:33:36 | `docs/FEATURES_RU.md` | `S0363` | Extend drawing entry (RU): command on All Images / Camera / Downloads [branch: DEBUG-v013] |
+| 2026-06-05 12:33:36 | `docs/FEATURES_UK.md` | `S0363` | Extend drawing entry (UK): command on All Images / Camera / Downloads [branch: DEBUG-v013] |
+| 2026-06-05 12:39:02 | `PLAN/S0363_drawing-command-image-resources.md` | `spec-dev` | All 4 phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
+| 2026-06-05 12:39:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/CreateDrawingUseCase.kt` | `spec-dev` | Insert S0363 BlockNeedUserTest debug probe at drawing target-path resolution [branch: DEBUG-v013] |
+| 2026-06-05 12:46:35 | `PLAN/S0363_drawing-command-image-resources.md` | `spec-check` | Static audit S0363 -> all checks PASS (27/0/0); status kept BlockNeedUserTest, device-test probe retained [branch: DEBUG-v013] |
+| 2026-06-05 12:57:31 | `PLAN/S0360_drawing-editor-delete-file/INDEX.md` | `spec-tech` | Create tactical plan for S0360 (delete file in drawing editor) [branch: DEBUG-v013] |
+| 2026-06-05 12:57:31 | `PLAN/S0360_drawing-editor-delete-file/PHASE_01__delete-flow.md` | `spec-tech` | Phase 01: delete-flow [branch: DEBUG-v013] |
+| 2026-06-05 12:57:31 | `PLAN/S0360_drawing-editor-delete-file/PHASE_02__editor-menu.md` | `spec-tech` | Phase 02: editor-menu [branch: DEBUG-v013] |
+| 2026-06-05 12:57:31 | `PLAN/S0360_drawing-editor-delete-file/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-05 12:57:31 | `PLAN/S0360_drawing-editor-delete-file.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-05 12:59:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt` | `spec-dev` | S0360 Phase 01.1: add finishOnSuccess branch returning to browse on editor-initiated delete [branch: DEBUG-v013] |
+| 2026-06-05 13:00:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `spec-dev` | S0360 Phase 01.2: add deleteCurrentFileAndFinish() returning to browse on success [branch: DEBUG-v013] |
+| 2026-06-05 13:04:38 | `PLAN/S0364_settings-interface-group-split.md` | `spec` | Add strategic spec S0364 for settings interface group split [branch: DEBUG-v013] |
+| 2026-06-05 13:09:38 | `app_v2/src/main/res/values/strings_drawing.xml` | `spec-dev` | S0360 Phase 02.1: add draw_overflow_delete_file string (EN/RU/UK) [branch: DEBUG-v013] |
+| 2026-06-05 13:10:15 | `app_v2/src/main/res/menu/menu_draw_overflow.xml` | `spec-dev` | S0360 Phase 02.2: add Delete file item to draw overflow menu [branch: DEBUG-v013] |
+| 2026-06-05 13:11:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `spec-dev` | S0360 Phase 02.3: add onDeleteRequested to DrawOverlayActionCallback [branch: DEBUG-v013] |
+| 2026-06-05 13:12:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDrawingSaveHelper.kt` | `spec-dev` | S0360 Phase 02.3: implement confirm+delete of current file in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:13:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `spec-dev` | S0360 Phase 02.4: wire Delete file menu branch and visibility gate [branch: DEBUG-v013] |
+| 2026-06-05 13:23:23 | `docs/FEATURES.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:23:23 | `docs/FEATURES_RU.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:23:23 | `docs/FEATURES_UK.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:25:22 | `PLAN/S0360_drawing-editor-delete-file.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
+| 2026-06-05 13:25:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDrawingSaveHelper.kt` | `spec-dev` | S0360: insert BlockNeedUserTest debug tag at editor delete entry [branch: DEBUG-v013] |
+| 2026-06-05 13:25:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt` | `spec-dev` | S0360: insert BlockNeedUserTest debug tag at editor-delete success path [branch: DEBUG-v013] |
+| 2026-06-05 13:41:03 | `app_v2/build.gradle.kts` | `spec-dev S0359` | Add CameraX dependencies for in-app capture and restore pre-validation version fields after build-script noise [branch: DEBUG-v013] |
+| 2026-06-05 13:41:03 | `app_v2/src/main/AndroidManifest.xml` | `spec-dev S0359` | Declare CAMERA permission, optional camera features and the in-app CameraCaptureActivity [branch: DEBUG-v013] |
+| 2026-06-05 13:41:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImpl.kt` | `spec-dev S0359` | Register optional CAMERA permission entry and explicit camera group mapping [branch: DEBUG-v013] |
+| 2026-06-05 13:41:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameracapture/CameraCaptureActivity.kt` | `spec-dev S0359` | Add in-app CameraX capture Activity with CAMERA permission request and File output handling [branch: DEBUG-v013] |
+| 2026-06-05 13:41:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameracapture/helpers/CameraCaptureSessionManager.kt` | `spec-dev S0359` | Add CameraX session manager for preview binding and JPEG capture [branch: DEBUG-v013] |
+| 2026-06-05 13:41:04 | `app_v2/src/main/res/layout/activity_camera_capture.xml` | `spec-dev S0359` | Add portrait in-app camera capture screen layout [branch: DEBUG-v013] |
+| 2026-06-05 13:41:05 | `app_v2/src/main/res/layout-land/activity_camera_capture.xml` | `spec-dev S0359` | Add landscape in-app camera capture screen layout [branch: DEBUG-v013] |
+| 2026-06-05 13:41:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrStorageManager.kt` | `spec-dev S0359` | Switch OCR camera availability checks to camera hardware and expose capture-intent context [branch: DEBUG-v013] |
+| 2026-06-05 13:41:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-dev S0359` | Route OCR capture through in-app CameraCaptureActivity and add BlockNeedUserTest debug probe [branch: DEBUG-v013] |
+| 2026-06-05 13:41:05 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev S0359` | Add cameraCaptureOpenForEditing setting flag [branch: DEBUG-v013] |
+| 2026-06-05 13:41:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev S0359` | Persist cameraCaptureOpenForEditing in DataStore settings [branch: DEBUG-v013] |
+| 2026-06-05 13:41:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `spec-dev S0359` | Include cameraCaptureOpenForEditing in settings backup model [branch: DEBUG-v013] |
+| 2026-06-05 13:41:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `spec-dev S0359` | Map cameraCaptureOpenForEditing into and out of backup payloads [branch: DEBUG-v013] |
+| 2026-06-05 13:41:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `spec-dev S0359` | Export cameraCaptureOpenForEditing with settings XML [branch: DEBUG-v013] |
+| 2026-06-05 13:41:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `spec-dev S0359` | Import cameraCaptureOpenForEditing from settings XML [branch: DEBUG-v013] |
+| 2026-06-05 13:41:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt` | `spec-dev S0359` | Apply cameraCaptureOpenForEditing from device profile presets [branch: DEBUG-v013] |
+| 2026-06-05 13:41:07 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev S0359` | Add cameraCaptureOpenForEditing preset row [branch: DEBUG-v013] |
+| 2026-06-05 13:41:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `spec-dev S0359` | Replace photo ACTION_IMAGE_CAPTURE with in-app capture and route saved photos into drawing editor when enabled [branch: DEBUG-v013] |
+| 2026-06-05 13:41:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `spec-dev S0359` | Gate camera-to-resource launch on CAMERA permission and open captured photos in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:41:08 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `spec-dev S0359` | Add Camera-to-Resource settings rows to portrait Audio settings layout [branch: DEBUG-v013] |
+| 2026-06-05 13:41:08 | `app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `spec-dev S0359` | Add Camera-to-Resource settings rows to landscape Audio settings layout [branch: DEBUG-v013] |
+| 2026-06-05 13:41:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `spec-dev S0359` | Bind Camera-to-Resource settings section and reuse existing camera flags [branch: DEBUG-v013] |
+| 2026-06-05 13:41:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev S0359` | Remove legacy camera-capture rows from Playback settings [branch: DEBUG-v013] |
+| 2026-06-05 13:41:09 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `spec-dev S0359` | Remove camera-capture settings block from portrait Playback settings layout [branch: DEBUG-v013] |
+| 2026-06-05 13:41:09 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev S0359` | Remove camera-capture settings block from landscape Playback settings layout [branch: DEBUG-v013] |
+| 2026-06-05 13:41:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `spec-dev S0359` | Group optional permissions under a synthetic Optional permissions header [branch: DEBUG-v013] |
+| 2026-06-05 13:41:10 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0359` | Add camera permission, Camera-to-Resource and optional-permission strings in EN [branch: DEBUG-v013] |
+| 2026-06-05 13:41:10 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0359` | Add camera permission, Camera-to-Resource and optional-permission strings in RU [branch: DEBUG-v013] |
+| 2026-06-05 13:41:10 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0359` | Add camera permission, Camera-to-Resource and optional-permission strings in UK [branch: DEBUG-v013] |
+| 2026-06-05 13:41:11 | `docs/FEATURES.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in EN features [branch: DEBUG-v013] |
+| 2026-06-05 13:41:11 | `docs/FEATURES_RU.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in RU features [branch: DEBUG-v013] |
+| 2026-06-05 13:41:11 | `docs/FEATURES_UK.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in UK features [branch: DEBUG-v013] |
+| 2026-06-05 13:41:11 | `docs/TECH_STACK.md` | `spec-dev S0359` | Record CameraX 1.5.3 in the tech stack summary [branch: DEBUG-v013] |
+| 2026-06-05 13:41:12 | `dev/TECH_REQUIREMENTS.md` | `spec-dev S0359` | Record CameraX 1.5.3 in the detailed dependency inventory [branch: DEBUG-v013] |
+| 2026-06-05 13:41:12 | `dev/FUNCTIONALITY.log` | `spec-dev S0359` | Record the user-visible S0359 behavior change in the functionality log [branch: DEBUG-v013] |
+| 2026-06-05 13:41:12 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0359` | Regenerate app_v2 catalog and add CameraCaptureActivity / CameraCaptureSessionManager records [branch: DEBUG-v013] |
+| 2026-06-05 13:41:12 | `dev/CATALOG/app_v2.md` | `spec-dev S0359` | Render app_v2 catalog markdown after S0359 catalog sync [branch: DEBUG-v013] |
+| 2026-06-05 13:41:13 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec-dev S0359` | Advance strategic spec to BlockNeedUserTest after implementation [branch: DEBUG-v013] |
+| 2026-06-05 13:41:13 | `PLAN/S0359_camera-permission-inapp-capture/INDEX.md` | `spec-dev S0359` | Mark all tactical phases done and record current validation blocker notes [branch: DEBUG-v013] |
+| 2026-06-05 13:41:13 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_01__foundations-permission-deps.md` | `spec-dev S0359` | Mark Phase 01 complete after CameraX foundations, permission and strings work [branch: DEBUG-v013] |
+| 2026-06-05 13:41:13 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_02__inapp-camera-screen.md` | `spec-dev S0359` | Mark Phase 02 complete after in-app camera screen implementation [branch: DEBUG-v013] |
+| 2026-06-05 13:41:14 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_03__ocr-inapp-capture.md` | `spec-dev S0359` | Mark Phase 03 complete and record OCR capture debug-probe transition [branch: DEBUG-v013] |
+| 2026-06-05 13:41:14 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_04__settings-keys.md` | `spec-dev S0359` | Mark Phase 04 complete after settings persistence wiring [branch: DEBUG-v013] |
+| 2026-06-05 13:41:14 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_05__camera-resource-settings-ui.md` | `spec-dev S0359` | Mark Phase 05 complete after Camera-to-Resource settings UI wiring [branch: DEBUG-v013] |
+| 2026-06-05 13:41:14 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_06__browse-inapp-capture-editing.md` | `spec-dev S0359` | Mark Phase 06 complete and record browse capture debug-probe transition [branch: DEBUG-v013] |
+| 2026-06-05 13:41:15 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_07__optional-permissions-grouping.md` | `spec-dev S0359` | Mark Phase 07 complete after optional-permissions grouping [branch: DEBUG-v013] |
+| 2026-06-05 13:41:15 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_08__docs-catalog-cleanup.md` | `spec-dev S0359` | Mark Phase 08 complete after docs, catalog and log updates [branch: DEBUG-v013] |
+| 2026-06-05 13:43:24 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev S0359 device profiles` | Set explicit Camera-to-Resource preset defaults across device profiles (camera enabled only on phone/tablet) [branch: DEBUG-v013] |
+| 2026-06-05 13:43:24 | `dev/DEVICE_PROFILE_PRESET_MATRIX.md` | `device-profile matrix` | Document explicit Camera-to-Resource preset defaults and rationale in the profile matrix guide [branch: DEBUG-v013] |
+| 2026-06-05 14:14:59 | `app_v2/src/main/assets/device_profile_presets.csv` | `device_profile_presets.csv` | Disable embedded mini-game (embeddedGameEnabled) by default for all device profiles; user must enable it explicitly [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/INDEX.md` | `spec-tech` | Create tactical plan for S0364 [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_01__settings-group-split-layout.md` | `spec-tech` | Phase 01: settings-group-split-layout [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_02__section-state-and-wiring.md` | `spec-tech` | Phase 02: section-state-and-wiring [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_03__group-title-strings.md` | `spec-tech` | Phase 03: group-title-strings [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_04__terminology-inventory-glossary.md` | `spec-tech` | Phase 04: terminology-inventory-glossary [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_05__terminology-strings-sweep.md` | `spec-tech` | Phase 05: terminology-strings-sweep [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_06__terminology-docs-sweep.md` | `spec-tech` | Phase 06: terminology-docs-sweep [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-05 14:18:39 | `PLAN/S0364_settings-interface-group-split.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-05 14:27:56 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec-check` | Audit S0359: static all-PASS + standardDebug build OK; journal reconciled Tactical->BlockNeedUserTest; debug probes kept for device test [branch: DEBUG-v013] |
+| 2026-06-05 15:34:45 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `spec-dev S0364 P01.1` | Split portrait Interface settings card into general + file-browser collapsible cards [branch: DEBUG-v013] |
+| 2026-06-05 15:37:22 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `spec-dev S0364 P01.2` | Mirror Interface settings card split (general + file-browser) in landscape layout [branch: DEBUG-v013] |
+| 2026-06-05 15:40:29 | `app_v2/src/main/res/values/strings_settings.xml` | `spec-dev S0364 P03` | Retitle interface category + add settings_category_file_browser category [branch: DEBUG-v013] |
+| 2026-06-05 15:40:30 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `spec-dev S0364 P03` | Retitle interface category + add settings_category_file_browser category [branch: DEBUG-v013] |
+| 2026-06-05 15:40:30 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev S0364 P03` | Retitle interface category + add settings_category_file_browser category [branch: DEBUG-v013] |
+| 2026-06-05 15:41:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt` | `spec-dev S0364 P02.1` | Add persisted expand/collapse state for new file-browser settings section [branch: DEBUG-v013] |
+| 2026-06-05 15:54:52 | `docs/COMMUNICATION_POLICY.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
+| 2026-06-05 15:54:52 | `docs/COMMUNICATION_POLICY_RU.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
+| 2026-06-05 15:54:53 | `docs/COMMUNICATION_POLICY_UK.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
+| 2026-06-05 16:01:38 | `app_v2/src/main/res/values/strings_settings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:38 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:38 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:39 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:39 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:39 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:39 | `app_v2/src/main/res/values/strings_input.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:40 | `app_v2/src/main/res/values-ru/strings_input.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:01:40 | `app_v2/src/main/res/values-uk/strings_input.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
+| 2026-06-05 16:06:07 | `docs/FEATURES.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:07 | `docs/FEATURES_RU.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FEATURES_UK.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FAQ.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FAQ_RU.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FAQ_UK.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:09:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev S0364 P07.3` | Add S0364 device-test verification tag at settings view-setup entry [branch: DEBUG-v013] |
+| 2026-06-05 16:11:52 | `PLAN/S0364_settings-interface-group-split.md` | `spec-dev` | All phases implemented; status -> BlockNeedUserTest for on-device verification [branch: DEBUG-v013] |

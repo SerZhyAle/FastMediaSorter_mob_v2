@@ -128,6 +128,7 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <enableFavorites>${settings.enableFavorites}</enableFavorites>")
                 appendLine("    <disableCameraCapture>${settings.disableCameraCapture}</disableCameraCapture>")
                 appendLine("    <skipCameraFilenameDialog>${settings.skipCameraFilenameDialog}</skipCameraFilenameDialog>")
+                appendLine("    <cameraCaptureOpenForEditing>${settings.cameraCaptureOpenForEditing}</cameraCaptureOpenForEditing>")
                 appendLine("    <enableScheduledOperations>${settings.enableScheduledOperations}</enableScheduledOperations>")
                 appendLine("    <enableCopying>${settings.enableCopying}</enableCopying>")
                 appendLine("    <goToNextAfterCopy>${settings.goToNextAfterCopy}</goToNextAfterCopy>")

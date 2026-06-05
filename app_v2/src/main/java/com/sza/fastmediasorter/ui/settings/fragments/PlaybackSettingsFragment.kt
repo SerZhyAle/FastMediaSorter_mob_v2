@@ -177,20 +177,6 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(allowDelete = isChecked))
         }
 
-        binding.rowDisableCameraCapture.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(disableCameraCapture = isChecked))
-        }
-
-        binding.rowSkipCameraFilenameDialog.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = isChecked))
-        }
-
-        // Help for camera capture is now inline on rowDisableCameraCapture (folded by SettingsToggleRow).
-
         binding.rowConfirmDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -405,13 +391,6 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowAllowDelete.isChecked != settings.allowDelete) {
                         binding.rowAllowDelete.setCheckedSilently(settings.allowDelete)
                     }
-                    if (binding.rowDisableCameraCapture.isChecked != settings.disableCameraCapture) {
-                        binding.rowDisableCameraCapture.setCheckedSilently(settings.disableCameraCapture)
-                    }
-                    if (binding.rowSkipCameraFilenameDialog.isChecked != settings.skipCameraFilenameDialog) {
-                        binding.rowSkipCameraFilenameDialog.setCheckedSilently(settings.skipCameraFilenameDialog)
-                    }
-                    binding.layoutSkipCameraFilename.isVisible = !settings.disableCameraCapture
                     if (binding.rowConfirmDelete.isChecked != settings.confirmDelete) {
                         binding.rowConfirmDelete.setCheckedSilently(settings.confirmDelete)
                     }

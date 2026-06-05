@@ -78,6 +78,23 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
+    private var pendingCameraPermissionResourceId: Long? = null
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val pendingId = pendingCameraPermissionResourceId
+        pendingCameraPermissionResourceId = null
+        if (granted) {
+            val resource = viewModel.state.value.resource?.takeIf { it.id == pendingId }
+            if (resource != null) {
+                cameraCaptureManager.launch(resource)
+            }
+        } else {
+            Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_LONG).show()
+        }
+    }
+
     @Inject lateinit var googleDriveClient: GoogleDriveRestClient
     @Inject lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
     @Inject lateinit var browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
@@ -172,6 +189,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
+            onCapturedForEditing = { path, _ -> onCapturedFileSavedForEditing(path) },
             onUploadFile = { tempFile, name, resource ->
                 val sourceUri = Uri.fromFile(tempFile)
                 val destUri = Uri.parse(resource.path.trimEnd('/') + '/' + Uri.encode(name))
@@ -576,7 +594,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             Timber.i("S0058: routing camera capture to passthrough provider")
             passthrough.launch(this, resource) { fileName -> onCapturedFileSaved(fileName) }
         } else {
-            cameraCaptureManager.launch(resource)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED
+            ) {
+                cameraCaptureManager.launch(resource)
+            } else {
+                pendingCameraPermissionResourceId = resource.id
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
         }
     }
 
@@ -602,6 +627,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private fun onCapturedFileSaved(fileName: String) {
         viewModel.reloadFiles()
         viewModel.scrollToFileAfterRefresh(fileName)
+    }
+
+    private fun onCapturedFileSavedForEditing(path: String) {
+        viewModel.reloadFiles()
+        viewModel.openDrawingInEditor(path)
     }
 
     companion object {

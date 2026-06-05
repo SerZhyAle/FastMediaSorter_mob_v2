@@ -288,17 +288,35 @@ class CameraOcrTranslateActivity :
             val view = LayoutInflater.from(this@CameraOcrTranslateActivity)
                 .inflate(R.layout.dialog_camera_ocr_settings, null)
 
-            // Result screen rework (S0354): OCR over the captured image is already done, so only the
-            // translation target language is editable here. Changing it re-translates the existing
-            // recognized text. The OCR source language is chosen at capture time on the crop step.
+            // Result screen (S0361): the OCR source language is editable again. Changing it re-runs
+            // recognition over the retained (cropped) image and re-translates; changing only the
+            // target re-translates the existing recognized text without a new OCR.
+            val sourceView = view.findViewById<TextView>(R.id.spinnerSourceLanguage)
             val targetView = view.findViewById<TextView>(R.id.spinnerTargetLanguage)
             val cbOcrOnly = view.findViewById<CheckBox>(R.id.cbOcrOnly)
 
             val interfaceLang = settings.language
+            var selectedSourceLang = settings.translationSourceLanguage
             var selectedTargetLang = settings.translationTargetLanguage
 
+            fun updateSourceView() {
+                applyLanguageLabel(sourceView, selectedSourceLang, interfaceLang, R.string.translation_source_language)
+            }
+
             fun updateTargetView() {
-                applyLanguageLabel(targetView, selectedTargetLang, interfaceLang)
+                applyLanguageLabel(targetView, selectedTargetLang, interfaceLang, R.string.translation_target_language)
+            }
+
+            sourceView.setOnClickListener {
+                if (!sourceView.isEnabled) return@setOnClickListener
+                showLanguagePicker(
+                    selectedCode = selectedSourceLang,
+                    mode = SearchableLanguagePickerDialog.Mode.SOURCE,
+                    interfaceLanguage = interfaceLang
+                ) { language ->
+                    selectedSourceLang = language.code
+                    updateSourceView()
+                }
             }
 
             targetView.setOnClickListener {
@@ -314,7 +332,11 @@ class CameraOcrTranslateActivity :
             }
 
             cbOcrOnly.isChecked = settings.cameraOcrOnly
+            updateSourceView()
             updateTargetView()
+            // OCR-language control is usable only while the recognized image is still retained
+            // (gone after process death); disable it otherwise so re-OCR has a source to work on.
+            updateTargetLanguageEnabled(sourceView, flowManager.hasRetainedSourceImage())
             updateTargetLanguageEnabled(targetView, settings.enableTranslation && !settings.cameraOcrOnly)
             cbOcrOnly.setOnCheckedChangeListener { _, isChecked ->
                 updateTargetLanguageEnabled(targetView, settings.enableTranslation && !isChecked)
@@ -325,6 +347,7 @@ class CameraOcrTranslateActivity :
                 .setView(view)
                 .setPositiveButton(R.string.apply) { _, _ ->
                     flowManager.applyLanguageSettings(
+                        sourceLang = selectedSourceLang,
                         targetLang = selectedTargetLang,
                         ocrOnly = cbOcrOnly.isChecked
                     )
@@ -355,18 +378,23 @@ class CameraOcrTranslateActivity :
         view.alpha = if (enabled) 1.0f else 0.45f
     }
 
-    private fun applyLanguageLabel(view: TextView, code: String, interfaceLanguage: String) {
+    private fun applyLanguageLabel(
+        view: TextView,
+        code: String,
+        interfaceLanguage: String,
+        @androidx.annotation.StringRes titleRes: Int
+    ) {
         val displayLocale = Locale.forLanguageTag(interfaceLanguage)
         val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
             ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
         if (item != null) {
             LanguageFlagFormatter.applyLabel(view, item)
             view.contentDescription =
-                "${getString(R.string.translation_target_language)}: ${LanguageFlagFormatter.plainLabel(item)}"
+                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
         } else {
             val fallback = code.uppercase(Locale.ROOT)
             view.text = fallback
-            view.contentDescription = "${getString(R.string.translation_target_language)}: $fallback"
+            view.contentDescription = "${getString(titleRes)}: $fallback"
         }
     }
 

@@ -130,6 +130,7 @@ data class BackupSettings(
     val enableFavorites: Boolean = true,
     val disableCameraCapture: Boolean = false,
     val skipCameraFilenameDialog: Boolean = false,
+    val cameraCaptureOpenForEditing: Boolean = false,
     // Player UI
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,

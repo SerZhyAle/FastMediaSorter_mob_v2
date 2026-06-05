@@ -231,6 +231,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         enableFavorites = data["enableFavorites"]?.toBoolean() ?: false,
                                         disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
                                         skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
+                                        cameraCaptureOpenForEditing = data["cameraCaptureOpenForEditing"]?.toBoolean() ?: false,
                                         enableScheduledOperations = data["enableScheduledOperations"]?.toBoolean() ?: true,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,
                                         goToNextAfterCopy = data["goToNextAfterCopy"]?.toBoolean() ?: true,

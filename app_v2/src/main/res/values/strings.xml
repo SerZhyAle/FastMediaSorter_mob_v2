@@ -2057,7 +2057,7 @@ Close the player and try again.</string>
     <string name="camera_capture_saved">Saved: %s</string>
     <string name="camera_capture_error_save_generic">Failed to save captured file</string>
     <string name="camera_capture_error_temp_file">Failed to create temporary file for capture</string>
-    <string name="camera_capture_error_no_camera_app">No camera app available on this device</string>
+    <string name="camera_capture_error_no_camera_app">Camera capture is unavailable on this device.</string>
     <string name="camera_capture_error_permission_denied">Camera permission denied</string>
     <string name="camera_capture_error_io">Failed to read captured file</string>
     <string name="camera_capture_error_session_expired">Capture session expired - please try again</string>
@@ -2256,7 +2256,7 @@ Close the player and try again.</string>
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Camera capture</string>
-    <string name="tooltip_camera_capture_message">The camera button in Browse lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
+    <string name="tooltip_camera_capture_message">The camera button in the file browser lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
     <string name="tooltip_saved_authorizations_title">Saved authorizations</string>
     <string name="tooltip_saved_authorizations_message">The in-app web sign-in screen saves the cookies and logins used when auto-downloading files from sites that require you to be signed in. Open this screen to review those saved authorizations and remove the ones you no longer need.</string>
 
@@ -2442,4 +2442,17 @@ Close the player and try again.</string>
     <string name="quick_recorder_permission_settings">Enable microphone access in Settings</string>
     <string name="camera_ocr_crop_lang_ocr_desc">OCR language</string>
     <string name="camera_ocr_crop_lang_target_desc">Translation language</string>
+    <string name="perm_title_camera">Camera</string>
+    <string name="perm_desc_camera">Take photos inside the app for OCR capture and saving to the current resource. Needed when you want to shoot without leaving the app.</string>
+    <string name="perm_group_camera">Camera</string>
+    <string name="camera_permission_required">Camera access is needed to take photos in the app. Grant the permission and try again.</string>
+    <string name="setting_camera_to_resource_section_title">Camera-to-Resource</string>
+    <string name="setting_camera_to_resource_enabled_title">Enable photo capture</string>
+    <string name="setting_camera_to_resource_enabled_desc">Show the camera command in the file browser and save new photos to the current resource.</string>
+    <string name="setting_camera_ask_filename_title">Ask for each photo name</string>
+    <string name="setting_camera_ask_filename_desc">Show a rename dialog before saving each captured photo.</string>
+    <string name="setting_camera_open_for_editing_title">Open captured photo for editing</string>
+    <string name="setting_camera_open_for_editing_desc">Open the saved photo in the drawing editor right after capture.</string>
+    <string name="setting_camera_permission_note">In-app photo capture needs camera access.</string>
+    <string name="perm_group_optional">Optional permissions</string>
 </resources>

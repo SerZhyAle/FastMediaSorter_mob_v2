@@ -193,10 +193,27 @@ class PermissionsManagementFragment : Fragment() {
         val entries = registry.getEntries()
         val headers = registry.getGroups()
         val rows = mutableListOf<PermissionRow>()
+        val requiredEntries = entries.filterNot { it.optional }
         headers.forEach { header ->
+            val groupEntries = requiredEntries.filter { it.group == header.group }
+            if (groupEntries.isEmpty()) return@forEach
             rows += PermissionRow.Header(header)
-            entries.filter { it.group == header.group }
-                .forEach { entry -> rows += PermissionRow.Entry(entry, checkStatus(requireContext(), entry)) }
+            groupEntries.forEach { entry ->
+                rows += PermissionRow.Entry(entry, checkStatus(requireContext(), entry))
+            }
+        }
+
+        val optionalEntries = entries.filter { it.optional }
+        if (optionalEntries.isNotEmpty()) {
+            rows += PermissionRow.Header(
+                com.sza.fastmediasorter.domain.model.PermissionGroupHeader(
+                    group = optionalEntries.first().group,
+                    titleRes = R.string.perm_group_optional,
+                )
+            )
+            optionalEntries.forEach { entry ->
+                rows += PermissionRow.Entry(entry, checkStatus(requireContext(), entry))
+            }
         }
         return rows
     }

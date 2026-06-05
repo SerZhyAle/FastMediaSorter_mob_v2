@@ -132,3 +132,12 @@ Before any batch of new or updated strings is merged:
 - [ ] EN/RU/UK parity confirmed (`check_strings_localized.ps1` exit 0).
 - [ ] No emoji images; text smileys used sparingly and appropriately.
 - [ ] Legal texts and machine-readable artifacts are untouched.
+
+---
+
+## 7. Glossary (canonical terms)
+
+- The Browse window (the screen that lists files and folders) is called the **file browser**.
+- Qualified variants are allowed when the media type is relevant: "video file browser", "image browser", "document browser".
+- The word "explorer" is forbidden for this window in user-facing text.
+- Exception: strings about a **web browser** (Chrome Custom Tabs, Google sign-in) keep "browser" in the web sense and are out of scope of this rule.

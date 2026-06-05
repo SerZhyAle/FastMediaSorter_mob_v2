@@ -214,6 +214,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
         // Microphone recording
         setupMicRecordingSection()
+        setupCameraToResourceSection()
     }
 
     private fun observeData() {
@@ -301,6 +302,11 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                     setSwitchChecked(binding.rowMicRecordingAskFilename, settings.micRecordingAskFilename)
                     binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
                 }
+
+                setSwitchChecked(binding.rowCameraToResourceEnabled, !settings.disableCameraCapture)
+                setSwitchChecked(binding.rowCameraAskFilename, !settings.skipCameraFilenameDialog)
+                setSwitchChecked(binding.rowCameraOpenForEditing, settings.cameraCaptureOpenForEditing)
+                binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
             }
         }
     }
@@ -428,6 +434,25 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowMicRecordingAskFilename) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
+        }
+    }
+
+    private fun setupCameraToResourceSection() {
+        bindSwitch(binding.rowCameraToResourceEnabled) { isChecked ->
+            val current = viewModel.settings.value
+            // Reuse the existing negative persistence flags instead of duplicating camera settings keys.
+            viewModel.updateSettings(current.copy(disableCameraCapture = !isChecked))
+            binding.layoutCameraToResourceOptions.isVisible = isChecked
+        }
+
+        bindSwitch(binding.rowCameraAskFilename) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = !isChecked))
+        }
+
+        bindSwitch(binding.rowCameraOpenForEditing) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(cameraCaptureOpenForEditing = isChecked))
         }
     }
 

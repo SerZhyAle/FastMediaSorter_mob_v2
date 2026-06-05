@@ -2,10 +2,10 @@ package com.sza.fastmediasorter.ui.cameraocr.helpers
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
-import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,11 +22,11 @@ import java.io.IOException
  */
 class CameraOcrStorageManager(private val context: Context) {
 
-    /** True when at least one Activity can handle [MediaStore.ACTION_IMAGE_CAPTURE]. */
+    fun contextForCaptureIntent(): Context = context
+
+    /** True when the device exposes any camera hardware for the in-app CameraX flow. */
     fun isCameraAvailable(): Boolean =
-        context.packageManager
-            .queryIntentActivities(Intent(MediaStore.ACTION_IMAGE_CAPTURE), 0)
-            .isNotEmpty()
+        context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
 
     fun createTempPhotoFile(timestamp: String): File? = try {
         val dir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: context.filesDir

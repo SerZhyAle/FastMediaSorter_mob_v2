@@ -588,6 +588,12 @@ class PlayerViewModel @Inject constructor(
      */
     fun deleteCurrentFile(): Boolean? = deleteUndoCoordinator.deleteCurrentFile()
 
+    /**
+     * Delete the current file and finish the activity (return to browse) on success.
+     * On failure the activity stays open so the error can be surfaced.
+     */
+    fun deleteCurrentFileAndFinish(): Boolean? = deleteUndoCoordinator.deleteCurrentFile(finishOnSuccess = true)
+
     fun reloadAfterRename() = deleteUndoCoordinator.reloadAfterRename()
 
     fun saveUndoOperation(operation: UndoOperation) = deleteUndoCoordinator.saveUndoOperation(operation)

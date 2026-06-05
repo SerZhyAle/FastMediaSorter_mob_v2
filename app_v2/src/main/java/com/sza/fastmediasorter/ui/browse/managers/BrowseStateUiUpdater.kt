@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
@@ -142,11 +143,8 @@ class BrowseStateUiUpdater(
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         binding.btnCreateTextFile?.isVisible = TextNoteTargetPolicy.canCreateTextNote(resource)
 
-        val canCreateDrawing = resource != null
-            && !resource.isReadOnly
-            && !VirtualPathUtils.isVirtualPath(resource.path)
-            && resource.supportsImages()
-        binding.btnCreateDrawing?.isVisible = canCreateDrawing
+        // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
+        binding.btnCreateDrawing?.isVisible = DrawingTargetPolicy.canCreateDrawing(resource)
     }
 
     private fun updateResourceActionButton(state: BrowseState) {

@@ -75,7 +75,38 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                 override fun onCancelRequested() {
                     cancelDrawSession()
                 }
+
+                override fun onDeleteRequested() {
+                    confirmAndDeleteCurrentFile()
+                }
             }
+    }
+
+    /**
+     * S0360: delete the file currently open in the drawing editor. Mandatory confirmation,
+     * then delegate to the existing player delete (trash-aware), which returns to browse on
+     * success and keeps the editor open with an error on failure.
+     */
+    private fun confirmAndDeleteCurrentFile() {
+        Timber.d("S0360: drawing editor delete-file action invoked")
+        val resource = activity.viewModel.state.value.resource
+        if (resource?.isReadOnly == true) {
+            Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (activity.viewModel.state.value.currentFile == null) {
+            Toast.makeText(activity, R.string.msg_no_file_to_delete, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (activity.isFinishing || activity.isDestroyed) return
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.confirm_delete_title)
+            .setMessage(activity.getString(R.string.confirm_delete_message, 1))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                activity.viewModel.deleteCurrentFileAndFinish()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun requestDrawSave(mode: DrawSaveMode, overlayBitmap: Bitmap) {

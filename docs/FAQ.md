@@ -45,7 +45,7 @@ Deleted files move to a `.trash/` folder in the same location (soft-delete). The
 - **Move:** Relocates the file, removes from original location
 
 ### What is File Manager Mode?
-**File Manager Mode** allows you to use the app as a full-featured directory explorer. In this mode, the app bypasses standard media filters and displays all files (including ZIP, RAR, APK, EXE, PDF, etc.). You can perform standard file operations like copying, moving, renaming, sharing, and deleting. For unsupported binary files, a bottom sheet is automatically opened, allowing you to manage the file or open it using external applications.
+**File Manager Mode** allows you to use the app as a full-featured file browser across all directories. In this mode, the app bypasses standard media filters and displays all files (including ZIP, RAR, APK, EXE, PDF, etc.). You can perform standard file operations like copying, moving, renaming, sharing, and deleting. For unsupported binary files, a bottom sheet is automatically opened, allowing you to manage the file or open it using external applications.
 
 
 ---

@@ -140,7 +140,7 @@
     <string name="kbm_help_global_tab">Move focus forward / backward</string>
     <string name="kbm_help_global_undo_redo">Undo / redo</string>
     <string name="kbm_help_main_add">Add new resource</string>
-    <string name="kbm_help_main_open">Open resource in browse</string>
+    <string name="kbm_help_main_open">Open resource in the file browser</string>
     <string name="kbm_help_nav_arrows">Move focus</string>
     <string name="kbm_help_nav_backspace">Go one level up</string>
     <string name="kbm_help_nav_enter">Activate current item</string>

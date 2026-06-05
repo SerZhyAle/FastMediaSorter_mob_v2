@@ -428,32 +428,6 @@
                             app:str_subtitle="@string/setting_camera_ocr_only_desc" />
                     </LinearLayout>
 
-                    <!-- Camera Capture: disable (row 1) + skip-filename (row 2) -->
-                    <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowDisableCameraCapture"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/setting_disable_camera_capture"
-                            app:str_subtitle="@string/setting_disable_camera_capture_summary"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_camera_capture_title"
-                            app:str_helpMessage="@string/tooltip_camera_capture_message" />
-
-                        <!-- Skip filename dialog (dependent row gated by disableCameraCapture) -->
-                        <LinearLayout android:id="@+id/layoutSkipCameraFilename" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_nested_margin_start">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowSkipCameraFilenameDialog"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/setting_skip_camera_filename_dialog" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
                     <!-- S0050: Show Black Screen button toggle (moved from Behaviour, S0318) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowShowBlackScreenButton"

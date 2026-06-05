@@ -1980,7 +1980,7 @@
     <string name="camera_capture_saved">Збережено: %s</string>
     <string name="camera_capture_error_save_generic">Не вдалося зберегти знятий файл</string>
     <string name="camera_capture_error_temp_file">Не вдалося створити тимчасовий файл для зйомки</string>
-    <string name="camera_capture_error_no_camera_app">На пристрої немає застосунку камери</string>
+    <string name="camera_capture_error_no_camera_app">Зйомка камерою недоступна на цьому пристрої.</string>
     <string name="camera_capture_error_permission_denied">Доступ до камери заборонено</string>
     <string name="camera_capture_error_io">Не вдалося прочитати знятий файл</string>
     <string name="camera_capture_error_session_expired">Сеанс зйомки застарів - спробуйте ще раз</string>
@@ -2143,7 +2143,7 @@
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Зйомка камерою</string>
-    <string name="tooltip_camera_capture_message">Кнопка камери у Browse дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
+    <string name="tooltip_camera_capture_message">Кнопка камери у браузері файлів дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
     <string name="tooltip_saved_authorizations_title">Збережені авторизації</string>
     <string name="tooltip_saved_authorizations_message">Екран веб-входу всередині застосунку зберігає cookie та логіни, які використовуються під час автозавантаження файлів із сайтів, що вимагають входу. Відкрийте цей екран, щоб переглянути збережені авторизації та видалити непотрібні.</string>
 
@@ -2357,4 +2357,17 @@
     <string name="quick_recorder_permission_settings">Увімкніть доступ до мікрофона в налаштуваннях</string>
     <string name="camera_ocr_crop_lang_ocr_desc">Мова розпізнавання</string>
     <string name="camera_ocr_crop_lang_target_desc">Мова перекладу</string>
+    <string name="perm_title_camera">Камера</string>
+    <string name="perm_desc_camera">Знімати фото прямо в застосунку для OCR-захоплення та збереження в поточний ресурс. Потрібно, якщо ви хочете робити знімки без переходу в системну камеру.</string>
+    <string name="perm_group_camera">Камера</string>
+    <string name="camera_permission_required">Щоб знімати фото в застосунку, потрібен доступ до камери. Надайте дозвіл і спробуйте ще раз.</string>
+    <string name="setting_camera_to_resource_section_title">Фотоапарат у ресурс</string>
+    <string name="setting_camera_to_resource_enabled_title">Увімкнути зйомку фото</string>
+    <string name="setting_camera_to_resource_enabled_desc">Показувати команду фотоапарата у браузері файлів і зберігати нові знімки в поточний ресурс.</string>
+    <string name="setting_camera_ask_filename_title">Питати назву кожної фотографії</string>
+    <string name="setting_camera_ask_filename_desc">Показувати діалог перейменування перед збереженням кожної знятої фотографії.</string>
+    <string name="setting_camera_open_for_editing_title">Відкривати зняте фото для редагування</string>
+    <string name="setting_camera_open_for_editing_desc">Одразу відкривати збережене фото в редакторі малювання після зйомки.</string>
+    <string name="setting_camera_permission_note">Зйомка фото в застосунку потребує доступу до камери.</string>
+    <string name="perm_group_optional">Необов\'язкові дозволи</string>
 </resources>

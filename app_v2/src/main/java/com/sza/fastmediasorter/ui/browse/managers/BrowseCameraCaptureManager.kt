@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -23,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +43,7 @@ class BrowseCameraCaptureManager(
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val onFileSaved: (fileName: String) -> Unit,
+    private val onCapturedForEditing: (path: String, resourceId: Long) -> Unit,
     private val onUploadFile: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean
 ) {
 
@@ -70,6 +73,7 @@ class BrowseCameraCaptureManager(
     // region Public API
 
     fun launch(resource: MediaResource) {
+        Timber.d("S0359: in-app camera capture to resource")
         Timber.i(
             "S0022-CAM: launch ENTRY resource={id=%d, name=%s, type=%s, path=%s, allFiles=%b} device={mfr=%s, model=%s, sdk=%d}",
             resource.id,
@@ -88,8 +92,7 @@ class BrowseCameraCaptureManager(
                 types.any { it == MediaType.VIDEO }
         }
         val ext = if (captureVideo) ".mp4" else ".jpg"
-        val action = if (captureVideo) MediaStore.ACTION_VIDEO_CAPTURE
-                     else MediaStore.ACTION_IMAGE_CAPTURE
+        val action = if (captureVideo) MediaStore.ACTION_VIDEO_CAPTURE else "in-app-photo"
         Timber.i(
             "S0022-CAM: launch resolved captureVideo=%b ext=%s action=%s supportedMediaTypes=%s",
             captureVideo,
@@ -98,18 +101,23 @@ class BrowseCameraCaptureManager(
             resource.supportedMediaTypes.joinToString(),
         )
 
-        // Check for a camera handler BEFORE creating the temp file so that no disk artifact is
-        // left behind on devices without a camera app (e.g. Quest 3 / HorizonOS).
-        val probeIntent = Intent(action)
-        val handlers = activity.packageManager.queryIntentActivities(probeIntent, 0)
-        Timber.i(
-            "S0022-CAM: launch packageManager.queryIntentActivities action=%s handlers=%d list=%s",
-            action,
-            handlers.size,
-            handlers.joinToString { "${it.activityInfo?.packageName}/${it.activityInfo?.name}" },
-        )
-        if (handlers.isEmpty()) {
-            Timber.w("S0022-CAM: launch ABORT - no Activity handles %s on this device", action)
+        if (captureVideo) {
+            // Video capture remains on the system intent, so handler probing still applies here.
+            val handlers = activity.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
+            Timber.i(
+                "S0022-CAM: launch packageManager.queryIntentActivities action=%s handlers=%d list=%s",
+                MediaStore.ACTION_VIDEO_CAPTURE,
+                handlers.size,
+                handlers.joinToString { "${it.activityInfo?.packageName}/${it.activityInfo?.name}" },
+            )
+            if (handlers.isEmpty()) {
+                Timber.w("S0022-CAM: launch ABORT - no Activity handles %s on this device", MediaStore.ACTION_VIDEO_CAPTURE)
+                showSnackbar(R.string.camera_capture_error_no_camera_app)
+                pendingResource = null
+                return
+            }
+        } else if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            Timber.w("S0022-CAM: launch ABORT - no camera hardware available for in-app photo capture")
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             pendingResource = null
             return
@@ -144,7 +152,12 @@ class BrowseCameraCaptureManager(
         }
         Timber.i("S0022-CAM: launch FileProvider uri=%s", uri)
 
-        val intent = Intent(action).apply { putExtra(MediaStore.EXTRA_OUTPUT, uri) }
+        // In-app photo capture removes the OEM confirmation step before returning to Browse.
+        val intent = if (captureVideo) {
+            Intent(MediaStore.ACTION_VIDEO_CAPTURE).apply { putExtra(MediaStore.EXTRA_OUTPUT, uri) }
+        } else {
+            CameraCaptureActivity.createIntent(activity, uri, tempFile.absolutePath)
+        }
         try {
             Timber.i("S0022-CAM: launch dispatching launcher.launch(intent) action=%s", action)
             launcher.launch(intent)
@@ -248,21 +261,30 @@ class BrowseCameraCaptureManager(
             val defaultName = tempFile.name
             Timber.i("S0022-CAM: handleResult settings.skipCameraFilenameDialog=%b defaultName=%s", settings.skipCameraFilenameDialog, defaultName)
             if (settings.skipCameraFilenameDialog) {
-                save(tempFile, defaultName, resource)
+                save(tempFile, defaultName, resource, settings.cameraCaptureOpenForEditing)
             } else {
-                withContext(Dispatchers.Main) { showNameDialog(tempFile, defaultName, resource) }
+                withContext(Dispatchers.Main) {
+                    showNameDialog(tempFile, defaultName, resource, settings.cameraCaptureOpenForEditing)
+                }
             }
         }
     }
 
-    private fun showNameDialog(tempFile: File, defaultName: String, resource: MediaResource) {
+    private fun showNameDialog(
+        tempFile: File,
+        defaultName: String,
+        resource: MediaResource,
+        openForEditing: Boolean,
+    ) {
         val input = EditText(activity).apply { setText(defaultName); selectAll() }
         AlertDialog.Builder(activity)
             .setTitle(R.string.camera_capture_filename_title)
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val name = input.text.toString().trim().ifBlank { defaultName }
-                coroutineScope.launch { save(tempFile, withExt(name, tempFile.extension), resource) }
+                coroutineScope.launch {
+                    save(tempFile, withExt(name, tempFile.extension), resource, openForEditing)
+                }
             }
             .setNegativeButton(R.string.cancel) { _, _ -> tempFile.delete() }
             .setOnCancelListener { tempFile.delete() }
@@ -273,13 +295,29 @@ class BrowseCameraCaptureManager(
 
     // region Save routing
 
-    private suspend fun save(tempFile: File, name: String, resource: MediaResource) {
+    private suspend fun save(
+        tempFile: File,
+        name: String,
+        resource: MediaResource,
+        openForEditing: Boolean,
+    ) {
         val path = resource.path
         var failureMessageRes = R.string.camera_capture_error_save_generic
         val isVirtualCameraTarget = VirtualPathUtils.isVirtualPath(path) ||
             path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO ||
             path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
             path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
+        val savedPath = when {
+            isVirtualCameraTarget -> File(
+                File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
+                    "Camera",
+                ),
+                name,
+            ).absolutePath
+            resource.type == ResourceType.LOCAL -> File(path, name).absolutePath
+            else -> resource.path.trimEnd('/') + '/' + name
+        }
         Timber.i(
             "S0022-CAM: save ENTRY tempFile=%s name=%s resource={type=%s, path=%s} isVirtualCameraTarget=%b",
             tempFile.absolutePath,
@@ -311,7 +349,12 @@ class BrowseCameraCaptureManager(
         withContext(Dispatchers.Main) {
             if (success) {
                 showSnackbar(activity.getString(R.string.camera_capture_saved, name))
-                onFileSaved(name)
+                if (openForEditing) {
+                    // Reuse the existing drawing editor instead of introducing a parallel edit flow.
+                    onCapturedForEditing(savedPath, resource.id)
+                } else {
+                    onFileSaved(name)
+                }
             } else {
                 showSnackbar(failureMessageRes)
             }
@@ -373,7 +416,7 @@ class BrowseCameraCaptureManager(
         /**
          * Returns true if the system has at least one Activity that can handle the capture intent
          * for [resource]. Should be called before showing the camera capture command in a menu so
-         * that the command is invisible on devices without a camera app (e.g. Quest 3 / HorizonOS).
+         * that the command is invisible on devices that cannot complete the requested capture path.
          *
          * Logs a warning when no handlers are found - callers rely on this side-effect for tracing.
          */
@@ -383,12 +426,18 @@ class BrowseCameraCaptureManager(
                     types.none { it == MediaType.IMAGE || it == MediaType.GIF } &&
                     types.any { it == MediaType.VIDEO }
             }
-            val action = if (captureVideo) MediaStore.ACTION_VIDEO_CAPTURE
-                         else MediaStore.ACTION_IMAGE_CAPTURE
-            val handlers = context.packageManager.queryIntentActivities(Intent(action), 0)
+            if (!captureVideo) {
+                val hasCamera = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+                if (!hasCamera) {
+                    Timber.w("CameraCapture: no camera hardware, command hidden for in-app photo capture")
+                }
+                return hasCamera
+            }
+
+            val handlers = context.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
             if (handlers.isEmpty()) {
                 // Separate marker so visibility decisions are traceable independently of launch().
-                Timber.w("CameraCapture: no handlers, command hidden action=%s", action)
+                Timber.w("CameraCapture: no handlers, command hidden action=%s", MediaStore.ACTION_VIDEO_CAPTURE)
             }
             return handlers.isNotEmpty()
         }

@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Technical Requirements & Stack Reference
 
-**Last Updated**: April 22, 2026
+**Last Updated**: June 5, 2026
 **Purpose**: Single source of truth for the full technical stack, library inventory, platform constraints, minimum and recommended requirements.
 
 ---
@@ -144,6 +144,7 @@
 | `glide`                         | 4.16.0     | Image loading (app_v2)             |
 | `glide-compiler`               | 4.16.0     | Glide annotation processor         |
 | `glide-okhttp3-integration`    | 4.16.0     | OkHttp transport for Glide         |
+| `camera-core` / `camera-camera2` / `camera-lifecycle` / `camera-view` | 1.5.3 | In-app CameraX preview and JPEG capture |
 | `PhotoView`                     | 2.3.0      | Pinch-to-zoom & rotation           |
 | `fastscroll`                    | 1.3.0      | Interactive RecyclerView scrollbar  |
 | `coil-compose`                  | 2.5.0      | Image loading (wear, Compose)      |

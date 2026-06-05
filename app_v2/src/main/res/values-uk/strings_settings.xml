@@ -20,7 +20,7 @@
     <string name="settings_category_file_operations">Видалення й перейменування у програвачі</string>
     <string name="settings_category_files">Файли та дані</string>
     <string name="settings_category_images">Зображення, GIF і слайд-шоу</string>
-    <string name="settings_category_interface">Загальний інтерфейс програми</string>
+    <string name="settings_category_interface">Загальні налаштування інтерфейсу</string>
     <string name="settings_category_other">Переклад, OCR і Google Lens</string>
     <string name="settings_category_other_features">Інші функції</string>
     <string name="settings_category_other_functionality">Інші функції</string>
@@ -69,7 +69,7 @@
     <string name="settings_manage_permissions_desc">Перегляд та надання дозволів застосунку</string>
     <string name="settings_mic_recording_ask_filename_desc">Показувати діалог перейменування перед збереженням запису</string>
     <string name="settings_mic_recording_ask_filename_title">Запитувати ім\'я файлу</string>
-    <string name="settings_mic_recording_enable_desc">Показувати кнопку мікрофона в Browse для запису аудіо в поточну папку</string>
+    <string name="settings_mic_recording_enable_desc">Показувати кнопку мікрофона у браузері файлів для запису аудіо в поточну папку</string>
     <string name="settings_mic_recording_enable_title">Увімкнути запис із мікрофона</string>
     <string name="settings_network_permissions_already_granted">Мережеві дозволи вже увімкнені - тут немає що робити.</string>
     <string name="settings_no_browser_for_docs">Не знайшовся браузер, щоб відкрити документацію.</string>
@@ -132,11 +132,11 @@
     <string name="setting_confirm_delete_player_desc">Запитувати підтвердження перед видаленням файлів у програвачі</string>
     <string name="setting_confirm_move_desc">Запитувати підтвердження перед переміщенням файлів</string>
     <string name="setting_crop_images_to_fullscreen_desc">Заповнює весь екран, але обрізаючи краї зображення</string>
-    <string name="setting_default_grid_mode_desc">Browse відкривається у режимі сітки замість списку</string>
+    <string name="setting_default_grid_mode_desc">Браузер файлів відкривається у режимі сітки замість списку</string>
     <string name="setting_default_remember_file_list_desc">Кешувати списки файлів локально для прискорення завантаження нових ресурсів</string>
     <string name="setting_detailed_errors_desc">Показувати повні деталі помилок замість спрощених повідомлень</string>
     <string name="setting_disable_camera_capture">Вимкнути кнопку зйомки</string>
-    <string name="setting_disable_camera_capture_summary">Приховує команду зйомки у Browse</string>
+    <string name="setting_disable_camera_capture_summary">Приховує команду зйомки у браузері файлів</string>
     <string name="setting_dynamic_background_desc">Продовжує кольори зображення за його краї</string>
     <string name="setting_enable_copying_desc">Дозволити копіювання файлів у папки призначення</string>
     <string name="setting_enable_favorites_desc">Дозволити позначати файли як обрані</string>
@@ -170,14 +170,14 @@
     <string name="setting_show_pdf_thumbnails_desc">Створює великі прев\'ю для PDF (повільніше для віддалених джерел)</string>
     <string name="setting_show_subfolders_as_items_desc">Показувати підпапки як елементи для натискання у списку файлів</string>
     <string name="setting_show_text_line_numbers_desc">Відображає номери рядків зліва під час перегляду тексту</string>
-    <string name="setting_show_video_thumbnails_desc">Створює прев\'ю-кадри для відеофайлів у браузері</string>
+    <string name="setting_show_video_thumbnails_desc">Створює прев\'ю-кадри для відеофайлів у браузері файлів</string>
     <string name="setting_skip_camera_filename_dialog">Не питати ім\'я файлу результату зйомки</string>
     <string name="setting_skip_camera_filename_dialog_summary">Використовувати ім\'я за часом зйомки без діалогу</string>
     <string name="setting_slideshow_background_music_desc">Список аудіо під час перегляду (обираєш зображення - слухаєш аудіо)</string>
     <string name="setting_small_controls_desc">Компактні елементи керування для економії місця</string>
     <string name="setting_support_audio_desc">Відтворення MP3, FLAC, AAC, OGG та інших аудіоформатів</string>
     <string name="setting_support_epub_desc">Читає EPUB-книги із закладками та змістом</string>
-    <string name="setting_support_gifs_desc">Відтворює анімовані GIF у браузері та плеєрі</string>
+    <string name="setting_support_gifs_desc">Відтворює анімовані GIF у браузері файлів та плеєрі</string>
     <string name="setting_support_images_desc">Перегляд JPG, PNG, WEBP, HEIC та інших форматів зображень</string>
     <string name="setting_support_office_documents_desc">Відкриває DOC, DOCX, RTF і ODT у зовнішньому додатку</string>
     <string name="setting_support_pdf_desc">Відкриває PDF у вбудованому переглядачі</string>
@@ -214,4 +214,5 @@
     <string name="prefetch_margin_hint">Швидкість на межі - можливі паузи</string>
     <string name="prefetch_overlay_format">%1$dс / %2$dс · %3$s</string>
     <string name="prefetch_overlay_local_copy_format">Локальна копія · %1$s</string>
+    <string name="settings_category_file_browser">Інтерфейс браузера файлів</string>
 </resources>
