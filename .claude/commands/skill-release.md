@@ -180,6 +180,10 @@ Read the current file. Its structure:
 
 Preserve all existing content below the insertion point verbatim. Do not reformat past entries.
 
+**Localized mirrors (mandatory - feeds the fastlane changelogs).** Apply the SAME prepend to `docs/WHATS_NEW_RU.md` and `docs/WHATS_NEW_UK.md`, translating the new block's items into Russian / Ukrainian. Match each file's header tokens: RU uses `**Текущий релиз: <version>**` + `> Изменения относительно версии <prev>` + `## Что нового` / `## Что исправлено` + `## Предыдущий релиз:`; UK uses `**Поточний реліз:**` + `> Зміни відносно версії` + `## Що нового` / `## Що виправлено` + `## Попередній реліз:`. Author style applies (`..`, `ё`). Edit these files with the Write/Edit tools, NOT by passing Cyrillic through Bash->pwsh args (mojibake); verify with Read/Grep.
+
+`scripts/release/gen_fastlane_changelog.ps1` (invoked by `a.ps1 r` at build time) reads en-US from `WHATS_NEW.md`, ru-RU from `WHATS_NEW_RU.md`, uk-UA from `WHATS_NEW_UK.md`. If the RU/UK mirrors are not advanced here, the generated RU/UK changelogs silently carry the PREVIOUS release's notes (hit on v2.60.6050.126: en correct, RU/UK stale). After the build, the generated `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` files are untracked in the worktree - commit them so IzzyOnDroid / Play localized "What's new" reflect this version (Step 12a channel 5).
+
 ---
 
 ### Step 5 - Update `README.md`
