@@ -15545,3 +15545,4 @@ Format: | datetime | file | target | description |
 | 2026-06-05 01:23:54 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.6050.116 - plateau merge from DEBUG-v012 [branch: DEBUG-v012] |
 | 2026-06-05 01:47:43 | `scripts/release/publish-github-release.ps1` | `release-publish` | Resolve gh CLI from standard install dir when missing from PATH (was failing into unwired REST branch) [branch: DEBUG-v013] |
 | 2026-06-05 01:47:43 | `scripts/release/publish-play-release.py` | `release-publish` | Drop changesNotSentForReview on Play commit (API HTTP 400 for auto-review apps) [branch: DEBUG-v013] |
+| 2026-06-05 02:01:18 | `gradle.properties` | `ci-build` | Remove machine-specific java.io.tmpdir/org.sqlite.tmpdir absolute path that aborted Linux CI before any task [branch: DEBUG-v013] |
