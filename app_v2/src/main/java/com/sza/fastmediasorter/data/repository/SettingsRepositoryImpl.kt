@@ -10,7 +10,9 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -59,20 +61,17 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_VIDEO_SIZE_MIN = longPreferencesKey("video_size_min")
         private val KEY_VIDEO_SIZE_MAX = longPreferencesKey("video_size_max")
         private val KEY_SUPPORT_AUDIO = booleanPreferencesKey("support_audio")
-        private val KEY_AUDIO_SIZE_MIN = longPreferencesKey("audio_size_min")
-        private val KEY_AUDIO_SIZE_MAX = longPreferencesKey("audio_size_max")
+        // Audio keys moved to data.repository.settings.AudioSettingsStore (responsibility extraction).
         private val KEY_SEARCH_AUDIO_COVERS_ONLINE = booleanPreferencesKey("search_audio_covers_online")
         private val KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI = booleanPreferencesKey("search_audio_covers_only_on_wifi")
         private val KEY_SAVE_AUDIO_METADATA_LOCALLY = booleanPreferencesKey("save_audio_metadata_locally")
         private val KEY_ENABLE_PHOTOS_DURING_AUDIO = booleanPreferencesKey("enable_photos_during_audio")
-        private val KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID = stringPreferencesKey("audio_background_photos_resource_id")
         // Persistent audio playback: continue playing audio via foreground service when app is minimized/screen locked (like YouTube Music).
         // NOT related to enableSlideshowBackgroundMusic (in-app slideshow music) or enablePhotosDuringAudio (photo overlay during audio).
         // Key string "enable_background_audio" preserved for backward compatibility with existing user settings.
         private val KEY_ENABLE_BACKGROUND_AUDIO = booleanPreferencesKey("enable_background_audio")
         private val KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR = stringPreferencesKey("background_audio_exit_behavior")
         private val KEY_SHOW_NOW_PLAYING_PANEL = booleanPreferencesKey("show_now_playing_panel")
-        private val KEY_AUDIO_EMPTY_STATE_MODE = stringPreferencesKey("audio_empty_state_mode")
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
         private val KEY_SUPPORT_PDF = booleanPreferencesKey("support_pdf")
         private val KEY_SUPPORT_EPUB = booleanPreferencesKey("support_epub")
@@ -88,18 +87,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_EPUB_LINE_HEIGHT = floatPreferencesKey("epub_line_height")
         private val KEY_EPUB_HORIZONTAL_MARGIN = intPreferencesKey("epub_horizontal_margin")
 
-        private val KEY_ENABLE_TRANSLATION = booleanPreferencesKey("enable_translation")
-        private val KEY_TRANSLATION_SOURCE_LANGUAGE = stringPreferencesKey("translation_source_language")
-        private val KEY_TRANSLATION_TARGET_LANGUAGE = stringPreferencesKey("translation_target_language")
-        private val KEY_TRANSLATION_LENS_STYLE = booleanPreferencesKey("translation_lens_style")
-        private val KEY_ENABLE_GOOGLE_LENS = booleanPreferencesKey("enable_google_lens")
-        private val KEY_ENABLE_OCR = booleanPreferencesKey("enable_ocr")
-        private val KEY_OCR_DEFAULT_FONT_SIZE = stringPreferencesKey("ocr_default_font_size")
-        private val KEY_OCR_DEFAULT_FONT_FAMILY = stringPreferencesKey("ocr_default_font_family")
-        private val KEY_OCR_ENGINE_TYPE = stringPreferencesKey("ocr_engine_type")
-        private val KEY_PADDLE_OCR_MODEL = stringPreferencesKey("paddle_ocr_model")
-        private val KEY_CAMERA_OCR_TRANSLATION_ENABLED = booleanPreferencesKey("camera_ocr_translation_enabled")
-        private val KEY_CAMERA_OCR_ONLY = booleanPreferencesKey("camera_ocr_only")
+        // Text-recognition / translation / OCR keys moved to data.repository.settings.TextRecognitionSettingsStore (responsibility extraction).
 
         private val KEY_DEFAULT_SORT_MODE = stringPreferencesKey("default_sort_mode")
         private val KEY_SLIDESHOW_INTERVAL = intPreferencesKey("slideshow_interval")
@@ -210,13 +198,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_VR_SHOW_FPS = booleanPreferencesKey("vr_show_fps")
         private val KEY_PLAYER_SHOW_FPS = booleanPreferencesKey("player_show_fps")
         // S0326: global 3D/VR default settings (detection-source flags + UNKNOWN-fallback defaults)
-        private val KEY_STEREO_AUTO_DETECT_ENABLED = booleanPreferencesKey("stereo_auto_detect_enabled")
-        private val KEY_STEREO_TRUST_FILENAME = booleanPreferencesKey("stereo_trust_filename")
-        private val KEY_STEREO_TRUST_METADATA = booleanPreferencesKey("stereo_trust_metadata")
-        private val KEY_STEREO_TRUST_ASPECT_RATIO = booleanPreferencesKey("stereo_trust_aspect_ratio")
-        private val KEY_STEREO_AMBIGUITY_BEST_GUESS = booleanPreferencesKey("stereo_ambiguity_best_guess")
-        private val KEY_STEREO_DEFAULT_LAYOUT = stringPreferencesKey("stereo_default_layout")
-        private val KEY_STEREO_DEFAULT_PROJECTION = stringPreferencesKey("stereo_default_projection")
+        // Stereo/3D default keys moved to data.repository.settings.StereoSettingsStore (responsibility extraction).
 
         // S0028: Multi-window mode
         private val KEY_ALLOW_SEPARATE_WINDOW = booleanPreferencesKey("allow_separate_window")
@@ -284,6 +266,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     if (BuildConfig.DEBUG) Timber.d("SettingsRepositoryImpl: Synced cacheSizeMb to SharedPreferences: ${cacheSizeMb}MB")
                 }
                 
+                val stereo = StereoSettingsStore.read(preferences)
+                val textRec = TextRecognitionSettingsStore.read(preferences)
+                val audio = AudioSettingsStore.read(preferences)
+
                 AppSettings(
                     language = language,
                     colorTheme = colorTheme,
@@ -313,19 +299,19 @@ class SettingsRepositoryImpl @Inject constructor(
                     videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: 102400L, // 100KB in bytes
                     videoSizeMax = preferences[KEY_VIDEO_SIZE_MAX] ?: 107374182400L,
                     supportAudio = preferences[KEY_SUPPORT_AUDIO] ?: true,
-                    audioSizeMin = preferences[KEY_AUDIO_SIZE_MIN] ?: 0L,
-                    audioSizeMax = preferences[KEY_AUDIO_SIZE_MAX] ?: 1073741824L, // 1GB
+                    audioSizeMin = audio.audioSizeMin,
+                    audioSizeMax = audio.audioSizeMax,
                     searchAudioCoversOnline = preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] ?: false,
                     searchAudioCoversOnlyOnWifi = preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] ?: true,
                     saveAudioMetadataLocally = preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
-                    audioBackgroundPhotosResourceId = preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID],
+                    audioBackgroundPhotosResourceId = audio.audioBackgroundPhotosResourceId,
                     enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
                     backgroundAudioExitBehavior = preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR]
                         ?.let { runCatching { com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.valueOf(it) }.getOrNull() }
                         ?: com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK,
                     showNowPlayingPanel = preferences[KEY_SHOW_NOW_PLAYING_PANEL] ?: false,
-                    audioEmptyStateMode = preferences[KEY_AUDIO_EMPTY_STATE_MODE] ?: "CANVAS_WAVES",
+                    audioEmptyStateMode = audio.audioEmptyStateMode,
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
@@ -343,18 +329,18 @@ class SettingsRepositoryImpl @Inject constructor(
                     pdfColorMode = preferences[KEY_PDF_COLOR_MODE] ?: "NORMAL",
                     epubLineHeight = preferences[KEY_EPUB_LINE_HEIGHT] ?: 1.6f,
                     epubHorizontalMargin = preferences[KEY_EPUB_HORIZONTAL_MARGIN] ?: 16,
-                    enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: true,
-                    translationSourceLanguage = preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] ?: "auto",
-                    translationTargetLanguage = preferences[KEY_TRANSLATION_TARGET_LANGUAGE] ?: "ru",
-                    translationLensStyle = preferences[KEY_TRANSLATION_LENS_STYLE] ?: true,
-                    enableGoogleLens = preferences[KEY_ENABLE_GOOGLE_LENS] ?: true,
-                    enableOcr = preferences[KEY_ENABLE_OCR] ?: true,
-                    cameraOcrTranslationEnabled = preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] ?: false,
-                    cameraOcrOnly = preferences[KEY_CAMERA_OCR_ONLY] ?: false,
-                    ocrDefaultFontSize = preferences[KEY_OCR_DEFAULT_FONT_SIZE] ?: "AUTO",
-                    ocrDefaultFontFamily = preferences[KEY_OCR_DEFAULT_FONT_FAMILY] ?: "DEFAULT",
-                    ocrEngineType = preferences[KEY_OCR_ENGINE_TYPE] ?: "TESSERACT",
-                    paddleOcrModel = preferences[KEY_PADDLE_OCR_MODEL] ?: "CYRILLIC",
+                    enableTranslation = textRec.enableTranslation,
+                    translationSourceLanguage = textRec.translationSourceLanguage,
+                    translationTargetLanguage = textRec.translationTargetLanguage,
+                    translationLensStyle = textRec.translationLensStyle,
+                    enableGoogleLens = textRec.enableGoogleLens,
+                    enableOcr = textRec.enableOcr,
+                    cameraOcrTranslationEnabled = textRec.cameraOcrTranslationEnabled,
+                    cameraOcrOnly = textRec.cameraOcrOnly,
+                    ocrDefaultFontSize = textRec.ocrDefaultFontSize,
+                    ocrDefaultFontFamily = textRec.ocrDefaultFontFamily,
+                    ocrEngineType = textRec.ocrEngineType,
+                    paddleOcrModel = textRec.paddleOcrModel,
                     defaultSortMode = SortMode.valueOf(
                         preferences[KEY_DEFAULT_SORT_MODE] ?: SortMode.NAME_ASC.name
                     ),
@@ -444,20 +430,14 @@ class SettingsRepositoryImpl @Inject constructor(
                     panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: true,
                     vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
                     playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
-                    // S0326: global 3D/VR default settings. Layout/projection fall back to MONO (plain 2D).
-                    stereoAutoDetectEnabled = preferences[KEY_STEREO_AUTO_DETECT_ENABLED] ?: true,
-                    stereoTrustFilename = preferences[KEY_STEREO_TRUST_FILENAME] ?: true,
-                    stereoTrustMetadata = preferences[KEY_STEREO_TRUST_METADATA] ?: true,
-                    stereoTrustAspectRatio = preferences[KEY_STEREO_TRUST_ASPECT_RATIO] ?: false,
-                    stereoAmbiguityBestGuess = preferences[KEY_STEREO_AMBIGUITY_BEST_GUESS] ?: false,
-                    stereoDefaultLayout = preferences[KEY_STEREO_DEFAULT_LAYOUT]
-                        ?.let { StereoMode.fromKey(it) }
-                        ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
-                        ?: StereoMode.MONO,
-                    stereoDefaultProjection = preferences[KEY_STEREO_DEFAULT_PROJECTION]
-                        ?.let { StereoMode.fromKey(it) }
-                        ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
-                        ?: StereoMode.MONO,
+                    // S0326: global 3D/VR default settings - owned by StereoSettingsStore.
+                    stereoAutoDetectEnabled = stereo.autoDetectEnabled,
+                    stereoTrustFilename = stereo.trustFilename,
+                    stereoTrustMetadata = stereo.trustMetadata,
+                    stereoTrustAspectRatio = stereo.trustAspectRatio,
+                    stereoAmbiguityBestGuess = stereo.ambiguityBestGuess,
+                    stereoDefaultLayout = stereo.defaultLayout,
+                    stereoDefaultProjection = stereo.defaultProjection,
 
                     // Default true: resumes playback on fresh installs and on update from old versions
                     // (absent key → null → default true, matching the user's existing behaviour)
@@ -546,17 +526,14 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_VIDEO_SIZE_MIN] = settings.videoSizeMin
             preferences[KEY_VIDEO_SIZE_MAX] = settings.videoSizeMax
             preferences[KEY_SUPPORT_AUDIO] = settings.supportAudio
-            preferences[KEY_AUDIO_SIZE_MIN] = settings.audioSizeMin
-            preferences[KEY_AUDIO_SIZE_MAX] = settings.audioSizeMax
+            AudioSettingsStore.write(preferences, settings)
             preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] = settings.searchAudioCoversOnline
             preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] = settings.searchAudioCoversOnlyOnWifi
             preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] = settings.saveAudioMetadataLocally
             preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] = settings.enablePhotosDuringAudio
-            preferences.setOrRemove(KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID, settings.audioBackgroundPhotosResourceId)
             preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enablePersistentAudioPlayback
             preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR] = settings.backgroundAudioExitBehavior.name
             preferences[KEY_SHOW_NOW_PLAYING_PANEL] = settings.showNowPlayingPanel
-            preferences[KEY_AUDIO_EMPTY_STATE_MODE] = settings.audioEmptyStateMode
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf
             preferences[KEY_SUPPORT_EPUB] = settings.supportEpub
@@ -571,18 +548,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_PDF_COLOR_MODE] = settings.pdfColorMode
             preferences[KEY_EPUB_LINE_HEIGHT] = settings.epubLineHeight
             preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
-            preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation
-            preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] = settings.translationSourceLanguage
-            preferences[KEY_TRANSLATION_TARGET_LANGUAGE] = settings.translationTargetLanguage
-            preferences[KEY_ENABLE_GOOGLE_LENS] = settings.enableGoogleLens
-            preferences[KEY_TRANSLATION_LENS_STYLE] = settings.translationLensStyle
-            preferences[KEY_ENABLE_OCR] = settings.enableOcr
-            preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] = settings.cameraOcrTranslationEnabled
-            preferences[KEY_CAMERA_OCR_ONLY] = settings.cameraOcrOnly
-            preferences[KEY_OCR_DEFAULT_FONT_SIZE] = settings.ocrDefaultFontSize
-            preferences[KEY_OCR_DEFAULT_FONT_FAMILY] = settings.ocrDefaultFontFamily
-            preferences[KEY_OCR_ENGINE_TYPE] = settings.ocrEngineType
-            preferences[KEY_PADDLE_OCR_MODEL] = settings.paddleOcrModel
+            TextRecognitionSettingsStore.write(preferences, settings)
             preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
             preferences[KEY_SLIDESHOW_INTERVAL] = settings.slideshowInterval
             preferences.setOrRemove(KEY_SLIDESHOW_MUSIC_URI, settings.slideshowMusicUri)
@@ -674,14 +640,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
             preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
             preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
-            // S0326: global 3D/VR default settings
-            preferences[KEY_STEREO_AUTO_DETECT_ENABLED] = settings.stereoAutoDetectEnabled
-            preferences[KEY_STEREO_TRUST_FILENAME] = settings.stereoTrustFilename
-            preferences[KEY_STEREO_TRUST_METADATA] = settings.stereoTrustMetadata
-            preferences[KEY_STEREO_TRUST_ASPECT_RATIO] = settings.stereoTrustAspectRatio
-            preferences[KEY_STEREO_AMBIGUITY_BEST_GUESS] = settings.stereoAmbiguityBestGuess
-            preferences[KEY_STEREO_DEFAULT_LAYOUT] = settings.stereoDefaultLayout.name
-            preferences[KEY_STEREO_DEFAULT_PROJECTION] = settings.stereoDefaultProjection.name
+            // S0326: global 3D/VR default settings - owned by StereoSettingsStore.
+            StereoSettingsStore.write(preferences, settings)
 
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
             // S0050: Black Screen button (opt-in)

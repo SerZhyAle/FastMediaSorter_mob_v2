@@ -504,7 +504,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupMainWindowDropdownMenu() {
-        Timber.d("S0319: main window dropdown menu setup")
         refreshMainWindowDropdownMenuVisibility()
         binding.btnMainDropdownMenu.setOnClickListenerDebounced {
             showMainWindowDropdownMenu()

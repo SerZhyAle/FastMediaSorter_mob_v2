@@ -125,6 +125,7 @@ $runsCatalogSync = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsStringsAudit = $resolvedChangeType -in @('Xml', 'Mixed')
 $runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
+$runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -178,6 +179,15 @@ if ($runsDocPinsSync) {
 }
 else {
     Skip-Step "doc-pins-sync" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsFlavorFlagGate) {
+    Invoke-Step "flavor-flag-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "flavor-flag-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

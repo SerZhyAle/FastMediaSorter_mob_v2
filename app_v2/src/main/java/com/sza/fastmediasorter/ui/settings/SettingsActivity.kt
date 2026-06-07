@@ -274,10 +274,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             updateLandscapeToolbarHeight()
         } else {
             val titleH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_title_row_height)
-            // Tabs use their own compact height: the shared toolbar_row_height_compact (24dp) clips text-only tab labels.
-            val tabH = resources.getDimensionPixelSize(
-                if (compact) R.dimen.settings_tabs_height_compact else R.dimen.settings_tabs_height
-            )
+            val tabH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
             binding.root.findViewById<View>(R.id.titleRow)?.let { titleRow ->
                 titleRow.layoutParams.height = titleH
                 titleRow.requestLayout()
@@ -288,13 +285,16 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     /**
-     * In landscape the single toolbarContainer covers both the status-bar inset area and
-     * the visible toolbar content. Compact mode reduces the CONTENT portion by 35%.
+     * In landscape the single toolbarContainer covers both the status-bar inset area (applied as
+     * top padding in applyWindowInsets) and the visible toolbar content below it. The content row
+     * must be a full action-bar height regardless of inset size - the previous formula derived it
+     * as (actionBarSize - statusBarInset), which collapsed to ~0 on devices whose top inset is
+     * close to the action-bar height (e.g. Pixel Fold unfolded), clipping the title/tabs row.
+     * Compact mode reduces the CONTENT portion by 35%.
      * Called from both applyCompactToolbar and applyWindowInsets to keep heights in sync.
      */
     private fun updateLandscapeToolbarHeight() {
-        val originalContentH = (actionBarSizePx - statusBarInsetPx).coerceAtLeast(0)
-        val contentH = if (toolbarCompact) (originalContentH * 0.65f).toInt() else originalContentH
+        val contentH = if (toolbarCompact) (actionBarSizePx * 0.65f).toInt() else actionBarSizePx
         val totalH = contentH + statusBarInsetPx
         val lp = binding.toolbarContainer.layoutParams ?: return
         if (lp.height != totalH) {
@@ -373,7 +373,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun openSearchOverlay() {
-        Timber.d("S0284: open settings search overlay")
         binding.searchOverlay.isVisible = true
         if (binding.searchInput.text?.isNotEmpty() == true) {
             binding.searchInput.setText("")

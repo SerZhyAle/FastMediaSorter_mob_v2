@@ -32,7 +32,6 @@ class LayoutSettingsSearchSource @Inject constructor(
             try {
                 val parser = context.resources.getXml(layoutResId)
                 val count = scan(parser, layoutResId, all)
-                Timber.d("S0284: layout scan $layoutName -> $count entries")
             } catch (e: XmlPullParserException) {
                 Timber.w(e, "Settings search: failed to parse layout $layoutName, skipping")
             } catch (e: IOException) {

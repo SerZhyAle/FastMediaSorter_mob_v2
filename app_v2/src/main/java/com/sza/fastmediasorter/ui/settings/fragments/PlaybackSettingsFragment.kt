@@ -382,7 +382,6 @@ class PlaybackSettingsFragment : Fragment() {
      * toggles are preserved from the original implementation.
      */
     private fun setupCaptureSection() {
-        Timber.d("S0367: camera/microphone settings shown under Playback Other features")
 
         // ── Camera Photos ──
         binding.rowCameraToResourceEnabled.setOnCheckedChangeListener { isChecked ->

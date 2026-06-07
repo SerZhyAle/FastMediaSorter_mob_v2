@@ -189,7 +189,6 @@ class GeneralSettingsFragment : Fragment() {
         observersHelper.refreshLastSyncStatus()
         cacheHelper.checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
-        Timber.d("S0364: settings interface groups split shown")
         sectionsHelper.setup()
         backupHelper.setupBackupButtons()
         backupHelper.observeBackupState()
