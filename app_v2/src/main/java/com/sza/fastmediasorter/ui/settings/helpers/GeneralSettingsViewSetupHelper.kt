@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.Context
 import android.content.Intent
+import android.view.ContextThemeWrapper
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -9,15 +10,20 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
-import androidx.fragment.app.Fragment
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /** Owns the entire setupViews() body: switch/spinner/input setup + button wiring. */
@@ -33,6 +39,7 @@ class GeneralSettingsViewSetupHelper(
     private val credentialHelper: GeneralSettingsCredentialHelper,
     private val logHelper: GeneralSettingsLogHelper,
     private val resetHelper: GeneralSettingsResetHelper,
+    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
 ) {
     private var lastCommittedDefaultUser: String = ""
     private var lastCommittedDefaultPassword: String = ""
@@ -51,19 +58,24 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupLanguageSpinner() {
-        val languages = fragment.resources.getStringArray(R.array.languages)
+        val languages = listOf(
+            fragment.getString(R.string.language_default),
+            fragment.getString(R.string.language_english),
+            fragment.getString(R.string.language_russian),
+            fragment.getString(R.string.language_ukrainian)
+        )
         val adapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_spinner_item, languages)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         setIsUpdatingSpinner(true)
         binding.spinnerLanguage.adapter = adapter
+        binding.spinnerLanguage.setSelection(languageSelectionToPosition(currentLanguageSelectionCode()), false)
         binding.spinnerLanguage.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (getIsUpdatingSpinner()) return
-                val newLanguageCode = when (position) { 0 -> "en"; 1 -> "ru"; 2 -> "uk"; else -> "en" }
-                val currentSettings = viewModel.settings.value
-                if (newLanguageCode != currentSettings.language) {
-                    viewModel.updateSettings(currentSettings.copy(language = newLanguageCode))
-                    showRestartDialog(newLanguageCode)
+                val newLanguageCode = positionToLanguageSelection(position)
+                val currentLanguageCode = currentLanguageSelectionCode()
+                if (newLanguageCode != currentLanguageCode) {
+                    showRestartDialog(currentLanguageCode, newLanguageCode)
                 }
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -72,6 +84,7 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupSwitches() {
+        setupAllFilesResourceButton()
         binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableFavorites = isChecked))
@@ -162,6 +175,47 @@ class GeneralSettingsViewSetupHelper(
         binding.rowShowSubfoldersAsItems.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showSubfoldersAsItems = isChecked))
+        }
+    }
+
+    private fun setupAllFilesResourceButton() {
+        val button = MaterialButton(
+            ContextThemeWrapper(fragment.requireContext(), R.style.Widget_FastMediaSorter_SettingsButton_Outlined),
+            null,
+            0
+        ).apply {
+            text = fragment.getString(R.string.settings_all_files_create_resource)
+            isAllCaps = false
+            setOnClickListener {
+                isEnabled = false
+                fragment.viewLifecycleOwner.lifecycleScope.launch {
+                    ensureAllFilesPredefinedResourceUseCase()
+                        .onSuccess { result ->
+                            if (result.created && fragment.isAdded) {
+                                Toast.makeText(
+                                    fragment.requireContext(),
+                                    R.string.settings_all_files_resource_created,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                        .onFailure { error ->
+                            Timber.e(error, "GeneralSettings: failed to create All Files resource")
+                            if (fragment.isAdded) {
+                                Toast.makeText(
+                                    fragment.requireContext(),
+                                    R.string.settings_unknown_error,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    isEnabled = true
+                }
+            }
+        }
+        fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.resources) { resources ->
+            val hasPredefinedResource = resources.any(ensureAllFilesPredefinedResourceUseCase::isPredefinedResource)
+            binding.rowAllFiles.setTrailingControl(if (hasPredefinedResource) null else button)
         }
     }
 
@@ -474,22 +528,51 @@ class GeneralSettingsViewSetupHelper(
         cacheHelper.updateCacheSize()
     }
 
-    private fun showRestartDialog(languageCode: String) {
-        val languageName = LocaleHelper.getLanguageName(languageCode)
+    private fun positionToLanguageSelection(position: Int): String = when (position) {
+        1 -> "en"
+        2 -> "ru"
+        3 -> "uk"
+        else -> LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+    }
+
+    private fun languageSelectionToPosition(languageCode: String): Int = when {
+        LocaleHelper.isFollowSystemLanguage(languageCode) -> 0
+        LocaleHelper.resolveSupportedLanguageCode(languageCode) == "ru" -> 2
+        LocaleHelper.resolveSupportedLanguageCode(languageCode) == "uk" -> 3
+        else -> 1
+    }
+
+    private fun currentLanguageSelectionCode(): String {
+        return if (LocaleHelper.isFollowingSystemLanguage(fragment.requireContext())) {
+            LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+        } else {
+            LocaleHelper.resolveSupportedLanguageCode(viewModel.settings.value.language)
+        }
+    }
+
+    private fun languageDisplayName(languageCode: String): String {
+        return if (LocaleHelper.isFollowSystemLanguage(languageCode)) {
+            fragment.getString(R.string.language_default)
+        } else {
+            LocaleHelper.getLanguageName(languageCode)
+        }
+    }
+
+    private fun showRestartDialog(previousLanguageCode: String, newLanguageCode: String) {
+        val languageName = languageDisplayName(newLanguageCode)
         AlertDialog.Builder(fragment.requireContext())
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_message, languageName))
             .setPositiveButton(R.string.restart) { _, _ ->
+                val currentSettings = viewModel.settings.value
+                viewModel.updateSettings(currentSettings.copy(language = newLanguageCode))
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
-                LocaleHelper.changeLanguage(fragment.requireActivity(), languageCode)
+                LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
-                val currentLanguage = LocaleHelper.getLanguage(fragment.requireContext())
-                val currentPosition = when (currentLanguage) { "en" -> 0; "ru" -> 1; "uk" -> 2; else -> 0 }
                 setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(currentPosition, false)
+                binding.spinnerLanguage.setSelection(languageSelectionToPosition(previousLanguageCode), false)
                 binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
-                viewModel.updateSettings(viewModel.settings.value.copy(language = currentLanguage))
                 dialog.dismiss()
             }
             .setCancelable(false)

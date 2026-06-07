@@ -183,8 +183,10 @@ class PlayerLifecycleManager(
         try { activity.dialogHelper.dismissAll() } catch (_: UninitializedPropertyAccessException) {}
 
         // Release managers with explicit teardown
-        activity.backgroundMusicManager.release()
-        activity.audioBackgroundPhotosManager.release()
+        if (activity.areAudioBackgroundManagersConfigured) {
+            activity.backgroundMusicManager.release()
+            activity.audioBackgroundPhotosManager.release()
+        }
         activity.audioServiceController?.release()
         activity.audioServiceController = null
         activity.sleepTimerManager?.release()

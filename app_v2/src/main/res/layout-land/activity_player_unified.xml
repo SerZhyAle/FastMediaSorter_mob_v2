@@ -287,9 +287,15 @@
 
     <include layout="@layout/player_translation_overlay_content" />
 
-    <!-- S0107: Draw overlay toolbar (visibility managed by ImageDrawOverlayManager) -->
+    <!-- S0107: Draw overlay toolbar (visibility managed by ImageDrawOverlayManager).
+         S0368: ConstraintLayout ignores layout_gravity="end" on the include, so pin the
+         vertical right-side rail explicitly (end + full height). applySystemBarInsetPadding
+         (ImageDrawOverlayManager.bindToolbar) then adds the right/cutout inset on top. -->
     <include
         android:id="@+id/draw_overlay_toolbar_stub"
-        layout="@layout/player_draw_overlay_toolbar_content" />
+        layout="@layout/player_draw_overlay_toolbar_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

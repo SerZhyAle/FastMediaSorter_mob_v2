@@ -89,7 +89,7 @@ Two flavors carry the VR feature surface, distributed through different channels
 - **`vr`** - Meta Horizon Store / Google Play AAB. Store-reviewed. Stays Store-clean: no GPL extractors, no Python runtime, no yt-dlp. If a store rejects the DTS decoder, the `vr` build can ship without it and sideload users are routed to `noLegal`.
 - **`noLegal`** - ADB sideload via Developer Mode. The all-inclusive sideload build covers phones, tablets, Quest, and Android XR in a single APK. Always ships DTS, Python+yt-dlp+NewPipeExtractor, and the full VR runtime regardless of store policy. The VR feature surface is runtime-gated: on devices without an OpenXR runtime the VR controls show as disabled with an advisory notice.
 
-> **Historical note.** Prior to 2026-05-19 a separate `vrUnlicensed` flavor existed for VR-only sideload. It was merged into `noLegal` under S0250 because `noLegal` already carried every dependency needed for VR plus the broader sideload surface. See [PLAN/S0250_nolegal-vr-unification.md](../PLAN/S0250_nolegal-vr-unification.md).
+> **Historical note.** The current VR / noLegal surface is documented in [FEATURES.md](FEATURES.md) and [VR_SIDELOAD.md](VR_SIDELOAD.md). The legacy `vrUnlicensed` split is no longer the public reference path in this repository.
 
 ### Phone Fallback
 

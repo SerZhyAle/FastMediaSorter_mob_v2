@@ -18,19 +18,19 @@ This guide now has two layers:
 
 ## Note: Feature Availability by Flavor
 
-Some features are only available in specific flavors. Check the table below:
+Some features are only available in specific flavors. This guide follows the current matrix from [FEATURES.md](FEATURES.md); the XR / noLegal surface is intentionally separate because it depends on headset hardware and sideload build rules.
 
-| Feature | Standard | Lite | Photos | Legacy |
-|---------|----------|------|--------|--------|
-| Network folders (SMB, SFTP, FTP) | ✓ | ✓ | ✓ | ✗ |
-| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✗ |
-| Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ |
-| Document viewer (PDF, Text) | ✓ | ✓ | ✓ | ✓ |
-| EPUB reader | ✓ | ✓ | ✓ | ✓ |
-| Translation & OCR | ✓ | ✓ | ✓ | ✓ |
-| Image editing | ✓ | ✓ | ✓ | ✓ |
+| Feature | Standard | Lite | Photos | Legacy | XR / noLegal |
+|---------|----------|------|--------|--------|--------------|
+| Network folders (SMB, SFTP, FTP) | ✓ | ✓ | ✓ | ✗ | ✓ |
+| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Document viewer (PDF, Text) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| EPUB reader | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Translation & OCR | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-If a feature is marked with "✗", you can download the **Standard** flavor to access all features.
+If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** build that matches your hardware and distribution path.
 
 ---
 

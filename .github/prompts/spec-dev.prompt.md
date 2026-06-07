@@ -148,6 +148,7 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 - Tracking: dev log per file, per step - run immediately after step completion. Cursor recomputed from phase file `Status:` on every invocation - never from memory.
 - **Debug verification tags belong only to `BlockNeedUserTest`.** Insert `Timber.d("Sxxxx: …")` tags only at the moment this skill flips the ticket into `BlockNeedUserTest` (after all phases done, when on-device verification is part of acceptance) - never at `Implemented`, never per-step. Never remove tags from this skill - that is `/spec-check`'s job on the `Verified` transition (or `/spec-update`'s on a re-open). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
 - **Landscape parity (MANDATORY):** any step editing `res/layout/*.xml` MUST list the corresponding `res/layout-land/*.xml` in `Files Touched`. If the landscape variant exists and is absent from the step → abort (see Pre-edit guards). If the landscape variant does not exist but the screen supports rotation → add an explicit note in the step or a dedicated sub-step to create it.
+- **Lazy optimization (MANDATORY):** all code changes must respect the resource limits from `docs/ARCHITECTURE.md`. Wrap heavy dependencies in Hilt with `dagger.Lazy<T>`, use `<ViewStub>` for optional/format-specific layout views, and ensure players/codecs release instantly when paused or backgrounded.
 
 ---
 

@@ -22,7 +22,7 @@
     <string name="settings_category_images">Зображення, GIF і слайд-шоу</string>
     <string name="settings_category_interface">Загальні налаштування інтерфейсу</string>
     <string name="settings_category_other">Переклад, OCR і Google Lens</string>
-    <string name="settings_category_other_features">Інші функції</string>
+    <string name="settings_category_other_features">Камера, мікрофон та інші функції</string>
     <string name="settings_category_other_functionality">Інші функції</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
     <string name="settings_category_player_ui">Інтерфейс і команди програвача</string>
@@ -69,7 +69,7 @@
     <string name="settings_manage_permissions_desc">Перегляд та надання дозволів застосунку</string>
     <string name="settings_mic_recording_ask_filename_desc">Показувати діалог перейменування перед збереженням запису</string>
     <string name="settings_mic_recording_ask_filename_title">Запитувати ім\'я файлу</string>
-    <string name="settings_mic_recording_enable_desc">Показувати кнопку мікрофона у браузері файлів для запису аудіо в поточну папку</string>
+    <string name="settings_mic_recording_enable_desc">Показувати кнопку мікрофона у браузері файлів для запису аудіо у вибраний ресурс або в папку Downloads</string>
     <string name="settings_mic_recording_enable_title">Увімкнути запис із мікрофона</string>
     <string name="settings_network_permissions_already_granted">Мережеві дозволи вже увімкнені - тут немає що робити.</string>
     <string name="settings_no_browser_for_docs">Не знайшовся браузер, щоб відкрити документацію.</string>
@@ -85,6 +85,10 @@
     <string name="settings_profile_source_skipped">авто-пропущено</string>
     <string name="settings_profile_title">Профіль пристрою</string>
     <string name="settings_profile_warning">Увага: зміна профілю скине частину налаштувань на значення за замовчуванням для нового профілю. Ви впевнені, що хочете продовжити?</string>
+    <string name="settings_all_files_create_resource">Створити ресурс «Усі файли»</string>
+    <string name="settings_all_files_resource_created">Ресурс «Усі файли» створено.</string>
+    <string name="settings_all_files_profile_confirm_title">Створити ресурс «Усі файли»</string>
+    <string name="settings_all_files_profile_confirm_message">Цей профіль вмикає режим файлового менеджера і створить відсутній ресурс «Усі файли». Продовжити?</string>
     <string name="settings_reset_settings_failed">Не вдалося скинути налаштування. Спробуйте ще раз.</string>
     <string name="settings_reset_smb_failed">Не вдалося скинути SMB-підключення. Спробуйте ще раз.</string>
     <string name="settings_saved">Налаштування збережено</string>
@@ -215,4 +219,11 @@
     <string name="prefetch_overlay_format">%1$dс / %2$dс · %3$s</string>
     <string name="prefetch_overlay_local_copy_format">Локальна копія · %1$s</string>
     <string name="settings_category_file_browser">Інтерфейс браузера файлів</string>
+    <string name="setting_mic_recording_destination_title">Ресурс для записів з мікрофона</string>
+    <string name="setting_mic_recording_destination_default_downloads">За замовчуванням: папка Downloads</string>
+    <string name="setting_camera_photos_destination_title">Ресурс для фото з камери</string>
+    <string name="setting_camera_photos_destination_default_camera">За замовчуванням: папка камери пристрою</string>
+    <string name="setting_video_recording_destination_title">Ресурс для запису відео</string>
+    <string name="setting_video_recording_destination_default_movies">За замовчуванням: якщо поточний ресурс недоступний, папка Movies пристрою</string>
+    <string name="setting_select_destination">Вибрати ресурс..</string>
 </resources>

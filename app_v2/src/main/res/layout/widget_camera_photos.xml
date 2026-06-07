@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_camera_photos_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/widget_background"
     android:contentDescription="@string/widget_camera_photos_label"
     android:padding="@dimen/padding_tiny"
     android:gravity="center">
@@ -14,8 +12,7 @@
         android:id="@+id/widget_camera_photos_icon"
         android:layout_width="@dimen/widget_icon_size_large"
         android:layout_height="@dimen/widget_icon_size_large"
-        android:src="@drawable/ic_image"
-        android:contentDescription="@string/widget_camera_photos_label"
-        app:tint="@color/white" />
+        android:src="@drawable/ic_widget_camera_photos_accent"
+        android:contentDescription="@string/widget_camera_photos_label" />
 
 </LinearLayout>

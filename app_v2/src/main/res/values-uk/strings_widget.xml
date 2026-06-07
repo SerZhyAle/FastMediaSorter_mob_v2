@@ -53,4 +53,12 @@
     <string name="widget_random_photo_frame_empty_subtitle">Відкрийте ресурс, щоб оновити кеш.</string>
     <string name="widget_random_photo_frame_resource_missing">Вибраний ресурс не знайдено</string>
     <string name="widget_random_photo_frame_cache_empty">Кешованих фото ще немає</string>
+    <string name="widget_camera_quick_capture_label">Швидка зйомка</string>
+    <string name="widget_camera_quick_capture_description">Зробіть фото або запишіть відео й одразу збережіть файл в обрану папку або ресурс.</string>
+    <string name="widget_camera_quick_capture_pick_target">Куди зберігати фото й відео</string>
+    <string name="widget_camera_quick_capture_camera_folder">Папка камери пристрою</string>
+    <string name="widget_camera_quick_capture_target_missing">Віджету потрібна ціль. Натисніть і утримуйте, щоб обрати, куди зберігати фото й відео.</string>
+    <string name="widget_camera_quick_capture_mode_label">Що знімати</string>
+    <string name="widget_camera_quick_capture_mode_photo">Фото</string>
+    <string name="widget_camera_quick_capture_mode_video">Відео</string>
 </resources>

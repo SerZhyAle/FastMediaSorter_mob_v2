@@ -54,7 +54,7 @@
     <string name="scheduled_ops_next_run">Next run at:</string>
     <string name="scheduled_ops_no_destinations">Add destinations first in the Destinations section</string>
     <string name="scheduled_ops_notif_channel_name">Scheduled operations</string>
-    <string name="scheduled_ops_notif_running">Running scheduled operation…</string>
+    <string name="scheduled_ops_notif_running">Running scheduled operation..</string>
     <string name="scheduled_ops_op_copy">Copy</string>
     <string name="scheduled_ops_op_delete">Delete</string>
     <string name="scheduled_ops_op_move">Move</string>

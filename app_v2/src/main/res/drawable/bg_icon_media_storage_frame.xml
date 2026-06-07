@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0377: persistent affordance frame for media-storage resource icons. Oval to match the
+     existing oval click ripple mask (ripple_icon_quick_slideshow.xml). Non-colour-only outline. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="@dimen/destination_border_width"
+        android:color="?attr/colorPrimary" />
+</shape>

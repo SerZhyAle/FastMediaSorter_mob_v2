@@ -4,16 +4,12 @@ import android.content.Context
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.UndoOperation
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -43,10 +39,6 @@ class BrowseFileOperationsManager(
     private val coroutineScope: CoroutineScope,
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
-    smbClient: SmbClient,
-    sftpClient: SftpClient,
-    ftpClient: FtpClient,
-    credentialsRepository: NetworkCredentialsRepository,
     private val callbacks: FileOperationCallbacks,
     private val dirOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler? = null
 ) {

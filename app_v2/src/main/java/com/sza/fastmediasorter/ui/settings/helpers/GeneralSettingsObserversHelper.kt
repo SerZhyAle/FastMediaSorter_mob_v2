@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
@@ -24,8 +25,11 @@ class GeneralSettingsObserversHelper(
 
     fun observeData() {
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
-            val languagePosition = when (settings.language) {
-                "en" -> 0; "ru" -> 1; "uk" -> 2; else -> 0
+            val languagePosition = when {
+                LocaleHelper.isFollowingSystemLanguage(fragment.requireContext()) -> 0
+                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "ru" -> 2
+                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "uk" -> 3
+                else -> 1
             }
             if (binding.spinnerLanguage.selectedItemPosition != languagePosition) {
                 setIsUpdatingSpinner(true)

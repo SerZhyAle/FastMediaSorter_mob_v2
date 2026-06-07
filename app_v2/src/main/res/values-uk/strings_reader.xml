@@ -9,7 +9,7 @@
     <string name="pdf_export_failed">Помилка експорту: %s</string>
     <string name="pdf_export_success">Успішно експортовано %d сторінок до Завантажень</string>
     <string name="pdf_export_to_jpg">Експортувати сторінки як JPG</string>
-    <string name="pdf_exporting_started">Експорт сторінок…</string>
+    <string name="pdf_exporting_started">Експорт сторінок..</string>
     <string name="pdf_file_not_found">Цей PDF-файл більше недоступний.</string>
     <string name="pdf_fullscreen">Повноекранний режим PDF</string>
     <string name="pdf_keywords_label">Ключові слова: %1$s</string>
@@ -25,7 +25,7 @@
     <string name="pdf_scroll_mode">Режим прокрутки</string>
     <string name="pdf_subject_label">Тема: %1$s</string>
     <string name="pdf_text_empty">Текст на сторінці не знайдено</string>
-    <string name="pdf_text_extracting">Витягування тексту…</string>
+    <string name="pdf_text_extracting">Витягування тексту..</string>
     <string name="pdf_text_mode_enter">Режим виділення тексту</string>
     <string name="pdf_thumbnails">Мініатюри сторінок</string>
     <string name="pdf_version_label">Версія PDF: %1$s</string>
@@ -55,10 +55,10 @@
     <string name="epub_reader_settings">Налаштування читання</string>
     <string name="epub_reader_theme">Тема</string>
     <string name="epub_search_all_chapters">Пошук по всіх главах</string>
-    <string name="epub_search_hint">Пошук тексту…</string>
+    <string name="epub_search_hint">Пошук тексту..</string>
     <string name="epub_search_no_results">Результатів не знайдено</string>
     <string name="epub_search_results">%1$d результатів у %2$d главах</string>
-    <string name="epub_searching">Пошук…</string>
+    <string name="epub_searching">Пошук..</string>
     <string name="epub_table_of_contents">Зміст</string>
     <string name="epub_text_empty_tts">Текст у розділі не знайдено</string>
     <string name="text_content_hint">Текстовий вміст</string>

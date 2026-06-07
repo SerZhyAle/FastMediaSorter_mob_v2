@@ -73,6 +73,7 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import androidx.appcompat.widget.PopupMenu
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -120,20 +121,20 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         )
     }
 
-    // Injected network/cloud clients - needed to construct StandaloneViewManager's NetworkFileManager.
-    // Not exercised for content:// URIs from external intents but required by the constructor.
-    @Inject lateinit var smbClient: SmbClient
-    @Inject lateinit var sftpClient: SftpClient
-    @Inject lateinit var ftpClient: FtpClient
-    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
-    @Inject lateinit var dropboxClient: DropboxClient
-    @Inject lateinit var oneDriveClient: OneDriveRestClient
-    @Inject lateinit var credentialsRepository: NetworkCredentialsRepository
-    @Inject lateinit var smbFileOperationHandler: SmbFileOperationHandler
-    @Inject lateinit var sftpFileOperationHandler: SftpFileOperationHandler
-    @Inject lateinit var ftpFileOperationHandler: FtpFileOperationHandler
-    @Inject lateinit var cloudFileOperationHandler: CloudFileOperationHandler
-    @Inject lateinit var unifiedCache: UnifiedFileCache
+    // Standalone opens local/content URIs far more often than network paths, so these heavy
+    // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
+    @Inject lateinit var smbClient: Lazy<SmbClient>
+    @Inject lateinit var sftpClient: Lazy<SftpClient>
+    @Inject lateinit var ftpClient: Lazy<FtpClient>
+    @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
+    @Inject lateinit var dropboxClient: Lazy<DropboxClient>
+    @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
+    @Inject lateinit var credentialsRepository: Lazy<NetworkCredentialsRepository>
+    @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
+    @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
+    @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
+    @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
+    @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
@@ -198,23 +199,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         setupWindowAndInsets()
 
-        // DEBUG: detect probe URI BEFORE StandaloneViewManager construction to understand
-        // whether WebView/ExoPlayer init happens needlessly for probe-only launches.
+        val incomingUri = resolveIncomingUri()
+        val isDefaultPlayerProbe = incomingUri?.toString()?.contains("default_player_probe") == true
         if (BuildConfig.DEBUG) {
-            val probeUri = when (intent?.action) {
-                Intent.ACTION_VIEW -> intent?.data
-                Intent.ACTION_SEND -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        intent?.getParcelableExtra(Intent.EXTRA_STREAM)
-                    }
-                }
-                else -> intent?.data
-            }
-            val isProbe = probeUri?.toString()?.contains("default_player_probe") == true
-            Timber.d("StandalonePlayer[debug]: setupViews START - isProbe=$isProbe uri=$probeUri")
+            Timber.d("StandalonePlayer[debug]: setupViews START - isProbe=$isDefaultPlayerProbe uri=$incomingUri")
+        }
+        if (isDefaultPlayerProbe) {
+            Timber.d("StandalonePlayer: short-circuiting default-player probe before standalone init")
+            finish()
+            return
         }
 
         val viewManagerT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
@@ -639,11 +632,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         FileInfoDialog(
             this,
             file,
-            smbClient,
-            sftpClient,
-            ftpClient,
-            credentialsRepository,
-            unifiedCache,
+            smbClient.get(),
+            sftpClient.get(),
+            ftpClient.get(),
+            credentialsRepository.get(),
+            unifiedCache.get(),
             downloadNetworkFileUseCase = null,
             audioMetadataLoader = null,
             audioMetadataCacheRepository = null
@@ -740,6 +733,29 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         pv.setOnTouchListener(touchListener)
 
         Timber.d("StandalonePlayer: video controls setup complete")
+    }
+
+    private fun resolveIncomingUri(): Uri? {
+        return when (intent?.action) {
+            Intent.ACTION_VIEW -> intent?.data
+            Intent.ACTION_SEND -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent?.getParcelableExtra(Intent.EXTRA_STREAM)
+                }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.firstOrNull()
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent?.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
+                }
+            }
+            else -> intent?.data
+        }
     }
 
     // ── Media Type Routing ────────────────────────────────────────────────

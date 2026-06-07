@@ -5,7 +5,7 @@ permalink: /docs/TROUBLESHOOTING.html
 ---
 # 🔧 Troubleshooting Guide
 
-Common problems and solutions for FastMediaSorter v2.
+Current troubleshooting guide for FastMediaSorter v2. Use the current flavor matrix in [FEATURES.md](FEATURES.md) and [DOCS_MAP.md](DOCS_MAP.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
 
 ---
 
@@ -19,7 +19,7 @@ Common problems and solutions for FastMediaSorter v2.
    - `\\192.168.1.100\share`
    - `smb://192.168.1.100/share`
 3. **Firewall blocking** - Check NAS firewall settings
-4. **SMB version mismatch** - Some NAS require SMB v1 (deprecated)
+4. **SMB version mismatch** - Some NAS still require SMB v2/v3 compatibility; update the server if it only exposes legacy SMB settings
 
 **Solution:**
 - Test connection from PC first
@@ -222,7 +222,7 @@ Favorites are stored **locally**:
 
 **Prevention:**
 - Use Settings → Backup to save settings
-- Favorites are NOT included in backup (future feature)
+- Favorites are local to the device; if you move to a new phone, re-mark them or use the app backup/restore flow available in your build
 
 ---
 
@@ -303,11 +303,11 @@ Include this information:
 
 - ⚠️ **No RAW photo support** (CR2, NEF, ARW)
 - ⚠️ **Network undo unavailable** (files are hard-deleted)
-- ⚠️ **Dropbox/OneDrive incomplete** (foundation only)
+- ⚠️ **Cloud integration availability depends on the current flavor and platform**; check the canonical feature matrix in [FEATURES.md](FEATURES.md) before assuming a provider is available in your build
 - ⚠️ **No multi-device sync** (favorites are local)
 
 ---
 
-**Last updated:** December 2025  
-**Version:** v2.25.1206
+**Last updated:** 2026-06-05  
+**Version:** Current public docs set
 

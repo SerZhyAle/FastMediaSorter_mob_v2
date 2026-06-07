@@ -340,7 +340,7 @@
 - **Control dialog** - new unified dialog (Volume, Brightness, Speed, Subtitles, 3D) for both video and audio. Left-side vertical section selector, changes apply live. Quick 50%/MAX volume presets and highlighted Mute button
 - **Playback speed range** extended to 3.0x (added 2.5x and 3.0x steps)
 - **Video color and brightness** - Hue and Brightness via Media3 GPU effects, persisted across video files
-- **Save Frame** - snapshot of the current video frame to PNG or JPG, saved to any resource (local or network). Format and destination configured in Video Settings
+- **Save Frame** - snapshot of the current video frame to PNG or JPG, saved to any resource (local or network). Format and destination resource configured in Video Settings
 - **Print** - send documents (PDF, TXT, images) to a printer directly from the player; network and cloud files are cached first
 - **Random file** - dice button to jump to a random file in the list; shown in audio and photo library profiles
 - **Filename overlay auto-hide** - overlay fades out automatically: TEXT 5s, PDF/EPUB 10s, others 15s. Timer resets on pause and zoom

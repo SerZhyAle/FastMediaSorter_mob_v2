@@ -23,13 +23,23 @@ class AddResourceUseCase @Inject constructor(
         const val MAX_DESTINATIONS = 10
     }
     
-    suspend operator fun invoke(resource: MediaResource): Result<Long> = withContext(CorrelationContext.asContextElement("add-resource")) {
+    suspend operator fun invoke(resource: MediaResource, addToTop: Boolean = false): Result<Long> = withContext(CorrelationContext.asContextElement("add-resource")) {
         try {
-            StructuredLogger.d("START add resource", "name" to resource.name, "type" to resource.type.name)
-            // Set displayOrder to max + 1
-            val existingResources = repository.getAllResources().first()
-            val maxDisplayOrder = existingResources.maxOfOrNull { it.displayOrder } ?: -1
-            val resourceWithOrder = resource.copy(displayOrder = maxDisplayOrder + 1)
+            StructuredLogger.d(
+                "START add resource",
+                "name" to resource.name,
+                "type" to resource.type.name,
+                "addToTop" to addToTop
+            )
+            val existingResources = normalizeDisplayOrder(repository.getAllResources().first())
+            val resourceWithOrder = if (addToTop) {
+                existingResources.forEachIndexed { index, existing ->
+                    repository.updateResource(existing.copy(displayOrder = index + 1))
+                }
+                resource.copy(displayOrder = 0)
+            } else {
+                resource.copy(displayOrder = existingResources.size)
+            }
             
             val id = repository.addResource(resourceWithOrder)
             StructuredLogger.i("SUCCESS add resource", "id" to id)
@@ -45,7 +55,7 @@ class AddResourceUseCase @Inject constructor(
     suspend fun addMultiple(resources: List<MediaResource>): Result<AddMultipleResult> = withContext(CorrelationContext.asContextElement("add-multiple-resources")) {
         try {
             StructuredLogger.d("START add multiple", "count" to resources.size)
-            val existingResources = repository.getAllResources().first()
+            val existingResources = normalizeDisplayOrder(repository.getAllResources().first())
             val currentDestinations = existingResources.count { it.isDestination }
             var availableDestinationSlots = MAX_DESTINATIONS - currentDestinations
             // Use -1 as initial value so first destination gets order 0 after increment
@@ -55,7 +65,7 @@ class AddResourceUseCase @Inject constructor(
                 .maxOfOrNull { it.destinationOrder ?: -1 } ?: -1
             
             // Calculate max displayOrder for new resources
-            var nextDisplayOrder = existingResources.maxOfOrNull { it.displayOrder } ?: -1
+            var nextDisplayOrder = existingResources.size - 1
             
             var skippedDestinations = 0
             val resourcesToAdd = resources.map { resource ->
@@ -91,6 +101,18 @@ class AddResourceUseCase @Inject constructor(
         } catch (e: Exception) {
             StructuredLogger.e(e, "FAILURE add multiple")
             Result.failure(e)
+        }
+    }
+
+    private suspend fun normalizeDisplayOrder(existingResources: List<MediaResource>): List<MediaResource> {
+        val ordered = existingResources.sortedBy { it.displayOrder }
+        ordered.forEachIndexed { index, resource ->
+            if (resource.displayOrder != index) {
+                repository.updateResource(resource.copy(displayOrder = index))
+            }
+        }
+        return ordered.mapIndexed { index, resource ->
+            if (resource.displayOrder == index) resource else resource.copy(displayOrder = index)
         }
     }
 }

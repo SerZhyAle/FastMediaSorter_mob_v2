@@ -639,6 +639,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onMoveDownClick = { resource ->
                 viewModel.moveResourceDown(resource)
             },
+            onMoveToTopClick = { resource -> viewModel.moveResourceToTop(resource) },
+            onMoveToBottomClick = { resource -> viewModel.moveResourceToBottom(resource) },
             onScanClick = { resource ->
                 viewModel.scanSingleResource(resource)
             },

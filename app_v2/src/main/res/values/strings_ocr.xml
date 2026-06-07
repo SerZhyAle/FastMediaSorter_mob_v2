@@ -19,7 +19,7 @@
     <string name="ocr_font_size">OCR Font Size</string>
     <string name="ocr_images_only">OCR is only available for images.</string>
     <string name="ocr_no_text_found">No text found in image</string>
-    <string name="ocr_processing">Recognizing text…</string>
+    <string name="ocr_processing">Recognizing text..</string>
     <string name="ocr_requires_newer_device">OCR is unavailable on this device. %1$s (API: %2$d). Requires API 26+ and 3GB+ RAM.</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="ocr_unavailable_reason_os">Android version is too old</string>
@@ -37,6 +37,6 @@
     <string name="translation_settings">Text Settings</string>
     <string name="translation_source_language">Original Language</string>
     <string name="translation_source_language_and_ocr">Original Language and OCR</string>
-    <string name="translation_started">Translation started…</string>
+    <string name="translation_started">Translation started..</string>
     <string name="translation_target_language">Translate To</string>
 </resources>

@@ -41,8 +41,11 @@ internal class PlayerObserverManager(
                         }
                         .collect { state ->
                             updateUI(state)
-                            activity.backgroundMusicManager.updateState(state)
-                            activity.audioBackgroundPhotosManager.updateState(state)
+                            if (activity.shouldUseAudioBackgroundManagers(state)) {
+                                activity.playerManagerInitializer.ensureAudioBackgroundManagersConfigured()
+                                activity.backgroundMusicManager.updateState(state)
+                                activity.audioBackgroundPhotosManager.updateState(state)
+                            }
                         }
                 }
 

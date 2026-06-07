@@ -90,7 +90,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/progressScan"
-            tools:text="Scanning..." />
+            tools:text="Scanning.." />
 
         <TextView
             android:id="@+id/tvScanFiles"

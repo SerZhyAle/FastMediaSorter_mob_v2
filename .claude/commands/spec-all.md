@@ -167,7 +167,7 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 4. Still failing → hard-stop → jump to final report as Blocked.
 5. If any `src/vr/` file modified: also run `vr debug` after standard passes.
 
-**MANUAL-REQUIRED stop:** tick as `[manual - deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, at end of pipeline insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry (CLAUDE.md "Debug Verification Tags"), then set status `BlockNeedUserTest` and apply the **Device-test gate** (see Finalization) - auto-run `/spec-test-device` + `/spec-check` when a device is online.
+**MANUAL-REQUIRED stop:** tick as `[manual - deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, the `Timber.d("Sxxxx: <entry-point description>")` tags are inserted by `/spec-dev` as the final code edits **before the last phase's build** (CLAUDE.md "Debug Verification Tags"), so that build validates code + tags in one pass - no extra build afterwards. Then set status `BlockNeedUserTest` and apply the **Device-test gate** (see Finalization) - auto-run `/spec-test-device` + `/spec-check` when a device is online.
 
 **Hard stop - attempt inline resolution:**
 
@@ -191,7 +191,8 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 
 Run `git diff --name-only HEAD`. Exclude `PLAN/`, `docs/`, `dev/CHANGELOG.md`, `*.md`.
 
-- Code files present → `/build` → `standard debug`. Persistent FAIL → hard-stop.
+- **Skip when F3 already built post-tags.** If F3's final phase ended with a `Project compiles` build that already included the inserted Timber tags (the `BlockNeedUserTest` path) and no code changed since, F4 is the redundant second build - skip it.
+- Code files present (and no post-tags build in F3) → `/build` → `standard debug`. Persistent FAIL → hard-stop.
 - `src/vr/` in diff → also `/build` → `vr debug`.
 - Docs-only diff → skip.
 
@@ -270,7 +271,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 | Read-only zone reference | Stop - hard boundary, no exceptions |
 | MAX_FIX_ITERATIONS exhausted | Final report - Incomplete |
 | Stage F3 unresolvable after 2 inline attempts | Add to deferred list, continue remaining steps |
-| Device/hardware verification required | Defer to manual items, insert `Timber.d("Sxxxx: …")` debug tags at changed flow entries, set status `BlockNeedUserTest`, then apply the **Device-test gate** (auto-run `/spec-test-device` + `/spec-check` if a device is online; silent no-op otherwise), continue pipeline |
+| Device/hardware verification required | Defer to manual items; the `Timber.d("Sxxxx: …")` debug tags were inserted before the final phase's build (no extra build), set status `BlockNeedUserTest`, then apply the **Device-test gate** (auto-run `/spec-test-device` + `/spec-check` if a device is online; silent no-op otherwise), continue pipeline |
 | External dependency missing | Add to deferred list, set status `BlockExternal`, final report - Blocked |
 | `Archived` status | Abort - spec is archived, create new one |
 | `$ARGUMENTS` blank | Abort - no input |
@@ -287,7 +288,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 - **Specs are mutable inside `/spec-all`** - patch and continue. Status locks (`Implemented`, `Verified`) do not apply inside this skill.
 - **Build mandatory on code changes** - skip only for docs-only diffs.
 - **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
-- **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries only when this pipeline sets the status to `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (e.g. resume → `Implemented`, audit → `Verified`/`Partial`/`Broken`). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
+- **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries as the final code edits before the last phase's build (one build validates code + tags), only when this pipeline sets the status to `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (e.g. resume → `Implemented`, audit → `Verified`/`Partial`/`Broken`). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
 - **Functionality log is owned by sub-skills** - `/spec-all` does NOT call `add_to_functionality_log.ps1` directly. The entry comes from `/spec-dev` on `Implemented` (ADD/CHANGE) or from `/spec-check` on the `Verified` flip (fallback ADD/CHANGE when `/spec-dev` was bypassed), and from `/spec-fix` on user-visible fixes (FIX). At the start of the final report, grep `dev/FUNCTIONALITY.log` for `<Sxxxx>`: if the spec delivered a user-visible change and the log carries zero entries for this id, surface a `[FUNC_LOG MISSED] add manually` line under "Manual / unresolved" - never paper over by writing the line directly.
 - **MANUAL items are not failures** - `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly - always via `.\scripts\add_to_dev_log.ps1`.

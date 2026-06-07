@@ -45,7 +45,7 @@
     <string name="deselect_all">Снять выбор</string>
     <string name="share">Поделиться</string>
     <string name="search">Поиск</string>
-    <string name="search_hint">Поиск…</string>
+    <string name="search_hint">Поиск..</string>
     <string name="language_capability_translation">Перевод</string>
     <string name="language_capability_basic_ocr">Базовый OCR</string>
     <string name="language_capability_quality_ocr">Качественный OCR</string>
@@ -55,9 +55,9 @@
     <string name="msg_last_filter_restored">Восстановлен последний фильтр: %1$s</string>
     <string name="warning_files_may_remain_in_source">Некоторые файлы могли остаться в исходной папке. Проверьте источник и папку назначения. Затронуто: %1$d.</string>
     <string name="no_supported_files_in_resource">Допустимых типов файла в ресурсе нет</string>
-    <string name="process_started">Процесс запущен…</string>
-    <string name="long_operation_started">Операция выполняется, пожалуйста подождите…</string>
-    <string name="please_wait">Пожалуйста, подождите…</string>
+    <string name="process_started">Процесс запущен..</string>
+    <string name="long_operation_started">Операция выполняется, пожалуйста подождите..</string>
+    <string name="please_wait">Пожалуйста, подождите..</string>
     <string name="favorites">Избранное</string>
     <string name="resource">Ресурс</string>
     <string name="media_type">Тип медиа</string>
@@ -101,7 +101,7 @@
     <!-- Delete Dialog -->
     <string name="deleting_files">Удаление файлов</string>
     <string name="deleting_n_files">Удаляем %1$d файлов..</string>
-    <string name="title_export_logs_chooser">Экспорт логов через…</string>
+    <string name="title_export_logs_chooser">Экспорт логов через..</string>
     <string name="share_debug_logs">Поделиться логами</string>
     <string name="save_debug_logs">Сохранить логи</string>
     <string name="save_logs_success">Логи сохранены на устройство</string>
@@ -116,7 +116,7 @@
 
     <string name="open_in_default_player">Открыть в проигрывателе по-умолчанию</string>
     <string name="download_and_open">Загрузить и открыть</string>
-    <string name="downloading_file">Загрузка файла…</string>
+    <string name="downloading_file">Загрузка файла..</string>
     <string name="downloaded_successfully">Успешно загружено</string>
     <string name="download_failed">Ошибка загрузки: %1$s</string>
     <string name="no_app_to_handle_file">Не найдено приложение для открытия этого файла</string>
@@ -178,10 +178,10 @@
     <string name="virtual_all_docs">Все документы</string>
     <string name="resource_name_downloads">Загрузки</string>
     <string name="virtual_comment_recent">Недавно открытые локальные медиафайлы</string>
-    <string name="virtual_comment_all_music">Локальные аудиофайлы (mp3, flac, ogg, aac…)</string>
-    <string name="virtual_comment_all_video">Локальные видеофайлы (mp4, mkv, mov, wmv…)</string>
+    <string name="virtual_comment_all_music">Локальные аудиофайлы (mp3, flac, ogg, aac..)</string>
+    <string name="virtual_comment_all_video">Локальные видеофайлы (mp4, mkv, mov, wmv..)</string>
     <string name="virtual_comment_camera_photos">Фото и видео с камеры устройства</string>
-    <string name="virtual_comment_all_images">Локальные изображения (jpg, png, gif, webp…)</string>
+    <string name="virtual_comment_all_images">Локальные изображения (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">Локальные документы (PDF, EPUB, текст, Office)</string>
     <string name="special_virtual_folders">Специальные папки</string>
     <string name="virtual_resource_already_added">Уже добавлен</string>
@@ -190,12 +190,12 @@
     <string name="rescan_all_virtual_warning_message">Список включает виртуальные агрегирующие папки (Вся музыка, Все видео, Все изображения, Все документы). Их полное ресканирование может занять значительное время. Продолжить?</string>
     <string name="no_files_match_criteria">Нет файлов, соответствующих критериям</string>
     <string name="connection_failed">Сбой подключения</string>
-    <string name="loading_indicator">Загрузка…</string>
-    <string name="connecting">Подключение к ресурсу…</string>
-    <string name="connecting_to_resource">Подключение к %1$s…</string>
+    <string name="loading_indicator">Загрузка..</string>
+    <string name="connecting">Подключение к ресурсу..</string>
+    <string name="connecting_to_resource">Подключение к %1$s..</string>
     <string name="scan_progress_indicator">Сканирование файлов</string>
     <string name="operation_progress_indicator">Операция в процессе</string>
-    <string name="connection_ok_starting_speed_test">Подключение успешно. Запуск теста скорости…</string>
+    <string name="connection_ok_starting_speed_test">Подключение успешно. Запуск теста скорости..</string>
     <string name="error_subfolder_does_not_exist">Подпапка \'%1$s\' не существует в общем ресурсе \'%2$s\'</string>
     <string name="retry">Повторить</string>
     <string name="select_resource_type">Выберите тип папки</string>
@@ -323,7 +323,7 @@
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Ещё</string>
     <string name="slideshow">Слайдшоу</string>
-    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s…</string>
+    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s..</string>
     <string name="google_lens">Google Lens</string>
 
     <!-- Safe Mode (Phase 2.1) -->
@@ -556,7 +556,7 @@
     <string name="created_date">Дата создания</string>
     <string name="last_browse_date">Дата последнего просмотра</string>
     <string name="never_browsed">Никогда не просматривался</string>
-    <string name="loading_files">Загрузка файлов…</string>
+    <string name="loading_files">Загрузка файлов..</string>
     <string name="supported_media_types">Поддерживаемые типы медиа</string>
     <string name="scan_subdirectories">С подпапками</string>
     <string name="scan_subdirectories_hint">Включите для поиска медиафайлов во всех вложенных подкаталогах. Отключите для сканирования только корневой папки.</string>
@@ -580,7 +580,7 @@
     <string name="favorites_empty_hint">Пометьте файлы как избранные чтобы увидеть их здесь</string>
 
     <string name="use_as_destination">Отметить для быстрой сортировки</string>
-    <string name="counting">подсчёт…</string>
+    <string name="counting">подсчёт..</string>
     <string name="clear_trash">Очистить корзину</string>
     <string name="clear_trash_confirm_title">Очистить корзину?</string>
     <string name="clear_trash_confirm_message">Это окончательно удалит %d папок корзины и все файлы внутри них. Отменить действие будет невозможно.</string>
@@ -671,7 +671,7 @@
     <string name="network_unstable_snackbar">Сеть нестабильна - проверьте Wi-Fi</string>
     <string name="cache_size_limit">Размер кэша</string>
     <string name="cache_size_limit_mb">%d МБ</string>
-    <string name="cache_size_calculating">Вычисление…</string>
+    <string name="cache_size_calculating">Вычисление..</string>
     <string name="cache_size_format">Кэш: %s</string>
     <string name="cache_cleared">Кэш успешно очищен</string>
     <string name="cache_clear_failed">Не удалось очистить кэш</string>
@@ -845,7 +845,7 @@
 
     <!-- Lyrics Feature -->
     <string name="lyrics">Лирика</string>
-    <string name="searching_lyrics">Поиск текста песни…</string>
+    <string name="searching_lyrics">Поиск текста песни..</string>
     <string name="lyrics_not_found">Лирика не найдена</string>
     <string name="error_timeout_lyrics">Время ожидания истекло. Пожалуйста, проверьте подключение к Интернету и попробуйте снова.</string>
     <string name="search_in_youtube_music">В YouMusic</string>
@@ -930,7 +930,7 @@
     <string name="add_as_destination">Добавить в получатели</string>
     <string name="selected_folder">Выбрано: %1$s</string>
     <string name="folder_icon">Значок папки</string>
-    <string name="loading">Загрузка…</string>
+    <string name="loading">Загрузка..</string>
     <string name="sorting_in_progress">Сортировка..</string>
 
     <!-- Sort modes -->
@@ -993,7 +993,7 @@
     </plurals>
     <string name="sync_now">Синхронизировать сейчас</string>
     <string name="sync_status_idle">Готово к синхронизации</string>
-    <string name="sync_status_in_progress">Синхронизация…</string>
+    <string name="sync_status_in_progress">Синхронизация..</string>
     <string name="sync_status_completed">Синхронизировано %d ресурсов</string>
     <string name="sync_status_failed">Ошибка синхронизации</string>
     <string name="sync_completed_successfully">Успешно синхронизировано %d ресурсов</string>
@@ -1103,7 +1103,7 @@
     <string name="battery_optimization_dialog_message">Чтобы запланированные файловые операции выполнялись надёжно в фоне, отключите оптимизацию батареи для FastMediaSorter. Это необязательно, но рекомендуется при использовании планировщика.</string>
     <string name="battery_optimization_dialog_btn_allow">Отключить оптимизацию</string>
     <string name="battery_optimization_dialog_btn_skip">Пропустить</string>
-    <string name="msg_download_share">Скачивание файла для отправки…</string>
+    <string name="msg_download_share">Скачивание файла для отправки..</string>
     <string name="error_share_download_failed">Не удалось подготовить файл к отправке.</string>
     <string name="error_share_unexpected">Неожиданная ошибка скачивания</string>
     <string name="error_share_failed">Не удалось отправить файл.</string>
@@ -1111,7 +1111,7 @@
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Обнаружение сети</string>
-    <string name="msg_scanning_subnet">Сканирование локальной подсети…</string>
+    <string name="msg_scanning_subnet">Сканирование локальной подсети..</string>
     <string name="msg_scan_complete">Сканирование завершено</string>
     <string name="msg_host_selected">Выбрано %1$s (%2$s)</string>
     <string name="msg_scan_again">Сканировать снова</string>
@@ -1136,17 +1136,17 @@
     <string name="msg_failed_reload_image">Не удалось перезагрузить изображение.</string>
 
     <!-- GIF Editor -->
-    <string name="msg_gif_extracting">Извлечение кадров…</string>
-    <string name="msg_gif_extract_started">Извлечение %1$d кадров…</string>
+    <string name="msg_gif_extracting">Извлечение кадров..</string>
+    <string name="msg_gif_extract_started">Извлечение %1$d кадров..</string>
     <string name="msg_gif_extract_success">%1$d кадров сохранено в Загрузки</string>
     <string name="msg_gif_extract_failed">Не получилось извлечь кадры. Попробуйте ещё раз.</string>
     <string name="msg_gif_speed_success">Скорость изменена на %1$.1fx</string>
     <string name="msg_gif_speed_failed">Не получилось изменить скорость GIF. Попробуйте ещё раз.</string>
     <string name="msg_gif_first_frame_success">Первый кадр сохранён в Загрузки</string>
     <string name="msg_gif_first_frame_failed">Не получилось сохранить первый кадр. Попробуйте ещё раз.</string>
-    <string name="msg_preparing_file">Подготовка файла…</string>
+    <string name="msg_preparing_file">Подготовка файла..</string>
     <string name="msg_gif_prepare_failed">Не удалось подготовить GIF файл</string>
-    <string name="msg_gif_downloading">Загрузка файла…</string>
+    <string name="msg_gif_downloading">Загрузка файла..</string>
     <string name="msg_gif_speed_already_normal">Скорость уже нормальная (1.0x)</string>
     <string name="msg_gif_network_extract_success">%1$d кадров сохранено в Загрузки</string>
     <string name="msg_gif_network_speed_success">Скорость изменена на %1$.1fx, сохранено в Загрузки</string>
@@ -1158,7 +1158,7 @@
     <string name="slideshow_stopped_connection_lost">Слайд-шоу остановлено. Соединение с %1$s потеряно.</string>
     <string name="slideshow_stopped_resource_unavailable">Слайд-шоу остановлено. Нет доступа к %1$s.</string>
     <string name="volume_level">Громкость: %1$d%%</string>
-    <string name="msg_network_stream_retry">Сеть прервана, повтор… (%1$d/%2$d)</string>
+    <string name="msg_network_stream_retry">Сеть прервана, повтор.. (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Ошибка сети после %1$d попыток: %2$s</string>
     <string name="msg_playback_error">Ошибка воспроизведения: %1$s</string>
     <string name="error_loading_media">Ошибка загрузки файла, пропуск</string>
@@ -1189,7 +1189,7 @@
     <string name="later">Позже</string>
 
     <!-- Network Discovery Dialog -->
-    <string name="scanning_local_subnet">Сканирование локальной сети…</string>
+    <string name="scanning_local_subnet">Сканирование локальной сети..</string>
     <string name="no_devices_found">Устройства пока не найдены</string>
 
     <!-- Filter Resource Dialog -->
@@ -1225,8 +1225,8 @@
     <string name="unsupported_format_use_external_player">Формат не поддерживается. Попробуйте открыть во внешнем проигрывателе.</string>
     <string name="unsupported_format_copy_to_local">Формат не поддерживается. Скопируйте файл на локальный ресурс, чтобы использовать внешний проигрыватель.</string>
     <string name="heic_not_supported_on_device">Для отображения %1$s требуется %2$s или новее.</string>
-    <string name="panel_copy_to">Копировать в…</string>
-    <string name="panel_move_to">Переместить в…</string>
+    <string name="panel_copy_to">Копировать в..</string>
+    <string name="panel_move_to">Переместить в..</string>
 
     <!-- PDF Navigation -->
     <string name="goto_page_title">Перейти к странице</string>
@@ -1270,13 +1270,13 @@
     <string name="toast_rotate_failed">Не получилось повернуть изображение. Попробуйте ещё раз.</string>
     <string name="toast_image_flipped">Изображение отражено</string>
     <string name="toast_flip_failed">Не получилось отразить изображение. Попробуйте ещё раз.</string>
-    <string name="toast_filter_active">Фильтр активен…</string>
+    <string name="toast_filter_active">Фильтр активен..</string>
 
     <!-- Прогресс-сообщения для редактирования изображений -->
-    <string name="progress_applying_filter">Применение фильтра…</string>
-    <string name="progress_applying_adjustments">Применение настроек…</string>
-    <string name="progress_rotating_image">Поворот изображения…</string>
-    <string name="progress_flipping_image">Отражение изображения %1$s…</string>
+    <string name="progress_applying_filter">Применение фильтра..</string>
+    <string name="progress_applying_adjustments">Применение настроек..</string>
+    <string name="progress_rotating_image">Поворот изображения..</string>
+    <string name="progress_flipping_image">Отражение изображения %1$s..</string>
 
     <string name="toast_no_files_to_play">Нет файлов для воспроизведения</string>
     <string name="toast_file_unavailable">Этот файл сейчас недоступен, выберите ресурс для проигрывания</string>
@@ -1304,13 +1304,13 @@
     <string name="read_speed">Чтение</string>
     <string name="write_speed">Запись</string>
     <string name="rec_threads">Потоки</string>
-    <string name="analyzing_speed">Анализ скорости…</string>
+    <string name="analyzing_speed">Анализ скорости..</string>
     <string name="last_test_date">Посл. тест: %s</string>
     <string name="never_tested">Не тестировалось</string>
 
     <!-- Speed Test -->
-    <string name="speed_test_preparing">Подготовка теста скорости…</string>
-    <string name="speed_test_saving">Сохранение результатов…</string>
+    <string name="speed_test_preparing">Подготовка теста скорости..</string>
+    <string name="speed_test_saving">Сохранение результатов..</string>
     <string name="speed_test_complete">Тест скорости завершён: Чтение: %1$s Мбит/с, Запись: %2$s Мбит/с (Потоки: %3$d)</string>
 
     <!-- Trash System -->
@@ -1392,7 +1392,7 @@
     <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">Отсканировано 0 файлов</string>
-    <string name="activity_main_tvScanProgress_text">Сканирование ресурсов…</string>
+    <string name="activity_main_tvScanProgress_text">Сканирование ресурсов..</string>
     <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
@@ -1485,7 +1485,7 @@
     <string name="dialog_file_operation_progress_btnCancel_text">Отмена</string>
     <string name="transfer_overall_progress_desc">Общий прогресс передачи</string>
     <string name="transfer_eta_desc">Оставшееся время</string>
-    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов…</string>
+    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов..</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_suffixText">МБ</string>
@@ -1527,8 +1527,8 @@
     <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
     <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
-    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите…</string>
-    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка…</string>
+    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите..</string>
+    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка..</string>
     <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>    <!-- Speed option: no translation needed -->
@@ -1695,7 +1695,7 @@
     <string name="failed_count">С проблемами: %d</string>
     <string name="failed_files">Файлы с ошибками</string>
     <string name="find_and_replace">Найти и заменить</string>
-    <string name="find_hint">Найти…</string>
+    <string name="find_hint">Найти..</string>
     <string name="find_no_results">Нет результатов</string>
     <string name="folder">Папка</string>
     <string name="folder_selected_successfully">Папка выбрана: %s</string>
@@ -1739,11 +1739,11 @@
     <string name="reader_theme_light">Светлая</string>
     <string name="reader_theme_sepia">Сепия</string>
     <string name="redo">Повторить</string>
-    <string name="reopen_with_encoding">Открыть с кодировкой…</string>
+    <string name="reopen_with_encoding">Открыть с кодировкой..</string>
     <string name="repeat">Повтор</string>
     <string name="replace">Заменить</string>
     <string name="replace_all">Заменить все</string>
-    <string name="replace_hint">Заменить на…</string>
+    <string name="replace_hint">Заменить на..</string>
     <string name="replaced_n_occurrences">Замен выполнено: %1$d</string>
     <string name="resource_added">Ресурс добавлен</string>
     <string name="resource_comment">Комментарий</string>
@@ -1754,7 +1754,7 @@
     <string name="resources_added">Добавлено ресурсов: %1$d</string>
     <string name="rewind_10_seconds">На 10 секунд назад</string>
     <string name="rewind_30_seconds">На 30 секунд назад</string>
-    <string name="scanning_resources">Сканирование ресурсов…</string>
+    <string name="scanning_resources">Сканирование ресурсов..</string>
     <string name="search_in_pdf">Поиск в PDF</string>
     <string name="select_audio_track">Выбрать аудиодорожку</string>
     <string name="select_encoding">Выбрать кодировку</string>
@@ -1783,13 +1783,13 @@
     <string name="track_unknown">Дорожка %d</string>
     <string name="translate_image">Перевести изображение</string>
     <string name="translate_page">Перевести страницу</string>
-    <string name="tts_reading">Читаю вслух…</string>
+    <string name="tts_reading">Читаю вслух..</string>
     <string name="vinyl_indicator_description">Индикатор воспроизведения аудио</string>
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
     <string name="database_reset_message">База данных сброшена из-за ошибки обновления. Ресурсы потребуется добавить заново.</string>
     <string name="resume_unavailable">Не удалось возобновить воспроизведение - ресурс недоступен или сессия истекла</string>
-    <string name="resume_checking">Восстановление воспроизведения…</string>
+    <string name="resume_checking">Восстановление воспроизведения..</string>
 
     <!-- Default player association (Phase 3) -->
 
@@ -1802,8 +1802,8 @@
     <string name="restore_from_google_drive">Восстановить настройки из Google Drive</string>
     <string name="backup_success">Сохранено %1$d ресурсов, %2$d избранных и все настройки в %3$s</string>
     <string name="backup_failed">Не получилось создать резервную копию настроек и ресурсов. Попробуйте ещё раз.</string>
-    <string name="backup_in_progress">Создание резервной копии настроек и ресурсов…</string>
-    <string name="restore_in_progress">Восстановление настроек и ресурсов…</string>
+    <string name="backup_in_progress">Создание резервной копии настроек и ресурсов..</string>
+    <string name="restore_in_progress">Восстановление настроек и ресурсов..</string>
     <string name="restore_confirm_title">Восстановить из резервной копии?</string>
     <string name="restore_confirm_message">Копия от: %1$s\nУстройство: %2$s\nРесурсы: %3$d\nИзбранное: %4$d\n\n• Настройки будут ЗАМЕНЕНЫ\n• Ресурсы будут ДОБАВЛЕНЫ (дубликаты пропущены)\n• Избранное будет ДОБАВЛЕНО (дубликаты пропущены)</string>
     <string name="restore_success">Все настройки восстановлены. Добавлено %1$d ресурсов (%2$d уже существовали). Добавлено %3$d избранных (%4$d уже существовали).</string>
@@ -1851,7 +1851,7 @@
     <string name="backup_import_favorites">Импорт избранного</string>
 
     <!-- Network delete dialog -->
-    <string name="and_n_more_files_network">…и ещё %d файлов</string>
+    <string name="and_n_more_files_network">..и ещё %d файлов</string>
     <string name="dont_show_again_for_resource">Не показывать снова для этого ресурса</string>
     <string name="network_delete_warning">Файлы будут безвозвратно удалены из сетевого расположения</string>
 
@@ -1942,7 +1942,7 @@
     <string name="print_fallback_to_share">Диалог печати не открылся - открыто меню «Поделиться». Выберите приложение для печати.</string>
 
     <!-- Chromecast / Cast -->
-    <string name="cast_to_chromecast">Трансляция…</string>
+    <string name="cast_to_chromecast">Трансляция..</string>
     <string name="cast_connected">Трансляция на %s</string>
     <string name="cast_disconnected">Трансляция завершена</string>
     <string name="cast_video_too_large">Видео слишком большое для трансляции (&gt; 50 МБ)</string>
@@ -1969,7 +1969,7 @@
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Найти дубликаты</string>
     <string name="action_delete_duplicates">Найти и удалить дубликаты</string>
-    <string name="action_delete_by_size">Удаление по размеру…</string>
+    <string name="action_delete_by_size">Удаление по размеру..</string>
     <string name="cd_resource_ops_menu">Меню операций с ресурсом</string>
     <string name="cmd_camera_capture">Съёмка камерой</string>
     <string name="camera_capture_filename_title">Сохранить как</string>
@@ -1984,7 +1984,7 @@
     <string name="duplicate_scan_start">Начать сканирование</string>
     <string name="duplicate_scan_failed">Не получилось завершить поиск дубликатов. Попробуйте ещё раз.</string>
     <string name="duplicate_none_found">Дубликаты не найдены.</string>
-    <string name="scanning_for_duplicates">Поиск дубликатов…</string>
+    <string name="scanning_for_duplicates">Поиск дубликатов..</string>
     <string name="duplicates_found_format">Найдено %1$d групп дубликатов (всего %2$s)</string>
     <string name="group_title_format">Группа %1$d</string>
     <string name="select_duplicates">Выбрать дубликаты</string>
@@ -2031,7 +2031,7 @@
     <string name="archive_name_invalid_chars_error">Имя содержит недопустимые символы</string>
     <string name="archive_destination_label">Папка назначения: %1$s</string>
     <string name="archive_action_btn">Архивировать</string>
-    <string name="archive_progress_title">Создание архива…</string>
+    <string name="archive_progress_title">Создание архива..</string>
     <string name="archive_progress_message">%1$d из %2$d: %3$s</string>
     <string name="archive_success">Архив создан: %1$s (%2$d файлов)</string>
     <string name="archive_error">Ошибка архивации: %1$s</string>
@@ -2041,7 +2041,7 @@
     <string name="unarchive_dialog_title">Распаковать архив?</string>
     <string name="unarchive_dialog_message">"%1$s" -> папка "%2$s"</string>
     <string name="unarchive_action_extract">Распаковать</string>
-    <string name="unarchive_progress_title">Распаковка архива…</string>
+    <string name="unarchive_progress_title">Распаковка архива..</string>
     <string name="unarchive_progress_entry">Извлечение: %1$s</string>
     <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
     <string name="unarchive_success">Архив распакован</string>
@@ -2115,7 +2115,7 @@
     <string name="wear_last_synced">Последняя синхр.: %s</string>
     <string name="wear_push_to_watch">Отправить на часы</string>
     <string name="wear_sync_ready">Готово к синхронизации</string>
-    <string name="wear_sync_sending">Отправка на часы…</string>
+    <string name="wear_sync_sending">Отправка на часы..</string>
     <string name="wear_sync_success">Отправлено %d источников на часы</string>
     <string name="wear_sync_failed">Не получилось синхронизировать данные с часами. Попробуйте ещё раз.</string>
     <string name="wear_settings_section_title">Настройки часов</string>
@@ -2313,7 +2313,7 @@
     <string name="friendly_copy_error_not_found">Файл или ресурс не найден. Возможно, он был перемещён или удалён.</string>
     <string name="friendly_copy_empty_state_generic">Здесь пока ничего нет.</string>
     <string name="friendly_copy_empty_state_invite">Здесь пока ничего нет. Добавьте что-нибудь, чтобы начать.</string>
-    <string name="friendly_copy_progress_generic">Выполняется…</string>
+    <string name="friendly_copy_progress_generic">Выполняется..</string>
     <string name="friendly_copy_success_generic">Готово.</string>
     <string name="friendly_copy_next_step_help">Открыть справку</string>
     <string name="friendly_copy_next_step_report">Сообщить о проблеме</string>
@@ -2359,8 +2359,8 @@
     <string name="link_download_notif_text_downloading_pct">Скачивание %1$d%%</string>
     <string name="link_download_notif_action_cancel">Отмена</string>
     <string name="auth_sessions_info_text">Здесь хранятся авторизации, сохранённые через встроенный браузер. Каждая запись содержит куки для одного аккаунта на одном сайте. Записи «Вход отклонён» созданы при выборе «Не предлагать» - они отключают диалог авторизации для данного сайта. Чтобы добавить второй аккаунт для того же сайта, используйте «Добавить авторизацию» в меню.</string>
-    <string name="link_download_ytdlp_extracting">Извлечение ссылки на медиа…</string>
-    <string name="link_download_ytdlp_downloading">Загрузка через универсальный экстрактор…</string>
+    <string name="link_download_ytdlp_extracting">Извлечение ссылки на медиа..</string>
+    <string name="link_download_ytdlp_downloading">Загрузка через универсальный экстрактор..</string>
     <string name="link_download_ytdlp_error_extract">Не удалось извлечь медиа из этой ссылки.</string>
     <string name="link_download_ytdlp_error_runtime">Универсальный экстрактор недоступен.</string>
     <string name="rotation_toggle_title">Поворот</string>
@@ -2385,7 +2385,7 @@
     <string name="audio_next_track_loading">Загружается следующий трек..</string>
     <string name="widget_quick_audio_recorder_label">Быстрый диктофон</string>
     <string name="widget_quick_audio_recorder_description">Нажмите, чтобы начать запись голоса; нажмите ещё раз, чтобы остановить и сохранить</string>
-    <string name="quick_recorder_notification_recording">Идёт запись…</string>
+    <string name="quick_recorder_notification_recording">Идёт запись..</string>
     <string name="quick_recorder_notification_channel">Запись голоса</string>
     <string name="quick_recorder_action_stop">Стоп</string>
     <string name="quick_recorder_saved">Запись сохранена: %1$s</string>
@@ -2398,7 +2398,7 @@
     <string name="perm_desc_camera">Снимать фото прямо в приложении для OCR-захвата и сохранения на текущий ресурс. Нужно, если вы хотите делать снимки без перехода в системную камеру.</string>
     <string name="perm_group_camera">Камера</string>
     <string name="camera_permission_required">Чтобы снимать фото в приложении, нужен доступ к камере. Выдайте разрешение и попробуйте ещё раз.</string>
-    <string name="setting_camera_to_resource_section_title">Фотоаппарат на ресурс</string>
+    <string name="setting_camera_to_resource_section_title">Фото с Камеры</string>
     <string name="setting_camera_to_resource_enabled_title">Включить съёмку фото</string>
     <string name="setting_camera_to_resource_enabled_desc">Показывать команду фотоаппарата в браузере файлов и сохранять новые снимки в текущий ресурс.</string>
     <string name="setting_camera_ask_filename_title">Спрашивать имя каждой фотографии</string>
@@ -2407,4 +2407,14 @@
     <string name="setting_camera_open_for_editing_desc">Сразу открывать сохранённое фото в редакторе рисования после съёмки.</string>
     <string name="setting_camera_permission_note">Съёмка фото в приложении требует доступа к камере.</string>
     <string name="perm_group_optional">Необязательные разрешения</string>
+    <string name="cmd_video_capture">Записать видео</string>
+    <string name="setting_video_capture_section_title">Запись видео</string>
+    <string name="setting_video_capture_enable_title">Включить запись видео</string>
+    <string name="setting_video_capture_enable_desc">Показывать команду записи видео прямо в текущий ресурс.</string>
+    <string name="setting_video_capture_open_in_player_title">Открывать записанное видео в плеере</string>
+    <string name="setting_video_capture_open_in_player_desc">После сохранения записи открывать её в плеере. По умолчанию выключено.</string>
+    <string name="resource_menu_open">Открыть</string>
+    <string name="resource_menu_launch">Запустить</string>
+    <string name="resource_menu_move_to_top">Переместить в самый верх</string>
+    <string name="resource_menu_move_to_bottom">Переместить в самый низ</string>
 </resources>

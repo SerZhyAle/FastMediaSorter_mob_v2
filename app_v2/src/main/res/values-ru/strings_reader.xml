@@ -9,7 +9,7 @@
     <string name="pdf_export_failed">Экспорт не выполнен: %s</string>
     <string name="pdf_export_success">Успешно экспортировано %d страниц в Загрузки</string>
     <string name="pdf_export_to_jpg">Экспортировать страницы как JPG</string>
-    <string name="pdf_exporting_started">Экспорт страниц…</string>
+    <string name="pdf_exporting_started">Экспорт страниц..</string>
     <string name="pdf_file_not_found">Этот PDF-файл больше недоступен.</string>
     <string name="pdf_fullscreen">Полноэкранный режим PDF</string>
     <string name="pdf_keywords_label">Ключевые слова: %1$s</string>
@@ -25,7 +25,7 @@
     <string name="pdf_scroll_mode">Режим прокрутки</string>
     <string name="pdf_subject_label">Тема: %1$s</string>
     <string name="pdf_text_empty">Текст на странице не найден</string>
-    <string name="pdf_text_extracting">Извлечение текста…</string>
+    <string name="pdf_text_extracting">Извлечение текста..</string>
     <string name="pdf_text_mode_enter">Режим выделения текста</string>
     <string name="pdf_thumbnails">Миниатюры страниц</string>
     <string name="pdf_version_label">Версия PDF: %1$s</string>
@@ -55,10 +55,10 @@
     <string name="epub_reader_settings">Настройки чтения</string>
     <string name="epub_reader_theme">Тема</string>
     <string name="epub_search_all_chapters">Поиск по всем главам</string>
-    <string name="epub_search_hint">Поиск текста…</string>
+    <string name="epub_search_hint">Поиск текста..</string>
     <string name="epub_search_no_results">Результатов не найдено</string>
     <string name="epub_search_results">%1$d результатов в %2$d главах</string>
-    <string name="epub_searching">Поиск…</string>
+    <string name="epub_searching">Поиск..</string>
     <string name="epub_table_of_contents">Оглавление</string>
     <string name="epub_text_empty_tts">Текст в главе не найден</string>
     <string name="text_content_hint">Текстовое содержимое</string>

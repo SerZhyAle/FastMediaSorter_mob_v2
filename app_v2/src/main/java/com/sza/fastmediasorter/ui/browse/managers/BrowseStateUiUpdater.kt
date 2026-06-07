@@ -185,15 +185,36 @@ class BrowseStateUiUpdater(
         internal fun isCameraCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
             if (settings.disableCameraCapture) return false
             val resource = state.resource ?: return false
-            val supportsImageOrVideo = resource.allFiles ||
+            // S0371 follow-up: the camera command is in-app photo only, so it requires an
+            // image-capable resource. Video-only resources expose the dedicated record-video command
+            // instead - routing a photo there would save a .jpg the resource filter never shows.
+            val supportsImage = resource.allFiles ||
                 resource.supportedMediaTypes.any {
-                    it == MediaType.IMAGE || it == MediaType.VIDEO || it == MediaType.GIF
+                    it == MediaType.IMAGE || it == MediaType.GIF
                 }
-            if (!supportsImageOrVideo) return false
+            if (!supportsImage) return false
+            val path = resource.path
+            return !VirtualPathUtils.isVirtualPath(path) ||
+                path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
+                path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
+        }
+
+        /**
+         * S0371: video-recording command visibility. Mirrors [isCameraCaptureVisible] but is
+         * media-type-driven on VIDEO (Strict Rule 15 - no BuildConfig flavor gate): the resource must
+         * accept video (or be in all-files mode) and resolve to a writable destination. Virtual
+         * aggregates are limited to "All video" and the camera resource, since those route to a real
+         * folder; "All images" is excluded as it never holds video.
+         */
+        internal fun isVideoCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
+            if (settings.disableVideoCapture) return false
+            val resource = state.resource ?: return false
+            val supportsVideo = resource.allFiles ||
+                resource.supportedMediaTypes.any { it == MediaType.VIDEO }
+            if (!supportsVideo) return false
             val path = resource.path
             return !VirtualPathUtils.isVirtualPath(path) ||
                 path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO ||
-                path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
                 path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
         }
     }

@@ -137,8 +137,22 @@ data class AppSettings(
     val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
+    // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
+    // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
+    // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
+    val disableVideoCapture: Boolean = false,    // Hide video-capture command in Browse globally
+    val videoCaptureOpenInPlayer: Boolean = false, // Open the recorded video in the player after saving
+    // S0375: default destination for video recordings when the current resource is not a usable
+    // target; null = fallback to the public Movies folder.
+    val videoRecordingDestinationResourceId: String? = null,
     val micRecordingEnabled: Boolean = false,      // S0100: Show mic record button in Browse
     val micRecordingAskFilename: Boolean = true,   // S0100: Show rename dialog before saving recording
+    // S0367: default destination for microphone recordings; null = fallback to public Downloads.
+    // Resolved by CaptureDestinationPolicy.resolveMicDestination.
+    val micRecordingDestinationResourceId: String? = null,
+    // S0367: default destination for camera photos; null = fallback to device camera folder (DCIM/Camera).
+    // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
+    val cameraPhotosDestinationResourceId: String? = null,
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,

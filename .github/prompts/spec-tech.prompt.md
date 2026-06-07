@@ -327,6 +327,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Do not duplicate strategic content - tactical says *what*, not *why*.
 - Never write phase steps that create audit / fix files in `PLAN/` - those are abolished.
 - **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent - not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
+- **Lazy optimization (MANDATORY):** any step introducing an optional feature (guarded by `AppSettings`), a heavy DI dependency (e.g. network/cloud client), or a heavy UI overlay must explicitly plan for lazy loading. Heavy injected dependencies must use `dagger.Lazy<T>`, optional UI views must be loaded via `<ViewStub>`, and player/decoder allocations must run on-demand and release immediately when inactive.
 
 ---
 

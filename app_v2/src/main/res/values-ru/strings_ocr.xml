@@ -19,7 +19,7 @@
     <string name="ocr_font_size">Размер шрифта для OCR</string>
     <string name="ocr_images_only">Распознавание текста доступно только для изображений.</string>
     <string name="ocr_no_text_found">Текст на изображении не найден</string>
-    <string name="ocr_processing">Распознавание текста…</string>
+    <string name="ocr_processing">Распознавание текста..</string>
     <string name="ocr_requires_newer_device">OCR недоступен на этом устройстве. %1$s (API: %2$d). Требуется API 26+ и 3 ГБ+ ОЗУ.</string>
     <string name="ocr_result_title">Распознанный текст</string>
     <string name="ocr_unavailable_reason_os">Версия Android слишком старая</string>
@@ -37,6 +37,6 @@
     <string name="translation_settings">Настройки текста</string>
     <string name="translation_source_language">Исходный язык</string>
     <string name="translation_source_language_and_ocr">Исходный язык и OCR</string>
-    <string name="translation_started">Перевод запущен…</string>
+    <string name="translation_started">Перевод запущен..</string>
     <string name="translation_target_language">Перевести на</string>
 </resources>

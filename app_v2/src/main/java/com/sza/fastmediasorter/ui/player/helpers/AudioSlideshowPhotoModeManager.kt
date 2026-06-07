@@ -38,8 +38,8 @@ class AudioSlideshowPhotoModeManager(
     private val activity: Activity,
     private val binding: ActivityPlayerUnifiedBinding,
     private val viewModel: PlayerViewModel,
-    private val audioBackgroundPhotosManager: AudioBackgroundPhotosManager,
-    private val backgroundMusicManager: BackgroundMusicManager,
+    private val audioBackgroundPhotosManagerProvider: () -> AudioBackgroundPhotosManager,
+    private val backgroundMusicManagerProvider: () -> BackgroundMusicManager,
     private val dialogAndUiStateManager: PlayerDialogAndUiStateManager,
     private val settingsRepository: SettingsRepository,
     private val lifecycleScope: LifecycleCoroutineScope,
@@ -47,6 +47,10 @@ class AudioSlideshowPhotoModeManager(
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val context: android.content.Context get() = activity
+    private val audioBackgroundPhotosManager: AudioBackgroundPhotosManager
+        get() = audioBackgroundPhotosManagerProvider()
+    private val backgroundMusicManager: BackgroundMusicManager
+        get() = backgroundMusicManagerProvider()
 
     /** Current mode state - true when fullscreen photo mode is active */
     var isActive: Boolean = false

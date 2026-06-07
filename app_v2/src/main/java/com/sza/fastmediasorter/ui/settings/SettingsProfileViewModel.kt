@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.data.model.DeviceProfileSource
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
+import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.ProfileImpliesAllFilesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsProfileViewModel @Inject constructor(
     private val deviceProfileRepository: DeviceProfileRepository,
-    private val applyProfilePresetUseCase: ApplyProfilePresetUseCase
+    private val applyProfilePresetUseCase: ApplyProfilePresetUseCase,
+    private val profileImpliesAllFilesUseCase: ProfileImpliesAllFilesUseCase,
+    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
 ) : ViewModel() {
 
     val currentProfile: StateFlow<DeviceProfile?> = deviceProfileRepository.getCurrentProfile()
@@ -29,7 +33,7 @@ class SettingsProfileViewModel @Inject constructor(
             initialValue = null
         )
 
-    fun saveProfile(type: DeviceProfileType) {
+    fun saveProfile(type: DeviceProfileType, ensureAllFilesResource: Boolean = false) {
         viewModelScope.launch {
             val profile = DeviceProfile(
                 type = type,
@@ -44,6 +48,17 @@ class SettingsProfileViewModel @Inject constructor(
 
             // Apply preset values only after the explicit Settings confirmation path saves the profile.
             applyProfilePresetUseCase.apply(type, presetVersion = 1)
+                .onSuccess {
+                    if (ensureAllFilesResource) {
+                        ensureAllFilesPredefinedResourceUseCase()
+                            .onFailure { Timber.e(it, "SettingsProfileViewModel: failed to ensure All Files resource") }
+                    }
+                }
+                .onFailure { Timber.e(it, "SettingsProfileViewModel: failed to apply profile preset") }
         }
+    }
+
+    suspend fun shouldConfirmAllFilesProvision(type: DeviceProfileType): Boolean {
+        return profileImpliesAllFilesUseCase(type) && !ensureAllFilesPredefinedResourceUseCase.exists()
     }
 }

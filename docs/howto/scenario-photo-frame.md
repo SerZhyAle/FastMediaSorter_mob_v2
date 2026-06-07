@@ -78,7 +78,7 @@ Want soft music playing while viewing photos? Here's how:
 
 Then go to **Settings → Playback tab → Slideshow**:
 4. Enable **"Enable Background Music for Slideshows"**
-5. Tap **"Select Music Source"** → choose your music folder
+5. Tap **"Select Music Source"** → choose your music resource
 
 > **Tip:** If music stutters when photos come from a NAS, use a local music folder for audio and let only photos stream from the network - you can freely mix sources this way.
 
@@ -123,7 +123,7 @@ This step is for convenience: want to launch the photo frame instantly when you 
 1. Long-press your home screen → tap **Widgets**
 2. Find **FastMediaSorter** in the widget list
 3. Drag **"Resource Shortcut"** widget to your home screen
-4. When prompted, select your photo folder
+4. When prompted, select your photo resource
 5. Tap the widget anytime → slideshow launches instantly
 
 ![Android home screen with FastMediaSorter resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)

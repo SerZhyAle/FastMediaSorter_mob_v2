@@ -46,6 +46,9 @@ class ResourceOpsMenuManager @Inject constructor(
         isDestinationsFull: Boolean = false,
         onCameraCapture: (() -> Unit)? = null,
         isCameraVisible: Boolean = false,
+        // S0371: record-video command, gated independently of the camera-photo command.
+        onVideoCapture: (() -> Unit)? = null,
+        isVideoVisible: Boolean = false,
         // S0184: multi-window entry point, controlled by user setting + device capability default.
         allowSeparateWindow: Boolean = false,
         openBrowseInNewWindow: ((Long) -> Unit)? = null,
@@ -98,6 +101,7 @@ class ResourceOpsMenuManager @Inject constructor(
             !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
+        popup.menu.findItem(R.id.action_video_capture)?.isVisible = isVideoVisible && onVideoCapture != null
         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
             allowSeparateWindow && resource != null && openBrowseInNewWindow != null
 
@@ -153,6 +157,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_camera_capture -> {
                     onCameraCapture?.invoke()
+                    true
+                }
+                R.id.action_video_capture -> {
+                    onVideoCapture?.invoke()
                     true
                 }
                 R.id.action_open_in_separate_window -> {

@@ -47,7 +47,7 @@ class QuickAudioRecorderWidgetProvider : AppWidgetProvider() {
                 if (isRecording) {
                     R.drawable.ic_widget_quick_audio_recorder_recording
                 } else {
-                    R.drawable.ic_widget_quick_audio_recorder_idle
+                    R.drawable.ic_widget_quick_audio_recorder_idle_accent
                 }
             )
 

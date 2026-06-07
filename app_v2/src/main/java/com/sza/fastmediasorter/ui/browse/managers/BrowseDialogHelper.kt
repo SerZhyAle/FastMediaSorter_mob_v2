@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import timber.log.Timber
 
 /**
  * Manages all dialog creation and user interactions in BrowseActivity.
@@ -263,6 +264,7 @@ class BrowseDialogHelper(
         }
 
         dialog.show()
+        Timber.d("S0370: filter dialog shown - icon action buttons")
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 

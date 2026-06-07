@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
@@ -43,6 +44,9 @@ internal class ImageLoadingGlideListeners(
             target: Target<Drawable>,
             isFirstResource: Boolean,
         ): Boolean {
+            if (isWebpModel(model)) {
+                Timber.e(e, "WebP display failed: ${describeModel(model)} firstResource=$isFirstResource")
+            }
             Timber.e(e, "ImageLoadingManager.GlideListener: onLoadFailed triggered")
             animatedImageController.onLoadFailed()
             setCurrentIsAnimatedContent(false)
@@ -76,6 +80,11 @@ internal class ImageLoadingGlideListeners(
             dataSource: DataSource,
             isFirstResource: Boolean,
         ): Boolean {
+            if (isWebpModel(model)) {
+                Timber.i(
+                    "WebP display ready: ${describeModel(model)} dataSource=$dataSource drawable=${resource.javaClass.simpleName} animatable=${resource is Animatable} size=${resource.intrinsicWidth}x${resource.intrinsicHeight}"
+                )
+            }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())
             loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
             loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
@@ -108,6 +117,9 @@ internal class ImageLoadingGlideListeners(
             target: Target<GifDrawable>,
             isFirstResource: Boolean,
         ): Boolean {
+            if (isWebpModel(model)) {
+                Timber.e(e, "WebP animated display failed: ${describeModel(model)} firstResource=$isFirstResource")
+            }
             Timber.e(e, "ImageLoadingManager.GifListener: onLoadFailed triggered")
             animatedImageController.onLoadFailed()
             setCurrentIsAnimatedContent(false)
@@ -129,6 +141,11 @@ internal class ImageLoadingGlideListeners(
             dataSource: DataSource,
             isFirstResource: Boolean,
         ): Boolean {
+            if (isWebpModel(model)) {
+                Timber.i(
+                    "WebP animated display ready: ${describeModel(model)} dataSource=$dataSource drawable=${resource.javaClass.simpleName} size=${resource.intrinsicWidth}x${resource.intrinsicHeight}"
+                )
+            }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())
             loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
             loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
@@ -153,5 +170,18 @@ internal class ImageLoadingGlideListeners(
             deviceWidth = getCurrentDeviceWidth(),
             deviceHeight = getCurrentDeviceHeight(),
         )
+    }
+
+    private fun isWebpModel(model: Any?): Boolean {
+        val modelValue = model?.toString().orEmpty().substringBefore('?').lowercase()
+        return modelValue.endsWith(".webp") || modelValue.contains("image/webp")
+    }
+
+    private fun describeModel(model: Any?): String {
+        val modelValue = model?.toString().orEmpty().substringBefore('?')
+        if (modelValue.isBlank()) return "file=<unknown> source=unknown"
+        val source = if (modelValue.contains("://")) modelValue.substringBefore("://") else "local"
+        val fileName = modelValue.substringAfterLast('/').ifBlank { modelValue.substringAfterLast('\\') }
+        return "file=${fileName.ifBlank { "<unknown>" }} source=$source"
     }
 }

@@ -5,6 +5,7 @@ import android.app.LocaleManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import android.os.SystemClock
@@ -24,6 +25,8 @@ object LocaleHelper {
 
     private const val PREF_SELECTED_LANGUAGE = "selected_language"
     private const val DEFAULT_LANGUAGE = "en"
+    const val FOLLOW_SYSTEM_LANGUAGE = "system"
+    private const val LEGACY_DEFAULT_LANGUAGE = "default"
 
     private const val RESTART_STATE_PREFS = "app_restart_state"
     private const val PREF_RETURN_TO_SETTINGS = "return_to_settings"
@@ -34,13 +37,52 @@ object LocaleHelper {
     /** In-memory cache - avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
     @Volatile private var cachedLanguageCode: String? = null
 
+    fun isFollowSystemLanguage(languageCode: String?): Boolean {
+        val normalized = languageCode?.trim()?.lowercase(Locale.ROOT)
+        return normalized.isNullOrBlank() ||
+            normalized == FOLLOW_SYSTEM_LANGUAGE ||
+            normalized == LEGACY_DEFAULT_LANGUAGE
+    }
+
+    fun resolveSupportedLanguageCode(languageCode: String?): String {
+        val normalized = languageCode?.trim()?.lowercase(Locale.ROOT)
+        return when {
+            isFollowSystemLanguage(normalized) -> detectSystemLanguage()
+            normalized == DEFAULT_LANGUAGE -> DEFAULT_LANGUAGE
+            normalized != null && normalized in SUPPORTED_NON_DEFAULT_LANGUAGES -> normalized
+            else -> DEFAULT_LANGUAGE
+        }
+    }
+
+    fun isFollowingSystemLanguage(context: Context): Boolean = StrictModeHelper.allowDiskReads {
+        isFollowingSystemLanguageInternal(context)
+    }
+
+    private fun isFollowingSystemLanguageInternal(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                val localeManager = context.getSystemService(LocaleManager::class.java)
+                val locales = localeManager?.applicationLocales
+                if (locales != null) return locales.isEmpty
+            } catch (e: Exception) {
+                Timber.w(e, "LocaleHelper: Failed to inspect LocaleManager state, fallback to SharedPreferences")
+            }
+        }
+
+        val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        return !prefs.contains(PREF_SELECTED_LANGUAGE) ||
+            isFollowSystemLanguage(prefs.getString(PREF_SELECTED_LANGUAGE, null))
+    }
+
     /**
      * Detect the system (OS) display language and map it to one of the app's supported languages.
      * Returns "ru" or "uk" if the OS is set to that language; falls back to "en" for everything else.
      */
     fun detectSystemLanguage(): String {
-        val systemLang = Locale.getDefault().language   // ISO 639-1 code, e.g. "ru", "uk", "en"
-        return if (systemLang in SUPPORTED_NON_DEFAULT_LANGUAGES) systemLang else DEFAULT_LANGUAGE
+        // Locale.setDefault() is overridden by the app locale, so Resources.getSystem() is the
+        // only stable source for the device language while the process is already localized.
+        val systemLang = Resources.getSystem().configuration.locales[0].language
+        return resolveSupportedLanguageCode(systemLang)
     }
 
     /**
@@ -55,8 +97,10 @@ object LocaleHelper {
      */
     fun getLanguage(context: Context): String = StrictModeHelper.allowDiskReads {
         cachedLanguageCode?.let { cached ->
-            Timber.d("LocaleHelper: Read language from cache: $cached")
-            return@allowDiskReads cached
+            if (!isFollowingSystemLanguageInternal(context)) {
+                Timber.d("LocaleHelper: Read language from cache: $cached")
+                return@allowDiskReads cached
+            }
         }
 
         // Android 13+ (API 33): Try reading from LocaleManager first
@@ -65,7 +109,7 @@ object LocaleHelper {
                 val localeManager = context.getSystemService(LocaleManager::class.java)
                 val locales = localeManager?.applicationLocales
                 if (locales != null && !locales.isEmpty) {
-                    val languageCode = locales[0].language
+                    val languageCode = resolveSupportedLanguageCode(locales[0].language)
                     Timber.d("LocaleHelper: Read language from LocaleManager: $languageCode")
                     cachedLanguageCode = languageCode
                     return@allowDiskReads languageCode
@@ -78,16 +122,19 @@ object LocaleHelper {
         // SharedPreferences - present only after user explicitly chose a language
         val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         if (prefs.contains(PREF_SELECTED_LANGUAGE)) {
-            val languageCode = prefs.getString(PREF_SELECTED_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
-            Timber.d("LocaleHelper: Read language from SharedPreferences: $languageCode")
-            cachedLanguageCode = languageCode
-            return@allowDiskReads languageCode
+            val storedLanguageCode = prefs.getString(PREF_SELECTED_LANGUAGE, null)
+            if (!isFollowSystemLanguage(storedLanguageCode)) {
+                val languageCode = resolveSupportedLanguageCode(storedLanguageCode)
+                Timber.d("LocaleHelper: Read language from SharedPreferences: $languageCode")
+                cachedLanguageCode = languageCode
+                return@allowDiskReads languageCode
+            }
         }
 
         // No explicit preference yet - use system OS language (ru/uk) or fall back to en
         val systemLanguage = detectSystemLanguage()
         Timber.d("LocaleHelper: No saved language preference; using system language: $systemLanguage")
-        cachedLanguageCode = systemLanguage
+        cachedLanguageCode = null
         return@allowDiskReads systemLanguage
     }
 
@@ -95,21 +142,33 @@ object LocaleHelper {
      * Save language code to preferences and LocaleManager (Android 13+)
      */
     fun saveLanguage(context: Context, languageCode: String) = StrictModeHelper.allowDiskWrites {
-        Timber.d("LocaleHelper: Saving language: $languageCode")
-        cachedLanguageCode = languageCode
+        val followSystem = isFollowSystemLanguage(languageCode)
+        val resolvedLanguageCode = if (followSystem) detectSystemLanguage() else resolveSupportedLanguageCode(languageCode)
+        Timber.d("LocaleHelper: Saving language: ${if (followSystem) FOLLOW_SYSTEM_LANGUAGE else resolvedLanguageCode}")
+        cachedLanguageCode = if (followSystem) null else resolvedLanguageCode
         
         // Save to SharedPreferences (backward compatibility + for attachBaseContext)
         val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        prefs.edit().putString(PREF_SELECTED_LANGUAGE, languageCode).apply()
+        prefs.edit().apply {
+            if (followSystem) {
+                remove(PREF_SELECTED_LANGUAGE)
+            } else {
+                putString(PREF_SELECTED_LANGUAGE, resolvedLanguageCode)
+            }
+        }.apply()
         
         // Android 13+ (API 33): Use LocaleManager for per-app language
         // NOTE: LocaleManager automatically restarts the app, no manual restart needed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
                 val localeManager = context.getSystemService(LocaleManager::class.java)
-                val localeList = LocaleList(Locale.forLanguageTag(languageCode))
+                val localeList = if (followSystem) {
+                    LocaleList.getEmptyLocaleList()
+                } else {
+                    LocaleList(Locale.forLanguageTag(resolvedLanguageCode))
+                }
                 localeManager?.applicationLocales = localeList
-                Timber.d("LocaleHelper: Set language via LocaleManager: $languageCode (system will restart app)")
+                Timber.d("LocaleHelper: Set language via LocaleManager: ${if (followSystem) FOLLOW_SYSTEM_LANGUAGE else resolvedLanguageCode} (system will restart app)")
             } catch (e: Exception) {
                 Timber.e(e, "LocaleHelper: Failed to set language via LocaleManager, fallback to manual restart")
             }
@@ -121,6 +180,7 @@ object LocaleHelper {
      * Should be called in attachBaseContext() or onCreate()
      */
     fun applyLocale(context: Context, languageCode: String = getLanguage(context)): Context {
+        val resolvedLanguageCode = resolveSupportedLanguageCode(languageCode)
         if (BuildConfig.DEBUG) {
             val t0 = SystemClock.uptimeMillis()
             val caller = Thread.currentThread().stackTrace
@@ -135,11 +195,11 @@ object LocaleHelper {
             } else {
                 "unknown"
             }
-            Timber.d("LocaleHelper: applyLocale('$languageCode') called from $callerLabel [${t0}ms uptime]")
+            Timber.d("LocaleHelper: applyLocale('$resolvedLanguageCode') called from $callerLabel [${t0}ms uptime]")
         }
-        Timber.d("LocaleHelper: Applying locale: $languageCode")
+        Timber.d("LocaleHelper: Applying locale: $resolvedLanguageCode")
         
-        val locale = Locale(languageCode)
+        val locale = Locale(resolvedLanguageCode)
         Locale.setDefault(locale)
 
         val config = Configuration(context.resources.configuration)
@@ -205,7 +265,7 @@ object LocaleHelper {
      * Get language name for display
      */
     fun getLanguageName(languageCode: String): String {
-        return when (languageCode) {
+        return when (resolveSupportedLanguageCode(languageCode)) {
             "en" -> "English"
             "ru" -> "Русский"
             "uk" -> "Українська"
@@ -217,7 +277,7 @@ object LocaleHelper {
      * Get language index for spinner
      */
     fun getLanguageIndex(languageCode: String): Int {
-        return when (languageCode) {
+        return when (resolveSupportedLanguageCode(languageCode)) {
             "en" -> 0
             "ru" -> 1
             "uk" -> 2

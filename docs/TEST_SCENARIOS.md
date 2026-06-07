@@ -243,7 +243,7 @@ When reviewing logs, look for:
 - `removeFiles: Removed N files` (after Move/Delete)
 - `Grid calculation - showThumbnails=false, itemWidth=XXX, spanCount=1-2` (text mode)
 - `SMB Connection Recovery` (if connection issues occur)
-- `Copy to... dialog closed` (no reload after)
+- `Copy to.. dialog closed` (no reload after)
 
 **BAD** (should NOT see after Copy):
 - `reloadFiles: Clearing cache` 

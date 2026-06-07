@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.VideoColorProcessor
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -67,18 +68,18 @@ class StandaloneViewManager(
     private val activity: Activity,
     private val binding: ActivityPlayerUnifiedBinding,
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
-    private val smbFileOperationHandler: SmbFileOperationHandler,
-    private val sftpFileOperationHandler: SftpFileOperationHandler,
-    private val ftpFileOperationHandler: FtpFileOperationHandler,
-    private val cloudFileOperationHandler: CloudFileOperationHandler,
-    private val unifiedCache: UnifiedFileCache,
+    private val smbClient: Lazy<SmbClient>,
+    private val sftpClient: Lazy<SftpClient>,
+    private val ftpClient: Lazy<FtpClient>,
+    private val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<DropboxClient>,
+    private val oneDriveClient: Lazy<OneDriveRestClient>,
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
+    private val smbFileOperationHandler: Lazy<SmbFileOperationHandler>,
+    private val sftpFileOperationHandler: Lazy<SftpFileOperationHandler>,
+    private val ftpFileOperationHandler: Lazy<FtpFileOperationHandler>,
+    private val cloudFileOperationHandler: Lazy<CloudFileOperationHandler>,
+    private val unifiedCache: Lazy<UnifiedFileCache>,
     private val settingsRepository: SettingsRepository,
     private val playbackPositionRepository: PlaybackPositionRepository
 ) {

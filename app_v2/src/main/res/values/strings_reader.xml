@@ -9,7 +9,7 @@
     <string name="pdf_export_failed">Export failed: %s</string>
     <string name="pdf_export_success">Successfully exported %d pages to Downloads</string>
     <string name="pdf_export_to_jpg">Export pages as JPG</string>
-    <string name="pdf_exporting_started">Exporting pages…</string>
+    <string name="pdf_exporting_started">Exporting pages..</string>
     <string name="pdf_file_not_found">This PDF file is no longer available.</string>
     <string name="pdf_fullscreen">PDF page fullscreen view</string>
     <string name="pdf_keywords_label">Keywords: %1$s</string>
@@ -25,7 +25,7 @@
     <string name="pdf_scroll_mode">Scroll Mode</string>
     <string name="pdf_subject_label">Subject: %1$s</string>
     <string name="pdf_text_empty">No text found on this page</string>
-    <string name="pdf_text_extracting">Extracting text…</string>
+    <string name="pdf_text_extracting">Extracting text..</string>
     <string name="pdf_text_mode_enter">Text selection</string>
     <string name="pdf_thumbnails">Page Thumbnails</string>
     <string name="pdf_version_label">PDF Version: %1$s</string>
@@ -55,10 +55,10 @@
     <string name="epub_reader_settings">Reader Settings</string>
     <string name="epub_reader_theme">Theme</string>
     <string name="epub_search_all_chapters">Search All Chapters</string>
-    <string name="epub_search_hint">Search text…</string>
+    <string name="epub_search_hint">Search text..</string>
     <string name="epub_search_no_results">No results found</string>
     <string name="epub_search_results">%1$d results in %2$d chapters</string>
-    <string name="epub_searching">Searching…</string>
+    <string name="epub_searching">Searching..</string>
     <string name="epub_table_of_contents">Table of Contents</string>
     <string name="epub_text_empty_tts">No text found in chapter</string>
     <string name="text_content_hint">Text content</string>

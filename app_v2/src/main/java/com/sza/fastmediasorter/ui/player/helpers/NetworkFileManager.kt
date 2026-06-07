@@ -21,10 +21,12 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import kotlin.LazyThreadSafetyMode
 
 /**
  * Manages network file downloads/uploads for PlayerActivity:
@@ -35,20 +37,33 @@ import java.io.File
  */
 class NetworkFileManager(
     private val context: Context,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
-    private val smbFileOperationHandler: SmbFileOperationHandler,
-    private val sftpFileOperationHandler: SftpFileOperationHandler,
-    private val ftpFileOperationHandler: FtpFileOperationHandler,
-    private val cloudFileOperationHandler: CloudFileOperationHandler,
-    private val unifiedCache: UnifiedFileCache,
+    private val smbClient: Lazy<SmbClient>,
+    private val sftpClient: Lazy<SftpClient>,
+    private val ftpClient: Lazy<FtpClient>,
+    private val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<DropboxClient>,
+    private val oneDriveClient: Lazy<OneDriveRestClient>,
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
+    private val smbFileOperationHandler: Lazy<SmbFileOperationHandler>,
+    private val sftpFileOperationHandler: Lazy<SftpFileOperationHandler>,
+    private val ftpFileOperationHandler: Lazy<FtpFileOperationHandler>,
+    private val cloudFileOperationHandler: Lazy<CloudFileOperationHandler>,
+    private val unifiedCache: Lazy<UnifiedFileCache>,
     private val callback: NetworkFileCallback
 ) {
+    private val resolvedSmbClient by lazy(LazyThreadSafetyMode.NONE) { smbClient.get() }
+    private val resolvedSftpClient by lazy(LazyThreadSafetyMode.NONE) { sftpClient.get() }
+    private val resolvedFtpClient by lazy(LazyThreadSafetyMode.NONE) { ftpClient.get() }
+    private val resolvedGoogleDriveClient by lazy(LazyThreadSafetyMode.NONE) { googleDriveClient.get() }
+    private val resolvedDropboxClient by lazy(LazyThreadSafetyMode.NONE) { dropboxClient.get() }
+    private val resolvedOneDriveClient by lazy(LazyThreadSafetyMode.NONE) { oneDriveClient.get() }
+    private val resolvedCredentialsRepository by lazy(LazyThreadSafetyMode.NONE) { credentialsRepository.get() }
+    private val resolvedSmbFileOperationHandler by lazy(LazyThreadSafetyMode.NONE) { smbFileOperationHandler.get() }
+    private val resolvedSftpFileOperationHandler by lazy(LazyThreadSafetyMode.NONE) { sftpFileOperationHandler.get() }
+    private val resolvedFtpFileOperationHandler by lazy(LazyThreadSafetyMode.NONE) { ftpFileOperationHandler.get() }
+    private val resolvedCloudFileOperationHandler by lazy(LazyThreadSafetyMode.NONE) { cloudFileOperationHandler.get() }
+    private val resolvedUnifiedCache by lazy(LazyThreadSafetyMode.NONE) { unifiedCache.get() }
+
     
     interface NetworkFileCallback {
         fun getCurrentResource(): MediaResource?
@@ -172,10 +187,10 @@ class NetworkFileManager(
                 )
                 
                 val result = when {
-                    networkPath.startsWith("smb://") -> smbFileOperationHandler.executeCopy(copyOperation)
-                    networkPath.startsWith("sftp://") -> sftpFileOperationHandler.executeCopy(copyOperation)
-                    networkPath.startsWith("ftp://") -> ftpFileOperationHandler.executeCopy(copyOperation)
-                    networkPath.startsWith("cloud://") -> cloudFileOperationHandler.executeCopy(copyOperation)
+                    networkPath.startsWith("smb://") -> resolvedSmbFileOperationHandler.executeCopy(copyOperation)
+                    networkPath.startsWith("sftp://") -> resolvedSftpFileOperationHandler.executeCopy(copyOperation)
+                    networkPath.startsWith("ftp://") -> resolvedFtpFileOperationHandler.executeCopy(copyOperation)
+                    networkPath.startsWith("cloud://") -> resolvedCloudFileOperationHandler.executeCopy(copyOperation)
                     else -> {
                         Timber.e("Unsupported protocol for upload: $networkPath")
                         FileOperationResult.Failure("Unsupported protocol")
@@ -213,7 +228,7 @@ class NetworkFileManager(
     private suspend fun downloadNetworkFileForRead(mediaFile: MediaFile): File {
         return withContext(Dispatchers.IO) {
             // Check UnifiedFileCache first (reuses files from player/metadata extraction)
-            val cachedFile = unifiedCache.getCachedFile(mediaFile.path, mediaFile.size)
+            val cachedFile = resolvedUnifiedCache.getCachedFile(mediaFile.path, mediaFile.size)
             if (cachedFile != null) {
                 Timber.d("NetworkFileManager: Reusing cached file for viewing: ${mediaFile.name} (${mediaFile.size / 1024 / 1024} MB)")
                 return@withContext cachedFile
@@ -229,7 +244,7 @@ class NetworkFileManager(
                 if (cachedPdfFile.exists() && cachedPdfFile.length() == mediaFile.size) {
                     Timber.d("NetworkFileManager: Migrating PDF from old cache to UnifiedFileCache: ${cachedPdfFile.absolutePath}")
                     // Store in UnifiedFileCache for future use
-                    unifiedCache.putFile(mediaFile.path, mediaFile.size, cachedPdfFile)
+                    resolvedUnifiedCache.putFile(mediaFile.path, mediaFile.size, cachedPdfFile)
                     return@withContext cachedPdfFile
                 } else if (cachedPdfFile.exists()) {
                     Timber.w("NetworkFileManager: Cached PDF size mismatch - deleting stale cache file")
@@ -238,7 +253,7 @@ class NetworkFileManager(
             }
             
             // Not in cache - download using UnifiedFileCache path
-            val cacheFile = unifiedCache.getCacheFile(mediaFile.path, mediaFile.size)
+            val cacheFile = resolvedUnifiedCache.getCacheFile(mediaFile.path, mediaFile.size)
             
             val path = mediaFile.path
             try {
@@ -278,7 +293,7 @@ class NetworkFileManager(
         val resource = callback.getCurrentResource() ?: throw IllegalStateException("Resource not found")
         if (resource.credentialsId == null) throw IllegalStateException("Credentials not found")
         
-        val credentials = credentialsRepository.getByCredentialId(resource.credentialsId) ?: throw IllegalStateException("Credentials not found in DB")
+        val credentials = resolvedCredentialsRepository.getByCredentialId(resource.credentialsId) ?: throw IllegalStateException("Credentials not found in DB")
         // Encode # before parsing to prevent it being treated as fragment identifier
         val encodedPath = path.replace("#", "%23")
         val uri = android.net.Uri.parse(encodedPath)
@@ -290,7 +305,7 @@ class NetworkFileManager(
         val filePath = "/" + pathSegments.drop(1).joinToString("/")
         
         tempFile.outputStream().use { outputStream ->
-            val result = smbClient.downloadFile(
+            val result = resolvedSmbClient.downloadFile(
                 SmbConnectionInfo(
                     server = host,
                     shareName = shareName,
@@ -313,7 +328,7 @@ class NetworkFileManager(
         val resource = callback.getCurrentResource() ?: throw IllegalStateException("Resource not found")
         if (resource.credentialsId == null) throw IllegalStateException("Credentials not found")
         
-        val credentials = credentialsRepository.getByCredentialId(resource.credentialsId) ?: throw IllegalStateException("Credentials not found in DB")
+        val credentials = resolvedCredentialsRepository.getByCredentialId(resource.credentialsId) ?: throw IllegalStateException("Credentials not found in DB")
         // Encode # before parsing to prevent it being treated as fragment identifier
         val encodedPath = path.replace("#", "%23")
         val uri = android.net.Uri.parse(encodedPath)
@@ -328,7 +343,7 @@ class NetworkFileManager(
                 username = credentials.username,
                 password = credentials.password
             )
-            val result = sftpClient.downloadFile(connectionInfo, sftpPath, outputStream)
+            val result = resolvedSftpClient.downloadFile(connectionInfo, sftpPath, outputStream)
             if (!result.isSuccess) {
                 throw java.io.IOException("SFTP Download failed: ${result.exceptionOrNull()?.message}")
             }
@@ -339,7 +354,7 @@ class NetworkFileManager(
         val resource = callback.getCurrentResource() ?: throw IllegalStateException("Resource not found")
         if (resource.credentialsId == null) throw IllegalStateException("Credentials not found")
         
-        val credentials = credentialsRepository.getByCredentialId(resource.credentialsId) ?: throw IllegalStateException("Credentials not found in DB")
+        val credentials = resolvedCredentialsRepository.getByCredentialId(resource.credentialsId) ?: throw IllegalStateException("Credentials not found in DB")
         // Encode # before parsing to prevent it being treated as fragment identifier
         val encodedPath = path.replace("#", "%23")
         val uri = android.net.Uri.parse(encodedPath)
@@ -347,16 +362,16 @@ class NetworkFileManager(
         val port = if (uri.port > 0) uri.port else 21
         val ftpPath = uri.path ?: throw IllegalArgumentException("Invalid path")
         
-        ftpClient.connect(host, port, credentials.username, credentials.password)
+        resolvedFtpClient.connect(host, port, credentials.username, credentials.password)
         try {
             tempFile.outputStream().use { outputStream ->
-                val result = ftpClient.downloadFile(ftpPath, outputStream)
+                val result = resolvedFtpClient.downloadFile(ftpPath, outputStream)
                 if (!result.isSuccess) {
                     throw java.io.IOException("FTP Download failed: ${result.exceptionOrNull()?.message}")
                 }
             }
         } finally {
-            ftpClient.disconnect()
+            resolvedFtpClient.disconnect()
         }
     }
     
@@ -372,9 +387,9 @@ class NetworkFileManager(
         
         tempFile.outputStream().use { outputStream ->
             val result = when (provider) {
-                "google_drive", "googledrive" -> googleDriveClient.downloadFile(fileIdOrPath, outputStream)
-                "dropbox" -> dropboxClient.downloadFile(fileIdOrPath, outputStream)
-                "onedrive" -> oneDriveClient.downloadFile(fileIdOrPath, outputStream)
+                "google_drive", "googledrive" -> resolvedGoogleDriveClient.downloadFile(fileIdOrPath, outputStream)
+                "dropbox" -> resolvedDropboxClient.downloadFile(fileIdOrPath, outputStream)
+                "onedrive" -> resolvedOneDriveClient.downloadFile(fileIdOrPath, outputStream)
                 else -> throw IllegalArgumentException("Unknown cloud provider: $provider")
             }
             

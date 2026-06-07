@@ -18,19 +18,19 @@ permalink: /docs/HOW_TO_RU.html
 
 ## Примечание: Доступность функций по версиям
 
-Некоторые функции доступны только в определенных версиях приложения. Смотрите таблицу ниже:
+Некоторые функции доступны только в определённых версиях приложения. Это руководство следует текущей матрице из [FEATURES_RU.md](FEATURES_RU.md); XR / noLegal вынесены отдельно, потому что зависят от аппаратуры шлема и sideload-правил сборки.
 
-| Функция | Standard | Lite | Photos | Legacy |
-|---------|----------|------|--------|--------|
-| Сетевые папки (SMB, SFTP, FTP) | ✓ | ✓ | ✓ | ✗ |
-| Облачные хранилища (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✗ |
-| Воспроизведение аудио и текст песен | ✓ | ✗ | ✗ | ✓ |
-| Просмотр документов (PDF, Текст) | ✓ | ✓ | ✓ | ✓ |
-| Читалка EPUB | ✓ | ✓ | ✓ | ✓ |
-| Перевод и OCR | ✓ | ✓ | ✓ | ✓ |
-| Редактирование изображений | ✓ | ✓ | ✓ | ✓ |
+| Функция | Standard | Lite | Photos | Legacy | XR / noLegal |
+|---------|----------|------|--------|--------|--------------|
+| Сетевые папки (SMB, SFTP, FTP) | ✓ | ✓ | ✓ | ✗ | ✓ |
+| Облачные хранилища (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Воспроизведение аудио и текст песен | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Просмотр документов (PDF, Текст) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Читалка EPUB | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Перевод и OCR | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Редактирование изображений | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-Если функция отмечена как "✗", вы можете загрузить версию **Standard** для получения всех возможностей.
+Если функция отмечена как "✗", выбирайте **Standard** или **XR / noLegal** в зависимости от аппаратуры и канала распространения.
 
 ---
 
@@ -346,7 +346,7 @@ permalink: /docs/HOW_TO_RU.html
 - Порт SMB по умолчанию: 445
 
 **Устранение неполадок:**
-→ См. [TROUBLESHOOTING.md#smb-connection](TROUBLESHOOTING.md)
+→ См. [TROUBLESHOOTING_RU.md#smb-connection](TROUBLESHOOTING_RU.md#smb-connection)
 
 ---
 
@@ -381,7 +381,7 @@ permalink: /docs/HOW_TO_RU.html
 - **Свой порт:** Измените номер порта, если сервер использует нестандартный
 
 **Устранение неполадок:**
-→ См. [TROUBLESHOOTING.md#sftp-timeout](TROUBLESHOOTING.md)
+→ См. [TROUBLESHOOTING_RU.md#sftp-timeout](TROUBLESHOOTING_RU.md#sftp-timeout)
 
 ---
 
@@ -651,7 +651,7 @@ permalink: /docs/HOW_TO_RU.html
 
 - Если музыка не воспроизводится: Проверьте, что музыкальный ресурс содержит хотя бы один аудиофайл
 - Если музыка прерывается в сети: Используйте локальную папку или более быстрое сетевое соединение
-- Для музыки по SMB: Убедитесь, что SMB-ресурс использует протокол `file://` (см. TROUBLESHOOTING.md)
+- Для музыки по SMB: Убедитесь, что SMB-ресурс использует протокол `file://` (см. [TROUBLESHOOTING_RU.md](TROUBLESHOOTING_RU.md))
 
 ---
 
@@ -852,8 +852,6 @@ permalink: /docs/HOW_TO_RU.html
 
 ---
 
----
-
 ## Как просмотреть текст песни (Лирика)
 
 **Требования:**
@@ -953,7 +951,7 @@ FastMediaSorter работает на любой Android TV-приставке �
 
 ## Нужна помощь?
 
-- 📖 **Quick Start:** [QUICK_START.md](QUICK_START.md)
-- ❓ **FAQ:** [FAQ.md](FAQ.md)
-- 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- 📖 **Quick Start:** [QUICK_START_RU.md](QUICK_START_RU.md)
+- ❓ **FAQ:** [FAQ_RU.md](FAQ_RU.md)
+- 🔧 **Troubleshooting:** [TROUBLESHOOTING_RU.md](TROUBLESHOOTING_RU.md)
 - 🐛 **Сообщить о проблеме:** [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues)

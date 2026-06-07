@@ -10,6 +10,7 @@ import android.widget.EditText
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -138,6 +139,7 @@ class ImageDrawOverlayManager(
     fun enterDrawMode() {
         if (isDrawModeActive) return
         isDrawModeActive = true
+        Timber.d("S0368: draw mode enter - toolbar safe area applied")
         // S0192 Phase 02 - restore last used color from persistent prefs
         selectedColorArgb = DrawEditorPrefs.getLastColor(activity)
         editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.DRAW)
@@ -246,6 +248,11 @@ class ImageDrawOverlayManager(
      */
     fun bindToolbar(root: View) {
         toolbarRoot = root
+
+        // S0368: keep the draw toolbar inside the system-bar / display-cutout safe area.
+        // Adds maxOf(systemBars, cutout) on top of the existing 8dp base padding; bottom
+        // matters in portrait (nav bar), left/right in landscape (cutout / gesture rail).
+        root.applySystemBarInsetPadding()
 
         // ── Tool selector ────────────────────────────────────────────────
         val selectorBtn = root.findViewById<android.widget.ImageButton>(

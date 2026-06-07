@@ -16,14 +16,14 @@ FastMediaSorter v2 is an Android app for quickly organizing photos, videos, and 
 Yes! FastMediaSorter v2 is completely free and open-source.
 
 ### What Android version do I need?
-Android 8.0 (API 26) or newer. The **Legacy** flavor supports Android 6.0 (API 23) or newer.
+Standard, Lite, and Photos require Android 8.0 (API 26) or newer. The **Legacy** flavor supports Android 6.0 (API 23) or newer. **XR / noLegal** additionally requires supported headset hardware and the current sideload runtime path.
 
 ### Does it require internet?
 **No** for local files. **Yes** for network drives and cloud storage.
 
 ### Does the app have widgets?
 Yes! FastMediaSorter v2 offers **two types of widgets**:
-1. **Resource Shortcut Widget**: Quickly open any of your added folders (Local, Network, or Cloud) directly from your home screen.
+1. **Resource Shortcut Widget**: Quickly open any of your added resources (Local, Network, or Cloud) directly from your home screen.
 2. **Continue Reading Widget**: Launches the app and immediately starts slideshow mode - perfect for quick photo viewing sessions.
 
 ---
@@ -332,7 +332,7 @@ Android may defer WorkManager tasks by a few minutes to optimize battery. For mo
 This is usually correct - it means all files were already present in the destination (the operation uses "skip existing" by default). To verify: check the operation log and look at the "skipped" count vs. "copied" count.
 
 If you expected new files to be copied but they weren't:
-- Make sure the **Source** is set to the right folder (e.g., "Camera Photos" virtual resource - not a manual path that might be wrong)
+- Make sure the **Source** is set to the right resource (e.g., "Camera Photos" virtual resource - not a manual path that might be wrong)
 - Check that the destination resource (SMB / cloud) was reachable at the scheduled time - if Wi-Fi was off, the run is skipped and retried next time
 
 ### Can I see what was processed?

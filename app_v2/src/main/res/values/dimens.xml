@@ -130,6 +130,20 @@
     <dimen name="browse_stop_button_margin_start">16dp</dimen>
     <dimen name="elevation_operations_bar">4dp</dimen>
 
+    <!-- S0374 Browse top command bar +20% (Browse-scoped, do not reuse on other screens) -->
+    <!-- Container slot height (48dp base ×1.2). Do NOT point at control_button_size: that is shared with Main/Game. -->
+    <dimen name="browse_cmd_button_size">58dp</dimen>
+    <!-- Visible button height cap. Must be >= browse_cmd_icon_size (29dp) so the +20% glyph is not vertically clamped by MaterialButton. -->
+    <dimen name="browse_cmd_button_min_height">29dp</dimen>
+    <dimen name="browse_cmd_button_max_height">29dp</dimen>
+    <!-- Tap-target width bounds (32dp / 100dp base ×1.2). -->
+    <dimen name="browse_cmd_button_min_width">38dp</dimen>
+    <dimen name="browse_cmd_button_max_width">120dp</dimen>
+    <!-- Icon glyph size (24dp vector intrinsic ×1.2); buttons had no app:iconSize before. -->
+    <dimen name="browse_cmd_icon_size">29dp</dimen>
+    <!-- Portrait/landscape label text (10sp base ×1.2). -->
+    <dimen name="browse_cmd_text_size">12sp</dimen>
+
     <!-- Player Activity -->
     <dimen name="player_cmd_button_size">40dp</dimen>
     <dimen name="player_big_button_height">100dp</dimen>

@@ -362,6 +362,25 @@
         <!-- Quick Audio Recorder: microphone foreground service that owns MediaRecorder (S0349) -->
         <service android:name=".widget.QuickAudioRecorderService" android:exported="false" android:foregroundServiceType="microphone" />
 
+        <!-- Quick Camera Capture Widget (S0369): captures a photo and saves it into a configured
+             target. Removed where camera capture is not meaningful (flavor manifest gating). -->
+        <receiver android:name=".widget.CameraQuickCaptureWidgetProvider" android:exported="true" android:label="@string/widget_camera_quick_capture_label" android:icon="@drawable/ic_widget_camera_quick_capture">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_quick_capture_info" />
+        </receiver>
+
+        <!-- Quick Camera Capture: transparent trampoline that hosts the capture flow from a widget tap (S0369) -->
+        <activity android:name=".widget.CameraQuickCaptureActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
+        <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- Calculator Widget -->
         <receiver android:name=".widget.CalculatorWidgetProvider" android:exported="true" android:label="@string/widget_calculator_label" android:icon="@drawable/ic_widget_calculator">
             <intent-filter>

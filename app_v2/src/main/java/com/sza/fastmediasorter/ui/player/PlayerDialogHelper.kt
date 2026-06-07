@@ -32,12 +32,14 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import kotlin.LazyThreadSafetyMode
 
 /**
  * Helper class for managing dialog displays in PlayerActivity.
@@ -54,11 +56,11 @@ class PlayerDialogHelper(
     private val activity: AppCompatActivity,
     private val viewModel: PlayerViewModel,
     private val settingsRepository: SettingsRepository,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
-    private val unifiedCache: UnifiedFileCache,
+    private val smbClient: Lazy<SmbClient>,
+    private val sftpClient: Lazy<SftpClient>,
+    private val ftpClient: Lazy<FtpClient>,
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
+    private val unifiedCache: Lazy<UnifiedFileCache>,
     private val rotateImageUseCase: RotateImageUseCase,
     private val flipImageUseCase: FlipImageUseCase,
     private val networkImageEditUseCase: NetworkImageEditUseCase,
@@ -73,7 +75,11 @@ class PlayerDialogHelper(
     private val textViewerManagerProvider: (() -> com.sza.fastmediasorter.ui.player.helpers.TextViewerManager)? = null,
     private val sleepTimerManagerProvider: (() -> com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager?)? = null
 ) {
-    
+    private val resolvedSmbClient by lazy(LazyThreadSafetyMode.NONE) { smbClient.get() }
+    private val resolvedSftpClient by lazy(LazyThreadSafetyMode.NONE) { sftpClient.get() }
+    private val resolvedFtpClient by lazy(LazyThreadSafetyMode.NONE) { ftpClient.get() }
+    private val resolvedCredentialsRepository by lazy(LazyThreadSafetyMode.NONE) { credentialsRepository.get() }
+    private val resolvedUnifiedCache by lazy(LazyThreadSafetyMode.NONE) { unifiedCache.get() }
     private var onAuthRequestCallback: ((String) -> Unit)? = null
     private val activeDialogs = mutableListOf<Dialog>()
 
@@ -363,11 +369,11 @@ class PlayerDialogHelper(
         val dialog = com.sza.fastmediasorter.ui.dialog.FileInfoDialog(
             activity,
             file,
-            smbClient,
-            sftpClient,
-            ftpClient,
-            credentialsRepository,
-            unifiedCache,
+            resolvedSmbClient,
+            resolvedSftpClient,
+            resolvedFtpClient,
+            resolvedCredentialsRepository,
+            resolvedUnifiedCache,
             downloadNetworkFileUseCase,
             audioMetadataLoader = null,
             audioMetadataCacheRepository = null

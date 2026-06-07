@@ -65,6 +65,7 @@ import java.io.File
 import java.lang.ref.WeakReference
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
+import dagger.Lazy
 
 class BrowseManagerInitializer(
     private val activity: BrowseActivity,
@@ -75,13 +76,13 @@ class BrowseManagerInitializer(
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val settingsRepository: SettingsRepository,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
+    private val smbClient: Lazy<SmbClient>,
+    private val sftpClient: Lazy<SftpClient>,
+    private val ftpClient: Lazy<FtpClient>,
+    private val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<DropboxClient>,
+    private val oneDriveClient: Lazy<OneDriveRestClient>,
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
     private val unifiedFileOperationHandler: UnifiedFileOperationHandler,
     private val audioMetadataLoader: AudioMetadataLoader,
     private val unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
@@ -329,10 +330,6 @@ class BrowseManagerInitializer(
             coroutineScope = lifecycleScope,
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            credentialsRepository = credentialsRepository,
             dirOperationHandler = unifiedFileOperationHandler,
             callbacks = object : BrowseFileOperationsManager.FileOperationCallbacks {
                 override fun onOperationCompleted() = viewModel.reloadFiles()
@@ -634,10 +631,11 @@ class BrowseManagerInitializer(
                 .getOrDefault(false)
             val settings = settingsRepository.getSettings().first()
             val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
-                viewModel.state.value.resource?.let { res ->
-                    passthroughProvider?.isAvailable(activity) == true ||
-                        BrowseCameraCaptureManager.hasCameraHandler(activity, res)
-                } ?: false
+                (passthroughProvider?.isAvailable(activity) == true ||
+                    BrowseCameraCaptureManager.hasCameraHandler(activity))
+            // S0371: video-capture command - media-type gate AND a system video-capture handler.
+            val isVideoVisible = BrowseStateUiUpdater.isVideoCaptureVisible(viewModel.state.value, settings) &&
+                BrowseCameraCaptureManager.hasVideoCaptureHandler(activity)
             val resourceId = viewModel.state.value.resource?.id
             resourceOpsMenuManager.showMenu(
                 anchor = anchor,
@@ -651,6 +649,8 @@ class BrowseManagerInitializer(
                 isDestinationsFull = isDestinationsFull,
                 onCameraCapture = { activity.onCameraCaptureClicked() },
                 isCameraVisible = isCameraVisible,
+                onVideoCapture = { activity.onVideoCaptureClicked() },
+                isVideoVisible = isVideoVisible,
                 allowSeparateWindow = settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity),
                 openBrowseInNewWindow = if (settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity)) {
                     { id -> eventHandler.openBrowseInNewWindow(id) }
@@ -851,10 +851,10 @@ class BrowseManagerInitializer(
         val dialog = com.sza.fastmediasorter.ui.dialog.FileInfoDialog(
             context = activity,
             mediaFile = file,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            credentialsRepository = credentialsRepository,
+            smbClient = smbClient.get(),
+            sftpClient = sftpClient.get(),
+            ftpClient = ftpClient.get(),
+            credentialsRepository = credentialsRepository.get(),
             unifiedCache = unifiedFileCache,
             audioMetadataLoader = audioMetadataLoader,
         )

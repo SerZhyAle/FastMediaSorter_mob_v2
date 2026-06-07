@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.ui.dialog.ErrorDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -53,26 +54,24 @@ class GeneralSettingsLogHelper(
             val report = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
             if (!fragment.isAdded || fragment.view == null) return@launch
             val title = fragment.getString(R.string.settings_system_info_title)
-            // Offer the full-report reveal only when the report actually carries sensitive
-            // values. This is false on every flavor whose contributor set is empty (no extended
-            // diagnostics) - the branch is data-driven, not flavor-gated.
-            if (report.hasSensitive) {
-                com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                    fragment.requireContext(),
-                    title,
-                    report.maskedText,
-                    positiveButtonText = fragment.getString(R.string.close),
-                    negativeButtonText = fragment.getString(R.string.system_info_copy_full_report),
-                    onNegative = { confirmAndCopyFullReport(report.fullText) },
-                )
-            } else {
-                com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                    fragment.requireContext(),
-                    title,
-                    report.maskedText,
-                    fragment.getString(R.string.close)
-                )
-            }
+            val context = fragment.requireContext()
+            // Keep the default dialog copy/share/export paths on the masked report only.
+            // Full diagnostics remain behind a separate, confirmed action when sensitive fields exist.
+            ErrorDialog.show(
+                context = context,
+                title = title,
+                message = report.maskedText,
+                inlineActionButtonText = if (report.hasSensitive) {
+                    fragment.getString(R.string.system_info_copy_full_report)
+                } else {
+                    null
+                },
+                onInlineActionClick = if (report.hasSensitive) {
+                    { confirmAndCopyFullReport(report.fullText) }
+                } else {
+                    null
+                }
+            )
         }
     }
 

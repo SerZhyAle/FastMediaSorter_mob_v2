@@ -54,8 +54,8 @@
     <!-- Sync from Phone strings -->
     <string name="wear_no_sources">Немає мережевих джерел.\nСинхронізуйте з телефоном або додайте вручну.</string>
     <string name="wear_sync_from_phone">Синхр. з телефоном</string>
-    <string name="wear_sync_receiving">Отримання даних…</string>
-    <string name="wear_sync_receiving_from">Отримання від %s…</string>
+    <string name="wear_sync_receiving">Отримання даних..</string>
+    <string name="wear_sync_receiving_from">Отримання від %s..</string>
     <string name="wear_sync_complete">Синхронізацію завершено</string>
     <string name="wear_sync_stats">Додано: %1$d  Оновлено: %2$d</string>
     <string name="wear_sync_browse_now">Переглянути</string>
@@ -83,7 +83,7 @@
     <string name="hold_to_delete">Утрим. для видалення</string>
 
     <!-- Phase 3: UX Polish -->
-    <string name="loading">Завантаження…</string>
+    <string name="loading">Завантаження..</string>
     <string name="no_network_sources">Немає джерел. Додайте або синхронізуйте з телефону.</string>
     <string name="error">Помилка</string>
     <string name="retry">Повторити</string>
@@ -99,11 +99,11 @@
     <string name="ssh_key_configured">Налаштовано</string>
     <string name="show_password">Показати пароль</string>
     <string name="hide_password">Сховати пароль</string>
-    <string name="testing_connection">Перевірка…</string>
+    <string name="testing_connection">Перевірка..</string>
     <string name="connection_successful">Підключення успішне!</string>
     <string name="connection_failed_with_reason">Помилка підключення: %s</string>
     <string name="unknown_error">Невідома помилка</string>
-    <string name="saving_connection">Збереження…</string>
+    <string name="saving_connection">Збереження..</string>
     <string name="connection_saved">Джерело збережено!</string>
     <string name="failed_to_save_with_reason">Не вдалося зберегти: %s</string>
     <string name="server_required">Потрібен сервер</string>

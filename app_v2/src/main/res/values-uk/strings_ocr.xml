@@ -19,7 +19,7 @@
     <string name="ocr_font_size">Розмір шрифту для OCR</string>
     <string name="ocr_images_only">Розпізнавання тексту доступне лише для зображень.</string>
     <string name="ocr_no_text_found">Текст на зображенні не знайдено</string>
-    <string name="ocr_processing">Розпізнавання тексту…</string>
+    <string name="ocr_processing">Розпізнавання тексту..</string>
     <string name="ocr_requires_newer_device">OCR недоступний на цьому пристрої. %1$s (API: %2$d). Потрібно API 26+ і 3 ГБ+ ОЗП.</string>
     <string name="ocr_result_title">Розпізнаний текст</string>
     <string name="ocr_unavailable_reason_os">Версія Android застара</string>
@@ -37,6 +37,6 @@
     <string name="translation_settings">Налаштування тексту</string>
     <string name="translation_source_language">Вихідна мова</string>
     <string name="translation_source_language_and_ocr">Вихідна мова та OCR</string>
-    <string name="translation_started">Переклад запущено…</string>
+    <string name="translation_started">Переклад запущено..</string>
     <string name="translation_target_language">Перекласти на</string>
 </resources>

@@ -65,5 +65,13 @@ Assert-Record -Record $updated
 $records[$idx] = $updated
 Write-Catalog -Records $records.ToArray()
 
+# Mirror the terminal status into the spec file header the same way update.ps1 does,
+# so closing a ticket cannot leave the human-readable spec stale.
+if ($oldStatus -ne $Status) {
+    if (Sync-SpecHeaderStatus -PathRef $updated.file -Status $Status) {
+        Write-Host ("  header synced -> {0}" -f $Status) -ForegroundColor DarkGray
+    }
+}
+
 Write-Output ("{0} {1} -> {2} [closed {3}]" -f $Id, $oldStatus, $Status, $today)
 exit 0

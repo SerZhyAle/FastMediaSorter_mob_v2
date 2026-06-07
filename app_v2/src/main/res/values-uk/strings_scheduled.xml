@@ -54,7 +54,7 @@
     <string name="scheduled_ops_next_run">Наступний запуск о:</string>
     <string name="scheduled_ops_no_destinations">Спочатку додайте отримувачів у розділі «Отримувачі»</string>
     <string name="scheduled_ops_notif_channel_name">Операції за розкладом</string>
-    <string name="scheduled_ops_notif_running">Виконується операція за розкладом…</string>
+    <string name="scheduled_ops_notif_running">Виконується операція за розкладом..</string>
     <string name="scheduled_ops_op_copy">Копіювання</string>
     <string name="scheduled_ops_op_delete">Видалення</string>
     <string name="scheduled_ops_op_move">Переміщення</string>

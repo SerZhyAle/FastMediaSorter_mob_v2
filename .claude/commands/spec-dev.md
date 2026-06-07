@@ -71,9 +71,10 @@ For each step in plan order:
 
 After all planned steps in the current phase complete:
 
+- **Final-phase debug-tag insertion (before the build).** If this is the **last** phase in scope AND the strategic spec's acceptance includes on-device verification, insert the `Timber.d("Sxxxx: <entry-point description>")` tags now - one at each changed flow entry across all phases (per CLAUDE.md "Debug Verification Tags": one tag per flow entry, not per modified line). The tags are the **last code edits** and must go in **before** the `Project compiles` build below, so a single build validates implementation + tags. Never insert tags after the build - that forces a redundant second build.
 - **Phase Done Criteria check.** For each checkbox:
   - Mechanically verifiable → run check, tick if PASS.
-  - Build required (`Project compiles`) → run `.\build-debug.PS1` automatically via PowerShell (no permission prompt). Exit code 0 → tick criterion. Non-zero → append last 30 lines of output, hard stop: "Build FAILED".
+  - Build required (`Project compiles`) → run `.\build-debug.PS1` automatically via PowerShell (no permission prompt). Exit code 0 → tick criterion. Non-zero → append last 30 lines of output, hard stop: "Build FAILED". When the final-phase tags were just inserted, this is the single build that validates code + tags - schedule no further build for tag validation.
   - Manual review required → leave unticked, mark `MANUAL-REQUIRED`.
 - If every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - If any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
@@ -85,8 +86,9 @@ After all phases done:
   - `verify: ... PASS/SKIPPED ...` with `log errors 0` and `crashes 0` → proceed with the status flip below as normal.
   - Any FAIL row in the run table, any `crashes K > 0`, or any `log errors` containing a fresh exception from the package under test → **abort the status flip**. Leave the ticket at `In Progress`. Append one `VERIFY-SMOKE FAIL` line to the last phase's `## Step Log` pointing at the scenario path in `temp/verify_*.md`. Stop with: `<Sxxxx>: verify-smoke FAIL, status not advanced. See temp/verify_<TS>.md.`
   - `device-ready.ps1` exit ≠ 0 (no device, mobile-mcp missing) → **do not** abort: log the skip in chat (`verify-smoke skipped: <reason>`) and proceed with the original status flip. Smoke is a bonus, never a hard gate when no device is present.
-- Flip strategic `Status:` to `Implemented`. Add `**Implemented date:** <YYYY-MM-DD>`. Do **not** insert debug tags here - they belong only to `BlockNeedUserTest`.
-- If on-device verification is part of the acceptance - flip journal status to `BlockNeedUserTest`. Before flipping, insert one `Timber.d("Sxxxx: <entry-point description>")` at the entry point of each changed flow across all phases (per CLAUDE.md "Debug Verification Tags" - one tag per flow entry, not per modified line). Run a dev log line for each file that gained a tag.
+- **No on-device gate** → flip strategic `Status:` to `Implemented`, add `**Implemented date:** <YYYY-MM-DD>`. No debug tags. The per-phase builds already validated compilation.
+- **On-device verification is part of acceptance** → the `Timber.d("Sxxxx:")` tags were already inserted before the final phase's `Project compiles` build (see "Final-phase debug-tag insertion" above) and validated by that single build. Here just flip the journal status to `BlockNeedUserTest` and run a dev log line for each file that gained a tag. Do not insert tags or rebuild at this point.
+- FEATURES / feature-doc updates and the rest of finalization run **after** the build - never rebuild after the doc step.
 - **Finalization (batched).** Use `close-and-log.ps1` to perform the journal flip + dev log batch + functionality log + catalog scan/render in one pwsh process:
 
   ```powershell
@@ -183,7 +185,7 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 - Repo tooling: if a repo helper script in the current step is broken or insufficient, fix the script instead of working around it, then continue the same step. Prefer `scripts/utils/set-android-string.ps1` for Android `<string>` edits (`-Action set` for one locale, `-Action add` for a new key across EN/RU/UK, `-Action get|remove|rename|list` for lookup/lifecycle); do not hand-edit `strings.xml` unless the change is structural (`plurals`, `string-array`, comments, regrouping, bulk rewrites).
 - Completion rules: step is `[x] done` only when every Verification predicate returned PASS in the current run - never on intent. Idempotency: running twice with no changes is a no-op on the second run. Never auto-revert a failed edit - user decides from Step Log.
 - Tracking: dev log per file, per step - run immediately after step completion. Cursor recomputed from phase file `Status:` on every invocation - never from memory.
-- **Debug verification tags belong only to `BlockNeedUserTest`.** Insert `Timber.d("Sxxxx: …")` tags only at the moment this skill flips the ticket into `BlockNeedUserTest` (after all phases done, when on-device verification is part of acceptance) - never at `Implemented`, never per-step. Never remove tags from this skill - that is `/spec-check`'s job on the `Verified` transition (or `/spec-update`'s on a re-open). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
+- **Debug verification tags belong only to `BlockNeedUserTest`.** Insert `Timber.d("Sxxxx: …")` tags as the final code edits before the last phase's `Project compiles` build, only when on-device verification is part of acceptance - never at `Implemented`, never per-step, never after the build. Never remove tags from this skill - that is `/spec-check`'s job on the `Verified` transition (or `/spec-update`'s on a re-open). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
 - **Landscape parity (MANDATORY):** any step editing `res/layout/*.xml` MUST list the corresponding `res/layout-land/*.xml` in `Files Touched`. If the landscape variant exists and is absent from the step → abort (see Pre-edit guards). If the landscape variant does not exist but the screen supports rotation → add an explicit note in the step or a dedicated sub-step to create it.
 
 ---
@@ -194,6 +196,6 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 - **Status transitions.**
   - Before the first non-done step is started: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if status is already `In Progress` or later).
   - After every phase has all steps `[x] done` and final dev log is written: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
-  - When flipping to `BlockNeedUserTest` (on-device acceptance): insert the `Timber.d("Sxxxx: …")` debug tags first (see Process / Constraints), then `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
+  - When flipping to `BlockNeedUserTest` (on-device acceptance): the `Timber.d("Sxxxx: …")` debug tags were already inserted before the final phase's build (see Process - "Final-phase debug-tag insertion"); here just `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
   - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions | BlockExternal | BlockByOtherTask` per the stop reason.
 - **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never set the journal status to `Verified` from this skill - that is `/spec-check`'s job.

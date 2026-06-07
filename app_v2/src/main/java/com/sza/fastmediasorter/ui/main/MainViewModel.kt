@@ -494,6 +494,48 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun moveResourceToTop(resource: MediaResource) {
+        Timber.d("S0377: move resource to top")
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val currentList = state.value.resources
+
+            when (orderManager.moveResourceToTop(resource, currentList)) {
+                is ResourceOrderManager.OrderResult.Success -> {
+                    // Switch to manual sort mode to preserve user's ordering
+                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
+                    loadResources()
+                }
+                is ResourceOrderManager.OrderResult.CannotMove -> {
+                    // Already at top - silently ignore
+                }
+                is ResourceOrderManager.OrderResult.Error -> {
+                    // Error handled by exception handler
+                }
+            }
+        }
+    }
+
+    fun moveResourceToBottom(resource: MediaResource) {
+        Timber.d("S0377: move resource to bottom")
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val currentList = state.value.resources
+
+            when (orderManager.moveResourceToBottom(resource, currentList)) {
+                is ResourceOrderManager.OrderResult.Success -> {
+                    // Switch to manual sort mode to preserve user's ordering
+                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
+                    loadResources()
+                }
+                is ResourceOrderManager.OrderResult.CannotMove -> {
+                    // Already at bottom - silently ignore
+                }
+                is ResourceOrderManager.OrderResult.Error -> {
+                    // Error handled by exception handler
+                }
+            }
+        }
+    }
+
     /**
      * Persist the new display order after a drag-to-reorder gesture.
      * Switches to MANUAL sort mode so the new order is respected on next load.

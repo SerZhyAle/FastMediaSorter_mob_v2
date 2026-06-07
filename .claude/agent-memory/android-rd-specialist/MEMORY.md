@@ -8,6 +8,7 @@
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
+- [Parallel impl agents: no git/build](feedback_parallel_agents_no_git_build.md) - one agent's git stash silently clobbers another's uncommitted edits; forbid git/build/catalog in parallel briefs, disjoint files, central build; "IDE reverting my files" = suspect a concurrent stash
 - [/spec-dev continue: verify code before checkboxes](feedback_spec_dev_continue_verify_code_first.md) - In-Progress spec may have code done but tracking at 0/N; reconcile via git status + grep first (S0356)
 - [Search duplicate tickets by symptom](feedback_search_duplicates_by_symptom.md) - before new bugfix spec from logs, search catalog by errorCode/class/subsystem + same-day created; I dup'd S0343/S0344 as S0357
 

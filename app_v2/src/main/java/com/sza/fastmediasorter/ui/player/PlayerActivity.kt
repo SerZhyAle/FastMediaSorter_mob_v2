@@ -55,6 +55,7 @@ import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -141,6 +142,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
     internal lateinit var observerManager: PlayerObserverManager
     internal lateinit var slideshowResourceAvailabilityManager: com.sza.fastmediasorter.ui.player.helpers.SlideshowResourceAvailabilityManager
+    internal lateinit var playerManagerInitializer: PlayerManagerInitializer
+    internal var areAudioBackgroundManagersConfigured: Boolean = false
 
     // LAZY INITIALIZATION: Document viewers only created when needed.
     internal var _pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager? = null
@@ -302,22 +305,22 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var playerGestureCallback: com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl
 
     // Injected dependencies for network playback
-    @Inject lateinit var smbClient: SmbClient
-    @Inject lateinit var sftpClient: SftpClient
-    @Inject lateinit var ftpClient: FtpClient
-    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
+    @Inject internal lateinit var smbClientLazy: Lazy<SmbClient>
+    @Inject internal lateinit var sftpClientLazy: Lazy<SftpClient>
+    @Inject internal lateinit var ftpClientLazy: Lazy<FtpClient>
+    @Inject internal lateinit var googleDriveClientLazy: Lazy<GoogleDriveRestClient>
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
-    @Inject lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
-    @Inject lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+    @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
+    @Inject internal lateinit var oneDriveClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
     @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
 
     @Inject internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
 
     @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
-    @Inject lateinit var credentialsRepository: NetworkCredentialsRepository
+    @Inject internal lateinit var credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
     @Inject lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -349,17 +352,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
     @Inject lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
     @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
-    @Inject lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+    @Inject internal lateinit var unifiedCacheLazy: Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
     @Inject lateinit var gamepadInputManager: GamepadInputManager
 
     /** S0289 Phase 08: surface marker for gamepad routing in the player. */
     private val gamepadSurface = GamepadInputManager.Surface.PLAYER
 
-    @Inject lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-    @Inject lateinit var sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-    @Inject lateinit var ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-    @Inject lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+    @Inject internal lateinit var smbFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.SmbFileOperationHandler>
+    @Inject internal lateinit var sftpFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.SftpFileOperationHandler>
+    @Inject internal lateinit var ftpFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.FtpFileOperationHandler>
+    @Inject internal lateinit var cloudFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler>
 
     // S0242 Phase 02: passed to PlayerLifecycleManager so successful file ops are journaled
     // for the Browse Reconciler instead of returned via an Intent extra.
@@ -370,11 +373,26 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @com.sza.fastmediasorter.core.di.ApplicationScope
     lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
 
-    @Inject lateinit var backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager
-    @Inject lateinit var audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager
+    @Inject internal lateinit var backgroundMusicManagerLazy: Lazy<com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager>
+    @Inject internal lateinit var audioBackgroundPhotosManagerLazy: Lazy<com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager>
     @Inject lateinit var audioMetadataCacheRepository: com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
     @Inject lateinit var okHttpClient: okhttp3.OkHttpClient
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+
+    internal val smbClient: SmbClient get() = smbClientLazy.get()
+    internal val sftpClient: SftpClient get() = sftpClientLazy.get()
+    internal val ftpClient: FtpClient get() = ftpClientLazy.get()
+    internal val googleDriveClient: GoogleDriveRestClient get() = googleDriveClientLazy.get()
+    internal val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient get() = dropboxClientLazy.get()
+    internal val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient get() = oneDriveClientLazy.get()
+    internal val credentialsRepository: NetworkCredentialsRepository get() = credentialsRepositoryLazy.get()
+    internal val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache get() = unifiedCacheLazy.get()
+    internal val smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler get() = smbFileOperationHandlerLazy.get()
+    internal val sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler get() = sftpFileOperationHandlerLazy.get()
+    internal val ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler get() = ftpFileOperationHandlerLazy.get()
+    internal val cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler get() = cloudFileOperationHandlerLazy.get()
+    internal val backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager get() = backgroundMusicManagerLazy.get()
+    internal val audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager get() = audioBackgroundPhotosManagerLazy.get()
 
     internal val hideControlsRunnable = Runnable {
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) viewModel.toggleControls()
@@ -441,7 +459,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     /** Initialize all helper managers - delegates to PlayerManagerInitializer. */
     private fun initializeManagers() {
-        PlayerManagerInitializer(this).initialize()
+        playerManagerInitializer = PlayerManagerInitializer(this)
+        playerManagerInitializer.initialize()
+    }
+
+    internal fun shouldUseAudioBackgroundManagers(state: PlayerViewModel.PlayerState): Boolean {
+        return state.currentFile?.type == MediaType.AUDIO ||
+            state.isSlideShowActive ||
+            state.enableSlideshowBackgroundMusic ||
+            state.enablePhotosDuringAudio ||
+            state.slideshowMusicResourceId != null ||
+            state.audioBackgroundPhotosResourceId != null ||
+            (::audioSlideshowPhotoModeManager.isInitialized && audioSlideshowPhotoModeManager.isActive)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

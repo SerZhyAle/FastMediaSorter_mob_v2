@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.FragmentSettingsDocumentsBinding
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 
@@ -52,7 +53,10 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
     private fun setupViews() {
         bindSwitch(binding.rowSupportText) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportText = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportText = isChecked)
+            viewModel.updateSettings(updated)
             binding.rowShowTextLineNumbers.isVisible = isChecked
         }
 
@@ -63,7 +67,10 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
 
         bindSwitch(binding.rowSupportPdf) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportPdf = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportPdf = isChecked)
+            viewModel.updateSettings(updated)
             binding.rowShowPdfThumbnails.isVisible = isChecked
         }
 
@@ -74,12 +81,18 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
 
         bindSwitch(binding.rowSupportEpub) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportEpub = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportEpub = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         bindSwitch(binding.rowSupportOfficeDocuments) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportOfficeDocuments = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportOfficeDocuments = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         // Help payload for line-numbers row is now wired inline via str_helpTitle/str_helpMessage
@@ -116,16 +129,12 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
                 val isAllFilesEnabled = settings.allFiles
 
                 setSwitchChecked(binding.rowSupportText, isAllFilesEnabled || settings.supportText)
-                binding.rowSupportText.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowSupportPdf, isAllFilesEnabled || settings.supportPdf)
-                binding.rowSupportPdf.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowSupportEpub, isAllFilesEnabled || settings.supportEpub)
-                binding.rowSupportEpub.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowSupportOfficeDocuments, isAllFilesEnabled || settings.supportOfficeDocuments)
-                binding.rowSupportOfficeDocuments.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowShowTextLineNumbers, settings.showTextLineNumbers)
                 setSwitchChecked(binding.rowShowPdfThumbnails, settings.showPdfThumbnails)

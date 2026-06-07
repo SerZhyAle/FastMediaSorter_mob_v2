@@ -29,7 +29,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Dialog for displaying detailed error messages with collapsible technical details,
+ * Dialog for displaying detailed text content with optional collapsible technical details,
  * Save-to-file, Share, and Copy actions.
  *
  * Layout: dialog_error_detail (portrait + landscape).
@@ -46,6 +46,9 @@ object ErrorDialog {
      * @param details   Technical details / stack trace; null hides the collapsible section
      * @param actionButtonText Optional positive button label - when provided, replaces the Share button
      * @param onActionClick    Callback paired with [actionButtonText]
+     * @param inlineActionButtonText Optional inline button label shown inside the dialog body.
+     *        When omitted, the inline button keeps the default "Save to file" behaviour.
+     * @param onInlineActionClick Callback paired with [inlineActionButtonText]
      */
     fun show(
         context: Context,
@@ -53,7 +56,9 @@ object ErrorDialog {
         message: String,
         details: String? = null,
         actionButtonText: String? = null,
-        onActionClick: (() -> Unit)? = null
+        onActionClick: (() -> Unit)? = null,
+        inlineActionButtonText: String? = null,
+        onInlineActionClick: (() -> Unit)? = null
     ): AlertDialog? {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
             Timber.w("ErrorDialog: skipping show - Activity is finishing/destroyed")
@@ -88,8 +93,15 @@ object ErrorDialog {
             scrollDetails.visibility = View.GONE
         }
 
-        btnSaveToFile.setOnClickListener {
-            saveErrorToFile(context, fullText)
+        if (inlineActionButtonText != null && onInlineActionClick != null) {
+            btnSaveToFile.text = inlineActionButtonText
+            btnSaveToFile.setOnClickListener {
+                onInlineActionClick()
+            }
+        } else {
+            btnSaveToFile.setOnClickListener {
+                saveErrorToFile(context, fullText)
+            }
         }
 
         val builder = AlertDialog.Builder(context)

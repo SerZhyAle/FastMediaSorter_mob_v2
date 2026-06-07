@@ -252,10 +252,17 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 )
                 // S0328: keep the synchronous color-theme mirror in sync with the authoritative
                 // DataStore value (covers upgrades / settings import where the mirror is stale).
+                // Re-applying the mode here fixes the current process too; otherwise a stale mirror
+                // can keep the UI light until the user fully kills the process.
+                val normalizedColorTheme = com.sza.fastmediasorter.core.theme.ColorThemePrefs
+                    .normalizeValue(settings.colorTheme)
                 com.sza.fastmediasorter.core.theme.ColorThemePrefs.setMode(
                     this@FastMediaSorterApp,
-                    settings.colorTheme
+                    normalizedColorTheme
                 )
+                kotlinx.coroutines.withContext(Dispatchers.Main.immediate) {
+                    com.sza.fastmediasorter.core.theme.ColorThemePrefs.applyMode(normalizedColorTheme)
+                }
                 // S0194: dereference Lazy<WorkManagerScheduler> once per coroutine entry.
                 val scheduler = workManagerScheduler.get()
                 if (settings.enableBackgroundSync) {

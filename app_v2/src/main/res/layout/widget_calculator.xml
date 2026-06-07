@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_calculator_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background"
     android:contentDescription="@string/widget_calculator_label"
     android:gravity="center"
     android:orientation="vertical"
@@ -15,7 +13,6 @@
         android:layout_width="@dimen/widget_icon_size_large"
         android:layout_height="@dimen/widget_icon_size_large"
         android:contentDescription="@string/widget_calculator_label"
-        android:src="@drawable/ic_widget_calculator"
-        app:tint="@color/white" />
+        android:src="@drawable/ic_widget_calculator_accent" />
 
 </LinearLayout>

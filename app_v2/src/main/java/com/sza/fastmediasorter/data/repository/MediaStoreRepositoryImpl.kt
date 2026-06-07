@@ -237,7 +237,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                     val id = c.getLong(idCol)
                     val contentUri = ContentUris.withAppendedId(uri, id).toString()
                     val size = c.getLong(sizeCol)
-                    val createdDate = c.getLong(dateCol) * 1000L
+                    val createdDate = MediaStoreDateUtils.resolveCreatedDate(path, c.getLong(dateCol))
                     val duration = if (durCol != -1) c.getLong(durCol) else null
                     val width = if (widthCol != -1) c.getInt(widthCol).let { if (it == 0) null else it } else null
                     val height = if (heightCol != -1) c.getInt(heightCol).let { if (it == 0) null else it } else null
@@ -344,7 +344,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                     val id = c.getLong(idCol)
                     val contentUri = ContentUris.withAppendedId(uri, id).toString()
                     val size = c.getLong(sizeCol)
-                    val createdDate = c.getLong(dateCol) * 1000L
+                    val createdDate = MediaStoreDateUtils.resolveCreatedDate(path, c.getLong(dateCol))
                     val duration = if (durCol != -1) c.getLong(durCol) else null
                     val width = if (widthCol != -1) c.getInt(widthCol).let { if (it == 0) null else it } else null
                     val height = if (heightCol != -1) c.getInt(heightCol).let { if (it == 0) null else it } else null
@@ -563,7 +563,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                         val contentUri = ContentUris.withAppendedId(uri, id).toString()
                         val size = cursor.getLong(sizeCol)
                         // date_modified is seconds
-                        val date = cursor.getLong(dateCol) * 1000L 
+                        val date = MediaStoreDateUtils.resolveCreatedDate(path, cursor.getLong(dateCol))
                         val duration = if (durCol != -1) cursor.getLong(durCol) else null
                         val width = if (widthCol != -1) cursor.getInt(widthCol).let { if(it==0) null else it } else null
                         val height = if (heightCol != -1) cursor.getInt(heightCol).let { if(it==0) null else it } else null

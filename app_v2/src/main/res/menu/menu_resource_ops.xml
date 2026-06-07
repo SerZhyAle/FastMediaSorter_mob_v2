@@ -35,6 +35,10 @@
     <item
         android:id="@+id/action_camera_capture"
         android:title="@string/cmd_camera_capture" />
+    <!-- S0371: record video into the current resource (sibling of camera capture). -->
+    <item
+        android:id="@+id/action_video_capture"
+        android:title="@string/cmd_video_capture" />
     <!-- S0184: multi-window - hidden unless the user setting allows a new window. -->
     <item
         android:id="@+id/action_open_in_separate_window"

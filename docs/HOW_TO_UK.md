@@ -346,7 +346,7 @@ permalink: /docs/HOW_TO_UK.html
 - Порт SMB за замовчуванням: 445
 
 **Вирішення проблем:**
-→ Див. [TROUBLESHOOTING.md#smb-connection](TROUBLESHOOTING.md)
+→ Див. [TROUBLESHOOTING_UK.md#smb-connection](TROUBLESHOOTING_UK.md#smb-connection)
 
 ---
 
@@ -381,7 +381,7 @@ permalink: /docs/HOW_TO_UK.html
 - **Власний порт:** Змініть номер порту, якщо сервер використовує нестандартний
 
 **Вирішення проблем:**
-→ Див. [TROUBLESHOOTING.md#sftp-timeout](TROUBLESHOOTING.md)
+→ Див. [TROUBLESHOOTING_UK.md#sftp-timeout](TROUBLESHOOTING_UK.md#sftp-timeout)
 
 ---
 
@@ -651,7 +651,7 @@ permalink: /docs/HOW_TO_UK.html
 
 - Якщо музика не відтворюється: Перевірте, що музичний ресурс містить хоча б один аудіофайл
 - Якщо музика переривається в мережі: Використовуйте локальну папку або швидше мережеве з'єднання
-- Для музики по SMB: Переконайтеся, що SMB-ресурс використовує протокол `file://` (див. TROUBLESHOOTING.md)
+- Для музики по SMB: Переконайтеся, що SMB-ресурс використовує протокол `file://` (див. [TROUBLESHOOTING_UK.md](TROUBLESHOOTING_UK.md))
 
 ---
 
@@ -852,8 +852,6 @@ permalink: /docs/HOW_TO_UK.html
 
 ---
 
----
-
 ## Як переглянути текст пісні (Лірика)
 
 **Вимоги:**
@@ -953,7 +951,7 @@ FastMediaSorter працює на будь-якій Android TV-приставц�
 
 ## Потрібна допомога?
 
-- 📖 **Quick Start:** [QUICK_START.md](QUICK_START.md)
-- ❓ **FAQ:** [FAQ.md](FAQ.md)
-- 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- 📖 **Quick Start:** [QUICK_START_UK.md](QUICK_START_UK.md)
+- ❓ **FAQ:** [FAQ_UK.md](FAQ_UK.md)
+- 🔧 **Troubleshooting:** [TROUBLESHOOTING_UK.md](TROUBLESHOOTING_UK.md)
 - 🐛 **Повідомити про проблему:** [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues)

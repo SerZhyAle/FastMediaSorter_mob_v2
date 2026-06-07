@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
+import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -58,6 +59,7 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var requestContextualPermission: com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
     @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
+    @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
     @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
 
@@ -146,7 +148,8 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsViewSetupHelper(
             binding, viewModel, this,
             { isUpdatingSpinner }, { isUpdatingSpinner = it },
-            cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper
+            cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper,
+            ensureAllFilesPredefinedResourceUseCase
         )
     }
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.

@@ -23,14 +23,19 @@ internal fun VideoPlayerManager.startPositionSaving() {
     positionSaveLoop = PositionSaveLoop(
         intervalMs = VideoPlayerManager.POSITION_SAVE_INTERVAL_MS,
         getPath = { currentFilePath },
-        getPositionMs = { exoPlayer?.currentPosition ?: -1L },
+        getPositionMs = {
+            val pos = exoPlayer?.currentPosition ?: -1L
+            // Track the last genuine playback position (not a transient mid-seek value) so a
+            // seek that crashes the extractor can resume in place instead of skipping the file.
+            // Read here, on the main thread: ExoPlayer must not be touched from onSave, which
+            // runs on Dispatchers.IO and would throw "Player is accessed on the wrong thread".
+            if (pos > 0L && exoPlayer?.isPlaying == true) lastGoodPositionMs = pos
+            pos
+        },
         getDurationMs = { exoPlayer?.duration ?: -1L },
         scope = managerScope,
         onSave = { path, pos, dur ->
             playbackPositionRepository.savePosition(path, pos, dur)
-            // Track the last genuine playback position (not a transient mid-seek value) so a
-            // seek that crashes the extractor can resume in place instead of skipping the file.
-            if (pos > 0L && exoPlayer?.isPlaying == true) lastGoodPositionMs = pos
         }
     )
     positionSaveLoop!!.start()

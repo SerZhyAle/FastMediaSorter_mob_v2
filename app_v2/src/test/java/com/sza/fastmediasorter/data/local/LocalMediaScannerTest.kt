@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -64,6 +65,37 @@ class LocalMediaScannerTest {
         coVerify(exactly = 0) {
             mediaStoreRepository.getFilesInFolder(any(), any(), any(), any())
         }
+    }
+
+    @Test
+    fun `scanFolder recent rethrows CancellationException instead of swallowing into empty list`() = runTest {
+        // S0373: a coroutine cancellation while scanning the recent virtual resource must propagate,
+        // not be caught by the generic catch and reported as a hard scan failure (empty list).
+        val supportedTypes = setOf(MediaType.IMAGE)
+
+        coEvery {
+            mediaStoreRepository.getRecentFiles(limit = 1000, allowedTypes = supportedTypes)
+        } throws CancellationException("scan cancelled")
+
+        var propagated = false
+        try {
+            scanner.scanFolder(
+                path = LocalMediaScanner.VIRTUAL_PATH_RECENT,
+                supportedTypes = supportedTypes,
+                sizeFilter = null,
+                credentialsId = null,
+                scanSubdirectories = false,
+                showHiddenFiles = false,
+                onProgress = null
+            )
+        } catch (e: CancellationException) {
+            propagated = true
+        }
+
+        assertTrue(
+            "CancellationException must be rethrown, not swallowed into an empty result list",
+            propagated
+        )
     }
 
     // ==================== Virtual Aggregate Paths ====================

@@ -44,6 +44,8 @@ class ResourceAdapter(
     private val onDeleteClick: (MediaResource) -> Unit,
     private val onMoveUpClick: (MediaResource) -> Unit,
     private val onMoveDownClick: (MediaResource) -> Unit,
+    private val onMoveToTopClick: (MediaResource) -> Unit,
+    private val onMoveToBottomClick: (MediaResource) -> Unit,
     private val onScanClick: (MediaResource) -> Unit = {},
     // S0293 Phase 08: per-resource "Open in new window" entry on the main list. Optional - when
     // null, the menu item is hidden (e.g. on devices where allowSeparateWindow=false).
@@ -297,10 +299,15 @@ class ResourceAdapter(
                     ivResourceTypeIcon.contentDescription =
                         root.context.getString(R.string.cd_resource_icon_quick_slideshow)
                     ivResourceTypeIcon.setOnClickListenerDebounced { onIconClick(resource) }
+                    ivResourceTypeIcon.background = ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.bg_icon_media_storage_frame
+                    )
                 } else {
                     ivResourceTypeIcon.isClickable = false
                     ivResourceTypeIcon.foreground = null
                     ivResourceTypeIcon.setOnClickListener(null)
+                    ivResourceTypeIcon.background = null
                     ivResourceTypeIcon.contentDescription =
                         root.context.getString(R.string.resource_type_icon)
                 }
@@ -399,14 +406,20 @@ class ResourceAdapter(
                         // S0293 Phase 08: per-resource multi-window entry on main list
                         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                             isOpenInNewWindowVisible && onOpenInNewWindowClick != null
+                        popup.menu.findItem(R.id.action_launch_player)?.isVisible =
+                            isQuickSlideshowEligible(resource)
                         popup.setForceShowIcon(true)
                         popup.setOnMenuItemClickListener { item ->
                             when (item.itemId) {
+                                R.id.action_open_resource -> { onItemClick(resource); true }
+                                R.id.action_launch_player -> { onIconClick(resource); true }
                                 R.id.action_edit -> { onEditClick(resource); true }
                                 R.id.action_copy -> { onCopyFromClick(resource); true }
                                 R.id.action_scan -> { onScanClick(resource); true }
                                 R.id.action_move_up -> { onMoveUpClick(resource); true }
                                 R.id.action_move_down -> { onMoveDownClick(resource); true }
+                                R.id.action_move_to_top -> { onMoveToTopClick(resource); true }
+                                R.id.action_move_to_bottom -> { onMoveToBottomClick(resource); true }
                                 R.id.action_delete -> { onDeleteClick(resource); true }
                                 R.id.action_open_in_separate_window -> {
                                     onOpenInNewWindowClick?.invoke(resource); true
@@ -500,10 +513,15 @@ class ResourceAdapter(
                     ivResourceTypeIcon.contentDescription =
                         root.context.getString(R.string.cd_resource_icon_quick_slideshow)
                     ivResourceTypeIcon.setOnClickListenerDebounced { onIconClick(resource) }
+                    ivResourceTypeIcon.background = ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.bg_icon_media_storage_frame
+                    )
                 } else {
                     ivResourceTypeIcon.isClickable = false
                     ivResourceTypeIcon.foreground = null
                     ivResourceTypeIcon.setOnClickListener(null)
+                    ivResourceTypeIcon.background = null
                     ivResourceTypeIcon.contentDescription =
                         root.context.getString(R.string.resource_type_icon)
                 }
@@ -708,10 +726,20 @@ class ResourceAdapter(
                             // S0293 Phase 08: per-resource multi-window entry on main list
                             popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                                 isOpenInNewWindowVisible && onOpenInNewWindowClick != null
+                            popup.menu.findItem(R.id.action_launch_player)?.isVisible =
+                                isQuickSlideshowEligible(resource)
                             popup.setForceShowIcon(true)
 
                             popup.setOnMenuItemClickListener { item ->
                                 when (item.itemId) {
+                                    R.id.action_open_resource -> {
+                                        onItemClick(resource)
+                                        true
+                                    }
+                                    R.id.action_launch_player -> {
+                                        onIconClick(resource)
+                                        true
+                                    }
                                     R.id.action_edit -> {
                                         onEditClick(resource)
                                         true
@@ -730,6 +758,14 @@ class ResourceAdapter(
                                     }
                                     R.id.action_move_down -> {
                                         onMoveDownClick(resource)
+                                        true
+                                    }
+                                    R.id.action_move_to_top -> {
+                                        onMoveToTopClick(resource)
+                                        true
+                                    }
+                                    R.id.action_move_to_bottom -> {
+                                        onMoveToBottomClick(resource)
                                         true
                                     }
                                     R.id.action_open_in_separate_window -> {

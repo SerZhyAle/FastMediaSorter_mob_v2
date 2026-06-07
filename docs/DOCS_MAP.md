@@ -1,10 +1,10 @@
 # 🗺️ Project Documentation Map
 
-This file serves as a central index for all documentation available in the project, categorized by purpose and target audience.
+This file serves as a central index for all documentation available in the project, categorized by purpose and target audience. The public entry points are the Markdown docs in this folder; use [FEATURES.md](FEATURES.md) as the canonical flavor and capability inventory.
 
 ## 🚀 User Guides & Manuals
 
-Essential reading for end-users to install, configure, and use the application.
+Essential reading for end-users to install, configure, and use the application. The current public entry points are the Markdown docs in this folder: [README.md](README.md), [QUICK_START.md](QUICK_START.md), [HOW_TO.md](HOW_TO.md), [FAQ.md](FAQ.md), [TROUBLESHOOTING.md](TROUBLESHOOTING.md), [LIMITATIONS.md](LIMITATIONS.md), [MODULE_SELECTION.md](MODULE_SELECTION.md), and [FEATURES.md](FEATURES.md).
 
 | Document | Description | Last Updated |
 |---|---|---|
@@ -16,8 +16,8 @@ Essential reading for end-users to install, configure, and use the application.
 | [Troubleshooting](TROUBLESHOOTING.md) | Solutions to common problems. | 2026-02-02 |
 | [Program Limitations](LIMITATIONS.md) | Known constraints and performance considerations. | February 2026 |
 | [SMB Setup Guide](SMB_SETUP_GUIDE.md) | Specific guide for setting up network shares. | 2026-02-09 |
-| [Module Selection](MODULE_SELECTION.md) | Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy). | 2026-02-09 |
-| [Complete Feature List](FEATURES.md) | Full inventory of all implemented user-facing features. Reference for documentation and changelog. | 2026-03-16 |
+| [Module Selection](MODULE_SELECTION.md) | Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy, XR / noLegal). | Current |
+| [Complete Feature List](FEATURES.md) | Full inventory of all implemented user-facing features. Reference for documentation and changelog. | Current |
 
 ### 🌍 Multi-language Support
 Most guides are available in Russian and Ukrainian:
@@ -69,16 +69,23 @@ Resources for developers, QA, and contributors.
 | [Tech Requirements & Stack](../dev/TECH_REQUIREMENTS.md) | Full tech stack, library inventory, platform constraints, min/recommended requirements. | 2026-03-03 |
 | [Device Profile Preset Matrix](../dev/DEVICE_PROFILE_PRESET_MATRIX.md) | Device-profile rationale, provisional preset matrix + change rules, and profile icon asset registry (S0327). | 2026-06-02 |
 
-### Cloud Integration (in `/dev` folder)
-| [Cloud Documentation Index](../dev/CLOUD_DOCUMENTATION_INDEX.md) | Entry point for cloud docs. | N/A |
-| [Cloud Quick Fix](../dev/CLOUD_QUICK_FIX.md) | Rapid troubleshooting for cloud issues. | N/A |
-| [Cloud Integration Troubleshooting](../dev/CLOUD_INTEGRATION_TROUBLESHOOTING.md) | Deep dive into cloud diagnostics. | N/A |
-| [Cloud Diagnostic Scripts](../dev/CLOUD_DIAGNOSTIC_SCRIPTS.md) | Automation scripts for debugging. | N/A |
+### Current public docs
+| Document | Description | Last Updated |
+|---|---|---|
+| [README](README.md) | Main user-facing manual and product overview. | Current |
+| [Quick Start](QUICK_START.md) | First-setup and day-one walkthrough. | Current |
+| [How-To](HOW_TO.md) | Scenario-based guidance for common use cases. | Current |
+| [FAQ](FAQ.md) | Common questions and direct answers. | Current |
+| [Troubleshooting](TROUBLESHOOTING.md) | Practical fixes for common failures. | Current |
+| [Limitations](LIMITATIONS.md) | Current constraints and performance notes. | Current |
+| [Module Selection](MODULE_SELECTION.md) | Flavor selection and build surface overview. | Current |
+| [Features](FEATURES.md) | Canonical feature inventory used by the public docs. | Current |
 
 ### Specifications
 | Document | Description | Last Updated |
 |---|---|---|
-| [Google Play Specification](../dev/google_play_spec.md) | Developer specs for store compliance. | N/A |
+| [Architecture Overview](V2_architecture_overview.md) | Product structure and implementation map. | Current |
+| [Technical Specification](V2_Specification.md) | Current implementation-level reference for maintainers. | Current |
 
 ### UI Communication Policy
 | Document | Description | Last Updated |
@@ -88,6 +95,6 @@ Resources for developers, QA, and contributors.
 | [Communication Policy - Ukrainian](COMMUNICATION_POLICY_UK.md) | Mirror of communication policy in Ukrainian. | 2026-05-09 |
 
 ---
-*Note: Some links in the project's `index.html` (website) may refer to outdated or missing files (`V2_Specification.md`, `V2_architecture_overview.md`, `V2_TERMS.md`, `TODO_V2.md`). Use this map for the most accurate list of available documentation.*
+*Note: The public landing pages now point at the current Markdown docs in this repository. Use this map as the canonical index for the shared EN/RU/UK user documentation set.*
 
 

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Rect
@@ -10,26 +11,46 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class PlaybackSettingsFragment : Fragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
     private var isUpdatingFromSettings = false
+
+    // S0367: RECORD_AUDIO consent for the relocated microphone-recording master toggle.
+    // Must be created at field-init time (Fragment requirement for registerForActivityResult).
+    private val recordAudioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(micRecordingEnabled = true))
+        } else {
+            binding.rowMicRecordingEnabled.setCheckedSilently(false)
+            Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
+        }
+    }
 
     companion object {
         private const val PREFS_NAME = "playback_sections_state"
@@ -91,6 +112,9 @@ class PlaybackSettingsFragment : Fragment() {
 
     private fun setupViews() {
         applyFlavorRestrictions()
+
+        // S0367: camera-photos + microphone-recording capture settings, relocated from Media → Audio.
+        setupCaptureSection()
 
         binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -352,6 +376,152 @@ class PlaybackSettingsFragment : Fragment() {
         // Help for big buttons mode is now inline on rowBigButtonsMode (folded by SettingsToggleRow).
     }
 
+    /**
+     * S0367/S0375: wires the camera-photos, video-recording, and microphone-recording capture rows
+     * plus their destination selectors. Inverted-flag semantics for the camera/video master
+     * toggles are preserved from the original implementation.
+     */
+    private fun setupCaptureSection() {
+        Timber.d("S0367: camera/microphone settings shown under Playback Other features")
+
+        // ── Camera Photos ──
+        binding.rowCameraToResourceEnabled.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            // Reuse the existing negative persistence flags instead of duplicating camera settings keys.
+            viewModel.updateSettings(current.copy(disableCameraCapture = !isChecked))
+            binding.layoutCameraToResourceOptions.isVisible = isChecked
+        }
+
+        binding.rowCameraAskFilename.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = !isChecked))
+        }
+
+        binding.rowCameraOpenForEditing.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(cameraCaptureOpenForEditing = isChecked))
+        }
+
+        binding.btnSelectCameraPhotosDest.setOnClickListener {
+            showDestinationPicker(
+                currentResourceId = viewModel.settings.value.cameraPhotosDestinationResourceId?.toLongOrNull()
+            ) { resource ->
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(cameraPhotosDestinationResourceId = resource?.id?.toString()))
+            }
+        }
+
+        // ── Video recording (S0371) ──
+        // Master toggle persists inverted (disableVideoCapture), mirroring the camera-photos pattern.
+        binding.rowVideoCaptureEnabled.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(disableVideoCapture = !isChecked))
+            binding.layoutVideoCaptureOptions.isVisible = isChecked
+        }
+
+        binding.rowVideoCaptureOpenInPlayer.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(videoCaptureOpenInPlayer = isChecked))
+        }
+
+        binding.btnSelectVideoRecordingDest.setOnClickListener {
+            showDestinationPicker(
+                currentResourceId = viewModel.settings.value.videoRecordingDestinationResourceId?.toLongOrNull()
+            ) { resource ->
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(videoRecordingDestinationResourceId = resource?.id?.toString()))
+            }
+        }
+
+        // ── Microphone recording ──
+        if (!BuildConfig.SUPPORT_MIC_RECORDING) {
+            binding.rowMicRecordingEnabled.isVisible = false
+            binding.rowMicRecordingAskFilename.isVisible = false
+            binding.layoutMicRecordingDestSelector.isVisible = false
+        } else {
+            binding.rowMicRecordingEnabled.setOnCheckedChangeListener { isChecked ->
+                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                if (isChecked) {
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
+                        != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        return@setOnCheckedChangeListener
+                    }
+                    viewModel.updateSettings(viewModel.settings.value.copy(micRecordingEnabled = true))
+                } else {
+                    viewModel.updateSettings(viewModel.settings.value.copy(micRecordingEnabled = false))
+                }
+                binding.rowMicRecordingAskFilename.isVisible = isChecked
+            }
+
+            binding.rowMicRecordingAskFilename.setOnCheckedChangeListener { isChecked ->
+                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
+            }
+
+            binding.btnSelectMicRecordingDest.setOnClickListener {
+                showDestinationPicker(
+                    currentResourceId = viewModel.settings.value.micRecordingDestinationResourceId?.toLongOrNull()
+                ) { resource ->
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(micRecordingDestinationResourceId = resource?.id?.toString()))
+                }
+            }
+        }
+    }
+
+    /**
+     * S0367: single-choice picker over writable, non-virtual resources usable as a capture target.
+     * Includes an explicit "(clear)" entry that resolves the setting back to its documented fallback.
+     */
+    private fun showDestinationPicker(
+        currentResourceId: Long?,
+        onPicked: (MediaResource?) -> Unit
+    ) {
+        val targets = viewModel.resources.value.filter {
+            !it.isReadOnly && !com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(it.path)
+        }
+        if (targets.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_resources_available, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val clearLabel = getString(R.string.clear_selection)
+        val labels = (listOf(clearLabel) + targets.map { it.name }).toTypedArray()
+        val checkedIndex = currentResourceId
+            ?.let { id -> targets.indexOfFirst { it.id == id } }
+            ?.takeIf { it >= 0 }
+            ?.let { it + 1 } // offset by the leading clear entry
+            ?: 0
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.setting_select_destination)
+            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
+                onPicked(if (which == 0) null else targets[which - 1])
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** Resolves a destination resource label into [target], falling back to [fallbackRes] when unset/missing. */
+    private fun refreshDestinationLabel(resourceId: String?, target: android.widget.TextView, fallbackRes: Int) {
+        val id = resourceId?.toLongOrNull()
+        if (id == null) {
+            target.setText(fallbackRes)
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val resource = viewModel.resourceRepository.getResourceById(id)
+            target.text = resource?.name ?: getString(fallbackRes)
+        }
+    }
+
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
@@ -366,6 +536,53 @@ class PlaybackSettingsFragment : Fragment() {
                             binding.rowCameraOcrOnly.setCheckedSilently(settings.cameraOcrOnly)
                         }
                         binding.layoutCameraOcrOnly.isVisible = settings.cameraOcrTranslationEnabled
+                    }
+
+                    // S0367: Camera Photos rows (inverted master/ask-filename flags) + destination label
+                    if (binding.rowCameraToResourceEnabled.isChecked != !settings.disableCameraCapture) {
+                        binding.rowCameraToResourceEnabled.setCheckedSilently(!settings.disableCameraCapture)
+                    }
+                    if (binding.rowCameraAskFilename.isChecked != !settings.skipCameraFilenameDialog) {
+                        binding.rowCameraAskFilename.setCheckedSilently(!settings.skipCameraFilenameDialog)
+                    }
+                    if (binding.rowCameraOpenForEditing.isChecked != settings.cameraCaptureOpenForEditing) {
+                        binding.rowCameraOpenForEditing.setCheckedSilently(settings.cameraCaptureOpenForEditing)
+                    }
+                    binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
+                    refreshDestinationLabel(
+                        settings.cameraPhotosDestinationResourceId,
+                        binding.tvCameraPhotosDest,
+                        R.string.setting_camera_photos_destination_default_camera
+                    )
+
+                    // S0371: Video recording rows (master toggle inverted, child gated by enable)
+                    if (binding.rowVideoCaptureEnabled.isChecked != !settings.disableVideoCapture) {
+                        binding.rowVideoCaptureEnabled.setCheckedSilently(!settings.disableVideoCapture)
+                    }
+                    if (binding.rowVideoCaptureOpenInPlayer.isChecked != settings.videoCaptureOpenInPlayer) {
+                        binding.rowVideoCaptureOpenInPlayer.setCheckedSilently(settings.videoCaptureOpenInPlayer)
+                    }
+                    binding.layoutVideoCaptureOptions.isVisible = !settings.disableVideoCapture
+                    refreshDestinationLabel(
+                        settings.videoRecordingDestinationResourceId,
+                        binding.tvVideoRecordingDest,
+                        R.string.setting_video_recording_destination_default_movies
+                    )
+
+                    // S0367: Microphone recording rows + destination label (feature-gated)
+                    if (BuildConfig.SUPPORT_MIC_RECORDING) {
+                        if (binding.rowMicRecordingEnabled.isChecked != settings.micRecordingEnabled) {
+                            binding.rowMicRecordingEnabled.setCheckedSilently(settings.micRecordingEnabled)
+                        }
+                        if (binding.rowMicRecordingAskFilename.isChecked != settings.micRecordingAskFilename) {
+                            binding.rowMicRecordingAskFilename.setCheckedSilently(settings.micRecordingAskFilename)
+                        }
+                        binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
+                        refreshDestinationLabel(
+                            settings.micRecordingDestinationResourceId,
+                            binding.tvMicRecordingDest,
+                            R.string.setting_mic_recording_destination_default_downloads
+                        )
                     }
 
                     // Prevent Sleep (relocated from General)

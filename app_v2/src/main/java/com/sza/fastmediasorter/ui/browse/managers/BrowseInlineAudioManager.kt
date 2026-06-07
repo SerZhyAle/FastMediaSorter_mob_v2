@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.InlinePlayerState
 import com.sza.fastmediasorter.ui.browse.PlaybackStatus
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class BrowseInlineAudioManager(
     private val context: Context,
-    private val smbClient: SmbClient,
+    private val smbClient: Lazy<SmbClient>,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val saveResumeStateUseCase: SaveResumeStateUseCase,
     private val windowIdProvider: () -> String,
@@ -288,7 +289,7 @@ class BrowseInlineAudioManager(
 
         Timber.d("InlinePlayer: downloading '${file.name}' from SMB")
         val result = java.io.FileOutputStream(cacheFile).use { output ->
-            smbClient.downloadFile(
+            smbClient.get().downloadFile(
                 connectionInfo = effectiveConnectionInfo,
                 remotePath = filePathInShare,
                 localOutputStream = output,

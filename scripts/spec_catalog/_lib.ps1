@@ -1,4 +1,4 @@
-﻿# Shared helpers for spec_catalog scripts.
+# Shared helpers for spec_catalog scripts.
 # Compatible with PowerShell 5.1 and 7+.
 
 Set-StrictMode -Version Latest
@@ -172,7 +172,7 @@ function Sync-SpecHeaderStatus {
         $abs = Resolve-SpecPath -PathRef $PathRef
         if (-not (Test-Path -LiteralPath $abs -PathType Leaf)) { return $false }
         $raw = Get-Content -LiteralPath $abs -Raw
-        $rx  = [regex]'(?m)^\*\*Status:\*\*[^\r\n]*$'
+        $rx  = [regex]'(?m)^\*\*Status:\*\*[^\r\n]*(?=\r?$)'
         $m   = $rx.Match($raw)
         if (-not $m.Success) { return $false }
         $newHeader = '**Status:** ' + $Status

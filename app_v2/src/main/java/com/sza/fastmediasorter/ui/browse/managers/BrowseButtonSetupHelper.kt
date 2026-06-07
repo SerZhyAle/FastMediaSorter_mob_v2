@@ -51,6 +51,7 @@ class BrowseButtonSetupHelper(
     }
 
     fun setupAllButtons(callbacks: ButtonCallbacks) {
+        Timber.d("S0374: browse top command bar +20% buttons wired")
         binding.btnFilter.setOnClickListener {
             UserActionLogger.logButtonClick("Filter", "BrowseActivity")
             callbacks.onFilterClicked()

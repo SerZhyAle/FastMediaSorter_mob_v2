@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,18 +53,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     // Ordered list of mode keys - index-aligned with dropdown labels
     private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
-
-    private val recordAudioPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(micRecordingEnabled = true))
-        } else {
-            binding.rowMicRecordingEnabled.setCheckedSilently(false)
-            Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
-        }
-    }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -102,7 +90,10 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         // Support Audio - help payload folded into the row (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportAudio) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportAudio = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportAudio = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         // Search audio covers online
@@ -211,10 +202,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
         // Default player button
         setupDefaultPlayerButton()
-
-        // Microphone recording
-        setupMicRecordingSection()
-        setupCameraToResourceSection()
+        // S0367: microphone-recording and camera-photos sections moved to PlaybackSettingsFragment.
     }
 
     private fun observeData() {
@@ -224,7 +212,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
                 // When All Files is enabled, force switch ON and disable it
                 setSwitchChecked(binding.rowSupportAudio, isAllFilesEnabled || settings.supportAudio)
-                binding.rowSupportAudio.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowSearchAudioCoversOnline, settings.searchAudioCoversOnline)
                 setSwitchChecked(binding.rowSearchCoversOnlyWifi, settings.searchAudioCoversOnlyOnWifi)
@@ -296,17 +283,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                     updateExitBehaviorVisibility()
                 }
 
-                // Microphone recording
-                if (BuildConfig.SUPPORT_MIC_RECORDING) {
-                    setSwitchChecked(binding.rowMicRecordingEnabled, settings.micRecordingEnabled)
-                    setSwitchChecked(binding.rowMicRecordingAskFilename, settings.micRecordingAskFilename)
-                    binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
-                }
-
-                setSwitchChecked(binding.rowCameraToResourceEnabled, !settings.disableCameraCapture)
-                setSwitchChecked(binding.rowCameraAskFilename, !settings.skipCameraFilenameDialog)
-                setSwitchChecked(binding.rowCameraOpenForEditing, settings.cameraCaptureOpenForEditing)
-                binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
+                // S0367: microphone-recording and camera-photos state sync moved to PlaybackSettingsFragment.
             }
         }
     }
@@ -405,55 +382,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             }
             .setCancelable(false)
             .show()
-    }
-
-    private fun setupMicRecordingSection() {
-        if (!BuildConfig.SUPPORT_MIC_RECORDING) {
-            binding.rowMicRecordingEnabled.isVisible = false
-            binding.rowMicRecordingAskFilename.isVisible = false
-            return
-        }
-
-        bindSwitch(binding.rowMicRecordingEnabled) { isChecked ->
-            if (isChecked) {
-                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
-                    != PackageManager.PERMISSION_GRANTED
-                ) {
-                    recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    return@bindSwitch
-                }
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(micRecordingEnabled = true))
-            } else {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(micRecordingEnabled = false))
-            }
-            binding.rowMicRecordingAskFilename.isVisible = isChecked
-        }
-
-        bindSwitch(binding.rowMicRecordingAskFilename) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
-        }
-    }
-
-    private fun setupCameraToResourceSection() {
-        bindSwitch(binding.rowCameraToResourceEnabled) { isChecked ->
-            val current = viewModel.settings.value
-            // Reuse the existing negative persistence flags instead of duplicating camera settings keys.
-            viewModel.updateSettings(current.copy(disableCameraCapture = !isChecked))
-            binding.layoutCameraToResourceOptions.isVisible = isChecked
-        }
-
-        bindSwitch(binding.rowCameraAskFilename) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = !isChecked))
-        }
-
-        bindSwitch(binding.rowCameraOpenForEditing) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraCaptureOpenForEditing = isChecked))
-        }
     }
 
     override fun onDestroyView() {

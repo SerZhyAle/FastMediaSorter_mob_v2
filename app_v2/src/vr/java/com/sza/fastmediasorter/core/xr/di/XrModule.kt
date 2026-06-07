@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.core.xr.di
 
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContractImpl
+import com.sza.fastmediasorter.core.xr.VrProfileSettingsSync
+import com.sza.fastmediasorter.core.xr.VrProfileSettingsSyncImpl
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCaseImpl
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
@@ -71,4 +73,10 @@ abstract class XrModule {
     abstract fun bindVrMediaSectionContract(
         impl: VrMediaSectionContractImpl
     ): VrMediaSectionContract
+
+    @Binds
+    @Singleton
+    abstract fun bindVrProfileSettingsSync(
+        impl: VrProfileSettingsSyncImpl
+    ): VrProfileSettingsSync
 }

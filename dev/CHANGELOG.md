@@ -15704,3 +15704,241 @@ Format: | datetime | file | target | description |
 | 2026-06-05 16:06:08 | `docs/FAQ_UK.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
 | 2026-06-05 16:09:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev S0364 P07.3` | Add S0364 device-test verification tag at settings view-setup entry [branch: DEBUG-v013] |
 | 2026-06-05 16:11:52 | `PLAN/S0364_settings-interface-group-split.md` | `spec-dev` | All phases implemented; status -> BlockNeedUserTest for on-device verification [branch: DEBUG-v013] |
+| 2026-06-05 16:56:16 | `PLAN/S0365_lazy-initialization-audit.md` | `spec` | Add strategic spec for lazy initialization audit [branch: DEBUG-v013] |
+| 2026-06-05 16:56:18 | `docs/ARCHITECTURE.md` | `doc-update` | Add performance and resource optimization section to ARCHITECTURE.md [branch: DEBUG-v013] |
+| 2026-06-05 16:56:20 | `CLAUDE.md` | `doc-update` | Add Strict Rule 19 for lazy optimization to CLAUDE.md [branch: DEBUG-v013] |
+| 2026-06-05 16:56:21 | `.github/copilot-instructions.md` | `doc-update` | Add lazy optimization constraint to copilot-instructions.md [branch: DEBUG-v013] |
+| 2026-06-05 16:56:23 | `.github/prompts/spec-tech.prompt.md` | `doc-update` | Add lazy optimization constraint to spec-tech prompt [branch: DEBUG-v013] |
+| 2026-06-05 16:56:25 | `.github/prompts/spec-dev.prompt.md` | `doc-update` | Add lazy optimization constraint to spec-dev prompt [branch: DEBUG-v013] |
+| 2026-06-05 16:56:26 | `.github/agents/android-kotlin-developer.agent.md` | `doc-update` | Add lazy optimization rule to android-kotlin-developer agent profile [branch: DEBUG-v013] |
+| 2026-06-05 17:06:42 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-update` | Refinement (Antigravity, focus: structure) [branch: DEBUG-v013] |
+| 2026-06-05 17:16:05 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-update` | Refinement (Codex, focus: language/structure/verifiability/consistency/completeness/style) [branch: DEBUG-v013] |
+| 2026-06-05 17:24:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0365` | Defer standalone network dependencies and short-circuit default-player probes [branch: DEBUG-v013] |
+| 2026-06-05 17:25:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0365` | Resolve standalone network collaborators lazily on first network use [branch: DEBUG-v013] |
+| 2026-06-05 17:47:52 | `PLAN/S0365_lazy-initialization-audit/INDEX.md` | `spec-tech` | Create tactical plan index for S0365 [branch: DEBUG-v013] |
+| 2026-06-05 17:47:52 | `PLAN/S0365_lazy-initialization-audit/PHASE_01__player-lazy-deps.md` | `spec-tech` | Phase 01: player lazy dependencies [branch: DEBUG-v013] |
+| 2026-06-05 17:47:52 | `PLAN/S0365_lazy-initialization-audit/PHASE_02__browse-lazy-strategies.md` | `spec-tech` | Phase 02: browse lazy strategies [branch: DEBUG-v013] |
+| 2026-06-05 17:47:52 | `PLAN/S0365_lazy-initialization-audit/PHASE_03__player-viewstub-hosts.md` | `spec-tech` | Phase 03: player ViewStub hosts [branch: DEBUG-v013] |
+| 2026-06-05 17:47:52 | `PLAN/S0365_lazy-initialization-audit/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs catalog cleanup [branch: DEBUG-v013] |
+| 2026-06-05 17:47:52 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-tech` | Status to Tactical and tactical package created for S0365 [branch: DEBUG-v013] |
+| 2026-06-05 17:48:33 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-tech` | Add owner approval gate details for S0365 status transition [branch: DEBUG-v013] |
+| 2026-06-05 18:13:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0365` | Add lazy-backed player collaborator providers [branch: DEBUG-v013] |
+| 2026-06-05 18:14:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0365` | Gate player background media setup on demand [branch: DEBUG-v013] |
+| 2026-06-05 18:14:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `S0365` | Update player observer to configure background media lazily [branch: DEBUG-v013] |
+| 2026-06-05 18:15:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `S0365` | Guard player background media release behind lazy setup [branch: DEBUG-v013] |
+| 2026-06-05 18:16:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioSlideshowPhotoModeManager.kt` | `S0365` | Resolve audio slideshow background managers via providers [branch: DEBUG-v013] |
+| 2026-06-05 18:16:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `S0365` | Delay player dialog network collaborator resolution [branch: DEBUG-v013] |
+| 2026-06-05 18:19:32 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-dev` | Advance S0365 strategic spec to implemented after tactical phase completion [branch: DEBUG-v013] |
+| 2026-06-05 18:19:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt` | `S0365` | Delay player network/cloud collaborator resolution until first use [branch: DEBUG-v013] |
+| 2026-06-05 18:19:32 | `temp/S0365_lazy_init_audit_report.md` | `spec-dev` | Append S0365 validation summary and next-wave hotspot audit [branch: DEBUG-v013] |
+| 2026-06-05 18:20:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCloudAuthManager.kt` | `S0365` | Accept lazy cloud auth clients and preserve existing eager call sites [branch: DEBUG-v013] |
+| 2026-06-05 18:20:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0365` | Resolve upload-only CloudOperationStrategy lazily on cloud branches [branch: DEBUG-v013] |
+| 2026-06-05 18:22:05 | `PLAN/S0365_lazy-initialization-audit/INDEX.md` | `spec-dev` | Mark canonical S0365 tactical index done and ready for spec-check [branch: DEBUG-v013] |
+| 2026-06-05 18:22:05 | `PLAN/S0365_lazy-initialization-audit/PHASE_01__standalone-lazy-entry.md` | `spec-dev S0365` | Mark canonical Phase 01 done after standalone lazy-entry validation [branch: DEBUG-v013] |
+| 2026-06-05 18:22:06 | `PLAN/S0365_lazy-initialization-audit/PHASE_02__player-lazy-deps.md` | `spec-dev S0365` | Mark canonical Phase 02 done after player lazy dependency rollout [branch: DEBUG-v013] |
+| 2026-06-05 18:22:06 | `PLAN/S0365_lazy-initialization-audit/PHASE_03__browse-lazy-strategies.md` | `spec-dev S0365` | Mark canonical Phase 03 done after browse lazy strategy rollout [branch: DEBUG-v013] |
+| 2026-06-05 18:22:06 | `PLAN/S0365_lazy-initialization-audit/PHASE_04__viewstub-targets-rules.md` | `spec-dev S0365` | Mark canonical Phase 04 done after overlay/ViewStub audit and rules capture [branch: DEBUG-v013] |
+| 2026-06-05 18:22:07 | `PLAN/S0365_lazy-initialization-audit/PHASE_05__docs-catalog-cleanup.md` | `spec-dev S0365` | Mark canonical Phase 05 done after validation, catalog sync and cleanup [branch: DEBUG-v013] |
+| 2026-06-05 18:23:05 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-check` | Audit S0365: Verified after static closeout, build pass, catalog sync and probe sweep [branch: DEBUG-v013] |
+| 2026-06-05 18:23:05 | `PLAN/S0365_lazy-initialization-audit/INDEX.md` | `spec-check` | Mark S0365 tactical completion gate verified and strategic status advanced [branch: DEBUG-v013] |
+| 2026-06-06 00:18:54 | `PLAN/S0366_user-docs-refresh.md` | `docs` | Add approval-gate owner inputs for the S0366 documentation refresh spec [branch: DEBUG-v013] |
+| 2026-06-06 00:22:15 | `PLAN/S0366_user-docs-refresh.md` | `docs` | Set S0366 strategic spec to Tactical and add tactical-plan pointer [branch: DEBUG-v013] |
+| 2026-06-06 00:22:15 | `PLAN/S0366_user-docs-refresh/INDEX.md` | `docs` | Create S0366 tactical plan index [branch: DEBUG-v013] |
+| 2026-06-06 00:22:16 | `PLAN/S0366_user-docs-refresh/PHASE_01__inventory-audit.md` | `docs` | Create S0366 phase 01 inventory audit plan [branch: DEBUG-v013] |
+| 2026-06-06 00:22:16 | `PLAN/S0366_user-docs-refresh/PHASE_02__rewrite-core-docs.md` | `docs` | Create S0366 phase 02 docs rewrite plan [branch: DEBUG-v013] |
+| 2026-06-06 00:22:16 | `PLAN/S0366_user-docs-refresh/PHASE_03__sync-language-and-links.md` | `docs` | Create S0366 phase 03 localization and links plan [branch: DEBUG-v013] |
+| 2026-06-06 00:22:16 | `PLAN/S0366_user-docs-refresh/PHASE_04__docs-catalog-cleanup.md` | `docs` | Create S0366 phase 04 docs cleanup plan [branch: DEBUG-v013] |
+| 2026-06-06 00:22:17 | `scripts/spec_catalog/_lib.ps1` | `scripts` | Fix header status sync for spec catalog updates [branch: DEBUG-v013] |
+| 2026-06-06 00:51:28 | `docs/VR_EDITION_RU.md` | `docs` | Fix stale VR historical link in Russian docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:28 | `docs/VR_EDITION_UK.md` | `docs` | Fix stale VR historical link in Ukrainian docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:29 | `temp/S0366_doc_audit.md` | `temp` | Record S0366 documentation audit findings. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:29 | `index.html` | `site` | Point the main landing page to Markdown docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:29 | `index-ru.html` | `site` | Point the Russian landing page to Markdown docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:29 | `index-uk.html` | `site` | Point the Ukrainian landing page to Markdown docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:30 | `nolegal.html` | `site` | Point the noLegal landing page to Markdown docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:30 | `nolegal-ru.html` | `site` | Point the Russian noLegal landing page to Markdown docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:30 | `nolegal-uk.html` | `site` | Point the Ukrainian noLegal landing page to Markdown docs. [branch: DEBUG-v013] |
+| 2026-06-06 01:55:25 | `docs/README.md` | `S0366 docs` | Refresh EN public overview and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:26 | `docs/QUICK_START.md` | `S0366 docs` | Refresh EN quick start flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:26 | `docs/HOW_TO.md` | `S0366 docs` | Refresh EN how-to availability matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:26 | `docs/TROUBLESHOOTING.md` | `S0366 docs` | Refresh EN troubleshooting wording [branch: DEBUG-v013] |
+| 2026-06-06 01:55:27 | `docs/LIMITATIONS.md` | `S0366 docs` | Refresh EN limitations for current build matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:27 | `docs/MODULE_SELECTION.md` | `S0366 docs` | Refresh module selection flavor list [branch: DEBUG-v013] |
+| 2026-06-06 01:55:27 | `docs/DOCS_MAP.md` | `S0366 docs` | Refresh docs map for current public doc set [branch: DEBUG-v013] |
+| 2026-06-06 01:55:28 | `docs/LIMITATIONS_RU.md` | `S0366 docs` | Refresh RU limitations build requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:28 | `docs/LIMITATIONS_UK.md` | `S0366 docs` | Refresh UK limitations build requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:28 | `docs/TROUBLESHOOTING_RU.md` | `S0366 docs` | Refresh RU troubleshooting SMB wording [branch: DEBUG-v013] |
+| 2026-06-06 01:55:29 | `docs/TROUBLESHOOTING_UK.md` | `S0366 docs` | Refresh UK troubleshooting SMB wording [branch: DEBUG-v013] |
+| 2026-06-06 01:55:29 | `docs/README_RU.md` | `S0366 docs` | Refresh RU public overview and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:29 | `docs/README_UK.md` | `S0366 docs` | Refresh UK public overview and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:30 | `docs/QUICK_START_RU.md` | `S0366 docs` | Refresh RU quick start links and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:30 | `docs/QUICK_START_UK.md` | `S0366 docs` | Refresh UK quick start links and missing sections [branch: DEBUG-v013] |
+| 2026-06-06 01:55:30 | `docs/HOW_TO_RU.md` | `S0366 docs` | Refresh RU how-to availability matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/HOW_TO_UK.md` | `S0366 docs` | Refresh UK how-to availability matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/FAQ.md` | `S0366 docs` | Refresh EN FAQ Android requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/FAQ_RU.md` | `S0366 docs` | Refresh RU FAQ Android requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/FAQ_UK.md` | `S0366 docs` | Refresh UK FAQ Android requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:56:24 | `PLAN/S0366_user-docs-refresh/INDEX.md` | `S0366 plan` | Close tactical index after docs refresh [branch: DEBUG-v013] |
+| 2026-06-06 01:56:25 | `PLAN/S0366_user-docs-refresh/PHASE_01__inventory-audit.md` | `S0366 plan` | Mark phase 01 audit as done [branch: DEBUG-v013] |
+| 2026-06-06 01:56:25 | `PLAN/S0366_user-docs-refresh/PHASE_02__rewrite-core-docs.md` | `S0366 plan` | Mark phase 02 core docs rewrite as done [branch: DEBUG-v013] |
+| 2026-06-06 01:56:25 | `PLAN/S0366_user-docs-refresh/PHASE_03__sync-language-and-links.md` | `S0366 plan` | Mark phase 03 mirror sync as done [branch: DEBUG-v013] |
+| 2026-06-06 01:56:26 | `PLAN/S0366_user-docs-refresh/PHASE_04__docs-catalog-cleanup.md` | `S0366 plan` | Mark phase 04 docs cleanup as done [branch: DEBUG-v013] |
+| 2026-06-06 01:57:19 | `PLAN/S0366_user-docs-refresh.md` | `spec-check` | Audit S0366 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v013] |
+| 2026-06-06 02:07:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyProfilePresetUseCase.kt` | `VR profile sync` | Aligned vr/noLegal 3D-VR settings defaults with the selected device profile via flavor-isolated sync so the Settings block stays visible but becomes off or blocked appropriately. [branch: DEBUG-v013] |
+| 2026-06-06 02:07:59 | `docs/` | `S0366` | Audited and corrected links, horizontal lines, missing sections in Russian and Ukrainian user documents and root html pages. [branch: DEBUG-v013] |
+| 2026-06-06 02:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0365` | Complete browse lazy boundary by deferring remote collaborators to first use [branch: DEBUG-v013] |
+| 2026-06-06 02:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `S0365` | Move browse view-model remote collaborators behind dagger Lazy [branch: DEBUG-v013] |
+| 2026-06-06 02:12:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0365` | Pass browse remote collaborators lazily and resolve them only at auth and file-info paths [branch: DEBUG-v013] |
+| 2026-06-06 02:12:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseInlineAudioManager.kt` | `S0365` | Resolve SMB client only during inline SMB audio downloads [branch: DEBUG-v013] |
+| 2026-06-06 02:12:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `S0365` | Resolve cloud clients lazily during browse cloud-auth checks [branch: DEBUG-v013] |
+| 2026-06-06 02:12:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `S0365` | Remove unused eager network collaborators from browse file-ops wiring [branch: DEBUG-v013] |
+| 2026-06-06 02:12:02 | `temp/S0365_lazy_init_audit_report.md` | `S0365` | Document the browse lazy-boundary correction in the audit report [branch: DEBUG-v013] |
+| 2026-06-06 02:12:02 | `PLAN/S0365_lazy-initialization-audit.md` | `spec-check` | Refresh S0365 Last Audit after the browse lazy-boundary correction [branch: DEBUG-v013] |
+| 2026-06-06 03:29:46 | `PLAN/S0367_playback-camera-microphone-settings-grouping.md` | `S0367` | Add strategic draft for regrouping camera and microphone settings from Media Audio to Playback Other features [branch: DEBUG-v013] |
+| 2026-06-06 03:32:03 | `PLAN/S0367_playback-camera-microphone-settings-grouping.md` | `S0367` | Rewrite strategic draft to remove duplicated content and keep a single clean S0367 spec file [branch: DEBUG-v013] |
+| 2026-06-06 03:36:09 | `PLAN/S0368_draw-overlay-toolbar-safe-area.md` | `S0368` | Add strategic draft for draw overlay toolbar safe-area over player bottom panels [branch: DEBUG-v013] |
+| 2026-06-06 03:41:23 | `PLAN/S0369_widget-camera-capture-target-resource.md` | `S0369` | Add strategic draft for a configurable quick camera widget bound to a writable resource or device camera folder [branch: DEBUG-v013] |
+| 2026-06-06 03:48:18 | `PLAN/S0370_browse-filter-large-icon-actions.md` | `S0370` | Add strategic draft for browse filter panel large-icon action redesign and OK/apply button repair [branch: DEBUG-v013] |
+| 2026-06-06 03:51:44 | `PLAN/S0371_video-recording-to-resource.md` | `spec` | Add strategic draft S0371 for video recording to resource [branch: DEBUG-v013] |
+| 2026-06-06 03:53:45 | `PLAN/S0367_playback-camera-microphone-settings-grouping.md` | `S0367` | Refine strategic draft with microphone and camera destination settings plus empty-value fallback rules [branch: DEBUG-v013] |
+| 2026-06-06 03:55:40 | `PLAN/S0372_bugfix-mic-recording-stop-failed.md` | `spec` | Add strategic spec S0372 for mic recording stop-failed defect [branch: DEBUG-v013] |
+| 2026-06-06 04:02:20 | `PLAN/S0373_bugfix-recent-media-scan-cancellation.md` | `spec` | Add strategic spec S0373 for recent media scan cancellation false error [branch: DEBUG-v013] |
+| 2026-06-06 04:03:03 | `PLAN/S0374_browse-top-command-buttons-20pct.md` | `spec` | Add strategic draft spec S0374 for browse top command buttons 20pct [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0367` | Relocate camera/microphone settings from Media-Audio to Playback Other features; add Camera/Mic destination selectors + CaptureDestinationPolicy wired as non-breaking override into camera and mic save paths [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0368` | Draw editor toolbar safe-area via applySystemBarInsetPadding + portrait reorder above Copy/Move + landscape end-constraints [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/capture/CameraCaptureSaver.kt` | `S0369` | Extract CameraCaptureSaver (shared target routing) and add quick camera-capture 1x1 widget with target picker, per-widget prefs, settingGate, video mode [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/res/layout/dialog_filter.xml` | `S0370` | Convert filter dialog action buttons (apply/cancel/clear-all/reset-types) to large icon buttons with contentDescription + iconTint, both orientations [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `S0371` | Video-recording-to-resource full surface: settings, action_video_capture command, ACTION_VIDEO_CAPTURE fork via CameraCaptureSaver, optional post-capture player open, widget video mode [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMicRecordingManager.kt` | `S0372` | Classify mic recording outcome before save; discard invalid/too-short artifact with cancelled feedback; re-level stop-failed to debug; strip stale S0100 log prefixes [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `S0373` | Rethrow CancellationException before generic catch in recent/all-by-type virtual scans; stop false failed-to-scan error on normal cancellation [branch: DEBUG-v013] |
+| 2026-06-06 16:12:56 | `app_v2/src/main/res/values/dimens.xml` | `S0374` | Scale Browse top command bar +20% (container+icon) via browse-scoped browse_cmd_* dimens + app:iconSize + HorizontalScrollView clipping fallback, both orientations [branch: DEBUG-v013] |
+| 2026-06-06 17:09:55 | `PLAN/S0367_playback-camera-microphone-settings-grouping.md` | `spec-all` | Pipeline BlockNeedUserTest: S0367 header sync + Last Audit (device-test pending) [branch: DEBUG-v013] |
+| 2026-06-06 17:25:41 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/CameraQuickCaptureLaunchManager.kt` | `spec-all` | Remove S0369 debug verification tag [branch: DEBUG-v013] |
+| 2026-06-06 17:28:31 | `PLAN/S0369_widget-camera-capture-target-resource.md` | `spec-all` | Pipeline Verified: S0369 [branch: DEBUG-v013] |
+| 2026-06-06 17:28:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `S0371` | Remove temporary BlockNeedUserTest debug probe before audit resume [branch: DEBUG-v013] |
+| 2026-06-06 17:29:20 | `PLAN/S0370_browse-filter-large-icon-actions.md` | `spec-all` | Pipeline BlockNeedUserTest: S0370 F5 structural audit PASS (4/5 verified, criterion 1 mechanism verified); device-visual check deferred - no device online [branch: DEBUG-v013] |
+| 2026-06-06 17:30:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMicRecordingManager.kt` | `BrowseMicRecordingManager` | Stabilize mic recording cancellation cleanup and remove stale device-test tag [branch: DEBUG-v013] |
+| 2026-06-06 17:32:56 | `app_v2/src/main/res/values/strings_widget.xml` | `S0371` | Update quick-capture widget copy for photo/video capability (EN) [branch: DEBUG-v013] |
+| 2026-06-06 17:32:57 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `S0371` | Update quick-capture widget copy for photo/video capability (RU) [branch: DEBUG-v013] |
+| 2026-06-06 17:32:58 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `S0371` | Update quick-capture widget copy for photo/video capability (UK) [branch: DEBUG-v013] |
+| 2026-06-06 17:32:59 | `docs/FEATURES.md` | `S0371` | Align quick-capture widget feature naming (EN) [branch: DEBUG-v013] |
+| 2026-06-06 17:33:00 | `docs/FEATURES_RU.md` | `S0371` | Align quick-capture widget feature naming (RU) [branch: DEBUG-v013] |
+| 2026-06-06 17:33:00 | `docs/FEATURES_UK.md` | `S0371` | Align quick-capture widget feature naming (UK) [branch: DEBUG-v013] |
+| 2026-06-06 17:33:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `spec-all` | Remove S0373 debug verification tag [branch: DEBUG-v013] |
+| 2026-06-06 17:33:41 | `PLAN/S0372_bugfix-mic-recording-stop-failed.md` | `spec-check` | Audit S0372 -> Verified; PASS/WARN/FAIL 12/0/0 [branch: DEBUG-v013] |
+| 2026-06-06 17:36:00 | `scripts/spec_catalog/close.ps1` | `close.ps1` | Sync spec header when closing terminal-status tickets [branch: DEBUG-v013] |
+| 2026-06-06 17:37:09 | `PLAN/S0374_browse-top-command-buttons-20pct.md` | `spec-all` | S0374 review-mode audit: Last Audit block + header sync; impl present, device-test deferred (no device) [branch: DEBUG-v013] |
+| 2026-06-06 17:39:19 | `PLAN/S0371_video-recording-to-resource.md` | `S0371` | Record inline audit and build blocker after spec-all resume [branch: DEBUG-v013] |
+| 2026-06-06 17:39:20 | `PLAN/S0371_video-recording-to-resource.md` | `spec-all` | Pipeline Blocked: S0371 [branch: DEBUG-v013] |
+| 2026-06-06 17:39:44 | `PLAN/S0371_video-recording-to-resource.md` | `S0371` | Sync S0371 spec frontmatter status with Partial [branch: DEBUG-v013] |
+| 2026-06-06 20:54:20 | `.idea/gradle.xml` | `ide-gradle-jdk` | Switch Gradle IDE JDK from the GRADLE_LOCAL_JAVA_HOME macro to the project JBR 21 entry. [branch: DEBUG-v013] |
+| 2026-06-06 21:46:06 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `debug-log-mirror` | Add debug-only session log mirroring into the currently opened local file directory with 10-second delta appends. [branch: DEBUG-v013] |
+| 2026-06-06 21:46:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `webp-debug-trace` | Set the debug log mirror target from the current image path and log WebP request/mode decisions. [branch: DEBUG-v013] |
+| 2026-06-06 21:46:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingGlideListeners.kt` | `webp-debug-trace` | Add explicit WebP ready/failure traces in Glide drawable and animated-image listeners. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `app_v2/src/main/res/values/strings_settings.xml` | `capture settings` | Clarify capture destination labels so resource pickers are not described as folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `capture settings` | Clarify capture destination labels so resource pickers are not described as folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `capture settings` | Clarify capture destination labels so resource pickers are not described as folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `README.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/README.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/README_RU.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/README_UK.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FAQ.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FAQ_RU.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FAQ_UK.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FEATURES.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FEATURES_RU.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FEATURES_UK.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/QUICK_START.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/QUICK_START_RU.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/QUICK_START_UK.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/howto/scenario-photo-frame.md` | `resource terminology docs` | Clarify slideshow music and Resource Shortcut steps to use resource terminology. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/howto/scenario-photo-frame-ru.md` | `resource terminology docs` | Clarify slideshow music and Resource Shortcut steps to use resource terminology. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/howto/scenario-photo-frame-uk.md` | `resource terminology docs` | Clarify slideshow music and Resource Shortcut steps to use resource terminology. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/howto/scenario-car-music.md` | `resource terminology docs` | Clarify Resource Shortcut music setup to use resource terminology. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/howto/scenario-car-music-ru.md` | `resource terminology docs` | Clarify Resource Shortcut music setup to use resource terminology. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/howto/scenario-car-music-uk.md` | `resource terminology docs` | Clarify Resource Shortcut music setup to use resource terminology. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/WHATS_NEW.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:06 | `docs/WHATS_NEW_RU.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:06 | `docs/WHATS_NEW_UK.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
+| 2026-06-06 23:42:43 | `PLAN/S0375_video-recording-destination-resource.md` | `spec` | Add strategic spec S0375 for video recording destination resource in playback settings [branch: DEBUG-v013] |
+| 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource.md` | `spec-tech` | Update S0375 owner gate and status to Tactical [branch: DEBUG-v013] |
+| 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource/INDEX.md` | `spec-tech` | Create tactical plan for S0375 [branch: DEBUG-v013] |
+| 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource/PHASE_01__settings-surface.md` | `spec-tech` | Phase 01 tactical plan for S0375 [branch: DEBUG-v013] |
+| 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource/PHASE_02__save-routing.md` | `spec-tech` | Phase 02 tactical plan for S0375 [branch: DEBUG-v013] |
+| 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03 tactical plan for S0375 [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `settings` | Add video recording destination field [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `settings` | Persist video recording destination setting [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `settings-ui` | Wire video recording destination selector [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `settings-ui` | Add portrait video recording destination selector [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `settings-ui` | Add landscape video recording destination selector [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/res/values/strings_settings.xml` | `settings-copy` | Add EN video recording destination strings [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `settings-copy` | Add RU video recording destination strings [branch: DEBUG-v013] |
+| 2026-06-07 01:53:57 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `settings-copy` | Add UK video recording destination strings [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `app_v2/src/main/java/com/sza/fastmediasorter/util/CaptureDestinationPolicy.kt` | `capture-routing` | Add video destination fallback helper [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `capture-routing` | Split video save routing from camera destination setting [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `docs/FEATURES.md` | `features-docs` | Document video destination fallback contract in EN [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `docs/FEATURES_RU.md` | `features-docs` | Document video destination fallback contract in RU [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `docs/FEATURES_UK.md` | `features-docs` | Document video destination fallback contract in UK [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource.md` | `spec-dev` | Mark S0375 implemented [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource/INDEX.md` | `spec-dev` | Mark S0375 tactical plan complete [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource/PHASE_01__settings-surface.md` | `spec-dev` | Mark S0375 phase 01 complete [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource/PHASE_02__save-routing.md` | `spec-dev` | Mark S0375 phase 02 complete [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Mark S0375 phase 03 complete [branch: DEBUG-v013] |
+| 2026-06-07 02:10:46 | `PLAN/S0375_video-recording-destination-resource.md` | `spec-check` | Audit S0375 -> Verified; PASS/WARN/FAIL 20/0/0; debug tags removed 0 [branch: DEBUG-v013] |
+| 2026-06-07 02:55:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/MediaStoreRepositoryImpl.kt` | `app_v2` | Add MediaStore timestamp fallback to prevent 1970 dates for freshly captured media [branch: DEBUG-v013] |
+| 2026-06-07 03:07:54 | `PLAN/S0376_file-manager-predefined-resource.md` | `spec` | Add strategic spec S0376 for predefined file-manager resource [branch: DEBUG-v013] |
+| 2026-06-07 03:13:17 | `PLAN/S0376_file-manager-predefined-resource.md` | `spec` | Refine S0376 with minimal list position rule for predefined file-manager resource [branch: DEBUG-v013] |
+| 2026-06-07 03:19:29 | `PLAN/S0376_file-manager-predefined-resource.md` | `spec` | Capture owner decisions for S0376 UI behavior, root contract and duplicate handling [branch: DEBUG-v013] |
+| 2026-06-07 03:21:18 | `PLAN/S0376_file-manager-predefined-resource.md` | `spec` | Finalize owner decisions for S0376 naming and profile-reapply confirmation behavior [branch: DEBUG-v013] |
+| 2026-06-07 03:31:30 | `docs/TEST_SCENARIOS.md;app_v2/src/main/res/layout/fragment_duplicates.xml` | `app_v2/src/main/res/layout/fragment_duplicates.xml` | Replace user-facing three-dot ellipses with two-dot ellipsis style in docs and UI text [branch: DEBUG-v013] |
+| 2026-06-07 03:43:09 | `app_v2,wear res/values*/strings*.xml` | `UI strings` | Replace ellipsis (U+2026 and ...) with '..' across all string resources (EN/RU/UK, app_v2 + wear) per author style [branch: DEBUG-v013] |
+| 2026-06-07 03:45:00 | `PLAN/S0377_resource-menu-open-launch-reorder.md` | `spec` | Add strategic spec S0377 for resource dropdown menu Open/Launch, move-to-edge, media-storage icon frame [branch: DEBUG-v013] |
+| 2026-06-07 03:49:05 | `PLAN/S0377_resource-menu-open-launch-reorder/INDEX.md` | `spec-tech` | Create tactical plan for S0377 [branch: DEBUG-v013] |
+| 2026-06-07 03:49:05 | `PLAN/S0377_resource-menu-open-launch-reorder/PHASE_01__reorder-to-edge.md` | `spec-tech` | Phase 01: reorder-to-edge [branch: DEBUG-v013] |
+| 2026-06-07 03:49:05 | `PLAN/S0377_resource-menu-open-launch-reorder/PHASE_02__menu-open-launch-move.md` | `spec-tech` | Phase 02: menu-open-launch-move [branch: DEBUG-v013] |
+| 2026-06-07 03:49:05 | `PLAN/S0377_resource-menu-open-launch-reorder/PHASE_03__icon-frame.md` | `spec-tech` | Phase 03: icon-frame [branch: DEBUG-v013] |
+| 2026-06-07 03:49:05 | `PLAN/S0377_resource-menu-open-launch-reorder/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-07 03:49:05 | `PLAN/S0377_resource-menu-open-launch-reorder.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-07 03:50:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceOrderManager.kt` | `spec-dev` | S0377 Phase 01.1: add moveResourceToTop/moveResourceToBottom [branch: DEBUG-v013] |
+| 2026-06-07 03:51:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `spec-dev` | S0377 Phase 01.2: expose moveResourceToTop/moveResourceToBottom in MainViewModel [branch: DEBUG-v013] |
+| 2026-06-07 03:57:23 | `PLAN/S0376_file-manager-predefined-resource.md` | `spec-dev` | Mark S0376 strategic spec as Implemented [branch: DEBUG-v013] |
+| 2026-06-07 03:57:23 | `PLAN/S0376_file-manager-predefined-resource/INDEX.md` | `spec-dev` | Complete tactical index for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:23 | `PLAN/S0376_file-manager-predefined-resource/PHASE_01__resource-foundation.md` | `spec-dev` | Complete Phase 01 for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:23 | `PLAN/S0376_file-manager-predefined-resource/PHASE_02__settings-profile-flows.md` | `spec-dev` | Complete Phase 02 for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:23 | `PLAN/S0376_file-manager-predefined-resource/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Complete Phase 03 for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/AddResourceUseCase.kt` | `spec-dev` | Support top-insert resource creation for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProfileImpliesAllFilesUseCase.kt` | `spec-dev` | Add profile all-files detector for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/EnsureAllFilesPredefinedResourceUseCase.kt` | `spec-dev` | Add predefined All Files resource creator for S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsProfileViewModel.kt` | `spec-dev` | Wire Settings profile flow into predefined All Files resource creation [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `spec-dev` | Auto-create predefined All Files resource from first-run profile flow [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev` | Inject predefined All Files resource helper into General settings [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsProfileHelper.kt` | `spec-dev` | Add Settings confirmation for profile-driven All Files resource creation [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `spec-dev` | Add General settings CTA for predefined All Files resource [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt` | `spec-dev` | Preserve hidden-file behavior in subfolder navigation [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/loading/BrowseLoadingManager.kt` | `spec-dev` | Sort subfolder listings by resource sort mode [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/res/values/strings_settings.xml` | `spec-dev` | Add EN settings strings for predefined All Files resource [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `spec-dev` | Add RU settings strings for predefined All Files resource [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev` | Add UK settings strings for predefined All Files resource [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `docs/FEATURES.md` | `spec-dev` | Document predefined All Files resource flow in EN features [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `docs/FEATURES_RU.md` | `spec-dev` | Document predefined All Files resource flow in RU features [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `docs/FEATURES_UK.md` | `spec-dev` | Document predefined All Files resource flow in UK features [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | Regenerate app_v2 catalog JSONL after S0376 [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `dev/CATALOG/app_v2.md` | `spec-dev` | Regenerate app_v2 catalog markdown after S0376 [branch: DEBUG-v013] |
+| 2026-06-07 04:01:25 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0377 Phase 02.1: add resource_menu_open/launch/move_to_top/move_to_bottom (EN) [branch: DEBUG-v013] |
+| 2026-06-07 04:01:25 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0377 Phase 02.1: add resource_menu_* keys (RU) [branch: DEBUG-v013] |
+| 2026-06-07 04:01:25 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0377 Phase 02.1: add resource_menu_* keys (UK) [branch: DEBUG-v013] |
+| 2026-06-07 04:02:15 | `PLAN/S0371_video-recording-to-resource.md` | `spec-arc` | Archive S0371 (video-recording-to-resource), video confirmed working -> temp/done/ [branch: DEBUG-v013] |
+| 2026-06-07 04:02:40 | `PLAN/S0376_file-manager-predefined-resource.md` | `spec-check` | Audit S0376 -> Verified; PASS/WARN/FAIL 16/0/0 [branch: DEBUG-v013] |
+| 2026-06-07 04:02:52 | `app_v2/src/main/res/menu/resource_item_actions.xml` | `spec-dev` | S0377 Phase 02.2: add menu items action_open_resource, action_launch_player, action_move_to_top/bottom [branch: DEBUG-v013] |
+| 2026-06-07 04:05:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `spec-dev` | S0377 Phase 02.3: wire Open/Launch/MoveToTop/MoveToBottom menu items in both popup blocks; launch visibility gated by isQuickSlideshowEligible [branch: DEBUG-v013] |
+| 2026-06-07 04:06:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `spec-dev` | S0377 Phase 02.4: wire onMoveToTopClick/onMoveToBottomClick adapter callbacks to viewModel.moveResourceToTop/Bottom [branch: DEBUG-v013] |
+| 2026-06-07 04:07:31 | `app_v2/src/main/res/drawable/bg_icon_media_storage_frame.xml` | `spec-dev` | S0377 Phase 03.1: add bg_icon_media_storage_frame oval stroke drawable (icon affordance frame) [branch: DEBUG-v013] |
+| 2026-06-07 04:08:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `spec-dev` | S0377 Phase 03.2: apply/clear bg_icon_media_storage_frame on icon in both view holders (eligible=frame, else=null) [branch: DEBUG-v013] |
+| 2026-06-07 04:17:13 | `docs/FEATURES.md` | `doc-update` | S0377: add Resource menu actions bullet (Open/Launch/move-to-edge + icon frame) [branch: DEBUG-v013] |
+| 2026-06-07 04:17:13 | `docs/FEATURES_RU.md` | `doc-update` | S0377: mirror Resource menu actions bullet (RU) [branch: DEBUG-v013] |
+| 2026-06-07 04:17:13 | `docs/FEATURES_UK.md` | `doc-update` | S0377: mirror Resource menu actions bullet (UK) [branch: DEBUG-v013] |
+| 2026-06-07 04:22:23 | `.claude/commands/spec-dev.md` | `spec-dev` | Insert Timber BlockNeedUserTest tags as last code edits before final-phase build; single build validates code+tags [branch: DEBUG-v013] |
+| 2026-06-07 04:22:23 | `.claude/commands/spec-all.md` | `spec-all` | Tags before final build; skip redundant F4 build after post-tags build [branch: DEBUG-v013] |
+| 2026-06-07 04:22:24 | `CLAUDE.md` | `docs` | Debug Verification Tags: insert tags before last build to avoid double build [branch: DEBUG-v013] |
+| 2026-06-07 04:23:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `spec-dev` | S0377: insert BlockNeedUserTest debug probes in moveResourceToTop/Bottom (build verified) [branch: DEBUG-v013] |
+| 2026-06-07 04:23:32 | `PLAN/S0377_resource-menu-open-launch-reorder.md` | `spec-dev` | S0377: all phases done; status In Progress -> BlockNeedUserTest; Implemented date set [branch: DEBUG-v013] |

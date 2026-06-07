@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.theme.ColorThemePrefs
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -139,9 +141,16 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_DISABLE_CAMERA_CAPTURE = booleanPreferencesKey("disable_camera_capture")
         private val KEY_SKIP_CAMERA_FILENAME_DIALOG = booleanPreferencesKey("skip_camera_filename_dialog")
         private val KEY_CAMERA_OPEN_FOR_EDITING = booleanPreferencesKey("camera_open_for_editing")
+        // S0371: video recording to resource (master toggle stored inverted, like the camera flags)
+        private val KEY_DISABLE_VIDEO_CAPTURE = booleanPreferencesKey("disable_video_capture")
+        private val KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER = booleanPreferencesKey("video_capture_open_in_player")
+        private val KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID = stringPreferencesKey("video_recording_destination_resource_id")
         // S0100: Microphone recording feature
         private val KEY_MIC_RECORDING_ENABLED = booleanPreferencesKey("mic_recording_enabled")
         private val KEY_MIC_RECORDING_ASK_FILENAME = booleanPreferencesKey("mic_recording_ask_filename")
+        // S0367: default destination resource ids for capture flows (null = deterministic fallback)
+        private val KEY_MIC_RECORDING_DESTINATION_RESOURCE_ID = stringPreferencesKey("mic_recording_destination_resource_id")
+        private val KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID = stringPreferencesKey("camera_photos_destination_resource_id")
         private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
         
         // Per-type touch zone hint tracking keys (Task 6)
@@ -256,11 +265,15 @@ class SettingsRepositoryImpl @Inject constructor(
             .map { preferences ->
                 val languageFromDataStore = preferences[KEY_LANGUAGE]   // null = not explicitly set
                 // When DataStore has no saved language (first launch / data cleared), fall back to
-                // LocaleHelper which resolves SharedPreferences → system locale → "en".
-                // This keeps DataStore in sync with the active locale so the Settings spinner
-                // shows the correct selection instead of defaulting to English.
-                val language = languageFromDataStore
-                    ?: com.sza.fastmediasorter.core.util.LocaleHelper.getLanguage(context)
+                // LocaleHelper which resolves SharedPreferences → system locale → "en". Legacy
+                // installs can still carry the old "system" sentinel here, so normalize that to
+                // the effective app language before exposing AppSettings to the rest of the app.
+                val language = when {
+                    languageFromDataStore == null -> LocaleHelper.getLanguage(context)
+                    LocaleHelper.isFollowSystemLanguage(languageFromDataStore) -> LocaleHelper.getLanguage(context)
+                    else -> LocaleHelper.resolveSupportedLanguageCode(languageFromDataStore)
+                }
+                val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
                 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
                 // glidePrefs is a lazy singleton field — no disk access on every emission
@@ -273,7 +286,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 
                 AppSettings(
                     language = language,
-                    colorTheme = preferences[KEY_COLOR_THEME] ?: "AUTO",
+                    colorTheme = colorTheme,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
@@ -384,8 +397,13 @@ class SettingsRepositoryImpl @Inject constructor(
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
                     cameraCaptureOpenForEditing = preferences[KEY_CAMERA_OPEN_FOR_EDITING] ?: false,
+                    disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
+                    videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
+                    videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
                     micRecordingEnabled = preferences[KEY_MIC_RECORDING_ENABLED] ?: false,
                     micRecordingAskFilename = preferences[KEY_MIC_RECORDING_ASK_FILENAME] ?: true,
+                    micRecordingDestinationResourceId = preferences[KEY_MIC_RECORDING_DESTINATION_RESOURCE_ID],
+                    cameraPhotosDestinationResourceId = preferences[KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID],
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
@@ -488,9 +506,21 @@ class SettingsRepositoryImpl @Inject constructor(
         // NOTE: Language is NOT synced to SharedPreferences here.
         // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
         // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
+        val storedLanguage = if (
+            LocaleHelper.isFollowSystemLanguage(settings.language) ||
+            LocaleHelper.isFollowingSystemLanguage(context)
+        ) {
+            LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+        } else {
+            LocaleHelper.resolveSupportedLanguageCode(settings.language)
+        }
+        val storedColorTheme = ColorThemePrefs.normalizeValue(settings.colorTheme)
+
         dataStore.edit { preferences ->
-            preferences[KEY_LANGUAGE] = settings.language
-            preferences[KEY_COLOR_THEME] = settings.colorTheme
+            // Preserve the follow-system sentinel so later settings writes do not silently pin the
+            // app to the currently effective language.
+            preferences[KEY_LANGUAGE] = storedLanguage
+            preferences[KEY_COLOR_THEME] = storedColorTheme
             preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
             preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
@@ -597,8 +627,13 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
             preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
             preferences[KEY_CAMERA_OPEN_FOR_EDITING] = settings.cameraCaptureOpenForEditing
+            preferences[KEY_DISABLE_VIDEO_CAPTURE] = settings.disableVideoCapture
+            preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] = settings.videoCaptureOpenInPlayer
+            preferences.setOrRemove(KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID, settings.videoRecordingDestinationResourceId)
             preferences[KEY_MIC_RECORDING_ENABLED] = settings.micRecordingEnabled
             preferences[KEY_MIC_RECORDING_ASK_FILENAME] = settings.micRecordingAskFilename
+            preferences.setOrRemove(KEY_MIC_RECORDING_DESTINATION_RESOURCE_ID, settings.micRecordingDestinationResourceId)
+            preferences.setOrRemove(KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID, settings.cameraPhotosDestinationResourceId)
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
             preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture

@@ -157,6 +157,9 @@ class LocalMediaScanner @Inject constructor(
 
             onProgress?.onComplete(filteredFiles.size, 0)
             filteredFiles
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Coroutine cancellation is not a scan failure - it must propagate, never be logged as error.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "LocalMediaScanner: failed to scan recent files")
             onProgress?.onComplete(0, 1)
@@ -184,6 +187,9 @@ class LocalMediaScanner @Inject constructor(
 
             onProgress?.onComplete(filteredFiles.size, 0)
             filteredFiles
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Coroutine cancellation is not a scan failure - it must propagate, never be logged as error.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "LocalMediaScanner: failed to scan all files by types: $allowedTypes")
             onProgress?.onComplete(0, 1)
@@ -203,6 +209,9 @@ class LocalMediaScanner @Inject constructor(
                 showHiddenFiles = showHiddenFiles,
                 sizeFilter = sizeFilter
             )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Coroutine cancellation is not a scan failure - it must propagate, never be logged as error.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "LocalMediaScanner: failed to count all files by types: $allowedTypes")
             0

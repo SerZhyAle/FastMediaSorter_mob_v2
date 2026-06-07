@@ -47,7 +47,7 @@
     <string name="string_format" translatable="false">%1$s</string>
     <string name="string_format_two_args" translatable="false">%1$s %2$s</string>
     <string name="search">Search</string>
-    <string name="search_hint">Search…</string>
+    <string name="search_hint">Search..</string>
     <string name="language_capability_translation">Translation</string>
     <string name="language_capability_basic_ocr">Basic OCR</string>
     <string name="language_capability_quality_ocr">Quality OCR</string>
@@ -57,9 +57,9 @@
     <string name="msg_last_filter_restored">Restored last filter: %1$s</string>
     <string name="warning_files_may_remain_in_source">Some files may still be in the source folder. Please check both source and destination. Affected: %1$d.</string>
     <string name="no_supported_files_in_resource">No supported file types in resource</string>
-    <string name="process_started">Process started…</string>
-    <string name="long_operation_started">Operation in progress, please wait…</string>
-    <string name="please_wait">Please wait…</string>
+    <string name="process_started">Process started..</string>
+    <string name="long_operation_started">Operation in progress, please wait..</string>
+    <string name="please_wait">Please wait..</string>
     <string name="favorites">Favorites</string>
     <string name="resource">Resource</string>
     <string name="media_type">Media type</string>
@@ -125,7 +125,7 @@
     <!-- Delete Dialog -->
     <string name="deleting_files">Deleting Files</string>
     <string name="deleting_n_files">Deleting %1$d files..</string>
-    <string name="title_export_logs_chooser">Export Logs via…</string>
+    <string name="title_export_logs_chooser">Export Logs via..</string>
     <string name="share_debug_logs">Share Debug Logs</string>
     <string name="save_debug_logs">Save Debug Logs</string>
     <string name="save_logs_success">Logs saved to device</string>
@@ -165,10 +165,10 @@
     <string name="virtual_all_docs">All Documents</string>
     <string name="resource_name_downloads">Downloads</string>
     <string name="virtual_comment_recent">Recently accessed local media files</string>
-    <string name="virtual_comment_all_music">Local audio files (mp3, flac, ogg, aac…)</string>
-    <string name="virtual_comment_all_video">Local video files (mp4, mkv, mov, wmv…)</string>
+    <string name="virtual_comment_all_music">Local audio files (mp3, flac, ogg, aac..)</string>
+    <string name="virtual_comment_all_video">Local video files (mp4, mkv, mov, wmv..)</string>
     <string name="virtual_comment_camera_photos">Photos and videos from the device camera</string>
-    <string name="virtual_comment_all_images">Local image files (jpg, png, gif, webp…)</string>
+    <string name="virtual_comment_all_images">Local image files (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">Local documents (PDF, EPUB, text, Office)</string>
     <string name="special_virtual_folders">Special Folders</string>
     <string name="virtual_resource_already_added">Already added</string>
@@ -177,7 +177,7 @@
     <string name="rescan_all_virtual_warning_message">The list includes virtual aggregate folders (All Music, All Videos, All Images, All Documents). Full rescan may take significant time. Continue?</string>
     <string name="no_files_match_criteria">No files match your criteria</string>
     <string name="connection_failed">Connection failed</string>
-    <string name="connection_ok_starting_speed_test">Connection OK. Starting Speed Test…</string>
+    <string name="connection_ok_starting_speed_test">Connection OK. Starting Speed Test..</string>
     <string name="error_subfolder_does_not_exist">Subfolder \'%1$s\' does not exist on share \'%2$s\'</string>
     <string name="retry">Retry</string>
     <string name="select_resource_type">Select Folder Type</string>
@@ -259,8 +259,8 @@
     <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources, %2$d favorites and all settings to %3$s</string>
     <string name="backup_failed">Couldn\'t back up your settings and resources. Try again.</string>
-    <string name="backup_in_progress">Backing up settings and resources…</string>
-    <string name="restore_in_progress">Restoring settings and resources…</string>
+    <string name="backup_in_progress">Backing up settings and resources..</string>
+    <string name="restore_in_progress">Restoring settings and resources..</string>
     <string name="restore_confirm_title">Restore from Backup?</string>
     <string name="restore_confirm_message">Backup from: %1$s\nDevice: %2$s\nResources: %3$d\nFavorites: %4$d\n\n• Settings will be REPLACED\n• Resources will be APPENDED (duplicates skipped)\n• Favorites will be APPENDED (duplicates skipped)</string>
     <string name="restore_success">Restored all settings. Added %1$d resources (%2$d existed). Added %3$d favorites (%4$d existed).</string>
@@ -295,7 +295,7 @@
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">More actions</string>
     <string name="slideshow">Slideshow</string>
-    <string name="starting_slideshow_for">Starting slideshow for %1$s…</string>
+    <string name="starting_slideshow_for">Starting slideshow for %1$s..</string>
     <string name="slideshow_keep_awake">Screen will stay on during slideshow</string>
     <string name="google_lens">Google Lens</string>
 
@@ -479,7 +479,7 @@ Close the player and try again.</string>
     <string name="created_date">Created Date</string>
     <string name="last_browse_date">Last Browse Date</string>
     <string name="never_browsed">Never browsed</string>
-    <string name="loading_files">Loading files…</string>
+    <string name="loading_files">Loading files..</string>
     <string name="supported_media_types">Supported Media Types</string>
     <string name="scan_subdirectories">Scan subdirectories</string>
     <string name="scan_subdirectories_hint">Enable to search for media files in all nested subdirectories. Disable to scan only the root folder.</string>
@@ -524,7 +524,7 @@ Close the player and try again.</string>
     <string name="cb_play_to_end_desc">Waits for the end of each video or audio before moving in the slideshow</string>
 
     <!-- Network delete dialog -->
-    <string name="and_n_more_files_network">…and %d more files</string>
+    <string name="and_n_more_files_network">..and %d more files</string>
     <string name="dont_show_again_for_resource">Don\'t show again for this resource</string>
 
     <!-- Widget strings -->
@@ -543,7 +543,7 @@ Close the player and try again.</string>
     <string name="favorites_empty_hint">Mark files as favorite to see them here</string>
 
     <string name="use_as_destination">Mark for Quick Sort</string>
-    <string name="counting">counting…</string>
+    <string name="counting">counting..</string>
     <string name="clear_trash">Clear Trash</string>
     <string name="clear_trash_confirm_title">Clear Trash Folders?</string>
     <string name="clear_trash_confirm_message">This will permanently delete %d trash folder(s) and all files inside them. This action cannot be undone.</string>
@@ -587,7 +587,7 @@ Close the player and try again.</string>
 
     <!-- Lyrics Feature -->
     <string name="lyrics">Lyrics</string>
-    <string name="searching_lyrics">Searching lyrics…</string>
+    <string name="searching_lyrics">Searching lyrics..</string>
     <string name="lyrics_not_found">Lyrics not found</string>
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
     <string name="search_in_youtube_music">In YouMusic</string>
@@ -602,7 +602,7 @@ Close the player and try again.</string>
     <string name="print_fallback_to_share">Print dialog couldn\'t open - the share menu is now open. Pick a print app.</string>
 
     <!-- Chromecast / Cast -->
-    <string name="cast_to_chromecast">Cast to…</string>
+    <string name="cast_to_chromecast">Cast to..</string>
     <string name="cast_connected">Casting to %s</string>
     <string name="cast_disconnected">Cast disconnected</string>
     <string name="cast_video_too_large">Video too large to cast (&gt; 50 MB)</string>
@@ -706,7 +706,7 @@ Close the player and try again.</string>
     <string name="gms_update_action">Update</string>
     <string name="gms_settings_link">You can update Google Play Services to enable a few optional features. If you don\'t need them, skip it.</string>
     <string name="network_unstable_snackbar">Network unstable - check Wi-Fi</string>
-    <string name="cache_size_calculating">Calculating…</string>
+    <string name="cache_size_calculating">Calculating..</string>
     <string name="cache_size_format">Cache: %s</string>
     <string name="cache_cleared">Cache cleared successfully</string>
     <string name="cache_clear_failed">Failed to clear cache</string>
@@ -976,7 +976,7 @@ Close the player and try again.</string>
     <string name="loading_placeholder">..</string>
     <string name="open_in_default_player">Open in Default Player</string>
     <string name="download_and_open">Download and Open</string>
-    <string name="downloading_file">Downloading file…</string>
+    <string name="downloading_file">Downloading file..</string>
     <string name="downloaded_successfully">Downloaded successfully</string>
     <string name="download_failed">Download failed: %1$s</string>
     <string name="no_app_to_handle_file">No app found to open this file</string>
@@ -985,10 +985,10 @@ Close the player and try again.</string>
 
     <!-- Accessibility labels -->
     <string name="loading_indicator">Loading</string>
-    <string name="connecting">Connecting to resource…</string>
-    <string name="connecting_to_resource">Connecting to %1$s…</string>
+    <string name="connecting">Connecting to resource..</string>
+    <string name="connecting_to_resource">Connecting to %1$s..</string>
     <string name="resume_unavailable">Cannot resume playback - resource unavailable or session expired</string>
-    <string name="resume_checking">Restoring playback…</string>
+    <string name="resume_checking">Restoring playback..</string>
     <string name="scan_progress_indicator">Scanning files</string>
     <string name="operation_progress_indicator">Operation in progress</string>
 
@@ -1029,7 +1029,7 @@ Close the player and try again.</string>
     <string name="selected_folders">Selected: %1$d folders</string>
     <string name="folder_icon">Folder icon</string>
     <string name="navigate_into_folder">Navigate into folder</string>
-    <string name="loading">Loading…</string>
+    <string name="loading">Loading..</string>
     <string name="loading_with_progress" translatable="false">%1$s (%2$d)</string>
     <string name="sorting_in_progress">Sorting..</string>
 
@@ -1091,7 +1091,7 @@ Close the player and try again.</string>
     </plurals>
     <string name="sync_now">Sync Now</string>
     <string name="sync_status_idle">Ready to sync</string>
-    <string name="sync_status_in_progress">Syncing…</string>
+    <string name="sync_status_in_progress">Syncing..</string>
     <string name="sync_status_completed">Synced %d resources</string>
     <string name="sync_status_failed">Sync failed</string>
     <string name="sync_completed_successfully">Synced %d resources successfully</string>
@@ -1232,7 +1232,7 @@ Close the player and try again.</string>
     <string name="battery_optimization_dialog_message">To allow scheduled file operations to run reliably in the background, disable battery optimization for FastMediaSorter. This is optional but recommended if you use scheduled operations.</string>
     <string name="battery_optimization_dialog_btn_allow">Disable Optimization</string>
     <string name="battery_optimization_dialog_btn_skip">Skip</string>
-    <string name="msg_download_share">Downloading file for sharing…</string>
+    <string name="msg_download_share">Downloading file for sharing..</string>
     <string name="error_share_download_failed">Could not prepare the file for sharing.</string>
     <string name="error_share_unexpected">Unexpected download result</string>
     <string name="error_share_failed">Could not share the file.</string>
@@ -1240,7 +1240,7 @@ Close the player and try again.</string>
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Network Discovery</string>
-    <string name="msg_scanning_subnet">Scanning local subnet…</string>
+    <string name="msg_scanning_subnet">Scanning local subnet..</string>
     <string name="msg_scan_complete">Scan complete</string>
     <string name="msg_host_selected">Selected %1$s (%2$s)</string>
     <string name="msg_scan_again">Scan Again</string>
@@ -1265,8 +1265,8 @@ Close the player and try again.</string>
     <string name="msg_failed_reload_image">Could not reload the image.</string>
 
     <!-- GIF Editor -->
-    <string name="msg_gif_extracting">Extracting frames…</string>
-    <string name="msg_gif_extract_started">Extracting %1$d frames…</string>
+    <string name="msg_gif_extracting">Extracting frames..</string>
+    <string name="msg_gif_extract_started">Extracting %1$d frames..</string>
     <string name="msg_gif_extract_success">%1$d frames saved to Downloads</string>
     <string name="msg_gif_extract_failed">Couldn\'t extract the frames. Try again.</string>
     <string name="msg_gif_extract_api_unavailable">Frame extraction for this format requires Android 9+ (API 28+)</string>
@@ -1274,9 +1274,9 @@ Close the player and try again.</string>
     <string name="msg_gif_speed_failed">Couldn\'t change the GIF speed. Try again.</string>
     <string name="msg_gif_first_frame_success">First frame saved to Downloads</string>
     <string name="msg_gif_first_frame_failed">Couldn\'t save the first frame. Try again.</string>
-    <string name="msg_preparing_file">Preparing file…</string>
+    <string name="msg_preparing_file">Preparing file..</string>
     <string name="msg_gif_prepare_failed">Failed to prepare GIF file</string>
-    <string name="msg_gif_downloading">Downloading file…</string>
+    <string name="msg_gif_downloading">Downloading file..</string>
     <string name="msg_gif_speed_already_normal">Speed is already normal (1.0x)</string>
     <string name="msg_gif_network_extract_success">%1$d frames saved to Downloads</string>
     <string name="msg_gif_network_speed_success">Speed changed to %1$.1fx, saved to Downloads</string>
@@ -1289,7 +1289,7 @@ Close the player and try again.</string>
     <string name="slideshow_stopped_connection_lost">Slideshow stopped. Connection to %1$s was lost.</string>
     <string name="slideshow_stopped_resource_unavailable">Slideshow stopped. No access to %1$s.</string>
     <string name="volume_level">Volume: %1$d%%</string>
-    <string name="msg_network_stream_retry">Network stream interrupted, retrying… (%1$d/%2$d)</string>
+    <string name="msg_network_stream_retry">Network stream interrupted, retrying.. (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Network stream error after %1$d retries: %2$s</string>
     <string name="msg_playback_error">Playback error: %1$s</string>
     <string name="error_loading_media">Error loading file, skipping</string>
@@ -1320,7 +1320,7 @@ Close the player and try again.</string>
     <string name="later">Later</string>
 
     <!-- Network Discovery Dialog -->
-    <string name="scanning_local_subnet">Scanning local subnet…</string>
+    <string name="scanning_local_subnet">Scanning local subnet..</string>
     <string name="no_devices_found">No devices found yet</string>
 
     <!-- Filter Resource Dialog -->
@@ -1356,8 +1356,8 @@ Close the player and try again.</string>
     <string name="unsupported_format_use_external_player">Format not supported. Try opening with external player.</string>
     <string name="unsupported_format_copy_to_local">Format not supported. Copy file to local resource to use external player.</string>
     <string name="heic_not_supported_on_device">%1$s requires %2$s or newer to display on this device.</string>
-    <string name="panel_copy_to">Copy to…</string>
-    <string name="panel_move_to">Move to…</string>
+    <string name="panel_copy_to">Copy to..</string>
+    <string name="panel_move_to">Move to..</string>
     <string name="more_options">More options</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
@@ -1400,7 +1400,7 @@ Close the player and try again.</string>
     <!-- OCR Feature -->
     <string name="enable_ocr">Enable text recognition (OCR)</string>
     <string name="enable_ocr_summary">Extract text from images and PDF for copying</string>
-    <string name="translation_downloading_wait">Waiting for translation result…</string>
+    <string name="translation_downloading_wait">Waiting for translation result..</string>
 
     <!-- OCR Engine and PaddleOCR Models (S0288) -->
     <string name="paddle_ocr_model">PaddleOCR Model</string>
@@ -1440,13 +1440,13 @@ Close the player and try again.</string>
     <string name="toast_rotate_failed">Couldn\'t rotate the image. Try again.</string>
     <string name="toast_image_flipped">Image flipped successfully</string>
     <string name="toast_flip_failed">Couldn\'t flip the image. Try again.</string>
-    <string name="toast_filter_active">Filter active…</string>
+    <string name="toast_filter_active">Filter active..</string>
 
     <!-- Progress messages for image editing -->
-    <string name="progress_applying_filter">Applying filter…</string>
-    <string name="progress_applying_adjustments">Applying adjustments…</string>
-    <string name="progress_rotating_image">Rotating image…</string>
-    <string name="progress_flipping_image">Flipping image %1$s…</string>
+    <string name="progress_applying_filter">Applying filter..</string>
+    <string name="progress_applying_adjustments">Applying adjustments..</string>
+    <string name="progress_rotating_image">Rotating image..</string>
+    <string name="progress_flipping_image">Flipping image %1$s..</string>
 
     <string name="toast_no_files_to_play">No files to play</string>
     <string name="toast_file_unavailable">This file is currently unavailable, please select a resource to play</string>
@@ -1456,7 +1456,7 @@ Close the player and try again.</string>
 
 
     <!-- Text pager / encoding -->
-    <string name="reopen_with_encoding">Re-open with Encoding…</string>
+    <string name="reopen_with_encoding">Re-open with Encoding..</string>
     <string name="select_encoding">Select Encoding</string>
 
     <!-- Text reader settings -->
@@ -1468,13 +1468,13 @@ Close the player and try again.</string>
     <string name="toggle_markdown">Toggle Markdown</string>
     <string name="read_aloud">Read Aloud</string>
     <string name="read_aloud_stop">Stop Reading</string>
-    <string name="tts_reading">Reading aloud…</string>
+    <string name="tts_reading">Reading aloud..</string>
     <string name="syntax_highlighting">Syntax Highlighting</string>
 
     <!-- H.3: Editor enhancements -->
     <string name="redo">Redo</string>
-    <string name="find_hint">Find…</string>
-    <string name="replace_hint">Replace with…</string>
+    <string name="find_hint">Find..</string>
+    <string name="replace_hint">Replace with..</string>
     <string name="replace">Replace</string>
     <string name="replace_all">Replace All</string>
     <string name="find_and_replace">Find and Replace</string>
@@ -1501,13 +1501,13 @@ Close the player and try again.</string>
     <string name="read_speed">Read</string>
     <string name="write_speed">Write</string>
     <string name="rec_threads">Threads</string>
-    <string name="analyzing_speed">Analyzing speed…</string>
+    <string name="analyzing_speed">Analyzing speed..</string>
     <string name="last_test_date">Last test: %s</string>
     <string name="never_tested">Never tested</string>
 
     <!-- Speed Test -->
-    <string name="speed_test_preparing">Preparing speed test…</string>
-    <string name="speed_test_saving">Saving results…</string>
+    <string name="speed_test_preparing">Preparing speed test..</string>
+    <string name="speed_test_saving">Saving results..</string>
     <string name="speed_test_complete">Speed Test Complete: Read: %1$s Mbps, Write: %2$s Mbps (Threads: %3$d)</string>
 
     <!-- Trash System -->
@@ -1560,7 +1560,7 @@ Close the player and try again.</string>
     <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">0 files scanned</string>
-    <string name="activity_main_tvScanProgress_text">Scanning resources…</string>
+    <string name="activity_main_tvScanProgress_text">Scanning resources..</string>
     <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
@@ -1653,7 +1653,7 @@ Close the player and try again.</string>
     <string name="dialog_file_operation_progress_btnCancel_text">Cancel</string>
     <string name="transfer_overall_progress_desc">Overall transfer progress</string>
     <string name="transfer_eta_desc">Estimated time remaining</string>
-    <string name="dialog_file_operation_progress_tvProgressTitle_text">Copying files…</string>
+    <string name="dialog_file_operation_progress_tvProgressTitle_text">Copying files..</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_suffixText">MB</string>
@@ -1695,8 +1695,8 @@ Close the player and try again.</string>
     <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
     <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
-    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Please wait…</string>
-    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Loading…</string>
+    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Please wait..</string>
+    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Loading..</string>
     <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
@@ -1762,7 +1762,7 @@ Close the player and try again.</string>
     <string name="integration_tests_description">Automated testing of file operations across all resource types</string>
     <string name="default_zero">0</string>
     <string name="search_counter_default">0/0</string>
-    <string name="scanning_resources">Scanning resources…</string>
+    <string name="scanning_resources">Scanning resources..</string>
     <string name="thumbnail">Thumbnail</string>
     <string name="resource_type_icon">Resource type icon</string>
     <string name="cd_resource_icon_quick_slideshow">Start slideshow</string>
@@ -2048,9 +2048,9 @@ Close the player and try again.</string>
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Find Duplicates</string>
     <string name="action_delete_duplicates">Find and Delete Duplicates</string>
-    <string name="action_delete_smaller_than">Delete Smaller Than…</string>
-    <string name="action_delete_larger_than">Delete Larger Than…</string>
-    <string name="action_delete_by_size">Delete by Size…</string>
+    <string name="action_delete_smaller_than">Delete Smaller Than..</string>
+    <string name="action_delete_larger_than">Delete Larger Than..</string>
+    <string name="action_delete_by_size">Delete by Size..</string>
     <string name="cd_resource_ops_menu">Resource Operations Menu</string>
     <string name="cmd_camera_capture">Capture with camera</string>
     <string name="camera_capture_filename_title">Save as</string>
@@ -2065,7 +2065,7 @@ Close the player and try again.</string>
     <string name="duplicate_scan_start">Start Scan</string>
     <string name="duplicate_scan_failed">Couldn\'t finish the duplicate scan. Try again.</string>
     <string name="duplicate_none_found">No duplicates found.</string>
-    <string name="scanning_for_duplicates">Scanning for duplicates…</string>
+    <string name="scanning_for_duplicates">Scanning for duplicates..</string>
     <string name="duplicates_found_format">Found %1$d duplicate groups (%2$s total)</string>
     <string name="group_title_format">Group %1$d</string>
     <string name="select_duplicates">Select Duplicates</string>
@@ -2107,7 +2107,7 @@ Close the player and try again.</string>
     <string name="archive_name_invalid_chars_error">Name contains invalid characters</string>
     <string name="archive_destination_label">Destination folder: %1$s</string>
     <string name="archive_action_btn">Archive</string>
-    <string name="archive_progress_title">Creating archive…</string>
+    <string name="archive_progress_title">Creating archive..</string>
     <string name="archive_progress_message">%1$d of %2$d: %3$s</string>
     <string name="archive_success">Archive created: %1$s (%2$d files)</string>
     <string name="archive_error">Archive error: %1$s</string>
@@ -2117,7 +2117,7 @@ Close the player and try again.</string>
     <string name="unarchive_dialog_title">Extract archive?</string>
     <string name="unarchive_dialog_message">"%1$s" -> folder "%2$s"</string>
     <string name="unarchive_action_extract">Extract</string>
-    <string name="unarchive_progress_title">Extracting archive…</string>
+    <string name="unarchive_progress_title">Extracting archive..</string>
     <string name="unarchive_progress_entry">Extracting: %1$s</string>
     <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
     <string name="unarchive_success">Archive extracted</string>
@@ -2191,7 +2191,7 @@ Close the player and try again.</string>
     <string name="wear_last_synced">Last synced: %s</string>
     <string name="wear_push_to_watch">Push to Watch</string>
     <string name="wear_sync_ready">Ready to sync</string>
-    <string name="wear_sync_sending">Sending to watch…</string>
+    <string name="wear_sync_sending">Sending to watch..</string>
     <string name="wear_sync_success">Sent %d source(s) to watch</string>
     <string name="wear_sync_failed">Couldn\'t sync with the watch. Try again.</string>
     <string name="wear_settings_section_title">Watch Settings</string>
@@ -2369,7 +2369,7 @@ Close the player and try again.</string>
     <string name="friendly_copy_error_not_found">Couldn\'t find what you were looking for. It may have been moved or deleted.</string>
     <string name="friendly_copy_empty_state_generic">Nothing here yet.</string>
     <string name="friendly_copy_empty_state_invite">Nothing here yet. Add something to get started.</string>
-    <string name="friendly_copy_progress_generic">Working on it…</string>
+    <string name="friendly_copy_progress_generic">Working on it..</string>
     <string name="friendly_copy_success_generic">Done.</string>
     <string name="friendly_copy_next_step_help">Open help</string>
     <string name="friendly_copy_next_step_report">Report a problem</string>
@@ -2407,8 +2407,8 @@ Close the player and try again.</string>
     <string name="link_download_notif_text_downloading_pct">Downloading %1$d%%</string>
     <string name="link_download_notif_action_cancel">Cancel</string>
     <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \&quot;Sign-in declined\&quot; were created when you chose \&quot;Do not ask\&quot; - they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \&quot;Add authorization\&quot; in the top menu.</string>
-    <string name="link_download_ytdlp_extracting">Extracting media link…</string>
-    <string name="link_download_ytdlp_downloading">Downloading via universal extractor…</string>
+    <string name="link_download_ytdlp_extracting">Extracting media link..</string>
+    <string name="link_download_ytdlp_downloading">Downloading via universal extractor..</string>
     <string name="link_download_ytdlp_error_extract">Could not extract media from this link.</string>
     <string name="link_download_ytdlp_error_runtime">Universal extractor is not available.</string>
     <string name="rotation_toggle_title">Rotation</string>
@@ -2433,7 +2433,7 @@ Close the player and try again.</string>
     <string name="audio_next_track_loading">Loading next track..</string>
     <string name="widget_quick_audio_recorder_label">Quick Recorder</string>
     <string name="widget_quick_audio_recorder_description">Tap to start a voice recording; tap again to stop and save</string>
-    <string name="quick_recorder_notification_recording">Recording…</string>
+    <string name="quick_recorder_notification_recording">Recording..</string>
     <string name="quick_recorder_notification_channel">Voice recording</string>
     <string name="quick_recorder_action_stop">Stop</string>
     <string name="quick_recorder_saved">Recording saved: %1$s</string>
@@ -2446,7 +2446,7 @@ Close the player and try again.</string>
     <string name="perm_desc_camera">Take photos inside the app for OCR capture and saving to the current resource. Needed when you want to shoot without leaving the app.</string>
     <string name="perm_group_camera">Camera</string>
     <string name="camera_permission_required">Camera access is needed to take photos in the app. Grant the permission and try again.</string>
-    <string name="setting_camera_to_resource_section_title">Camera-to-Resource</string>
+    <string name="setting_camera_to_resource_section_title">Camera Photos</string>
     <string name="setting_camera_to_resource_enabled_title">Enable photo capture</string>
     <string name="setting_camera_to_resource_enabled_desc">Show the camera command in the file browser and save new photos to the current resource.</string>
     <string name="setting_camera_ask_filename_title">Ask for each photo name</string>
@@ -2455,4 +2455,14 @@ Close the player and try again.</string>
     <string name="setting_camera_open_for_editing_desc">Open the saved photo in the drawing editor right after capture.</string>
     <string name="setting_camera_permission_note">In-app photo capture needs camera access.</string>
     <string name="perm_group_optional">Optional permissions</string>
+    <string name="cmd_video_capture">Record video</string>
+    <string name="setting_video_capture_section_title">Video recording</string>
+    <string name="setting_video_capture_enable_title">Enable video recording</string>
+    <string name="setting_video_capture_enable_desc">Show a command to record video straight into the current resource.</string>
+    <string name="setting_video_capture_open_in_player_title">Open recorded video in player</string>
+    <string name="setting_video_capture_open_in_player_desc">After a recording is saved, open it in the player. Off by default.</string>
+    <string name="resource_menu_open">Open</string>
+    <string name="resource_menu_launch">Launch</string>
+    <string name="resource_menu_move_to_top">Move to very top</string>
+    <string name="resource_menu_move_to_bottom">Move to very bottom</string>
 </resources>

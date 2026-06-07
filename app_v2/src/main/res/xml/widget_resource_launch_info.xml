@@ -11,5 +11,4 @@
     android:resizeMode="none"
     android:widgetCategory="home_screen"
     android:theme="@style/Widget.FastMediaSorter"
-    android:previewImage="@drawable/widget_preview_resource_launch"
-    android:previewLayout="@layout/widget_resource_launch" />
+    android:previewImage="@drawable/ic_resource_local" />

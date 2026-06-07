@@ -150,10 +150,10 @@ Full-size images:
 - 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
-- 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
+- 📱 **Widget Support:** Quick access to your favorite resources directly from your home screen with two widget types: **Resource Shortcut** (opens any saved resource instantly) and **Continue Reading** (launches slideshow mode immediately).
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
-- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination folder are set in Video Settings.
+- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination resource are set in Video Settings.
 - 🖨️ **Print:** Send documents (PDF, TXT) and images to a printer directly from the built-in player. Network and cloud files are cached locally before printing.
 - ⬇️ **Stream Offload:** Download a network file to local cache with a real-time progress dialog before or during playback. An optional cleanup prompt reclaims storage afterward.
 - 🔊 **DTS/DTS-HD Audio:** DTS and DTS-HD audio tracks are decoded in software via a custom FFmpeg build - no special hardware required.

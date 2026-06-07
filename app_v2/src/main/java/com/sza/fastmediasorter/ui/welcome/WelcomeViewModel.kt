@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
+import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.ProfileImpliesAllFilesUseCase
 import com.sza.fastmediasorter.ui.profile.DeviceProfileAvailability
 import com.sza.fastmediasorter.data.model.DeviceProfile
 import com.sza.fastmediasorter.data.model.DeviceProfileType
@@ -28,7 +30,9 @@ class WelcomeViewModel @Inject constructor(
     private val deviceProfileRepository: DeviceProfileRepository,
     private val deviceProfileDetector: DeviceProfileDetector,
     private val applyProfilePresetUseCase: ApplyProfilePresetUseCase,
-    private val deviceProfileAvailability: DeviceProfileAvailability
+    private val deviceProfileAvailability: DeviceProfileAvailability,
+    private val profileImpliesAllFilesUseCase: ProfileImpliesAllFilesUseCase,
+    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
 ) : BaseViewModel<WelcomeState, WelcomeEvent>() {
 
     companion object {
@@ -107,6 +111,13 @@ class WelcomeViewModel @Inject constructor(
 
             // Apply preset values for this profile after the selected profile is persisted.
             applyProfilePresetUseCase.apply(finalType, presetVersion = 1)
+                .onSuccess {
+                    if (profileImpliesAllFilesUseCase(finalType)) {
+                        ensureAllFilesPredefinedResourceUseCase()
+                            .onFailure { Timber.e(it, "WelcomeViewModel: failed to ensure All Files resource") }
+                    }
+                }
+                .onFailure { Timber.e(it, "WelcomeViewModel: failed to apply profile preset") }
         }
     }
 

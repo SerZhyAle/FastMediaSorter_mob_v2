@@ -54,7 +54,7 @@
     <string name="scheduled_ops_next_run">Следующий запуск в:</string>
     <string name="scheduled_ops_no_destinations">Сначала добавьте получателей в разделе «Получатели»</string>
     <string name="scheduled_ops_notif_channel_name">Операции по расписанию</string>
-    <string name="scheduled_ops_notif_running">Выполняется операция по расписанию…</string>
+    <string name="scheduled_ops_notif_running">Выполняется операция по расписанию..</string>
     <string name="scheduled_ops_op_copy">Копирование</string>
     <string name="scheduled_ops_op_delete">Удаление</string>
     <string name="scheduled_ops_op_move">Перемещение</string>

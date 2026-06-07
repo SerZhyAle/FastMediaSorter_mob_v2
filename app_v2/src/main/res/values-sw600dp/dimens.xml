@@ -20,6 +20,8 @@
     <dimen name="button_height">56dp</dimen>
     <dimen name="control_button_size">56dp</dimen>
     <dimen name="control_button_size_compact">36dp</dimen>
+    <!-- S0374 Browse top command bar +20% (Browse-scoped): 56dp tablet base ×1.2 -->
+    <dimen name="browse_cmd_button_size">67dp</dimen>
     <dimen name="toolbar_row_height_compact">24dp</dimen>
 
     <!-- Main Activity -->
