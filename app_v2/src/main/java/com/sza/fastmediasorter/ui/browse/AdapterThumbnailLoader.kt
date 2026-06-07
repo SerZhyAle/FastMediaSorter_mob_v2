@@ -575,7 +575,7 @@ class AdapterThumbnailLoader(
                 val ext = file.name.substringAfterLast('.', "").lowercase()
                 if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
                         .shouldSkipNetworkExtraction(ext)) {
-                    Timber.d("[scope=thumbnail S0063] Blocked network format '$ext' - showing placeholder: ${file.name}")
+                    Timber.d("[scope=thumbnail] Blocked network format '$ext' - showing placeholder: ${file.name}")
                     showGeneratedPlaceholder(imageView, file)
                     imageView.contentDescription = context.getString(
                         R.string.thumbnail_unavailable_network_format,

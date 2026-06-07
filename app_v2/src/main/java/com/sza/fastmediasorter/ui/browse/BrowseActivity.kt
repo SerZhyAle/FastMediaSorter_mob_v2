@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.memory.MemoryScenario
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -146,6 +147,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+    @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
@@ -373,6 +375,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             binaryFileMenuActions = binaryFileMenuActions,
             browseApkTileBadgeBinder = browseApkTileBadgeBinder,
             reviewRequestManager = reviewRequestManager,
+            restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
         )
 
         initializer.initialize()
@@ -628,12 +631,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             resource?.let { "{id=${it.id}, type=${it.type}, name=${it.name}}" } ?: "NULL",
         )
         if (resource == null) {
-            Timber.w("S0022-CAM: BrowseActivity.onCameraCaptureClicked ABORT - viewModel resource is null")
+            Timber.w("BrowseActivity.onCameraCaptureClicked ABORT - viewModel resource is null")
             return
         }
         val passthrough = passthroughCaptureProvider.orElse(null)
         if (passthrough != null) {
-            Timber.i("S0058: routing camera capture to passthrough provider")
+            Timber.i("routing camera capture to passthrough provider")
             passthrough.launch(this, resource) { fileName -> onCapturedFileSaved(fileName) }
         } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)

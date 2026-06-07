@@ -129,7 +129,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
         )
         return TextViewerManager(
             context = activity,
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
             settingsRepository = activity.settingsRepository,
             coroutineScope = activity.lifecycleScope,

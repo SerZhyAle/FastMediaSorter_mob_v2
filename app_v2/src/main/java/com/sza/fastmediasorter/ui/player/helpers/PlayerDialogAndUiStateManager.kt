@@ -82,7 +82,7 @@ class PlayerDialogAndUiStateManager(
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
             .setAction(R.string.s0213_action_skip) { onSkip() }
             .show()
-        Timber.i("S0213 cooldown snackbar shown: remainingSec=$remainingSec")
+        Timber.i("cooldown snackbar shown: remainingSec=$remainingSec")
     }
 
     /**
@@ -95,7 +95,7 @@ class PlayerDialogAndUiStateManager(
         Snackbar.make(binding.root, R.string.s0213_memory_alert_message, Snackbar.LENGTH_INDEFINITE)
             .setAction(R.string.s0213_memory_alert_action) { onClosePlayer() }
             .show()
-        Timber.i("S0213 memory degradation snackbar shown")
+        Timber.i("memory degradation snackbar shown")
     }
 
     // ========================================

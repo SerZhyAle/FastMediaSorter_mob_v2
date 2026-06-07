@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -100,6 +101,7 @@ class BrowseManagerInitializer(
     private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
+    private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
 ) {
     // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
@@ -374,6 +376,7 @@ class BrowseManagerInitializer(
             settingsRepository = settingsRepository,
             fileOperationsManager = fileOperationsManager,
             unifiedFileOperationHandler = unifiedFileOperationHandler,
+            restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             onLaunchPicker = { initialUri -> launcherManager.folderPickerLauncher.launch(initialUri) }
         )
 

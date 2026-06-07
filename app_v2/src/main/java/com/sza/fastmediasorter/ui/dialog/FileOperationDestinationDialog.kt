@@ -290,7 +290,7 @@ class FileOperationDestinationDialog(
                 context,
                 context.getString(progressTitleResId),
                 onCancel = { 
-                    Timber.d("performOperation: cancel requested by user") // S0055-D
+                    Timber.d("performOperation: cancel requested by user") // -D
                     cancel() // Cancel this coroutine job
                 }
             )

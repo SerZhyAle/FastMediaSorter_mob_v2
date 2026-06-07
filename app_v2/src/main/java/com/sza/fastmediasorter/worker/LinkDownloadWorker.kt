@@ -37,7 +37,7 @@ import timber.log.Timber
  *  - [KEY_ACCOUNT_ID] - account whose cookies the coordinator should use (single-URL only).
  *
  * The worker posts a [NOTIF_ID_PROGRESS] foreground notification during download, then
- * a separate auto-cancel result notification when done.  For [SocialPreviewOnly] results
+ * a separate short-lived result notification when done. For [SocialPreviewOnly] results
  * the result notification includes a "Sign in" action that re-opens [ReceiveShareActivity]
  * with [ReceiveShareActivity.EXTRA_REAUTH_URL] so the full auth flow can restart.
  */
@@ -68,6 +68,9 @@ class LinkDownloadWorker @AssistedInject constructor(
         // Result notifications use NOTIF_ID_RESULT_BASE + (abs(url.hashCode) % 100)
         // to give each download its own slot while avoiding unbounded ID growth.
         private const val NOTIF_ID_RESULT_BASE = 7200
+        // Result notifications are informational; expire them automatically so stale
+        // share/download outcomes do not linger in the shade indefinitely.
+        private const val RESULT_NOTIFICATION_TIMEOUT_MS = 20 * 60 * 1000L
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -136,7 +139,7 @@ class LinkDownloadWorker @AssistedInject constructor(
                     notificationShown = true,
                 )
             )
-        }.onFailure { Timber.w(it, "S0202: result bus emit failed") }
+        }.onFailure { Timber.w(it, "result bus emit failed") }
         return Result.success(outputData)
     }
 
@@ -215,6 +218,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setTimeoutAfter(RESULT_NOTIFICATION_TIMEOUT_MS)
 
         when (result) {
             is LinkAutoDownloadCoordinator.Result.Saved -> {

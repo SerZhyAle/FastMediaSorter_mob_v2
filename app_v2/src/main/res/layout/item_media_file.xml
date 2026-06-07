@@ -4,7 +4,7 @@
 
     <CheckBox android:id="@+id/cbSelect" android:layout_width="wrap_content" android:layout_height="wrap_content" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView android:id="@+id/ivThumbnail" android:layout_width="@dimen/item_icon_size_medium" android:layout_height="@dimen/item_icon_size_medium" android:layout_marginStart="@dimen/margin_small" android:scaleType="centerCrop" android:contentDescription="@string/thumbnail" android:background="?android:selectableItemBackground" app:layout_constraintStart_toEndOf="@id/cbSelect" app:layout_constraintTop_toTopOf="parent" tools:src="@drawable/ic_image" />
+    <ImageView android:id="@+id/ivThumbnail" android:layout_width="@dimen/item_icon_size_medium" android:layout_height="@dimen/item_icon_size_medium" android:layout_marginStart="@dimen/margin_tiny" android:scaleType="centerCrop" android:contentDescription="@string/thumbnail" android:background="?android:selectableItemBackground" app:layout_constraintBottom_toBottomOf="@id/cbSelect" app:layout_constraintStart_toEndOf="@id/cbSelect" app:layout_constraintTop_toTopOf="@id/cbSelect" tools:src="@drawable/ic_image" />
 
     <TextView android:id="@+id/tvFileName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:ellipsize="end" android:includeFontPadding="true" android:maxLines="2" android:textSize="@dimen/item_subtitle_text_size" android:textStyle="bold" app:layout_constraintBottom_toTopOf="@+id/tvFileInfo" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toEndOf="@+id/ivThumbnail" app:layout_constraintTop_toTopOf="parent" tools:text="IMG_20231106_123456.jpg" />
 
@@ -28,5 +28,4 @@
     <ImageView android:id="@+id/ivDragHandle" android:layout_width="48dp" android:layout_height="48dp" android:scaleType="center" android:padding="12dp" android:src="@drawable/ic_drag_handle" android:contentDescription="@string/drag_handle_description" android:visibility="gone" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
 

@@ -3,8 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.View
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import kotlin.math.abs
 
 /** Builds the two `GestureDetector`s for [TextViewerManager]: text-content (font-size swipe + page nav + fullscreen-exit) and translation-overlay (font-size swipe + tap-toggle). Extracted to keep the host class under the 1000-LOC budget. */
@@ -15,7 +15,7 @@ internal object TextViewerGestureDetectors {
 
     fun buildTextDetector(
         context: Context,
-        binding: ActivityPlayerUnifiedBinding,
+        root: View,
         safeViews: PlayerBindingSafeViews,
         getCurrentFile: () -> com.sza.fastmediasorter.domain.model.MediaFile?,
         getTextFilePager: () -> TextFilePager?,
@@ -28,8 +28,8 @@ internal object TextViewerGestureDetectors {
     ): GestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             if (e1 == null) return false
-            val screenWidth = binding.root.width
-            val screenHeight = binding.root.height
+            val screenWidth = root.width
+            val screenHeight = root.height
             val swipeThreshold = (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT).toInt().coerceAtLeast(50)
             val diffX = e2.x - e1.x
             val diffY = e2.y - e1.y
@@ -67,15 +67,15 @@ internal object TextViewerGestureDetectors {
 
     fun buildTranslationDetector(
         context: Context,
-        binding: ActivityPlayerUnifiedBinding,
+        root: View,
         onIncreaseTranslationFontSize: () -> Unit,
         onDecreaseTranslationFontSize: () -> Unit,
         onToggleOverlaySize: () -> Unit,
     ): GestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             if (e1 == null) return false
-            val screenWidth = binding.root.width
-            val screenHeight = binding.root.height
+            val screenWidth = root.width
+            val screenHeight = root.height
             val swipeThreshold = (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT).toInt().coerceAtLeast(50)
             val diffX = e2.x - e1.x
             val diffY = e2.y - e1.y

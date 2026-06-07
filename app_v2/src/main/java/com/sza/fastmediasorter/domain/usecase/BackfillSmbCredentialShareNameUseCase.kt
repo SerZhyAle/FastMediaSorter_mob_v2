@@ -64,7 +64,7 @@ class BackfillSmbCredentialShareNameUseCase @Inject constructor(
             for (credential in targets) {
                 val resource = smbResources[credential.credentialId]
                 if (resource == null) {
-                    Timber.w("S0139: backfill skipped - no SMB resource for credential ${credential.credentialId}")
+                    Timber.w("backfill skipped - no SMB resource for credential ${credential.credentialId}")
                     skipped++
                     continue
                 }
@@ -92,7 +92,7 @@ class BackfillSmbCredentialShareNameUseCase @Inject constructor(
             BackfillResult(scanned = targets.size, updated = updated, skipped = skipped)
         } catch (e: Exception) {
             // Do NOT set the flag - next process launch will retry.
-            Timber.e(e, "S0139: backfill failed")
+            Timber.e(e, "backfill failed")
             BackfillResult(scanned = -1, updated = 0, skipped = 0)
         }
     }

@@ -10,6 +10,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -67,17 +68,17 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible =
-            canCreateFolder && !isControlVisibleOnScreen(anchor, R.id.btnCreateFolder)
+            canCreateFolder && !isControlFullyVisibleInCommandViewport(anchor, R.id.btnCreateFolder)
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
         popup.menu.findItem(R.id.action_create_text_file)?.isVisible =
-            canCreateTextNote && !isControlVisibleOnScreen(anchor, R.id.btnCreateTextFile)
+            canCreateTextNote && !isControlFullyVisibleInCommandViewport(anchor, R.id.btnCreateTextFile)
 
         // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
         val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         popup.menu.findItem(R.id.action_create_drawing)?.isVisible =
-            canCreateDrawing && !isControlVisibleOnScreen(anchor, R.id.btnCreateDrawing)
+            canCreateDrawing && !isControlFullyVisibleInCommandViewport(anchor, R.id.btnCreateDrawing)
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
@@ -177,9 +178,23 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.show()
     }
 
-    private fun isControlVisibleOnScreen(anchor: View, viewId: Int): Boolean {
+    private fun isControlFullyVisibleInCommandViewport(anchor: View, viewId: Int): Boolean {
         val control = anchor.rootView.findViewById<View>(viewId) ?: return false
-        return control.isShown && control.getGlobalVisibleRect(Rect())
+        if (!control.isShown || !control.getGlobalVisibleRect(Rect())) return false
+
+        val commandScroll = anchor.rootView.findViewById<HorizontalScrollView>(R.id.topCommandScroll)
+            ?: return true
+        if (!commandScroll.isShown || commandScroll.width <= 0) return true
+
+        val controlRect = Rect(0, 0, control.width, control.height)
+        commandScroll.offsetDescendantRectToMyCoords(control, controlRect)
+        val tolerancePx = control.resources.displayMetrics.density.toInt().coerceAtLeast(1)
+        val viewportLeft = commandScroll.scrollX + commandScroll.paddingLeft
+        val viewportRight = commandScroll.scrollX + commandScroll.width - commandScroll.paddingRight
+
+        // Partially clipped buttons are effectively "overflow-only" for the current viewport.
+        return controlRect.left >= viewportLeft - tolerancePx &&
+            controlRect.right <= viewportRight + tolerancePx
     }
 
     // -------------------------------------------------------------------------

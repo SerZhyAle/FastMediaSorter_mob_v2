@@ -13,10 +13,11 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.widget.TooltipCompat
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +66,8 @@ object ErrorDialog {
             return null
         }
 
+        Timber.d("S0378: error dialog shown with compact icon action row")
+
         val fullText = if (details != null) "$message\n\n$details" else message
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_error_detail, null)
@@ -72,7 +75,11 @@ object ErrorDialog {
         val tvDetailsToggle = dialogView.findViewById<TextView>(R.id.tvDetailsToggle)
         val scrollDetails = dialogView.findViewById<ScrollView>(R.id.scrollDetails)
         val tvErrorDetails = dialogView.findViewById<TextView>(R.id.tvErrorDetails)
-        val btnSaveToFile = dialogView.findViewById<Button>(R.id.btnSaveToFile)
+        val btnPrimaryCta = dialogView.findViewById<MaterialButton>(R.id.btnPrimaryCta)
+        val btnPrimary = dialogView.findViewById<MaterialButton>(R.id.btnPrimary)
+        val btnInlineAction = dialogView.findViewById<MaterialButton>(R.id.btnInlineAction)
+        val btnCopy = dialogView.findViewById<MaterialButton>(R.id.btnCopy)
+        val btnClose = dialogView.findViewById<MaterialButton>(R.id.btnClose)
 
         tvErrorMessage.text = message
 
@@ -93,32 +100,40 @@ object ErrorDialog {
             scrollDetails.visibility = View.GONE
         }
 
-        if (inlineActionButtonText != null && onInlineActionClick != null) {
-            btnSaveToFile.text = inlineActionButtonText
-            btnSaveToFile.setOnClickListener {
-                onInlineActionClick()
-            }
-        } else {
-            btnSaveToFile.setOnClickListener {
-                saveErrorToFile(context, fullText)
-            }
-        }
-
-        val builder = AlertDialog.Builder(context)
+        // All actions live in a single compact icon row (no AlertDialog button panel); the
+        // dialog reference is needed by the close/CTA handlers, so create it before wiring.
+        val dialog = AlertDialog.Builder(context)
             .setTitle(title)
             .setView(dialogView)
-            .setNegativeButton(R.string.close, null)
-            .setNeutralButton(R.string.copy_to_clipboard) { _, _ ->
-                copyToClipboard(context, fullText)
-            }
+            .create()
 
+        // Close - the only standard action that dismisses the dialog.
+        btnClose.contentDescription = context.getString(R.string.close)
+        TooltipCompat.setTooltipText(btnClose, context.getString(R.string.close))
+        btnClose.setOnClickListener { dialog.dismiss() }
+
+        // Copy to clipboard - keep the dialog open so the user can chain actions.
+        btnCopy.contentDescription = context.getString(R.string.copy_to_clipboard)
+        TooltipCompat.setTooltipText(btnCopy, context.getString(R.string.copy_to_clipboard))
+        btnCopy.setOnClickListener { copyToClipboard(context, fullText) }
+
+        // Primary slot: a caller-supplied CTA keeps its label (its meaning cannot be conveyed by a
+        // bare icon); otherwise the default Share action renders icon-only.
         if (actionButtonText != null && onActionClick != null) {
-            builder.setPositiveButton(actionButtonText) { dialog, _ ->
+            btnPrimary.visibility = View.GONE
+            btnPrimaryCta.visibility = View.VISIBLE
+            btnPrimaryCta.text = actionButtonText
+            btnPrimaryCta.contentDescription = actionButtonText
+            btnPrimaryCta.setOnClickListener {
                 dialog.dismiss()
                 onActionClick()
             }
         } else {
-            builder.setPositiveButton(R.string.error_dialog_share) { _, _ ->
+            btnPrimaryCta.visibility = View.GONE
+            btnPrimary.visibility = View.VISIBLE
+            btnPrimary.contentDescription = context.getString(R.string.error_dialog_share)
+            TooltipCompat.setTooltipText(btnPrimary, context.getString(R.string.error_dialog_share))
+            btnPrimary.setOnClickListener {
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, fullText)
@@ -127,8 +142,22 @@ object ErrorDialog {
             }
         }
 
+        // Inline slot: a caller-supplied action (e.g. copy full report) uses a dedicated icon;
+        // otherwise the default save-to-file action keeps its layout icon.
+        if (inlineActionButtonText != null && onInlineActionClick != null) {
+            btnInlineAction.setIconResource(R.drawable.ic_copy_full_report)
+            btnInlineAction.contentDescription = inlineActionButtonText
+            TooltipCompat.setTooltipText(btnInlineAction, inlineActionButtonText)
+            btnInlineAction.setOnClickListener { onInlineActionClick() }
+        } else {
+            btnInlineAction.contentDescription = context.getString(R.string.error_dialog_save_to_file)
+            TooltipCompat.setTooltipText(btnInlineAction, context.getString(R.string.error_dialog_save_to_file))
+            btnInlineAction.setOnClickListener { saveErrorToFile(context, fullText) }
+        }
+
         return try {
-            builder.show()
+            dialog.show()
+            dialog
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "ErrorDialog: show failed - bad window token")
             null

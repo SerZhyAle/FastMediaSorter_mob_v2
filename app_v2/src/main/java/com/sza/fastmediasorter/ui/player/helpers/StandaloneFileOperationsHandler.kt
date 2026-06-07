@@ -18,7 +18,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import android.view.View
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -40,7 +40,7 @@ import java.io.File
  */
 class StandaloneFileOperationsHandler(
     private val activity: AppCompatActivity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val getCurrentMediaFile: () -> MediaFile?,
     private val findResourceForPath: suspend (String?) -> Long?,
     private val onRenameComplete: (Uri, String) -> Unit,
@@ -48,6 +48,8 @@ class StandaloneFileOperationsHandler(
     private val batchDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
     private val recoverableDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>
 ) {
+
+    private val safeViews = PlayerBindingSafeViews(root)
 
     private var pendingDeleteFileName: String? = null
     private var pendingDeleteUri: Uri? = null
@@ -135,7 +137,7 @@ class StandaloneFileOperationsHandler(
                 }
             } catch (e: SecurityException) {
                 Timber.w(e, "StandalonePlayer: non-recoverable delete permission denied for $fileName")
-                binding.btnDeleteCmd.isVisible = false
+                safeViews.setVisibleIfPresent(R.id.btnDeleteCmd, false)
                 Toast.makeText(activity, R.string.delete_permission_denied, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Timber.e(e, "StandalonePlayer: delete failed for $fileName")
@@ -298,13 +300,13 @@ class StandaloneFileOperationsHandler(
      */
     fun updateRenameButtonVisibility() {
         val uri = getCurrentMediaFile()?.path?.toUri() ?: run {
-            binding.btnRenameCmd.isVisible = false
+            safeViews.setVisibleIfPresent(R.id.btnRenameCmd, false)
             return
         }
         activity.lifecycleScope.launch(Dispatchers.IO) {
             val canRename = canRenameUri(uri)
             withContext(Dispatchers.Main) {
-                binding.btnRenameCmd.isVisible = canRename
+                safeViews.setVisibleIfPresent(R.id.btnRenameCmd, canRename)
             }
         }
     }

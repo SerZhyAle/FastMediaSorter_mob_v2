@@ -56,7 +56,7 @@ class TextEditorSaveFlow(
                             afterSave(outcome)
                         }
                         result.onFailure { e ->
-                            Timber.e(e, "S0189: TextEditorSaveFlow save failed")
+                            Timber.e(e, "TextEditorSaveFlow save failed")
                             Toast.makeText(context, R.string.text_note_save_error_network, Toast.LENGTH_LONG).show()
                         }
                     }

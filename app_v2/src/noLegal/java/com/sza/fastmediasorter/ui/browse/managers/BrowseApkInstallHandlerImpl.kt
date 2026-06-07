@@ -73,7 +73,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                 Activity.RESULT_OK -> R.string.s0183_apk_install_success
                 Activity.RESULT_CANCELED -> R.string.s0183_apk_install_cancelled
                 else -> {
-                    Timber.w("S0183: APK install failed - resultCode=${result.resultCode}")
+                    Timber.w("APK install failed - resultCode=${result.resultCode}")
                     R.string.s0183_apk_install_failed
                 }
             }
@@ -100,7 +100,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
 
         val act = activityRef.get()
         if (act == null || act.isFinishing || act.isDestroyed) {
-            Timber.w("S0183: showInstallMenu called with no valid activity - ignoring")
+            Timber.w("showInstallMenu called with no valid activity - ignoring")
             return
         }
 
@@ -191,7 +191,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
             }
             installLauncher?.launch(intent)
         } catch (e: Exception) {
-            Timber.e(e, "S0183: failed to launch APK install for $fileName")
+            Timber.e(e, "failed to launch APK install for $fileName")
             act?.let { Toast.makeText(it, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show() }
         }
     }

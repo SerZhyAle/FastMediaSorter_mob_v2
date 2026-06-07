@@ -193,7 +193,7 @@ class ImageCropManager(
                 callback.onSuccess(currentFile.path, CropMode.CROP)
             }
         } catch (e: Exception) {
-            Timber.e(e, "S0106: performCrop failed")
+            Timber.e(e, "performCrop failed")
             withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.crop_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
@@ -243,7 +243,7 @@ class ImageCropManager(
 
             withContext(Dispatchers.Main) { callback.onSuccess(targetPath, CropMode.CROP_TO_FILE) }
         } catch (e: Exception) {
-            Timber.e(e, "S0106: performCropToFile failed")
+            Timber.e(e, "performCropToFile failed")
             withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.crop_to_file_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
@@ -293,7 +293,7 @@ class ImageCropManager(
 
             withContext(Dispatchers.Main) { callback.onSuccess(targetPath, CropMode.COMPRESS_COPY) }
         } catch (e: Exception) {
-            Timber.e(e, "S0106: performCompressedCopy failed")
+            Timber.e(e, "performCompressedCopy failed")
             withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.compress_copy_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
@@ -413,7 +413,7 @@ class ImageCropManager(
             if (safeLeft >= safeRight || safeTop >= safeBottom) {
                 decoder.recycle()
                 // Log technical details before throwing - performCrop catches and logs the exception.
-                Timber.w("S0106: crop rect collapsed to empty region after clamping: input=$rect image=${iw}x${ih}")
+                Timber.w("crop rect collapsed to empty region after clamping: input=$rect image=${iw}x${ih}")
                 throw IllegalArgumentException(context.getString(R.string.crop_error_outside_image))
             }
             val safeRect = Rect(safeLeft, safeTop, safeRight, safeBottom)

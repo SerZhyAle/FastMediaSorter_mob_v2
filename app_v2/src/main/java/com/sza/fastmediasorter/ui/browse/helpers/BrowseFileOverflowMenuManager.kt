@@ -134,6 +134,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         appSettings: AppSettings,
         isWritable: Boolean,
     ): List<PlayerCommand> {
+        val isFolder = file.isDirectory
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
         val isAudio = file.type == MediaType.AUDIO
         val isVideo = file.type == MediaType.VIDEO
@@ -145,7 +146,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
 
         return buildList {
             // Universal - available for every file type
-            add(PlayerCommand.FAVORITE)
+            if (!isFolder) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
             // S0303: Send to Telegram - all file types, only when a Telegram client is installed.
             if (TelegramShareTargets.firstInstalledPackage(context.packageManager) != null) {

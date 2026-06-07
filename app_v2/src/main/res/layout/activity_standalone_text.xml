@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0380: trimmed standalone layout for plain-text files. Reuses the same text-viewer includes as
+  activity_player_unified.xml (guaranteeing matching view ids for TextViewerManager / safeViews) but
+  omits all media/pdf/epub/audio/control-overlay/touch-zone view hierarchies - that omission is the
+  cold-start inflation win. No heavy media SDK view is referenced here.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/black"
+    tools:context=".ui.player.standalone.TextStandaloneActivity">
+
+    <!-- Top command panel: Back + file-op actions + text-viewer actions -->
+    <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
+
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
+
+            <ImageButton android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@drawable/ic_delete" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
+            <ImageButton android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/favorite" android:src="@drawable/ic_star_outline" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
+            <ImageButton android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
+            <ImageButton android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/file_information" android:src="@drawable/ic_info" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
+            <ImageButton android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@drawable/ic_search" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
+            <ImageButton android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
+            <ImageButton android:id="@+id/btnTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
+            <ImageButton android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
+            <ImageButton android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
+            <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
+            <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Text content area: reuse the same includes as the unified layout (identical view ids) -->
+    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+
+        <include layout="@layout/player_text_viewer_container_content" />
+
+        <include layout="@layout/player_search_panel_content" />
+
+        <include layout="@layout/player_translation_overlay_content" />
+
+        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>

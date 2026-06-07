@@ -97,7 +97,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 if (openInPlayer) {
                     runCatching {
                         openAuthFlow(hostActivity, result.originalUrl, "s0116_webview_auth_retry")
-                    }.onFailure { Timber.w(it, "S0116: auth flow launch failed") }
+                    }.onFailure { Timber.w(it, "auth flow launch failed") }
                     runCatching { onAuthRetryRequested(result.originalUrl) }
                 } else {
                     toast(R.string.s0116_toast_auth_required, result.host)
@@ -184,7 +184,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 runCatching {
                     openAuthFlow(hostActivity, loginUrl, "s0151_webview_reauth")
                 }.onFailure {
-                    Timber.w(it, "S0151/S0155: reauth auth flow launch failed")
+                    Timber.w(it, "reauth auth flow launch failed")
                     toast(R.string.s0151_toast_content_unavailable)
                 }
             }
@@ -282,7 +282,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             host.startActivity(intent)
         } catch (throwable: Throwable) {
-            Timber.e(throwable, "S0116: failed to launch player for %s", uri)
+            Timber.e(throwable, "failed to launch player for %s", uri)
         }
     }
 

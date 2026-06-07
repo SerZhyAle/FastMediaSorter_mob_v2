@@ -19,28 +19,44 @@ import com.google.android.material.button.MaterialButton
 import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 
-class PlayerBindingSafeViews(
-    private val binding: ActivityPlayerUnifiedBinding
+class PlayerBindingSafeViews private constructor(
+    private val root: View,
+    private val binding: ActivityPlayerUnifiedBinding?,
 ) {
+    /** Primary use: wrap a generated player binding (full unified layout). */
+    constructor(binding: ActivityPlayerUnifiedBinding) : this(binding.root, binding)
+
+    /** S0380: wrap any layout root (e.g. a trimmed specialized standalone layout) by id lookup. */
+    constructor(root: View) : this(root, null)
+
     private fun <T : View> required(@IdRes id: Int): T {
-        return binding.root.findViewById(id)
+        return root.findViewById(id)
             ?: error("Required view not found: id=$id")
     }
 
     private fun <T : View> required(view: T?, @IdRes id: Int): T {
-        return view ?: binding.root.findViewById(id)
+        return view ?: root.findViewById(id)
         ?: error("Required view not found: id=$id")
     }
 
     private fun ensureLyricsInflated() {
-        val exists = binding.root.findViewById<View>(R.id.lyricsViewerContainer)
+        val exists = root.findViewById<View>(R.id.lyricsViewerContainer)
         if (exists != null) return
-        binding.root.findViewById<ViewStub>(R.id.lyricsViewerStub)?.inflate()
+        root.findViewById<ViewStub>(R.id.lyricsViewerStub)?.inflate()
     }
 
-    val btnRenameCmd: ImageButton get() = required(binding.btnRenameCmd, R.id.btnRenameCmd)
-    val btnOverflowMenu: ImageButton get() = required(binding.btnOverflowMenu, R.id.btnOverflowMenu)
-    val btnEditCmd: ImageButton get() = required(binding.btnEditCmd, R.id.btnEditCmd)
+    /**
+     * S0380: set visibility only if the view exists in the current layout root. Lets shared managers
+     * reset cross-type views (e.g. pdf/epub controls) that a trimmed specialized layout omits,
+     * without crashing the way a `required(...)` accessor would.
+     */
+    fun setVisibleIfPresent(@IdRes id: Int, visible: Boolean) {
+        root.findViewById<View>(id)?.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
+    val btnRenameCmd: ImageButton get() = required(binding?.btnRenameCmd, R.id.btnRenameCmd)
+    val btnOverflowMenu: ImageButton get() = required(binding?.btnOverflowMenu, R.id.btnOverflowMenu)
+    val btnEditCmd: ImageButton get() = required(binding?.btnEditCmd, R.id.btnEditCmd)
     val btnSaveFrameCmd: ImageButton get() = required(R.id.btnSaveFrameCmd)
     val btnPrintCmd: ImageButton get() = required(R.id.btnPrintCmd)
     // S0217: inline accessors for image-edit commands (root-lookup - added to XML post-binding)
@@ -49,9 +65,9 @@ class PlayerBindingSafeViews(
     val btnCropToFileCmd: ImageButton get() = required(R.id.btnCropToFileCmd)
     val btnCompressCopyCmd: ImageButton get() = required(R.id.btnCompressCopyCmd)
     val btnDrawOverlayCmd: ImageButton get() = required(R.id.btnDrawOverlayCmd)
-    val btnUndoCmd: ImageButton get() = required(binding.btnUndoCmd, R.id.btnUndoCmd)
-    val btnLyricsCmd: ImageButton get() = required(binding.btnLyricsCmd, R.id.btnLyricsCmd)
-    val btnSearchYoutubeMusicCmd: ImageButton get() = required(binding.btnSearchYoutubeMusicCmd, R.id.btnSearchYoutubeMusicCmd)
+    val btnUndoCmd: ImageButton get() = required(binding?.btnUndoCmd, R.id.btnUndoCmd)
+    val btnLyricsCmd: ImageButton get() = required(binding?.btnLyricsCmd, R.id.btnLyricsCmd)
+    val btnSearchYoutubeMusicCmd: ImageButton get() = required(binding?.btnSearchYoutubeMusicCmd, R.id.btnSearchYoutubeMusicCmd)
     val btnRotationToggleCmd: ImageButton get() = required(R.id.btnRotationToggleCmd)
     val btnCastCmd: ImageButton get() = required(R.id.btnCastCmd)
     val vrLaunchBadgeContainer: LinearLayout get() = required(R.id.vrLaunchBadgeContainer)
@@ -63,38 +79,38 @@ class PlayerBindingSafeViews(
     val btnVrLaunchPromptOpenSettings: TextView get() = required(R.id.btnVrLaunchPromptOpenSettings)
     val btnVrLaunchPromptDismiss: TextView get() = required(R.id.btnVrLaunchPromptDismiss)
 
-    val btnGoogleLensPdfCmd: ImageButton get() = required(binding.btnGoogleLensPdfCmd, R.id.btnGoogleLensPdfCmd)
-    val btnPdfThumbnailsCmd: ImageButton get() = required(binding.btnPdfThumbnailsCmd, R.id.btnPdfThumbnailsCmd)
-    val btnOcrPdfCmd: TextView get() = required(binding.btnOcrPdfCmd, R.id.btnOcrPdfCmd)
-    val btnTranslatePdfCmd: ImageButton get() = required(binding.btnTranslatePdfCmd, R.id.btnTranslatePdfCmd)
-    val btnSearchPdfCmd: ImageButton get() = required(binding.btnSearchPdfCmd, R.id.btnSearchPdfCmd)
-    val btnPdfTextSettingsCmd: ImageButton get() = required(binding.btnPdfTextSettingsCmd, R.id.btnPdfTextSettingsCmd)
+    val btnGoogleLensPdfCmd: ImageButton get() = required(binding?.btnGoogleLensPdfCmd, R.id.btnGoogleLensPdfCmd)
+    val btnPdfThumbnailsCmd: ImageButton get() = required(binding?.btnPdfThumbnailsCmd, R.id.btnPdfThumbnailsCmd)
+    val btnOcrPdfCmd: TextView get() = required(binding?.btnOcrPdfCmd, R.id.btnOcrPdfCmd)
+    val btnTranslatePdfCmd: ImageButton get() = required(binding?.btnTranslatePdfCmd, R.id.btnTranslatePdfCmd)
+    val btnSearchPdfCmd: ImageButton get() = required(binding?.btnSearchPdfCmd, R.id.btnSearchPdfCmd)
+    val btnPdfTextSettingsCmd: ImageButton get() = required(binding?.btnPdfTextSettingsCmd, R.id.btnPdfTextSettingsCmd)
 
-    val btnSearchTextCmd: ImageButton get() = required(binding.btnSearchTextCmd, R.id.btnSearchTextCmd)
-    val btnEditTextCmd: ImageButton get() = required(binding.btnEditTextCmd, R.id.btnEditTextCmd)
-    val btnTranslateTextCmd: ImageButton get() = required(binding.btnTranslateTextCmd, R.id.btnTranslateTextCmd)
-    val btnTextSettingsCmd: ImageButton get() = required(binding.btnTextSettingsCmd, R.id.btnTextSettingsCmd)
-    val btnCopyTextCmd: ImageButton get() = required(binding.btnCopyTextCmd, R.id.btnCopyTextCmd)
+    val btnSearchTextCmd: ImageButton get() = required(binding?.btnSearchTextCmd, R.id.btnSearchTextCmd)
+    val btnEditTextCmd: ImageButton get() = required(binding?.btnEditTextCmd, R.id.btnEditTextCmd)
+    val btnTranslateTextCmd: ImageButton get() = required(binding?.btnTranslateTextCmd, R.id.btnTranslateTextCmd)
+    val btnTextSettingsCmd: ImageButton get() = required(binding?.btnTextSettingsCmd, R.id.btnTextSettingsCmd)
+    val btnCopyTextCmd: ImageButton get() = required(binding?.btnCopyTextCmd, R.id.btnCopyTextCmd)
 
-    val btnSearchEpubCmd: ImageButton get() = required(binding.btnSearchEpubCmd, R.id.btnSearchEpubCmd)
-    val btnTranslateEpubCmd: ImageButton get() = required(binding.btnTranslateEpubCmd, R.id.btnTranslateEpubCmd)
-    val btnEpubTextSettingsCmd: ImageButton get() = required(binding.btnEpubTextSettingsCmd, R.id.btnEpubTextSettingsCmd)
-    val btnOcrEpubCmd: ImageButton get() = required(binding.btnOcrEpubCmd, R.id.btnOcrEpubCmd)
+    val btnSearchEpubCmd: ImageButton get() = required(binding?.btnSearchEpubCmd, R.id.btnSearchEpubCmd)
+    val btnTranslateEpubCmd: ImageButton get() = required(binding?.btnTranslateEpubCmd, R.id.btnTranslateEpubCmd)
+    val btnEpubTextSettingsCmd: ImageButton get() = required(binding?.btnEpubTextSettingsCmd, R.id.btnEpubTextSettingsCmd)
+    val btnOcrEpubCmd: ImageButton get() = required(binding?.btnOcrEpubCmd, R.id.btnOcrEpubCmd)
 
-    val btnTranslateImageCmd: ImageButton get() = required(binding.btnTranslateImageCmd, R.id.btnTranslateImageCmd)
-    val btnImageTextSettingsCmd: ImageButton get() = required(binding.btnImageTextSettingsCmd, R.id.btnImageTextSettingsCmd)
-    val btnOcrImageCmd: TextView get() = required(binding.btnOcrImageCmd, R.id.btnOcrImageCmd)
-    val btnGoogleLensImageCmd: ImageButton get() = required(binding.btnGoogleLensImageCmd, R.id.btnGoogleLensImageCmd)
+    val btnTranslateImageCmd: ImageButton get() = required(binding?.btnTranslateImageCmd, R.id.btnTranslateImageCmd)
+    val btnImageTextSettingsCmd: ImageButton get() = required(binding?.btnImageTextSettingsCmd, R.id.btnImageTextSettingsCmd)
+    val btnOcrImageCmd: TextView get() = required(binding?.btnOcrImageCmd, R.id.btnOcrImageCmd)
+    val btnGoogleLensImageCmd: ImageButton get() = required(binding?.btnGoogleLensImageCmd, R.id.btnGoogleLensImageCmd)
 
     val btnTranslateImage: ImageButton get() = required(R.id.btnTranslateImage)
     val btnGoogleLensImage: ImageButton get() = required(R.id.btnGoogleLensImage)
     val btnOcrImage: TextView get() = required(R.id.btnOcrImage)
     val pdfFullscreenOverlay: FrameLayout?
-        get() = binding.root.findViewById(R.id.pdfFullscreenOverlay)
+        get() = root.findViewById(R.id.pdfFullscreenOverlay)
     val pdfFullscreenPhotoView: PhotoView?
-        get() = binding.root.findViewById(R.id.pdfFullscreenPhotoView)
+        get() = root.findViewById(R.id.pdfFullscreenPhotoView)
     val btnExitPdfFullscreen: ImageButton?
-        get() = binding.root.findViewById(R.id.btnExitPdfFullscreen)
+        get() = root.findViewById(R.id.btnExitPdfFullscreen)
 
     val audioMetadata: TextView get() = required(R.id.audioMetadata)
     val audioFileName: TextView get() = required(R.id.audioFileName)
@@ -132,6 +148,19 @@ class PlayerBindingSafeViews(
     val btnSearchPrev: ImageButton get() = required(R.id.btnSearchPrev)
     val btnSearchNext: ImageButton get() = required(R.id.btnSearchNext)
     val btnCloseSearch: ImageButton get() = required(R.id.btnCloseSearch)
+
+    // S0380: media/overlay views the OCR display toggles by visibility only. Nullable so a trimmed
+    // standalone layout (which never triggers OCR) can omit them; resolved only on the full layout.
+    val photoViewOrNull: View? get() = root.findViewById(R.id.photoView)
+    val imageViewOrNull: View? get() = root.findViewById(R.id.imageView)
+    val playerViewOrNull: View? get() = root.findViewById(R.id.playerView)
+    val officeDocumentViewerContainerOrNull: View? get() = root.findViewById(R.id.officeDocumentViewerContainer)
+    val translationLensOverlayOrNull: View? get() = root.findViewById(R.id.translationLensOverlay)
+    val audioCoverArtViewOrNull: View? get() = root.findViewById(R.id.audioCoverArtView)
+    val audioInfoOverlayOrNull: View? get() = root.findViewById(R.id.audioInfoOverlay)
+    val epubWebViewOrNull: View? get() = root.findViewById(R.id.epubWebView)
+    val progressBarOrNull: View? get() = root.findViewById(R.id.progressBar)
+    val btnExitEpubFullscreenOrNull: View? get() = root.findViewById(R.id.btnExitEpubFullscreen)
 
     val textViewerContainer: FrameLayout get() = required(R.id.textViewerContainer)
     val btnCloseTextViewer: ImageButton get() = required(R.id.btnCloseTextViewer)
@@ -204,11 +233,11 @@ class PlayerBindingSafeViews(
     val copyToButtonsGrid: GridLayout get() = required(R.id.copyToButtonsGrid)
     val moveToButtonsGrid: GridLayout get() = required(R.id.moveToButtonsGrid)
     val btnTranslationFontDecrease: ImageButton?
-        get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
+        get() = root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?
-        get() = binding.root.findViewById(R.id.btnTranslationFontIncrease)
+        get() = root.findViewById(R.id.btnTranslationFontIncrease)
     val btnSelectTextPdf: TextView?
-        get() = binding.root.findViewById(R.id.btnSelectTextPdf)
+        get() = root.findViewById(R.id.btnSelectTextPdf)
     val audioTouchZonesOverlay: GridLayout get() = required(R.id.audioTouchZonesOverlay)
     val firstRunHintOverlay: FrameLayout get() = required(R.id.firstRunHintOverlay)
     val tvFirstRunHintText: TextView get() = required(R.id.tvFirstRunHintText)

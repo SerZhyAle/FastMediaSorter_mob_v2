@@ -758,7 +758,7 @@ class StandaloneViewManager(
     private fun createTextViewerManager(): TextViewerManager {
         return TextViewerManager(
             context = activity,
-            binding = binding,
+            root = binding.root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,

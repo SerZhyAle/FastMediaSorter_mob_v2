@@ -1,5 +1,7 @@
 # Memory Index
 
+- [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
+
 - [Camera capture is permission-free; in-app camera forces CAMERA on all of it](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE fallback (SecurityException); S0359 Variant 1: in-app CameraX is sole path, no perm-free fallback
 - [Draft style is approval-gate, not drafting friction](feedback_draft_style_gate.md) - spec `..`/ё + lists-over-tables sanitation enforced only at Draft->Approved; drafts may stay rough, no hygiene-only sweeps
 - [Spec **Status:** header auto-syncs from journal](feedback_spec_header_autosync.md) - owner reads in-file header; update.ps1 now rewrites first **Status:** line on every status change (fail-soft, first-match only)

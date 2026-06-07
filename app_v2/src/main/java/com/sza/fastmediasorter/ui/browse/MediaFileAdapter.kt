@@ -682,15 +682,16 @@ class MediaFileAdapter(
                 if (useCompactElements) {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f)
+                    val p6 = (6 * root.resources.displayMetrics.density).toInt()
                     val p8 = (8 * root.resources.displayMetrics.density).toInt()
-                    val p4 = (4 * root.resources.displayMetrics.density).toInt()
-                    root.setPadding(p8, p4, p8, p4)
+                    val p3 = (3 * root.resources.displayMetrics.density).toInt()
+                    root.setPaddingRelative(p6, p3, p8, p3)
                 } else {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
-                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
+                    val p8 = (8 * root.resources.displayMetrics.density).toInt()
                     val p12 = (12 * root.resources.displayMetrics.density).toInt()
-                    root.setPadding(p16, p12, p16, p12)
+                    root.setPaddingRelative(p8, p8, p12, p8)
                 }
 
                 // Scale action buttons: compact = 24dp (0.75× normal), normal = 32dp
@@ -968,8 +969,8 @@ class MediaFileAdapter(
                     }
                 }
 
-                // Favorite button
-                btnFavorite.isVisible = showFavoriteButton
+                // Favorite button (folders are navigation items, not favorite targets)
+                btnFavorite.isVisible = showFavoriteButton && !isFolder
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline

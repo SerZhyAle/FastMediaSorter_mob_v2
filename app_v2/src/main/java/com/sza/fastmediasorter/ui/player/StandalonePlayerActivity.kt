@@ -111,7 +111,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
             activity = this,
-            binding = binding,
+            root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
             findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },

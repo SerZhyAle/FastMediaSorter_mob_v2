@@ -778,7 +778,7 @@ Close the player and try again.</string>
     <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Default Network Credentials</string>
     <string name="tooltip_default_credentials_message">Default username and password used when connecting to network resources (SMB/SFTP/FTP). Can be overridden per-resource during configuration.</string>
-    <string name="all_files">File Manager</string>
+    <string name="all_files">All Files</string>
     <string name="tooltip_all_files_title">File Manager Mode</string>
     <string name="tooltip_all_files_message">Show and manage ALL file types in resources (not just media). When enabled, automatically supports images, video, audio, text, documents, archives, and binaries.</string>
     <string name="all_files_global_info">All Files mode is enabled in Settings. All media types are automatically supported.</string>
@@ -786,7 +786,7 @@ Close the player and try again.</string>
     <string name="show_hidden_files">Show hidden files</string>
     <string name="tooltip_show_hidden_files_title">Show Hidden Files</string>
     <string name="help_show_hidden_files">Help: Show hidden files</string>
-    <string name="tooltip_show_hidden_files_message">Display hidden files and folders (those starting with a dot). When enabled, all files including system and configuration files will be visible in file listings.</string>
+    <string name="tooltip_show_hidden_files_message">Display hidden files and folders (those starting with a dot). Hidden entries become visible inside accessible storage locations, but Android can still protect app-specific folders.</string>
     <string name="tooltip_video_thumbnails_title">Show Video Thumbnails</string>
     <string name="tooltip_video_thumbnails_message">Extracts and displays the first frame of video files as thumbnails. May take 2+ seconds for network files due to download and processing time.</string>
     <string name="tooltip_video_size_limits_title">Video File Size Limits</string>

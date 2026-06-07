@@ -133,6 +133,8 @@ fun PlayerFileOperation.toDomainFileOperation(settings: AppSettings): FileOperat
 // Preserve protocol-backed paths verbatim so FileOperationUseCase can route by scheme.
 internal fun createNetworkAwareFile(path: String, name: String?): File {
     return if (
+        path.startsWith("content://") ||
+        path.startsWith("content:/") ||
         path.startsWith("smb://") ||
         path.startsWith("sftp://") ||
         path.startsWith("ftp://") ||

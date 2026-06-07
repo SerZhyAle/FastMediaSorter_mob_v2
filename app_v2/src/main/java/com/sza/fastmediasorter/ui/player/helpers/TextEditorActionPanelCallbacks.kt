@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks
 import com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker
@@ -16,7 +15,6 @@ import java.io.File
 /** Editor-panel callbacks for [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
 internal class TextEditorActionPanelCallbacks(
     private val context: Context,
-    private val binding: ActivityPlayerUnifiedBinding,
     private val safeViews: PlayerBindingSafeViews,
     private val keepChecker: GoogleKeepAvailabilityChecker,
     private val getSaveFlow: () -> TextEditorSaveFlow?,

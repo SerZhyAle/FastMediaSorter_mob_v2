@@ -143,8 +143,9 @@ class BrowseSmallControlsManager(
     }
 
     private fun commandPanelButtons(): List<View> = listOf(
-        binding.btnBack,
-        binding.btnFilter
+        // S0374: btnFilter now follows the shared +20% top-bar sizing contract. Reapplying the
+        // legacy compact-height override only to that button misaligns the search glyph.
+        binding.btnBack
     )
 
     private fun resolveOriginalButtonHeight(button: View): Int {

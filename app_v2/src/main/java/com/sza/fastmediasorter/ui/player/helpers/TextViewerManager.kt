@@ -8,8 +8,8 @@ import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
+import android.view.View
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.utils.CharsetDetector
@@ -45,7 +45,7 @@ import kotlin.math.abs
 @android.annotation.SuppressLint("SetTextI18n")
 class TextViewerManager(
     private val context: Context,
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val networkFileManager: NetworkFileManager,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
@@ -140,7 +140,7 @@ class TextViewerManager(
     private val calculatorEnabledFlow = MutableStateFlow(false)
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
-    private val safeViews = PlayerBindingSafeViews(binding)
+    private val safeViews = PlayerBindingSafeViews(root)
     private val actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel by lazy {
         com.sza.fastmediasorter.ui.editor.actions.EditorActionPanelBinder(
             buttons = com.sza.fastmediasorter.ui.editor.actions.EditorActionButtons(
@@ -186,7 +186,6 @@ class TextViewerManager(
         }
     )
     private val ocrDisplayManager = TextOcrDisplayManager(
-        binding = binding,
         safeViews = safeViews,
         getTextFontSizeSp = { textFontSizeSp },
         getTypeface = { currentTypeface },
@@ -284,7 +283,7 @@ class TextViewerManager(
         }
 
         // Text action buttons (now in top command panel)
-        binding.btnCopyTextCmd.setOnClickListener {
+        safeViews.btnCopyTextCmd.setOnClickListener {
             val text = safeViews.tvTextContent.text.toString()
             if (text.isNotEmpty()) {
                 val clipboard =
@@ -295,7 +294,7 @@ class TextViewerManager(
             }
         }
 
-        binding.btnEditTextCmd.setOnClickListener {
+        safeViews.btnEditTextCmd.setOnClickListener {
             enterEditMode()
         }
 
@@ -303,7 +302,6 @@ class TextViewerManager(
         actionPanelManager.setup(
             TextEditorActionPanelCallbacks(
                 context = context,
-                binding = binding,
                 safeViews = safeViews,
                 keepChecker = keepChecker,
                 getSaveFlow = { saveFlow },
@@ -323,10 +321,10 @@ class TextViewerManager(
         // Editor toolbar buttons - delegated
         findReplaceManager.setupEditorToolbar()
 
-        binding.btnTranslateTextCmd.setOnClickListener {
+        safeViews.btnTranslateTextCmd.setOnClickListener {
             translationOverlayManager.toggleTranslation { originalTextForTranslation() }
         }
-        binding.btnTranslateTextCmd.setOnLongClickListener {
+        safeViews.btnTranslateTextCmd.setOnLongClickListener {
             callback.showTranslationSettingsDialog()
             true
         }
@@ -395,7 +393,7 @@ class TextViewerManager(
     private fun setupGestureDetectors() {
         textGestureDetector = TextViewerGestureDetectors.buildTextDetector(
             context = context,
-            binding = binding,
+            root = root,
             safeViews = safeViews,
             getCurrentFile = { currentFile },
             getTextFilePager = { textFilePager },
@@ -408,7 +406,7 @@ class TextViewerManager(
         )
         translationGestureDetector = TextViewerGestureDetectors.buildTranslationDetector(
             context = context,
-            binding = binding,
+            root = root,
             onIncreaseTranslationFontSize = ::increaseTranslationFontSize,
             onDecreaseTranslationFontSize = ::decreaseTranslationFontSize,
             onToggleOverlaySize = translationOverlayManager::toggleOverlaySize,
@@ -510,7 +508,6 @@ class TextViewerManager(
     private val viewerLoader by lazy {
         TextViewerLoader(
             context = context,
-            binding = binding,
             safeViews = safeViews,
             coroutineScope = coroutineScope,
             settingsRepository = settingsRepository,
@@ -834,7 +831,6 @@ class TextViewerManager(
     private val editorModeController by lazy {
         TextEditorModeController(
             context = context,
-            binding = binding,
             safeViews = safeViews,
             coroutineScope = coroutineScope,
             settingsRepository = settingsRepository,
@@ -924,16 +920,16 @@ class TextViewerManager(
     private fun updateTranslateButtonTint(enabled: Boolean) {
         // Use alpha instead of imageTintList: tinting with a solid colour destroys
         // the LanguageBadgeDrawable text, making the badge appear as a solid block.
-        binding.btnTranslateTextCmd.alpha = if (enabled) 1.0f else 0.55f
+        safeViews.btnTranslateTextCmd.alpha = if (enabled) 1.0f else 0.55f
     }
 
     fun updateTranslationButtonIcon(sourceLang: String, targetLang: String) {
         // Clear XML tint first - otherwise selector_player_button_tint (white)
         // colours the entire drawable and makes the badge text invisible.
-        binding.btnTranslateTextCmd.imageTintList = null
+        safeViews.btnTranslateTextCmd.imageTintList = null
         val drawable = LanguageBadgeDrawable(context, sourceLang, targetLang)
-        binding.btnTranslateTextCmd.setImageDrawable(drawable)
-        binding.btnTranslateTextCmd.alpha =
+        safeViews.btnTranslateTextCmd.setImageDrawable(drawable)
+        safeViews.btnTranslateTextCmd.alpha =
             if (translationOverlayManager.isEnabled) 1.0f else 0.55f
     }
 

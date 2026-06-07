@@ -72,6 +72,6 @@ class DedupAuthAccountsUseCase @Inject constructor(
         }
 
         dataStore.edit { it[KEY_DONE] = true }
-        Timber.i("S0211 cleanup completed: deleted=%d", deleted)
+        Timber.i("cleanup completed: deleted=%d", deleted)
     }
 }

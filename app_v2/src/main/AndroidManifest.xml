@@ -438,6 +438,17 @@
         <!-- Standalone Player for external intents -->
         <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
+        <!-- S0380: specialized standalone activity for plain-text files (trimmed layout, no media SDKs).
+             Direct text/plain VIEW filter for now; full per-type routing / alias toggle lands in Phase 05. -->
+        <activity android:name=".ui.player.standalone.TextStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:theme="@style/Theme.FastMediaSorter.FullScreen">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
              Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().
              Translucent theme ensures only the Copy-to dialog is visible (no blank window). -->

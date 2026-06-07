@@ -414,7 +414,7 @@ class ImageDrawOverlayManager(
         owner.lifecycleScope.launch {
             val result = keepExportHelper.export(activity, baseBitmap, overlay)
             result.onFailure { error ->
-                Timber.e(error, "S0192: Keep export failed")
+                Timber.e(error, "Keep export failed")
                 withContext(Dispatchers.Main) {
                     android.widget.Toast.makeText(
                         activity,

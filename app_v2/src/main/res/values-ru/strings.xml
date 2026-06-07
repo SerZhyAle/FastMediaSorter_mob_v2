@@ -736,7 +736,7 @@
     <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Сетевые учетные данные по умолчанию</string>
     <string name="tooltip_default_credentials_message">Имя пользователя и пароль по умолчанию при подключении к сетевым ресурсам (SMB/SFTP/FTP). Могут быть переопределены для каждого ресурса при настройке.</string>
-    <string name="all_files">Файловый менеджер</string>
+    <string name="all_files">Все файлы</string>
     <string name="tooltip_all_files_title">Режим файлового менеджера</string>
     <string name="tooltip_all_files_message">Показывать и управлять ВСЕМИ типами файлов в ресурсах (не только медиа). При включении автоматически поддерживаются изображения, видео, аудио, текст, документы, архивы и бинарные файлы.</string>
     <string name="all_files_global_info">Режим всех файлов включен в Настройках. Все типы медиа поддерживаются автоматически.</string>
@@ -744,7 +744,7 @@
     <string name="show_hidden_files">Показывать скрытые файлы</string>
     <string name="tooltip_show_hidden_files_title">Показывать скрытые файлы</string>
     <string name="help_show_hidden_files">Справка: показывать скрытые файлы</string>
-    <string name="tooltip_show_hidden_files_message">Отображать скрытые файлы и папки (начинающиеся с точки). При включении все файлы, включая системные и конфигурационные, будут видны в списках файлов.</string>
+    <string name="tooltip_show_hidden_files_message">Отображать скрытые файлы и папки (начинающиеся с точки). Скрытые элементы станут видимыми в доступных местах хранения, но Android всё равно может защищать app-specific папки.</string>
     <string name="tooltip_video_thumbnails_title">Показывать миниатюры видео</string>
     <string name="tooltip_video_thumbnails_message">Извлекает и отображает первый кадр видеофайлов в качестве миниатюр. Может занять более 2 секунд для сетевых файлов из-за загрузки и обработки.</string>
     <string name="tooltip_video_size_limits_title">Ограничения размера видео</string>

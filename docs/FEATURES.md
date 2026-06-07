@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-05*
+*Last updated: 2026-06-07*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
@@ -23,7 +23,7 @@ This document is the canonical inventory of all user-facing features implemented
 ## 2. Media Browsing
 - **Extensive sort modes** `[Standard / VR]`: Sort by Name, Date, Size, Type, Artist, Title, Duration, Date Taken, Random, or Manual order (ascending/descending) with memory per resource.
 - **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types (including Office documents), with a one-tap action to re-check every type.
-- **Hidden files & filter bypass** `[Standard / VR]`: Toggle visibility of system-hidden files, or activate File Manager Mode to bypass media filters and manage any file or archive (ZIP, APK, EXE, etc.). General settings can also create a dedicated `All Files` resource entry point that opens the local file-manager view with newest-first file sorting and optional subfolders-as-items behavior.
+- **Hidden files & filter bypass** `[Standard / VR]`: Toggle visibility of dot-hidden files and folders inside accessible storage locations, or activate File Manager Mode to bypass media filters and manage any file or archive (ZIP, APK, EXE, etc.). General settings can also create a dedicated `All Files` resource entry point that opens the local file-manager view with newest-first file sorting and optional subfolders-as-items behavior. Android may still keep protected app-specific folders unavailable.
 - **Office document handoff** `[Standard / VR]`: Open DOC, DOCX, RTF, and ODT files in an installed external application, with full integration in media filters across local, network, and cloud resources.
 - **Protected document fallback** `[Standard / VR]`: Detect protected PDF, Office, and EPUB cases the internal viewer cannot decrypt and route to a clear message or external-open fallback; passwords are not stored.
 - **Intelligent thumbnails** `[Standard / VR]`: Previews for photos and video frames. Video thumbnails automatically skip a black initial frame (checking offsets at 5 s, 15 s, and 30 s).
@@ -32,6 +32,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination.
+- **Writable OTG/SD destinations via SAF** `[Standard / VR]`: If Android does not expose a writable direct filesystem path for a picked local destination, copy and move can still target many SD-card, OTG, and document-provider folders through a persisted SAF tree grant. Protected Android app-specific folders remain platform-restricted in public builds.
 - **Flexible deleting & Undo** `[Standard / VR]`: Move files to a recoverable Trash bin (recoverable for up to 5 minutes) or permanently delete them immediately with the option to undo the last operation.
 - **Batch processing** `[Standard / VR]`: Multi-select items for batch copying, moving, deleting, or sharing.
 - **Duplicate file finder** `[Standard / VR]`: Locate and remove identical files across all storage using a 3-phase scanning engine (Size -> Hash -> SHA-256) with review and auto-delete modes.

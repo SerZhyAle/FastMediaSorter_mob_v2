@@ -75,7 +75,7 @@ class BrowseCameraCaptureManager(
             try {
                 handleResult(result)
             } catch (t: Throwable) {
-                Timber.e(t, "S0022-CAM: handleResult threw - captured to prevent crash")
+                Timber.e(t, "handleResult threw - captured to prevent crash")
                 showSnackbar(R.string.camera_capture_error_save_generic)
             }
         }
@@ -112,7 +112,7 @@ class BrowseCameraCaptureManager(
         )
 
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-            Timber.w("S0022-CAM: launch ABORT - no camera hardware available for in-app photo capture")
+            Timber.w("launch ABORT - no camera hardware available for in-app photo capture")
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             pendingResource = null
             return
@@ -120,53 +120,53 @@ class BrowseCameraCaptureManager(
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val tempFile = createTemp(timestamp, ext) ?: run {
-            Timber.w("S0022-CAM: launch ABORT - createTemp returned null")
+            Timber.w("launch ABORT - createTemp returned null")
             showSnackbar(R.string.camera_capture_error_temp_file)
             pendingResource = null
             return
         }
-        Timber.i("S0022-CAM: launch tempFile created path=%s exists=%b", tempFile.absolutePath, tempFile.exists())
+        Timber.i("launch tempFile created path=%s exists=%b", tempFile.absolutePath, tempFile.exists())
         pendingTempFile = tempFile
 
         val uri = try {
             FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
         } catch (e: SecurityException) {
-            Timber.e(e, "S0022-CAM: FileProvider.getUriForFile denied authority=%s.fileprovider", activity.packageName)
+            Timber.e(e, "FileProvider.getUriForFile denied authority=%s.fileprovider", activity.packageName)
             showSnackbar(R.string.camera_capture_error_permission_denied)
             tempFile.delete()
             pendingTempFile = null
             pendingResource = null
             return
         } catch (t: Throwable) {
-            Timber.e(t, "S0022-CAM: FileProvider.getUriForFile FAILED authority=%s.fileprovider", activity.packageName)
+            Timber.e(t, "FileProvider.getUriForFile FAILED authority=%s.fileprovider", activity.packageName)
             showSnackbar(R.string.camera_capture_error_save_generic)
             tempFile.delete()
             pendingTempFile = null
             pendingResource = null
             return
         }
-        Timber.i("S0022-CAM: launch FileProvider uri=%s", uri)
+        Timber.i("launch FileProvider uri=%s", uri)
 
         // In-app photo capture removes the OEM confirmation step before returning to Browse.
         val intent = CameraCaptureActivity.createIntent(activity, uri, tempFile.absolutePath)
         try {
-            Timber.i("S0022-CAM: launch dispatching launcher.launch(intent) action=%s", action)
+            Timber.i("launch dispatching launcher.launch(intent) action=%s", action)
             launcher.launch(intent)
-            Timber.i("S0022-CAM: launch dispatched launcher.launch(intent) - awaiting result")
+            Timber.i("launch dispatched launcher.launch(intent) - awaiting result")
         } catch (e: ActivityNotFoundException) {
-            Timber.e(e, "S0022-CAM: launcher.launch threw ActivityNotFoundException action=%s", action)
+            Timber.e(e, "launcher.launch threw ActivityNotFoundException action=%s", action)
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             tempFile.delete()
             pendingTempFile = null
             pendingResource = null
         } catch (e: SecurityException) {
-            Timber.e(e, "S0022-CAM: launcher.launch threw SecurityException action=%s", action)
+            Timber.e(e, "launcher.launch threw SecurityException action=%s", action)
             showSnackbar(R.string.camera_capture_error_permission_denied)
             tempFile.delete()
             pendingTempFile = null
             pendingResource = null
         } catch (t: Throwable) {
-            Timber.e(t, "S0022-CAM: launcher.launch threw %s action=%s", t.javaClass.simpleName, action)
+            Timber.e(t, "launcher.launch threw %s action=%s", t.javaClass.simpleName, action)
             showSnackbar(R.string.camera_capture_error_save_generic)
             tempFile.delete()
             pendingTempFile = null
@@ -262,7 +262,7 @@ class BrowseCameraCaptureManager(
         pendingResource?.id?.let { outState.putLong(KEY_RESOURCE_ID, it) }
         // S0371: persist the capture mode so the save outcome stays video/photo-correct after a kill.
         outState.putBoolean(KEY_IS_VIDEO, pendingIsVideo)
-        Timber.d("S0022-CAM: saveState tempFile=%s resourceId=%s isVideo=%b", pendingTempFile?.absolutePath, pendingResource?.id, pendingIsVideo)
+        Timber.d("saveState tempFile=%s resourceId=%s isVideo=%b", pendingTempFile?.absolutePath, pendingResource?.id, pendingIsVideo)
     }
 
     /**
@@ -274,14 +274,14 @@ class BrowseCameraCaptureManager(
         val file = File(path)
         if (!file.exists()) {
             // Temp file was cleaned up by the OS - inform user and bail.
-            Timber.w("S0022-CAM: restoreState tempFile missing after process death path=%s", path)
+            Timber.w("restoreState tempFile missing after process death path=%s", path)
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
         }
         val resourceId = savedState.getLong(KEY_RESOURCE_ID, -1L)
         val resource = if (resourceId != -1L) getResourceById(resourceId) else null
         if (resource == null) {
-            Timber.w("S0022-CAM: restoreState resource not found id=%d - aborting, deleting tempFile", resourceId)
+            Timber.w("restoreState resource not found id=%d - aborting, deleting tempFile", resourceId)
             file.delete()
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
@@ -289,7 +289,7 @@ class BrowseCameraCaptureManager(
         pendingTempFile = file
         pendingResource = resource
         pendingIsVideo = savedState.getBoolean(KEY_IS_VIDEO, false)
-        Timber.i("S0022-CAM: restoreState restored tempFile=%s resource=%s isVideo=%b", path, resource.name, pendingIsVideo)
+        Timber.i("restoreState restored tempFile=%s resource=%s isVideo=%b", path, resource.name, pendingIsVideo)
     }
 
     // endregion
@@ -307,12 +307,12 @@ class BrowseCameraCaptureManager(
         )
         val tempFile = pendingTempFile ?: run {
             // Process death between launch and result - context is gone.
-            Timber.w("S0022-CAM: handleResult ABORT - pendingTempFile is null (process death?)")
+            Timber.w("handleResult ABORT - pendingTempFile is null (process death?)")
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
         }
         val resource = pendingResource ?: run {
-            Timber.w("S0022-CAM: handleResult ABORT - pendingResource is null (process death?)")
+            Timber.w("handleResult ABORT - pendingResource is null (process death?)")
             tempFile.delete()
             pendingTempFile = null
             pendingIsVideo = false
@@ -333,13 +333,13 @@ class BrowseCameraCaptureManager(
             pendingIsVideo = false
             return
         }
-        Timber.i("S0022-CAM: handleResult OK - proceeding to save flow tempFile=%s size=%d isVideo=%b", tempFile.absolutePath, tempFile.length(), isVideo)
+        Timber.i("handleResult OK - proceeding to save flow tempFile=%s size=%d isVideo=%b", tempFile.absolutePath, tempFile.length(), isVideo)
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             val defaultName = tempFile.name
             // Video recordings never open the drawing editor (cameraCaptureOpenForEditing is photo-only).
             val openForEditing = !isVideo && settings.cameraCaptureOpenForEditing
-            Timber.i("S0022-CAM: handleResult settings.skipCameraFilenameDialog=%b defaultName=%s", settings.skipCameraFilenameDialog, defaultName)
+            Timber.i("handleResult settings.skipCameraFilenameDialog=%b defaultName=%s", settings.skipCameraFilenameDialog, defaultName)
             if (settings.skipCameraFilenameDialog) {
                 save(tempFile, defaultName, resource, openForEditing, isVideo)
             } else {

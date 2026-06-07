@@ -175,15 +175,16 @@ class PagingMediaFileAdapter(
                 if (useCompactElements) {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f)
+                    val p6 = (6 * root.resources.displayMetrics.density).toInt()
                     val p8 = (8 * root.resources.displayMetrics.density).toInt()
-                    val p4 = (4 * root.resources.displayMetrics.density).toInt()
-                    root.setPadding(p8, p4, p8, p4)
+                    val p3 = (3 * root.resources.displayMetrics.density).toInt()
+                    root.setPaddingRelative(p6, p3, p8, p3)
                 } else {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
-                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
+                    val p8 = (8 * root.resources.displayMetrics.density).toInt()
                     val p12 = (12 * root.resources.displayMetrics.density).toInt()
-                    root.setPadding(p16, p12, p16, p12)
+                    root.setPaddingRelative(p8, p8, p12, p8)
                 }
 
                 cbSelect.setOnCheckedChangeListener(null)
@@ -321,7 +322,7 @@ class PagingMediaFileAdapter(
                         val extCheck = file.name.substringAfterLast('.', "").lowercase()
                         if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
                                 .shouldSkipNetworkExtraction(extCheck)) {
-                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' - showing placeholder: ${file.name}")
+                            Timber.d("[scope=thumbnail] Blocked network format '$extCheck' - showing placeholder: ${file.name}")
                             showGeneratedPlaceholder(imageView, file)
                             imageView.contentDescription = context.getString(
                                 R.string.thumbnail_unavailable_network_format, extCheck.uppercase())
@@ -592,7 +593,7 @@ class PagingMediaFileAdapter(
                         val extCheck = file.name.substringAfterLast('.', "").lowercase()
                         if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
                                 .shouldSkipNetworkExtraction(extCheck)) {
-                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' - showing placeholder: ${file.name}")
+                            Timber.d("[scope=thumbnail] Blocked network format '$extCheck' - showing placeholder: ${file.name}")
                             showGeneratedPlaceholder(imageView, file)
                             imageView.contentDescription = context.getString(
                                 R.string.thumbnail_unavailable_network_format, extCheck.uppercase())

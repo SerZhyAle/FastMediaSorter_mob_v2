@@ -158,7 +158,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         hostActivity = this@MainActivity,
                         isAuthRetry = false,
                     )
-                }.onFailure { Timber.w(it, "S0202: shareResultPresenter.present failed") }
+                }.onFailure { Timber.w(it, "shareResultPresenter.present failed") }
             }
         }
 

@@ -145,7 +145,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Timber was planted earlier in attachBaseContext via LoggingHelper.initialize(), so the
         // fallback Timber.w in the logger has a working sink.
         androidx.media3.common.util.Log.setLogger(media3Logger)
-        Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed (S0213)")
+        Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed")
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
         // verdict=FAIL events reach the player UI even in non-DEBUG builds.

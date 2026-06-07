@@ -56,9 +56,10 @@ class EnsureAllFilesPredefinedResourceUseCase @Inject constructor(
             isWritable = rootDir.exists() && rootDir.canWrite(),
             isReadOnly = false,
             scanSubdirectories = true,
+            disableThumbnails = true,
             allFiles = true,
             showHiddenFiles = settings.showHiddenFiles,
-            showSubfoldersAsItems = settings.showSubfoldersAsItems,
+            showSubfoldersAsItems = false,
             rememberFileList = false,
             profile = ResourceProfile.ALL_FILES,
             iconId = resolveResourceIconUseCase(

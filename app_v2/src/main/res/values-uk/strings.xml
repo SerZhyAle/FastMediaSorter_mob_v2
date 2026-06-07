@@ -729,7 +729,7 @@
     <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Мережеві облікові дані за замовчуванням</string>
     <string name="tooltip_default_credentials_message">Ім\'я користувача та пароль за замовчуванням при підключенні до мережевих ресурсів (SMB/SFTP/FTP). Можуть бути перевизначені для кожного ресурсу при налаштуванні.</string>
-    <string name="all_files">Файловий менеджер</string>
+    <string name="all_files">Усі файли</string>
     <string name="tooltip_all_files_title">Режим файлового менеджера</string>
     <string name="tooltip_all_files_message">Показувати та керувати ВСІМА типами файлів у ресурсах (не лише медіа). При увімкненні автоматично підтримуються зображення, відео, аудіо, текст, документи, архіви та бінарні файли.</string>
     <string name="all_files_global_info">Режим усіх файлів увімкнено в Налаштуваннях. Усі типи медіа підтримуються автоматично.</string>
@@ -737,7 +737,7 @@
     <string name="show_hidden_files">Показувати приховані файли</string>
     <string name="tooltip_show_hidden_files_title">Показувати приховані файли</string>
     <string name="help_show_hidden_files">Довідка: показувати приховані файли</string>
-    <string name="tooltip_show_hidden_files_message">Відображати приховані файли та папки (ті, що починаються з крапки). При увімкненні всі файли, включаючи системні та конфігураційні, будуть видимі в списках файлів.</string>
+    <string name="tooltip_show_hidden_files_message">Відображати приховані файли та папки (ті, що починаються з крапки). Приховані елементи стануть видимими в доступних місцях зберігання, але Android усе одно може захищати app-specific папки.</string>
     <string name="tooltip_video_thumbnails_title">Показувати мініатюри відео</string>
     <string name="tooltip_video_thumbnails_message">Витягує та відображає перший кадр відеофайлів як мініатюри. Може зайняти понад 2 секунди для мережевих файлів через завантаження та обробку.</string>
     <string name="tooltip_video_size_limits_title">Обмеження розміру відео</string>

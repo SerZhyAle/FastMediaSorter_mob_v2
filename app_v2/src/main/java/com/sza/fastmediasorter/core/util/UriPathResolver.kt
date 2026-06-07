@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.core.util
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.storage.StorageManager
+import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
 import timber.log.Timber
 
@@ -80,10 +82,19 @@ object UriPathResolver {
     }
 
     /**
-     * Retrieve the mount path for a StorageVolume via reflection.
-     * StorageVolume.getPath() is a hidden API but stable since API 24.
+     * Retrieve the mount path for a StorageVolume.
+     * Prefers the official StorageVolume.getDirectory() on API 30+; falls back to the
+     * hidden-but-stable StorageVolume.getPath() reflection on lower APIs or when the
+     * official directory is unavailable.
      */
-    private fun volumePath(volume: android.os.storage.StorageVolume): String? {
+    private fun volumePath(volume: StorageVolume): String? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val directoryPath = volume.directory?.absolutePath
+            if (!directoryPath.isNullOrBlank()) {
+                return directoryPath
+            }
+        }
+
         return try {
             val method = volume.javaClass.getMethod("getPath")
             method.invoke(volume) as? String

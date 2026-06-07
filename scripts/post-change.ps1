@@ -123,6 +123,8 @@ else {
 
 $runsCatalogSync = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsStringsAudit = $resolvedChangeType -in @('Xml', 'Mixed')
+$runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -158,6 +160,24 @@ if ($runsStringsAudit) {
 }
 else {
     Skip-Step "strings-audit" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsTicketLogAudit) {
+    Invoke-Step "ticket-log-audit" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-no-ticket-logs.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "ticket-log-audit" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsDocPinsSync) {
+    Invoke-Step "doc-pins-sync" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/generate-toolchain-pins.ps1") -Check
+    }
+}
+else {
+    Skip-Step "doc-pins-sync" "not applicable for ChangeType $resolvedChangeType"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

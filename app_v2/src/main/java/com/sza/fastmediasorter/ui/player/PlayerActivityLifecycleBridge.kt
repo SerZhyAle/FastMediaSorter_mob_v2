@@ -33,7 +33,7 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
                     if (activity.memoryAlertShownInSessionAccess) return@collect
                     activity.memoryAlertShownInSessionAccess = true
                     activity.dialogAndUiStateManager.showMemoryDegradationSnackbar {
-                        timber.log.Timber.i("S0213 user closed player from memory alert; event=$event")
+                        timber.log.Timber.i("user closed player from memory alert; event=$event")
                         activity.finish()
                     }
                 }

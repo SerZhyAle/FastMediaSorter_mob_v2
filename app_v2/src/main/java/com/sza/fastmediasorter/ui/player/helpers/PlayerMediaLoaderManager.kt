@@ -1043,10 +1043,10 @@ class PlayerMediaLoaderManager(
         Timber.d("S0213: Pillar A cooldown re-entry path=$path remainingSec=$remainingSec slideshow=$isSlideshow")
         if (isSlideshow) {
             Toast.makeText(activity, R.string.s0213_decoder_cooldown_skip, Toast.LENGTH_SHORT).show()
-            Timber.i("S0213 cooldown skip (slideshow): path=$path remainingSec=$remainingSec")
+            Timber.i("cooldown skip (slideshow): path=$path remainingSec=$remainingSec")
             viewModel.nextFile(skipDocuments = true)
         } else {
-            Timber.i("S0213 cooldown re-entry (manual): path=$path remainingSec=$remainingSec")
+            Timber.i("cooldown re-entry (manual): path=$path remainingSec=$remainingSec")
             videoPlayerManager.playerCallback.onDecoderCooldownReentry(path, remainingSec)
         }
     }

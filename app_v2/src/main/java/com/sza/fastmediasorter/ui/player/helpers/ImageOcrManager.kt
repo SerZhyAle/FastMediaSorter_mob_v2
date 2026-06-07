@@ -104,7 +104,7 @@ class ImageOcrManager(
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Timber.e(e, "S0288: ImageOcrManager OCR pipeline failed")
+                Timber.e(e, "ImageOcrManager OCR pipeline failed")
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
                     binding.btnOcrImageCmd.isEnabled = true

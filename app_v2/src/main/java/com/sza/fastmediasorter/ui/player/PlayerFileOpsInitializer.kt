@@ -50,6 +50,7 @@ internal class PlayerFileOpsInitializer(
             coroutineScope = activity.lifecycleScope,
             settingsRepository = activity.settingsRepository,
             fileOperationsHandler = activity.fileOperationsHandler,
+            restrictedTreeTargetPolicy = activity.restrictedTreeTargetPolicy,
             onLaunchPicker = { uri -> activity.folderPickerLauncher.launch(uri) },
         )
 

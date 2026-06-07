@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
+import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
@@ -93,6 +94,21 @@ class BrowseFileOperationsManager(
             context.getString(messageRes),
             context.getString(R.string.error_reason_unknown)
         )
+    }
+
+    private fun destinationLabel(destinationPath: String): String {
+        if (destinationPath.startsWith("content:/")) {
+            val normalized = SafHelper.normalizeContentUri(destinationPath)
+            val treeName = SafHelper.getTreeRoot(context, normalized)?.name
+            if (!treeName.isNullOrBlank()) {
+                return treeName
+            }
+            val resolved = runCatching {
+                com.sza.fastmediasorter.core.util.UriPathResolver.getPath(context, android.net.Uri.parse(normalized))
+            }.getOrNull()
+            return resolved?.substringAfterLast('/')?.takeIf { it.isNotBlank() } ?: normalized
+        }
+        return destinationPath.substringAfterLast('/').ifBlank { destinationPath }
     }
     
     fun hasPendingMoveOperation(): Boolean = pendingMoveOperation != null
@@ -199,7 +215,7 @@ class BrowseFileOperationsManager(
                 FileOperationType.MOVE -> R.string.msg_move_started
                 else -> R.string.msg_copy_started
             }
-            val folderName = destinationPath.substringAfterLast('/')
+            val folderName = destinationLabel(destinationPath)
             Toast.makeText(context, context.getString(msgRes, folderName), Toast.LENGTH_LONG).show()
         }
 
@@ -208,7 +224,8 @@ class BrowseFileOperationsManager(
                 val destinationFolder = if (destinationPath.startsWith("smb://") ||
                     destinationPath.startsWith("sftp://") ||
                     destinationPath.startsWith("ftp://") ||
-                    destinationPath.startsWith("cloud://")
+                    destinationPath.startsWith("cloud://") ||
+                    destinationPath.startsWith("content://")
                 ) {
                     object : File(destinationPath) {
                         override fun getAbsolutePath(): String = destinationPath

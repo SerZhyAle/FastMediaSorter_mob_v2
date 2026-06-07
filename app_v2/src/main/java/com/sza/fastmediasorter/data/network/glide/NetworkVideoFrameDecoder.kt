@@ -121,7 +121,7 @@ class NetworkVideoFrameDecoder(
                 } else {
                     // Playback stopped (or non-network) - clear transient failure and allow retry
                     NetworkFileDataFetcher.clearTransientFailure(source.path)
-                    Timber.d("[scope=thumbnail S0060] Cleared transient failure (playback ended): $fileName")
+                    Timber.d("[scope=thumbnail] Cleared transient failure (playback ended): $fileName")
                 }
             } else {
                 Timber.v("Skipping video thumbnail extraction - cached failure: $fileName")
@@ -194,7 +194,7 @@ class NetworkVideoFrameDecoder(
                         }
                     }
                 } else {
-                    Timber.d("[S0178] all candidates dark - not caching, returning best-effort frame: $fileName")
+                    Timber.d("all candidates dark - not caching, returning best-effort frame: $fileName")
                 }
 
                 extractionSucceeded = true
@@ -213,7 +213,7 @@ class NetworkVideoFrameDecoder(
                 val protocol = source.path.substringBefore("://", missingDelimiterValue = "local")
                 val failureClass = transientReason?.name?.lowercase()
                     ?: if (outcome.isTimeout) "timeout" else "null-frame"
-                Timber.w("[scope=thumbnail S0066 protocol=$protocol resource=${resourceKey ?: "n/a"} failureClass=$failureClass playbackActive=$playbackActive] Extraction failed: $fileName")
+                Timber.w("[scope=thumbnail protocol=$protocol resource=${resourceKey ?: "n/a"} failureClass=$failureClass playbackActive=$playbackActive] Extraction failed: $fileName")
 
                 if (isTransient) {
                     NetworkFileDataFetcher.markVideoAsTransientlyFailed(source.path)
@@ -256,7 +256,7 @@ class NetworkVideoFrameDecoder(
             if (bitmap != null) {
                 // ADR-4: lazy eviction - discard already-cached dark thumbnails on first access.
                 if (VideoFrameDarknessEvaluator.isDark(bitmap)) {
-                    Timber.d("[S0178] cached thumbnail is dark - evicting and re-extracting: $fileName")
+                    Timber.d("cached thumbnail is dark - evicting and re-extracting: $fileName")
                     runBlocking { thumbnailCacheRepository.deleteThumbnail(path) }
                     bitmap.recycle()
                     return null
@@ -308,7 +308,7 @@ class NetworkVideoFrameDecoder(
                         break
                     }
                     if (VideoFrameDarknessEvaluator.isDark(frame)) {
-                        Timber.d("[S0178] dark frame at ${positionUs / 1_000_000}s, trying next offset: ${path.substringAfterLast('/')}")
+                        Timber.d("dark frame at ${positionUs / 1_000_000}s, trying next offset: ${path.substringAfterLast('/')}")
                         if (bestBitmap == null) bestBitmap = frame else frame.recycle()
                     } else {
                         bestBitmap?.recycle()

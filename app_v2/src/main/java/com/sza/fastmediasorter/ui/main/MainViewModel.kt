@@ -166,7 +166,7 @@ class MainViewModel @Inject constructor(
             migrateCameraResourceUseCase()
             migrateS0059UseCase()
             runCatching { dedupAuthAccountsUseCase() }
-                .onFailure { Timber.w(it, "S0211: DedupAuthAccountsUseCase failed") }
+                .onFailure { Timber.w(it, "DedupAuthAccountsUseCase failed") }
             // Backfill icon ids for resources that existed before S0034 (DB v25 → v26 migration)
             resourceRepository.backfillMissingIcons { path, profileName, typeName ->
                 val profile = runCatching {

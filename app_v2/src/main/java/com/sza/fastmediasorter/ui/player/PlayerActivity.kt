@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -315,6 +316,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
     @Inject internal lateinit var oneDriveClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
     @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
+    @Inject internal lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
 
     @Inject internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
 

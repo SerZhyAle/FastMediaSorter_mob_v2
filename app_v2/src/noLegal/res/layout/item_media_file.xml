@@ -22,9 +22,10 @@
         android:id="@+id/flThumbnailFrame"
         android:layout_width="@dimen/item_icon_size_medium"
         android:layout_height="@dimen/item_icon_size_medium"
-        android:layout_marginStart="@dimen/margin_small"
+        android:layout_marginStart="@dimen/margin_tiny"
+        app:layout_constraintBottom_toBottomOf="@id/cbSelect"
         app:layout_constraintStart_toEndOf="@id/cbSelect"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="@id/cbSelect">
 
         <ImageView
             android:id="@+id/ivThumbnail"
