@@ -108,7 +108,10 @@
     <dimen name="toolbar_row_height_compact">24dp</dimen>
     <!-- Settings Activity: non-compact header heights (replaces actionBarSizePx ~56dp) -->
     <dimen name="settings_title_row_height">28dp</dimen>
-    <dimen name="settings_tabs_height">24dp</dimen>
+    <!-- Material text-only tabs need ~48dp; 24dp clipped the labels to invisibility (regression fix). -->
+    <dimen name="settings_tabs_height">48dp</dimen>
+    <!-- Compact toolbar still needs a tab row tall enough to render labels (toolbar_row_height_compact 24dp clips them). -->
+    <dimen name="settings_tabs_height_compact">36dp</dimen>
     <dimen name="control_button_spacing_large">24dp</dimen>
     <dimen name="control_button_spacing_small">8dp</dimen>
     <dimen name="control_button_play_width">96dp</dimen>

@@ -274,7 +274,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             updateLandscapeToolbarHeight()
         } else {
             val titleH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_title_row_height)
-            val tabH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
+            // Tabs use their own compact height: the shared toolbar_row_height_compact (24dp) clips text-only tab labels.
+            val tabH = resources.getDimensionPixelSize(
+                if (compact) R.dimen.settings_tabs_height_compact else R.dimen.settings_tabs_height
+            )
             binding.root.findViewById<View>(R.id.titleRow)?.let { titleRow ->
                 titleRow.layoutParams.height = titleH
                 titleRow.requestLayout()
