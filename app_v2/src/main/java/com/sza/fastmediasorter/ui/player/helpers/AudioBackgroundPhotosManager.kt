@@ -139,7 +139,6 @@ class AudioBackgroundPhotosManager @Inject constructor(
                     return@launch
                 }
                 
-                // Get resource
                 val resource = resourceRepository.getResourceById(resourceIdLong)
                 if (resource == null) {
                     Timber.e("AudioBackgroundPhotos: Resource not found: $resourceIdLong")

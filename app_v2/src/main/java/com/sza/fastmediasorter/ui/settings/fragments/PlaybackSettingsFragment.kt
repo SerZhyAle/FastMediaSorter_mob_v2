@@ -166,7 +166,6 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(slideshowInterval = seconds))
         }
 
-        // Handle manual input
         binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val text = binding.etSlideshowInterval.text.toString()

@@ -580,7 +580,6 @@ class SmbConnectionManager @Inject constructor(
             }
         }
 
-        // Remove and close async
         pool.removeAndCloseAsync(key)
     }
 

@@ -96,13 +96,11 @@ class FilterResourceDialog : DialogFragment() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerSort.adapter = adapter
 
-        // Set current selection
         val currentIndex = sortOptions.indexOfFirst { it.second == currentSortMode }
         if (currentIndex >= 0) {
             binding.spinnerSort.setSelection(currentIndex)
         }
 
-        // Handle selection
         binding.spinnerSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 currentSortMode = sortOptions[position].second

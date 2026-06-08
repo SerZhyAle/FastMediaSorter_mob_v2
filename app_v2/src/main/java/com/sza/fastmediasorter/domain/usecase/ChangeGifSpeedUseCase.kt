@@ -143,7 +143,6 @@ class ChangeGifSpeedUseCase @Inject constructor(
                 gifFile
             }
             
-            // Save new GIF
             if (tempFile.exists() && tempFile.length() > 0) {
                 if (saveToDownloads) {
                     // Copy temp to Downloads

@@ -82,7 +82,6 @@ class RenameDialog(
                     tilFileName.error = null
                 }
                 
-                // Show keyboard automatically
                 etFileName.requestFocus()
                 etFileName.postDelayed({
                     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager

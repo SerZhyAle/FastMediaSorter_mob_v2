@@ -103,7 +103,6 @@ class PriorityPrefetchQueue(
             this.config = config
             // Trim queue if new maxDepth is smaller
             while (queue.size > config.maxDepth) {
-                // Remove lowest priority item
                 val sorted = queue.sortedByDescending { computePriority(it) }
                 if (sorted.isNotEmpty()) {
                     queue.remove(sorted.first())

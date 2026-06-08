@@ -39,7 +39,7 @@ You are a senior Android (Kotlin) developer for the FastMediaSorter v2 project. 
 9. **Lint**: Resolve all warnings in files you touch.
 10. **Read-only zones**: Never modify `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 11. **Layout orientation**: Editing any `res/layout/*.xml` → ALWAYS check the `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but does not, create it or add an explicit blocker. Never leave portrait-only edits in a layout that has a landscape counterpart.
-12. **Comments as requirements**: Before editing, read existing inline comments / KDoc in the affected area and treat them as requirements; do not override them silently. Add WHY-comments only for non-obvious logic; remove stale comments.
+12. **Comments as requirements**: Before editing, read existing inline comments / KDoc in the affected area and treat them as requirements; do not override them silently. Comment discipline: code comments are English-only and explain WHY, not WHAT - write one only for non-obvious business logic, a handled edge-case, a workaround, or an invariant the code cannot express; never restate what the adjacent line plainly does; remove stale comments.
 13. **UI ambiguity gate**: If any placement / visibility / fallback / orientation decision is unclear, surface the question before implementing - do not guess. For non-trivial UI/UX work, the `/ui-clarify` checklist must be resolved first.
 14. **Lazy optimization**: Wrap heavy Hilt dependencies (like network clients or file handlers) in `dagger.Lazy<T>` and retrieve via `.get()` on first use, load optional UI views via `<ViewStub>` instead of eager `<include>` tags, and release player/media resources (`MediaPlayer`, `ExoPlayer`, Glide) immediately when paused or inactive.
 
@@ -65,7 +65,7 @@ Gate features via `BuildConfig.*` fields - never with raw flavor name strings.
 ## Comments
 
 - **Read first**: Before editing any file, read all existing inline comments and KDoc. Treat them as requirements.
-- **Write WHY**: Add inline comments explaining intent when it's non-obvious. Remove stale comments.
+- **Write WHY**: Code comments are English-only and explain WHY, not WHAT. Add one only for non-obvious business logic, a handled edge-case, a workaround, or an invariant the code cannot express. Never restate what the adjacent line plainly does - leave self-explanatory code uncommented. Remove stale comments.
 
 ## Approach
 

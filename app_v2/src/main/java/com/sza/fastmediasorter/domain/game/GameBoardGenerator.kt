@@ -44,6 +44,9 @@ class GameBoardGenerator @Inject constructor() {
             if (board.exitPositions().none { it in reachable }) {
                 errors += GameBoardValidationError.EXIT_NOT_REACHABLE
             }
+            if (kryvavitsa.size == 1 && kryvavitsa.none { it.position in reachable }) {
+                errors += GameBoardValidationError.KRYVAVITSA_NOT_REACHABLE
+            }
         }
         return GameBoardValidationResult(errors)
     }
@@ -65,13 +68,16 @@ class GameBoardGenerator @Inject constructor() {
         val exitPosition = findPosition(config.width, config.height, random) { position ->
             position != playerPosition && position.manhattanDistanceTo(playerPosition) > fieldBase / 4.0
         } ?: return null
-        val reservedPath = buildReservedPath(playerPosition, exitPosition, random)
+        val exitPath = buildReservedPath(playerPosition, exitPosition, random)
         val kryvavitsaPosition = findPosition(config.width, config.height, random) { position ->
             position != playerPosition &&
                 position != exitPosition &&
-                position !in reservedPath &&
+                position !in exitPath &&
                 position.manhattanDistanceTo(playerPosition) > fieldBase / 3.0
         } ?: return null
+        // Reserve a corridor from the player to Kryvavitsa as well, so she is always reachable from the start.
+        val kryvavitsaPath = buildReservedPath(playerPosition, kryvavitsaPosition, random)
+        val reservedPath = exitPath + kryvavitsaPath
 
         val shadowPositions = mutableListOf<GamePosition>()
         repeat(config.shadowCount) { shadowIndex ->
@@ -124,6 +130,7 @@ class GameBoardGenerator @Inject constructor() {
     private fun validateGeneratedState(state: GameLevelState): Boolean =
         hasValidWallDensity(state.board) &&
             hasPathToExit(state.board, state.player.position) &&
+            hasPathToKryvavitsa(state) &&
             hasLegalFirstMove(state) &&
             enemiesHaveValidDistances(state) &&
             state.enemies.count { it.type == GameEnemyType.SHADOW } <= maximumShadowCapacity(state)
@@ -135,6 +142,11 @@ class GameBoardGenerator @Inject constructor() {
 
     private fun hasPathToExit(board: GameBoard, start: GamePosition): Boolean =
         board.exitPositions().any { it in reachableFloorsAndExits(board, start) }
+
+    private fun hasPathToKryvavitsa(state: GameLevelState): Boolean {
+        val kryvavitsa = state.enemies.single { it.type == GameEnemyType.KRYVAVITSA }
+        return kryvavitsa.position in reachableFloorsAndExits(state.board, state.player.position)
+    }
 
     private fun hasLegalFirstMove(state: GameLevelState): Boolean = GameDirection.entries.any { direction ->
         val target = state.player.position.move(direction)

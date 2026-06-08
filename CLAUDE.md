@@ -278,7 +278,7 @@ Per-flavor scripts (standard/lite/photos/legacy/vr) live in `scripts/builders/bu
 7. Lint: resolve warnings in files you touch.
 8. Ignore `*.backup` files unless user asks for historical comparison.
 9. Before editing, read existing inline comments/KDoc in the affected area - treat as requirements.
-10. When changing logic, add WHY-comments only when not obvious; remove stale comments.
+10. **Comment discipline:** Code comments are English-only and explain WHY, not WHAT. Write a comment only for non-obvious business logic, a deliberately handled edge-case, a workaround, or an invariant the code cannot express itself. Never add a comment that merely restates what the adjacent line plainly does - if the code is self-explanatory, leave it uncommented. Remove stale comments when you change the logic they describe.
 11. UI ambiguity gate: see `/ui-clarify` - implementation blocked until all placement/visibility/fallback decisions are explicit.
 12. Layout orientation: editing any `res/layout/*.xml` → ALWAYS check `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but doesn't, create it or add a blocker. **Never silently leave portrait-only edits in a layout that has a landscape counterpart.**
 13. Spec ticket discipline: never edit `PLAN/spec-catalog.jsonl` directly; never rename a spec file out of its `Sxxxx_` prefix; never re-introduce a `_spec_` segment in PLAN paths; new specs must allocate an id via `scripts/spec_catalog/insert.ps1` **before** the strategic `.md` is written to disk.

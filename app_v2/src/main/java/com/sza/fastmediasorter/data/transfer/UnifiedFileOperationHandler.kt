@@ -344,7 +344,6 @@ class UnifiedFileOperationHandler @Inject constructor(
         var tempFile: File? = null
         
         try {
-            // Create temp file
             tempFile = tempFileManager.createTempFileFromName(fileName)
             
             if (cancelFlag()) {

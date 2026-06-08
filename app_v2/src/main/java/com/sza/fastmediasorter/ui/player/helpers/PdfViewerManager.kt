@@ -678,7 +678,6 @@ class PdfViewerManager(
         pageRenderJob?.cancel()
         pageRenderJob = null
 
-        // Clear link cache
         pdfLinkAndSearchManager.clearUrlCache()
 
         // Detach adapter BEFORE closing renderer to trigger onViewRecycled → cancel render jobs (C1 fix)
@@ -813,10 +812,8 @@ class PdfViewerManager(
                         safeViews.playerProgressBar.isVisible = false
                     }
 
-                    // Save current page position
                     saveCurrentPagePosition()
 
-                    // Update navigation buttons
                     safeViews.btnPdfPrevPage.isEnabled = index > 0
                     safeViews.btnPdfPrevPage.alpha = if (index > 0) 1.0f else 0.5f
 

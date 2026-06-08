@@ -33,6 +33,7 @@
 param(
     [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
     [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
+    [Parameter(ParameterSetName = 'Fix')][switch]$Fix,
     [Parameter(ParameterSetName = 'Report')][switch]$List
 )
 
@@ -45,30 +46,71 @@ $baselineFile = Join-Path $PSScriptRoot 'trivial-comments-baseline.txt'
 
 $verbs = 'Get|Set|Initialize|Init|Create|Update|Check|Handle|Setup|Set up|Show|Hide|Load|Save|Return|Add|Remove|Clear|Start|Stop|Reset|Apply|Configure|Build|Bind|Observe|Enable|Disable|Register|Unregister|Notify|Refresh|Toggle|Cancel'
 $rx = [regex]"^\s*//\s*($verbs)\b"
+# A comment is TRIVIAL only if it is a short verb-noun phrase that adds nothing
+# the code does not already say. Anything with an explanatory connective
+# (why/when/how) carries information and is KEPT, even if it starts with a verb.
+$connectiveRx = [regex]'(?i)\b(to|so|for|because|since|while|when|if|via|using|avoid|prevent|ensure|keep|otherwise|limit|note|already|only|first|before|after|null|stale|crash|leak|race|workaround|hack|fallback|instead|due|unless|until|safe|deprecated)\b'
+$maxWords = 4
+
+# A standalone `//` comment is TRIVIAL only if it is a short verb-noun phrase that
+# adds nothing the code does not already say. Excluded (KEPT) when it carries any
+# explanatory connective, OR a digit / colon (those name a specific value, version,
+# id, magic byte, or url-like format: "Set 01 - Music", "Android 10", "signature: BM").
+function Test-TrivialLine([string]$line) {
+    if ($line -match '//\s*(noinspection|TODO|FIXME)') { return $false }
+    if ($line -match '//\s*https?:') { return $false }
+    if (-not $rx.IsMatch($line)) { return $false }
+    $body = ($line -replace '^\s*//\s*', '').Trim()
+    if ($connectiveRx.IsMatch($body)) { return $false }
+    if ($body -match '[\d:]') { return $false }
+    $wordCount = @($body -split '\s+' | Where-Object { $_ -ne '' }).Count
+    if ($wordCount -gt $maxWords) { return $false }
+    return $true
+}
 
 $current = 0
+$removed = 0
 $hits = [System.Collections.Generic.List[string]]::new()
 $files = Get-ChildItem -LiteralPath $mainRoot -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
     Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' }
 foreach ($file in $files) {
-    $lineNo = 0
-    foreach ($line in Get-Content -LiteralPath $file.FullName) {
-        $lineNo++
-        if ($line -match '//\s*(noinspection|TODO|FIXME)' ) { continue }
-        if ($line -match '//\s*https?:') { continue }
-        if ($rx.IsMatch($line)) {
+    $raw = Get-Content -LiteralPath $file.FullName -Raw
+    if ([string]::IsNullOrEmpty($raw)) { continue }
+    $eol = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
+    $lines = $raw -split "`r?`n"
+    $trivialIdx = [System.Collections.Generic.List[int]]::new()
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if (Test-TrivialLine $lines[$i]) {
+            $trivialIdx.Add($i)
             $current++
             if ($List) {
                 $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
-                $hits.Add(("{0}:{1}  {2}" -f $rel, $lineNo, $line.Trim()))
+                $hits.Add(("{0}:{1}  {2}" -f $rel, ($i + 1), $lines[$i].Trim()))
             }
         }
+    }
+    if ($Fix -and $trivialIdx.Count -gt 0) {
+        $skip = [System.Collections.Generic.HashSet[int]]::new()
+        foreach ($idx in $trivialIdx) { [void]$skip.Add($idx) }
+        $kept = [System.Collections.Generic.List[string]]::new()
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if (-not $skip.Contains($i)) { $kept.Add($lines[$i]) }
+        }
+        $newText = ($kept -join $eol)
+        [System.IO.File]::WriteAllText($file.FullName, $newText, [System.Text.UTF8Encoding]::new($false))
+        $removed += $trivialIdx.Count
     }
 }
 
 if ($List) {
     foreach ($h in $hits) { Write-Host $h }
     Write-Host ''
+}
+
+if ($Fix) {
+    Write-Host "trivial-comments -Fix: removed $removed standalone trivial comment line(s)."
+    Write-Host "Re-run the detector and a build to confirm. Then -UpdateBaseline to ratchet."
+    exit 0
 }
 
 if ($PSCmdlet.ParameterSetName -eq 'Update') {

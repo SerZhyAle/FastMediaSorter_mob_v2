@@ -585,7 +585,6 @@ class GoogleDriveRestClient @Inject constructor(
             try {
                 val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
 
-                // Get current parents
                 val metadataResult = getFileMetadata(fileId)
                 val metadata = when (metadataResult) {
                     is CloudResult.Success -> metadataResult.data

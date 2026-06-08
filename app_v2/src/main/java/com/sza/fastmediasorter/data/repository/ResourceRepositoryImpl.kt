@@ -167,14 +167,12 @@ class ResourceRepositoryImpl @Inject constructor(
             args.add(pattern)
         }
         
-        // Build WHERE clause
         val whereClause = if (whereConditions.isNotEmpty()) {
             "WHERE " + whereConditions.joinToString(" AND ")
         } else {
             ""
         }
         
-        // Build ORDER BY clause
         val orderBy = when (sortMode) {
             SortMode.MANUAL -> "ORDER BY displayOrder ASC"
             SortMode.NAME_ASC -> "ORDER BY name COLLATE NOCASE ASC"
@@ -196,7 +194,6 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.RANDOM -> "ORDER BY RANDOM()" // SQL random ordering
         }
         
-        // Build full query
         val sql = "SELECT * FROM resources $whereClause $orderBy"
         
         Timber.d("getFilteredResources: SQL=$sql, args=$args")
@@ -399,7 +396,6 @@ class ResourceRepositoryImpl @Inject constructor(
             return Result.failure(Exception("No credentials configured for this FTP resource"))
         }
         
-        // Get credentials from database
         val credentialsEntity = credentialsRepository.getByCredentialId(credentialsId)
         
         if (credentialsEntity == null) {

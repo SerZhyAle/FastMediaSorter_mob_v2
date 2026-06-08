@@ -46,7 +46,7 @@ When reviewing code (focus on files with uncommitted changes from `git status` a
 4. When editing a Kotlin file in `app_v2/` or `wear/` that exceeds 1500 LOC, propose extraction to helper managers as part of the change. For untouched files >1500 LOC, only flag the issue in review; do not refactor them proactively.
 5. Activity logic prohibited - must delegate.
 6. Resolve lint warnings in touched files.
-7. Treat existing inline comments / KDoc as requirements; do not override them silently. WHY-comments only for non-obvious logic; remove stale comments.
+7. Treat existing inline comments / KDoc as requirements; do not override them silently. Comment discipline: code comments are English-only and explain WHY, not WHAT - write one only for non-obvious business logic, a handled edge-case, a workaround, or an invariant the code cannot express; never restate what the adjacent line plainly does; remove stale comments.
 8. Layout XML edits: always check the `res/layout-land/*.xml` counterpart - never leave portrait-only edits when a landscape counterpart exists.
 9. UI ambiguity: any unclear placement / visibility / fallback / orientation decision must be surfaced before implementation. Run `/ui-clarify` before UI changes that affect layout structure, navigation flow, visibility logic, or orientation handling. Pure style tweaks (color, padding, text) skip `/ui-clarify`.
 

@@ -71,7 +71,6 @@ class ResourceNavigationCoordinator(
         resource: MediaResource,
         slideshowMode: Boolean
     ): NavigationResult {
-        // Handle Favorites special case
         if (resource.id == FAVORITES_RESOURCE_ID) {
             return if (!slideshowMode) {
                 NavigationResult.Navigate(NavigationDestination.Favorites)

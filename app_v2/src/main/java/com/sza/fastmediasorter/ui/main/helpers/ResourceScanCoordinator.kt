@@ -233,7 +233,6 @@ class ResourceScanCoordinator(
         
         val scanner = mediaScannerFactory.getScanner(resource.type)
         
-        // Check write permission (fast)
         Timber.d("Checking write access for ${resource.name}...")
         val isWritable = try {
             scanner.isWritable(resource.path, resource.credentialsId)

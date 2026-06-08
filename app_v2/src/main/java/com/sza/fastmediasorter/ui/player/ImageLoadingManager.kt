@@ -220,7 +220,6 @@ class ImageLoadingManager(
         // in the video player pillarbox areas.
         dynamicBackgroundProcessor?.clear()
 
-        // Cancel pending loading indicators
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
         binding.progressBar.isVisible = false
@@ -247,7 +246,6 @@ class ImageLoadingManager(
         // Cancel any dynamic background processing
         dynamicBackgroundProcessor?.clear()
 
-        // Cancel all pending handlers
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
 
@@ -303,7 +301,6 @@ class ImageLoadingManager(
     fun reEvaluateScaleTypeOnRotation() {
         lifecycleScope.launch {
             try {
-                // Get current settings
                 val settings = settingsRepository.getSettings().first()
 
                 // Get current device dimensions (API 28+ compatible)

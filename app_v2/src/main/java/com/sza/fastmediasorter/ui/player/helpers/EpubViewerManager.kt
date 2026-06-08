@@ -193,7 +193,6 @@ class EpubViewerManager(
                 "sans-serif"
             }
 
-            // Load reader style settings
             currentReaderTheme = EpubStyleManager.ReaderTheme.fromName(settings.textReaderTheme)
             currentLineHeight = settings.epubLineHeight
             currentHorizontalMargin = settings.epubHorizontalMargin
@@ -294,7 +293,6 @@ class EpubViewerManager(
         // Update translate button icon with language badge
         updateTranslateButtonIcon()
 
-        // Show EPUB UI
         safeViews.epubWebView.isVisible = true
         safeViews.epubControlsLayout.isVisible = true
         safeViews.btnExitEpubFullscreen.isVisible = false // Hidden initially, shown in fullscreen
@@ -702,7 +700,6 @@ class EpubViewerManager(
         val sliderLineHeight = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderLineHeight)
         val sliderMargin = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderMargin)
 
-        // Set current values
         when (currentReaderTheme) {
             EpubStyleManager.ReaderTheme.LIGHT      -> chipLight.isChecked = true
             EpubStyleManager.ReaderTheme.DARK       -> chipDark.isChecked = true

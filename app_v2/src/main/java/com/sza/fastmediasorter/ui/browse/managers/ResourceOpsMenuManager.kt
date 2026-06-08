@@ -355,7 +355,6 @@ class ResourceOpsMenuManager @Inject constructor(
     }
 
     // -------------------------------------------------------------------------
-    // Create folder
     // -------------------------------------------------------------------------
 
     fun showCreateFolderDialog(viewModel: BrowseViewModel) {

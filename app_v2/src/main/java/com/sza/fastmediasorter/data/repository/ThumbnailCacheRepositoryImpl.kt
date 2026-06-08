@@ -48,7 +48,6 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
                 return null
             }
             
-            // Update access timestamp
             thumbnailCacheDao.updateAccessTime(filePath, System.currentTimeMillis())
             
             Timber.v("ThumbnailCache: Cache HIT for $filePath")

@@ -214,7 +214,6 @@ class PlayerLifecycleManager(
         activity.hideControlsHandler.removeCallbacks(activity.hideControlsRunnable)
         activity.loadingIndicatorHandler.removeCallbacks(activity.showLoadingIndicatorRunnable)
         
-        // Cancel any pending retry
         activity.retryRunnable?.let { activity.retryHandler.removeCallbacks(it) }
         activity.retryRunnable = null
         

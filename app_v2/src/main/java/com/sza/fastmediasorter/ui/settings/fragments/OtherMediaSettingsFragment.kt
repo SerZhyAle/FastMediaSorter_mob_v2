@@ -91,7 +91,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                     "isLowRamDevice=${support.isLowRamDevice}"
             )
 
-            // Hide OCR font settings
             binding.layoutOcrFontSize?.isVisible = false
             binding.layoutOcrFontFamily?.isVisible = false
         }
@@ -110,7 +109,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.rowTranslationLensStyle.isVisible = false
 
-            // Hide Google Lens row
             binding.rowEnableGoogleLens.isVisible = false
 
             // Hide OCR row and summary

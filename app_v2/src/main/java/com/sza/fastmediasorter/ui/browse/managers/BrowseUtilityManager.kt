@@ -46,7 +46,6 @@ class BrowseUtilityManager(
             else -> " (${context.getString(R.string.counting)})"
         }
         
-        // Add sort mode display
         val sortMode = when (state.sortMode) {
             SortMode.NAME_ASC -> context.getString(R.string.sort_by_name_asc)
             SortMode.NAME_DESC -> context.getString(R.string.sort_by_name_desc)

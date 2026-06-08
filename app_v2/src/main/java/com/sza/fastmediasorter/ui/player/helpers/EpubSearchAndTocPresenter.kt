@@ -120,7 +120,6 @@ class EpubSearchAndTocPresenter(
 
         var searchJob: kotlinx.coroutines.Job? = null
 
-        // Handle IME search action
         etQuery.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 val query = etQuery.text?.toString()?.trim() ?: ""
@@ -166,7 +165,6 @@ class EpubSearchAndTocPresenter(
         rvResults: androidx.recyclerview.widget.RecyclerView
     ): kotlinx.coroutines.Job {
         return coroutineScope.launch {
-            // Show progress
             withContext(Dispatchers.Main) {
                 searchProgress.visibility = android.view.View.VISIBLE
                 tvStatus.visibility = android.view.View.VISIBLE
@@ -233,7 +231,6 @@ class EpubSearchAndTocPresenter(
                 allResults
             }
 
-            // Show results on Main
             withContext(Dispatchers.Main) {
                 searchProgress.visibility = android.view.View.GONE
 

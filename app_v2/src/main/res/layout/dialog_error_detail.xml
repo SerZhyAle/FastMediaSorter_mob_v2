@@ -99,6 +99,14 @@
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_create_text_file" />
 
+        <!-- Optional extra action (e.g. clear log), wired in ScrollableTextDialog -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExtra"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
         <!-- Copy to clipboard -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCopy"

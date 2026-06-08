@@ -906,7 +906,6 @@ class MediaFileAdapter(
                 // Hide checkbox for folders (folders can't be selected)
                 cbSelect.isVisible = !isFolder
                 if (!isFolder) {
-                    // Setup checkbox
                     cbSelect.setOnCheckedChangeListener(null)
                     cbSelect.isChecked = isSelected
                     cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)

@@ -123,7 +123,6 @@ class UnifiedCloudAuthManager @Inject constructor(
     private fun processPluginResult(provider: CloudProvider, result: AuthResult) {
         when (result) {
             is AuthResult.Success -> {
-                // Update State Machine
                 // The State Machine's authenticateOrRestore is for silent auth,
                 // but since we already got Success here, we conceptually bypass it.
                 // However, StateMachine state must be updated.

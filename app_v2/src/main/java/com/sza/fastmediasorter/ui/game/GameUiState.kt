@@ -16,7 +16,10 @@ sealed interface GameUiState {
         val storageReset: Boolean = false,
         val unreadableBoardWarning: Boolean = false,
         val defeatConnection: GameDefeatConnection? = null,
-        val lastRejectReason: GameMoveRejectReason? = null
+        val lastRejectReason: GameMoveRejectReason? = null,
+        // Actor displacements produced by the most recent accepted turn; drives the board move animation.
+        // Empty for any non-move state update (resume, restart, advance) so nothing animates spuriously.
+        val turnMoves: List<GameActorMove> = emptyList()
     ) : GameUiState {
         val canAcceptMoves: Boolean
             get() = levelState.status == GameStatus.PLAYING
@@ -42,3 +45,16 @@ data class GameDefeatConnection(
     val enemyPosition: GamePosition,
     val enemyType: GameEnemyType
 )
+
+// One actor's displacement during a single turn, used to drive the board's primitive move animation.
+data class GameActorMove(
+    val actor: GameMoveActor,
+    val from: GamePosition,
+    val to: GamePosition
+)
+
+enum class GameMoveActor {
+    PLAYER,
+    KRYVAVITSA,
+    SHADOW
+}

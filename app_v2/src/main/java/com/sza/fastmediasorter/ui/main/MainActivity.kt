@@ -291,7 +291,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             intent?.removeExtra("open_favorites")
         }
 
-        // Initialize keyboard navigation handler
         keyboardNavigationHandler = KeyboardNavigationHandler(
             context = this,
             recyclerView = binding.rvResources,
@@ -726,7 +725,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.scanAllResources()
         }
 
-        // Setup resource type tabs
         setupResourceTypeTabs()
 
         // Set initial button labels based on current orientation
@@ -788,7 +786,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // Update layout manager based on mode and screen size
             layoutChrome.updateLayoutManagerForScreenSize()
 
-            // Update toggle button icon
             if (state.isResourceGridMode) {
                 binding.btnToggleView.setIconResource(R.drawable.ic_view_list)
             } else {
@@ -937,13 +934,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         tabsManager.createTabs()
     }
 
-    /** Show error message respecting showDetailedErrors setting If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info If showDetailedErrors=false: shows Toast (short notification) */
+    /** Show error message respecting showDetailedErrors setting If showDetailedErrors=true: shows ScrollableTextDialog with copyable text and detailed info If showDetailedErrors=false: shows Toast (short notification) */
     private fun showError(message: String, details: String?) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             if (settings.showDetailedErrors) {
-                // Use ErrorDialog with full details
-                com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                // Use ScrollableTextDialog with full details
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context = this@MainActivity,
                     title = getString(com.sza.fastmediasorter.R.string.error),
                     message = message,
@@ -960,13 +957,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    /** Show informational message (not an error, just info about empty folders, etc.) If showDetailedErrors=true: shows ErrorDialog with "Information" title If showDetailedErrors=false: shows Toast */
+    /** Show informational message (not an error, just info about empty folders, etc.) If showDetailedErrors=true: shows ScrollableTextDialog with "Information" title If showDetailedErrors=false: shows Toast */
     private fun showInfo(message: String, details: String?) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             if (settings.showDetailedErrors) {
-                // Use ErrorDialog but with Information title
-                com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                // Use ScrollableTextDialog but with Information title
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context = this@MainActivity,
                     title = getString(com.sza.fastmediasorter.R.string.information),
                     message = message,

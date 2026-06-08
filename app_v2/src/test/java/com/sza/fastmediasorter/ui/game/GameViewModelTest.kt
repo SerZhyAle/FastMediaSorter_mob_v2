@@ -117,6 +117,42 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `accepted move exposes player displacement for animation`() = runTest(dispatcherRule.testDispatcher) {
+        val snapshot = GameStateSnapshot.fromLevelState(exitAdjacentState())
+        val repository = FakeGameStateRepository(snapshot, boardGenerator)
+        val viewModel = GameViewModel(repository, boardGenerator)
+        advanceUntilIdle()
+
+        viewModel.move(GameDirection.LEFT)
+        advanceUntilIdle()
+
+        val ready = viewModel.state.value as GameUiState.Ready
+        val playerMove = ready.turnMoves.firstOrNull { it.actor == GameMoveActor.PLAYER }
+        assertTrue(ready.turnMoves.isNotEmpty())
+        assertEquals(GamePosition(1, 2), playerMove?.from)
+        assertEquals(GamePosition(1, 1), playerMove?.to)
+    }
+
+    @Test
+    fun `advanceLevel clears stale turn moves`() = runTest(dispatcherRule.testDispatcher) {
+        val snapshot = GameStateSnapshot.fromLevelState(exitAdjacentState())
+        val repository = FakeGameStateRepository(snapshot, boardGenerator)
+        val viewModel = GameViewModel(repository, boardGenerator)
+        advanceUntilIdle()
+
+        viewModel.move(GameDirection.RIGHT)
+        advanceUntilIdle()
+        assertTrue((viewModel.state.value as GameUiState.Ready).turnMoves.isNotEmpty())
+
+        viewModel.advanceLevel()
+        advanceUntilIdle()
+
+        val ready = viewModel.state.value as GameUiState.Ready
+        assertEquals(GameStatus.PLAYING, ready.levelState.status)
+        assertTrue(ready.turnMoves.isEmpty())
+    }
+
+    @Test
     fun `advanceLevel starts next generated level`() = runTest(dispatcherRule.testDispatcher) {
         val snapshot = GameStateSnapshot.fromLevelState(exitAdjacentState().copy(status = GameStatus.LEVEL_WON))
         val repository = FakeGameStateRepository(snapshot, boardGenerator)

@@ -53,6 +53,7 @@ Examples:
 
 **Step 2 - Make the smallest grounded edit.**
 - Read inline comments / KDoc in the touched area first and treat them as requirements.
+- If new logic genuinely needs a comment, keep it English-only and WHY-focused: only non-obvious business logic, a handled edge-case, or a workaround - never restate what the code plainly does.
 - Patch the narrowest code path that directly controls the bug.
 - Preserve existing architecture and style; do not opportunistically refactor adjacent code.
 - If editing `res/layout/*.xml`, immediately check the `res/layout-land/*.xml` counterpart and patch it too when it exists.

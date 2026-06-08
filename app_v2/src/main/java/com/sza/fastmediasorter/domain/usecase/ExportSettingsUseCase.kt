@@ -35,7 +35,6 @@ class ExportSettingsUseCase @Inject constructor(
             val scheduledOps = scheduledOperationRepository.getAll().first()
             val resourceMap = resources.associateBy { it.id }
             
-            // Build XML content
             val xml = buildString {
                 appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
                 appendLine("<FastMediaSorterBackup version=\"3.0\">")

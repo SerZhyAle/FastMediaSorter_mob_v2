@@ -345,12 +345,9 @@ class CommandPanelController(
 
             val params = button.layoutParams
             if (params != null) {
-                // Save and scale height
                 params.height = (baseline * SMALL_CONTROLS_SCALE).roundToInt().coerceAtLeast(1)
 
-                // Save and scale margins
                 if (params is android.view.ViewGroup.MarginLayoutParams) {
-                    // Save original margins
                     originalMargins.putIfAbsent(
                         button.id,
                         android.graphics.Rect(params.leftMargin, params.topMargin, params.rightMargin, params.bottomMargin)
@@ -367,7 +364,6 @@ class CommandPanelController(
                 button.layoutParams = params
             }
 
-            // Save and scale paddings
             originalPaddings.putIfAbsent(
                 button.id,
                 android.graphics.Rect(button.paddingLeft, button.paddingTop, button.paddingRight, button.paddingBottom)
@@ -391,7 +387,6 @@ class CommandPanelController(
         )
 
         containers.forEach { container ->
-            // Save original padding
             originalContainerPaddings.putIfAbsent(
                 container.id,
                 android.graphics.Rect(container.paddingLeft, container.paddingTop, container.paddingRight, container.paddingBottom)

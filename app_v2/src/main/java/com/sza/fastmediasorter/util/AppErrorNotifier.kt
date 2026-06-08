@@ -35,7 +35,7 @@ object AppErrorNotifier {
      * @param message          User-readable error text.
      * @param severity         [ErrorSeverity.CRITICAL] or [ErrorSeverity.DEBUG_ONLY].
      * @param screenName       Optional label prepended to log output (e.g. "Browse").
-     * @param showDetailedErrors Unused here; caller decides whether to show [com.sza.fastmediasorter.ui.dialog.ErrorDialog]
+     * @param showDetailedErrors Unused here; caller decides whether to show [com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog]
      *                         separately. Passed for symmetry with existing callers.
      */
     fun show(

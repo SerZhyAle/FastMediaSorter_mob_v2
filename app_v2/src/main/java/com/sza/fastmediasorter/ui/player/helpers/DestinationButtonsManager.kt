@@ -83,7 +83,6 @@ class DestinationButtonsManager(
                 val moveCollapsed = cachedMoveCollapsed!!
                 val maxRecipients = cachedMaxRecipients!!
                 
-                // Clear existing buttons
                 safeViews.copyToButtonsGrid.removeAllViews()
                 safeViews.moveToButtonsGrid.removeAllViews()
                 
@@ -401,7 +400,6 @@ class DestinationButtonsManager(
             val cornerRadius = (12 * density).toInt() // Rounded corners
             val marginPx = (2 * density).toInt() // Scale margins with density
             
-            // Apply rounded corners
             shapeAppearanceModel = shapeAppearanceModel.toBuilder()
                 .setAllCornerSizes(cornerRadius.toFloat())
                 .build()
@@ -446,13 +444,11 @@ class DestinationButtonsManager(
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.copyPanelCollapsed
             
-            // Save new state
             settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
             
             // Clear cache to force reload on next populateDestinationButtons()
             cachedCopyCollapsed = newCollapsedState
             
-            // Update UI
             updateCopyPanelVisibility(newCollapsedState)
         }
     }
@@ -476,13 +472,11 @@ class DestinationButtonsManager(
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.movePanelCollapsed
             
-            // Save new state
             settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
             
             // Clear cache to force reload on next populateDestinationButtons()
             cachedMoveCollapsed = newCollapsedState
             
-            // Update UI
             updateMovePanelVisibility(newCollapsedState)
         }
     }

@@ -110,7 +110,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
         }
 
-        // Save audio metadata locally
         bindSwitch(binding.rowSaveAudioMetadataLocally) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))

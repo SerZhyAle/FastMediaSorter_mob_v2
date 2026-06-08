@@ -151,7 +151,6 @@ abstract class ResourceDao {
     open suspend fun swapDisplayOrders(id1: Long, order1: Int, id2: Long, order2: Int) {
         // Update first resource
         updateDisplayOrder(id1, order2)
-        // Update second resource
         updateDisplayOrder(id2, order1)
     }
     

@@ -15,7 +15,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
-import com.sza.fastmediasorter.ui.dialog.ErrorDialog
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -57,7 +57,7 @@ class GeneralSettingsLogHelper(
             val context = fragment.requireContext()
             // Keep the default dialog copy/share/export paths on the masked report only.
             // Full diagnostics remain behind a separate, confirmed action when sensitive fields exist.
-            ErrorDialog.show(
+            ScrollableTextDialog.show(
                 context = context,
                 title = title,
                 message = report.maskedText,
@@ -125,11 +125,12 @@ class GeneralSettingsLogHelper(
                 if (fullLog) getFullLog() else getSessionLog()
             }
             if (!fragment.isAdded || fragment.view == null) return@launch
-            com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                fragment.requireContext(),
-                if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
-                logText,
-                fragment.getString(R.string.close)
+            ScrollableTextDialog.show(
+                context = fragment.requireContext(),
+                title = if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
+                message = logText,
+                monospace = true,
+                showSave = false
             )
         }
     }

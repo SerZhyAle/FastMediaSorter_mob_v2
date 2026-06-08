@@ -229,16 +229,12 @@ class PlayerMediaLoaderManager(
         // blurred background (stripes) over the video player pillarbox areas.
         imageLoadingManager.clearForVideoTransition()
 
-        // Hide text viewer controls
         hideTextViewerControls()
         
-        // Hide PDF controls
         hidePdfViewerControls()
         
-        // Hide EPUB controls
         hideEpubViewerControls()
         
-        // Show video player
         binding.playerView.isVisible = true
         
         // Configure PlayerView based on media type
@@ -943,7 +939,6 @@ class PlayerMediaLoaderManager(
             // Show touch zones overlay for audio in fullscreen mode
             updateAudioTouchZonesVisibility()
             
-            // Show audio file info
             showAudioFileInfo(currentFile)
         } else {
             // For video: auto-hide controls after 15 seconds

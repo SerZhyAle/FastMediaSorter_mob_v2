@@ -36,8 +36,6 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -493,7 +491,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             // Mark first run as completed
             viewModel.setFirstRunCompleted()
 
-            // Show toast message
             Toast.makeText(this, R.string.setup_content_first_toast, Toast.LENGTH_LONG).show()
 
             // Navigate to Settings with MainActivity as the back-stack root so that

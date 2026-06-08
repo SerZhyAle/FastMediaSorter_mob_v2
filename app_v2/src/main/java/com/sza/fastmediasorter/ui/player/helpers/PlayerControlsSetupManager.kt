@@ -123,7 +123,6 @@ class PlayerControlsSetupManager(
 
             viewModel.togglePause()
             
-            // Update slideshow controller
             if (viewModel.state.value.isPaused) {
                 slideshowController.pauseSlideshow()
             } else {
@@ -407,7 +406,6 @@ class PlayerControlsSetupManager(
             val currentText = safeViews.tvLyricsContent.text.toString()
             if (currentText.isBlank()) return@setOnClickListener
 
-            // Show loading state
             Toast.makeText(activity, R.string.translation_started, Toast.LENGTH_SHORT).show()
 
             // Execute translation

@@ -41,7 +41,6 @@ class SaveGifFirstFrameUseCase @Inject constructor(
             // Read GIF file data
             val gifData = gifFile.readBytes()
             
-            // Create GIF decoder
             val bitmapProvider = GifBitmapProvider(Glide.get(context).bitmapPool)
             val gifDecoder: GifDecoder = StandardGifDecoder(bitmapProvider)
             gifDecoder.read(gifData)
@@ -60,23 +59,19 @@ class SaveGifFirstFrameUseCase @Inject constructor(
                 return@withContext Result.failure(Exception("Failed to extract first frame"))
             }
             
-            // Get Downloads directory
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (!downloadsDir.exists()) {
                 downloadsDir.mkdirs()
             }
             
-            // Create output file
             val baseFileName = gifFile.nameWithoutExtension
             val outputFileName = "${baseFileName}_first_frame.png"
             val outputFile = File(downloadsDir, outputFileName)
             
-            // Save as PNG
             FileOutputStream(outputFile).use { fos ->
                 firstFrame.compress(Bitmap.CompressFormat.PNG, 100, fos)
             }
             
-            // Clear decoder
             gifDecoder.clear()
             
             Timber.d("SaveGifFirstFrame: Saved to ${outputFile.absolutePath}")

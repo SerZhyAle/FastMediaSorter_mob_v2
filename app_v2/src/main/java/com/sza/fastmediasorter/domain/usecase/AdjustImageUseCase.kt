@@ -37,11 +37,9 @@ class AdjustImageUseCase @Inject constructor(
                 return Result.failure(Exception("File not found: $imagePath"))
             }
 
-            // Load bitmap
             val originalBitmap = BitmapFactory.decodeFile(imagePath)
                 ?: return Result.failure(Exception("Failed to decode image"))
 
-            // Apply adjustments
             val adjustedBitmap = applyAdjustments(originalBitmap, adjustments)
 
             // Save to file

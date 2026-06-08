@@ -114,13 +114,11 @@ private fun extractFileNameFromError(error: String): String? {
 private fun FileOperationErrorFormatter.cleanErrorMessage(message: String): String {
     var cleaned = message
     
-    // Remove Java class references
     cleaned = cleaned.replace(Regex("using [a-zA-Z0-9.]+@[a-zA-Z0-9]+"), "")
     
     // Remove hex codes in parentheses
     cleaned = cleaned.replace(Regex("\\(0x[0-9a-fA-F]+\\)"), "")
     
-    // Remove package names
     cleaned = cleaned.replace(Regex("[a-z0-9.]+\\.[A-Z][a-zA-Z0-9]+Exception:\\s*"), "")
     
     // Extract STATUS codes if present

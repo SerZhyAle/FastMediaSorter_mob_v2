@@ -16350,3 +16350,71 @@ Format: | datetime | file | target | description |
 | 2026-06-08 12:29:43 | `app_v2/src/main/AndroidManifest.xml` | `spec-dev S0380 05` | Register 4 specialized standalone activities + dispatcher; re-target VIEW aliases per type; add toggled text + typeless-dispatcher aliases; resolve MIME overlap (text/plain split from docs, scheme-only dispatcher filter) [branch: DEBUG-v013] |
 | 2026-06-08 12:29:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerManager.kt` | `spec-dev S0380 05` | Add StandaloneTextPlayer + StandaloneTypelessPlayer to the default-player VIEW alias toggle set [branch: DEBUG-v013] |
 | 2026-06-08 12:47:48 | `PLAN/S0380_split-standalone-player.md` | `spec-dev` | All phases done (Text/PhotoVideo/Audio/Document + dispatcher + manifest cutover + flavor parity); status In Progress -> BlockNeedUserTest; 6 S0380 debug verification tags inserted at standalone activity / dispatcher / PdfViewerManager flow entries [branch: DEBUG-v013] |
+| 2026-06-08 12:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `spec-dev` | S0383 P05.2: route share-result collect through collectOnLifecycle [branch: DEBUG-v013] |
+| 2026-06-08 12:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `spec-dev` | S0383 P05.2: route state collect through collectOnLifecycle; drop unused imports [branch: DEBUG-v013] |
+| 2026-06-08 12:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/SlideshowSettingsDialogFragment.kt` | `spec-dev` | S0383 P05.2: route state collect through collectOnLifecycle [branch: DEBUG-v013] |
+| 2026-06-08 12:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivityLifecycleBridge.kt` | `spec-dev` | S0383 P05.2: route FPS overlay collects through collectOnLifecycle [branch: DEBUG-v013] |
+| 2026-06-08 12:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt` | `spec-dev` | S0383 P05.2: document intentional lifetime collect (KEEP) [branch: DEBUG-v013] |
+| 2026-06-08 12:53:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SlideshowResourceAvailabilityManager.kt` | `spec-dev` | S0383 P05.2: document intentional lifetime collect (KEEP) [branch: DEBUG-v013] |
+| 2026-06-08 12:53:19 | `scripts/quality/unsafe-collect-baseline.txt` | `spec-dev` | S0383 P05.3: ratchet unsafe-collect baseline 13 -> 8 [branch: DEBUG-v013] |
+| 2026-06-08 12:56:52 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/dispatch/MediaFamilyResolverTest.kt` | `test` | Add unit tests for MediaFamilyResolver [branch: DEBUG-v013] |
+| 2026-06-08 12:57:20 | `PLAN/S0380_split-standalone-player.md` | `spec` | Add Last Audit block to S0380 spec [branch: DEBUG-v013] |
+| 2026-06-08 12:57:43 | `PLAN/S0383_neuroslop-code-and-resource-hygiene/PHASE_04__resource-dedup.md` | `spec-dev` | S0383 P04.1: resource detection done; 04.2-04.4 blocked on owner inputs (translations, theme convention) + dedup premise correction [branch: DEBUG-v013] |
+| 2026-06-08 13:00:10 | `PLAN/S0384_unify-scrollable-text-dialogs/INDEX.md` | `spec-tech` | S0384 tactical plan: 6 phases, unify scrollable text dialogs [branch: DEBUG-v013] |
+| 2026-06-08 13:00:10 | `PLAN/S0384_unify-scrollable-text-dialogs.md` | `spec-tech` | S0384 status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-08 13:07:47 | `PLAN/S0383_neuroslop-code-and-resource-hygiene/PHASE_04__resource-dedup.md` | `spec-dev` | S0383 P04: re-scope into 04a dedup / 04b parity / 04c colors; park on owner inputs [branch: DEBUG-v013] |
+| 2026-06-08 13:11:18 | `scripts/quality/assert-trivial-comments.ps1` | `assert-trivial-comments` | S0383 P02: tighten heuristic (<=4 words, no explanatory connective); true-trivial count 232 not 1037 [branch: DEBUG-v013] |
+| 2026-06-08 13:11:18 | `scripts/quality/trivial-comments-baseline.txt` | `spec-dev` | S0383 P02: re-seed trivial-comments baseline 1037 -> 232 (detector precision fix) [branch: DEBUG-v013] |
+| 2026-06-08 13:15:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/PlayerSettingsDialog.kt` | `PlayerSettingsDialog` | S0383 P02.2: remove 8 trivial section-label comments [branch: DEBUG-v013] |
+| 2026-06-08 13:16:36 | `scripts/quality/trivial-comments-baseline.txt` | `spec-dev` | S0383 P02.3: ratchet trivial-comments baseline 232 -> 224 (partial) [branch: DEBUG-v013] |
+| 2026-06-08 13:22:44 | `PLAN/S0385_apk-aab-dead-weight-reduction.md` | `spec` | Add strategic spec S0385 for APK/AAB dead-weight reduction [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/INDEX.md` | `spec-tech` | Create tactical plan for S0385 [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_01__dead-dependency-removal.md` | `spec-tech` | Phase 01: dead-dependency-removal [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_02__dead-class-removal.md` | `spec-tech` | Phase 02: dead-class-removal [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_03__test-fixture-debug-isolation.md` | `spec-tech` | Phase 03: test-fixture-debug-isolation [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_04__keep-narrow-resource-shrink.md` | `spec-tech` | Phase 04: keep-narrow-resource-shrink [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_05__ml-ocr-flavor-confinement.md` | `spec-tech` | Phase 05: ml-ocr-flavor-confinement [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_06__flavor-dead-media-placement.md` | `spec-tech` | Phase 06: flavor-dead-media-placement [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-08 13:30:12 | `PLAN/S0385_apk-aab-dead-weight-reduction.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-08 13:33:46 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_02__dead-class-removal.md` | `spec-tech` | Exclude HostKeyMismatchException from deletion - it is S0046 (Partial) scaffolding; cross-ticket guard + link S0381/S0383 [branch: DEBUG-v013] |
+| 2026-06-08 13:37:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScrollableTextDialog.kt` | `spec-dev` | S0384: new unified scrollable-text dialog (replaces ErrorDialog/DialogUtils/ErrorDialogHelper) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:16 | `app_v2/src/main/res/layout/dialog_error_detail.xml` | `spec-dev` | S0384: add btnExtra action slot (portrait) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout-land/dialog_error_detail.xml` | `spec-dev` | S0384: add btnExtra action slot (landscape) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ErrorDialog.kt` | `spec-dev` | S0384: delete - superseded by ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DialogUtils.kt` | `spec-dev` | S0384: delete - showScrollableDialog migrated to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt` | `spec-dev` | S0384: delete dead wrapper (0 callers) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScheduledLogDialog.kt` | `spec-dev` | S0384: delete - reuses ScrollableTextDialog via extraAction [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout/dialog_scrollable_text.xml` | `spec-dev` | S0384: delete superseded layout [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout-land/dialog_scrollable_text.xml` | `spec-dev` | S0384: delete superseded layout (land) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout/dialog_log_view.xml` | `spec-dev` | S0384: delete dead layout (0 refs) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout-land/dialog_log_view.xml` | `spec-dev` | S0384: delete dead layout (land) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout/dialog_scheduled_log.xml` | `spec-dev` | S0384: delete - scheduled log uses ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/layout-land/dialog_scheduled_log.xml` | `spec-dev` | S0384: delete (land) [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0384: scheduled log via ScrollableTextDialog + clear extraAction [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GoogleAccountSettingsHelper.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/copy/UiMessageProjector.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/java/com/sza/fastmediasorter/util/AppErrorNotifier.kt` | `spec-dev` | S0384: migrate dialog calls to ScrollableTextDialog [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0384: remove orphan dialog_log_view auto-strings [branch: DEBUG-v013] |
+| 2026-06-08 13:37:17 | `app_v2/src/main/res/values/strings_scheduled.xml` | `spec-dev` | S0384: remove orphan scheduled_ops_log copy/close [branch: DEBUG-v013] |
+| 2026-06-08 13:39:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScrollableTextDialog.kt` | `spec-dev` | S0384: insert BlockNeedUserTest debug tag at show() entry [branch: DEBUG-v013] |
+| 2026-06-08 13:40:26 | `PLAN/S0384_unify-scrollable-text-dialogs.md` | `spec-all` | Pipeline BlockNeedUserTest (device-test deferred): S0384 [branch: DEBUG-v013] |
+| 2026-06-08 15:43:37 | `app_v2/build.gradle.kts` | `build` | S0385 Phase 01: remove dead deps (fastscroll, navigation-fragment-ktx, navigation-ui-ktx, navigation-testing); material-icons-extended kept (not dead) [branch: DEBUG-v013] |
+| 2026-06-08 15:51:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `app_v2` | S0385 Phase 02: remove trailing dead NetworkFileDataInputStream + unused import [branch: DEBUG-v013] |
+| 2026-06-08 15:52:17 | `app_v2/src/main/java/com/sza/fastmediasorter` | `spec-dev` | S0385 Phase 02: delete dead classes - SafeByteBuffer cluster (4) + EncryptedString + BaseFragment + UiEvent + PdfHelper + KpiAlertChecker + MetricsExporter (10 files) [branch: DEBUG-v013] |
+| 2026-06-08 16:01:43 | `app_v2/proguard-rules.pro` | `app_v2` | S0385 Phase 03: drop force-keep for debug-only TestCredential models (R8 strips them in release) [branch: DEBUG-v013] |
+| 2026-06-08 16:01:43 | `app_v2/src/debug/assets/test_credentials.json` | `spec-dev` | S0385 Phase 03: move test_credentials.json from src/main/assets to src/debug/assets (absent from release; R8 usage.txt confirms TestCredential models stripped) [branch: DEBUG-v013] |
+| 2026-06-08 16:26:09 | `app_v2/build.gradle.kts` | `build` | S0385 fast-wins: exclude BouncyCastle PQC picnic data + BC _de locale (~1.27MB off networked release); scope googleid per-flavor (drop from lite) [branch: DEBUG-v013] |
+| 2026-06-08 16:27:08 | `scripts/quality/assert-trivial-comments.ps1` | `spec-dev` | S0383 P02: add -Fix mode + digit/colon keeper exclusions [branch: DEBUG-v013] |
+| 2026-06-08 16:27:08 | `scripts/quality/trivial-comments-baseline.txt` | `spec-dev` | S0383 P02.3: ratchet trivial-comments baseline 224 -> 0 (sweep complete) [branch: DEBUG-v013] |
+| 2026-06-08 16:27:08 | `app_v2/src/main` | `spec-dev` | S0383 P02.2: remove 215 trivial verb-noun comments across ~140 files via assert-trivial-comments.ps1 -Fix [branch: DEBUG-v013] |
+| 2026-06-08 16:33:27 | `CLAUDE.md` | `all-agents` | Add comment-discipline rule (English-only, WHY-not-WHAT, only non-obvious business logic / edge-cases, no trivial restating comments) to Strict Rule 10 + mirrors in copilot-instructions, both agent defs (.claude + .github), and code-writing skills spec-dev/skill-fix [branch: DEBUG-v013] |
+| 2026-06-08 16:34:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameBoardView.kt` | `app_v2` | Mini-game: cap board at 20x20, animate actor moves over 0.2s, guarantee Kryvavitsa reachable from player start [branch: DEBUG-v013] |

@@ -40,7 +40,6 @@ class FtpToLocalStrategy @Inject constructor(
         
         val sourceRemotePath = extractRemotePath(source, sourceCredentials.server, sourceCredentials.port)
         
-        // Get destination output stream
         val outputStream = try {
             when (destination.scheme) {
                 "file", null -> {

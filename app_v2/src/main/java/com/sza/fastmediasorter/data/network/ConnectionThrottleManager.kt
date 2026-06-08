@@ -225,7 +225,6 @@ object ConnectionThrottleManager {
                 Timber.w(e, "ConnectionThrottle: failed to clear transient failures for $resourceKey")
             }
             if (videoPlayerResources.isEmpty()) {
-                // Cancel any pending resume
                 videoPlayerResumeJob?.cancel()
                 
                 Timber.i("ConnectionThrottle: *** VIDEO PLAYER DEACTIVATED for $resourceKey - RESUMING THUMBNAILS IN 300ms ***")

@@ -25,7 +25,6 @@ import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -446,12 +445,4 @@ class NetworkVideoFrameDecoder(
             cause is java.util.concurrent.CancellationException ||
             cause?.message?.contains("setDataSourceCallback failed", ignoreCase = true) == true
     }
-}
-
-/**
- * Dummy InputStream wrapper for ResourceDecoder interface.
- * We don't actually use InputStream since NetworkFileData contains all info.
- */
-class NetworkFileDataInputStream(val data: NetworkFileData) : InputStream() {
-    override fun read(): Int = -1
 }

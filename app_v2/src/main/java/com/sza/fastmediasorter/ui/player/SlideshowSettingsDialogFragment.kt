@@ -64,7 +64,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
         // Interval Slider
         binding.sliderInterval.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
-                // Update text
                 binding.tvIntervalValue.text = "${value.toInt()}s"
             }
         }
@@ -90,7 +89,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             openMusicPicker()
         }
 
-        // Clear Music
         binding.btnClearMusic.setOnClickListener {
             viewModel.setSlideshowMusic(null)
             releaseUriPermissions() // Clean up permissions if needed (optional)
@@ -99,7 +97,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
 
     private fun observeViewModel() {
         collectOnLifecycle(viewModel.state) { state ->
-            // Update Interval
             val intervalSec = (state.slideShowInterval / 1000L).toFloat()
             binding.sliderInterval.value = intervalSec.coerceIn(1f, 60f)
             binding.tvIntervalValue.text = "${intervalSec.toInt()}s"
@@ -107,7 +104,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             // Update Play to End
             binding.cbPlayToEnd.isChecked = state.playToEndInSlideshow
 
-            // Update Music Status
             val musicUri = state.slideshowMusicUri
             if (musicUri != null) {
                 val uri = Uri.parse(musicUri)

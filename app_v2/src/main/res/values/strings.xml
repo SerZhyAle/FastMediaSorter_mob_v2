@@ -1692,8 +1692,6 @@ Close the player and try again.</string>
     <string name="dialog_integration_test_tvLog_text">No tests run yet</string>
     <string name="dialog_integration_test_tvProgress_text">Ready to run tests</string>
     <string name="dialog_integration_test_tvStatus_text">Click Run Tests to start</string>
-    <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
-    <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Please wait..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Loading..</string>

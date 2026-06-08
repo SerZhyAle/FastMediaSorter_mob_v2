@@ -81,7 +81,6 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                 try {
                     val scanner = mediaScannerFactory.getScanner(resource.type)
                     
-                    // Get current file count
                     val fileCount = scanner.getFileCount(
                         resource.path,
                         resource.supportedMediaTypes,

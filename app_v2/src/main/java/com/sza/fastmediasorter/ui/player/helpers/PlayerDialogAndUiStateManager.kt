@@ -194,7 +194,6 @@ class PlayerDialogAndUiStateManager(
         val currentFile = viewModel.state.value.currentFile ?: return
         
         lifecycleScope.launch {
-            // Show loading
             binding.progressBar.isVisible = true
             Toast.makeText(activity, R.string.pdf_exporting_started, Toast.LENGTH_SHORT).show()
             

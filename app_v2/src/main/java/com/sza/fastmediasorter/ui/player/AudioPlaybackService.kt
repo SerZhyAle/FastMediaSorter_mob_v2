@@ -142,7 +142,6 @@ class AudioPlaybackService : MediaSessionService() {
             startForeground(MediaNotificationManager.NOTIFICATION_ID, placeholderNotification)
         }
 
-        // Set custom notification provider
         setMediaNotificationProvider(
             MediaNotificationManager.createNotificationProvider(this)
         )

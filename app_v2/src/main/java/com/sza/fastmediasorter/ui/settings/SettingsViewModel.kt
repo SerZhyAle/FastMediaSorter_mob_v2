@@ -601,7 +601,6 @@ class SettingsViewModel @Inject constructor(
     fun importSzaResources(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Get XML parser
                 val parser = context.resources.getXml(com.sza.fastmediasorter.R.xml.sza_resources)
                 var eventType = parser.eventType
                 
@@ -658,7 +657,6 @@ class SettingsViewModel @Inject constructor(
                                     null
                                 }
                                 
-                                // Check existing credentials
                                 val existingCred = existingCredentials.find { 
                                     it.server == server &&
                                         it.username == username &&
@@ -686,7 +684,6 @@ class SettingsViewModel @Inject constructor(
                                         Timber.d("Updated shareName for credential $username@$server from XML")
                                     }
                                 } else {
-                                    // Create new
                                     val newCredId = java.util.UUID.randomUUID().toString()
                                     val port = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) 22 else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) 21 else 445
                                     val newCred = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(

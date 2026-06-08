@@ -141,7 +141,6 @@ class WelcomePagerAdapter(
             binding.tvDescription.text = binding.root.context.getString(page.descriptionRes)
             bindDetails(binding.tvDetails, page)
 
-            // Apply staggered entrance animations
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 300L)

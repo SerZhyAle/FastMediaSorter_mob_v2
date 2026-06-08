@@ -349,7 +349,6 @@ class ImportSettingsUseCase @Inject constructor(
                 eventType = parser.next()
             }
             
-            // Apply imported settings
             settings?.let {
                 settingsRepository.updateSettings(it)
                 Timber.d("Settings imported successfully")
@@ -428,7 +427,6 @@ class ImportSettingsUseCase @Inject constructor(
                         resourceRepository.updateResource(mergedResource)
                         Timber.d("Updated existing resource: ${importedResource.name}")
                     } else {
-                        // Add new
                         resourceRepository.addResource(importedResource)
                         Timber.d("Added new resource: ${importedResource.name}")
                     }

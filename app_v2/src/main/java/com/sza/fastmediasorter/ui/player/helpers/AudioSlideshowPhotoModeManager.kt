@@ -84,12 +84,10 @@ class AudioSlideshowPhotoModeManager(
         backgroundMusicManager.isAudioSlideshowPhotoMode = true
         Timber.d("AudioSlideshowPhotoModeManager: Entering audio slideshow photo mode")
 
-        // Hide audio player UI
         binding.playerView.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
 
-        // Show imageView fullscreen
         binding.imageView.isVisible = true
 
         // Show current photo path/name overlay
@@ -141,7 +139,6 @@ class AudioSlideshowPhotoModeManager(
         backgroundMusicManager.isAudioSlideshowPhotoMode = false
         Timber.d("AudioSlideshowPhotoModeManager: Exiting audio slideshow photo mode")
 
-        // Hide photo overlay
         binding.imageView.isVisible = false
         binding.imageView.setImageDrawable(null)
         binding.imageView.scaleType = ImageView.ScaleType.FIT_CENTER

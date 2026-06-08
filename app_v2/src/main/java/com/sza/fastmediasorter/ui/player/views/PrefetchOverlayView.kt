@@ -219,7 +219,6 @@ class PrefetchOverlayView @JvmOverloads constructor(
         textPaint.textSize = mainTextSz
         hintPaint.textSize = hintTextSz
 
-        // Build pill height dynamically
         val hasHint = !isLocalCopyMode && viability == StreamViabilityState.MARGINAL
         val pillH = padV + mainTextSz + dp(6f) + barH + dp(6f) +
             (if (hasHint) hintTextSz + dp(4f) else 0f) + padV

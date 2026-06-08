@@ -78,7 +78,6 @@ class FtpDataSource(
                 throw IOException("Failed to get connected FTP client from pool")
             }
 
-            // Set socket timeout
             client?.soTimeout = 30000
 
             // Get file size using SIZE command
@@ -124,7 +123,6 @@ class FtpDataSource(
                 throw IOException("Failed to open FTP file stream: ${client?.replyString}")
             }
             
-            // Apply adaptive buffering
             val resourceKey = "ftp://$host:$port"
             val bufferSize = com.sza.fastmediasorter.data.network.ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
             inputStream = java.io.BufferedInputStream(rawStream, bufferSize)

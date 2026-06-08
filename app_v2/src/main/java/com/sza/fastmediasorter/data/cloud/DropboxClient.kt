@@ -431,7 +431,6 @@ class DropboxClient @Inject constructor(
                 
                 // Test connection by getting account info
                 val account = client.users().currentAccount
-                // Update cached email
                 accountEmail = account.email
                 CloudResult.Success(true)
             } catch (e: DbxException) {
@@ -905,7 +904,6 @@ class DropboxClient @Inject constructor(
                 // Revoke access token if possible
                 dbxClient?.auth()?.tokenRevoke()
                 
-                // Clear client
                 dbxClient = null
                 accountEmail = null
                 

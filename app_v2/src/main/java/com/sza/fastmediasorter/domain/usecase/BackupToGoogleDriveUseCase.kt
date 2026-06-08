@@ -235,7 +235,6 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             return findResult.data.id
         }
 
-        // Create new folder
         val createResult = googleDriveClient.createFolder(FOLDER_NAME, null)
         return when (createResult) {
             is CloudResult.Success -> {

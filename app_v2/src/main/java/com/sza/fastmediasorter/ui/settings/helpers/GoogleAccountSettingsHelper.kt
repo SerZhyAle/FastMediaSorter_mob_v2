@@ -77,13 +77,13 @@ class GoogleAccountSettingsHelper(
         }
     }
 
-    // S0234: reuse the existing ErrorDialog (title + message + collapsible details + copy/share/save).
+    // S0234: reuse the shared ScrollableTextDialog (title + message + collapsible details + copy/share/save).
     private fun showSignInErrorDialog(reason: IdentityFailureReason) {
         val context = fragment.context ?: return
         val (summaryRes, ctaRes) = errorReasonStrings(reason)
         val message = context.getString(summaryRes)
         val details = context.getString(R.string.s0234_card_state_error_diag_details_prefix, reason.name)
-        com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+        com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
             context = context,
             title = context.getString(R.string.s0234_error_dialog_title),
             message = message,

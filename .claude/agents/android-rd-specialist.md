@@ -39,7 +39,7 @@ When reviewing code (focus on recently changed files unless explicitly asked to 
 5. Activity logic prohibited - must delegate.
 6. Resolve any lint warnings in touched files.
 7. Check that existing inline comments/KDoc are treated as requirements, not overridden silently.
-8. WHY-comments only for non-obvious logic; stale comments must be removed.
+8. Comment discipline: code comments are English-only and explain WHY, not WHAT - write one only for non-obvious business logic, a handled edge-case, a workaround, or an invariant the code cannot express; never restate what the adjacent line plainly does; remove stale comments.
 9. For any layout XML edits: always check `res/layout-land/*.xml` counterpart - never leave portrait-only edits when a landscape counterpart exists.
 
 ## Build & Flavors

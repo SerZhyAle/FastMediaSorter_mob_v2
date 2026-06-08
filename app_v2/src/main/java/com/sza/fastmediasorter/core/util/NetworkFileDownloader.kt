@@ -66,7 +66,6 @@ class NetworkFileDownloader(
         }
         
         // No need for legacy metadata_temp - all files now go to UnifiedFileCache
-        // Get cache destination path
         val cacheFile = unifiedCache.getCacheFile(networkPath, fileSize)
 
         // Deduplicate concurrent downloads for the same URL (S0113 Phase 02)

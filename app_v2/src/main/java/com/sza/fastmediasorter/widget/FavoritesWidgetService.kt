@@ -88,7 +88,6 @@ class FavoritesRemoteViewsFactory(private val context: Context) : RemoteViewsSer
         
         val favorite = favorites[position]
         
-        // Set file name
         views.setTextViewText(R.id.widget_favorite_name, favorite.displayName)
         
         // Set icon based on media type

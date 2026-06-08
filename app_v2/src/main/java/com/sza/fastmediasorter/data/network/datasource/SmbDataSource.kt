@@ -175,7 +175,6 @@ class SmbDataSource(
             val finalPath = resolveSmbPath(uri)
             Timber.d("SmbDataSource.open: Opening '$finalPath' relative to share '${connectionInfo.shareName}'")
             
-            // Get pooled connection (blocking)
             var pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
             
             // Check if thread was interrupted (e.g., ExoPlayer release during file switching)
@@ -400,7 +399,6 @@ class SmbDataSource(
                     return if (bytesCopied > 0) bytesCopied else C.RESULT_END_OF_INPUT
                 }
 
-                // Update buffer state
                 internalBufferValidBytes = bytesRead
                 
                 // Copy what we need from the fresh chunk

@@ -544,7 +544,6 @@ class SftpClient @Inject constructor(
         Result.success(Unit)
     }
 
-    // Get file attributes
     suspend fun stat(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
@@ -578,7 +577,6 @@ class SftpClient @Inject constructor(
         }
     }
 
-    // Create directory
     suspend fun mkdir(
         connectionInfo: SftpConnectionInfo,
         remotePath: String

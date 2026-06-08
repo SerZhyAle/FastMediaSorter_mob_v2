@@ -721,7 +721,6 @@ class PlayerViewModel @Inject constructor(
             try {
                 val currentFile = state.value.currentFile ?: return@launch
                 
-                // Get updated file size
                 // For network files, increment size by 1 as workaround (actual size changed on server)
                 // The main cache invalidation now happens via NetworkFileData.equals() using path+size
                 val updatedSize = when {
@@ -743,7 +742,6 @@ class PlayerViewModel @Inject constructor(
                     }
                 }
                 
-                // Update file in list
                 val updatedFiles = state.value.files.toMutableList()
                 val currentIndex = state.value.currentIndex
                 if (currentIndex in updatedFiles.indices) {

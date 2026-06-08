@@ -47,8 +47,6 @@
     <string name="scheduled_ops_interval_corrected_15">Минимальный интервал - 15 минут</string>
     <string name="scheduled_ops_interval_corrected_1h">Нельзя задать 0 часов и 0 минут - установлен 1 час</string>
     <string name="scheduled_ops_log_clear">Очистить журнал</string>
-    <string name="scheduled_ops_log_close">Закрыть</string>
-    <string name="scheduled_ops_log_copy">Копировать</string>
     <string name="scheduled_ops_log_empty">Журнал пуст</string>
     <string name="scheduled_ops_log_title">Журнал операций</string>
     <string name="scheduled_ops_next_run">Следующий запуск в:</string>

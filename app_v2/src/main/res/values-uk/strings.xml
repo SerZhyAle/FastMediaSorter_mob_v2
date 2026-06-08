@@ -1520,8 +1520,6 @@
     <string name="dialog_integration_test_tvLog_text">Тести ще не запущені</string>
     <string name="dialog_integration_test_tvProgress_text">Готово до запуску тестів</string>
     <string name="dialog_integration_test_tvStatus_text">Натисніть Запустити тести для старту</string>
-    <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
-    <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Будь ласка, зачекайте..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Завантаження..</string>

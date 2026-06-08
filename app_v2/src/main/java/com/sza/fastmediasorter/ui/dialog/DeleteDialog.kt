@@ -102,7 +102,6 @@ class DeleteDialog(
                         withContext(Dispatchers.Main) {
                             progressDialog.updateProgress(progress)
                             
-                            // Handle completion
                             if (progress is com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Completed) {
                                 handleDeleteResult(progress.result)
                             }

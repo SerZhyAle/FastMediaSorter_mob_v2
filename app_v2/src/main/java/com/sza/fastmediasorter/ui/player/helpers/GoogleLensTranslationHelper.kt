@@ -120,7 +120,6 @@ class GoogleLensTranslationHelper(
                         )
                     }
                     
-                    // Update overlay and show
                     translationOverlayView.setTranslatedBlocks(overlayBlocks)
                     translationOverlayView.visibility = View.VISIBLE
                     

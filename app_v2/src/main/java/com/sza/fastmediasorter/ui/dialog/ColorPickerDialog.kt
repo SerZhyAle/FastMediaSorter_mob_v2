@@ -45,10 +45,8 @@ class ColorPickerDialog : DialogFragment() {
     }
 
     private fun setupViews() {
-        // Setup color preview
         updateColorPreview()
 
-        // Setup RecyclerView
         colorAdapter = ColorAdapter(
             colors = ColorPalette.EXTENDED_PALETTE.toList(),
             selectedColor = selectedColor,
@@ -65,7 +63,6 @@ class ColorPickerDialog : DialogFragment() {
             adapter = colorAdapter
         }
 
-        // Setup buttons
         binding.btnCancel.setOnClickListener {
             dismiss()
         }

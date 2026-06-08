@@ -96,7 +96,6 @@ class LocalTransferProvider @Inject constructor(
         onProgress: ((Long, Long) -> Unit)?
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            // Check source
             val sourcePath = sourceFile.absolutePath
             val sourceInputStream = if (sourcePath.startsWith("content://")) {
                 context.contentResolver.openInputStream(Uri.parse(sourcePath))
@@ -108,7 +107,6 @@ class LocalTransferProvider @Inject constructor(
                 FileInputStream(sourceFile)
             }
             
-            // Check destination
             val destOutputStream = if (destinationPath.startsWith("content://")) {
                 context.contentResolver.openOutputStream(Uri.parse(destinationPath))
                     ?: return@withContext Result.failure(Exception("Cannot open stream for destination SAF URI: $destinationPath"))

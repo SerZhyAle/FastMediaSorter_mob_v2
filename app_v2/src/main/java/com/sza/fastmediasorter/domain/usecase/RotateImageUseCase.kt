@@ -43,12 +43,10 @@ class RotateImageUseCase @Inject constructor(
             val originalBitmap = BitmapFactory.decodeFile(imagePath, options)
                 ?: return@withContext Result.failure(Exception("Failed to decode image"))
 
-            // Create rotation matrix
             val matrix = Matrix().apply {
                 postRotate(angle)
             }
 
-            // Create rotated bitmap
             val rotatedBitmap = Bitmap.createBitmap(
                 originalBitmap,
                 0,

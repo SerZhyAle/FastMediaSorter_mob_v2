@@ -83,7 +83,6 @@ class FileOperationProgressDialog(
 
         tvTitle.text = operationType
         
-        // Setup cancel button
         btnCancel.setOnClickListener {
             onCancel?.invoke()
             dismiss()

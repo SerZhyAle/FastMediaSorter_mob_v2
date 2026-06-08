@@ -28,7 +28,6 @@ class AddResourceHelper(
 
         when (resource.type) {
             ResourceType.LOCAL -> {
-                // Show local folder section
                 activity.showLocalFolderOptions()
                 binding.etLocalPinCode.setText(resource.accessPin.orEmpty())
                 // For local, path is already selected by user via folder picker

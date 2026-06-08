@@ -19,8 +19,7 @@ import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.core.error.ErrorSeverity
-import com.sza.fastmediasorter.ui.common.DialogUtils
-import com.sza.fastmediasorter.ui.dialog.ErrorDialog
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -488,11 +487,11 @@ internal class AddResourceConnectionManager(
         activity.lifecycleScope.launch {
             val settings = viewModel.getSettings()
             if (settings.showDetailedErrors) {
-                DialogUtils.showScrollableDialog(
-                    activity,
-                    activity.getString(R.string.error),
-                    message,
-                    activity.getString(android.R.string.ok)
+                ScrollableTextDialog.show(
+                    context = activity,
+                    title = activity.getString(R.string.error),
+                    message = message,
+                    showSave = false
                 )
             } else {
                 AppErrorNotifier.show(activity, message, ErrorSeverity.CRITICAL)
@@ -503,7 +502,7 @@ internal class AddResourceConnectionManager(
     fun showTestResultDialog(message: String, isSuccess: Boolean) {
         val title = if (isSuccess) activity.getString(R.string.connection_test_success_title)
                     else activity.getString(R.string.connection_test_failed_title)
-        DialogUtils.showScrollableDialog(activity, title, message, activity.getString(android.R.string.ok))
+        ScrollableTextDialog.show(context = activity, title = title, message = message, showSave = false)
     }
 
     fun showLocalNetworkPermissionRationale() {
@@ -542,7 +541,7 @@ internal class AddResourceConnectionManager(
         } else {
             activity.getString(R.string.friendly_copy_error_auth_failed)
         }
-        ErrorDialog.show(
+        ScrollableTextDialog.show(
             context = activity,
             title = activity.getString(titleRes),
             message = message

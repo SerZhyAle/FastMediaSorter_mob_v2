@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.game.helpers
 import com.sza.fastmediasorter.domain.game.GameCell
 import com.sza.fastmediasorter.domain.game.GameEnemyType
 import com.sza.fastmediasorter.domain.game.GamePosition
+import com.sza.fastmediasorter.ui.game.GameMoveActor
 import com.sza.fastmediasorter.ui.game.GameUiState
 
 class GameBoardRenderMapper {
@@ -36,6 +37,15 @@ class GameBoardRenderMapper {
             GameBoardHighlightCell(position.row, position.col)
         }
         val startHighlights = (exitHighlights + GameBoardHighlightCell(player.row, player.col)).distinct()
+        val actorTransitions = ready.turnMoves.map { move ->
+            GameBoardActorTransition(
+                actorCell = move.actor.toActorCell(),
+                fromRow = move.from.row,
+                fromColumn = move.from.col,
+                toRow = move.to.row,
+                toColumn = move.to.col
+            )
+        }
         return GameBoardRenderState(
             boardWidth = board.width,
             boardHeight = board.height,
@@ -45,6 +55,8 @@ class GameBoardRenderMapper {
             playerRow = player.row,
             playerColumn = player.col,
             startHighlights = startHighlights,
+            turnKey = levelState.stats.turns,
+            actorTransitions = actorTransitions,
             introHighlightKey = listOf(
                 ready.levelNumber,
                 levelState.config.seed
@@ -65,6 +77,12 @@ class GameBoardRenderMapper {
                 board.height
             )
         )
+    }
+
+    private fun GameMoveActor.toActorCell(): GameBoardActorCell = when (this) {
+        GameMoveActor.PLAYER -> GameBoardActorCell.PLAYER
+        GameMoveActor.KRYVAVITSA -> GameBoardActorCell.KRYVAVITSA
+        GameMoveActor.SHADOW -> GameBoardActorCell.SHADOW
     }
 
     companion object {
@@ -91,9 +109,21 @@ data class GameBoardRenderState(
     val playerRow: Int,
     val playerColumn: Int,
     val startHighlights: List<GameBoardHighlightCell>,
+    // Monotonic per-turn key; the view (re)starts the move animation only when it changes.
+    val turnKey: Int,
+    // Actor displacements for the latest turn; empty when nothing moved (no animation).
+    val actorTransitions: List<GameBoardActorTransition>,
     val introHighlightKey: Int,
     val defeatConnection: GameBoardDefeatConnection?,
     val contentDescription: String
+)
+
+data class GameBoardActorTransition(
+    val actorCell: GameBoardActorCell,
+    val fromRow: Int,
+    val fromColumn: Int,
+    val toRow: Int,
+    val toColumn: Int
 )
 
 data class GameBoardHighlightCell(

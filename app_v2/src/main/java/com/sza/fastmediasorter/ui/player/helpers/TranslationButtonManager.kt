@@ -120,7 +120,6 @@ class TranslationButtonManager(
         // Guard: Skip translation button setup if not supported by this flavor
         if (!BuildConfig.ENABLE_TRANSLATION) {
             Timber.d("TranslationButtonManager: Translation buttons not available (ENABLE_TRANSLATION=false)")
-            // Hide all translation buttons
             safeViews.btnTranslatePdfCmd.isVisible = false
             safeViews.btnTranslateEpubCmd.isVisible = false
             safeViews.btnTranslateImageCmd.isVisible = false
@@ -188,7 +187,6 @@ class TranslationButtonManager(
             .setView(dialogView)
             .create()
         
-        // Get current settings
         lifecycleOwner.lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             
@@ -245,14 +243,12 @@ class TranslationButtonManager(
                 }
             }
             
-            // Setup font size adapter
             val fontSizeOptions = TranslationFontSize.values()
             val fontSizeNames = fontSizeOptions.map { context.getString(it.stringResId) }.toTypedArray()
             val fontSizeAdapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, fontSizeNames)
             fontSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerFontSize.adapter = fontSizeAdapter
             
-            // Setup font family adapter
             val fontFamilyOptions = TranslationFontFamily.values()
             val fontFamilyNames = fontFamilyOptions.map { context.getString(it.stringResId) }.toTypedArray()
             val fontFamilyAdapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, fontFamilyNames)
@@ -425,7 +421,6 @@ class TranslationButtonManager(
             val diff = targetMultiplier - currentMultiplier
             val steps = (diff / step).toInt()
             
-            // Apply steps
             if (steps > 0) {
                 repeat(steps) {
                     binding.translationLensOverlay.increaseFontSize()

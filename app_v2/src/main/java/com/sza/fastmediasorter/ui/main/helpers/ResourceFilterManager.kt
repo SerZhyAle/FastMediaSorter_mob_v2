@@ -52,21 +52,18 @@ class ResourceFilterManager {
             filtered = filtered.filter { types.contains(it.type) }
         }
         
-        // Apply media type filter
         filterByMediaType?.let { mediaTypes ->
             filtered = filtered.filter { resource ->
                 resource.supportedMediaTypes.any { mediaTypes.contains(it) }
             }
         }
         
-        // Apply name filter
         filterByName?.let { nameFilter ->
             if (nameFilter.isNotBlank()) {
                 filtered = filtered.filter { it.name.contains(nameFilter, ignoreCase = true) }
             }
         }
         
-        // Apply sorting
         filtered = applySorting(filtered, sortMode)
         
         return filtered

@@ -185,8 +185,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260608124
-        versionName = "2.60.6081.249"
+        versionCode = 260608162
+        versionName = "2.60.6081.624"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -719,8 +719,12 @@ android {
             // Исключаем дубликаты нативных библиотек BouncyCastle
             pickFirsts += "**/*.so"
             
-            // APK Size Optimization: Exclude unused BouncyCastle algorithms (~2-3 MB)
-
+            // APK Size Optimization (S0385): drop unused BouncyCastle post-quantum PICNIC
+            // data tables (~1.22 MB of lowmcL1/L3/L5 .bin.properties) and the German locale of
+            // the X.509 cert-path reviewer messages. No code references org.bouncycastle.pqc;
+            // SMB/SFTP use only classical BC crypto, so these data resources are never loaded.
+            excludes += "org/bouncycastle/pqc/crypto/picnic/**"
+            excludes += "org/bouncycastle/x509/CertPathReviewerMessages_de.properties"
         }
         
         jniLibs {
@@ -950,7 +954,14 @@ dependencies {
     // androidx.browser is consumed by Phase 03 CCT routing — added here to keep all S0200 deps colocated.
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
+    // which is mounted into every flavor EXCEPT lite (lite mounts cloudDisabled). Scope it per-flavor
+    // so the lite APK stops packaging an unused Google-identity dependency.
+    "standardImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "noLegalImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "legacyImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "vrImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "photosImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("androidx.browser:browser:1.8.0")
 
     // Jetpack Compose
@@ -961,6 +972,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+    // S0385: material-icons-extended is NOT dead — Icons.Filled.Pause / SkipNext / SkipPrevious
+    // (media-control icons in WearSyncSettingsFragment + widget config) live only in the extended
+    // set, not in material-icons-core. Removing it breaks compilation. Kept intentionally.
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
@@ -980,10 +994,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-process:2.7.0") // For ProcessLifecycleOwner
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
-    
-    // Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.59")
@@ -1055,9 +1065,6 @@ dependencies {
     
     // PhotoView for pinch-to-zoom and rotation support
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
-    
-    // RecyclerView FastScroller (interactive scrollbar)
-    implementation("me.zhanghai.android.fastscroll:library:1.3.0")
     
     // ExifInterface for image metadata (width, height, camera, GPS, etc.)
     implementation("androidx.exifinterface:exifinterface:1.3.7")
@@ -1178,7 +1185,6 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     // S0116 Phase 07 step 0: MockWebServer for graceful-degradation instrumentation tests.
     androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")

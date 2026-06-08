@@ -47,8 +47,6 @@
     <string name="scheduled_ops_interval_corrected_15">Мінімальний інтервал - 15 хвилин</string>
     <string name="scheduled_ops_interval_corrected_1h">Не можна задати 0 годин і 0 хвилин - встановлено 1 годину</string>
     <string name="scheduled_ops_log_clear">Очистити журнал</string>
-    <string name="scheduled_ops_log_close">Закрити</string>
-    <string name="scheduled_ops_log_copy">Копіювати</string>
     <string name="scheduled_ops_log_empty">Журнал порожній</string>
     <string name="scheduled_ops_log_title">Журнал операцій</string>
     <string name="scheduled_ops_next_run">Наступний запуск о:</string>

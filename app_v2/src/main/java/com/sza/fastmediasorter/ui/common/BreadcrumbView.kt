@@ -41,7 +41,6 @@ class BreadcrumbView @JvmOverloads constructor(
         }
         addView(container, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         
-        // Enable horizontal scrolling
         isHorizontalScrollBarEnabled = false
         isFillViewport = false
     }
@@ -55,16 +54,12 @@ class BreadcrumbView @JvmOverloads constructor(
         container.removeAllViews()
         segments.clear()
         
-        // Add root segment
         segments.add(PathSegment(resourceName, 0))
         addSegment(resourceName, 0, isLast = folders.isEmpty())
         
-        // Add folder segments
         folders.forEachIndexed { index, folderName ->
-            // Add separator
             addSeparator()
             
-            // Add folder segment
             val depth = index + 1
             segments.add(PathSegment(folderName, depth))
             addSegment(folderName, depth, isLast = index == folders.lastIndex)

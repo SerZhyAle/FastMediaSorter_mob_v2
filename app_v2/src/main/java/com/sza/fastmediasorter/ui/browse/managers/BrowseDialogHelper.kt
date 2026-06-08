@@ -26,7 +26,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-import com.sza.fastmediasorter.ui.dialog.ErrorDialog
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import java.io.File
 import java.text.SimpleDateFormat
@@ -501,7 +501,7 @@ class BrowseDialogHelper(
     }
     
     private fun showErrorDetailsDialog(details: String) {
-        ErrorDialog.show(
+        ScrollableTextDialog.show(
             context = activity,
             title = activity.getString(R.string.error_details_title),
             message = details

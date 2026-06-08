@@ -54,11 +54,11 @@ class GeneralSettingsImportExportHelper(
                     Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_success), Toast.LENGTH_LONG).show()
                     showRestartAfterImportDialog()
                 }.onFailure { error ->
-                    com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                        fragment.requireContext(),
-                        fragment.getString(R.string.import_failed_title),
-                        getImportFailureMessage(error.message),
-                        fragment.getString(android.R.string.ok)
+                    com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
+                        context = fragment.requireContext(),
+                        title = fragment.getString(R.string.import_failed_title),
+                        message = getImportFailureMessage(error.message),
+                        showSave = false
                     )
                 }
             } catch (e: Exception) {
@@ -113,11 +113,11 @@ class GeneralSettingsImportExportHelper(
                     Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_success), Toast.LENGTH_LONG).show()
                     showRestartAfterImportDialog()
                 }.onFailure { error ->
-                    com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                        fragment.requireContext(),
-                        fragment.getString(R.string.import_failed_title),
-                        getImportFailureMessage(error.message),
-                        fragment.getString(android.R.string.ok)
+                    com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
+                        context = fragment.requireContext(),
+                        title = fragment.getString(R.string.import_failed_title),
+                        message = getImportFailureMessage(error.message),
+                        showSave = false
                     )
                 }
             } catch (e: Exception) {

@@ -99,7 +99,6 @@ class PictureInPictureManager(
     fun onPictureInPictureModeChanged(isInPipMode: Boolean) {
         Timber.d("PiPManager: mode changed, isInPip=$isInPipMode")
 
-        // Hide/show UI elements
         binding.toolbar.isVisible = !isInPipMode
         binding.topCommandPanel.isVisible = !isInPipMode
 

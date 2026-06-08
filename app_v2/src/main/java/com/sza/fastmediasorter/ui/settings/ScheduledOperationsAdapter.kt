@@ -38,7 +38,6 @@ class ScheduledOperationsAdapter(
         fun bind(op: ScheduledOperation) {
             val ctx = b.root.context
 
-            // Toggle
             b.switchEnabled.isChecked = op.isEnabled
             b.switchEnabled.setOnCheckedChangeListener(null)
             b.switchEnabled.setOnCheckedChangeListener { _, _ -> onToggle(op) }

@@ -60,14 +60,12 @@ class BrowseRecyclerViewManager(
         )
         Timber.d("updateDisplayMode: Updated adapter gridMode=${mode == DisplayMode.GRID}")
 
-        // Update toggle button icon
         val iconResId = when (mode) {
             DisplayMode.LIST -> R.drawable.ic_view_grid // Show grid icon when in list mode
             DisplayMode.GRID -> R.drawable.ic_view_list // Show list icon when in grid mode
         }
         callbacks.updateToggleButtonIcon(iconResId)
 
-        // Update layout manager
         val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val displayMetrics = resources.displayMetrics
         val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density

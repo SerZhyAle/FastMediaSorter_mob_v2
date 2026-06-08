@@ -68,7 +68,6 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             val connection = getOrCreateConnection(key)
             val result = block(connection)
             
-            // Update last used timestamp
             poolMutex.withLock {
                 connectionPool[key]?.lastUsed = System.currentTimeMillis()
             }
@@ -104,7 +103,6 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
                 }
             }
             
-            // Create new connection
             val newConnection = createConnection(key)
             val newPooled = PooledConnection(newConnection)
             connectionPool[key] = newPooled
@@ -150,7 +148,6 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             }
         }
         
-        // Remove without blocking
         keysToRemove.forEach { key ->
             connectionPool.remove(key)
         }
@@ -174,7 +171,6 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             }
         }
         
-        // Remove and close
         keysToRemove.forEach { key ->
             connectionPool.remove(key)?.let { pooled ->
                 try {

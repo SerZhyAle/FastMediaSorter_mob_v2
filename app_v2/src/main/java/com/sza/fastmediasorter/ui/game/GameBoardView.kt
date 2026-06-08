@@ -41,6 +41,8 @@ class GameBoardView @JvmOverloads constructor(
     private var renderedLevelNumber: Int? = null
     private var renderedIntroHighlightKey: Int? = null
     private var introHighlightUntilMs: Long = 0L
+    private var animatedTurnKey: Int? = null
+    private var actorAnimationUntilMs: Long = 0L
     private var tapCandidate = false
     private var downX = 0f
     private var downY = 0f
@@ -152,6 +154,13 @@ class GameBoardView @JvmOverloads constructor(
             renderedIntroHighlightKey = null
             introHighlightUntilMs = 0L
         }
+        if (nextRenderState == null) {
+            animatedTurnKey = null
+            actorAnimationUntilMs = 0L
+        } else if (nextRenderState.actorTransitions.isNotEmpty() && nextRenderState.turnKey != animatedTurnKey) {
+            animatedTurnKey = nextRenderState.turnKey
+            actorAnimationUntilMs = SystemClock.uptimeMillis() + ACTOR_ANIMATION_MS
+        }
         renderState = nextRenderState
         contentDescription = nextRenderState?.contentDescription
         invalidate()
@@ -169,6 +178,15 @@ class GameBoardView @JvmOverloads constructor(
         )
         if (scale == GameBoardScale.EMPTY) return
 
+        val animating = SystemClock.uptimeMillis() < actorAnimationUntilMs &&
+            currentRenderState.actorTransitions.isNotEmpty()
+        val boardWidth = currentRenderState.boardWidth
+        val animatedTargets = if (animating) {
+            currentRenderState.actorTransitions.mapTo(HashSet()) { it.toRow * boardWidth + it.toColumn }
+        } else {
+            emptySet()
+        }
+
         currentRenderState.cells.forEach { cell ->
             val left = scale.offsetX + cell.column * scale.cellSize
             val top = scale.offsetY + cell.row * scale.cellSize
@@ -180,7 +198,15 @@ class GameBoardView @JvmOverloads constructor(
                 canvas.drawRect(cellRect, paintFor(cell.baseCell))
             }
             canvas.drawRect(cellRect, gridPaint)
-            cell.actorCell?.let { actorCell -> drawActor(canvas, cellRect, actorCell) }
+            // Suppress the static sprite on a cell an actor is sliding onto, so only the moving copy shows.
+            cell.actorCell?.let { actorCell ->
+                if (!animating || (cell.row * boardWidth + cell.column) !in animatedTargets) {
+                    drawActor(canvas, cellRect, actorCell)
+                }
+            }
+        }
+        if (animating) {
+            drawAnimatedActors(canvas, scale, currentRenderState)
         }
         drawIntroHighlights(canvas, scale, currentRenderState)
         currentRenderState.defeatConnection?.let { connection -> drawDefeatHighlights(canvas, scale, connection) }
@@ -229,6 +255,20 @@ class GameBoardView @JvmOverloads constructor(
             GameBoardActorCell.KRYVAVITSA -> drawTriangle(canvas, centerX, centerY, polygonRadius, kryvavitsaPaint)
             GameBoardActorCell.SHADOW -> canvas.drawCircle(centerX, centerY, circleRadius, shadowPaint)
         }
+    }
+
+    private fun drawAnimatedActors(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
+        val remaining = (actorAnimationUntilMs - SystemClock.uptimeMillis()).toFloat()
+        val progress = (1f - remaining / ACTOR_ANIMATION_MS.toFloat()).coerceIn(0f, 1f)
+        renderState.actorTransitions.forEach { transition ->
+            val column = transition.fromColumn + (transition.toColumn - transition.fromColumn) * progress
+            val row = transition.fromRow + (transition.toRow - transition.fromRow) * progress
+            val left = scale.offsetX + column * scale.cellSize
+            val top = scale.offsetY + row * scale.cellSize
+            cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
+            drawActor(canvas, cellRect, transition.actorCell)
+        }
+        postInvalidateOnAnimation()
     }
 
     private fun drawExit(canvas: Canvas, bounds: RectF) {
@@ -407,6 +447,7 @@ class GameBoardView @JvmOverloads constructor(
         private const val HIGHLIGHT_WIDTH_FACTOR = 0.07f
         private const val MIN_TAP_VECTOR_FACTOR = 0.18f
         private const val START_HIGHLIGHT_MS = 1_000L
+        private const val ACTOR_ANIMATION_MS = 200L
         private const val MIN_EXIT_WALL_WIDTH = 3f
         private const val EXIT_WALL_WIDTH_FACTOR = 0.07f
         private const val EXIT_INSET_FACTOR = 0.12f

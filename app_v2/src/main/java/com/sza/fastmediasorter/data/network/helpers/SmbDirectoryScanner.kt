@@ -161,7 +161,6 @@ class SmbDirectoryScanner(
         try {
             if (results.size >= maxFiles) return true
             
-            // Check cancellation
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
@@ -171,7 +170,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return true
                 
-                // Check cancellation periodically
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -204,7 +202,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return true
                 
-                // Check cancellation
                 currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -247,7 +244,6 @@ class SmbDirectoryScanner(
         try {
             if (results.size >= maxFiles) return
             
-            // Check cancellation
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
@@ -260,7 +256,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return
                 
-                // Check cancellation
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -327,7 +322,6 @@ class SmbDirectoryScanner(
         limit: Int
     ) {
         try {
-            // Check cancellation
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
@@ -339,7 +333,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= limit) break
                 
-                // Check cancellation
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue

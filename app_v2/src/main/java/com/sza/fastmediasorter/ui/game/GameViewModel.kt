@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.domain.game.GameDifficulty
 import com.sza.fastmediasorter.domain.game.GameDirection
+import com.sza.fastmediasorter.domain.game.GameEnemyType
 import com.sza.fastmediasorter.domain.game.GameEvent
 import com.sza.fastmediasorter.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.domain.game.GameLevelState
@@ -12,6 +13,7 @@ import com.sza.fastmediasorter.domain.game.GameRulesEngine
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.game.GameStateSnapshot
 import com.sza.fastmediasorter.domain.game.GameStatus
+import com.sza.fastmediasorter.domain.game.GameTurnResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,7 +73,8 @@ class GameViewModel @Inject constructor(
                     levelState = restartedState,
                     unreadableBoardWarning = shouldWarnForUnreadableBoard(restartedState.config, ready.customBoard),
                     defeatConnection = null,
-                    lastRejectReason = null
+                    lastRejectReason = null,
+                    turnMoves = emptyList()
                 )
             )
         }
@@ -84,7 +87,7 @@ class GameViewModel @Inject constructor(
 
             val result = rulesEngine.applyMove(ready.levelState, direction)
             if (!result.accepted) {
-                _state.value = ready.copy(lastRejectReason = result.rejectReason)
+                _state.value = ready.copy(lastRejectReason = result.rejectReason, turnMoves = emptyList())
                 return@launch
             }
 
@@ -93,7 +96,8 @@ class GameViewModel @Inject constructor(
                     levelState = result.state,
                     unreadableBoardWarning = shouldWarnForUnreadableBoard(result.state.config, ready.customBoard),
                     defeatConnection = result.defeatConnection(),
-                    lastRejectReason = null
+                    lastRejectReason = null,
+                    turnMoves = result.toActorMoves()
                 )
             )
         }
@@ -115,7 +119,8 @@ class GameViewModel @Inject constructor(
                     levelState = advancedState,
                     unreadableBoardWarning = shouldWarnForUnreadableBoard(advancedState.config, ready.customBoard),
                     defeatConnection = null,
-                    lastRejectReason = null
+                    lastRejectReason = null,
+                    turnMoves = emptyList()
                 )
             )
         }
@@ -156,7 +161,8 @@ class GameViewModel @Inject constructor(
             levelState = healed,
             unreadableBoardWarning = shouldWarnForUnreadableBoard(healed.config, ready.customBoard),
             defeatConnection = null,
-            lastRejectReason = null
+            lastRejectReason = null,
+            turnMoves = emptyList()
         )
         gameStateRepository.saveSnapshot(
             GameStateSnapshot.fromLevelState(next.levelState, customBoard = next.customBoard)
@@ -188,12 +194,12 @@ class GameViewModel @Inject constructor(
         )
     }
 
-    // Board grows in steps with the level; wall count stays proportional to the cell count inside the generator.
+    // Board grows in steps with the level; capped at 20x20 so cells stay readable on small screens.
+    // Wall count stays proportional to the cell count inside the generator.
     private fun boardSizeForLevel(levelNumber: Int): Int = when {
         levelNumber <= LEVEL_THRESHOLD_SMALL -> BOARD_SIZE_SMALL
         levelNumber <= LEVEL_THRESHOLD_MEDIUM -> BOARD_SIZE_MEDIUM
-        levelNumber <= LEVEL_THRESHOLD_LARGE -> BOARD_SIZE_LARGE
-        else -> BOARD_SIZE_HUGE
+        else -> BOARD_SIZE_LARGE
     }
 
     private fun nextSeed(levelNumber: Int): Long {
@@ -202,7 +208,21 @@ class GameViewModel @Inject constructor(
         return seedProvider() + (seedNonce * SEED_NONCE_STEP) + levelNumber
     }
 
-    private fun com.sza.fastmediasorter.domain.game.GameTurnResult.defeatConnection(): GameDefeatConnection? {
+    // Translate the turn's movement events into per-actor displacements the board view animates.
+    private fun GameTurnResult.toActorMoves(): List<GameActorMove> = events.mapNotNull { event ->
+        when (event) {
+            is GameEvent.PlayerMoved -> GameActorMove(GameMoveActor.PLAYER, event.from, event.to)
+            is GameEvent.EnemyMoved -> GameActorMove(event.type.toMoveActor(), event.from, event.to)
+            else -> null
+        }
+    }
+
+    private fun GameEnemyType.toMoveActor(): GameMoveActor = when (this) {
+        GameEnemyType.KRYVAVITSA -> GameMoveActor.KRYVAVITSA
+        GameEnemyType.SHADOW -> GameMoveActor.SHADOW
+    }
+
+    private fun GameTurnResult.defeatConnection(): GameDefeatConnection? {
         if (state.status != GameStatus.GAME_OVER) return null
         val capture = events.filterIsInstance<GameEvent.PlayerCaptured>().lastOrNull() ?: return null
         val enemy = state.enemies.firstOrNull { it.id == capture.enemyId } ?: return null
@@ -221,11 +241,9 @@ class GameViewModel @Inject constructor(
     companion object {
         private const val LEVEL_THRESHOLD_SMALL = 5
         private const val LEVEL_THRESHOLD_MEDIUM = 10
-        private const val LEVEL_THRESHOLD_LARGE = 20
         private const val BOARD_SIZE_SMALL = 10
         private const val BOARD_SIZE_MEDIUM = 15
         private const val BOARD_SIZE_LARGE = 20
-        private const val BOARD_SIZE_HUGE = 25
         private const val LARGE_CUSTOM_BOARD_SIZE = 18
         private const val SEED_NONCE_STEP = 104729L
     }

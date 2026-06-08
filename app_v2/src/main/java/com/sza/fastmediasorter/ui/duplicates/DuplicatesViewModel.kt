@@ -210,7 +210,6 @@ class DuplicatesViewModel @Inject constructor(
         val result = _state.value.result ?: return
         val filesToDelete = result.groups.flatMap { it.files }.filter { it.path in selectedPaths }
         
-        // Show blocking loader
         _state.update { it.copy(scanState = ScanState.Running(DuplicateScanProgress(ScanPhase.DONE, 0, filesToDelete.size))) }
         
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {

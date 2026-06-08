@@ -47,8 +47,6 @@
     <string name="scheduled_ops_interval_corrected_15">Minimum interval is 15 minutes</string>
     <string name="scheduled_ops_interval_corrected_1h">Cannot set 0 hours and 0 minutes - set to 1 hour</string>
     <string name="scheduled_ops_log_clear">Clear log</string>
-    <string name="scheduled_ops_log_close">Close</string>
-    <string name="scheduled_ops_log_copy">Copy</string>
     <string name="scheduled_ops_log_empty">Log is empty</string>
     <string name="scheduled_ops_log_title">Operations log</string>
     <string name="scheduled_ops_next_run">Next run at:</string>

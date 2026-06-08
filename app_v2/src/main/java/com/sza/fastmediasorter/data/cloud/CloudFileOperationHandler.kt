@@ -494,7 +494,6 @@ class CloudFileOperationHandler @Inject constructor(
         val tempFile = File.createTempFile("cloud_download_", ".tmp", context.cacheDir)
         try {
             val downloadResult = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                // Apply adaptive buffering
                 val resourceKey = "cloud://${pathInfo.provider}"
                 val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
 
@@ -688,7 +687,6 @@ class CloudFileOperationHandler @Inject constructor(
 
         return try {
             val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                // Apply adaptive buffering
                 val resourceKey = "cloud://${pathInfo.provider}"
                 val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
 
@@ -923,7 +921,6 @@ class CloudFileOperationHandler @Inject constructor(
 
         return try {
             val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                // Apply adaptive buffering
                 val resourceKey = "cloud://${pathInfo.provider}"
                 val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
 

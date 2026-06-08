@@ -97,7 +97,6 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
             val payload = downloadAndParseBackup()
                 ?: return@withContext Result.failure(Exception("No backup found"))
 
-            // Check version compatibility
             if (payload.version > BackupPayload.CURRENT_VERSION) {
                 return@withContext Result.failure(
                     Exception("Backup was created by a newer app version (${payload.appVersionName.orEmpty()}). Please update the app.")
@@ -140,7 +139,6 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 }
             }
 
-            // Add new resources
             for (resource in resourcesToAdd) {
                 resourceRepository.addResource(resource)
             }

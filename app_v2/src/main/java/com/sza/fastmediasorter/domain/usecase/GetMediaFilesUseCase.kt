@@ -155,7 +155,6 @@ class GetMediaFilesUseCase @Inject constructor(
             StructuredLogger.i("forceFullScan=true - cleared in-memory cache")
         }
         
-        // Handle virtual Favorites resource
         if (resource.id == -100L) {
             StructuredLogger.d("Loading Favorites from repository")
             val favorites = favoritesRepository.getAllFavorites().first()
@@ -175,7 +174,6 @@ class GetMediaFilesUseCase @Inject constructor(
             // Apply flavor-specific media type restrictions to favorites
             val flavorAllowedTypes = applyFlavorMediaTypeRestrictions(MediaType.entries.toSet())
             val filteredFavorites = favoriteFiles.filter { it.type in flavorAllowedTypes }
-            // Apply sorting
             val sortedFavorites = sortFiles(filteredFavorites, sortMode)
             emit(sortedFavorites)
             return@flow

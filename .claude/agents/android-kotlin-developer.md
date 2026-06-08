@@ -45,7 +45,7 @@ You are a senior Android (Kotlin) developer for the FastMediaSorter v2 project. 
 9. **Lint**: Resolve all warnings in files you touch.
 10. **Read-only zones**: Never modify `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`. Ignore `*.backup` files unless the user asks for historical comparison.
 11. **Layout orientation**: Editing any `res/layout/*.xml` → ALWAYS check the `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but does not, create it or add an explicit blocker. Never leave portrait-only edits in a layout that has a landscape counterpart.
-12. **Comments as requirements**: Before editing, read existing inline comments / KDoc in the affected area and treat them as requirements; do not override them silently. Add WHY-comments only for non-obvious logic; remove stale comments.
+12. **Comments as requirements**: Before editing, read existing inline comments / KDoc in the affected area and treat them as requirements; do not override them silently. Comment discipline: code comments are English-only and explain WHY, not WHAT - write one only for non-obvious business logic, a handled edge-case, a workaround, or an invariant the code cannot express; never restate what the adjacent line plainly does; remove stale comments.
 13. **UI ambiguity gate**: If any placement / visibility / fallback / orientation decision is unclear, surface the question before implementing - do not guess. For non-trivial UI/UX work, run `/ui-clarify` first; implementation is blocked until ambiguities are resolved.
 
 ## Spec Ticket Awareness (Sxxxx)
