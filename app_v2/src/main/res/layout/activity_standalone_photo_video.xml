@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0380: trimmed standalone layout for image/gif/video files. Carries the same playerView /
+  photoDualSurfaceContainer / photoView / imageView ids as activity_player_unified.xml (so the shared
+  StandaloneViewManager + StandaloneVideoControlsManager / TouchDelegate attach unchanged), plus the
+  tvVideoGestureIndicator the touch delegate drives. Omits all pdf/epub/text/audio-cover/office/lyrics/
+  translation/control-overlay/touch-zone view hierarchies - that omission is the cold-start inflation
+  win (no heavy document/Chromium view is referenced here).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/black"
+    tools:context=".ui.player.standalone.PhotoVideoStandaloneActivity">
+
+    <!-- Top command panel: Back + file-op actions -->
+    <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
+
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:focusable="true" android:clickable="true" android:nextFocusRight="@id/btnDeleteCmd" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
+
+            <ImageButton android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@drawable/ic_delete" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnBack" android:nextFocusRight="@id/btnFavorite" />
+
+            <ImageButton android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/favorite" android:src="@drawable/ic_star_outline" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnDeleteCmd" android:nextFocusRight="@id/btnShareCmd" />
+
+            <ImageButton android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnFavorite" android:nextFocusRight="@id/btnInfoCmd" />
+
+            <ImageButton android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/file_information" android:src="@drawable/ic_info" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnShareCmd" android:nextFocusRight="@id/btnRenameCmd" />
+
+            <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnInfoCmd" android:nextFocusRight="@id/btnOverflowMenu" />
+
+            <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnRenameCmd" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Media content area: image/gif/video surfaces with the same ids as the unified layout -->
+    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+
+        <!-- surface_type=texture_view + same controller layout as the unified player so
+             StandaloneVideoControlsManager finds btnPlaybackControl in the controller overlay. -->
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+
+        <!-- Standard ImageView for non-zoomable mode (kept for id parity with the unified layout) -->
+        <ImageView android:id="@+id/imageView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitCenter" android:contentDescription="@null" />
+
+        <!-- Dual-surface container for static image rendering (A=current, B=next) -->
+        <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+
+            <!-- Surface B (prepared/next), kept below A by z-order -->
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoViewSurfaceB" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+            <!-- Surface A (current/top). Keep legacy id for compatibility -->
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+        </FrameLayout>
+
+        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
+
+        <!-- Video gesture feedback badge (brightness / volume / seek) driven by StandaloneVideoTouchDelegate -->
+        <TextView android:id="@+id/tvVideoGestureIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:paddingVertical="@dimen/player_button_padding" android:textColor="@color/white" android:textSize="@dimen/activity_player_unified_audioSlideshowSongLabel_textSize" android:textStyle="bold" android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>

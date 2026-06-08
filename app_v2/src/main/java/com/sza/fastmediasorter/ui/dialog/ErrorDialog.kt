@@ -66,8 +66,6 @@ object ErrorDialog {
             return null
         }
 
-        Timber.d("S0378: error dialog shown with compact icon action row")
-
         val fullText = if (details != null) "$message\n\n$details" else message
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_error_detail, null)

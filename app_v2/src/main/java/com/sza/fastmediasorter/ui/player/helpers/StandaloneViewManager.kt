@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
+import android.view.View
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -30,7 +31,6 @@ import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
@@ -66,7 +66,7 @@ import java.io.File
  */
 class StandaloneViewManager(
     private val activity: Activity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val smbClient: Lazy<SmbClient>,
     private val sftpClient: Lazy<SftpClient>,
@@ -88,6 +88,10 @@ class StandaloneViewManager(
         private const val DEFAULT_BRIGHTNESS_PROGRESS = 50
         private const val POSITION_SAVE_INTERVAL_MS = 5_000L
     }
+
+    // S0380: root-based view seam for every media path (image/gif/video/audio/pdf/epub/office).
+    // Works on the full unified layout and on a trimmed specialized standalone layout (id lookup).
+    private val safeViews = PlayerBindingSafeViews(root)
 
     private val networkFileManager: NetworkFileManager by lazy {
         NetworkFileManager(
@@ -294,33 +298,34 @@ class StandaloneViewManager(
 
     private fun showImage(mediaFile: MediaFile) {
         // photoView lives inside photoDualSurfaceContainer - both must be visible
-        // Container is nullable in the binding (config-variant view)
-        binding.photoDualSurfaceContainer?.let { it.isVisible = true }
-        binding.photoView.isVisible = true
+        // Container is nullable (config-variant view, absent in some layouts)
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
+        safeViews.photoView.isVisible = true
         Glide.with(activity.applicationContext)
             .load(mediaFile.path.toUri())
-            .into(binding.photoView)
+            .into(safeViews.photoView)
     }
 
     private fun showGif(mediaFile: MediaFile) {
-        binding.photoDualSurfaceContainer?.let { it.isVisible = true }
-        binding.photoView.isVisible = true
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
+        safeViews.photoView.isVisible = true
         Glide.with(activity.applicationContext)
             .asGif()
             .load(mediaFile.path.toUri())
-            .into(binding.photoView)
+            .into(safeViews.photoView)
     }
 
     // ── Video ───────────────────────────────────────────────────────────────
 
     private fun playVideo(mediaFile: MediaFile, onVideoReady: ((PlayerView) -> Unit)? = null) {
-        binding.playerView.isVisible = true
-        binding.playerView.controllerShowTimeoutMs = 5000
+        val playerView = safeViews.playerView
+        playerView.isVisible = true
+        playerView.controllerShowTimeoutMs = 5000
         standaloneVideoSizeKnown = false
         standalonePendingEffects = false
         val player = ExoPlayer.Builder(activity).build()
         exoPlayer = player
-        binding.playerView.player = player
+        playerView.player = player
         applyVideoColorEffects()
         player.addListener(createPlayerErrorListener())
         audioFocusManager = AudioFocusManager(activity) { isPermanent ->
@@ -337,7 +342,7 @@ class StandaloneViewManager(
         }
         player.playWhenReady = true
         acquireWakeLock()
-        onVideoReady?.invoke(binding.playerView)
+        onVideoReady?.invoke(playerView)
     }
 
     private fun applyVideoColorEffects() {
@@ -366,9 +371,10 @@ class StandaloneViewManager(
     // ── Audio ───────────────────────────────────────────────────────────────
 
     private fun playAudio(mediaFile: MediaFile) {
-        binding.playerView.isVisible = true
+        val playerView = safeViews.playerView
+        playerView.isVisible = true
         // For audio: controls must always be visible (no tap needed)
-        binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
+        playerView.controllerShowTimeoutMs = Int.MAX_VALUE
         val controller = AudioServiceController(activity)
         audioServiceController = controller
         // Do NOT use AudioFocusManager here - ExoPlayer inside AudioPlaybackService is built with
@@ -378,8 +384,8 @@ class StandaloneViewManager(
         // requests focus, triggering player.stop() and immediately killing playback.
         val mimeType = if (MidiPlaybackPolicy.isMidiPath(mediaFile.path)) MimeTypes.AUDIO_MIDI else null
         controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.'), mimeType = mimeType) { player ->
-            binding.playerView.player = player
-            binding.playerView.showController()
+            playerView.player = player
+            playerView.showController()
             acquireWakeLock()
         }
     }
@@ -431,8 +437,10 @@ class StandaloneViewManager(
         } else {
             null
         }
+        // S0380: EPUB selection requires the epub web view to be present + visible in the current
+        // layout root; absent on layouts that omit the epub subtree (epubWebViewOrNull is null).
         return officeCallback ?: _epubViewerManager
-            ?.takeIf { binding.epubWebView.isVisible }
+            ?.takeIf { safeViews.epubWebViewOrNull?.isVisible == true }
             ?.getSelectionActionModeCallback()
     }
 
@@ -467,7 +475,9 @@ class StandaloneViewManager(
     // standalone mode has no system-bars manager wired.
     private val officeDocumentViewerHostDelegate = lazy {
         OfficeDocumentViewerProviderFactory().createViewerHost(
-            binding = binding,
+            // S0380: Office host is decoupled to a layout root; works on any standalone layout that
+            // includes the officeDocumentViewerContainer surface (full unified or trimmed document).
+            root = root,
             coroutineScope = lifecycleScope,
             callback = object : OfficeDocumentViewerHost.Callback {
                 override fun showError(message: String) = showToastError(message)
@@ -589,9 +599,9 @@ class StandaloneViewManager(
      * PDF/EPUB/TEXT managers handle their own view visibility internally.
      */
     private fun hidePhotoAndPlayerViews() {
-        binding.photoView.isVisible = false
-        binding.photoDualSurfaceContainer?.let { it.isVisible = false }
-        binding.playerView.isVisible = false
+        safeViews.photoView.isVisible = false
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = false }
+        safeViews.playerView.isVisible = false
     }
 
     private fun showToastError(message: String) {
@@ -629,14 +639,15 @@ class StandaloneViewManager(
     }
 
     private fun acquireWakeLock() {
-        if (binding.playerView.isVisible) {
-            binding.playerView.keepScreenOn = true
+        val playerView = safeViews.playerView
+        if (playerView.isVisible) {
+            playerView.keepScreenOn = true
             Timber.d("StandaloneViewManager: screen wake lock acquired")
         }
     }
 
     private fun releaseWakeLock() {
-        binding.playerView.keepScreenOn = false
+        safeViews.playerView.keepScreenOn = false
         Timber.d("StandaloneViewManager: screen wake lock released")
     }
 
@@ -718,8 +729,10 @@ class StandaloneViewManager(
     // ── Factory methods ──────────────────────────────────────────────────────
 
     private fun createPdfViewerManager(): PdfViewerManager {
+        // S0380: PdfViewerManager is decoupled to a layout root, so this works on any standalone
+        // layout that includes the pdf view subtree (full unified or trimmed document layout).
         return PdfViewerManager(
-            binding = binding,
+            root = root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
@@ -739,8 +752,10 @@ class StandaloneViewManager(
     }
 
     private fun createEpubViewerManager(): EpubViewerManager {
+        // S0380: EpubViewerManager is decoupled to a layout root, so this works on any standalone
+        // layout that includes the epub view subtree (full unified or trimmed document layout).
         return EpubViewerManager(
-            binding = binding,
+            root = root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
@@ -758,7 +773,7 @@ class StandaloneViewManager(
     private fun createTextViewerManager(): TextViewerManager {
         return TextViewerManager(
             context = activity,
-            root = binding.root,
+            root = root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,

@@ -33,6 +33,8 @@ class SlideshowResourceAvailabilityManager(
     private var isNetworkCallbackRegistered = false
 
     init {
+        // Lifetime collects: drive failure-tracking and network-callback registration for background-capable
+        // audio slideshow; must keep observing while the Activity is STOPPED, so NOT repeatOnLifecycle-scoped.
         lifecycleScope.launch {
             activity.viewModel.state
                 .map { it.isSlideShowActive }

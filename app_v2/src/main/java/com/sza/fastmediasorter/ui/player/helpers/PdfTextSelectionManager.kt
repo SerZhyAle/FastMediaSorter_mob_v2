@@ -16,7 +16,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +43,9 @@ import timber.log.Timber
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PdfTextSelectionManager(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
+    private val root: View,
+    private val safeViews: PlayerBindingSafeViews,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val translationManager: TranslationManager,
@@ -86,14 +87,14 @@ class PdfTextSelectionManager(
             return
         }
 
-        val container = binding.root.findViewById<FrameLayout>(R.id.mediaContentArea)
+        val container = root.findViewById<FrameLayout>(R.id.mediaContentArea)
             ?: run {
                 Timber.e("PdfTextSelectionManager: mediaContentArea not found")
                 return
             }
 
         // Inflate overlay
-        val view = LayoutInflater.from(binding.root.context)
+        val view = LayoutInflater.from(root.context)
             .inflate(R.layout.layout_pdf_text_selection_overlay, container, false)
         container.addView(view)
         view.isVisible = true
@@ -118,7 +119,7 @@ class PdfTextSelectionManager(
             progressLayout.isVisible = false
 
             if (pageText.isBlank()) {
-                tvText.text = binding.root.context.getString(R.string.pdf_text_empty)
+                tvText.text = root.context.getString(R.string.pdf_text_empty)
             } else {
                 tvText.setText(pageText, TextView.BufferType.SPANNABLE)
                 // Attach the selection ActionMode callback
@@ -138,13 +139,13 @@ class PdfTextSelectionManager(
                             val translated = translationManager.translate(text, src, tgt)
                             withContext(Dispatchers.Main) {
                                 if (translated != null) onTranslateResult(translated)
-                                else onError(binding.root.context.getString(R.string.translation_error))
+                                else onError(root.context.getString(R.string.translation_error))
                             }
                         }
                     },
-                    onSearchGoogle = { openGoogleSearch(binding.root.context, it) },
+                    onSearchGoogle = { openGoogleSearch(root.context, it) },
                     isCalculatorAvailable = { calculatorEnabledFlow.value },
-                    onOpenCalculator = { openCalculatorForSelection(binding.root.context, it) },
+                    onOpenCalculator = { openCalculatorForSelection(root.context, it) },
                     onReadAloud    = onReadAloud
                 )
 
@@ -170,7 +171,7 @@ class PdfTextSelectionManager(
         pageText: String
     ) {
         val bitmapPoint = PdfSelectionCoordinateMapper.viewToBitmap(
-            binding.photoView, viewPoint.x, viewPoint.y
+            safeViews.photoView, viewPoint.x, viewPoint.y
         ) ?: return
         val words = withContext(Dispatchers.IO) {
             translationManager.recognizeTextBlocksForSelection(bitmap)

@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.view.View
 import android.webkit.WebView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import io.documentnode.epub4j.domain.Book
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +27,8 @@ import timber.log.Timber
  * - [onNavigateToChapter] - called when user selects a TOC/search result
  */
 class EpubSearchAndTocPresenter(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root instead of ActivityPlayerUnifiedBinding (only used for context; works on trimmed layouts).
+    private val root: View,
     private val coroutineScope: CoroutineScope,
     private val webViewProvider: () -> WebView?,
     private val bookProvider: () -> Book?,
@@ -105,7 +106,7 @@ class EpubSearchAndTocPresenter(
             return
         }
 
-        val context = binding.root.context
+        val context = root.context
         val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
         val view: android.view.View = android.view.LayoutInflater.from(context)
             .inflate(R.layout.bottom_sheet_epub_search, null)
@@ -277,7 +278,7 @@ class EpubSearchAndTocPresenter(
             return
         }
 
-        val context = binding.root.context
+        val context = root.context
         val toc = book.tableOfContents
         val tocReferences = toc.tocReferences
 

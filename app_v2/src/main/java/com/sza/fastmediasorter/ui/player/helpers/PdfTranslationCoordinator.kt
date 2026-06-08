@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.graphics.Bitmap
+import android.view.View
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +15,8 @@ import kotlinx.coroutines.withContext
 
 /** OCR + ML Kit translation of the currently-rendered PDF page bitmap, in either simple-overlay or Google-Lens-style layered mode. Extracted from `PdfViewerManager.translateCurrentPage*` to keep the host class under the 1000-LOC budget. */
 internal class PdfTranslationCoordinator(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
+    private val root: View,
     private val safeViews: PlayerBindingSafeViews,
     private val coroutineScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
@@ -30,13 +31,13 @@ internal class PdfTranslationCoordinator(
 
     fun translateCurrentPage() {
         if (getCurrentPageBitmap() == null) {
-            onError(binding.root.context.getString(R.string.player_page_not_ready))
+            onError(root.context.getString(R.string.player_page_not_ready))
             return
         }
         val filePath = getCurrentPdfFile()?.absolutePath ?: return
         android.widget.Toast.makeText(
-            binding.root.context,
-            binding.root.context.getString(R.string.translation_started),
+            root.context,
+            root.context.getString(R.string.translation_started),
             android.widget.Toast.LENGTH_SHORT,
         ).show()
 
@@ -59,7 +60,7 @@ internal class PdfTranslationCoordinator(
             withContext(Dispatchers.Main) {
                 safeViews.translationOverlay.isVisible = true
                 safeViews.tvTranslatedText.text = cached
-                binding.translationLensOverlay.isVisible = false
+                safeViews.translationLensOverlay.isVisible = false
             }
             return
         }
@@ -80,7 +81,7 @@ internal class PdfTranslationCoordinator(
             if (result != null) {
                 val translatedText = result.second
                 onSimpleTextTranslated(translatedText)
-                binding.translationLensOverlay.isVisible = false
+                safeViews.translationLensOverlay.isVisible = false
                 TranslationCacheManager.putTranslation(filePath, pageIndex, translatedText)
             }
             // No text detected -> silently ignore (normal for empty pages).
@@ -120,27 +121,27 @@ internal class PdfTranslationCoordinator(
             if (!translatedBlocks.isNullOrEmpty()) {
                 showLiveLensBlocks(originalBitmap, translatedBlocks, ocrBitmapWidth, ocrBitmapHeight)
             } else {
-                binding.translationLensOverlay.isVisible = false
+                safeViews.translationLensOverlay.isVisible = false
                 safeViews.translationOverlay.isVisible = false
-                binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+                safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
+                safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
             }
         }
     }
 
     private fun showCachedLensBlocks(blocks: List<TranslationManager.TranslatedTextBlock>) {
-        binding.translationLensOverlay.setSourceBitmap(getCurrentPageBitmap())
+        safeViews.translationLensOverlay.setSourceBitmap(getCurrentPageBitmap())
         val overlayBlocks = blocks.map(::toOverlayBlock)
-        val viewWidth = binding.photoView.width
-        val viewHeight = binding.photoView.height
+        val viewWidth = safeViews.photoView.width
+        val viewHeight = safeViews.photoView.height
         val bitmapWidth = getCurrentPageBitmap()?.width ?: 1
         val bitmapHeight = getCurrentPageBitmap()?.height ?: 1
-        binding.translationLensOverlay.setScale(bitmapWidth, bitmapHeight, viewWidth, viewHeight)
-        binding.translationLensOverlay.setTranslatedBlocks(overlayBlocks)
-        binding.translationLensOverlay.isVisible = true
+        safeViews.translationLensOverlay.setScale(bitmapWidth, bitmapHeight, viewWidth, viewHeight)
+        safeViews.translationLensOverlay.setTranslatedBlocks(overlayBlocks)
+        safeViews.translationLensOverlay.isVisible = true
         safeViews.translationOverlay.isVisible = false
-        binding.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
-        binding.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
+        safeViews.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
+        safeViews.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
     }
 
     private fun showLiveLensBlocks(
@@ -149,16 +150,16 @@ internal class PdfTranslationCoordinator(
         ocrBitmapWidth: Int,
         ocrBitmapHeight: Int,
     ) {
-        binding.translationLensOverlay.setSourceBitmap(originalBitmap)
+        safeViews.translationLensOverlay.setSourceBitmap(originalBitmap)
         val overlayBlocks = blocks.map(::toOverlayBlock)
-        val viewWidth = binding.photoView.width
-        val viewHeight = binding.photoView.height
-        binding.translationLensOverlay.setScale(ocrBitmapWidth, ocrBitmapHeight, viewWidth, viewHeight)
-        binding.translationLensOverlay.setTranslatedBlocks(overlayBlocks)
-        binding.translationLensOverlay.isVisible = true
+        val viewWidth = safeViews.photoView.width
+        val viewHeight = safeViews.photoView.height
+        safeViews.translationLensOverlay.setScale(ocrBitmapWidth, ocrBitmapHeight, viewWidth, viewHeight)
+        safeViews.translationLensOverlay.setTranslatedBlocks(overlayBlocks)
+        safeViews.translationLensOverlay.isVisible = true
         safeViews.translationOverlay.isVisible = false
-        binding.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
-        binding.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
+        safeViews.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
+        safeViews.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
     }
 
     private fun toOverlayBlock(block: TranslationManager.TranslatedTextBlock) =

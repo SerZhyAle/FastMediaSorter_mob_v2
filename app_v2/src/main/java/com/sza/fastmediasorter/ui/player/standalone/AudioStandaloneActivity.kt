@@ -29,32 +29,41 @@ import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.databinding.ActivityStandaloneTextBinding
+import com.sza.fastmediasorter.databinding.ActivityStandaloneAudioBinding
+import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
-import com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
+import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
-import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
-import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * S0380: specialized standalone activity for plain-text files opened from external intents.
- * Inflates a trimmed layout (no media/pdf/epub/audio view hierarchies) and drives only
- * [TextViewerManager], so the heavy media SDKs (ExoPlayer/Glide/PDF/WebView) are never class-loaded
- * for a text open. File operations / favourite reuse the shared standalone helpers + ViewModel.
+ * S0380: specialized standalone activity for audio files opened from external intents.
+ * Inflates a trimmed layout (no image/video-gesture/pdf/epub/text/office view hierarchies) and drives
+ * only the audio path of the shared [StandaloneViewManager] (ADR-2 Unified Playback Logic): the
+ * background [com.sza.fastmediasorter.ui.player.helpers.AudioServiceController] feeds a [Player] into
+ * the root-based playerView. Non-audio URIs are rejected with the unsupported-format toast.
+ * File operations / favourite reuse the shared standalone helpers + ViewModel.
  */
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
-class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
+class AudioStandaloneActivity :
+    BaseActivity<ActivityStandaloneAudioBinding>(), PlayerHostCapabilities {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -66,6 +75,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
+    // Standalone opens local/content URIs far more often than network paths, so these heavy
+    // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
     @Inject lateinit var smbClient: Lazy<SmbClient>
     @Inject lateinit var sftpClient: Lazy<SftpClient>
     @Inject lateinit var ftpClient: Lazy<FtpClient>
@@ -81,22 +92,11 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
 
-    private val fileOperations: StandaloneFileOperationsHandler by lazy {
-        StandaloneFileOperationsHandler(
+    private val viewManager: StandaloneViewManager by lazy {
+        StandaloneViewManager(
             activity = this,
             root = binding.root,
-            getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
-            onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
-            updateAudioMediaItem = { /* no audio in text activity */ },
-            batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher
-        )
-    }
-
-    private val networkFileManager: NetworkFileManager by lazy {
-        NetworkFileManager(
-            context = this,
+            lifecycleScope = lifecycleScope,
             smbClient = smbClient,
             sftpClient = sftpClient,
             ftpClient = ftpClient,
@@ -109,55 +109,33 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             ftpFileOperationHandler = ftpFileOperationHandler,
             cloudFileOperationHandler = cloudFileOperationHandler,
             unifiedCache = unifiedCache,
-            callback = object : NetworkFileManager.NetworkFileCallback {
-                override fun getCurrentResource() = null
-                override fun showError(message: String) = showToastError(message)
-            }
-        )
-    }
-
-    private val translationManager: TranslationManager by lazy {
-        TranslationManager(
-            context = this,
             settingsRepository = settingsRepository,
-            callback = object : TranslationManager.TranslationCallback {
-                override fun showError(message: String) = showToastError(message)
-                override fun showModelDownloadPrompt(
-                    languageName: String,
-                    onConfirm: () -> Unit,
-                    onCancel: () -> Unit
-                ) { /* translation UI not exposed in standalone */ }
-            }
+            playbackPositionRepository = playbackPositionRepository
+            // binding intentionally omitted: this trimmed layout never opens document viewers.
         )
     }
 
-    private val textViewerManager: TextViewerManager by lazy {
-        TextViewerManager(
-            context = this,
-            root = binding.root,
-            networkFileManager = networkFileManager,
-            settingsRepository = settingsRepository,
-            coroutineScope = lifecycleScope,
-            callback = object : TextViewerManager.TextViewerCallback {
-                override fun showError(message: String) = showToastError(message)
-                override fun showTranslationSettingsDialog() { /* not exposed in standalone */ }
-                override fun exitFullscreenMode() { /* not exposed in standalone */ }
-                override fun setTouchZonesEnabled(enabled: Boolean) { /* not exposed in standalone */ }
-                override fun showEncodingDialog() { /* not exposed in standalone */ }
-                override fun launchEditorCalculator(initialInput: String) { /* read-only standalone text */ }
-                override fun launchSelectionCalculator(initialInput: String) { /* read-only standalone text */ }
-                override fun finishActivity() { finish() }
-            },
-            translationManager = translationManager
-        )
-    }
-
-    /** Set after the first successful displayText(); prevents reload on rename state updates. */
+    /** Set after the first successful viewManager.show(); prevents reload on rename state updates. */
     private var contentLoaded = false
 
-    override fun getViewBinding(): ActivityStandaloneTextBinding =
-        ActivityStandaloneTextBinding.inflate(layoutInflater)
+    private val fileOperations: StandaloneFileOperationsHandler by lazy {
+        StandaloneFileOperationsHandler(
+            activity = this,
+            root = binding.root,
+            getCurrentMediaFile = { viewModel.state.value.mediaFile },
+            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
+            // A SAF rename must keep the background-service playback uninterrupted.
+            updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
+            batchDeleteLauncher = batchDeleteLauncher,
+            recoverableDeleteLauncher = recoverableDeleteLauncher
+        )
+    }
 
+    override fun getViewBinding(): ActivityStandaloneAudioBinding =
+        ActivityStandaloneAudioBinding.inflate(layoutInflater)
+
+    // This activity owns its insets handling - skip global edge-to-edge.
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun getInitialFocusView(): View = binding.btnBack
@@ -167,12 +145,13 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         setupCloseButton()
         setupBackPressHandler()
         setupFileOperationButtons()
-        textViewerManager.setupControls()
         parseIncomingIntent()
     }
 
     private fun setupWindowAndInsets() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Pad the command panel for status/caption bar (top) + nav bar (left/right in landscape)
+        // so its buttons stay inside the system-bar safe area (Rule 18).
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
             val top = insets.getInsets(
                 WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
@@ -203,10 +182,11 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         binding.btnShareCmd.setOnClickListener { fileOperations.shareCurrentFile() }
         binding.btnFavorite.isVisible = true
         binding.btnFavorite.setOnClickListener { viewModel.toggleFavorite() }
-        binding.btnRenameCmd.isVisible = false
-        binding.btnRenameCmd.setOnClickListener { fileOperations.showStandaloneRenameDialog() }
         binding.btnInfoCmd.isVisible = true
         binding.btnInfoCmd.setOnClickListener { showFileInfo() }
+        // Rename stays hidden until the async capability check completes.
+        binding.btnRenameCmd.isVisible = false
+        binding.btnRenameCmd.setOnClickListener { fileOperations.showStandaloneRenameDialog() }
         binding.btnOverflowMenu.isVisible = true
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
@@ -260,7 +240,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
                 ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
         } catch (e: Exception) {
-            Timber.w(e, "TextStandalone: failed to query display name")
+            Timber.w(e, "AudioStandalone: failed to query display name")
             null
         } ?: uri.lastPathSegment
         viewModel.loadFromUri(uri, intent?.type, displayName)
@@ -271,15 +251,16 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             binding.progressBar.isVisible = state.isLoading
             if (state.isLoading) return@collectOnLifecycle
             state.errorMessage?.let { error ->
-                Toast.makeText(this@TextStandaloneActivity, error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AudioStandaloneActivity, error, Toast.LENGTH_SHORT).show()
                 finish()
                 return@collectOnLifecycle
             }
             val file = state.mediaFile ?: return@collectOnLifecycle
             val type = state.mediaType ?: return@collectOnLifecycle
-            if (type != MediaType.TEXT) {
+            if (type != MediaType.AUDIO) {
+                // Image/video + documents are other lanes - reject here, mirroring PhotoVideo/Text.
                 Toast.makeText(
-                    this@TextStandaloneActivity,
+                    this@AudioStandaloneActivity,
                     R.string.unsupported_format_use_external_player,
                     Toast.LENGTH_SHORT
                 ).show()
@@ -287,8 +268,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
                 return@collectOnLifecycle
             }
             if (!contentLoaded) {
-                Timber.d("S0380: TextStandaloneActivity displaying text from external intent (no media SDKs)")
-                textViewerManager.displayText(file, isWritable = false)
+                Timber.d("S0380: AudioStandaloneActivity starting background audio from external intent")
+                viewManager.show(file, MediaType.AUDIO)
                 contentLoaded = true
             }
             updateRenameButtonVisibility()
@@ -297,20 +278,67 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             binding.btnFavorite.setImageResource(
                 if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
             )
+            binding.btnFavorite.contentDescription = getString(
+                if (isFav) R.string.cd_remove_from_favorites else R.string.cd_add_to_favorites
+            )
         }
         collectOnLifecycle(viewModel.messageFlow) { message ->
-            Toast.makeText(this@TextStandaloneActivity, message, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@AudioStandaloneActivity, message, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun updateRenameButtonVisibility() = fileOperations.updateRenameButtonVisibility()
 
-    private fun showToastError(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    override fun onResumeWithViews() {
+        viewManager.onResume()
+    }
+
+    override fun onPause() {
+        viewManager.onPause()
+        super.onPause()
     }
 
     override fun onDestroy() {
-        textViewerManager.release()
+        // release() stops + releases the background AudioServiceController, so no direct service wiring.
+        viewManager.release()
         super.onDestroy()
     }
+
+    // ── PlayerHostCapabilities ──────────────────────────────────────────────────
+
+    override val supportsListNavigation: Boolean = false
+    override val supportsSlideshow: Boolean = false
+    override val supportsPersistentAudio: Boolean = false
+    override val supportsCast: Boolean = false
+    override val supportsDeleteUndo: Boolean = true
+    override val supportsCommandPanelFolding: Boolean = false
+
+    override val currentMediaFile: StateFlow<MediaFile?> by lazy {
+        viewModel.state.map { it.mediaFile }
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, viewModel.state.value.mediaFile)
+    }
+
+    override val currentMediaType: StateFlow<MediaType?> by lazy {
+        viewModel.state.map { it.mediaType }
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, viewModel.state.value.mediaType)
+    }
+
+    override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
+    override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
+
+    override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
+    override fun rememberStereoModeForCurrentFile(mode: StereoMode) =
+        viewModel.rememberStereoModeForCurrentFile(mode)
+
+    // No video player in the audio lane.
+    override val videoPlayerHandle: VideoPlayerHandle? = null
+
+    // The shared playback-control dialog (which reads this flag) is not wired in this trimmed lane.
+    override val isAudioServiceActive: Boolean = false
+
+    override fun showMessage(message: String) = viewModel.showMessage(message)
+
+    override fun requestFinishAfterDelete() = finish()
 }

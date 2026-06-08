@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -11,7 +12,6 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamily
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamilyCatalog
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,10 +36,13 @@ import java.io.File
  */
 @SuppressLint("SetJavaScriptEnabled")
 class OfficeDocumentViewerManager(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
+    private val root: View,
     private val coroutineScope: CoroutineScope,
     private val callback: OfficeDocumentViewerHost.Callback,
 ) : OfficeDocumentViewerHost {
+
+    private val safeViews = PlayerBindingSafeViews(root)
 
     private val engineBridge = OfficeDocumentEngineBridge()
     private val hyperlinkPolicy = OfficeDocumentHyperlinkPolicy()
@@ -51,7 +54,7 @@ class OfficeDocumentViewerManager(
     // S0301 Phase 05: read-only print parity - prints the rendered WebView through the framework
     // PrintManager instead of routing Office files through the PDF print path.
     private val printAdapter = OfficeDocumentPrintAdapter()
-    private val container get() = binding.officeDocumentViewerContainer
+    private val container get() = safeViews.officeDocumentViewerContainer
 
     private var webView: WebView? = null
     private var fullscreen = false
@@ -189,7 +192,7 @@ class OfficeDocumentViewerManager(
             showTranslate = BuildConfig.ENABLE_TRANSLATION,
             getSelectedText = { selectionBridge.lastSelectedText },
             onTranslate = callback::onTranslateSelection,
-            onSearchGoogle = { openGoogleSearch(binding.root.context, it) },
+            onSearchGoogle = { openGoogleSearch(root.context, it) },
         )
     }
 }

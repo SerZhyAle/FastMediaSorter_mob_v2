@@ -113,4 +113,5 @@
     <string name="vr_toggle_enter_description">В іммерсив</string>
     <string name="vr_toggle_exit_description">З іммерсиву</string>
     <string name="vr_xr_fallback_flat_mode">Immersive-режим недоступний - відтворення у плоскому режимі. Формат 3D можна змінити у налаштуваннях плеєра.</string>
+    <string name="vr_immersive_preparing">Готую immersive-режим..</string>
 </resources>

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamilyCatalog
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import kotlinx.coroutines.CoroutineScope
 
@@ -19,10 +18,10 @@ class OfficeDocumentViewerProviderFactory {
 
     /** Build the engine-backed, read-only in-app Office viewer host for noLegal. */
     fun createViewerHost(
-        binding: ActivityPlayerUnifiedBinding,
+        root: android.view.View,
         coroutineScope: CoroutineScope,
         callback: OfficeDocumentViewerHost.Callback,
-    ): OfficeDocumentViewerHost = OfficeDocumentViewerManager(binding, coroutineScope, callback)
+    ): OfficeDocumentViewerHost = OfficeDocumentViewerManager(root, coroutineScope, callback)
 }
 
 /**

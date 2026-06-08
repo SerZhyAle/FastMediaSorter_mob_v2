@@ -154,6 +154,17 @@ class PlayerBindingSafeViews private constructor(
     val photoViewOrNull: View? get() = root.findViewById(R.id.photoView)
     val imageViewOrNull: View? get() = root.findViewById(R.id.imageView)
     val playerViewOrNull: View? get() = root.findViewById(R.id.playerView)
+
+    // S0380: typed required accessors for the photo/gif/video/audio playback paths. Resolved via the
+    // generated binding on the full unified layout (fast path) and via id lookup on a trimmed
+    // standalone layout (root constructor → binding is null → falls through to root.findViewById).
+    val playerView: androidx.media3.ui.PlayerView
+        get() = required(binding?.playerView, R.id.playerView)
+    val photoView: PhotoView
+        get() = required(binding?.photoView, R.id.photoView)
+    // Nullable: the dual-surface container is a config-variant view (absent in some layouts).
+    val photoDualSurfaceContainerOrNull: View?
+        get() = root.findViewById(R.id.photoDualSurfaceContainer)
     val officeDocumentViewerContainerOrNull: View? get() = root.findViewById(R.id.officeDocumentViewerContainer)
     val translationLensOverlayOrNull: View? get() = root.findViewById(R.id.translationLensOverlay)
     val audioCoverArtViewOrNull: View? get() = root.findViewById(R.id.audioCoverArtView)
@@ -161,6 +172,39 @@ class PlayerBindingSafeViews private constructor(
     val epubWebViewOrNull: View? get() = root.findViewById(R.id.epubWebView)
     val progressBarOrNull: View? get() = root.findViewById(R.id.progressBar)
     val btnExitEpubFullscreenOrNull: View? get() = root.findViewById(R.id.btnExitEpubFullscreen)
+
+    // S0380: typed required accessors for the PDF/EPUB/Office document viewer paths. Resolved via
+    // the generated binding on the full unified layout (fast path) and via id lookup on a trimmed
+    // document standalone layout. Mirror the btnPdf*/btnEpub* extension properties one-to-one so the
+    // decoupled PdfViewerManager / EpubViewerManager can use the root seam instead of `binding`.
+    val imageView: ImageView get() = required(R.id.imageView)
+    val photoViewSurfaceBOrNull: PhotoView? get() = root.findViewById(R.id.photoViewSurfaceB)
+    val playerProgressBar: ProgressBar get() = required(R.id.progressBar)
+    val epubWebView: FrameLayout get() = required(R.id.epubWebView)
+    val officeDocumentViewerContainer: FrameLayout get() = required(R.id.officeDocumentViewerContainer)
+    val audioCoverArtView: ImageView get() = required(R.id.audioCoverArtView)
+    val audioInfoOverlay: LinearLayout get() = required(R.id.audioInfoOverlay)
+    val btnExitEpubFullscreen: ImageButton get() = required(R.id.btnExitEpubFullscreen)
+    val translationLensOverlay: com.sza.fastmediasorter.ui.player.views.TranslationOverlayView
+        get() = required(R.id.translationLensOverlay)
+
+    // PDF navigation controls (live in player_pdf_controls_overlay_content).
+    val btnPdfPrevPage: ImageButton get() = required(R.id.btnPdfPrevPage)
+    val btnPdfNextPage: ImageButton get() = required(R.id.btnPdfNextPage)
+    val btnPdfHome: ImageButton get() = required(R.id.btnPdfHome)
+    val btnPdfZoomIn: ImageButton get() = required(R.id.btnPdfZoomIn)
+    val btnPdfZoomOut: ImageButton get() = required(R.id.btnPdfZoomOut)
+    // Page indicator may be absent in single-page PDFs / trimmed layouts → nullable, matching old usage.
+    val tvPdfPageIndicatorOrNull: TextView? get() = root.findViewById(R.id.tvPdfPageIndicator)
+
+    // EPUB navigation controls (live in player_epub_controls_overlay_content).
+    val btnEpubPrevChapter: ImageButton get() = required(R.id.btnEpubPrevChapter)
+    val btnEpubNextChapter: ImageButton get() = required(R.id.btnEpubNextChapter)
+    val btnEpubHome: ImageButton get() = required(R.id.btnEpubHome)
+    val btnEpubToc: ImageButton get() = required(R.id.btnEpubToc)
+    val btnEpubFontSizeDecrease: ImageButton get() = required(R.id.btnEpubFontSizeDecrease)
+    val btnEpubFontSizeIncrease: ImageButton get() = required(R.id.btnEpubFontSizeIncrease)
+    val tvEpubChapterIndicator: TextView get() = required(R.id.tvEpubChapterIndicator)
 
     val textViewerContainer: FrameLayout get() = required(R.id.textViewerContainer)
     val btnCloseTextViewer: ImageButton get() = required(R.id.btnCloseTextViewer)

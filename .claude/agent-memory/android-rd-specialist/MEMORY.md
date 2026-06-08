@@ -13,6 +13,7 @@
 - [Parallel impl agents: no git/build](feedback_parallel_agents_no_git_build.md) - one agent's git stash silently clobbers another's uncommitted edits; forbid git/build/catalog in parallel briefs, disjoint files, central build; "IDE reverting my files" = suspect a concurrent stash
 - [/spec-dev continue: verify code before checkboxes](feedback_spec_dev_continue_verify_code_first.md) - In-Progress spec may have code done but tracking at 0/N; reconcile via git status + grep first (S0356)
 - [Search duplicate tickets by symptom](feedback_search_duplicates_by_symptom.md) - before new bugfix spec from logs, search catalog by errorCode/class/subsystem + same-day created; I dup'd S0343/S0344 as S0357
+- [Don't gate autopilot on a manufactured safety blocker](feedback_no_safety_blocker_gating_autopilot.md) - safe detector-first cleanup plans should auto-chain to /spec-dev; owner accepts destructive autopilot (S0383)
 
 - [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
 - [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying

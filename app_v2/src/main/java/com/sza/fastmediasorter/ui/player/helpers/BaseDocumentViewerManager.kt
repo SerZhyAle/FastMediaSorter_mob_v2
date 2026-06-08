@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import android.view.View
 import timber.log.Timber
 
 /**
@@ -21,7 +21,9 @@ import timber.log.Timber
  * - Center (20-80% width): Zoom/pan area (no action)
  */
 abstract class BaseDocumentViewerManager(
-    protected val binding: ActivityPlayerUnifiedBinding
+    // S0380: decoupled from ActivityPlayerUnifiedBinding to any layout root so the document viewers
+    // can drive a trimmed standalone layout as well as the full unified player layout.
+    protected val root: View
 ) {
     
     /**
@@ -31,8 +33,8 @@ abstract class BaseDocumentViewerManager(
      * @param isFullscreen Whether command panel is hidden (fullscreen mode)
      */
     fun handleTouchZones(x: Float, y: Float, isFullscreen: Boolean) {
-        val screenWidth = binding.root.width
-        val screenHeight = binding.root.height
+        val screenWidth = root.width
+        val screenHeight = root.height
         
         if (screenWidth <= 0 || screenHeight <= 0) {
             Timber.w("BaseDocumentViewerManager: Invalid screen dimensions - ignoring touch")

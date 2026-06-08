@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -108,26 +109,24 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     override fun observeData() {
-        lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                if (::pagesList.isInitialized && pagesList.isNotEmpty()) {
-                    val firstPage = pagesList[0]
-                    val updatedPage = firstPage.copy(
-                        showProfileSelector = true,
-                        recommendedProfileType = state.recommendedProfile,
-                        selectedProfileType = state.selectedProfile,
-                        onProfileSelected = { type ->
-                            viewModel.onProfileSelected(type)
-                        },
-                        onOpenProfilePicker = { showProfilePicker() }
-                    )
-                    if (firstPage != updatedPage) {
-                        pagesList[0] = updatedPage
-                        pagerAdapter.notifyItemChanged(0)
-                    }
-                    // notifyItemChanged is unreliable for the visible page; refresh the card directly.
-                    pagerAdapter.refreshSelectedProfile(state.recommendedProfile, state.selectedProfile)
+        collectOnLifecycle(viewModel.state) { state ->
+            if (::pagesList.isInitialized && pagesList.isNotEmpty()) {
+                val firstPage = pagesList[0]
+                val updatedPage = firstPage.copy(
+                    showProfileSelector = true,
+                    recommendedProfileType = state.recommendedProfile,
+                    selectedProfileType = state.selectedProfile,
+                    onProfileSelected = { type ->
+                        viewModel.onProfileSelected(type)
+                    },
+                    onOpenProfilePicker = { showProfilePicker() }
+                )
+                if (firstPage != updatedPage) {
+                    pagesList[0] = updatedPage
+                    pagerAdapter.notifyItemChanged(0)
                 }
+                // notifyItemChanged is unreliable for the visible page; refresh the card directly.
+                pagerAdapter.refreshSelectedProfile(state.recommendedProfile, state.selectedProfile)
             }
         }
     }

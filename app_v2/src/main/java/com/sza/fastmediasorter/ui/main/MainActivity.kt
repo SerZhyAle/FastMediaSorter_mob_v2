@@ -142,24 +142,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Log config changes to detect unexpected recreations
 
         // S0202: subscribe to terminal share-download outcomes pushed by LinkDownloadWorker. The worker's foreground notification is the primary feedback channel; this collector is a fallback for when the user has the app foregrounded at the moment of completion (auth-required dialogs and open-in-player intents need an Activity context).
-        lifecycleScope.launch {
-            shareResultBus.pending.collect { pending ->
-                val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
-                    pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
-                    pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
-                val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
-                // Suppression: the worker already posted a result notification for these success kinds - skip the in-Activity toast to avoid double-feedback. SocialPreviewOnly's "Sign in" notification action is the primary path; the in-Activity dialog is also redundant.
-                if (pending.notificationShown && (isSuccess || isAuthGated)) {
-                    return@collect
-                }
-                runCatching {
-                    shareResultPresenter.present(
-                        result = pending.result,
-                        hostActivity = this@MainActivity,
-                        isAuthRetry = false,
-                    )
-                }.onFailure { Timber.w(it, "shareResultPresenter.present failed") }
+        collectOnLifecycle(shareResultBus.pending) { pending ->
+            val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
+                pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
+                pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
+            val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
+            // Suppression: the worker already posted a result notification for these success kinds - skip the in-Activity toast to avoid double-feedback. SocialPreviewOnly's "Sign in" notification action is the primary path; the in-Activity dialog is also redundant.
+            if (pending.notificationShown && (isSuccess || isAuthGated)) {
+                return@collectOnLifecycle
             }
+            runCatching {
+                shareResultPresenter.present(
+                    result = pending.result,
+                    hostActivity = this@MainActivity,
+                    isAuthRetry = false,
+                )
+            }.onFailure { Timber.w(it, "shareResultPresenter.present failed") }
         }
 
         // Fix old cloud paths format (cloud:/ → cloud://)

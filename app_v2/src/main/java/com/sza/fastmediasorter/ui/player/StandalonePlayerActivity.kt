@@ -213,7 +213,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         val viewManagerT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         viewManager = StandaloneViewManager(
             activity = this,
-            binding = binding,
+            root = binding.root,
             lifecycleScope = lifecycleScope,
             smbClient = smbClient,
             sftpClient = sftpClient,
@@ -228,6 +228,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             cloudFileOperationHandler = cloudFileOperationHandler,
             unifiedCache = unifiedCache,
             settingsRepository = settingsRepository,
+            // S0380: StandaloneViewManager is fully root-based now (document viewers decoupled),
+            // so only the layout root is needed - the binding param was removed.
             playbackPositionRepository = playbackPositionRepository
         )
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${SystemClock.uptimeMillis() - viewManagerT0}ms")

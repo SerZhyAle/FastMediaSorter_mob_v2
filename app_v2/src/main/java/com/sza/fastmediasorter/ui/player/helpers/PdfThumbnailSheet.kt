@@ -1,17 +1,19 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import kotlinx.coroutines.CoroutineScope
 
 /** Bottom-sheet thumbnail grid for PDF navigation. Extracted from `PdfViewerManager.showThumbnailNavigation` to keep the host class under the 1000-LOC budget. */
 internal object PdfThumbnailSheet {
 
+    // S0380: takes the layout root instead of ActivityPlayerUnifiedBinding so it works on both the
+    // full unified player layout and the trimmed document standalone layout.
     fun show(
-        binding: ActivityPlayerUnifiedBinding,
+        root: View,
         safeViews: PlayerBindingSafeViews,
         rendererWrapper: PdfRendererWrapper?,
         pdfPageCount: Int,
@@ -24,7 +26,7 @@ internal object PdfThumbnailSheet {
         val wrapper = rendererWrapper ?: return
         if (pdfPageCount <= 1) return
 
-        val context = binding.root.context
+        val context = root.context
         val bottomSheet = BottomSheetDialog(context)
         val view = android.view.LayoutInflater.from(context)
             .inflate(R.layout.bottom_sheet_pdf_thumbnails, null)
