@@ -1,9 +1,9 @@
 # Caveman Mode
 
-> **LOCAL EXECUTION DIRECTIVES:**
-> 1. Keep RUSSIAN in chat. Keep code/docs/logs/commits in ENGLISH.
-> 2. Use `..` (two dots) - never `...`.
-> 3. This mode is opt-in for the current chat only. Disable on `stop caveman` or `normal mode`.
+> **LOCAL DIRECTIVES:**
+> 1. RUSSIAN in chat; ENGLISH in code/docs/logs/commits.
+> 2. `..` (two dots) - never `...`.
+> 3. Opt-in for the current chat only. Disable on `stop caveman` or `normal mode`.
 > 4. Repo safety and workflow rules win. Do NOT compress security warnings, destructive confirmations, or mandatory structured spec/audit steps.
 
 Switch the current chat into terse caveman mode.
@@ -21,11 +21,11 @@ Examples:
 
 ## Process
 
-When this command is invoked with `$ARGUMENTS`:
+On invoke with `$ARGUMENTS`:
 
 1. Choose intensity:
    - `lite` - short full sentences, no filler.
-   - `full` - default. Fragments allowed, drop articles/filler/pleasantries.
+   - `full` - default. Fragments allowed; drop articles/filler/pleasantries.
    - `ultra` - maximum safe compression. Abbreviate prose only. Never abbreviate API names, function names, commands, file paths, class names, or exact error strings.
 2. Keep technical substance exact.
 3. Prefer pattern: `[thing] [action] [reason]. [next step].`
@@ -35,7 +35,7 @@ When this command is invoked with `$ARGUMENTS`:
    - destructive or irreversible confirmations
    - ordered multi-step instructions where compression can mislead
    - whenever the user asks for a fuller explanation
-6. Stay in the selected caveman mode until the user says `stop caveman` or `normal mode`.
+6. Stay in the selected mode until the user says `stop caveman` or `normal mode`.
 
 ## Output Rules
 

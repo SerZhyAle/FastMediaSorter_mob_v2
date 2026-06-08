@@ -1,8 +1,8 @@
 # Specification Implementation Audit
 
-Audit a spec against the actual repository state. Auto-detects strategic vs tactical scope.
+Audit a spec against actual repository state. Auto-detects strategic vs tactical scope.
 
-> **No audit file is written.** Findings are recorded in a compact `## Last Audit` block at the bottom of the strategic spec. The block is **overwritten** on each run - only the most recent audit is preserved. The journal `updated` timestamp moves on every audit. Old audit history is intentionally discarded.
+> **No audit file is written.** Findings go in a compact `## Last Audit` block at the bottom of the strategic spec. The block is **overwritten** on each run - only the most recent audit is kept. The journal `updated` timestamp moves on every audit. Old audit history is intentionally discarded.
 
 ## Usage
 
@@ -57,6 +57,7 @@ Verification mechanics:
 | Room version | Read `AppDatabase.kt`, match `@Database(version = N` |
 | Dev log entry | `Grep` for file path in `dev/CHANGELOG.md` |
 | Catalog up-to-date | `Grep` for class name in `dev/CATALOG/<module>.jsonl` |
+| Dead-weight introduced (CLAUDE.md Rule 21) | `Grep` for remnants the change should have removed: orphaned/superseded classes, `-keep` rules naming a deleted class, a dependency added to a flavor that never references it, assets/resources no longer referenced. WARN per remnant that would still ship in the target variant. Cross-check `PLAN/` before treating a zero-ref artifact as dead - it may be active-ticket scaffolding |
 | FEATURES trilingual | Read strategic §8 first. If §8 text is "Без изменений" (or equivalent "no change") → EXEMPT. Otherwise `Grep` for keyword in all three FEATURES docs - PASS only if all three hit |
 | File size vs budget | `Read` file, count lines, compare to step budget |
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
@@ -70,11 +71,11 @@ Verification mechanics:
 - `Partial` - zero FAIL, ≥1 WARN. Collapses to `Broken` under `--strict`.
 - `Broken` - ≥1 FAIL.
 
-**5 - Write `## Last Audit` block** at the bottom of `PLAN/Sxxxx_<slug>.md` (overwrite if present). The block uses the compact template below - keep it under ~40 lines, including only PASS counts and FAIL/WARN action items. No verbose tables. Action items are the input that `/spec-fix` consumes.
+**5 - Write `## Last Audit` block** at the bottom of `PLAN/Sxxxx_<slug>.md` (overwrite if present). Use the compact template below - keep under ~40 lines, PASS counts + FAIL/WARN action items only. No verbose tables. Action items are the input `/spec-fix` consumes.
 
 **6 - Update `Status:` fields.**
 
-Full/strategic mode: flip strategic spec `Status:` to score (`Verified` / `Partial` / `Broken`). Always touch the journal status via `update.ps1`.
+Full/strategic mode: flip strategic spec `Status:` to score (`Verified` / `Partial` / `Broken`). Always touch journal status via `update.ps1`.
 
 Whenever the verdict flips the journal/strategic status (full or strategic mode), enforce the debug-tag invariant: the spec is no longer `BlockNeedUserTest`, so it must carry zero `Timber.d("<Sxxxx>:` tags. `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line (idempotent no-op if none). Run a dev log line per `.kt` file that lost a tag. See CLAUDE.md "Debug Verification Tags". This is the only `.kt` mutation `/spec-check` performs.
 
@@ -82,7 +83,7 @@ Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers.
 
 **7 - Run dev log + finalize (batched).**
 
-Use `close-and-log.ps1` to perform Step 6 (status flip) + this step + Step 7a (functionality log) + post-change catalog scan in a single pwsh invocation:
+Use `close-and-log.ps1` for Step 6 (status flip) + this step + Step 7a (functionality log) + post-change catalog scan in a single pwsh invocation:
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
@@ -103,11 +104,11 @@ The wrapped sequence still applies the same rules:
 - Functionality log: append only on `Verified` flip, only when no `<Sxxxx>` entry exists in `dev/FUNCTIONALITY.log` within the last 24 hours, only for user-visible changes (apply §2 / §8 heuristics).
 - For tactical-only audits or `Partial`/`Broken` verdicts the funclog block is silently skipped.
 
-Falling back to the individual scripts (`close.ps1` + `add_to_dev_log.ps1` × N + `add_to_functionality_log.ps1` + `scan.ps1` + `render.ps1`) is allowed when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process and the lifecycle invariants must be reproduced manually.
+Falling back to individual scripts (`close.ps1` + `add_to_dev_log.ps1` × N + `add_to_functionality_log.ps1` + `scan.ps1` + `render.ps1`) is allowed when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process and the lifecycle invariants must be reproduced manually.
 
 **8 - Auto-chain to `/spec-fix`.**
 
-If outcome is `Partial` or `Broken` - immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If outcome is `Verified` - no further action needed.
+If outcome is `Partial` or `Broken` - immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If `Verified` - no further action.
 
 **Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Debug tags removed: N. Top issues: [list]. → Running /spec-fix…` (or `→ All checks passed. Debug tags removed: N.` on Verified)
 
@@ -159,11 +160,11 @@ The block replaces the previous `## Last Audit` block in full. The rest of the s
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
+- **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
 - **Status transition** (after the audit verdict is final):
   - Verdict `Verified` → `pwsh -NoProfile -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on the record.)
   - Verdict `Partial`  → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
   - Verdict `Broken`   → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
-- **Debug tags.** Every verdict that flips the journal status away from `BlockNeedUserTest` (Verified / Partial / Broken - and trivially also from `Implemented`, where there are none) requires the grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). This holds in `--quick` mode too.
-- **Read-only mode (`--quick`):** still emits the status transition and the debug-tag removal above; the difference is in scope of audit checks, not in journal effect.
-- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change the verdict. Never create audit files in `PLAN/`.
+- **Debug tags.** Every verdict that flips the journal status away from `BlockNeedUserTest` (Verified / Partial / Broken - and trivially also from `Implemented`, where there are none) requires the grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). Holds in `--quick` mode too.
+- **Read-only mode (`--quick`):** still emits the status transition and debug-tag removal above; the difference is in scope of audit checks, not journal effect.
+- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change the verdict. Never create audit files in `PLAN/`.

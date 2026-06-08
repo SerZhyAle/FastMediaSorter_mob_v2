@@ -153,7 +153,6 @@ plugins {
     id("com.android.application")
     id("com.android.legacy-kapt")
     id("com.google.dagger.hilt.android")
-    id("androidx.navigation.safeargs.kotlin")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -185,8 +184,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260608162
-        versionName = "2.60.6081.624"
+        versionCode = 260609010
+        versionName = "2.60.6090.100"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

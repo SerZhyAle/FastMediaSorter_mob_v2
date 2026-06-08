@@ -1,11 +1,11 @@
 # /skill-fix-release Sxxxx - Fix-Release Pipeline
 
-> **GLOBAL EXECUTION DIRECTIVES:**
-> 1. **FULLY AUTONOMOUS** - execute all steps without asking for confirmation unless a hard blocker is hit.
-> 2. **STRICTLY TECHNICAL LANGUAGE** - dry prose only in all outputs and commits.
-> 3. **HARD BLOCKERS ONLY** - stop and report only for: no commits/files found for spec, cherry-pick conflict, dirty working tree, not on DEBUG branch, release worktree missing.
+> **GLOBAL DIRECTIVES:**
+> 1. Fully autonomous - execute all steps without confirmation unless a hard blocker hits.
+> 2. Strictly technical language - dry prose in all outputs and commits.
+> 3. Hard blockers only - stop and report only for: no commits/files found for spec, cherry-pick conflict, dirty working tree, not on DEBUG branch, release worktree missing.
 
-Finds commits tied to a specific spec `Sxxxx`, cherry-picks only those commits to `main`, tags a fix-release version, updates `WHATS_NEW.md`, builds, and rebases the current DEBUG branch.
+Finds commits tied to spec `Sxxxx`, cherry-picks only those to `main`, tags a fix-release version, updates `WHATS_NEW.md`, builds, rebases the current DEBUG branch.
 
 ## Usage
 
@@ -13,7 +13,7 @@ Finds commits tied to a specific spec `Sxxxx`, cherry-picks only those commits t
 /skill-fix-release S0123
 ```
 
-`$ARGUMENTS` = spec id in the form `S\d{4}`. Parse it as `$SPEC_ID`.
+`$ARGUMENTS` = spec id `S\d{4}`. Parse as `$SPEC_ID`.
 
 ---
 
@@ -24,19 +24,19 @@ Finds commits tied to a specific spec `Sxxxx`, cherry-picks only those commits t
 ```bash
 git branch --show-current
 ```
-- If result is `main` → **ABORT**: "Fix-release must be run from a DEBUG branch."
-- If result does not match `DEBUG-v\d{3}` → **ABORT**: "Not on a DEBUG branch."
-- Record as `$CURRENT_DEBUG`.
+- `main` → **ABORT**: "Fix-release must be run from a DEBUG branch."
+- Not matching `DEBUG-v\d{3}` → **ABORT**: "Not on a DEBUG branch."
+- Else record as `$CURRENT_DEBUG`.
 
 ```bash
 git status --porcelain
 ```
-- If non-empty → **ABORT**: "Working tree is dirty."
+- Non-empty → **ABORT**: "Working tree is dirty."
 
 ```powershell
 Test-Path P:/ANDROID/FastMediaSorter_release
 ```
-- If false → **ABORT**: "Release worktree not found."
+- false → **ABORT**: "Release worktree not found."
 
 ---
 
@@ -46,84 +46,77 @@ Test-Path P:/ANDROID/FastMediaSorter_release
 pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id $SPEC_ID -Format json
 ```
 
-Parse the JSON result. Extract:
-- `$SPEC_NAME` - the `name` field (human-readable)
-- `$SPEC_FILE` - the `file` field (path to the spec `.md`)
-- `$SPEC_STATUS` - the `status` field
+Parse JSON. Extract:
+- `$SPEC_NAME` - `name` field
+- `$SPEC_FILE` - `file` field (path to spec `.md`)
+- `$SPEC_STATUS` - `status` field
 
-If no record is returned → **ABORT**: "Spec $SPEC_ID not found in catalog."
+No record → **ABORT**: "Spec $SPEC_ID not found in catalog."
 
-Warn (non-blocking) if `$SPEC_STATUS` is not `Implemented` or `Verified` - log "Warning: spec is in status '$SPEC_STATUS'; proceeding anyway."
+Warn (non-blocking) if `$SPEC_STATUS` not `Implemented`/`Verified`: log "Warning: spec is in status '$SPEC_STATUS'; proceeding anyway."
 
 ---
 
 ### Step 3 - Find commits for this spec
 
 #### Phase A - grep commit messages
-
 ```bash
 git log origin/main..HEAD --oneline --grep="$SPEC_ID"
 ```
-
-Collect all matching commit hashes as `$GREP_COMMITS` list.
+Collect matching hashes as `$GREP_COMMITS`.
 
 #### Phase B - commits touching the spec file
-
 ```bash
 git log origin/main..HEAD --oneline -- $SPEC_FILE
 ```
-
-Merge with `$GREP_COMMITS` (deduplicate by hash). Result is `$CANDIDATE_COMMITS`.
+Merge with `$GREP_COMMITS` (dedup by hash) → `$CANDIDATE_COMMITS`.
 
 #### Phase C - fallback: spec-declared files
-
-If `$CANDIDATE_COMMITS` is empty:
+If `$CANDIDATE_COMMITS` empty:
 1. Read `$SPEC_FILE` in full.
 2. Search for file paths in these patterns:
    - Lines containing `app_v2/src/...` or `wear/src/...`
    - Markdown code blocks that look like Kotlin file paths (`.kt`, `.xml`)
    - Any path under `### Implementation`, `## Files`, `## Changed`, `## Affected` headings
 3. Collect unique paths as `$SPEC_FILES`.
-4. For each path in `$SPEC_FILES`, check if the file differs from `origin/main`:
+4. For each path, check if it differs from `origin/main`:
    ```bash
    git diff origin/main..HEAD -- <path>
    ```
-   Collect paths with non-empty diff as `$CHANGED_FILES`.
-5. Find commits that introduced those changes:
+   Collect non-empty-diff paths as `$CHANGED_FILES`.
+5. Find commits introducing those changes:
    ```bash
    git log origin/main..HEAD --oneline -- <path>
    ```
-   Collect all resulting hashes. Deduplicate → `$CANDIDATE_COMMITS`.
+   Collect all hashes, dedup → `$CANDIDATE_COMMITS`.
 
-If `$CANDIDATE_COMMITS` is still empty after Phase C → **ABORT**:
+Still empty after Phase C → **ABORT**:
 "No commits found for $SPEC_ID on $CURRENT_DEBUG. Verify the fix is committed and the spec ID appears in commit messages or the spec file lists affected paths."
 
 ---
 
 ### Step 4 - Show what will be cherry-picked
 
-Before touching anything, list the commits and the files they touch:
-
+List commits + touched files before touching anything:
 ```bash
 # For each commit in $CANDIDATE_COMMITS:
 git show --stat --oneline <hash>
 ```
-
-Print a compact summary (this appears in the final report). Do not ask for confirmation - proceed immediately.
+Print compact summary (appears in final report). No confirmation - proceed immediately.
 
 ---
 
 ### Step 5 - Generate new version and collect fix description
 
-Version: same formula as `/skill-release` - `Y.YM.MDDH.Hmm` from current date/time. Record as `$NEW_VERSION`, `$MONTH_YEAR`.
+Version: same formula as `/skill-release` - `Y.YM.MDDH.Hmm` from current date/time. Record `$NEW_VERSION`, `$MONTH_YEAR`.
 
 Previous release tag:
 ```bash
 git tag --list "release/*" --sort=-version:refname | head -1
 ```
-Record as `$PREV_TAG`, extract `$PREV_VERSION`.
+Record `$PREV_TAG`, extract `$PREV_VERSION`.
 
-Fix description for release notes: use `$SPEC_NAME`. If the spec file has a `## Summary` or first `## ` paragraph, extract the first 1–2 sentences (max 20 words). Record as `$FIX_SUMMARY`.
+Fix description for release notes: use `$SPEC_NAME`. If spec file has `## Summary` or a first `## ` paragraph, extract first 1–2 sentences (max 20 words). Record `$FIX_SUMMARY`.
 
 ---
 
@@ -134,13 +127,12 @@ cd P:/ANDROID/FastMediaSorter_release
 git pull --ff-only
 ```
 
-Cherry-pick commits **in chronological order** (oldest first - reverse the list from Step 3):
-
+Cherry-pick **in chronological order** (oldest first - reverse the Step 3 list):
 ```bash
 git cherry-pick <hash-1> <hash-2> ...
 ```
 
-If cherry-pick exits non-zero (conflict):
+Cherry-pick non-zero (conflict):
 - **ABORT**: list conflict files from `git status`.
 - Print: "Resolve conflicts in P:/ANDROID/FastMediaSorter_release, then `git cherry-pick --continue`. Complete Steps 7–11 manually."
 - Do NOT update docs, tag, or build.
@@ -164,7 +156,7 @@ Current top of file:
 ## Previous Release: ...
 ```
 
-**Transform** - insert a new "current" block at the top; the old current block becomes "Previous Release":
+**Transform** - insert new "current" block at top; old current block becomes "Previous Release":
 
 ```markdown
 **Current release: $NEW_VERSION** ($MONTH_YEAR) - Fix Release
@@ -200,7 +192,7 @@ Current top of file:
 
 ### Step 8 - Update `README.md` in release worktree
 
-Find the `## What's New in v2.XX.XXXX.XXX (…)` section. Replace heading and content:
+Find `## What's New in v2.XX.XXXX.XXX (…)`. Replace heading and content:
 
 ```markdown
 ## What's New in v2.$NEW_VERSION ($MONTH_YEAR) - Fix Release
@@ -211,7 +203,7 @@ $FIX_SUMMARY
 [Full release notes →](docs/WHATS_NEW.md)
 ```
 
-Update version number in `docs/README_RU.md` and `docs/README_UK.md` headings (version string and date only; preserve body language).
+Update version number in `docs/README_RU.md` and `docs/README_UK.md` headings (version string + date only; preserve body language).
 
 ---
 
@@ -243,12 +235,12 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 .\a.ps1 r     # AAB for Google Play (auto-syncs gitignored files, builds in release worktree)
 ```
 
-For VR/Meta builds, if applicable, run separately:
+VR/Meta builds, if applicable, separately:
 ```powershell
 .\a.ps1 vr
 ```
 
-`a.ps1` copies the required gitignored files (`local.properties`, signing keys, OAuth config, `sza_resources.xml`) from the dev directory to the release worktree automatically before building.
+`a.ps1` copies required gitignored files (`local.properties`, signing keys, OAuth config, `sza_resources.xml`) from dev dir to release worktree automatically before building.
 
 ---
 
@@ -260,14 +252,13 @@ git fetch origin main
 git rebase origin/main
 ```
 
-If rebase conflicts → report and stop. The cherry-picked content is already in main; git should recognize the equivalent changes and skip them automatically (rerere). If it doesn't, instruct: resolve conflicts, `git rebase --continue`.
+Rebase conflicts → report and stop. Cherry-picked content is already in main; git should recognize equivalent changes and skip them (rerere). If not, instruct: resolve conflicts, `git rebase --continue`.
 
 Push rebased branch:
 ```bash
 git push --force-with-lease origin $CURRENT_DEBUG
 ```
-
-(`--force-with-lease` is safe here: rebase rewrites hashes; the lease check ensures no one else pushed to the branch meanwhile.)
+(`--force-with-lease` safe: rebase rewrites hashes; lease check ensures no one else pushed meanwhile.)
 
 ---
 
@@ -281,13 +272,13 @@ git push --force-with-lease origin $CURRENT_DEBUG
 
 ### Step 13a - Functionality log
 
-Each fix-release ships one or more user-visible fixes (otherwise no reason to publish). Append one `FIX` line per included spec - for `/skill-fix-release Sxxxx` this is exactly one line:
+Each fix-release ships ≥1 user-visible fix. Append one `FIX` line per included spec - for `/skill-fix-release Sxxxx` exactly one line:
 
 ```powershell
 .\scripts\add_to_functionality_log.ps1 -Id $SPEC_ID -Op FIX -Description "$FIX_SUMMARY"
 ```
 
-If `$FIX_SUMMARY` is empty (very short spec without §2 Goals), fall back to `$SPEC_NAME` verbatim.
+`$FIX_SUMMARY` empty (very short spec without §2 Goals) → fall back to `$SPEC_NAME` verbatim.
 
 ---
 
@@ -322,6 +313,4 @@ Fix-release pipeline complete.
 
 ## Important Constraint
 
-This skill applies **only to the specific fix described by `$SPEC_ID`**. If the DEBUG branch contains other uncommitted feature work, that work stays on DEBUG and is NOT included in this fix-release. Only the cherry-picked commits go to `main`.
-
-The DEBUG branch is rebased after the fact so its history reflects the fix that now exists in `main`.
+Applies **only to the specific fix described by `$SPEC_ID`**. Other uncommitted feature work on the DEBUG branch stays on DEBUG and is NOT included; only the cherry-picked commits go to `main`. The DEBUG branch is rebased after the fact so its history reflects the fix now in `main`.

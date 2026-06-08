@@ -126,6 +126,9 @@ $runsStringsAudit = $resolvedChangeType -in @('Xml', 'Mixed')
 $runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
 $runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
+# unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
+$runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -188,6 +191,15 @@ if ($runsFlavorFlagGate) {
 }
 else {
     Skip-Step "flavor-flag-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsNeuroslopGate) {
+    Invoke-Step "neuroslop-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-neuroslop.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

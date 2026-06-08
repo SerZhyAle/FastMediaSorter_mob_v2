@@ -1,17 +1,15 @@
 # Catalog Guide - File/Class Database
 
-> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
-> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
-> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
+> **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **Dry technical prose only** - no filler.
+> 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
+> 3. **Terse report:** one dry statement of what was done and why.
 
-Fast index of every Kotlin class in the project. Use it to locate
-functionality before grepping, and to keep class-level metadata fresh after
-changes.
+Fast index of every Kotlin class. Locate functionality before grepping; keep class metadata fresh after changes.
 
-**Source of truth:** `dev/CATALOG/<module>.jsonl` (machine-readable).
-**Human view:** `dev/CATALOG/<module>.md` (auto-generated).
-**Full reference:** `dev/CATALOG/README.md`.
+- **Source of truth:** `dev/CATALOG/<module>.jsonl` (machine-readable).
+- **Human view:** `dev/CATALOG/<module>.md` (auto-generated).
+- **Full reference:** `dev/CATALOG/README.md`.
 
 ## Usage
 
@@ -21,81 +19,67 @@ changes.
 
 Examples:
 - `/catalog` - show this reference.
-- `/catalog find classes that touch SMB` - run a query on the catalogue.
+- `/catalog find classes that touch SMB` - catalogue query.
 - `/catalog who depends on ResourceDao?` - DI-graph query.
 - `/catalog decomposition candidates` - big files needing a split.
-- `/catalog refresh app_v2` - run the `catalog_sync.ps1` wrapper after code changes.
-- `/catalog describe <class>` - fill in `role` / function descriptions.
+- `/catalog refresh app_v2` - run `catalog_sync.ps1` wrapper after code changes.
+- `/catalog describe <class>` - fill `role` / function descriptions.
 
 ---
 
-## When to invoke this skill (mandatory triggers)
+## When to invoke (mandatory triggers)
 
-**Before ANY code change or analysis:** query the catalogue first. It is
-faster than grepping 750+ files and already carries semantic context
-(role, status, side effects, DI graph). Skip straight to `Grep` only when the
-catalogue yields nothing.
+Query the catalogue **before ANY code change or analysis** - faster than grepping 750+ files, already carries semantic context (role, status, side effects, DI graph). Fall back to `Grep` only when it yields nothing.
 
-Specifically, invoke **before**:
+Invoke **before**:
 
-| Situation | Why |
+| Situation | Filter / why |
 |-----------|-----|
-| "Where does feature X happen?" | Search by `Role` / `ClassMatches` / `PathMatches` - one query replaces many greps. |
-| Planning a refactor or decomposition | `-MinLoc 800` + `-Layer` lists candidates with LOC, DI graph, side effects. |
-| Auditing who uses a type | `-Injected <TypeName>` returns every constructor consumer. |
-| Adding a new class | Check for near-duplicates by `-ClassMatches "*XYZ*"` before writing. |
-| "What touches the disk / network / DB?" | `-SideEffect disk\|network\|db\|prefs`. |
-| "What surfaces UI to the user?" | `-UserFeedback`. |
+| "Where does feature X happen?" | `Role` / `ClassMatches` / `PathMatches` - one query replaces many greps. |
+| Planning refactor/decomposition | `-MinLoc 800` + `-Layer` - candidates with LOC, DI graph, side effects. |
+| Auditing who uses a type | `-Injected <TypeName>` - every constructor consumer. |
+| Adding a new class | `-ClassMatches "*XYZ*"` - check near-duplicates first. |
+| "What touches disk/network/DB?" | `-SideEffect disk\|network\|db\|prefs`. |
+| "What surfaces UI?" | `-UserFeedback`. |
 | Triaging stale code | `-Status legacy` + `-TouchedBefore <date>`. |
 
-And **after** any of these:
+Invoke **after** (each handled by `scan.ps1`):
 
-| Change | Action |
+| Change | scan.ps1 effect |
 |--------|--------|
-| New `.kt` file | `scan.ps1` creates a record; then fill `role` + `status` via `set.ps1`. |
-| Renamed/deleted class or file | `scan.ps1` auto-drops stale records and re-creates under the new name. |
-| Added/removed/renamed function | `scan.ps1` refreshes the `functions[]` list; old descriptions survive by name. |
-| Changed `@Inject constructor` params | `scan.ps1` refreshes `injected`. |
-| Moved between layers (`ui` → `domain`, etc.) | `scan.ps1` updates `layer`. |
+| New `.kt` file | Creates record; then fill `role` + `status` via `set.ps1`. |
+| Renamed/deleted class or file | Auto-drops stale records, re-creates under new name. |
+| Added/removed/renamed function | Refreshes `functions[]`; old descriptions survive by name. |
+| Changed `@Inject constructor` params | Refreshes `injected`. |
+| Moved between layers (`ui`→`domain`, etc.) | Updates `layer`. |
 
-After bulk edits use the one-shot wrapper `scripts/catalog_sync.ps1 -Module <m>`
-(runs scan + render in a single PowerShell process). Commit `.jsonl` + `.md`
-together with the code change.
+After bulk edits use `scripts/catalog_sync.ps1 -Module <m>` (scan + render, single process). Commit `.jsonl` + `.md` together with the code change.
 
 ---
 
 ## Process
 
-When invoked with `$ARGUMENTS`:
+On `$ARGUMENTS`:
 
-**Step 1 - Parse the intent.**
+**Step 1 - Parse intent.**
+- Empty → output this reference.
+- Research ("find", "where", "who uses", "what touches") → `query.ps1` with matching filters.
+- Maintenance ("refresh", "update", "rescan") → `scripts/catalog_sync.ps1 -Module <m>`.
+- Annotation ("describe", "mark as legacy", "set role") → `set.ps1`.
 
-- Empty `$ARGUMENTS` → output this reference.
-- Research intent ("find", "where", "who uses", "what touches") → run `query.ps1` with matching filters.
-- Maintenance intent ("refresh", "update", "rescan") → run `scripts/catalog_sync.ps1 -Module <m>` (one-shot wrapper for scan + render).
-- Annotation intent ("describe", "mark as legacy", "set role") → run `set.ps1`.
+**Step 2 - Research queries:**
+1. Translate wording to `query.ps1` filters (mapping below).
+2. Run; default Markdown table, `-Json` only when piping further.
+3. No results → relax one filter, retry once; still empty → fall back to `Grep`.
+4. Report as `path:class - role` bullets; link paths.
 
-**Step 2 - For research queries:**
+**Step 3 - Maintenance:**
+1. Identify module (`app_v2` | `wear`) from context.
+2. `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <m>`; report added/updated/dropped (diff line counts before/after).
+3. For every **new** record, prompt for `role` + `status`, or propose from class body.
+4. Re-render, report updated file paths.
 
-1. Translate the user's wording to `query.ps1` filters (see mapping below).
-2. Run the script. Default to Markdown table output; switch to `-Json` only
-   when piping into further processing.
-3. If no results → relax one filter and retry once; if still empty, fall
-   back to `Grep`.
-4. Report findings as `path:class - role` bullets; link paths.
-
-**Step 3 - For maintenance:**
-
-1. Identify the module (`app_v2` or `wear`) from user context.
-2. Run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <m>`; report how many records were added / updated / dropped (by diffing line counts before/after).
-3. For every **new** record, prompt the user for `role` and `status`, or
-   propose sensible values from the class body.
-4. Re-render and report the updated file paths.
-
-**Step 4 - Commit pairing.**
-
-If the user is about to commit code, remind them: `dev/CATALOG/<module>.jsonl`
-and `<module>.md` must be in the same commit as the structural change.
+**Step 4 - Commit pairing.** If user is about to commit code, remind: `dev/CATALOG/<module>.jsonl` + `<module>.md` go in the same commit as the structural change.
 
 ---
 
@@ -118,14 +102,13 @@ and `<module>.md` must be in the same commit as the structural change.
 | "stale" / "not touched since" | `-TouchedBefore <YYYY-MM-DD>` |
 | "missing description" / "not documented" | `-Missing role` or `-Missing description` |
 
-Combine freely - all filters are AND'd.
+Combine freely - all filters AND'd.
 
 ---
 
 ## Script reference
 
-All scripts live in `dev/CATALOG/scripts/`. Canonical invocation from repo
-root via the PowerShell tool.
+All scripts in `dev/CATALOG/scripts/`. Invoke from repo root via the PowerShell tool.
 
 ### Query
 
@@ -137,13 +120,13 @@ pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -MinLoc 800 -
 
 ### Refresh (after code changes)
 
-Preferred - one-shot wrapper (single PowerShell process, scan + render chained):
+Preferred - one-shot wrapper (scan + render chained, single process):
 
 ```powershell
 pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2
 ```
 
-Fallback - separate calls (use only when you need scan without render, e.g. before `set.ps1` to fill role/status manually):
+Fallback - separate calls (only when you need scan without render, e.g. before `set.ps1` to fill role/status manually):
 
 ```powershell
 pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1   -Module app_v2
@@ -157,10 +140,10 @@ pwsh -NoProfile -File dev/CATALOG/scripts/render.ps1 -Module app_v2
 pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -Role "Orchestrates SMB scan and caches results" -Status tested
 
-# Flavor exclusions - valid values: standard, lite, photos, legacy, vr, vrUnlicensed, noLegal.
-# Source-set placement (src/<flavor>/java/) is what governs physical isolation;
+# Flavor exclusions - valid: standard, lite, photos, legacy, vr, vrUnlicensed, noLegal.
+# Physical isolation is governed by source-set placement (src/<flavor>/java/);
 # `noFlavors` is the searchable declarative hint. A vr-only class typically declares
-# -NoFlavors "standard,lite,photos,legacy,noLegal" (i.e. everything except vr+vrUnlicensed).
+# everything except vr+vrUnlicensed.
 pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -NoFlavors "lite,photos"
 pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "VrPlayerActivity.kt" `
@@ -177,37 +160,31 @@ pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" 
 pwsh -NoProfile -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
 ```
 
-Scan auto-removes records whose source is gone - only use `remove.ps1` for
-cleaning up mistakes.
+Scan auto-removes records whose source is gone - use `remove.ps1` only for cleaning up mistakes.
 
 ---
 
 ## Record fields (quick reference)
 
-See `dev/CATALOG/README.md` for the full table. Key manual fields you fill
-with `set.ps1`:
+Full table: `dev/CATALOG/README.md`. Manual fields you fill with `set.ps1`:
 
 - **`role`** - 1-line statement of what the class does in the system.
 - **`status`** - `new` / `tested` / `legacy` / `todo` / `unknown`.
 - **`noFlavors`** - flavors where this class is irrelevant (empty = all).
-- **`functions[].description`** - 1-line per public method, only where the
-  name alone doesn't explain the behaviour.
+- **`functions[].description`** - 1-line per public method, only where the name alone doesn't explain behaviour.
 
-Auto-fields to read but never edit: `path`, `class`, `layer`, `loc`,
-`lastTouched`, `injected`, `hasTests`, `coroutines`, `usesTimber`,
-`sideEffects`, `userFeedback`, `functions[].name`, `functions[].signature`.
+Auto-fields (read, never edit): `path`, `class`, `layer`, `loc`, `lastTouched`, `injected`, `hasTests`, `coroutines`, `usesTimber`, `sideEffects`, `userFeedback`, `functions[].name`, `functions[].signature`.
 
 ---
 
-## Author style (when writing `role` / descriptions)
+## Author style (writing `role` / descriptions)
 
-Follow the project author-style rules from CLAUDE.md:
+Per CLAUDE.md author-style rules:
 
 - English in catalogue fields.
-- Use `..` (two dots), never `...`, if ellipsis is needed.
-- Keep each description to **one line**; one clause; no "this class ..".
-- State what the class/function *does*, not what it *is*.
+- `..` (two dots), never `...`.
+- One line, one clause; no "this class ..".
+- State what it *does*, not what it *is*.
 
 **Good:** "Refreshes recent-resource app shortcuts on Android launcher."
 **Bad:** "This is a manager class that is responsible for..."
-

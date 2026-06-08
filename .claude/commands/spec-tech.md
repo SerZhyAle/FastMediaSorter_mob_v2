@@ -1,6 +1,6 @@
 # Tactical Specification Writer
 
-Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later (see auto-promote rule below).
+Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later (see auto-promote below).
 Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imperative, no rationale prose.
 
 ## Usage
@@ -11,11 +11,11 @@ Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imp
 /spec-tech <Sxxxx-or-slug> --dry-run
 ```
 
-**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding. Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort - they require explicit resolution.
+**Draft auto-promote:** if `Status: Draft`, advance to `Approved` before proceeding. Note in chat. Block states (`Block*`) are the only statuses causing a hard abort - they require explicit resolution.
 
-The auto-promote runs through `update.ps1`, which fires the Owner-Inputs gate (`scripts/spec_catalog/check-owner-inputs.ps1`). If the strategic spec lacks §3.3 or any bullet inside it is a placeholder, the gate blocks the promotion - abort with the gate's exact error and ask the operator to fix §3.3 (the agent must not invent or backfill `n/a` lines just to pass). The gate is relevance-driven: only the bullets `/spec` step 5.1 emitted are validated, and `Related tickets` is the only universally-required field.
+Auto-promote runs through `update.ps1`, firing the Owner-Inputs gate (`scripts/spec_catalog/check-owner-inputs.ps1`). If the strategic spec lacks §3.3 or any bullet is a placeholder, the gate blocks promotion - abort with the gate's exact error, ask operator to fix §3.3 (never invent or backfill `n/a` lines to pass). Gate is relevance-driven: only the bullets `/spec` step 5.1 emitted are validated; `Related tickets` is the only universally-required field.
 
-The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
+Strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 
 ---
 
@@ -60,29 +60,27 @@ Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars
 - `app_v2/build.gradle.kts`
 - All source files for the affected area. Every file path referenced in a step must exist or be explicitly marked "New".
 
-**2.5 - Evaluate complexity (PRIMITIVE check).**
+**2.5 - Evaluate complexity (PRIMITIVE check).** Score against the checklist:
 
-Score the task against the primitive checklist:
-
-- [ ] ≤ 3 existing files need changes - no new files required
-- [ ] No new classes, interfaces, or abstract types introduced
+- [ ] ≤ 3 existing files change - no new files
+- [ ] No new classes, interfaces, or abstract types
 - [ ] No Room schema change (`@Database` version bump or new `@Entity`)
-- [ ] No new Hilt `@Module` or `@Provides` required
+- [ ] No new Hilt `@Module` or `@Provides`
 - [ ] No new UI screens, fragments, or navigation destinations
-- [ ] Implementation is mechanically deterministic - no design decisions deferred
+- [ ] Mechanically deterministic - no deferred design decisions
 - [ ] Estimated line delta < 100 lines total
 
 **If ALL pass → PRIMITIVE path** (skip steps 3–8):
 
-1. Implement the changes directly in the source files identified in step 2.
-2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line. The `Sxxxx:` prefix is reserved for these temporary probes only; do not reuse it in `Timber.i/w/e` or any message meant to remain after the task.
+1. Implement changes directly in source identified in step 2.
+2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", ticket is about to enter `BlockNeedUserTest`, so tags must be present. One tag per flow entry, not per modified line. The `Sxxxx:` prefix is reserved for these temporary probes; never reuse in `Timber.i/w/e` or any message meant to persist.
 3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
-4. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-2 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
+4. Advance to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. Step-2 tags stay until ticket leaves this status (removed by `/spec-check` on `Verified`, or `/spec-update` on re-open).
 5. Chat output: `<Sxxxx> - Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
-No `INDEX.md`, no `PHASE_NN__*.md` files are written. No `/spec-dev` chain.
+No `INDEX.md`, no `PHASE_NN__*.md`. No `/spec-dev` chain.
 
-**If ANY criterion fails → COMPLEX path:** continue with step 3 below.
+**If ANY criterion fails → COMPLEX path:** continue with step 3.
 
 ---
 
@@ -91,8 +89,8 @@ No `INDEX.md`, no `PHASE_NN__*.md` files are written. No `/spec-dev` chain.
 Partition into sequential phases, each:
 
 - Mergeable as a coherent unit.
-- Has one build-time invariant proving completion.
-- Leaves no half-broken state between steps.
+- One build-time invariant proving completion.
+- No half-broken state between steps.
 
 Ordering rules:
 
@@ -102,13 +100,13 @@ Ordering rules:
 4. Final phase always `PHASE_NN__docs-catalog-cleanup.md`: catalog regen, dev log; FEATURES trilingual only if strategic §8 mandates an update (not "Без изменений").
 5. Minimum one phase per strategic pillar (§5.1). Small pillars may fuse.
 
-Target 3–8 phases. >10 → split the feature into multiple specs.
+Target 3–8 phases. >10 → split feature into multiple specs.
 
-**4 - Write `INDEX.md`** using the template below.
+**4 - Write `INDEX.md`** using the template.
 
 **5 - Write each `PHASE_NN__<slug>.md`** using the phase template. Steps numbered `NN.M`.
 
-> **Communication policy gate:** For any step that adds or rewrites user-visible strings, include in its `Prompt for developer:` a check against `docs/COMMUNICATION_POLICY.md` §2 (message formula for the relevant type) and §6 (tone checklist). Make the tone checklist a Verification predicate: `Strings pass COMMUNICATION_POLICY §6 checklist`.
+> **Communication policy gate:** for any step adding/rewriting user-visible strings, include in its `Prompt for developer:` a check against `docs/COMMUNICATION_POLICY.md` §2 (message formula for the type) and §6 (tone checklist). Make the tone checklist a Verification predicate: `Strings pass COMMUNICATION_POLICY §6 checklist`.
 
 **6 - Update strategic spec.** Flip `Status:` to `Tactical`. Add:
 
@@ -125,9 +123,9 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 .\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-tech" "Status → Tactical"
 ```
 
-**8 - Auto-chain to `/spec-dev`.** *(COMPLEX path only - skip if PRIMITIVE path was taken in step 2.5.)*
+**8 - Auto-chain to `/spec-dev`.** *(COMPLEX path only - skip if PRIMITIVE in step 2.5.)*
 
-If there are no unchecked Pre-Implementation Blockers in INDEX - immediately invoke `/spec-dev <Sxxxx>` to start implementation. If any blocker is unchecked - list them and stop: implementation cannot proceed until they are resolved.
+If no unchecked Pre-Implementation Blockers in INDEX - immediately invoke `/spec-dev <Sxxxx>` to start implementation. If any blocker unchecked - list them and stop: implementation cannot proceed until resolved.
 
 **Chat output:** `<Sxxxx>: N phases. Blockers: [list or none]. → Running /spec-dev…` (or `→ Blocked: [list]. Resolve and run /spec-dev <Sxxxx>` if blockers present.)
 
@@ -186,7 +184,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 1. Before starting a phase: flip row to `🚧 In Progress`. Update `Phases: X/N done`.
 2. During a phase: flip step to `[~] in progress` when started, `[x] done` when Verification passes. Never flip `[x]` on intent.
 3. On phase completion: confirm every step `[x]`, confirm Phase Done Criteria, flip row to `✅ Done`, bump counter.
-4. If blocked: flip to `⛔ Blocked`, add bullet to Blockers Log. If the whole spec is blocked, also set the journal status to one of `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal`.
+4. If blocked: flip to `⛔ Blocked`, add bullet to Blockers Log. If whole spec blocked, also set journal status to one of `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal`.
 5. All done: flip `Status:` to `Done`, run `/spec-check <Sxxxx>`.
 
 ---
@@ -242,7 +240,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<File>.kt` | New | ≤ 250 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<Existing>.kt` | Modified | ≤ 500 |
 
-> File projected >500 lines after change → backup step required (timestamped copy in `temp/`). File >1500 lines → split via Manager pattern first.
+> Backup / split thresholds: see Constraints (>500 LOC → backup step, >1500 LOC → split via Manager pattern).
 >
 > **Flavor placement.** Flavor-only classes (vr / vrUnlicensed / noLegal / lite / photos / legacy) MUST be listed under `app_v2/src/<flavor>/java/...` - not under `src/main/java/`. The shared contract interface and the No-Op fallback stay in `src/main/java/`. Hilt binding modules for the real impl go under `src/<flavor>/java/.../di/`. See `dev/FLAVOR_DEVELOPMENT_RULES.md`.
 
@@ -318,20 +316,21 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 - Room schema change: bump `@Database(version)`, add `Migration`, never rename prior migrations. One phase per schema change.
 - Hilt bindings: every new `@Inject`/`@Provides` names the `@Module` file in the step body.
-- Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications; the step body should use `scripts/utils/set-android-string.ps1 -Action add -Key -En -Ru -Uk` (one lockstep call, parity-enforced) rather than three manual edits.
+- Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications; step body should use `scripts/utils/set-android-string.ps1 -Action add -Key -En -Ru -Uk` (one lockstep call, parity-enforced) rather than three manual edits.
 - Timber only: `Grep -n "Log\.d\("` returning zero hits mandatory for any file the step modifies.
+- Neuroslop avoidance (CLAUDE.md Rule 20): phase `Prompt for developer:` text must not invite AI-slop; steps that add code implement clean - no trivial restating comments, no empty/broad swallowing `catch`, no hardcoded `="#hex"` in `res/layout*` (use `?attr/`/`@color/`), no bare `lifecycleScope.launch { flow.collect { } }` on view-bound Flows (use `collectOnLifecycle`). `post-change.ps1`'s `neuroslop-gate` enforces at impl time.
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
 - Do not duplicate strategic content - tactical says *what*, not *why*.
 - Never write phase steps that create audit / fix files in `PLAN/` - those are abolished.
-- **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent - not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
-- **Flavor source-set discipline (MANDATORY).** If the strategic spec §3.2 names a non-`standard` flavor target (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) - or explicitly differentiates behavior between flavors - every flavor-specific file in `Files Touched` MUST live under `src/<flavor>/java/` (or `src/<flavor>/res/`, `src/<flavor>/AndroidManifest.xml`), never under `src/main/`. The contract interface and the No-Op fallback go to `src/main/java/`; the real implementation goes to the target flavor source set; binding happens in a flavor-local Hilt `@Module` placed under `src/<flavor>/java/.../di/`. Phase steps that write `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guards into `src/main/java/**` are forbidden - `/spec-dev` will hard-stop on them. Reference layout: `dev/FLAVOR_DEVELOPMENT_RULES.md` §3–§4. Examples of the correct pattern already on disk: `src/vr/java/.../vr/di/VrModule.kt` (binds `FullscreenCommandOverride` / `BrowsePassthroughCaptureProvider` / `VrLayerFactory`), `src/noLegal/java/.../di/NoLegalLinkDownloadModule.kt` (multibinding `@IntoSet` for link extraction strategies).
-- **Catalog hint for flavor-only classes.** A phase that introduces a flavor-only class under `src/<flavor>/java/` SHOULD include a sub-step in `PHASE_NN__docs-catalog-cleanup` to call `set.ps1 -NoFlavors "<other flavors>"` - e.g. a vr-only class declares `-NoFlavors "standard,lite,photos,legacy,noLegal"`. Source-set placement already governs physical isolation, but the catalog hint makes the intent searchable.
+- **Landscape parity (MANDATORY):** any step editing `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent - not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
+- **Flavor source-set discipline (MANDATORY).** If strategic §3.2 names a non-`standard` flavor target (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) - or differentiates behavior between flavors - every flavor-specific file in `Files Touched` MUST live under `src/<flavor>/java/` (or `src/<flavor>/res/`, `src/<flavor>/AndroidManifest.xml`), never under `src/main/`. The contract interface and No-Op fallback go to `src/main/java/`; the real impl to the target flavor source set; binding in a flavor-local Hilt `@Module` under `src/<flavor>/java/.../di/`. Phase steps writing `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guards into `src/main/java/**` are forbidden - `/spec-dev` hard-stops on them. Reference layout: `dev/FLAVOR_DEVELOPMENT_RULES.md` §3–§4. Correct patterns on disk: `src/vr/java/.../vr/di/VrModule.kt` (binds `FullscreenCommandOverride` / `BrowsePassthroughCaptureProvider` / `VrLayerFactory`), `src/noLegal/java/.../di/NoLegalLinkDownloadModule.kt` (multibinding `@IntoSet` for link extraction strategies).
+- **Catalog hint for flavor-only classes.** A phase introducing a flavor-only class under `src/<flavor>/java/` SHOULD include a sub-step in `PHASE_NN__docs-catalog-cleanup` to call `set.ps1 -NoFlavors "<other flavors>"` - e.g. a vr-only class declares `-NoFlavors "standard,lite,photos,legacy,noLegal"`. Source-set placement governs physical isolation; the catalog hint makes intent searchable.
 
 ---
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
-- **File / folder names.** Strategic spec is at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder is `PLAN/<Sxxxx>_<slug>/`. Phase files inside follow the existing `PHASE_NN__<topic>.md` convention (no per-phase `Sxxxx` prefix). The `_spec_` segment is forbidden anywhere.
+- **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
+- **File / folder names.** Strategic spec at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder `PLAN/<Sxxxx>_<slug>/`. Phase files follow `PHASE_NN__<topic>.md` (no per-phase `Sxxxx` prefix). The `_spec_` segment is forbidden anywhere.
 - **Status transition.** After the tactical folder is fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`.
-- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.
+- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.

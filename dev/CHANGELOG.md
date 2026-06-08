@@ -16418,3 +16418,64 @@ Format: | datetime | file | target | description |
 | 2026-06-08 16:27:08 | `app_v2/src/main` | `spec-dev` | S0383 P02.2: remove 215 trivial verb-noun comments across ~140 files via assert-trivial-comments.ps1 -Fix [branch: DEBUG-v013] |
 | 2026-06-08 16:33:27 | `CLAUDE.md` | `all-agents` | Add comment-discipline rule (English-only, WHY-not-WHAT, only non-obvious business logic / edge-cases, no trivial restating comments) to Strict Rule 10 + mirrors in copilot-instructions, both agent defs (.claude + .github), and code-writing skills spec-dev/skill-fix [branch: DEBUG-v013] |
 | 2026-06-08 16:34:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameBoardView.kt` | `app_v2` | Mini-game: cap board at 20x20, animate actor moves over 0.2s, guarantee Kryvavitsa reachable from player start [branch: DEBUG-v013] |
+| 2026-06-08 16:36:00 | `PLAN/S0316_embedded-mini-game.md` | `spec-arc` | Archive S0316 (embedded-mini-game) -> temp/done/; mini-game enhancements (20x20 cap, move animation, Kryvavitsa reachability) shipped ticketless [branch: DEBUG-v013] |
+| 2026-06-08 16:39:11 | `scripts/quality/assert-neuroslop.ps1` | `assert-neuroslop` | S0383 P06.1: umbrella neuroslop ratchet gate [branch: DEBUG-v013] |
+| 2026-06-08 16:39:11 | `scripts/post-change.ps1` | `spec-dev` | S0383 P06.2: wire neuroslop-gate (Kotlin/Xml/Mixed) [branch: DEBUG-v013] |
+| 2026-06-08 16:39:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/PlayerSettingsDialog.kt` | `PlayerSettingsDialog` | S0383 P06.2: verify neuroslop-gate fires on Kotlin path [branch: DEBUG-v013] |
+| 2026-06-08 16:53:28 | `app_v2/build.gradle.kts` | `build` | S0385: remove dead androidx.navigation.safeargs.kotlin plugin application + buildscript classpath (no nav graphs, 0 navigation classes in APK) [branch: DEBUG-v013] |
+| 2026-06-08 16:53:28 | `build.gradle.kts` | `build` | S0385: drop unused navigation-safe-args-gradle-plugin buildscript classpath (root) [branch: DEBUG-v013] |
+| 2026-06-08 16:59:36 | `app_v2/src/main/res/drawable/ic_repeat.xml` | `app_v2` | S0385: delete 3 unused drawables (ic_image_placeholder, ic_repeat, splash_icon_empty) - 0 refs, not tied to any active ticket [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `CLAUDE.md` | `spec-dev` | S0383: add Rule 20 (neuroslop avoidance) - 4 anti-patterns + assert-neuroslop gate ref [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `.claude/commands/spec-dev.md` | `spec-dev` | S0383: neuroslop-avoidance constraint (Rule 20 ref) [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `.claude/commands/spec-tech.md` | `spec-dev` | S0383: neuroslop-avoidance constraint for phase prompts (Rule 20 ref) [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `.claude/commands/skill-fix.md` | `spec-dev` | S0383: neuroslop-avoidance in safety floor (Rule 20 ref) [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `.claude/commands/quick.md` | `spec-dev` | S0383: NEUROSLOP callout (Rule 20 ref) [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `.claude/agents/android-kotlin-developer.md` | `spec-dev` | S0383: strict coding rule 14 (neuroslop avoidance) [branch: DEBUG-v013] |
+| 2026-06-08 17:01:08 | `.claude/agents/android-rd-specialist.md` | `spec-dev` | S0383: code-review rule 10 (neuroslop avoidance) [branch: DEBUG-v013] |
+| 2026-06-08 17:02:00 | `CLAUDE.md` | `governance` | Add Strict Rule 21 - Dead-weight hygiene (remove dead code/artifacts that ship in APK/AAB; hunt native .so/assets/jar-resources/force-kept/flavor-mismatched deps; cross-check active tickets; dead applications too) [branch: DEBUG-v013] |
+| 2026-06-08 17:02:01 | `.claude/commands/spec-dev.md` | `governance` | Add Dead-weight hygiene (Rule 21) constraint to spec-dev [branch: DEBUG-v013] |
+| 2026-06-08 17:02:01 | `.claude/commands/spec-check.md` | `governance` | Add Dead-weight introduced (Rule 21) audit row to spec-check [branch: DEBUG-v013] |
+| 2026-06-08 17:07:34 | `PLAN/S0385_apk-aab-dead-weight-reduction.md` | `spec-dev` | S0385 research §6.1 + §6.3 Resolved: ML/OCR surface enumerated (~37 files, 3 tiers, linchpin TranslationManager); anim shrink confirmed [branch: DEBUG-v013] |
+| 2026-06-08 17:07:34 | `PLAN/S0385_apk-aab-dead-weight-reduction/INDEX.md` | `spec-dev` | S0385: tick §6.1 research blocker (resolved); owner sign-off remains for Phase 05 [branch: DEBUG-v013] |
+| 2026-06-08 17:15:06 | `PLAN/S0383_neuroslop-code-and-resource-hygiene.md` | `spec-dev` | S0383: descope close - §2/§10 goals 2/3 deferred (detectors hold floors), goals 1/4/5 done [branch: DEBUG-v013] |
+| 2026-06-08 17:15:07 | `PLAN/S0383_neuroslop-code-and-resource-hygiene/PHASE_03__exception-handling.md` | `spec-dev` | S0383 P03: deferred (descope); detector holds floor 75 [branch: DEBUG-v013] |
+| 2026-06-08 17:15:07 | `PLAN/S0383_neuroslop-code-and-resource-hygiene/PHASE_04__resource-dedup.md` | `spec-dev` | S0383 P04: deferred (descope); detector holds floor 150 [branch: DEBUG-v013] |
+| 2026-06-08 17:15:07 | `PLAN/S0383_neuroslop-code-and-resource-hygiene/PHASE_07__docs-catalog-cleanup.md` | `spec-dev` | S0383 P07: docs-catalog-cleanup done; funclog skipped (internal) [branch: DEBUG-v013] |
+| 2026-06-08 17:15:07 | `PLAN/S0383_neuroslop-code-and-resource-hygiene/INDEX.md` | `spec-dev` | S0383: 5/7 done + 03/04 deferred; completion gate closed for descope [branch: DEBUG-v013] |
+| 2026-06-08 17:25:44 | `PLAN/S0386_ondemand-ocr-translation-delivery.md` | `spec` | Add strategic spec S0386 - on-demand OCR/translation + audio-visualization delivery, self-hosted (GitHub); supersedes S0385 Phase 05 [branch: DEBUG-v013] |
+| 2026-06-08 17:27:04 | `PLAN/S0385_apk-aab-dead-weight-reduction/INDEX.md` | `spec-dev` | S0385: Phase 05 superseded by S0386 (on-demand delivery); owner-sign-off blocker resolved as superseded [branch: DEBUG-v013] |
+| 2026-06-08 17:27:04 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_05__ml-ocr-flavor-confinement.md` | `spec-dev` | S0385 Phase 05 marked Superseded by S0386 [branch: DEBUG-v013] |
+| 2026-06-08 17:27:04 | `PLAN/S0385_apk-aab-dead-weight-reduction.md` | `spec-dev` | S0385 §10: link S0386 as superseding Phase 05 [branch: DEBUG-v013] |
+| 2026-06-08 17:29:18 | `PLAN/S0386_ondemand-ocr-translation-delivery.md` | `spec-dev` | S0386 refine: ordered source list per asset - vendor primary + our GitHub mirror auto-fallback when vendor link unresponsive; per-artifact source policy + scale/fair-use caveat [branch: DEBUG-v013] |
+| 2026-06-08 17:46:33 | `AGENTS.md` | `rules` | Clean up AGENTS.md, make it concise and robot-readable [branch: DEBUG-v013] |
+| 2026-06-08 17:46:34 | `CLAUDE.md` | `rules` | Optimize CLAUDE.md rules to save tokens [branch: DEBUG-v013] |
+| 2026-06-08 17:46:35 | `.github/copilot-instructions.md` | `rules` | Optimize Copilot instructions to save tokens [branch: DEBUG-v013] |
+| 2026-06-08 17:46:58 | `AGENTS.md` | `rules` | Clean up AGENTS.md, make it concise and robot-readable [branch: DEBUG-v013] |
+| 2026-06-08 17:47:01 | `CLAUDE.md` | `rules` | Optimize CLAUDE.md rules to save tokens [branch: DEBUG-v013] |
+| 2026-06-08 17:47:04 | `.github/copilot-instructions.md` | `rules` | Optimize Copilot instructions to save tokens [branch: DEBUG-v013] |
+| 2026-06-08 17:48:52 | `.claude/commands + .claude/agents + .github` | `all-agents` | Token-economy pass: rewrote 35 rule/skill files (.claude/commands x26, .claude/agents x4, .github/agents x4, copilot-instructions) into terse-structured style; form compressed, all load-bearing meaning preserved, deletions only flagged not applied [branch: DEBUG-v013] |
+| 2026-06-08 19:57:27 | `PLAN/S0381_neuroslop-hygiene-hardening.md` | `spec-arc` | Archive S0381 (neuroslop-hygiene-hardening) -> temp/done/ [branch: DEBUG-v013] |
+| 2026-06-08 19:59:10 | `.claude + .github (dedup/fixes)` | `all-agents` | Apply approved removals A+C+D: in-file dedup in spec-dev/spec-tech/spec-sweep; drop duplicate ## Comments section + Safety/KDoc bullet; condense generic agent-memory boilerplate in android-rd-specialist (~half); fix stale Kotlin/Glide pins to CLAUDE.md source-of-truth in kotlin-dev agents + build.md; doc-update E1 legacy spec_ pattern -> Sxxxx_ slug [branch: DEBUG-v013] |
+| 2026-06-08 20:03:38 | `PLAN/S0385_apk-aab-dead-weight-reduction.md` | `spec-dev` | S0385 closed -> Implemented: fast-wins + cleanups landed; Phase 05 -> S0386; 04.2/04.3/04.5 dropped; §2/§11 annotated [branch: DEBUG-v013] |
+| 2026-06-08 20:03:38 | `PLAN/S0385_apk-aab-dead-weight-reduction/INDEX.md` | `spec-dev` | S0385 closure: Phase 04 Done (rest dropped), Phase 07 Done; 6/7 (05 superseded); status Implemented [branch: DEBUG-v013] |
+| 2026-06-08 20:03:38 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_04__keep-narrow-resource-shrink.md` | `spec-dev` | S0385 Phase 04 closed: 04.2/04.3/04.5 dropped [branch: DEBUG-v013] |
+| 2026-06-08 20:03:38 | `PLAN/S0385_apk-aab-dead-weight-reduction/PHASE_07__docs-catalog-cleanup.md` | `spec-dev` | S0385 Phase 07 done: size delta recorded, closure [branch: DEBUG-v013] |
+| 2026-06-08 20:03:39 | `temp/S0385_size_delta.md` | `spec-dev` | S0385 final size-delta report [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/INDEX.md` | `spec-tech` | Create tactical plan for S0386 (8 phases) [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_01__recognize-translate-facade-split.md` | `spec-tech` | Phase 01: recognize/translate facade split [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_02__capability-contract-state.md` | `spec-tech` | Phase 02: capability contract + state [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_03__default-off-migration.md` | `spec-tech` | Phase 03: default OFF + migration [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_04__delivery-channel-core.md` | `spec-tech` | Phase 04: delivery channel core [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_05__set-definitions-build-debundle.md` | `spec-tech` | Phase 05: set definitions + build de-bundle [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_06__enable-intercept-ux.md` | `spec-tech` | Phase 06: enable-intercept UX [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_07__attach-autorun.md` | `spec-tech` | Phase 07: attach + auto-run [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs + catalog cleanup [branch: DEBUG-v013] |
+| 2026-06-08 21:23:00 | `PLAN/S0386_ondemand-ocr-translation-delivery.md` | `spec-tech` | Status Approved -> Tactical; tactical plan linked [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery.md` | `spec-tech` | B4 spike resolution (self-load ML Kit); add extensions-manager pillar/goal [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/INDEX.md` | `spec-tech` | Resolve B4, add B4-PoC gate; add Phase 08 extensions, renumber docs to 09 [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_01__recognize-translate-facade-split.md` | `spec-tech` | Handoff: ML Kit text-rec removed in Phase 05 [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_02__capability-contract-state.md` | `spec-tech` | Add uninstall op to repository contract [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_05__set-definitions-build-debundle.md` | `spec-tech` | Add B4-PoC gate; drop ML Kit text-rec; self-load translate [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_07__attach-autorun.md` | `spec-tech` | Self-load pre-load technique for ML Kit Translate [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_08__extensions-manager-screen.md` | `spec-tech` | New Phase 08: downloadable extensions manager screen [branch: DEBUG-v013] |
+| 2026-06-08 22:09:03 | `PLAN/S0386_ondemand-ocr-translation-delivery/PHASE_09__docs-catalog-cleanup.md` | `spec-tech` | Docs/catalog cleanup renumbered to Phase 09 [branch: DEBUG-v013] |

@@ -15,6 +15,7 @@
 - [Search duplicate tickets by symptom](feedback_search_duplicates_by_symptom.md) - before new bugfix spec from logs, search catalog by errorCode/class/subsystem + same-day created; I dup'd S0343/S0344 as S0357
 - [Dead code may be active-ticket scaffolding](feedback_dead_code_vs_active_tickets.md) - before deleting "0-ref" code, grep PLAN/ + cross-check Partial/In-Progress tickets; HostKeyMismatchException looked dead but is S0046 (Partial) scaffolding
 - [Don't gate autopilot on a manufactured safety blocker](feedback_no_safety_blocker_gating_autopilot.md) - safe detector-first cleanup plans should auto-chain to /spec-dev; owner accepts destructive autopilot (S0383)
+- [Prevent at source, not just detect](feedback_prevent_at_source_not_just_detect.md) - after building a quality gate, add the DON'T rule to CLAUDE.md + code-gen skills/agents so the slop isn't produced (S0383 Rule 20)
 
 - [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
 - [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying
@@ -38,6 +39,7 @@
 - [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if flavor hierarchy/contracts/inheritance already mechanically determines the answer, don't fabricate a "choice" question
 - [Verify sub-agent build failures yourself](feedback_verify_subagent_build_failures.md) - agent's incremental kapt cache may be stale; re-run `.\a.ps1 dq` before treating reported build failures as hard stops
 - [material-icons-extended is NOT removable](project_material_icons_extended_not_removable.md) - Pause/SkipNext/SkipPrevious are extended-only, not core; a "replaceable by core" audit claim broke the build (S0385)
+- [Remove dead applications/config too](feedback_remove_dead_applications_too.md) - dead plugin applications + unused buildscript classpath get removed even with zero APK-size win; "is it dead" not "does it save bytes" (S0385)
 - [PowerShell efficiency: -NoProfile + batching + wrappers](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; chain related scripts in one process; use scripts/catalog_sync.ps1 for the scan+render ritual
 - [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep usage before treating as gate; PLAYER_ACTIVITY_CLASS is a dead field
 - [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never use tail -N to investigate gradle failures; FAILURE block sits in the middle
