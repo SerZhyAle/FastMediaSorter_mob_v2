@@ -22,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContract.SynchronousResul
  */
 class VrPlaybackActivityContract(
     private val entryGateway: XrEntryGateway,
+    private val payloadHolder: VrLaunchPayloadHolder,
 ) : ActivityResultContract<VrLaunchInput, VrLaunchResult>() {
 
     override fun getSynchronousResult(
@@ -38,14 +39,15 @@ class VrPlaybackActivityContract(
     override fun createIntent(context: Context, input: VrLaunchInput): Intent {
         return entryGateway.createImmersiveIntent(input)
             ?: Intent(ACTION_UNAVAILABLE_FALLBACK).apply {
-                putExtra(VrLaunchInput.EXTRA_LAUNCH_INPUT, input)
-                putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, resolveUnavailableResult(input))
+                // No launch-input extra here: parseResult only reads EXTRA_LAUNCH_RESULT, and the
+                // launch input never travels back through this synthetic fallback (S0382).
+                putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(resolveUnavailableResult(input)))
             }
     }
 
     override fun parseResult(resultCode: Int, intent: Intent?): VrLaunchResult {
-        val payload = intent?.readSerializableExtraCompat<VrLaunchResult>(
-            VrLaunchInput.EXTRA_LAUNCH_RESULT
+        val payload = payloadHolder.consume<VrLaunchResult>(
+            intent?.getStringExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN)
         )
         // When createIntent emitted the synthetic fallback, Android still routes back through
         // parseResult with RESULT_CANCELED and our fallback action. Preserve the exact typed

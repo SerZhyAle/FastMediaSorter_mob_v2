@@ -360,7 +360,6 @@ class VideoPlayerManager(
             .distinctUntilChanged()
             .onEach { config ->
                 stereoDetectionConfig = config
-                Timber.d("S0326: stereo detection config updated autoDetect=${config.autoDetectEnabled} aspectRatio=${config.trustAspectRatio}")
             }
             .launchIn(managerScope)
     }

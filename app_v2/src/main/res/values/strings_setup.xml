@@ -74,7 +74,6 @@
     <string name="welcome_vr_feature_headset">Quest Headset Playback</string>
     <string name="welcome_vr_feature_stereo">3D Stereo Detection</string>
     <string name="welcome_vr_title">3D &amp; VR Experience</string>
-    <string name="sysinfo_benchmark_approx">approx.</string>
     <string name="sysinfo_field_abis">ABIs</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">API level</string>

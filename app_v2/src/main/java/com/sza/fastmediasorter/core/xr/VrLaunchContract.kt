@@ -110,6 +110,12 @@ data class VrLaunchInput(
         const val EXTRA_LAUNCH_RESULT = "extra_vr_launch_result"
         const val EXTRA_RETURN_TARGET = "extra_vr_return_target"
 
+        // Token keys carry only a primitive string resolved via VrLaunchPayloadHolder, so system_server
+        // never unmarshals an application type out of a task's base Intent (S0382, ADR-2).
+        const val EXTRA_LAUNCH_INPUT_TOKEN = "extra_vr_launch_input_token"
+        const val EXTRA_LAUNCH_RESULT_TOKEN = "extra_vr_launch_result_token"
+        const val EXTRA_RETURN_TARGET_TOKEN = "extra_vr_return_target_token"
+
         fun fromRequest(request: StartVrPlaybackRequest): VrLaunchInput = VrLaunchInput(
             launchMode = request.launchMode,
             fileUriString = request.fileUriString,

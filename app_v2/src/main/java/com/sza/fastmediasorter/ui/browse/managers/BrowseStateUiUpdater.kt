@@ -38,7 +38,10 @@ class BrowseStateUiUpdater(
     private val onUpdateBreadcrumb: (BrowseState) -> Unit,
     private val onBuildResourceInfo: (BrowseState) -> String,
     private val onLaunchEditResource: (Long) -> Unit,
-    private val onUpdateToggleViewAvailability: (Boolean) -> Unit
+    private val onUpdateToggleViewAvailability: (Boolean) -> Unit,
+    // S0374: report runtime-gated command eligibility + request an overflow recompute.
+    private val setCommandEligibility: (Int, Boolean) -> Unit = { _, _ -> },
+    private val onRecomputeOverflow: () -> Unit = {}
 ) {
     /** Cached display mode to avoid redundant updates. */
     var currentDisplayMode: DisplayMode? = null
@@ -59,6 +62,8 @@ class BrowseStateUiUpdater(
         onUpdateBreadcrumb(state)
         updateCreateFolderButtonVisibility(state)
         updateResourceActionButton(state)
+        // S0374: re-partition the bar after every state-driven visibility change (final step).
+        onRecomputeOverflow()
     }
 
     private fun updateFilterBadge(state: BrowseState) {
@@ -111,6 +116,7 @@ class BrowseStateUiUpdater(
         val isSingleTypeMediaLibrary = resource != null &&
             (resource.isAudioOnly() || resource.isOnlyImage() || resource.isVideoOnly())
         binding.btnPlayRandom?.isVisible = isSingleTypeMediaLibrary
+        setCommandEligibility(R.id.btnPlayRandom, isSingleTypeMediaLibrary)
     }
 
     private suspend fun updateDisplayModeIfNeeded(state: BrowseState) {
@@ -139,12 +145,17 @@ class BrowseStateUiUpdater(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
+        setCommandEligibility(R.id.btnCreateFolder, canCreateFolder)
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
-        binding.btnCreateTextFile?.isVisible = TextNoteTargetPolicy.canCreateTextNote(resource)
+        val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
+        binding.btnCreateTextFile?.isVisible = canCreateTextNote
+        setCommandEligibility(R.id.btnCreateTextFile, canCreateTextNote)
 
         // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
-        binding.btnCreateDrawing?.isVisible = DrawingTargetPolicy.canCreateDrawing(resource)
+        val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
+        binding.btnCreateDrawing?.isVisible = canCreateDrawing
+        setCommandEligibility(R.id.btnCreateDrawing, canCreateDrawing)
     }
 
     private fun updateResourceActionButton(state: BrowseState) {

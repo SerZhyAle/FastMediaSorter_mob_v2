@@ -33,6 +33,7 @@ import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
+import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
@@ -84,6 +85,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     @Inject lateinit var runtime: DiagnosticXrRuntime
     @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
+    @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
 
     private var renderThread: DiagnosticXrRenderThread? = null
     private lateinit var surfaceView: SurfaceView
@@ -169,6 +171,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // host stays focused on OpenXR session lifecycle rather than intent plumbing.
         when (val parsed = DiagnosticXrLaunchArgs.parse(
             intent,
+            payloadHolder = payloadHolder,
             defaultReturnTarget = VrPanelReturnTarget.Settings(MEDIA_SETTINGS_TAB_INDEX),
         )) {
             is DiagnosticXrLaunchArgs.PreflightFailure -> {
@@ -1026,7 +1029,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun deliverViaActivityResult(result: VrLaunchResult) {
-        val data = Intent().apply { putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, result) }
+        val data = Intent().apply { putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(result)) }
         setResult(android.app.Activity.RESULT_OK, data)
         Timber.d("DiagnosticXrActivity: deliverViaActivityResult result=$result")
         finish()
@@ -1113,8 +1116,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     detectedStereoMode = detectedStereoMode,
                     windowId = updatedTarget.windowId,
                 ).apply {
-                    putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, result)
-                    putExtra(VrLaunchInput.EXTRA_RETURN_TARGET, updatedTarget)
+                    putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(result))
+                    putExtra(VrLaunchInput.EXTRA_RETURN_TARGET_TOKEN, payloadHolder.put(updatedTarget))
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 }
             }
@@ -1122,7 +1125,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 context,
                 target.initialTab,
             ).apply {
-                putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, result)
+                putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(result))
             }
         }
     }

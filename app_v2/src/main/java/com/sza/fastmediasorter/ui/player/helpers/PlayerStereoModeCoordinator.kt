@@ -217,7 +217,6 @@ class PlayerStereoModeCoordinator(
 
     /** Global default unless it is itself a sentinel, in which case AUTO (suppressed downstream). */
     private fun globalDefaultOrAuto(): StereoMode {
-        Timber.d("S0326: global default fallback slot")
         return getGlobalDefaultStereoMode().takeUnless { it == StereoMode.AUTO || it == StereoMode.UNKNOWN }
             ?: StereoMode.AUTO
     }

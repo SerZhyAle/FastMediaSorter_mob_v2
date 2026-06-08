@@ -313,6 +313,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
+    @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
     @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
     @Inject internal lateinit var oneDriveClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
     @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>

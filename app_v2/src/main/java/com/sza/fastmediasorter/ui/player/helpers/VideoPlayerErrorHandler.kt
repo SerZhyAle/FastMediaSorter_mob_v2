@@ -218,7 +218,6 @@ internal class VideoPlayerErrorHandler(
             generateSequence<Throwable>(error) { it.cause }
                 .any { it is ArrayIndexOutOfBoundsException }
         if (isSeekIndexFailure && manager.lastGoodPositionMs > 0L && !manager.playerCallback.isActivityDestroyed()) {
-            Timber.d("S0342: AVI seek index failure recovered in place")
             val resumePosition = manager.lastGoodPositionMs
             Timber.w("VideoPlayerManager: seek index failure (empty/absent track index) - resuming at ${resumePosition}ms instead of skipping file")
             manager.playerCallback.onBuffering(false)

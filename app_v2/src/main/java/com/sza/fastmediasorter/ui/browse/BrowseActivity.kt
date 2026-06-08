@@ -311,7 +311,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
      * Skipped (View.GONE) buttons drop out of nextFocusLeft / nextFocusRight so the chain stays
      * contiguous after a state-driven visibility flip.
      */
-    private fun restitchBrowseControlChain() {
+    // S0374: callable from BrowseCommandOverflowManager to repair focus after an overflow flip.
+    internal fun restitchBrowseControlChain() {
         val candidates = listOf(
             binding.btnBack,
             binding.btnSort,
@@ -413,6 +414,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             collectOnLifecycle(settingsRepository.getSettings()) { settings ->
                 val showMic = settings.micRecordingEnabled
                 binding.btnMicRecord?.isVisible = showMic
+                // S0374: mic eligibility is owned here (not by the state collector) - report + re-partition.
+                if (::initializer.isInitialized) {
+                    initializer.commandOverflowManager.setFeatureEligibility(R.id.btnMicRecord, showMic)
+                    initializer.commandOverflowManager.recompute()
+                }
             }
         }
         collectOnLifecycle(viewModel.state) { state ->
@@ -468,6 +474,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
         initializer.buttonSetupHelper.updateToolbarButtonLabels(newConfig)
+        // S0374: labels change button widths in landscape - re-partition the bar (cached eligibility).
+        initializer.commandOverflowManager.recompute()
         lifecycleScope.launch {
             initializer.stateUiUpdater.currentDisplayMode?.let { mode ->
                 initializer.stateUiUpdater.currentDisplayMode = null

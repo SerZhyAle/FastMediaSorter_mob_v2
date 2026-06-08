@@ -27,6 +27,7 @@ import timber.log.Timber
 class XrEntryGatewayImpl @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val runtime: DiagnosticXrRuntime,
+    private val payloadHolder: VrLaunchPayloadHolder,
 ) : XrEntryGateway {
 
     override fun createImmersiveIntent(input: VrLaunchInput): Intent? {
@@ -43,7 +44,7 @@ class XrEntryGatewayImpl @Inject constructor(
             if (input.deliveryMode == VrLaunchDeliveryMode.LEGACY_PANEL_RETURN) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            putExtra(VrLaunchInput.EXTRA_LAUNCH_INPUT, input)
+            putExtra(VrLaunchInput.EXTRA_LAUNCH_INPUT_TOKEN, payloadHolder.put(input))
         }
     }
 

@@ -121,7 +121,6 @@ class SmbDataSource(
         // watchdog worker thread. The media3 stats wrapper reads getUri() right after open() and
         // asserts it is non-null; binding the URI here (and never clearing it on close) keeps that
         // identity stable even when a concurrent close() from rapid file switching races the read.
-        Timber.d("S0343: SMB data source URI bound at open entry")
         this.uri = dataSpec.uri
         val key = connectionKey()
         val tracker = smbClient.playbackConnectionTracker

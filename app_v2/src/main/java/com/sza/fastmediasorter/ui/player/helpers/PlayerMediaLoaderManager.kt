@@ -844,7 +844,6 @@ class PlayerMediaLoaderManager(
      */
     private fun scheduleAudioReadinessFeedback() {
         cancelAudioReadinessFeedback()
-        Timber.d("S0346: armed next-track readiness feedback")
         val runnable = Runnable {
             Toast.makeText(activity, activity.getString(R.string.audio_next_track_loading), Toast.LENGTH_SHORT).show()
         }
@@ -1040,7 +1039,6 @@ class PlayerMediaLoaderManager(
      */
     private fun handleCooldownReentry(path: String, remainingSec: Int) {
         val isSlideshow = viewModel.state.value.isSlideShowActive
-        Timber.d("S0213: Pillar A cooldown re-entry path=$path remainingSec=$remainingSec slideshow=$isSlideshow")
         if (isSlideshow) {
             Toast.makeText(activity, R.string.s0213_decoder_cooldown_skip, Toast.LENGTH_SHORT).show()
             Timber.i("cooldown skip (slideshow): path=$path remainingSec=$remainingSec")

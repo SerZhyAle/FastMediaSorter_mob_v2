@@ -87,7 +87,6 @@ class Media3OomSafeLogger @Inject constructor() : androidx.media3.common.util.Lo
             val safeTag = tag ?: "?"
             val safeCls = throwable?.javaClass?.simpleName ?: "?"
             val message = "media3 log dropped due to OOM: tag=$safeTag throwable=$safeCls"
-            Timber.d("S0213: Pillar B OOM fallback - tag=$safeTag throwable=$safeCls")
             Timber.w(message.take(FALLBACK_MAX_LEN))
         } catch (oom: OutOfMemoryError) {
             // Genuinely terminal - swallow. The whole point of this class is "do not crash here".

@@ -3,10 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" tools:context=".ui.browse.BrowseActivity">
 
-    <!-- S0374: HorizontalScrollView fallback prevents clipping of the +20% command bar on narrow phones. -->
-    <HorizontalScrollView android:id="@+id/topCommandScroll" android:layout_width="0dp" android:layout_height="wrap_content" android:background="?attr/colorSurface" android:elevation="4dp" android:fillViewport="true" android:scrollbars="none" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
-
-    <LinearLayout android:id="@+id/layoutControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal" android:padding="@dimen/control_bar_padding" android:background="?attr/colorSurface" android:clickable="true" android:focusable="true" android:importantForAccessibility="no">
+    <!-- S0374: adaptive priority bar - overflow commands move to the "⋮" menu (BrowseCommandOverflowManager); no horizontal scroll. -->
+    <LinearLayout android:id="@+id/layoutControls" android:layout_width="0dp" android:layout_height="wrap_content" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal" android:padding="@dimen/control_bar_padding" android:background="?attr/colorSurface" android:elevation="4dp" android:clickable="true" android:focusable="true" android:importantForAccessibility="no" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Back button -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnBack" android:focusable="true" android:clickable="true" android:foreground="@drawable/focus_button_background" android:nextFocusDown="@id/rvMediaFiles" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/browse_cmd_button_size" android:gravity="start|center_vertical" android:maxWidth="@dimen/browse_cmd_button_max_width" android:maxHeight="@dimen/browse_cmd_button_max_height" android:minWidth="@dimen/browse_cmd_button_min_width" android:minHeight="@dimen/browse_cmd_button_min_height" android:paddingLeft="12dp" android:paddingTop="0dp" android:paddingRight="12dp" android:paddingBottom="0dp" android:text="@string/back" android:textColor="?attr/colorControlNormal" android:textSize="@dimen/browse_cmd_text_size" app:icon="@drawable/ic_arrow_back" app:iconSize="@dimen/browse_cmd_icon_size" app:iconTint="?attr/colorControlNormal" />
@@ -70,9 +68,7 @@
 
     </LinearLayout>
 
-    </HorizontalScrollView>
-
-    <LinearLayout android:id="@+id/layoutResourceInfo" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" app:layout_constraintTop_toBottomOf="@id/topCommandScroll" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+    <LinearLayout android:id="@+id/layoutResourceInfo" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" app:layout_constraintTop_toBottomOf="@id/layoutControls" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton android:id="@+id/btnResourceAction" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="8dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:padding="6dp" android:scaleType="fitCenter" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="?attr/colorControlNormal" tools:visibility="visible" />
 

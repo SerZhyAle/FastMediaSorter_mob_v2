@@ -4,11 +4,11 @@ import android.content.Intent
 import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
+import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
-import com.sza.fastmediasorter.core.xr.readSerializableExtraCompat
 import com.sza.fastmediasorter.core.xr.PlayerStateSnapshot
 
 /**
@@ -41,8 +41,8 @@ internal sealed interface DiagnosticXrLaunchArgs {
     companion object {
 
         /**
-         * Default fallback when the intent carries no [VrLaunchInput.EXTRA_LAUNCH_INPUT]
-         * payload at all - keeps the legacy `Test Immersive` button working unchanged.
+         * Default fallback when the intent carries no resolvable launch token (fresh task or
+         * process death) - keeps the legacy `Test Immersive` button working unchanged.
          */
         private val DEFAULT_INPUT = VrLaunchInput(
             launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST,
@@ -50,11 +50,19 @@ internal sealed interface DiagnosticXrLaunchArgs {
             deliveryMode = VrLaunchDeliveryMode.LEGACY_PANEL_RETURN,
         )
 
-        fun parse(intent: Intent, defaultReturnTarget: VrPanelReturnTarget): DiagnosticXrLaunchArgs {
-            val input = intent.readSerializableExtraCompat<VrLaunchInput>(VrLaunchInput.EXTRA_LAUNCH_INPUT)
-                ?: DEFAULT_INPUT
-            val returnTarget = intent.readSerializableExtraCompat<VrPanelReturnTarget>(VrLaunchInput.EXTRA_RETURN_TARGET)
-                ?: defaultReturnTarget
+        fun parse(
+            intent: Intent,
+            payloadHolder: VrLaunchPayloadHolder,
+            defaultReturnTarget: VrPanelReturnTarget,
+        ): DiagnosticXrLaunchArgs {
+            // Launch input now arrives as a holder token; a miss (process death / fresh task) falls back
+            // to the diagnostic-playlist default so the legacy "Test Immersive" button keeps working.
+            val input = payloadHolder.consume<VrLaunchInput>(
+                intent.getStringExtra(VrLaunchInput.EXTRA_LAUNCH_INPUT_TOKEN)
+            ) ?: DEFAULT_INPUT
+            val returnTarget = payloadHolder.consume<VrPanelReturnTarget>(
+                intent.getStringExtra(VrLaunchInput.EXTRA_RETURN_TARGET_TOKEN)
+            ) ?: defaultReturnTarget
 
             // FILE_URI requires a non-blank URI; reject early so the host never tries to decode
             // a phantom path.

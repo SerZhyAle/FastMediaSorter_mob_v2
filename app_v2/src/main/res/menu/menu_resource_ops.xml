@@ -1,6 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- S0374: adaptive overflow - top-bar commands that did not fit appear here.
+         All default-hidden; BrowseCommandOverflowManager decides per command via isOverflowed(). -->
+    <group android:id="@+id/group_overflow_commands">
+        <item
+            android:id="@+id/action_overflow_sort"
+            android:title="@string/sort"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_filter"
+            android:title="@string/filter"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_refresh"
+            android:title="@string/refresh"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_toggle_view"
+            android:title="@string/toggle_view"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_select_all"
+            android:title="@string/select_all"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_deselect_all"
+            android:title="@string/deselect_all"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_play"
+            android:title="@string/play"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_play_random"
+            android:title="@string/play_random"
+            android:visible="false" />
+        <item
+            android:id="@+id/action_overflow_mic"
+            android:title="@string/mic_recording_button_content_desc"
+            android:visible="false" />
+    </group>
     <!-- S0096: audio-only - shown/hidden at runtime -->
     <item
         android:id="@+id/action_black_screen"

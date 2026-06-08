@@ -74,7 +74,6 @@
     <string name="welcome_vr_feature_headset">Відтворення в Quest</string>
     <string name="welcome_vr_feature_stereo">Визначення 3D-стерео</string>
     <string name="welcome_vr_title">3D та VR</string>
-    <string name="sysinfo_benchmark_approx">приблизно</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">Рівень API</string>

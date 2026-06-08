@@ -139,7 +139,6 @@ class ImageDrawOverlayManager(
     fun enterDrawMode() {
         if (isDrawModeActive) return
         isDrawModeActive = true
-        Timber.d("S0368: draw mode enter - toolbar safe area applied")
         // S0192 Phase 02 - restore last used color from persistent prefs
         selectedColorArgb = DrawEditorPrefs.getLastColor(activity)
         editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.DRAW)

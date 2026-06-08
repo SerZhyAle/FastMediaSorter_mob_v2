@@ -2,15 +2,12 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Rect
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -55,10 +52,27 @@ class ResourceOpsMenuManager @Inject constructor(
         openBrowseInNewWindow: ((Long) -> Unit)? = null,
         // S0096: black screen for audio - shown only for audio-only libraries
         isAudioOnly: Boolean = false,
-        onBlackScreenClicked: (() -> Unit)? = null
+        onBlackScreenClicked: (() -> Unit)? = null,
+        // S0374: adaptive overflow - top-bar commands that did not fit are surfaced here.
+        isOverflowed: (Int) -> Boolean = { false },
+        callbacks: BrowseButtonSetupHelper.ButtonCallbacks? = null,
+        onSortClicked: (() -> Unit)? = null
     ) {
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
+
+        // S0374: a top-bar command appears in this menu iff the overflow manager pushed it off
+        // the bar. Push model - the manager is the single owner of "is this command visible".
+        popup.menu.findItem(R.id.action_overflow_sort)?.isVisible = isOverflowed(R.id.btnSort)
+        popup.menu.findItem(R.id.action_overflow_filter)?.isVisible = isOverflowed(R.id.btnFilter)
+        popup.menu.findItem(R.id.action_overflow_refresh)?.isVisible = isOverflowed(R.id.btnRefresh)
+        popup.menu.findItem(R.id.action_overflow_toggle_view)?.isVisible = isOverflowed(R.id.btnToggleView)
+        popup.menu.findItem(R.id.action_overflow_select_all)?.isVisible = isOverflowed(R.id.btnSelectAll)
+        popup.menu.findItem(R.id.action_overflow_deselect_all)?.isVisible = isOverflowed(R.id.btnDeselectAll)
+        popup.menu.findItem(R.id.action_overflow_play)?.isVisible = isOverflowed(R.id.btnPlay)
+        popup.menu.findItem(R.id.action_overflow_play_random)?.isVisible = isOverflowed(R.id.btnPlayRandom)
+        popup.menu.findItem(R.id.action_overflow_mic)?.isVisible = isOverflowed(R.id.btnMicRecord)
+        Timber.d("S0374: overflow menu surfaced overflowed commands")
 
         // Hide "Create folder" if the resource doesn't support subfolder navigation, is read-only,
         // or is a virtual resource (e.g. "All Video", "Recent") that has no real path to write to.
@@ -68,17 +82,17 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible =
-            canCreateFolder && !isControlFullyVisibleInCommandViewport(anchor, R.id.btnCreateFolder)
+            canCreateFolder && isOverflowed(R.id.btnCreateFolder)
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
         popup.menu.findItem(R.id.action_create_text_file)?.isVisible =
-            canCreateTextNote && !isControlFullyVisibleInCommandViewport(anchor, R.id.btnCreateTextFile)
+            canCreateTextNote && isOverflowed(R.id.btnCreateTextFile)
 
         // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
         val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         popup.menu.findItem(R.id.action_create_drawing)?.isVisible =
-            canCreateDrawing && !isControlFullyVisibleInCommandViewport(anchor, R.id.btnCreateDrawing)
+            canCreateDrawing && isOverflowed(R.id.btnCreateDrawing)
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
@@ -172,29 +186,21 @@ class ResourceOpsMenuManager @Inject constructor(
                     onBlackScreenClicked?.invoke()
                     true
                 }
+                // S0374: overflowed top-bar commands route to the same actions as their buttons.
+                R.id.action_overflow_sort -> { onSortClicked?.invoke(); true }
+                R.id.action_overflow_filter -> { callbacks?.onFilterClicked(); true }
+                R.id.action_overflow_refresh -> { callbacks?.onRefreshClicked(); true }
+                R.id.action_overflow_toggle_view -> { callbacks?.onToggleViewClicked(); true }
+                R.id.action_overflow_select_all -> { callbacks?.onSelectAllClicked(); true }
+                R.id.action_overflow_deselect_all -> { callbacks?.onDeselectAllClicked(); true }
+                R.id.action_overflow_play -> { callbacks?.onPlayClicked(); true }
+                R.id.action_overflow_play_random -> { callbacks?.onPlayRandomClicked(); true }
+                // Press-and-hold recording is bar-only; the menu entry fires a single-tap record.
+                R.id.action_overflow_mic -> { callbacks?.onMicRecordSingleTap(); true }
                 else -> false
             }
         }
         popup.show()
-    }
-
-    private fun isControlFullyVisibleInCommandViewport(anchor: View, viewId: Int): Boolean {
-        val control = anchor.rootView.findViewById<View>(viewId) ?: return false
-        if (!control.isShown || !control.getGlobalVisibleRect(Rect())) return false
-
-        val commandScroll = anchor.rootView.findViewById<HorizontalScrollView>(R.id.topCommandScroll)
-            ?: return true
-        if (!commandScroll.isShown || commandScroll.width <= 0) return true
-
-        val controlRect = Rect(0, 0, control.width, control.height)
-        commandScroll.offsetDescendantRectToMyCoords(control, controlRect)
-        val tolerancePx = control.resources.displayMetrics.density.toInt().coerceAtLeast(1)
-        val viewportLeft = commandScroll.scrollX + commandScroll.paddingLeft
-        val viewportRight = commandScroll.scrollX + commandScroll.width - commandScroll.paddingRight
-
-        // Partially clipped buttons are effectively "overflow-only" for the current viewport.
-        return controlRect.left >= viewportLeft - tolerancePx &&
-            controlRect.right <= viewportRight + tolerancePx
     }
 
     // -------------------------------------------------------------------------

@@ -91,7 +91,6 @@ class PlayerDialogAndUiStateManager(
      * player" action delegates to [onClosePlayer] (typically `activity.finish()`).
      */
     fun showMemoryDegradationSnackbar(onClosePlayer: () -> Unit) {
-        Timber.d("S0213: Pillar C memory degradation snackbar shown")
         Snackbar.make(binding.root, R.string.s0213_memory_alert_message, Snackbar.LENGTH_INDEFINITE)
             .setAction(R.string.s0213_memory_alert_action) { onClosePlayer() }
             .show()

@@ -130,7 +130,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private fun setupSectionNavigation(savedSectionName: String?) {
-        Timber.d("S0330: section navigation menu setup mediaType=$currentMediaType activeSections=${activeSections.map { it.name }}")
         ControlSection.entries.forEach { section ->
             sectionButton(section).isVisible = activeSections.contains(section)
         }

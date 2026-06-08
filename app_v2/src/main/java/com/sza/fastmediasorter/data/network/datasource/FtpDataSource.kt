@@ -212,7 +212,6 @@ class FtpDataSource(
         // Keep `uri` as stable source identity - clearing it on close races the media3 stats
         // wrapper's non-null getUri() check during rapid file switching (same NPE class as SMB).
         // The next open() rebinds it; resources are released below regardless.
-        Timber.d("S0343: FTP data source close preserves URI identity")
 
         // Only close the InputStream - client is managed by pool
         try {

@@ -132,6 +132,9 @@ class BrowseManagerInitializer(
     lateinit var listSubmitManager: BrowseListSubmitManager
     // S0096: black screen overlay for audio libraries
     internal lateinit var blackScreenManager: BlackScreenOverlayManager
+    // S0374: adaptive priority+overflow controller for the top command bar.
+    lateinit var commandOverflowManager: BrowseCommandOverflowManager
+    private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
         dialogHelper = BrowseDialogHelper(activity, object : BrowseDialogHelper.DialogCallbacks {
@@ -222,6 +225,9 @@ class BrowseManagerInitializer(
         mediaFileAdapter.setBinaryThumbnailGenerator(com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator(activity))
         mediaFileAdapter.setAudioMetadataLoader(audioMetadataLoader)
 
+        commandOverflowManager = BrowseCommandOverflowManager(binding)
+        commandOverflowManager.onOverflowChanged = { activity.restitchBrowseControlChain() }
+
         stateUiUpdater = BrowseStateUiUpdater(
             activity = activity,
             binding = binding,
@@ -233,7 +239,10 @@ class BrowseManagerInitializer(
             onUpdateBreadcrumb = { state -> updateBreadcrumb(state) },
             onBuildResourceInfo = { state -> BrowseUtilityManager(activity).buildResourceInfo(state) },
             onLaunchEditResource = { id -> launchEditResource(id) },
-            onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) }
+            onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) },
+            // S0374: report runtime-gated command eligibility + trigger overflow recompute.
+            setCommandEligibility = { id, eligible -> commandOverflowManager.setFeatureEligibility(id, eligible) },
+            onRecomputeOverflow = { commandOverflowManager.recompute() }
         )
 
         recyclerViewManager = BrowseRecyclerViewManager(
@@ -485,7 +494,7 @@ class BrowseManagerInitializer(
         updateSortButton(viewModel.state.value.sortMode)
         binding.btnSort.setOnClickListener { UserActionLogger.logButtonClick("SortButton", "BrowseActivity"); sortMenuManager.showSortPopupMenu(binding.btnSort) }
 
-        buttonSetupHelper.setupAllButtons(object : BrowseButtonSetupHelper.ButtonCallbacks {
+        buttonCallbacks = object : BrowseButtonSetupHelper.ButtonCallbacks {
             override fun onFilterClicked() =
                 dialogHelper.showFilterDialog(viewModel.state.value.filter, viewModel.state.value.resource?.supportedMediaTypes)
             override fun onRefreshClicked() {
@@ -533,7 +542,8 @@ class BrowseManagerInitializer(
             override fun onResourceOpsClicked(anchor: android.view.View) {
                 showBrowseResourceOpsMenu(anchor)
             }
-        })
+        }
+        buttonSetupHelper.setupAllButtons(buttonCallbacks)
         
         // Warm up the cache used by onOverflowMenuClick for synchronous access.
         lifecycleScope.launch {
@@ -659,7 +669,11 @@ class BrowseManagerInitializer(
                     { id -> eventHandler.openBrowseInNewWindow(id) }
                 } else null,
                 isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
-                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
+                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null,
+                // S0374: surface top-bar commands that overflowed off the bar, routed to their actions.
+                isOverflowed = { id -> commandOverflowManager.isOverflowed(id) },
+                callbacks = buttonCallbacks,
+                onSortClicked = { sortMenuManager.showSortPopupMenu(binding.btnSort) }
             )
         }
     }

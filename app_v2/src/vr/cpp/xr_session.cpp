@@ -750,7 +750,6 @@ void main() {
         NativeResult createInstance(JavaVM *vm, jobject activity)
         {
             LOGD("createInstance: begin vm=%p activity=%p", (void *)vm, activity);
-            logInstanceExtensionSupport();
 
             PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
             XrResult r = xrGetInstanceProcAddr(
@@ -775,6 +774,12 @@ void main() {
                 return NativeResult::InstanceCreationFailed;
             }
             LOGD("xrInitializeLoaderKHR ok");
+
+            // xrEnumerateInstanceExtensionProperties needs the Android OpenXR loader initialized first.
+            // Calling it before xrInitializeLoaderKHR yields "LoaderInitData not initialized" and stalls
+            // cold-start XR init on Quest 3 (focus never delivered -> ANR). Diagnostic logging only, so it
+            // runs after the loader is up and before xrCreateInstance.
+            logInstanceExtensionSupport();
 
             std::vector<const char *> exts = {
                 XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,

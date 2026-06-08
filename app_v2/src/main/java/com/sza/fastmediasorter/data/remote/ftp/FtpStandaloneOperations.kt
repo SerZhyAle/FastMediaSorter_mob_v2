@@ -224,7 +224,6 @@ object FtpStandaloneOperations {
             // S0206: bounded path is split out so readBoundedAndAbort can own ABOR +
             // completePendingCommand. Full-read path (no limit) retains original contract.
             if (maxBytes < Long.MAX_VALUE) {
-                Timber.d("S0206: standalone FTP bounded read entry (passive) path=$remotePath cap=$maxBytes")
                 val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
                 val stream = client.retrieveFileStream(remotePath)
                     ?: throw SocketTimeoutException("Failed to open stream (force retry)")
@@ -250,7 +249,6 @@ object FtpStandaloneOperations {
             try {
                 // S0206: same bounded/full-read split for active mode fallback.
                 if (maxBytes < Long.MAX_VALUE) {
-                    Timber.d("S0206: standalone FTP bounded read entry (active) path=$remotePath cap=$maxBytes")
                     val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
                     val stream = client.retrieveFileStream(remotePath)
                         ?: return@executeWithNewConnection Result.failure(

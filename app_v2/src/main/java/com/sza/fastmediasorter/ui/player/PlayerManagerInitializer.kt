@@ -868,6 +868,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             settingsRepository = activity.settingsRepository,
             detectionFacade = activity.xrDetectionFacade,
             startVrPlaybackUseCase = activity.startVrPlaybackUseCase,
+            payloadHolder = activity.vrLaunchPayloadHolder,
         ).also { it.bind() }
 
         // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay. Use actual command-panel visibility rather than raw showCommandPanel state, because audio can force the panel visible while the ViewModel flag stays false.

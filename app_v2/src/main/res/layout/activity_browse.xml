@@ -3,10 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" tools:context=".ui.browse.BrowseActivity">
 
-    <!-- S0374: HorizontalScrollView fallback prevents clipping of the +20% command bar on narrow phones. -->
-    <HorizontalScrollView android:id="@+id/topCommandScroll" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:background="?attr/colorSurface" android:fillViewport="true" android:scrollbars="none" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent">
-
-    <LinearLayout android:id="@+id/layoutControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="?attr/colorSurface" android:clickable="true" android:elevation="@dimen/dimension_zero" android:focusable="true" android:gravity="center_vertical" android:importantForAccessibility="no" android:orientation="horizontal" android:padding="@dimen/control_bar_padding">
+    <!-- S0374: adaptive priority bar - overflow commands move to the "⋮" menu (BrowseCommandOverflowManager); no horizontal scroll. -->
+    <LinearLayout android:id="@+id/layoutControls" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:background="?attr/colorSurface" android:clickable="true" android:elevation="@dimen/dimension_zero" android:focusable="true" android:gravity="center_vertical" android:importantForAccessibility="no" android:orientation="horizontal" android:padding="@dimen/control_bar_padding" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent">
 
         <!-- Back button -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnBack" android:focusable="true" android:clickable="true" android:foreground="@drawable/focus_button_background" android:nextFocusDown="@id/rvMediaFiles" style="?attr/materialIconButtonStyle" android:layout_width="wrap_content" android:layout_height="@dimen/browse_cmd_button_size" android:contentDescription="@string/back" android:insetLeft="0dp" android:insetTop="0dp" android:insetRight="0dp" android:insetBottom="0dp" android:maxWidth="@dimen/browse_cmd_button_max_width" android:maxHeight="@dimen/browse_cmd_button_max_height" android:minWidth="@dimen/browse_cmd_button_min_width" android:minHeight="@dimen/browse_cmd_button_min_height" android:padding="0dp" android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart" android:paddingTop="0dp" android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" android:paddingBottom="0dp" android:textSize="@dimen/browse_cmd_text_size" app:icon="@drawable/ic_arrow_back" app:iconGravity="textStart" app:iconPadding="@dimen/spacing_none" app:iconSize="@dimen/browse_cmd_icon_size" app:iconTint="?attr/colorControlNormal" />
@@ -70,9 +68,7 @@
 
     </LinearLayout>
 
-    </HorizontalScrollView>
-
-    <LinearLayout android:id="@+id/layoutResourceInfo" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" app:layout_constraintTop_toBottomOf="@id/topCommandScroll" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+    <LinearLayout android:id="@+id/layoutResourceInfo" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" app:layout_constraintTop_toBottomOf="@id/layoutControls" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton android:id="@+id/btnResourceAction" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding" android:scaleType="fitCenter" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="@color/selector_themed_button_tint" tools:visibility="visible" />
 

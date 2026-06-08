@@ -11,6 +11,10 @@ import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.MediaSizeFilterSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.SlideshowSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -52,14 +56,11 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_SUBFOLDERS_AS_ITEMS = booleanPreferencesKey("show_subfolders_as_items")
 
         private val KEY_SUPPORT_IMAGES = booleanPreferencesKey("support_images")
-        private val KEY_IMAGE_SIZE_MIN = longPreferencesKey("image_size_min")
-        private val KEY_IMAGE_SIZE_MAX = longPreferencesKey("image_size_max")
+        // Media size-filter keys moved to data.repository.settings.MediaSizeFilterSettingsStore (responsibility extraction).
         private val KEY_LOAD_FULL_SIZE_IMAGES = booleanPreferencesKey("load_full_size_images")
         private val KEY_CROP_IMAGES_TO_FULLSCREEN = booleanPreferencesKey("crop_images_to_fullscreen")
         private val KEY_SUPPORT_GIFS = booleanPreferencesKey("support_gifs")
         private val KEY_SUPPORT_VIDEOS = booleanPreferencesKey("support_videos")
-        private val KEY_VIDEO_SIZE_MIN = longPreferencesKey("video_size_min")
-        private val KEY_VIDEO_SIZE_MAX = longPreferencesKey("video_size_max")
         private val KEY_SUPPORT_AUDIO = booleanPreferencesKey("support_audio")
         // Audio keys moved to data.repository.settings.AudioSettingsStore (responsibility extraction).
         private val KEY_SEARCH_AUDIO_COVERS_ONLINE = booleanPreferencesKey("search_audio_covers_online")
@@ -90,10 +91,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // Text-recognition / translation / OCR keys moved to data.repository.settings.TextRecognitionSettingsStore (responsibility extraction).
 
         private val KEY_DEFAULT_SORT_MODE = stringPreferencesKey("default_sort_mode")
-        private val KEY_SLIDESHOW_INTERVAL = intPreferencesKey("slideshow_interval")
-        private val KEY_SLIDESHOW_MUSIC_URI = stringPreferencesKey("slideshow_music_uri")
-        private val KEY_ENABLE_SLIDESHOW_BACKGROUND_MUSIC = booleanPreferencesKey("enable_slideshow_background_music")
-        private val KEY_SLIDESHOW_MUSIC_RESOURCE_ID = longPreferencesKey("slideshow_music_resource_id")
+        // Slideshow keys moved to data.repository.settings.SlideshowSettingsStore (responsibility extraction).
         private val KEY_PLAY_TO_END = booleanPreferencesKey("play_to_end_in_slideshow")
         private val KEY_ALLOW_RENAME = booleanPreferencesKey("allow_rename")
         private val KEY_ALLOW_DELETE = booleanPreferencesKey("allow_delete")
@@ -128,17 +126,13 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_FAVORITES = booleanPreferencesKey("enable_favorites")
         private val KEY_DISABLE_CAMERA_CAPTURE = booleanPreferencesKey("disable_camera_capture")
         private val KEY_SKIP_CAMERA_FILENAME_DIALOG = booleanPreferencesKey("skip_camera_filename_dialog")
-        private val KEY_CAMERA_OPEN_FOR_EDITING = booleanPreferencesKey("camera_open_for_editing")
+        // Camera-capture + mic-recording keys moved to data.repository.settings.CaptureSettingsStore (responsibility extraction).
         // S0371: video recording to resource (master toggle stored inverted, like the camera flags)
         private val KEY_DISABLE_VIDEO_CAPTURE = booleanPreferencesKey("disable_video_capture")
         private val KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER = booleanPreferencesKey("video_capture_open_in_player")
         private val KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID = stringPreferencesKey("video_recording_destination_resource_id")
         // S0100: Microphone recording feature
-        private val KEY_MIC_RECORDING_ENABLED = booleanPreferencesKey("mic_recording_enabled")
-        private val KEY_MIC_RECORDING_ASK_FILENAME = booleanPreferencesKey("mic_recording_ask_filename")
         // S0367: default destination resource ids for capture flows (null = deterministic fallback)
-        private val KEY_MIC_RECORDING_DESTINATION_RESOURCE_ID = stringPreferencesKey("mic_recording_destination_resource_id")
-        private val KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID = stringPreferencesKey("camera_photos_destination_resource_id")
         private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
         
         // Per-type touch zone hint tracking keys (Task 6)
@@ -170,14 +164,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
 
         // Link auto-download (S0003): master toggle, optional destination resource id, auto-open toggle
-        private val KEY_LINK_AUTO_DOWNLOAD_ENABLED = booleanPreferencesKey("link_auto_download_enabled")
-        private val KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID = longPreferencesKey("link_auto_download_resource_id")
-        private val KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER = booleanPreferencesKey("link_auto_download_open_in_player")
+        // Link auto-download keys moved to data.repository.settings.LinkSettingsStore (responsibility extraction).
 
         // S0116 §5.1 pillar J: streaming/quality preference for url-download pipeline.
-        private val KEY_LINK_DOWNLOAD_MAX_RESOLUTION = stringPreferencesKey("link_download_max_resolution")
-        private val KEY_LINK_DOWNLOAD_AUDIO_ONLY = booleanPreferencesKey("link_download_audio_only")
-        private val KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED = booleanPreferencesKey("link_download_login_wall_heuristic_enabled")
 
         private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
 
@@ -269,6 +258,10 @@ class SettingsRepositoryImpl @Inject constructor(
                 val stereo = StereoSettingsStore.read(preferences)
                 val textRec = TextRecognitionSettingsStore.read(preferences)
                 val audio = AudioSettingsStore.read(preferences)
+                val capture = CaptureSettingsStore.read(preferences)
+                val slideshow = SlideshowSettingsStore.read(preferences)
+                val link = LinkSettingsStore.read(preferences)
+                val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
 
                 AppSettings(
                     language = language,
@@ -290,14 +283,14 @@ class SettingsRepositoryImpl @Inject constructor(
                     showHiddenFiles = preferences[KEY_SHOW_HIDDEN_FILES] ?: false,
                     showSubfoldersAsItems = preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] ?: false,
                     supportImages = preferences[KEY_SUPPORT_IMAGES] ?: true,
-                    imageSizeMin = preferences[KEY_IMAGE_SIZE_MIN] ?: 1024L,
-                    imageSizeMax = preferences[KEY_IMAGE_SIZE_MAX] ?: 10485760L,
+                    imageSizeMin = mediaSize.imageSizeMin,
+                    imageSizeMax = mediaSize.imageSizeMax,
                     loadFullSizeImages = preferences[KEY_LOAD_FULL_SIZE_IMAGES] ?: true,
                     cropImagesToFullscreen = preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] ?: true,
                     supportGifs = preferences[KEY_SUPPORT_GIFS] ?: true,
                     supportVideos = preferences[KEY_SUPPORT_VIDEOS] ?: true,
-                    videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: 102400L, // 100KB in bytes
-                    videoSizeMax = preferences[KEY_VIDEO_SIZE_MAX] ?: 107374182400L,
+                    videoSizeMin = mediaSize.videoSizeMin,
+                    videoSizeMax = mediaSize.videoSizeMax,
                     supportAudio = preferences[KEY_SUPPORT_AUDIO] ?: true,
                     audioSizeMin = audio.audioSizeMin,
                     audioSizeMax = audio.audioSizeMax,
@@ -344,10 +337,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultSortMode = SortMode.valueOf(
                         preferences[KEY_DEFAULT_SORT_MODE] ?: SortMode.NAME_ASC.name
                     ),
-                    slideshowInterval = preferences[KEY_SLIDESHOW_INTERVAL] ?: 10,
-                    slideshowMusicUri = preferences[KEY_SLIDESHOW_MUSIC_URI],
-                    enableSlideshowBackgroundMusic = preferences[KEY_ENABLE_SLIDESHOW_BACKGROUND_MUSIC] ?: false,
-                    slideshowMusicResourceId = preferences[KEY_SLIDESHOW_MUSIC_RESOURCE_ID],
+                    slideshowInterval = slideshow.slideshowInterval,
+                    slideshowMusicUri = slideshow.slideshowMusicUri,
+                    enableSlideshowBackgroundMusic = slideshow.enableSlideshowBackgroundMusic,
+                    slideshowMusicResourceId = slideshow.slideshowMusicResourceId,
                     playToEndInSlideshow = preferences[KEY_PLAY_TO_END] ?: true,
                     allowRename = preferences[KEY_ALLOW_RENAME] ?: true,
                     allowDelete = preferences[KEY_ALLOW_DELETE] ?: true,
@@ -382,14 +375,14 @@ class SettingsRepositoryImpl @Inject constructor(
                     enableFavorites = preferences[KEY_ENABLE_FAVORITES] ?: true,
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
-                    cameraCaptureOpenForEditing = preferences[KEY_CAMERA_OPEN_FOR_EDITING] ?: false,
+                    cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
-                    micRecordingEnabled = preferences[KEY_MIC_RECORDING_ENABLED] ?: false,
-                    micRecordingAskFilename = preferences[KEY_MIC_RECORDING_ASK_FILENAME] ?: true,
-                    micRecordingDestinationResourceId = preferences[KEY_MIC_RECORDING_DESTINATION_RESOURCE_ID],
-                    cameraPhotosDestinationResourceId = preferences[KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID],
+                    micRecordingEnabled = capture.micRecordingEnabled,
+                    micRecordingAskFilename = capture.micRecordingAskFilename,
+                    micRecordingDestinationResourceId = capture.micRecordingDestinationResourceId,
+                    cameraPhotosDestinationResourceId = capture.cameraPhotosDestinationResourceId,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
@@ -409,15 +402,13 @@ class SettingsRepositoryImpl @Inject constructor(
                     videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
                         ?.takeIf { it == "PNG" || it == "JPG" } ?: "JPG",
 
-                    // Link auto-download (S0003)
-                    linkAutoDownloadEnabled = preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] ?: true,
-                    linkAutoDownloadResourceId = preferences[KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID],
-                    linkAutoDownloadOpenInPlayer = preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] ?: true,
-                    // S0116 §5.1 pillar J: whitelist guard mirrors the videoSnapshotFormat pattern.
-                    linkDownloadMaxResolution = preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION]
-                        ?.takeIf { it in setOf("480p", "720p", "1080p", "best") } ?: "1080p",
-                    linkDownloadAudioOnly = preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] ?: false,
-                    linkDownloadLoginWallHeuristicEnabled = preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] ?: true,
+                    // Link auto-download (S0003) - owned by LinkSettingsStore.
+                    linkAutoDownloadEnabled = link.linkAutoDownloadEnabled,
+                    linkAutoDownloadResourceId = link.linkAutoDownloadResourceId,
+                    linkAutoDownloadOpenInPlayer = link.linkAutoDownloadOpenInPlayer,
+                    linkDownloadMaxResolution = link.linkDownloadMaxResolution,
+                    linkDownloadAudioOnly = link.linkDownloadAudioOnly,
+                    linkDownloadLoginWallHeuristicEnabled = link.linkDownloadLoginWallHeuristicEnabled,
 
                     // VR settings (spec §5.7 / Phase 8). S0251 removed forced-format fields.
                     vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
@@ -517,14 +508,11 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_HIDDEN_FILES] = settings.showHiddenFiles
             preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] = settings.showSubfoldersAsItems
             preferences[KEY_SUPPORT_IMAGES] = settings.supportImages
-            preferences[KEY_IMAGE_SIZE_MIN] = settings.imageSizeMin
-            preferences[KEY_IMAGE_SIZE_MAX] = settings.imageSizeMax
+            MediaSizeFilterSettingsStore.write(preferences, settings)
             preferences[KEY_LOAD_FULL_SIZE_IMAGES] = settings.loadFullSizeImages
             preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] = settings.cropImagesToFullscreen
             preferences[KEY_SUPPORT_GIFS] = settings.supportGifs
             preferences[KEY_SUPPORT_VIDEOS] = settings.supportVideos
-            preferences[KEY_VIDEO_SIZE_MIN] = settings.videoSizeMin
-            preferences[KEY_VIDEO_SIZE_MAX] = settings.videoSizeMax
             preferences[KEY_SUPPORT_AUDIO] = settings.supportAudio
             AudioSettingsStore.write(preferences, settings)
             preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] = settings.searchAudioCoversOnline
@@ -550,16 +538,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
             TextRecognitionSettingsStore.write(preferences, settings)
             preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
-            preferences[KEY_SLIDESHOW_INTERVAL] = settings.slideshowInterval
-            preferences.setOrRemove(KEY_SLIDESHOW_MUSIC_URI, settings.slideshowMusicUri)
-            preferences[KEY_ENABLE_SLIDESHOW_BACKGROUND_MUSIC] = settings.enableSlideshowBackgroundMusic
-            if (settings.slideshowMusicResourceId != null) {
-                preferences[KEY_SLIDESHOW_MUSIC_RESOURCE_ID] = settings.slideshowMusicResourceId
-                Timber.d("SettingsRepo: Saved slideshowMusicResourceId=${settings.slideshowMusicResourceId} to DataStore")
-            } else {
-                preferences.remove(KEY_SLIDESHOW_MUSIC_RESOURCE_ID)
-                Timber.d("SettingsRepo: Removed slideshowMusicResourceId from DataStore")
-            }
+            SlideshowSettingsStore.write(preferences, settings)
             preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow
             preferences[KEY_ALLOW_RENAME] = settings.allowRename
             preferences[KEY_ALLOW_DELETE] = settings.allowDelete
@@ -592,14 +571,10 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_FAVORITES] = settings.enableFavorites
             preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
             preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
-            preferences[KEY_CAMERA_OPEN_FOR_EDITING] = settings.cameraCaptureOpenForEditing
+            CaptureSettingsStore.write(preferences, settings)
             preferences[KEY_DISABLE_VIDEO_CAPTURE] = settings.disableVideoCapture
             preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] = settings.videoCaptureOpenInPlayer
             preferences.setOrRemove(KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID, settings.videoRecordingDestinationResourceId)
-            preferences[KEY_MIC_RECORDING_ENABLED] = settings.micRecordingEnabled
-            preferences[KEY_MIC_RECORDING_ASK_FILENAME] = settings.micRecordingAskFilename
-            preferences.setOrRemove(KEY_MIC_RECORDING_DESTINATION_RESOURCE_ID, settings.micRecordingDestinationResourceId)
-            preferences.setOrRemove(KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID, settings.cameraPhotosDestinationResourceId)
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
             preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture
@@ -621,14 +596,8 @@ class SettingsRepositoryImpl @Inject constructor(
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
 
-            // Link auto-download (S0003)
-            preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] = settings.linkAutoDownloadEnabled
-            preferences.setOrRemove(KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID, settings.linkAutoDownloadResourceId)
-            preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] = settings.linkAutoDownloadOpenInPlayer
-            // S0116 §5.1 pillar J
-            preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION] = settings.linkDownloadMaxResolution
-            preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] = settings.linkDownloadAudioOnly
-            preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] = settings.linkDownloadLoginWallHeuristicEnabled
+            // Link auto-download (S0003) - owned by LinkSettingsStore.
+            LinkSettingsStore.write(preferences, settings)
 
             // VR settings (spec §5.7 / Phase 8 split). S0241/S0251 removed forced-format
             // keys; the old DataStore entries remain on disk in older installs but the new
