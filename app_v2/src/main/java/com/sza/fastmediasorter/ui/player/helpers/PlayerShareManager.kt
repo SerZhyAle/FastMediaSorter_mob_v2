@@ -194,7 +194,6 @@ class PlayerShareManager(
      * invoker still falls back to the system chooser if the client became unavailable meanwhile.
      */
     fun sendCurrentFileToTelegram() {
-        Timber.d("S0303: player send-to-Telegram action invoked")
         val currentFile = activity.viewModel.state.value.currentFile ?: return
         if (!currentFile.path.contains("://")) {
             sendFileToTelegram(File(currentFile.path))

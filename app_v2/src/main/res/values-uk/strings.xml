@@ -2410,4 +2410,6 @@
     <string name="ext_lang_ukr_desc">Високоякісна модель української мови для офлайн-розпізнавання тексту Tesseract.</string>
     <string name="ext_delete_confirm_title">Видалити розширення?</string>
     <string name="ext_delete_confirm_message">Видалити %1$s і звільнити місце? Пізніше можна завантажити знову.</string>
+    <string name="slideshow_stop">Зупинити слайд-шоу</string>
+    <string name="open_in_fms_external_file_notice">Цей файл розташований поза текою, доданою до застосунку, тому відкрився головний екран.</string>
 </resources>

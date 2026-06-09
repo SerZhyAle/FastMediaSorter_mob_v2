@@ -94,6 +94,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
     private val networkFileManager: NetworkFileManager by lazy {
         NetworkFileManager(
@@ -137,7 +138,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             activity = this,
             root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* no audio in document activity */ },
             batchDeleteLauncher = batchDeleteLauncher,
@@ -205,11 +206,21 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     private val officeViewerProvider by lazy { OfficeDocumentViewerProviderFactory().create() }
 
+    private val pagingControls: StandalonePagingControlsBinder by lazy {
+        StandalonePagingControlsBinder(
+            viewModel = viewModel,
+            btnPrev = binding.btnPagePrev,
+            btnNext = binding.btnPageNext,
+            btnRandom = binding.btnPageRandom,
+            btnSlideshow = binding.btnPageSlideshow,
+        )
+    }
+
     /** Resolved document type for the loaded file; gates which viewer the controls drive. */
     private var resolvedType: MediaType? = null
 
-    /** Set after the first successful display; prevents reload on rename state updates. */
-    private var contentLoaded = false
+    /** Path of the file last rendered; lets folder paging swap to a neighbour on change. */
+    private var lastShownPath: String? = null
 
     override fun getViewBinding(): ActivityStandaloneDocumentBinding =
         ActivityStandaloneDocumentBinding.inflate(layoutInflater)
@@ -225,6 +236,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         setupFileOperationButtons()
         setupPdfButtons()
         setupEpubButtons()
+        pagingControls.setupClicks()
         parseIncomingIntent()
     }
 
@@ -362,6 +374,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             Timber.w(e, "DocumentStandalone: failed to query display name")
             null
         } ?: uri.lastPathSegment
+        // Folder paging enumerates only document neighbours - the types this host renders.
+        viewModel.setHostSupportedTypes(setOf(MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT))
         viewModel.loadFromUri(uri, intent?.type, displayName)
     }
 
@@ -385,12 +399,15 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 finish()
                 return@collectOnLifecycle
             }
-            if (!contentLoaded) {
-                Timber.d("S0380: DocumentStandaloneActivity displaying $type from external intent")
+            if (file.path != lastShownPath) {
+                // Release the previous viewer before paging to a neighbour of a different doc type
+                // (e.g. PDF -> EPUB) so the new one renders into a clean container.
+                if (lastShownPath != null) releaseActiveViewer()
                 resolvedType = type
                 displayDocument(file, type)
-                contentLoaded = true
+                lastShownPath = file.path
             }
+            pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
             updateRenameButtonVisibility()
         }
         collectOnLifecycle(viewModel.isFavorite) { isFav ->

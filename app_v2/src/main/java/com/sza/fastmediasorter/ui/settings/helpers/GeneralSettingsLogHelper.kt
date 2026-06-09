@@ -49,7 +49,6 @@ class GeneralSettingsLogHelper(
     }
 
     fun showSystemInfoDialog() {
-        Timber.d("S0337: system info dialog opened")
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val report = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
             if (!fragment.isAdded || fragment.view == null) return@launch

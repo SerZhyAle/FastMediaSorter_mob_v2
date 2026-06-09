@@ -62,7 +62,6 @@ class UnifiedCloudAuthManager @Inject constructor(
      * (Credential Manager), an MSAL callback, or `Activity.onResume` (Dropbox).
      */
     fun startInteractiveSignIn(activity: Activity, provider: CloudProvider) {
-        Timber.d("S0243: UnifiedCloudAuthManager.startInteractiveSignIn provider=${provider.name}")
         subscriptionJob?.cancel()
         subscriptionJob = null
         StructuredLogger.d("Interactive cloud auth begin", "provider" to provider.name)

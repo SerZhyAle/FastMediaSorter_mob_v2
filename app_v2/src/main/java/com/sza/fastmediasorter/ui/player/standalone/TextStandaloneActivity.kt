@@ -80,13 +80,14 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
             activity = this,
             root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* no audio in text activity */ },
             batchDeleteLauncher = batchDeleteLauncher,
@@ -152,8 +153,18 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         )
     }
 
-    /** Set after the first successful displayText(); prevents reload on rename state updates. */
-    private var contentLoaded = false
+    private val pagingControls: StandalonePagingControlsBinder by lazy {
+        StandalonePagingControlsBinder(
+            viewModel = viewModel,
+            btnPrev = binding.btnPagePrev,
+            btnNext = binding.btnPageNext,
+            btnRandom = binding.btnPageRandom,
+            btnSlideshow = binding.btnPageSlideshow,
+        )
+    }
+
+    /** Path of the file last rendered; lets folder paging swap to a neighbour on change. */
+    private var lastShownPath: String? = null
 
     override fun getViewBinding(): ActivityStandaloneTextBinding =
         ActivityStandaloneTextBinding.inflate(layoutInflater)
@@ -168,6 +179,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         setupBackPressHandler()
         setupFileOperationButtons()
         textViewerManager.setupControls()
+        pagingControls.setupClicks()
         parseIncomingIntent()
     }
 
@@ -263,6 +275,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             Timber.w(e, "TextStandalone: failed to query display name")
             null
         } ?: uri.lastPathSegment
+        // Folder paging enumerates only text neighbours - the only type this host renders.
+        viewModel.setHostSupportedTypes(setOf(MediaType.TEXT))
         viewModel.loadFromUri(uri, intent?.type, displayName)
     }
 
@@ -286,11 +300,11 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
                 finish()
                 return@collectOnLifecycle
             }
-            if (!contentLoaded) {
-                Timber.d("S0380: TextStandaloneActivity displaying text from external intent (no media SDKs)")
+            if (file.path != lastShownPath) {
                 textViewerManager.displayText(file, isWritable = false)
-                contentLoaded = true
+                lastShownPath = file.path
             }
+            pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
             updateRenameButtonVisibility()
         }
         collectOnLifecycle(viewModel.isFavorite) { isFav ->

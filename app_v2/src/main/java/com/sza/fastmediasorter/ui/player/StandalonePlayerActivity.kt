@@ -113,7 +113,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             activity = this,
             root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
             batchDeleteLauncher = batchDeleteLauncher,
@@ -138,6 +138,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
     private lateinit var viewManager: StandaloneViewManager
     private var pipManager: PictureInPictureManager? = null

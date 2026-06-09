@@ -267,7 +267,6 @@ class PdfViewerManager(
 
     /** Display PDF file in PhotoView (reused for PDF pages) */
     fun displayPdf(mediaFile: MediaFile) {
-        Timber.d("S0380: PdfViewerManager.displayPdf via root-decoupled seam (shared by internal + standalone players)")
         safeViews.imageView.isVisible = false
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
         safeViews.photoView.isVisible = true // Reuse PhotoView for PDF pages.

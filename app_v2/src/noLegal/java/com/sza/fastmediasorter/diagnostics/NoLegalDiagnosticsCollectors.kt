@@ -1,13 +1,19 @@
 package com.sza.fastmediasorter.diagnostics
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Debug
 import android.os.Environment
+import android.os.PowerManager
 import android.os.StatFs
+import android.os.SystemClock
+import android.os.storage.StorageManager
 import android.provider.Settings
+import android.webkit.WebView
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsField
@@ -18,7 +24,10 @@ import timber.log.Timber
 import java.io.File
 import java.net.NetworkInterface
 import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
  * Builds the seven noLegal diagnostic sections (strategic S0336 §5.1). Every value is read
@@ -38,6 +47,11 @@ internal class NoLegalDiagnosticsCollectors(
         f("Developer options") { globalFlag("development_settings_enabled") },
         f("ADB enabled") { globalFlag("adb_enabled") },
         f("Xposed/LSPosed") { xposedStatus() },
+        f("Build tags") { buildTags() },
+        f("Build type") { Build.TYPE },
+        f("Verified boot") { systemProperty("ro.boot.verifiedbootstate") },
+        f("Bootloader locked") { bootloaderLocked() },
+        f("System uptime") { systemUptime() },
     )
 
     fun permissions(): ExtendedDiagnosticsSection = section(
@@ -46,6 +60,9 @@ internal class NoLegalDiagnosticsCollectors(
         f("QUERY_ALL_PACKAGES") { permissionState("android.permission.QUERY_ALL_PACKAGES") },
         f("REQUEST_INSTALL_PACKAGES") { canRequestInstalls() },
         f("SYSTEM_ALERT_WINDOW") { yesNo(Settings.canDrawOverlays(context)) },
+        f("POST_NOTIFICATIONS") { postNotifications() },
+        f("Battery optimization ignored") { ignoringBatteryOptimizations() },
+        f("Accessibility services") { accessibilityServices() },
     )
 
     fun installerSignature(): ExtendedDiagnosticsSection = section(
@@ -53,6 +70,10 @@ internal class NoLegalDiagnosticsCollectors(
         f("Installer package") { installerPackage() },
         f("Signature SHA-256", sensitive = true) { signatureSha256() },
         f("Alternative stores") { alternativeStores() },
+        f("App version") { appVersion() },
+        f("Target SDK") { context.applicationInfo.targetSdkVersion.toString() },
+        f("First install") { installTime(firstInstall = true) },
+        f("Last update") { installTime(firstInstall = false) },
     )
 
     fun runtimes(): ExtendedDiagnosticsSection = section(
@@ -63,6 +84,8 @@ internal class NoLegalDiagnosticsCollectors(
         f("PaddleOCR models") { paddleStatus() },
         f("Tesseract data") { tesseractStatus() },
         f("XR runtime") { xrRuntime() },
+        f("Supported ABIs") { Build.SUPPORTED_ABIS.joinToString(", ") },
+        f("WebView provider") { webViewProvider() },
     )
 
     fun mounts(): ExtendedDiagnosticsSection = section(
@@ -70,7 +93,9 @@ internal class NoLegalDiagnosticsCollectors(
         f("Mount entries") { mountCount() },
         f("Mount points", sensitive = true) { mountPoints() },
         f("/data size") { partitionSize(Environment.getDataDirectory().absolutePath) },
-        f("/cache size") { partitionSize(context.cacheDir.absolutePath) },
+        f("App cache size") { partitionSize(context.cacheDir.absolutePath) },
+        f("External storage state") { Environment.getExternalStorageState() },
+        f("Removable volumes") { removableVolumes() },
     )
 
     fun network(): ExtendedDiagnosticsSection = section(
@@ -78,6 +103,9 @@ internal class NoLegalDiagnosticsCollectors(
         f("DNS servers", sensitive = true) { dnsServers() },
         f("VPN interfaces", sensitive = true) { vpnInterfaces() },
         f("HTTP proxy") { httpProxy() },
+        f("Active transport") { activeTransport() },
+        f("Private DNS") { privateDns() },
+        f("Metered") { metered() },
     )
 
     fun processResources(): ExtendedDiagnosticsSection = section(
@@ -86,6 +114,9 @@ internal class NoLegalDiagnosticsCollectors(
         f("Java heap (used/max)") { javaHeap() },
         f("Open file descriptors") { openFdCount() },
         f("Active threads") { Thread.getAllStackTraces().size.toString() },
+        f("CPU cores") { Runtime.getRuntime().availableProcessors().toString() },
+        f("Total RAM") { totalRam() },
+        f("Thermal status") { thermalStatus() },
     )
 
     // --- OS & Security ---------------------------------------------------------------------------
@@ -124,7 +155,50 @@ internal class NoLegalDiagnosticsCollectors(
         "not present"
     }
 
+    private fun buildTags(): String {
+        val tags = Build.TAGS ?: return "unknown"
+        return if (tags.contains("test-keys")) "$tags (custom/AOSP)" else tags
+    }
+
+    private fun bootloaderLocked(): String = when (systemProperty("ro.boot.flash.locked")) {
+        "1" -> "locked"
+        "0" -> "unlocked"
+        else -> "unknown"
+    }
+
+    private fun systemUptime(): String {
+        val millis = SystemClock.elapsedRealtime()
+        val hours = TimeUnit.MILLISECONDS.toHours(millis)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
+        return "${hours}h ${minutes}m"
+    }
+
+    /** Reads a system property via reflection on the hidden `android.os.SystemProperties` API. */
+    private fun systemProperty(key: String): String {
+        val clazz = Class.forName("android.os.SystemProperties")
+        val get = clazz.getMethod("get", String::class.java)
+        val value = get.invoke(null, key) as? String
+        return value?.takeIf { it.isNotBlank() } ?: "unknown"
+    }
+
     // --- Permissions -----------------------------------------------------------------------------
+
+    private fun postNotifications(): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            permissionState("android.permission.POST_NOTIFICATIONS")
+        else "n/a"
+
+    private fun ignoringBatteryOptimizations(): String {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return yesNo(pm.isIgnoringBatteryOptimizations(context.packageName))
+    }
+
+    private fun accessibilityServices(): String {
+        val enabled = Settings.Secure.getString(
+            context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        )?.takeIf { it.isNotBlank() } ?: return "none"
+        return enabled.split(":").size.toString()
+    }
 
     private fun manageExternalStorage(): String =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) yesNo(Environment.isExternalStorageManager()) else "n/a"
@@ -174,7 +248,25 @@ internal class NoLegalDiagnosticsCollectors(
         return if (present.isEmpty()) "none" else present.joinToString(", ")
     }
 
+    private fun appVersion(): String {
+        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) info.longVersionCode
+        else @Suppress("DEPRECATION") info.versionCode.toLong()
+        return "${info.versionName} ($code)"
+    }
+
+    private fun installTime(firstInstall: Boolean): String {
+        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        val millis = if (firstInstall) info.firstInstallTime else info.lastUpdateTime
+        return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date(millis))
+    }
+
     // --- Runtimes --------------------------------------------------------------------------------
+
+    private fun webViewProvider(): String {
+        val pkg = WebView.getCurrentWebViewPackage() ?: return "n/a"
+        return "${pkg.packageName} ${pkg.versionName}"
+    }
 
     private fun pythonStatus(): String = if (isClassPresent("com.chaquo.python.Python")) "present (Chaquopy)" else "n/a"
 
@@ -222,6 +314,12 @@ internal class NoLegalDiagnosticsCollectors(
         return "${formatBytes(available)} free / ${formatBytes(total)}"
     }
 
+    private fun removableVolumes(): String {
+        val sm = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+        val removable = sm.storageVolumes.count { it.isRemovable }
+        return "$removable of ${sm.storageVolumes.size}"
+    }
+
     // --- Network ---------------------------------------------------------------------------------
 
     private fun dnsServers(): String {
@@ -244,6 +342,27 @@ internal class NoLegalDiagnosticsCollectors(
         return "$host:$port"
     }
 
+    private fun activeTransport(): String {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork ?: return "none") ?: return "none"
+        val transports = buildList {
+            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) add("Wi-Fi")
+            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) add("Cellular")
+            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) add("Ethernet")
+            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) add("VPN")
+            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) add("Bluetooth")
+        }
+        return if (transports.isEmpty()) "other" else transports.joinToString(", ")
+    }
+
+    private fun privateDns(): String =
+        Settings.Global.getString(context.contentResolver, "private_dns_mode")?.takeIf { it.isNotBlank() } ?: "unknown"
+
+    private fun metered(): String {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return yesNo(cm.isActiveNetworkMetered)
+    }
+
     // --- Process ---------------------------------------------------------------------------------
 
     private fun javaHeap(): String {
@@ -254,6 +373,28 @@ internal class NoLegalDiagnosticsCollectors(
 
     private fun openFdCount(): String =
         File("/proc/self/fd").listFiles()?.size?.toString() ?: "n/a"
+
+    private fun totalRam(): String {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val info = ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+        val low = if (info.lowMemory) ", low!" else ""
+        return "${formatBytes(info.totalMem)} (avail ${formatBytes(info.availMem)}$low)"
+    }
+
+    private fun thermalStatus(): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return "n/a"
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return when (pm.currentThermalStatus) {
+            PowerManager.THERMAL_STATUS_NONE -> "none"
+            PowerManager.THERMAL_STATUS_LIGHT -> "light"
+            PowerManager.THERMAL_STATUS_MODERATE -> "moderate"
+            PowerManager.THERMAL_STATUS_SEVERE -> "severe"
+            PowerManager.THERMAL_STATUS_CRITICAL -> "critical"
+            PowerManager.THERMAL_STATUS_EMERGENCY -> "emergency"
+            PowerManager.THERMAL_STATUS_SHUTDOWN -> "shutdown"
+            else -> "unknown"
+        }
+    }
 
     // --- Helpers ---------------------------------------------------------------------------------
 

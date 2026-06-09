@@ -20,8 +20,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import android.view.View
 import com.sza.fastmediasorter.domain.model.MediaFile
-import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
+import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.player.PlayerActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,7 +44,7 @@ class StandaloneFileOperationsHandler(
     private val activity: AppCompatActivity,
     private val root: View,
     private val getCurrentMediaFile: () -> MediaFile?,
-    private val findResourceForPath: suspend (String?) -> Long?,
+    private val resolveOpenInFmsTarget: ResolveOpenInFmsTargetUseCase,
     private val onRenameComplete: (Uri, String) -> Unit,
     private val updateAudioMediaItem: (Uri) -> Unit,
     private val batchDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
@@ -247,26 +249,32 @@ class StandaloneFileOperationsHandler(
     fun openInFms() {
         val file = getCurrentMediaFile() ?: return
         val uri = (file.contentUri ?: file.path).toUri()
-        val localPath = resolveToLocalPath(uri)
-
-        if (localPath != null) {
-            val parentDir = File(localPath).parent
-            activity.lifecycleScope.launch {
-                val resourceId = findResourceForPath(parentDir)
-                if (resourceId != null) {
-                    activity.startActivity(BrowseActivity.createIntent(
-                        activity,
-                        resourceId = resourceId,
-                        initialFilePath = localPath
-                    ))
-                } else {
-                    launchMainActivity()
+        activity.lifecycleScope.launch {
+            val target = resolveOpenInFmsTarget(uri, file.type)
+            Timber.d("S0389: openInFms target=$target for ${file.name}")
+            when (target) {
+                is OpenInFmsTarget.Resolved -> {
+                    activity.startActivity(
+                        PlayerActivity.createPanelIntent(
+                            activity,
+                            resourceId = target.resourceId,
+                            skipAvailabilityCheck = true,
+                            initialFilePath = target.absoluteFilePath
+                        )
+                    )
+                    activity.finish()
                 }
-                activity.finish()
+
+                OpenInFmsTarget.NotResolvable -> {
+                    Toast.makeText(
+                        activity,
+                        R.string.open_in_fms_external_file_notice,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    launchMainActivity()
+                    activity.finish()
+                }
             }
-        } else {
-            launchMainActivity()
-            activity.finish()
         }
     }
 
@@ -274,20 +282,6 @@ class StandaloneFileOperationsHandler(
         activity.startActivity(Intent(activity, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         })
-    }
-
-    @Suppress("DEPRECATION")
-    private fun resolveToLocalPath(uri: Uri): String? = when (uri.scheme) {
-        "file" -> uri.path
-        "content" -> try {
-            activity.contentResolver
-                .query(uri, arrayOf(MediaStore.MediaColumns.DATA), null, null, null)
-                ?.use { if (it.moveToFirst()) it.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.d(e, "StandalonePlayer: could not resolve content URI to local path")
-            null
-        }
-        else -> null
     }
 
     // ── Rename ────────────────────────────────────────────────────────────

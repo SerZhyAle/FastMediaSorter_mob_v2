@@ -193,7 +193,6 @@ class CameraOcrFlowManager(
             recycleOrientedBitmap()
             orientedBitmap = bitmap
             callback.hideLoading()
-            Timber.d("S0338: crop step shown after capture")
             callback.showCropStep(bitmap)
             emitCropLanguages()
         }
@@ -242,7 +241,6 @@ class CameraOcrFlowManager(
      */
     fun onCropConfirmed(normalizedRect: RectF?, frameTouched: Boolean) {
         val source = orientedBitmap ?: return
-        Timber.d("S0338: crop confirmed, frameTouched=$frameTouched")
         callback.showLoading(R.string.camera_ocr_loading_processing, 0)
 
         scope.launch {

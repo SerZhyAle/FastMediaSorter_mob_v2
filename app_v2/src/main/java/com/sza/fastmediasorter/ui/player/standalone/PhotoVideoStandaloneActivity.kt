@@ -103,6 +103,7 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
     private val viewManager: StandaloneViewManager by lazy {
         StandaloneViewManager(
@@ -134,15 +135,28 @@ class PhotoVideoStandaloneActivity :
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
     private lateinit var keyboardHandler: PlayerKeyboardHandler
 
-    /** Set after the first successful viewManager.show(); prevents reload on rename state updates. */
-    private var contentLoaded = false
+    private val pagingControls: StandalonePagingControlsBinder by lazy {
+        StandalonePagingControlsBinder(
+            viewModel = viewModel,
+            btnPrev = binding.btnPagePrev,
+            btnNext = binding.btnPageNext,
+            btnRandom = binding.btnPageRandom,
+            btnSlideshow = binding.btnPageSlideshow,
+        )
+    }
+
+    /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
+    private var lastShownPath: String? = null
+
+    /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
+    private var folderPagingEnabled = false
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
             activity = this,
             root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* audio is a separate lane - never handled here */ },
             batchDeleteLauncher = batchDeleteLauncher,
@@ -163,6 +177,7 @@ class PhotoVideoStandaloneActivity :
         setupCloseButton()
         setupBackPressHandler()
         setupFileOperationButtons()
+        pagingControls.setupClicks()
         setupKeyboardHandler()
         parseIncomingIntent()
     }
@@ -234,6 +249,9 @@ class PhotoVideoStandaloneActivity :
             },
             onToggleFullscreen = { fullscreenManager?.toggleFullscreen() },
             onToggleFavourite = { viewModel.toggleFavorite() },
+            onNextFile = { viewModel.pageNext() },
+            onPreviousFile = { viewModel.pagePrevious() },
+            onToggleSlideshow = { viewModel.toggleSlideshow() },
         ).handler
     }
 
@@ -291,6 +309,8 @@ class PhotoVideoStandaloneActivity :
             Timber.w(e, "PhotoVideoStandalone: failed to query display name")
             null
         } ?: uri.lastPathSegment
+        // Folder paging enumerates only image/gif/video neighbours - the types this host renders.
+        viewModel.setHostSupportedTypes(setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO))
         viewModel.loadFromUri(uri, intent?.type, displayName)
     }
 
@@ -315,13 +335,14 @@ class PhotoVideoStandaloneActivity :
                 finish()
                 return@collectOnLifecycle
             }
-            if (!contentLoaded) {
-                Timber.d("S0380: PhotoVideoStandaloneActivity showing $type from external intent")
+            if (file.path != lastShownPath) {
                 val onVideoReady: ((PlayerView) -> Unit)? =
                     if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
                 viewManager.show(file, type, onVideoReady)
-                contentLoaded = true
+                lastShownPath = file.path
             }
+            folderPagingEnabled = state.supportsFolderPaging
+            pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
             updateRenameButtonVisibility()
         }
         collectOnLifecycle(viewModel.isFavorite) { isFav ->
@@ -424,11 +445,13 @@ class PhotoVideoStandaloneActivity :
     // ── PlayerHostCapabilities ──────────────────────────────────────────────────
 
     override val supportsListNavigation: Boolean = false
-    override val supportsSlideshow: Boolean = false
+    // Slideshow auto-advance runs over the enumerated folder list, so it tracks folder paging.
+    override val supportsSlideshow: Boolean get() = folderPagingEnabled
     override val supportsPersistentAudio: Boolean = false
     override val supportsCast: Boolean = false
     override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = false
+    override val supportsFolderPaging: Boolean get() = folderPagingEnabled
 
     override val currentMediaFile: StateFlow<MediaFile?> by lazy {
         viewModel.state.map { it.mediaFile }

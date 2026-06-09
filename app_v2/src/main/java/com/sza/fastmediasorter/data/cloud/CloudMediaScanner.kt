@@ -60,7 +60,6 @@ class CloudMediaScanner @Inject constructor(
             // identically to the canonical double-slash form. Without this, the legacy form falls
             // into the `else` branch below, the entire path becomes the folderId, and the resource
             // lookup never matches → empty browse screen.
-            Timber.d("S0236: CloudMediaScanner.scanFolderInternal entry path=$path")
             val normalizedPath = cloudPathParser.normalizePath(path)
 
             // For cloud resources, path can be either:

@@ -344,7 +344,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     playToEndInSlideshow = preferences[KEY_PLAY_TO_END] ?: true,
                     allowRename = preferences[KEY_ALLOW_RENAME] ?: true,
                     allowDelete = preferences[KEY_ALLOW_DELETE] ?: true,
-                    useTrash = preferences[KEY_USE_TRASH] ?: true,
+                    useTrash = preferences[KEY_USE_TRASH] ?: false,
                     confirmDelete = preferences[KEY_CONFIRM_DELETE] ?: true,
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,

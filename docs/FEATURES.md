@@ -18,6 +18,7 @@ This document is the canonical inventory of all user-facing features implemented
 ## 2. Media Browsing
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
 - **Office & PDF document handoff** `[Standard / VR]`: Filter and open DOC, DOCX, RTF, ODT, or protected PDF files in external apps or fallback viewers with integrated password indicators.
+- **External file viewing** `[Standard / VR]`: When you open a file from another app, page through the neighbouring files in the same folder (next, previous, random, slideshow), and use *Open in FastMediaSorter* to jump straight into the in-app player on that file.
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.

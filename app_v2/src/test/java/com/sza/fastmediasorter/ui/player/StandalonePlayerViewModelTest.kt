@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.ui.player
 import android.content.Context
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.ResolveLocalPathFromUriUseCase
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,7 +43,9 @@ class StandalonePlayerViewModelTest {
         viewModel = StandalonePlayerViewModel(
             context = mockk<Context>(relaxed = true),
             favoritesUseCase = mockk<FavoritesUseCase>(relaxed = true),
-            resourceRepository = mockk<ResourceRepository>(relaxed = true),
+            resolveLocalPathFromUriUseCase = mockk<ResolveLocalPathFromUriUseCase>(relaxed = true),
+            localMediaScanner = mockk<LocalMediaScanner>(relaxed = true),
+            settingsRepository = mockk<SettingsRepository>(relaxed = true),
             stereoFormatOverrideDao = mockk<StereoFormatOverrideDao>(relaxed = true),
         )
     }

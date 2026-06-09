@@ -59,6 +59,12 @@ class ResourceRepositoryImpl @Inject constructor(
         val accountId = entity.credentialsId?.let { credentialsRepository.getByCredentialId(it)?.accountId }
         return entity.toDomain(accountId)
     }
+
+    override suspend fun getLocalResourceByPath(path: String): MediaResource? {
+        val entity = resourceDao.getLocalResourceByPathSync(path) ?: return null
+        val accountId = entity.credentialsId?.let { credentialsRepository.getByCredentialId(it)?.accountId }
+        return entity.toDomain(accountId)
+    }
     
     override fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>> {
         return combine(

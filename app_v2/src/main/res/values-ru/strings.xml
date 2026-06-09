@@ -2447,4 +2447,6 @@
     <string name="ext_lang_ukr_desc">Высококачественная модель украинского языка для офлайн-распознавания текста Tesseract.</string>
     <string name="ext_delete_confirm_title">Удалить расширение?</string>
     <string name="ext_delete_confirm_message">Удалить %1$s и освободить место? Позже можно скачать снова.</string>
+    <string name="slideshow_stop">Остановить слайд-шоу</string>
+    <string name="open_in_fms_external_file_notice">Этот файл находится вне папки, добавленной в приложение, поэтому открылся главный экран.</string>
 </resources>

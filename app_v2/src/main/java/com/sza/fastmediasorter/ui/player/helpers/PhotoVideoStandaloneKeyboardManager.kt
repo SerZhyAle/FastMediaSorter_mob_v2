@@ -24,13 +24,18 @@ class PhotoVideoStandaloneKeyboardManager(
     private val onToggleCommandPanel: () -> Unit,
     private val onToggleFullscreen: () -> Unit,
     private val onToggleFavourite: () -> Unit,
+    // S0389: folder-paging routes. No-ops at the VM level when the opened file is not in a local folder.
+    private val onNextFile: () -> Unit,
+    private val onPreviousFile: () -> Unit,
+    private val onToggleSlideshow: () -> Unit,
 ) {
 
     val handler: PlayerKeyboardHandler = PlayerKeyboardHandler(
         callback = object : PlayerKeyboardHandler.PlayerKeyboardCallback {
             override fun onDeleteFile() = onDelete()
             override fun onExitPlayer() = onExit()
-            override fun onToggleSlideshow() { /* no playlist slideshow standalone */ }
+            override fun onToggleSlideshow() =
+                this@PhotoVideoStandaloneKeyboardManager.onToggleSlideshow()
             override fun onShowRenameDialog() = onShowRename()
             override fun onShowFileInfo() = onShowInfo()
             override fun onToggleCommandPanel() =
@@ -77,8 +82,8 @@ class PhotoVideoStandaloneKeyboardManager(
             override fun onSaveCurrent() { /* save frame not supported standalone */ }
             override fun onShowContextMenu() =
                 this@PhotoVideoStandaloneKeyboardManager.onToggleCommandPanel()
-            override fun onNextFile() { /* single-file standalone */ }
-            override fun onPreviousFile() { /* single-file standalone */ }
+            override fun onNextFile() = this@PhotoVideoStandaloneKeyboardManager.onNextFile()
+            override fun onPreviousFile() = this@PhotoVideoStandaloneKeyboardManager.onPreviousFile()
             override fun onToggleFavourite() =
                 this@PhotoVideoStandaloneKeyboardManager.onToggleFavourite()
             override fun onUndoOperation() { /* delete-undo handled by the shared coordinator */ }

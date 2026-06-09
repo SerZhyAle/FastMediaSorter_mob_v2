@@ -91,6 +91,7 @@ class AudioStandaloneActivity :
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
     private val viewManager: StandaloneViewManager by lazy {
         StandaloneViewManager(
@@ -115,15 +116,28 @@ class AudioStandaloneActivity :
         )
     }
 
-    /** Set after the first successful viewManager.show(); prevents reload on rename state updates. */
-    private var contentLoaded = false
+    private val pagingControls: StandalonePagingControlsBinder by lazy {
+        StandalonePagingControlsBinder(
+            viewModel = viewModel,
+            btnPrev = binding.btnPagePrev,
+            btnNext = binding.btnPageNext,
+            btnRandom = binding.btnPageRandom,
+            btnSlideshow = binding.btnPageSlideshow,
+        )
+    }
+
+    /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
+    private var lastShownPath: String? = null
+
+    /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
+    private var folderPagingEnabled = false
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
             activity = this,
             root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             // A SAF rename must keep the background-service playback uninterrupted.
             updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
@@ -145,6 +159,7 @@ class AudioStandaloneActivity :
         setupCloseButton()
         setupBackPressHandler()
         setupFileOperationButtons()
+        pagingControls.setupClicks()
         parseIncomingIntent()
     }
 
@@ -243,6 +258,8 @@ class AudioStandaloneActivity :
             Timber.w(e, "AudioStandalone: failed to query display name")
             null
         } ?: uri.lastPathSegment
+        // Folder paging enumerates only audio neighbours - the only type this host renders.
+        viewModel.setHostSupportedTypes(setOf(MediaType.AUDIO))
         viewModel.loadFromUri(uri, intent?.type, displayName)
     }
 
@@ -267,11 +284,12 @@ class AudioStandaloneActivity :
                 finish()
                 return@collectOnLifecycle
             }
-            if (!contentLoaded) {
-                Timber.d("S0380: AudioStandaloneActivity starting background audio from external intent")
+            if (file.path != lastShownPath) {
                 viewManager.show(file, MediaType.AUDIO)
-                contentLoaded = true
+                lastShownPath = file.path
             }
+            folderPagingEnabled = state.supportsFolderPaging
+            pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
             updateRenameButtonVisibility()
         }
         collectOnLifecycle(viewModel.isFavorite) { isFav ->
@@ -309,11 +327,13 @@ class AudioStandaloneActivity :
     // ── PlayerHostCapabilities ──────────────────────────────────────────────────
 
     override val supportsListNavigation: Boolean = false
-    override val supportsSlideshow: Boolean = false
+    // Slideshow auto-advance steps through the enumerated folder list, so it tracks folder paging.
+    override val supportsSlideshow: Boolean get() = folderPagingEnabled
     override val supportsPersistentAudio: Boolean = false
     override val supportsCast: Boolean = false
     override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = false
+    override val supportsFolderPaging: Boolean get() = folderPagingEnabled
 
     override val currentMediaFile: StateFlow<MediaFile?> by lazy {
         viewModel.state.map { it.mediaFile }

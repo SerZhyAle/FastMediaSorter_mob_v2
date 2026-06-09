@@ -2495,4 +2495,6 @@ Close the player and try again.</string>
     <string name="ext_lang_ukr_desc">High-quality Ukrainian language model for offline Tesseract OCR text recognition.</string>
     <string name="ext_delete_confirm_title">Delete extension?</string>
     <string name="ext_delete_confirm_message">Remove %1$s and free up its space? You can download it again later.</string>
+    <string name="slideshow_stop">Stop slideshow</string>
+    <string name="open_in_fms_external_file_notice">This file is outside a folder added to the app, so the app home opened instead.</string>
 </resources>

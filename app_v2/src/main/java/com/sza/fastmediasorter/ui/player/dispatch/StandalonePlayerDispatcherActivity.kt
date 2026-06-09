@@ -51,7 +51,6 @@ class StandalonePlayerDispatcherActivity : Activity() {
             }
         }
 
-        Timber.d("S0380: dispatcher routing typeless intent to ${target.simpleName}")
         // Carry over action, data, type, extras and URI-read grants verbatim; only retarget the class.
         val forward = Intent(intent).apply {
             setClass(this@StandalonePlayerDispatcherActivity, target)

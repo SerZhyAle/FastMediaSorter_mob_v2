@@ -178,7 +178,6 @@ class CameraOcrTranslateActivity :
     }
 
     override fun showCropStep(bitmap: Bitmap) {
-        Timber.d("S0338: crop preview rendered")
         binding.layoutCropState.isVisible = true
         binding.layoutResultContent.isVisible = false
         binding.layoutEmptyState.isVisible = false
