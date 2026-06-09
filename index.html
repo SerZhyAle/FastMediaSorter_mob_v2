@@ -930,6 +930,27 @@
             ];
 
             // Scenario Links Mapper
+            // Explicit scenario -> feature-title map drives Variant 4 filtering.
+            // Each scenario lists 3-4 concrete capabilities so no scenario renders empty.
+            var scenarioFeatureMap = {
+                photo: ['Slideshow with background music', 'Crop & Color adjustment filters', 'Animated GIF speed controls', 'Instant sorting panel'],
+                music: ['Background audio service & Casting', 'Lyrics display & MIDI integration', 'Slideshow with background music'],
+                video: ['Session save & restore', 'Picture-in-Picture & D-pad focus', 'Video screenshot capture', 'Dedicated VR build & OpenXR engine'],
+                smb: ['Multiple resource types', 'NAS auto-discovery & speed test', 'Cross-protocol transfers', 'Intelligent caching & sync'],
+                backup: ['Direct Camera & Voice capture', 'Cross-protocol transfers', 'Cloud OAuth storage', 'Duplicate file finder'],
+                download: ['Duplicate file finder', 'File Manager Mode', 'Instant sorting panel', 'Cross-protocol transfers'],
+                offline: ['Intelligent caching & sync', 'Multiple resource types', 'Cloud OAuth storage', 'E-book reader formatting'],
+                docs: ['Office & PDF document handoff', 'E-book reader formatting', 'Read Aloud (TTS) & Text selection', 'Cloud OAuth storage'],
+                ocr: ['Offline OCR & Translation engine', 'Photo OCR capture flow', 'Read Aloud (TTS) & Text selection', 'Embedded text calculator'],
+                tv: ['NAS auto-discovery & speed test', 'Complete DPAD & TV remote remapping', 'Picture-in-Picture & D-pad focus', 'Background audio service & Casting'],
+                duplicates: ['Duplicate file finder', 'File Manager Mode', 'Cross-protocol transfers', 'Instant sorting panel'],
+                chromecast: ['Background audio service & Casting', 'Lyrics display & MIDI integration', 'Picture-in-Picture & D-pad focus', 'Video screenshot capture'],
+                widgets: ['Icon-style home widgets', 'Settings search & customization', 'First-run device profile setup', 'Session save & restore'],
+                vrcinema: ['Dedicated VR build & OpenXR engine', 'Picture-in-Picture & D-pad focus', 'Session save & restore', 'Background audio service & Casting'],
+                calculator: ['Embedded text calculator', 'In-place Markdown editor', 'Offline OCR & Translation engine', 'Read Aloud (TTS) & Text selection'],
+                cloudnotes: ['In-place Markdown editor', 'Drawing & annotations canvas', 'Cloud OAuth storage', 'Embedded text calculator']
+            };
+
             function getScenarioLinks(title, desc) {
                 var text = (title + ' ' + desc).toLowerCase();
                 var links = [];
@@ -1299,11 +1320,9 @@
                     // --- Variant 4: Scenario Filter ---
                     var scenarioFeatures = filtered;
                     if (activeScenarioV4 !== 'all') {
+                        var scTitles = scenarioFeatureMap[activeScenarioV4] || [];
                         scenarioFeatures = filtered.filter(function (f) {
-                            var scLinks = getScenarioLinks(f.title, f.desc);
-                            return scLinks.some(function (l) {
-                                return l.url.indexOf(activeScenarioV4) !== -1;
-                            });
+                            return scTitles.indexOf(f.title) !== -1;
                         });
                     }
 
