@@ -62,6 +62,7 @@ This document is the canonical inventory of all user-facing features implemented
 ## 13. Offline OCR & Translation
 - **Offline OCR & Translation engine** `[Standard / VR]`: Extract text from images/PDFs and translate it completely offline using ML Kit and Tesseract with custom models.
 - **Photo OCR capture flow** `[Standard / VR]`: In-app camera translation with area cropping, language selector on the crop screen, and editable results saved as `.txt`.
+- **On-demand delivery** `[Standard / VR]`: OCR, translation, the FFmpeg DTS decoder and the audio-player background videos are off by default and installed on demand the first time you enable them; declining the download leaves the feature unavailable without affecting the rest of the app, and once installed they survive app updates and cache clears.
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery & speed test** `[Standard / VR]`: Scans subnets for SMB/FTP/SFTP, tests network speed to optimize copy thread counts, and supports high-performance streaming.
@@ -73,3 +74,4 @@ This document is the canonical inventory of all user-facing features implemented
 ## 16. Settings & Navigation
 - **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
 - **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
+- **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.

@@ -184,8 +184,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260609223
-        versionName = "2.60.6092.234"
+        versionCode = 260609232
+        versionName = "2.60.6092.321"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -738,6 +738,23 @@ android {
             // Windows NDK linker can leave locked sibling temp files (*.tmp) next to the
             // final shared library in intermediates/cxx; mergeNativeLibs must ignore them.
             excludes += "**/*.tmp"
+
+            // S0386 Phase 05 de-bundle: strip the on-demand native sets from every base artifact.
+            // The Java/Kotlin wrappers (cz.adaptech:tesseract4android, PaddleLite, media3 FfmpegLibrary)
+            // stay on the compile path; only the `.so` are removed and re-attached at runtime from
+            // filesDir by DeliveredNativeLibraryLoader. These names exist only in OCR/DTS flavors, so a
+            // global exclude is flavor-safe (lite/photos never packaged them).
+            // Set B - Tesseract OCR stack:
+            excludes += "**/libtesseract.so"
+            excludes += "**/libleptonica.so"
+            excludes += "**/libpngx.so"
+            excludes += "**/libjpeg.so"
+            // Set B - PaddleOCR (noLegal):
+            excludes += "**/libpaddle_lite_jni.so"
+            excludes += "**/libpaddle_light_api_shared.so"
+            // Set D - FFmpeg DTS decoder:
+            excludes += "**/libffmpegJNI.so"
+
             useLegacyPackaging = false
         }
     }

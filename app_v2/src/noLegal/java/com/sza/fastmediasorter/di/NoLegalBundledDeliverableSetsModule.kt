@@ -15,16 +15,14 @@ import dagger.multibindings.IntoSet
 @InstallIn(SingletonComponent::class)
 object NoLegalBundledDeliverableSetsModule {
 
-    // Audio-visualizations (Set C) are de-bundled and delivered on demand (S0386 Phase 05).
-    // Translation (Set A) stays bundled on sideload/VR; OCR (Set B, incl. Paddle) and FFmpeg DTS
-    // (Set D) are still bundled in the noLegal base.
+    // Translation (Set A) stays bundled on sideload/VR (Google `.so` are not re-hosted). Set B (OCR:
+    // Tesseract + PaddleOCR), Set C (audio-visualizations) and Set D (FFmpeg DTS) are de-bundled and
+    // delivered on demand (S0386 Phase 05).
     @Provides
     @IntoSet
     fun contributor(): BundledDeliverableSetContributor = object : BundledDeliverableSetContributor {
         override fun bundledSets(): Set<DeliverableSet> = setOf(
-            DeliverableSet.TRANSLATION,
-            DeliverableSet.OCR_ENGINES,
-            DeliverableSet.FFMPEG_DTS
+            DeliverableSet.TRANSLATION
         )
     }
 
@@ -32,7 +30,9 @@ object NoLegalBundledDeliverableSetsModule {
     @IntoSet
     fun descriptorContributor(): DeliverableSetContributor = object : DeliverableSetContributor {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
-            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations()
+            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
+            DeliverableSet.OCR_ENGINES to DeliverableDescriptorCatalog.ocrEnginesNoLegal(),
+            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts()
         )
     }
 }

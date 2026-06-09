@@ -15,22 +15,21 @@ import dagger.multibindings.IntoSet
 @InstallIn(SingletonComponent::class)
 object StandardBundledDeliverableSetsModule {
 
-    // Audio-visualizations (Set C) are de-bundled and delivered on demand (S0386 Phase 05);
-    // OCR engines (Set B) and FFmpeg DTS (Set D) are still bundled in the standard base.
+    // Set B (OCR/Tesseract), Set C (audio-visualizations) and Set D (FFmpeg DTS) are all de-bundled
+    // and delivered on demand (S0386 Phase 05). Nothing heavy remains bundled in the standard base.
     @Provides
     @IntoSet
     fun contributor(): BundledDeliverableSetContributor = object : BundledDeliverableSetContributor {
-        override fun bundledSets(): Set<DeliverableSet> = setOf(
-            DeliverableSet.OCR_ENGINES,
-            DeliverableSet.FFMPEG_DTS
-        )
+        override fun bundledSets(): Set<DeliverableSet> = emptySet()
     }
 
     @Provides
     @IntoSet
     fun descriptorContributor(): DeliverableSetContributor = object : DeliverableSetContributor {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
-            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations()
+            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
+            DeliverableSet.OCR_ENGINES to DeliverableDescriptorCatalog.ocrEnginesStore(),
+            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts()
         )
     }
 }
