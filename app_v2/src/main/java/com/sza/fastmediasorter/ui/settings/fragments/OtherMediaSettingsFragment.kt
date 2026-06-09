@@ -11,21 +11,30 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
+import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
+import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class OtherMediaSettingsFragment : BaseSettingsFragment() {
+
+    @Inject
+    lateinit var deliveryEnableInterceptor: DeliveryEnableInterceptor
 
     private val modelManager by lazy { TesseractModelManager(requireContext()) }
     private var rusDownloadJob: Job? = null
@@ -123,11 +132,23 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupViews() {
-        // Translation toggle - help payload folded into the row
+        // Translation toggle - help payload folded into the row. Turning it ON gates on the
+        // TRANSLATION set being installed (S0386 Phase 06); on refusal the toggle reverts to OFF.
         bindSwitch(binding.rowEnableTranslation) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableTranslation = isChecked))
-            updateTranslationVisibility(isChecked)
+            if (isChecked) {
+                deliveryEnableInterceptor.requireInstalled(
+                    host = this,
+                    set = DeliverableSet.TRANSLATION,
+                    onReady = {
+                        viewModel.updateSettings(viewModel.settings.value.copy(enableTranslation = true))
+                        updateTranslationVisibility(true)
+                    },
+                    onUnavailable = { setSwitchChecked(binding.rowEnableTranslation, false) }
+                )
+            } else {
+                viewModel.updateSettings(viewModel.settings.value.copy(enableTranslation = false))
+                updateTranslationVisibility(false)
+            }
         }
 
         setupLanguageSelectors()
@@ -163,11 +184,25 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(enableGoogleLens = isChecked))
         }
 
-        // OCR
+        // OCR - turning it ON gates on the OCR_ENGINES set being installed (S0386 Phase 06);
+        // on refusal the toggle reverts to OFF.
         bindSwitch(binding.rowEnableOcr) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableOcr = isChecked))
-            updateOcrVisibility(isChecked, current.ocrEngineType)
+            if (isChecked) {
+                deliveryEnableInterceptor.requireInstalled(
+                    host = this,
+                    set = DeliverableSet.OCR_ENGINES,
+                    onReady = {
+                        val current = viewModel.settings.value
+                        viewModel.updateSettings(current.copy(enableOcr = true))
+                        updateOcrVisibility(true, current.ocrEngineType)
+                    },
+                    onUnavailable = { setSwitchChecked(binding.rowEnableOcr, false) }
+                )
+            } else {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(enableOcr = false))
+                updateOcrVisibility(false, current.ocrEngineType)
+            }
         }
 
         // OCR Font Settings
@@ -188,6 +223,14 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
         binding.btnOcrBestUkrDelete.setOnClickListener {
             deleteModel("ukr")
+        }
+        binding.layoutExtensionsManager?.let { layout ->
+            layout.setOnClickListener {
+                parentFragmentManager.beginTransaction()
+                    .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
+                    .addToBackStack(null)
+                    .commit()
+            }
         }
     }
 

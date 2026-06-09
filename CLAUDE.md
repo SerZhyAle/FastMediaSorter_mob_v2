@@ -35,6 +35,7 @@
 - Specs: `PLAN/Sxxxx_<slug>.md`. Directory: `PLAN/Sxxxx_<slug>/`.
 - Journal: `PLAN/spec-catalog.jsonl` (never hand-edit). CLI: `insert.ps1`, `update.ps1`, `select.ps1`, `delete.ps1`.
 - Status header sync: catalog mutators update the first `**Status:**` line in spec file automatically.
+- **Block* note (mandatory):** every transition INTO a `Block*` status must supply `-StatusNote '<reason>'` to `update.ps1` / `close-and-log.ps1`. `BlockNeedUserTest` → describe what the user must test on device. `BlockExternal` / `BlockByOtherTask` / `BlockQuestions` → describe the blocker and what resolves it. The note is written to the spec header as `**Status note:**` immediately after `**Status:**` so it is readable at a glance. Leaving a `Block*` status auto-clears the note.
 - Statuses: Draft, Approved, Tactical, In Progress, Implemented, Verified, Partial, Broken, Block*, Archived (soft-delete).
 - Priority: 0..100 (default 50).
 

@@ -2412,4 +2412,39 @@
     <string name="resource_menu_launch">Запустить</string>
     <string name="resource_menu_move_to_top">Переместить в самый верх</string>
     <string name="resource_menu_move_to_bottom">Переместить в самый низ</string>
+    <string name="delivery_prompt_title">Нужна докачка</string>
+    <string name="delivery_offer_message">Для этой функции нужна докачка (около %1$s). Скачать сейчас?</string>
+    <string name="delivery_offer_message_unknown_size">Для этой функции нужна небольшая докачка. Скачать сейчас?</string>
+    <string name="delivery_state_downloading">Скачиваю..</string>
+    <string name="delivery_state_verifying">Проверяю загрузку..</string>
+    <string name="delivery_state_error">Не удалось скачать - проверьте соединение и повторите.</string>
+    <string name="delivery_percent">%1$d%%</string>
+    <string name="delivery_action_download">Скачать</string>
+    <string name="delivery_action_retry">Повторить</string>
+    <string name="delivery_progress_content_description">Ход загрузки</string>
+
+    <!-- Extensions Manager Strings -->
+    <string name="ext_manager_title">Загружаемые расширения</string>
+    <string name="ext_manager_description">Управляйте тяжелыми ресурсами, языковыми моделями и офлайн-декодерами, чтобы сохранить базовое приложение легким.</string>
+    <string name="ext_manager_desc_short">Управление офлайн-модулями и языковыми пакетами</string>
+    <string name="ext_estimated_size">Оценочный размер: %s</string>
+    <string name="ext_status_installed">Установлено</string>
+    <string name="ext_status_available">Доступно</string>
+    <string name="ext_status_downloading">Загрузка</string>
+    <string name="ext_status_failed">Ошибка</string>
+    <string name="ext_downloading_progress">Загрузка: %d%%</string>
+    <string name="ext_ocr_engines_title">Модули распознавания текста</string>
+    <string name="ext_ocr_engines_desc">Включает библиотеки Tesseract и PaddleOCR для офлайн-распознавания текста на изображениях и в документах.</string>
+    <string name="ext_translation_title">Модуль перевода</string>
+    <string name="ext_translation_desc">Включает переводчик ML Kit и идентификатор языка для офлайн-перевода текста между поддерживаемыми языками.</string>
+    <string name="ext_audio_viz_title">Аудиовизуализация</string>
+    <string name="ext_audio_viz_desc">Включает фоновые зацикленные видео в плеере при проигрывании аудиофайлов.</string>
+    <string name="ext_ffmpeg_dts_title">Декодер FFmpeg DTS</string>
+    <string name="ext_ffmpeg_dts_desc">Включает поддержку воспроизведения аудиокодеков DTS, APE, WMA и WavPack через FFmpeg.</string>
+    <string name="ext_lang_rus_title">Русская языковая модель OCR</string>
+    <string name="ext_lang_rus_desc">Высококачественная модель русского языка для офлайн-распознавания текста Tesseract.</string>
+    <string name="ext_lang_ukr_title">Украинская языковая модель OCR</string>
+    <string name="ext_lang_ukr_desc">Высококачественная модель украинского языка для офлайн-распознавания текста Tesseract.</string>
+    <string name="ext_delete_confirm_title">Удалить расширение?</string>
+    <string name="ext_delete_confirm_message">Удалить %1$s и освободить место? Позже можно скачать снова.</string>
 </resources>

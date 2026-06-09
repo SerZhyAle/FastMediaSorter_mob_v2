@@ -700,8 +700,9 @@ class PlaybackSettingsFragment : Fragment() {
             com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_HIGHLIGHT_SETTING
         )
         if (highlight != com.sza.fastmediasorter.ui.settings.SettingsActivity.HIGHLIGHT_EMBEDDED_GAME) return
-        binding.headerOtherFeatures.setExpanded(true, notify = false)
+        binding.headerOtherFeatures.setExpanded(true, notify = true)
         binding.containerOtherFeatures.isVisible = true
+        saveSectionState(KEY_OTHER_FEATURES_EXPANDED, true)
         binding.rowEmbeddedGame.post {
             binding.rowEmbeddedGame.requestFocus()
             binding.rowEmbeddedGame.requestRectangleOnScreen(

@@ -95,6 +95,7 @@ After all phases done:
   pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
       -Id <Sxxxx> `
       -Status <Implemented|BlockNeedUserTest> `
+      -StatusNote '<For BlockNeedUserTest: what to verify on device. Omit for Implemented.>' `
       -DevLogs @(
           '{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-dev","desc":"All phases done; status -> <new>"}',
           '{"file":"app_v2/src/.../X.kt","target":"spec-dev","desc":"<phase-NN.M edit summary>"}'
@@ -103,6 +104,8 @@ After all phases done:
       -FuncOp <ADD|CHANGE|""> -FuncDesc "<english summary or omit>" `
       -CatalogModule app_v2
   ```
+
+  `-StatusNote` is **mandatory** when `-Status BlockNeedUserTest`; omit or leave empty for `Implemented`.
 
   Functionality log block (encoded in `-FuncOp` / `-FuncDesc`):
   - **`ADD`** - spec introduces a new user-visible capability (no prior equivalent). Hints: §2 Goals describe a new feature; §8 mentions a new entry in `docs/FEATURES.md`; touched files are new classes / new screens / new menu entries.
@@ -131,7 +134,7 @@ After all phases done:
 
 Stop immediately and report - never guess or recover, never assume missing/ambiguous details, never attempt speculative recovery - on any of:
 
-1. **Ambiguous prompt** - placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher. Set status `BlockQuestions`.
+1. **Ambiguous prompt** - placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher. Set status `BlockQuestions` with `-StatusNote '<which placeholder/field is missing and where>'`.
 2. **Verification FAIL** after edit - step left `[~]`. User investigates.
 3. **Read-only zone touch.**
 4. **Line budget violation** - projected >1500 lines.
@@ -144,7 +147,7 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 11. **External system touch** - network, file deletion outside `temp/`, force push, CI edit. Stop, require explicit permission.
 12. **Trilingual gap** - step adds UI string but prompt names <3 `values/` files. Stop, never fabricate translations.
 12a. **Communication policy violation** - step adds/modifies a user-visible string failing §6 tone checklist of `docs/COMMUNICATION_POLICY.md` (raw exception text as primary message, "Are you sure?" without consequence, "operation completed successfully", empty state with no CTA). Rewrite to comply before proceeding; do not commit policy-violating copy.
-13. **External dependency missing** - step needs library version / hardware / third-party state not present. Set status `BlockExternal`, stop.
+13. **External dependency missing** - step needs library version / hardware / third-party state not present. Set status `BlockExternal` with `-StatusNote '<what is missing and what must happen to unblock>'`, stop.
 14. **Flavor leak** - step writes a `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guard inside `src/main/java/**`, OR places a flavor-only class (any new file containing `vr.*Activity`, `Vr*Renderer`, `*NoLegal*`, NewPipe/yt-dlp wrappers, OpenXR JNI) under `src/main/java/**` instead of `src/<flavor>/java/**`. Stop: the tactical spec is wrong and needs `/spec-update`. Correct pattern is interface in `src/main/` + impl in flavor source set + Hilt module per flavor. See `dev/FLAVOR_DEVELOPMENT_RULES.md` and CLAUDE.md Rule 15. Never compensate by adding the guard "just for this step".
 
 ---
@@ -198,6 +201,6 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 - **Status transitions.**
   - Before the first non-done step is started: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if already `In Progress` or later).
   - After every phase has all steps `[x] done` and final dev log is written: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
-  - When flipping to `BlockNeedUserTest` (on-device acceptance): the `Timber.d("Sxxxx: …")` debug tags were already inserted before the final phase's build (see Process - "Final-phase debug-tag insertion"); here just `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
-  - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions | BlockExternal | BlockByOtherTask` per the stop reason.
+  - When flipping to `BlockNeedUserTest` (on-device acceptance): the `Timber.d("Sxxxx: …")` debug tags were already inserted before the final phase's build (see Process - "Final-phase debug-tag insertion"); here just `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest -StatusNote '<1-2 sentences: what the user must verify on device>'`.
+  - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions|BlockExternal|BlockByOtherTask -StatusNote '<reason and what resolves it>'` — the note is **mandatory** for every Block* transition.
 - **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never set the journal status to `Verified` from this skill - that is `/spec-check`'s job.

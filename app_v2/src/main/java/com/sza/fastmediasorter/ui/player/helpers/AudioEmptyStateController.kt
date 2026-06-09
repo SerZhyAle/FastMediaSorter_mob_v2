@@ -11,7 +11,9 @@ import android.view.TextureView
 import android.widget.ImageView
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.delivery.DeliveredAudioVisualizationSource
 import timber.log.Timber
+import java.io.File
 import kotlin.random.Random
 
 /**
@@ -38,7 +40,8 @@ class AudioEmptyStateController(
     private val audioCoverArtView: ImageView,
     private val barsView: AudioBreathingBarsView,
     private val videoView: TextureView,
-    private val wavesView: AudioWaveParticleView
+    private val wavesView: AudioWaveParticleView,
+    private val deliveredSource: DeliveredAudioVisualizationSource
 ) {
 
     companion object {
@@ -54,7 +57,7 @@ class AudioEmptyStateController(
     private var currentMode: String = MODE_NONE
     private var isPlaying: Boolean = false
     private var mediaPlayer: MediaPlayer? = null
-    private var pendingResId: Int = 0
+    private var pendingFile: File? = null
 
     // ────────────────────────── Public API ──────────────────────────
 
@@ -179,9 +182,15 @@ class AudioEmptyStateController(
      * Works on API 16+. Falls back to CANVAS_BARS on any error.
      */
     private fun showVideo() {
-        val backgrounds = intArrayOf(R.raw.anim_audio_bg_1, R.raw.anim_audio_bg_2, R.raw.anim_audio_bg_3, R.raw.anim_audio_bg_4, R.raw.anim_audio_bg_5)
-        pendingResId = backgrounds[Random.nextInt(backgrounds.size)]
-        Timber.d("AudioEmptyStateController: showVideo resId=$pendingResId, " +
+        val file = deliveredSource.getRandomBackgroundFile()
+        if (file == null) {
+            Timber.i("AudioEmptyStateController: no delivered video backgrounds found, fallback to CANVAS_BARS")
+            videoView.isVisible = false
+            showBars()
+            return
+        }
+        pendingFile = file
+        Timber.d("AudioEmptyStateController: showVideo file=${file.absolutePath}, " +
             "textureAvailable=${videoView.isAvailable}, " +
             "viewSize=${videoView.width}x${videoView.height}, " +
             "surfaceTexture=${videoView.surfaceTexture}")
@@ -189,13 +198,13 @@ class AudioEmptyStateController(
 
         if (videoView.isAvailable) {
             Timber.d("AudioEmptyStateController: surface already available - starting immediately")
-            startMediaPlayer(Surface(videoView.surfaceTexture!!), pendingResId)
+            startMediaPlayer(Surface(videoView.surfaceTexture!!), file)
         } else {
             Timber.d("AudioEmptyStateController: surface NOT available - waiting for callback")
             videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, w: Int, h: Int) {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureAvailable ${w}x${h}")
-                    startMediaPlayer(Surface(texture), pendingResId)
+                    startMediaPlayer(Surface(texture), file)
                 }
                 override fun onSurfaceTextureSizeChanged(t: SurfaceTexture, w: Int, h: Int) {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureSizeChanged ${w}x${h}")
@@ -209,12 +218,10 @@ class AudioEmptyStateController(
         }
     }
 
-    private fun startMediaPlayer(surface: Surface, resId: Int) {
+    private fun startMediaPlayer(surface: Surface, file: File) {
         releaseMediaPlayer()
-        Timber.d("AudioEmptyStateController: startMediaPlayer resId=$resId, surface.isValid=${surface.isValid}")
+        Timber.d("AudioEmptyStateController: startMediaPlayer file=${file.absolutePath}, surface.isValid=${surface.isValid}")
         try {
-            val afd = context.resources.openRawResourceFd(resId)
-            Timber.d("AudioEmptyStateController: raw resource opened, offset=${afd.startOffset}, length=${afd.length}")
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -222,8 +229,7 @@ class AudioEmptyStateController(
                         .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
                         .build()
                 )
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
+                setDataSource(file.absolutePath)
                 setSurface(surface)
                 setVolume(0f, 0f)   // muted: decorative background only
                 isLooping = true
@@ -256,7 +262,7 @@ class AudioEmptyStateController(
                         MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "TIMED_OUT($extra)"
                         else -> "EXTRA_$extra"
                     }
-                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr resId=$resId - fallback to CANVAS_BARS")
+                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - fallback to CANVAS_BARS")
                     videoView.isVisible = false
                     showBars()
                     true
@@ -270,7 +276,7 @@ class AudioEmptyStateController(
             }
         } catch (e: Exception) {
             surface.release()
-            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - fallback to CANVAS_BARS, resId=$resId")
+            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - fallback to CANVAS_BARS, file=${file.absolutePath}")
             videoView.isVisible = false
             showBars()
         }

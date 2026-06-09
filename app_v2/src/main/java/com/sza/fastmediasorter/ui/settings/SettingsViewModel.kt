@@ -12,9 +12,9 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
-import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
+import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
 import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
-import com.sza.fastmediasorter.domain.usecase.PrewarmTranslationModelUseCase
+import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -67,7 +67,7 @@ class SettingsViewModel @Inject constructor(
     private val cleanupTrashFoldersUseCase: CleanupTrashFoldersUseCase,
     private val workManagerScheduler: WorkManagerScheduler,
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
-    private val prewarmTranslationModelUseCase: PrewarmTranslationModelUseCase
+    private val prewarmTranslationModelUseCase: TranslationModelPrewarmer
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())

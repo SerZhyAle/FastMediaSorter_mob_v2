@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.domain.translation
 
-import com.google.mlkit.nl.translate.TranslateLanguage
 import java.util.Locale
 
 /**
@@ -74,9 +73,9 @@ object TranslationLanguageCodeMapper {
     fun languageCodeToMLKit(code: String): String {
         val normalized = code.lowercase(Locale.ROOT)
         return when (normalized) {
-            "auto" -> TranslateLanguage.ENGLISH
+            "auto" -> "en"
             in supportedCodes -> normalized
-            else -> TranslateLanguage.ENGLISH
+            else -> "en"
         }
     }
 }

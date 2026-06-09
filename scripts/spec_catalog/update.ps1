@@ -9,7 +9,8 @@ param(
     [string] $Name,
     [string] $File,
     [int]    $Tier = -1,
-    [int]    $Priority = -1
+    [int]    $Priority = -1,
+    [string] $StatusNote = $null   # non-empty: set note; empty '': clear note; $null/omit: preserve
 )
 
 # Convert terminating errors (Write-Error, throw, provider errors) into
@@ -64,6 +65,27 @@ if ($PSBoundParameters.ContainsKey('Status'))   { $updated.status   = $Status }
 if ($PSBoundParameters.ContainsKey('Name'))     { $updated.name     = $Name }
 if ($PSBoundParameters.ContainsKey('File'))     { $updated.file     = ($File -replace '\\','/') }
 if ($PSBoundParameters.ContainsKey('Priority')) { $updated.priority = $Priority }
+
+# StatusNote: explicit non-null value updates the record; auto-clear when leaving Block* without a note.
+$resolvedNote = $null   # $null = don't touch header note; '' = clear; non-empty = set
+if ($PSBoundParameters.ContainsKey('StatusNote')) {
+    $resolvedNote = $StatusNote   # caller's explicit intent (may be '' to clear)
+    if ($StatusNote -ne '') {
+        if ($updated.PSObject.Properties.Name -contains 'statusNote') { $updated.statusNote = $StatusNote }
+        else { $updated | Add-Member -NotePropertyName 'statusNote' -NotePropertyValue $StatusNote }
+    } else {
+        # Explicit clear: remove field from record
+        if ($updated.PSObject.Properties.Name -contains 'statusNote') {
+            $updated.PSObject.Properties.Remove('statusNote')
+        }
+    }
+} elseif ($PSBoundParameters.ContainsKey('Status') -and $oldStatus -like 'Block*' -and $updated.status -notlike 'Block*') {
+    # Leaving a Block* status without a new note: auto-clear so stale notes don't linger.
+    $resolvedNote = ''
+    if ($updated.PSObject.Properties.Name -contains 'statusNote') {
+        $updated.PSObject.Properties.Remove('statusNote')
+    }
+}
 if ($Tier -ge 0) {
     if ($updated.PSObject.Properties.Name -contains 'tier') { $updated.tier = $Tier }
     else { $updated | Add-Member -NotePropertyName 'tier' -NotePropertyValue $Tier }
@@ -101,9 +123,12 @@ Write-Catalog -Records $records.ToArray()
 # fail-soft helper in _lib.ps1; only the first header line is touched, deeper
 # ADR / Proposal **Status:** lines are left alone. The journal write above is the
 # source of truth and is never rolled back by a header problem.
-if ($PSBoundParameters.ContainsKey('Status') -and $oldStatus -ne $updated.status) {
-    if (Sync-SpecHeaderStatus -PathRef $updated.file -Status $updated.status) {
-        Write-Host ("  header synced -> {0}" -f $updated.status) -ForegroundColor DarkGray
+$statusChanged = $PSBoundParameters.ContainsKey('Status') -and $oldStatus -ne $updated.status
+$noteExplicit  = $PSBoundParameters.ContainsKey('StatusNote')
+if ($statusChanged -or $noteExplicit) {
+    if (Sync-SpecHeaderStatus -PathRef $updated.file -Status $updated.status -StatusNote $resolvedNote) {
+        $noteHint = if ($null -ne $resolvedNote -and $resolvedNote -ne '') { ' + note' } elseif ($resolvedNote -eq '') { ' (note cleared)' } else { '' }
+        Write-Host ("  header synced -> {0}{1}" -f $updated.status, $noteHint) -ForegroundColor DarkGray
     }
 }
 

@@ -413,7 +413,7 @@ class PlayerControlsSetupManager(
                 try {
                     // Translate to default target language (user's preferred language or Russian)
                     val targetLang = translationManager.getTargetLanguageCode()
-                        ?: com.google.mlkit.nl.translate.TranslateLanguage.RUSSIAN
+                        ?: TranslationManager.languageCodeToMLKit("ru")
 
                     val translatedText = translationManager.translate(currentText, targetLang = targetLang)
 

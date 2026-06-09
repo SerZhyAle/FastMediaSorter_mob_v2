@@ -1,0 +1,18 @@
+package com.sza.fastmediasorter.ui.player.helpers
+
+import android.content.Context
+import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class MlKitTextTranslationFacadeFactory @Inject constructor(
+    private val context: Context,
+    private val settingsRepository: SettingsRepository,
+    private val capabilityRepository: DeliverableCapabilityRepository
+) : TextTranslationFacadeFactory {
+    override fun create(callback: TranslationManager.TranslationCallback): TextTranslationFacade {
+        return TranslationBackend(context, callback, settingsRepository, capabilityRepository)
+    }
+}

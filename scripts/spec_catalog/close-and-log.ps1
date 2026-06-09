@@ -38,6 +38,7 @@ param(
     [string]$FuncOp = '',
     [string]$FuncDesc = '',
     [string]$CatalogModule = 'app_v2',
+    [string]$StatusNote = '',
     [switch]$SkipCatalogSync,
     [switch]$SkipFuncLog,
     [switch]$StatusOnly
@@ -87,7 +88,9 @@ Step "status" {
     }
     else {
         $updatePath = Join-Path $PSScriptRoot 'update.ps1'
-        & $pwshExe -File $updatePath -Id $Id -Status $Status
+        $updateArgs = @('-File', $updatePath, '-Id', $Id, '-Status', $Status)
+        if ($StatusNote -ne '') { $updateArgs += @('-StatusNote', $StatusNote) }
+        & $pwshExe @updateArgs
         if ($LASTEXITCODE -ne 0) { throw "update.ps1 exited $LASTEXITCODE" }
     }
 }

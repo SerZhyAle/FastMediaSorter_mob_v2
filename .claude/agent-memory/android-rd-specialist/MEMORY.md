@@ -1,6 +1,7 @@
 # Memory Index
 
 - [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
+- [S0386 delivery: channel+UX done & inert, debundle core paused](project_s0386_delivery_pause.md) - phases 04/06/05.1 build-green & inert; 05.2-07 BlockExternal - Play dynamic-feature blocked by ML Kit in src/main, needs /spec-tech refine + release/device/hosting
 
 - [Camera capture is permission-free; in-app camera forces CAMERA on all of it](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE fallback (SecurityException); S0359 Variant 1: in-app CameraX is sole path, no perm-free fallback
 - [Draft style is approval-gate, not drafting friction](feedback_draft_style_gate.md) - spec `..`/ё + lists-over-tables sanitation enforced only at Draft->Approved; drafts may stay rough, no hygiene-only sweeps

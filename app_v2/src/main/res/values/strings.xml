@@ -2460,4 +2460,39 @@ Close the player and try again.</string>
     <string name="resource_menu_launch">Launch</string>
     <string name="resource_menu_move_to_top">Move to very top</string>
     <string name="resource_menu_move_to_bottom">Move to very bottom</string>
+    <string name="delivery_prompt_title">Extra download needed</string>
+    <string name="delivery_offer_message">This feature needs an extra download (about %1$s). Get it now?</string>
+    <string name="delivery_offer_message_unknown_size">This feature needs a small extra download. Get it now?</string>
+    <string name="delivery_state_downloading">Downloading..</string>
+    <string name="delivery_state_verifying">Checking the download..</string>
+    <string name="delivery_state_error">Couldn\'t download - check your connection and try again.</string>
+    <string name="delivery_percent">%1$d%%</string>
+    <string name="delivery_action_download">Download</string>
+    <string name="delivery_action_retry">Try again</string>
+    <string name="delivery_progress_content_description">Download progress</string>
+
+    <!-- Extensions Manager Strings -->
+    <string name="ext_manager_title">Downloadable Extensions</string>
+    <string name="ext_manager_description">Manage heavy assets, language models and offline decoders to keep the base application lightweight.</string>
+    <string name="ext_manager_desc_short">Manage offline modules &amp; language packs</string>
+    <string name="ext_estimated_size">Estimated size: %s</string>
+    <string name="ext_status_installed">Installed</string>
+    <string name="ext_status_available">Available</string>
+    <string name="ext_status_downloading">Downloading</string>
+    <string name="ext_status_failed">Failed</string>
+    <string name="ext_downloading_progress">Downloading: %d%%</string>
+    <string name="ext_ocr_engines_title">OCR Engines</string>
+    <string name="ext_ocr_engines_desc">Enables Tesseract and PaddleOCR native recognition libraries to parse text from image and document layouts offline.</string>
+    <string name="ext_translation_title">Translation Module</string>
+    <string name="ext_translation_desc">Enables offline ML Kit translator and language identifier to translate text across supported languages.</string>
+    <string name="ext_audio_viz_title">Audio Visualizations</string>
+    <string name="ext_audio_viz_desc">Enables looping background videos in the player when playing audio files.</string>
+    <string name="ext_ffmpeg_dts_title">FFmpeg DTS Decoder</string>
+    <string name="ext_ffmpeg_dts_desc">Enables playback support for DTS, APE, WMA, and WavPack audio codecs via FFmpeg.</string>
+    <string name="ext_lang_rus_title">Russian OCR Model</string>
+    <string name="ext_lang_rus_desc">High-quality Russian language model for offline Tesseract OCR text recognition.</string>
+    <string name="ext_lang_ukr_title">Ukrainian OCR Model</string>
+    <string name="ext_lang_ukr_desc">High-quality Ukrainian language model for offline Tesseract OCR text recognition.</string>
+    <string name="ext_delete_confirm_title">Delete extension?</string>
+    <string name="ext_delete_confirm_message">Remove %1$s and free up its space? You can download it again later.</string>
 </resources>

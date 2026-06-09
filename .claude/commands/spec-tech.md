@@ -75,7 +75,7 @@ Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars
 1. Implement changes directly in source identified in step 2.
 2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", ticket is about to enter `BlockNeedUserTest`, so tags must be present. One tag per flow entry, not per modified line. The `Sxxxx:` prefix is reserved for these temporary probes; never reuse in `Timber.i/w/e` or any message meant to persist.
 3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
-4. Advance to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. Step-2 tags stay until ticket leaves this status (removed by `/spec-check` on `Verified`, or `/spec-update` on re-open).
+4. Advance to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest -StatusNote '<what the user must verify on device>'`. Step-2 tags stay until ticket leaves this status (removed by `/spec-check` on `Verified`, or `/spec-update` on re-open).
 5. Chat output: `<Sxxxx> - Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
 No `INDEX.md`, no `PHASE_NN__*.md`. No `/spec-dev` chain.
@@ -332,5 +332,5 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
 - **File / folder names.** Strategic spec at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder `PLAN/<Sxxxx>_<slug>/`. Phase files follow `PHASE_NN__<topic>.md` (no per-phase `Sxxxx` prefix). The `_spec_` segment is forbidden anywhere.
-- **Status transition.** After the tactical folder is fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`.
+- **Status transition.** After the tactical folder is fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`. For any `Block*` transition include `-StatusNote '<reason and what resolves it>'` — mandatory per CLAUDE.md §4.
 - **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.

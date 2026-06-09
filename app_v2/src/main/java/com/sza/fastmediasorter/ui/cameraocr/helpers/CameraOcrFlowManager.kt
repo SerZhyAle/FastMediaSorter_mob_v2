@@ -4,10 +4,14 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.RectF
 import androidx.annotation.StringRes
+import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -88,7 +92,27 @@ class CameraOcrFlowManager(
     private fun hasResults(): Boolean =
         recognizedOriginalText.isNotEmpty() || translatedOutputText.isNotEmpty()
 
+    // S0386 Phase 06: camera-OCR is an OCR enable point - gate on the OCR_ENGINES set being
+    // installed before launching capture; refusal closes the flow softly (no crash).
     fun startCapture() {
+        val activity = callback as? FragmentActivity
+        if (activity == null) {
+            launchCaptureInternal()
+            return
+        }
+        val interceptor = EntryPointAccessors.fromApplication(
+            storageManager.contextForCaptureIntent().applicationContext,
+            DeliveryEnableInterceptorEntryPoint::class.java
+        ).deliveryEnableInterceptor()
+        interceptor.requireInstalled(
+            activity,
+            DeliverableSet.OCR_ENGINES,
+            onReady = ::launchCaptureInternal,
+            onUnavailable = { callback.finishFlow() }
+        )
+    }
+
+    private fun launchCaptureInternal() {
         Timber.d("S0359: in-app camera capture launched for OCR")
         storageManager.cleanupTempFile(pendingTempFile)
         pendingTempFile = null

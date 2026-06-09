@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Bundle
@@ -105,6 +106,23 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 
+        internal fun resolveInitialTabPosition(
+            intent: Intent,
+            adapterItemCount: Int,
+            lastTabPosition: Int,
+            sourceResourceId: Long,
+            initialTab: Int,
+            enableScheduledOperations: Boolean,
+        ): Int {
+            val openScheduled = intent.getBooleanExtra(EXTRA_OPEN_SCHEDULED, false)
+            return when {
+                (sourceResourceId != -1L || openScheduled) && enableScheduledOperations -> 3
+                initialTab in 0 until adapterItemCount -> initialTab
+                lastTabPosition in 0 until adapterItemCount -> lastTabPosition
+                else -> 0
+            }
+        }
+
         fun openKeybindingRemap(context: Context) {
             context.startActivity(
                 android.content.Intent(context, com.sza.fastmediasorter.ui.keybinding.KeybindingRemapActivity::class.java)
@@ -165,36 +183,31 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }.attach()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
 
-        // If opened to create a new scheduled operation from Browse, jump to Operations tab
         val sourceResourceId = intent.getLongExtra(EXTRA_SOURCE_RESOURCE_ID, -1L)
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
-        val openScheduled = intent.getBooleanExtra(EXTRA_OPEN_SCHEDULED, false)
-        when {
-            (sourceResourceId != -1L || openScheduled) && BuildConfig.ENABLE_SCHEDULED_OPERATIONS -> {
-                binding.viewPager.post { binding.viewPager.setCurrentItem(3, false) }
-            }
-            initialTab in 0 until adapter.itemCount -> {
-                binding.viewPager.post { binding.viewPager.setCurrentItem(initialTab, false) }
-            }
-            else -> {
-                // Restore last opened tab position
-                val lastTabPosition = getLastTabPosition()
-                if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] lastTabPosition=$lastTabPosition read (disk)")
-                if (lastTabPosition in 0 until (adapter.itemCount)) {
-                    binding.viewPager.post {
-                        binding.viewPager.setCurrentItem(lastTabPosition, false)
-                    }
-                }
-            }
+        val lastTabPosition = getLastTabPosition()
+        val initialPosition = resolveInitialTabPosition(
+            intent = intent,
+            adapterItemCount = adapter.itemCount,
+            lastTabPosition = lastTabPosition,
+            sourceResourceId = sourceResourceId,
+            initialTab = initialTab,
+            enableScheduledOperations = BuildConfig.ENABLE_SCHEDULED_OPERATIONS,
+        )
+
+        if (BuildConfig.DEBUG) {
+            Timber.d("SettingsActivity: [${elapsed()}ms] initialPosition=$initialPosition lastTabPosition=$lastTabPosition")
         }
 
-        // Save tab position when changed
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 saveLastTabPosition(position)
             }
         })
+
+        binding.viewPager.setCurrentItem(initialPosition, false)
+        saveLastTabPosition(initialPosition)
 
         setupGlobalSearch()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${settingsSearchRegistry.entries.size} search entries)")

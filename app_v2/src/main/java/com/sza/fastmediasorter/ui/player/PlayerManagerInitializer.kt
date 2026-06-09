@@ -438,7 +438,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             audioCoverArtView = activity.activityBinding.audioCoverArtView,
             barsView = activity.activityBinding.audioBarsView,
             videoView = activity.activityBinding.audioVideoView,
-            wavesView = activity.activityBinding.audioWaveParticleView
+            wavesView = activity.activityBinding.audioWaveParticleView,
+            deliveredSource = activity.deliveredAudioVisualizationSource
         )
         activity.imageLoadingManager.setAudioEmptyStateController(activity.audioEmptyStateController!!)
     }

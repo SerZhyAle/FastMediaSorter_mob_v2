@@ -513,18 +513,30 @@ class CloudFileOperationHandler @Inject constructor(
             val destType = getResourceType(normalizedDestPath)
             return when (destType) {
                     ResourceType.LOCAL -> {
-                        // Copy temp file to local destination
+                        // Move temp file to local destination
                         if (!tempFile.exists()) {
                             Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->local transfer")
                             return false
                         }
                         val localFile = File(normalizedDestPath, resolvedFileName)
                         localFile.parentFile?.mkdirs()
-                        try {
-                            tempFile.copyTo(localFile, overwrite = true)
-                        } catch (e: java.io.IOException) {
-                            Timber.w(e, "downloadFromCloudTo: cloud->local transfer failed")
-                            return false
+                        // Move (rename) instead of copy so only one full copy ever exists on the volume:
+                        // copying held the temp and the destination simultaneously, doubling the peak
+                        // footprint and filling the cache volume when large cloud APKs are classified.
+                        // renameTo is atomic and same-volume only; fall back to copy across volumes.
+                        if (localFile.exists()) {
+                            localFile.delete()
+                        }
+                        if (!tempFile.renameTo(localFile)) {
+                            try {
+                                tempFile.copyTo(localFile, overwrite = true)
+                            } catch (e: java.io.IOException) {
+                                Timber.w(e, "downloadFromCloudTo: cloud->local transfer failed")
+                                // Drop any partially written destination so a truncated file is not
+                                // left behind or later mistaken for a valid copy.
+                                localFile.delete()
+                                return false
+                            }
                         }
                         Timber.i("downloadFromCloudTo: SUCCESS - wrote to local ${localFile.absolutePath}")
                         MediaStoreNotifier.notifyFile(context, localFile.absolutePath, "cloud-download")

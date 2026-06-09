@@ -48,6 +48,14 @@ class VrApkClassificationCache @Inject constructor(
             return
         }
 
+        if (diskFullThisSession) {
+            // Cache volume filled earlier this session: skip the download entirely and degrade.
+            // This is the session-wide stop that ends the repeated-error cascade; the flag lives in
+            // memory only, so classification resumes after a process restart frees the volume.
+            onResult(VrApkClassification.NOT_VR)
+            return
+        }
+
         applicationScope.launch {
             var cached: VrApkClassification? = null
             val deferred = inFlightMutex.withLock {
@@ -94,16 +102,31 @@ class VrApkClassificationCache @Inject constructor(
 
     private suspend fun classifyForCache(mediaFile: MediaFile): ClassificationTaskResult {
         return try {
-            val localArchive = archiveResolver.resolve(mediaFile)
-                ?: return ClassificationTaskResult(
+            when (val resolution = archiveResolver.resolve(mediaFile)) {
+                is VrArchiveResolution.Available -> try {
+                    ClassificationTaskResult(
+                        classification = classifier.classify(resolution.file),
+                        cacheable = true,
+                    )
+                } finally {
+                    // Release the transient copy as soon as the manifest is read; it never persists.
+                    resolution.cleanup()
+                }
+
+                VrArchiveResolution.OutOfSpace -> {
+                    diskFullThisSession = true
+                    Timber.w("classifyForCache: cache volume full, stopping VR APK classification for this session")
+                    ClassificationTaskResult(
+                        classification = VrApkClassification.NOT_VR,
+                        cacheable = false,
+                    )
+                }
+
+                VrArchiveResolution.Unavailable -> ClassificationTaskResult(
                     classification = VrApkClassification.NOT_VR,
                     cacheable = false,
                 )
-
-            ClassificationTaskResult(
-                classification = classifier.classify(localArchive),
-                cacheable = true,
-            )
+            }
         } catch (e: Exception) {
             Timber.w(e, "classifyForCache: APK classification failed; degrading to NOT_VR")
             ClassificationTaskResult(
@@ -141,6 +164,11 @@ class VrApkClassificationCache @Inject constructor(
     private val inFlight = mutableMapOf<CacheKey, Deferred<ClassificationTaskResult>>()
     private val inFlightMutex = Mutex()
     private val concurrencyLimiter = Semaphore(MAX_CONCURRENT_CLASSIFICATIONS)
+
+    // S0388: once the cache volume fills, stop classifying for the rest of the session so the same
+    // failure is not retried (and re-logged) on every list re-bind. Resets on process restart.
+    @Volatile
+    private var diskFullThisSession = false
 
     private companion object {
         private const val CACHE_CAPACITY = 256

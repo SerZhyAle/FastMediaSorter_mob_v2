@@ -184,8 +184,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260609030
-        versionName = "2.60.6090.307"
+        versionCode = 260609151
+        versionName = "2.60.6091.511"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -238,6 +238,7 @@ android {
     //   (b) a matching redirect URI registered in Azure (OneDrive), Google Cloud (Drive) and
     //       Dropbox app consoles.
     flavorDimensions += listOf("version")
+    dynamicFeatures += listOf(":translate_feature")
     
     productFlavors {
         // Per-flavor CMake target filtering: only vr builds the native OpenXR bridge.
@@ -519,6 +520,7 @@ android {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationDynamicFeature/java")
             // S0250 / S0245 wiring closure: NoOp XR Hilt bindings live in src/vrStub/java.
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
@@ -535,17 +537,20 @@ android {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationDynamicFeature/java")
             kotlin.directories.add("src/vrStub/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrOnly/java")
         }
         getByName("photos") {
@@ -843,6 +848,10 @@ androidComponents {
         if (flavorName == "noLegal") {
             variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml")
         }
+
+        // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
+        // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
+        // would leave OCR/DTS in a half-migrated state.
     }
 }
 
@@ -1068,17 +1077,36 @@ dependencies {
     // ExifInterface for image metadata (width, height, camera, GPS, etc.)
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     
+    // Play Store dynamic feature support (Play Core on-demand delivery)
+    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
+
     // ML Kit - Translation and Text Recognition (OCR)
-    implementation("com.google.mlkit:translate:17.0.3")
-    implementation("com.google.mlkit:text-recognition:16.0.1")          // Latin script (also works for Cyrillic to some extent)
-    implementation("com.google.mlkit:language-id:17.0.6")
+    // S0386: ML Kit Translate is on-demand via :translate_feature on store flavors and remains
+    // bundled only on sideload/VR flavors where Play dynamic delivery is unavailable.
+    "noLegalImplementation"("com.google.mlkit:translate:17.0.3")
+    "noLegalImplementation"("com.google.mlkit:language-id:17.0.6")
+    "vrImplementation"("com.google.mlkit:translate:17.0.3")
+    "vrImplementation"("com.google.mlkit:language-id:17.0.6")
+
+    // S0386: com.google.mlkit:text-recognition is completely removed from all builds.
+
     implementation("androidx.camera:camera-core:1.5.3")
     implementation("androidx.camera:camera-camera2:1.5.3")
     implementation("androidx.camera:camera-lifecycle:1.5.3")
     implementation("androidx.camera:camera-view:1.5.3")
     
     // Tesseract OCR (Offline, better Cyrillic support)
-    implementation("cz.adaptech:tesseract4android:4.8.0") {
+    // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)
+    "standardImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "legacyImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "noLegalImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "vrImplementation"("cz.adaptech:tesseract4android:4.8.0") {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     

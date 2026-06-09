@@ -6,6 +6,7 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.translation.TranslationLanguageCodeMapper
+import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
 import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,14 +30,14 @@ import javax.inject.Singleton
 @Singleton
 class PrewarmTranslationModelUseCase @Inject constructor(
     @TranslationModelPrewarmEnabled private val enabledMarkers: Set<@JvmSuppressWildcards String>
-) {
+) : TranslationModelPrewarmer {
 
     private val modelManager: RemoteModelManager = RemoteModelManager.getInstance()
 
     private val _status = MutableStateFlow<TranslationModelPrewarmStatus>(TranslationModelPrewarmStatus.Idle)
-    val status: StateFlow<TranslationModelPrewarmStatus> = _status.asStateFlow()
+    override val status: StateFlow<TranslationModelPrewarmStatus> = _status.asStateFlow()
 
-    suspend fun prewarm(targetSettingsCode: String) {
+    override suspend fun prewarm(targetSettingsCode: String) {
         if (enabledMarkers.isEmpty()) {
             _status.value = TranslationModelPrewarmStatus.Idle
             return

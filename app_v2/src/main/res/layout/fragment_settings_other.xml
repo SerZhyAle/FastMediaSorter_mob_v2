@@ -5,6 +5,54 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
+        <!-- Extensions Manager Entrance -->
+        <LinearLayout
+            android:id="@+id/layoutExtensionsManager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/item_focus_selector"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="@dimen/settings_item_min_height"
+            android:padding="8dp"
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ext_manager_title"
+                    android:textSize="@dimen/toggler_title_text_size"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ext_manager_desc_short"
+                    android:textSize="@dimen/toggler_desc_text_size"
+                    android:textColor="?attr/colorOnSurface"
+                    android:alpha="0.7"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="?attr/colorOnSurface"
+                android:alpha="0.6"
+                android:contentDescription="@null" />
+
+        </LinearLayout>
+
         <!-- Translation Section - help payload folded into the row -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowEnableTranslation"

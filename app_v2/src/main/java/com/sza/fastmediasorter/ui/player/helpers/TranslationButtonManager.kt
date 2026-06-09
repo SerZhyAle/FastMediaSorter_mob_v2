@@ -11,12 +11,15 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -45,7 +48,16 @@ class TranslationButtonManager(
     private val callback: TranslationButtonCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
-    
+
+    // S0386 Phase 06: app-scoped enable-intercept gate, resolved without a constructor change
+    // (this Manager is not Hilt-built) - mirrors TranslationManager's EntryPointAccessors pattern.
+    private val deliveryEnableInterceptor by lazy {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            DeliveryEnableInterceptorEntryPoint::class.java
+        ).deliveryEnableInterceptor()
+    }
+
     interface TranslationButtonCallback {
         fun getTranslationSessionSettings(): TranslationSessionSettings
         fun setTranslationSessionSettings(settings: TranslationSessionSettings)
@@ -298,6 +310,9 @@ class TranslationButtonManager(
                 val newFontSize = fontSizeOptions[spinnerFontSize.selectedItemPosition]
                 val newFontFamily = fontFamilyOptions[spinnerFontFamily.selectedItemPosition]
                 
+                // S0386 Phase 06: confirming these settings turns translation ON, so gate on the
+                // TRANSLATION set being installed; on refusal close without enabling.
+                val applyAndTranslate = {
                 // Save all settings to repository (including font settings for persistence)
                 lifecycleOwner.lifecycleScope.launch {
                     val updatedSettings = settings.copy(
@@ -354,8 +369,20 @@ class TranslationButtonManager(
                 }
                 
                 dialog.dismiss()
+                }
+                val gateActivity = context as? FragmentActivity
+                if (gateActivity != null) {
+                    deliveryEnableInterceptor.requireInstalled(
+                        gateActivity,
+                        DeliverableSet.TRANSLATION,
+                        onReady = applyAndTranslate,
+                        onUnavailable = { dialog.dismiss() }
+                    )
+                } else {
+                    applyAndTranslate()
+                }
             }
-            
+
             dialog.show()
         }
     }

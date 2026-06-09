@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
+import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
 import com.sza.fastmediasorter.domain.translation.TranslationLanguageCodeMapper
@@ -17,6 +18,8 @@ import timber.log.Timber
 interface TranslationOcrEntryPoint {
     fun offlineOcrEngineProvider(): OfflineOcrEngineProvider
     fun deliverableCapabilityRepository(): DeliverableCapabilityRepository
+    fun textTranslationFacadeFactory(): TextTranslationFacadeFactory
+    fun deliveredNativeLibraryLoader(): DeliveredNativeLibraryLoader
 }
 
 /**
@@ -46,12 +49,20 @@ class TranslationManager(
         deliveryEntryPoint.deliverableCapabilityRepository()
     }
 
-    private val translationBackend: TranslationBackend by lazy {
-        TranslationBackend(context, callback, settingsRepository, capabilityRepository)
+    private val translationBackend: TextTranslationFacade by lazy {
+        deliveryEntryPoint.textTranslationFacadeFactory().create(callback)
     }
 
     private val recognitionBackend: RecognitionBackend by lazy {
-        RecognitionBackend(context, callback, settingsRepository, offlineOcrEngineProvider, translationBackend, capabilityRepository)
+        RecognitionBackend(
+            context,
+            callback,
+            settingsRepository,
+            offlineOcrEngineProvider,
+            translationBackend,
+            capabilityRepository,
+            deliveryEntryPoint.deliveredNativeLibraryLoader()
+        )
     }
 
     /** Translation surface (ML Kit translate + language-id). */

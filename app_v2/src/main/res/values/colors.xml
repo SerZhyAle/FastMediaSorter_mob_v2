@@ -180,6 +180,10 @@
     <!-- Status colors (aliases for resource editor) -->
     <color name="success_green">@color/success_color</color>
     <color name="error_red">@color/error_color</color>
+    <!-- Extensions Manager status tags (S0386 Phase 08); installed/failed reuse success/error.
+         Translucent chip backgrounds are derived in code via ColorUtils.setAlphaComponent. -->
+    <color name="ext_status_available">#FF808080</color>
+    <color name="ext_status_downloading">#FF1976D2</color>
     <color name="recording_active_tint">#E53935</color>
     <!-- TV launcher banner background (dark navy) - used by res/drawable/tv_banner.xml -->
     <color name="tv_banner_bg">#1A1A2E</color>

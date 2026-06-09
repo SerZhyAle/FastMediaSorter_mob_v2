@@ -157,27 +157,55 @@ function Resolve-SpecPath {
 }
 
 function Sync-SpecHeaderStatus {
-    # Mirror a status change into the FIRST '**Status:**' header line of a spec
-    # .md so the human-readable header never drifts from the journal (the owner
-    # reads that header directly). Fail-soft: a missing file or absent header
-    # returns $false and never throws, so the caller's journal write is never
-    # rolled back by a header problem. Only the first match is rewritten -
-    # deeper '**Status:**' lines (ADR / Proposal blocks) keep their own status.
-    # Returns $true when the header now reads $Status (changed or already so).
+    # Mirror a status change (and optional human note) into the FIRST
+    # '**Status:**' header block of a spec .md so the owner can read both
+    # the status and its reason at a glance. Fail-soft: missing file or
+    # absent header returns $false without throwing - the journal write is
+    # never rolled back by a header problem. Only the first **Status:** match
+    # is rewritten; deeper ones (ADR / Proposal blocks) keep their own values.
+    #
+    # StatusNote semantics:
+    #   $null (omitted) - preserve any existing '**Status note:**' line as-is.
+    #   non-empty string - upsert '**Status note:** <note>' right after **Status:**.
+    #   empty string     - remove '**Status note:**' line if present.
+    #
+    # Returns $true when the header now reads the target Status.
     param(
-        [Parameter(Mandatory)][string] $PathRef,   # record.file (repo-relative) or absolute path
-        [Parameter(Mandatory)][string] $Status
+        [Parameter(Mandatory)][string] $PathRef,
+        [Parameter(Mandatory)][string] $Status,
+        [string] $StatusNote = $null
     )
     try {
         $abs = Resolve-SpecPath -PathRef $PathRef
         if (-not (Test-Path -LiteralPath $abs -PathType Leaf)) { return $false }
         $raw = Get-Content -LiteralPath $abs -Raw
-        $rx  = [regex]'(?m)^\*\*Status:\*\*[^\r\n]*(?=\r?$)'
-        $m   = $rx.Match($raw)
+
+        # Capture: (1) **Status:** line body  (2) its line ending
+        #          (3) optional immediately-following **Status note:** line with its ending
+        $rx = [regex]'(?m)(^\*\*Status:\*\*[^\r\n]*)(\r?\n)(\*\*Status note:\*\*[^\r\n]*\r?\n?)?'
+        $m  = $rx.Match($raw)
         if (-not $m.Success) { return $false }
-        $newHeader = '**Status:** ' + $Status
-        if ($m.Value -ne $newHeader) {
-            $patched = $rx.Replace($raw, $newHeader, 1)
+
+        $lineEnd       = $m.Groups[2].Value   # \r\n or \n
+        $newStatusLine = '**Status:** ' + $Status
+
+        # Build replacement block: status line + optional note line
+        if ($null -ne $StatusNote -and $StatusNote -ne '') {
+            # Upsert note
+            $newBlock = $newStatusLine + $lineEnd + '**Status note:** ' + $StatusNote + $lineEnd
+        } elseif ($StatusNote -eq '') {
+            # Clear note line
+            $newBlock = $newStatusLine + $lineEnd
+        } else {
+            # $null - preserve existing note line verbatim (or nothing if absent)
+            $newBlock = $newStatusLine + $lineEnd
+            if ($m.Groups[3].Success -and $m.Groups[3].Value -ne '') {
+                $newBlock += $m.Groups[3].Value
+            }
+        }
+
+        $patched = $raw.Substring(0, $m.Index) + $newBlock + $raw.Substring($m.Index + $m.Length)
+        if ($patched -ne $raw) {
             $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
             [System.IO.File]::WriteAllText($abs, $patched, $utf8NoBom)
         }
