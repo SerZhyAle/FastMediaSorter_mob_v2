@@ -2497,4 +2497,8 @@ Close the player and try again.</string>
     <string name="ext_delete_confirm_message">Remove %1$s and free up its space? You can download it again later.</string>
     <string name="slideshow_stop">Stop slideshow</string>
     <string name="open_in_fms_external_file_notice">This file is outside a folder added to the app, so the app home opened instead.</string>
+    <string name="sftp_host_key_fingerprint_hint">Expected host key fingerprint (SHA256, optional)</string>
+    <string name="sftp_host_key_fingerprint_invalid">Cannot parse fingerprint. Use SHA256:base64, hex with colons, or raw base64.</string>
+    <string name="sftp_host_key_mismatch_title">Host key mismatch</string>
+    <string name="sftp_host_key_mismatch_body_format">Expected fingerprint:\n%1$s\n\nServer offered:\n%2$s\n\nConnection refused — possible MITM attack or legitimate key change. Update the resource manually if you trust this server.</string>
 </resources>

@@ -47,7 +47,9 @@ import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.PhotoVideoStandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.PhotoVideoStandaloneVideoHandle
+import com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+import com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFullscreenManager
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
@@ -104,6 +106,25 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+
+    // S0390: screen-rotation toggle for the Group A rotate button; capability hidden without a sensor.
+    private val screenRotationManager = ScreenRotationManager()
+    private val hasAccelerometer: Boolean by lazy { screenRotationManager.isAccelerometerPresent(this) }
+
+    // S0390: Group A image editing (crop / crop-to-file / compress) reusing the generic ImageCropManager.
+    private val imageEditController: StandaloneImageEditController by lazy {
+        StandaloneImageEditController(
+            activity = this,
+            mediaContentArea = binding.mediaContentArea,
+            pinchTarget = binding.photoView,
+            imageCropManager = ImageCropManager(this, lifecycleScope, fileOperationUseCase),
+            getEditFile = { viewModel.editableImageFile.value },
+            onInPlaceCropSaved = {
+                viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) }
+            },
+        )
+    }
 
     private val viewManager: StandaloneViewManager by lazy {
         StandaloneViewManager(
@@ -221,13 +242,26 @@ class PhotoVideoStandaloneActivity :
         // Rename stays hidden until the async capability check completes.
         binding.btnRenameCmd.isVisible = false
         binding.btnRenameCmd.setOnClickListener { fileOperations.showStandaloneRenameDialog() }
+        // S0390: Group A bar buttons; visibility is driven from VM state in observeData.
+        binding.btnEditCrop.setOnClickListener {
+            imageEditController.enterCropMode(ImageCropManager.CropMode.CROP)
+        }
+        binding.btnEditRotate.setOnClickListener { viewModel.toggleRotationSensor() }
         binding.btnOverflowMenu.isVisible = true
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S0390: the two crop overflow items appear only for an editable local image.
+            val editable = viewModel.editableImageFile.value != null
+            popup.menu.findItem(R.id.menu_edit_crop_to_file).isVisible = editable
+            popup.menu.findItem(R.id.menu_edit_compress).isVisible = editable
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
+                    R.id.menu_edit_crop_to_file -> {
+                        imageEditController.enterCropMode(ImageCropManager.CropMode.CROP_TO_FILE); true
+                    }
+                    R.id.menu_edit_compress -> { imageEditController.startCompressedCopy(); true }
                     else -> false
                 }
             }
@@ -355,6 +389,30 @@ class PhotoVideoStandaloneActivity :
         }
         collectOnLifecycle(viewModel.messageFlow) { message ->
             Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
+        }
+        // S0390: gate Group A image actions on the editable-image state × the type-specific capability.
+        collectOnLifecycle(viewModel.editableImageFile) { editFile ->
+            Timber.d("S0390: standalone Group A gate editable=${editFile != null}")
+            val show = editFile != null && supportsTypeSpecificActions
+            binding.btnEditCrop.isVisible = show
+            binding.btnEditRotate.isVisible = show && hasAccelerometer
+        }
+        collectOnLifecycle(viewModel.rotationSensorEnabled) { enabled ->
+            if (hasAccelerometer) {
+                screenRotationManager.apply(
+                    activity = this@PhotoVideoStandaloneActivity,
+                    followSystem = false,
+                    sensorEnabled = enabled,
+                    hasAccelerometer = true,
+                )
+            }
+            binding.btnEditRotate.setImageResource(
+                if (enabled) R.drawable.ic_rotation_unlocked else R.drawable.ic_rotation_locked
+            )
+            binding.btnEditRotate.contentDescription = getString(
+                if (enabled) R.string.rotation_toggle_sensor_on_desc
+                else R.string.rotation_toggle_sensor_off_desc
+            )
         }
     }
 

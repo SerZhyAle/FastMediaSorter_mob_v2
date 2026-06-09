@@ -88,7 +88,6 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
      * success and keeps the editor open with an error on failure.
      */
     private fun confirmAndDeleteCurrentFile() {
-        Timber.d("S0360: drawing editor delete-file action invoked")
         val resource = activity.viewModel.state.value.resource
         if (resource?.isReadOnly == true) {
             Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()

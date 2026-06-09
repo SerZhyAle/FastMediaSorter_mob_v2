@@ -73,6 +73,21 @@ class StandalonePlayerViewModel @Inject constructor(
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
 
+    // S0390: the current file resolved to a writable local static-image path, or null when the file
+    // is not an editable image (wrong type, or a non-local source with no filesystem path). This is
+    // the gate the host reads to surface Group A image actions (crop / crop-to-file / compress).
+    private val _editableImageFile = MutableStateFlow<MediaFile?>(null)
+    val editableImageFile: StateFlow<MediaFile?> = _editableImageFile.asStateFlow()
+
+    // S0390: screen-rotation sensor toggle. The VM holds no Activity ref, so the host observes this
+    // and applies it through ScreenRotationManager (mirrors the in-app ROTATION_TOGGLE command).
+    private val _rotationSensorEnabled = MutableStateFlow(false)
+    val rotationSensorEnabled: StateFlow<Boolean> = _rotationSensorEnabled.asStateFlow()
+
+    fun toggleRotationSensor() {
+        _rotationSensorEnabled.value = !_rotationSensorEnabled.value
+    }
+
     private val _messageFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()
 
@@ -139,6 +154,8 @@ class StandalonePlayerViewModel @Inject constructor(
         )
 
         Timber.d("StandalonePlayer: resolved type=$detectedType for $resolvedName")
+        // S0390: reset editable gate until the URI resolves to a local image path (initFolderPaging).
+        _editableImageFile.value = null
         updateState {
             it.copy(
                 mediaFile = mediaFile,
@@ -166,6 +183,14 @@ class StandalonePlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val resolution = resolveLocalPathFromUriUseCase(uri)
             Timber.d("S0389: standalone folder paging init, local=${resolution is LocalPathResolution.Local}")
+            // S0390: a local static image becomes editable once its real filesystem path is known.
+            _editableImageFile.value = if (resolution is LocalPathResolution.Local &&
+                state.value.mediaType == MediaType.IMAGE
+            ) {
+                state.value.mediaFile?.copy(path = resolution.absolutePath)
+            } else {
+                null
+            }
             if (resolution !is LocalPathResolution.Local) {
                 pagingManager = null
                 updateState { it.copy(supportsFolderPaging = false) }
@@ -215,6 +240,9 @@ class StandalonePlayerViewModel @Inject constructor(
         }
         stereoCoordinator.resetStereoModeForNewFile(file.path)
         checkFavoriteStatus(file.path)
+        // S0390: folder neighbours already carry a real filesystem path - editable if a static image.
+        _editableImageFile.value =
+            if (file.type == MediaType.IMAGE && file.path.startsWith("/")) file else null
     }
 
     fun toggleSlideshow() {

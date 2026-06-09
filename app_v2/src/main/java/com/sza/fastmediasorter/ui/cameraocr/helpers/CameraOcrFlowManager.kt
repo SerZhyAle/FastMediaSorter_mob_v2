@@ -357,7 +357,6 @@ class CameraOcrFlowManager(
             )
 
             if (sourceLang != previousSourceLang) {
-                Timber.d("S0361: result-screen OCR language changed -> re-recognize retained image")
                 val bitmap = orientedBitmap
                 if (bitmap != null && !bitmap.isRecycled) {
                     // OCR language changed: re-run recognition over the retained image with the new

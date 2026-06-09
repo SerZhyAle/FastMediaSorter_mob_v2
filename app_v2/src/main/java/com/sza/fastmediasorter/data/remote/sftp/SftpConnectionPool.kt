@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.remote.sftp
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
+import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +62,14 @@ class SftpConnectionPool {
         val activeBorrowCount: AtomicInteger = AtomicInteger(0)
     )
 
-    private data class ConnectionKey(val host: String, val port: Int, val username: String)
+    // S0046: expectedFingerprint is part of the pool key so a pinned and an unpinned session for
+    // the same host:port:user are pooled separately and never share a host-key verification policy.
+    private data class ConnectionKey(
+        val host: String,
+        val port: Int,
+        val username: String,
+        val expectedFingerprint: String? = null
+    )
 
     /** Unified pool - one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
     private val pooledSessions = ConcurrentHashMap<ConnectionKey, PooledConnection>()
@@ -80,7 +88,7 @@ class SftpConnectionPool {
         info: SftpClient.SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
-        val key = ConnectionKey(info.host, info.port, info.username)
+        val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
         try {
             connectionSemaphore.acquire()
             try {
@@ -228,7 +236,7 @@ class SftpConnectionPool {
     }
 
     suspend fun invalidate(info: SftpClient.SftpConnectionInfo) {
-        invalidateSession(ConnectionKey(info.host, info.port, info.username))
+        invalidateSession(ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint))
     }
 
     private suspend fun invalidateSession(key: ConnectionKey) {
@@ -333,7 +341,7 @@ class SftpConnectionPool {
 
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpClient.SftpConnectionInfo): ExoPlayerConnection {
-        val key = ConnectionKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
+        val key = ConnectionKey(connectionInfo.host, connectionInfo.port, connectionInfo.username, connectionInfo.expectedFingerprint)
         try {
             connectionSemaphore.acquire()
             val pooled = getOrCreateSessionBlocking(key, connectionInfo)
@@ -455,7 +463,7 @@ class SftpConnectionPool {
         info: SftpClient.SftpConnectionInfo,
         remotePath: String
     ): Result<java.io.InputStream> = withContext(Dispatchers.IO) {
-        val key = ConnectionKey(info.host, info.port, info.username)
+        val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
         try {
             connectionSemaphore.acquire()
             try {
@@ -558,6 +566,7 @@ class SftpConnectionPool {
     }
 
     private fun applyAuth(session: Session, info: SftpClient.SftpConnectionInfo) {
+        val strictHostKeyChecking = installPinnedHostKeyOrPermissive(session, info)
         if (info.privateKey != null) {
             if (info.passphrase != null) {
                 session.userInfo = object : com.jcraft.jsch.UserInfo {
@@ -570,7 +579,7 @@ class SftpConnectionPool {
                 }
             }
             val config = java.util.Properties()
-            config["StrictHostKeyChecking"] = "no"
+            config["StrictHostKeyChecking"] = strictHostKeyChecking
             config["PreferredAuthentications"] = "publickey"
             session.setConfig(config)
         } else {
@@ -584,10 +593,29 @@ class SftpConnectionPool {
                 override fun showMessage(message: String?) {}
             }
             val config = java.util.Properties()
-            config["StrictHostKeyChecking"] = "no"
+            config["StrictHostKeyChecking"] = strictHostKeyChecking
             config["PreferredAuthentications"] = "keyboard-interactive,password"
             session.setConfig(config)
         }
+    }
+
+    /**
+     * S0046: when [info].expectedFingerprint is a parseable SHA256 fingerprint, install a pinned
+     * host-key repository and return "yes" so JSch consults it and aborts on a CHANGED verdict
+     * before auth. Returns the permissive "no" when no fingerprint is set, or when the configured
+     * fingerprint is unparseable (logged at warn, no key bytes) so a release-time misconfiguration
+     * degrades to the prior behaviour instead of crashing the connection.
+     */
+    private fun installPinnedHostKeyOrPermissive(session: Session, info: SftpClient.SftpConnectionInfo): String {
+        val fingerprint = info.expectedFingerprint ?: return "no"
+        val canonical = SshFingerprintNormalizer.canonical(fingerprint)
+        if (canonical == null) {
+            Timber.w("SFTP host-key pin ignored: unparseable fingerprint for host=${info.host}")
+            return "no"
+        }
+        session.setHostKeyRepository(PinnedHostKeyRepository(canonical))
+        Timber.d("S0046: SFTP pinned host-key verifier installed for host=${info.host}")
+        return "yes"
     }
 
     /**

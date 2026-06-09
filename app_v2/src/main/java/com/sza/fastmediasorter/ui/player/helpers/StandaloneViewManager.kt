@@ -19,6 +19,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
@@ -303,6 +305,21 @@ class StandaloneViewManager(
         safeViews.photoView.isVisible = true
         Glide.with(activity.applicationContext)
             .load(mediaFile.path.toUri())
+            .into(safeViews.photoView)
+    }
+
+    /**
+     * S0390: re-decode an image whose bytes were overwritten in place (crop). Glide keys on the URI,
+     * so both caches are skipped and the signature varied to force a fresh decode of the new bytes.
+     */
+    fun reloadImage(mediaFile: MediaFile) {
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
+        safeViews.photoView.isVisible = true
+        Glide.with(activity.applicationContext)
+            .load(mediaFile.path.toUri())
+            .skipMemoryCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .signature(ObjectKey(System.currentTimeMillis()))
             .into(safeViews.photoView)
     }
 

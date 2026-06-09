@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +68,8 @@ class SettingsViewModel @Inject constructor(
     private val cleanupTrashFoldersUseCase: CleanupTrashFoldersUseCase,
     private val workManagerScheduler: WorkManagerScheduler,
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
-    private val prewarmTranslationModelUseCase: TranslationModelPrewarmer
+    private val prewarmTranslationModelUseCase: TranslationModelPrewarmer,
+    private val szaResourcesImporter: SzaResourcesImporter
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
@@ -599,192 +601,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
     fun importSzaResources(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val parser = context.resources.getXml(com.sza.fastmediasorter.R.xml.sza_resources)
-                var eventType = parser.eventType
-                
-                // Get existing data to prevent duplicates
-                val existingResources = resourceRepository.getAllResourcesSync()
-                val existingCredentials = credentialsRepository.getAllCredentials().first()
-                
-                while (eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
-                    if (eventType == org.xmlpull.v1.XmlPullParser.START_TAG && parser.name == "resource") {
-                        try {
-                            // Extract attributes
-                            val name = parser.getAttributeValue(null, "name") ?: "Unknown"
-                            val path = parser.getAttributeValue(null, "path") ?: ""
-                            val typeStr = parser.getAttributeValue(null, "type") ?: "LOCAL"
-                            val username = parser.getAttributeValue(null, "username")
-                            val password = parser.getAttributeValue(null, "password")
-                            val pin = parser.getAttributeValue(null, "pin")
-                            val addToDestinations = parser.getAttributeValue(null, "addToDestinations")?.toBoolean() ?: false
-                            val allFiles = parser.getAttributeValue(null, "allFiles")?.toBoolean() ?: false
-                            val supportedTypesStr = parser.getAttributeValue(null, "supportedMediaTypes")
-                            val sortModeStr = parser.getAttributeValue(null, "sortMode")
-                            val displayModeStr = parser.getAttributeValue(null, "displayMode")
-                            val scanSubdirs = parser.getAttributeValue(null, "scanSubdirectories")?.toBoolean() ?: false
-                            val disableThumbnails = parser.getAttributeValue(null, "disableThumbnails")?.toBoolean() ?: false
-                            val showHidden = parser.getAttributeValue(null, "showHiddenFiles")?.toBoolean() ?: false
-                            val rememberFileList = parser.getAttributeValue(null, "rememberTheFileList")?.toBoolean() ?: false
-                            
-                            val type = try {
-                                com.sza.fastmediasorter.domain.model.ResourceType.valueOf(typeStr)
-                            } catch (e: Exception) {
-                                com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
-                            }
-                            
-                            // Handle Credentials - UPDATE existing or CREATE new
-                            var credId: String? = null
-                            if (!username.isNullOrEmpty() && (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB || type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP || type == com.sza.fastmediasorter.domain.model.ResourceType.FTP)) {
-                                // Parse server from URI
-                                val server = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
-                                    com.sza.fastmediasorter.utils.SmbPathUtils.extractServer(path) ?: ""
-                                } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) {
-                                    com.sza.fastmediasorter.utils.FtpPathUtils.parseFtpPath(path)?.host ?: ""
-                                } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) {
-                                    com.sza.fastmediasorter.utils.SftpPathUtils.parseSftpPath(path)?.host ?: ""
-                                } else {
-                                    try {
-                                        java.net.URI(path).host ?: ""
-                                    } catch (e: Exception) { "" }
-                                }
-
-                                // Legacy XML may omit shareName on the credential node even when the SMB path still contains it.
-                                val smbShareName = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
-                                    com.sza.fastmediasorter.utils.SmbPathUtils.extractShare(path)?.takeIf { it.isNotBlank() }
-                                } else {
-                                    null
-                                }
-                                
-                                val existingCred = existingCredentials.find { 
-                                    it.server == server &&
-                                        it.username == username &&
-                                        it.type == typeStr &&
-                                        (
-                                            type != com.sza.fastmediasorter.domain.model.ResourceType.SMB ||
-                                                smbShareName == null ||
-                                                it.shareName == smbShareName ||
-                                                it.shareName.isNullOrBlank()
-                                        )
-                                }
-                                
-                                if (existingCred != null) {
-                                    credId = existingCred.credentialId
-                                    // UPDATE password from XML
-                                    if (!password.isNullOrEmpty()) {
-                                        val updatedCred = existingCred.copy(
-                                            encryptedPassword = com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password) ?: "",
-                                            shareName = smbShareName ?: existingCred.shareName
-                                        )
-                                        credentialsRepository.update(updatedCred)
-                                        Timber.d("Updated password for credential $username@$server from XML")
-                                    } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB && existingCred.shareName.isNullOrBlank() && !smbShareName.isNullOrBlank()) {
-                                        credentialsRepository.update(existingCred.copy(shareName = smbShareName))
-                                        Timber.d("Updated shareName for credential $username@$server from XML")
-                                    }
-                                } else {
-                                    val newCredId = java.util.UUID.randomUUID().toString()
-                                    val port = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) 22 else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) 21 else 445
-                                    val newCred = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
-                                        credentialId = newCredId,
-                                        type = typeStr,
-                                        server = server,
-                                        port = port,
-                                        username = username,
-                                        plaintextPassword = password ?: "",
-                                        shareName = smbShareName
-                                    )
-                                    credentialsRepository.insert(newCred)
-                                    credId = newCredId
-                                    Timber.d("Created credential for $username@$server from XML")
-                                }
-                            }
-                            
-                            // Parse other fields
-                            val mediaTypes = if (supportedTypesStr != null) {
-                                supportedTypesStr.split(",").mapNotNull { 
-                                    try {
-                                        com.sza.fastmediasorter.domain.model.MediaType.valueOf(it.trim())
-                                    } catch (e: Exception) { null }
-                                }.toSet()
-                            } else {
-                                setOf(com.sza.fastmediasorter.domain.model.MediaType.IMAGE, com.sza.fastmediasorter.domain.model.MediaType.VIDEO)
-                            }
-                            
-                            val sortMode = try {
-                                com.sza.fastmediasorter.domain.model.SortMode.valueOf(sortModeStr ?: "NAME_ASC")
-                            } catch (e: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
-                            
-                            val displayMode = try {
-                                com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(displayModeStr ?: "LIST")
-                            } catch (e: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
-                            
-                            // Check if resource exists - UPDATE or INSERT
-                            val existingResource = existingResources.find { it.path == path }
-                            
-                            if (existingResource != null) {
-                                // UPDATE existing resource - preserve local changes, apply XML credentials
-                                val updatedResource = existingResource.copy(
-                                    name = name,
-                                    credentialsId = credId ?: existingResource.credentialsId,
-                                    accessPin = pin ?: existingResource.accessPin
-                                )
-                                resourceRepository.updateResource(updatedResource)
-                                Timber.d("Updated SZA resource from XML: $name (path: $path)")
-                            } else {
-                                // Destination logic for NEW resources only
-                                var isDest = false
-                                var destOrder: Int? = null
-                                var destColor = 0
-                                
-                                if (addToDestinations) {
-                                    val nextOrder = getDestinationsUseCase.getNextAvailableOrder()
-                                    if (nextOrder != -1) {
-                                        isDest = true
-                                        destOrder = nextOrder
-                                        destColor = DestinationColors.getColorForDestination(nextOrder)
-                                    }
-                                }
-                                
-                                val newResource = MediaResource(
-                                    name = name,
-                                    path = path,
-                                    type = type,
-                                    credentialsId = credId,
-                                    supportedMediaTypes = mediaTypes,
-                                    sortMode = sortMode,
-                                    displayMode = displayMode,
-                                    scanSubdirectories = scanSubdirs,
-                                    disableThumbnails = disableThumbnails,
-                                    allFiles = allFiles,
-                                    showHiddenFiles = showHidden,
-                                    rememberFileList = rememberFileList,
-                                    accessPin = pin,
-                                    isDestination = isDest,
-                                    destinationOrder = destOrder,
-                                    destinationColor = destColor,
-                                    isWritable = true,
-                                    isAvailable = true
-                                )
-                                
-                                resourceRepository.addResource(newResource)
-                                Timber.d("Added SZA resource from XML: $name (path: $path)")
-                            }
-                        } catch (e: Exception) {
-                            Timber.e(e, "Error parsing resource entry")
-                        }
-                    }
-                    eventType = parser.next()
-                }
-                
-                withContext(Dispatchers.Main) {
+        viewModelScope.launch {
+            when (val result = szaResourcesImporter.import()) {
+                is SzaResourcesImporter.ImportResult.Success -> withContext(Dispatchers.Main) {
                     android.widget.Toast.makeText(context, R.string.sza_resources_imported, android.widget.Toast.LENGTH_SHORT).show()
                 }
-            } catch (e: Exception) {
-                Timber.e(e, "Error importing SZA resources")
-                 withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, R.string.error_importing_resources, android.widget.Toast.LENGTH_SHORT).show()
+                is SzaResourcesImporter.ImportResult.Failure -> {
+                    Timber.e(result.error, "Error importing SZA resources")
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(context, R.string.error_importing_resources, android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

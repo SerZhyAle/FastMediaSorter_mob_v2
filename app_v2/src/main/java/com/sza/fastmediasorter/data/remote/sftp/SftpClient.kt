@@ -98,7 +98,8 @@ class SftpClient @Inject constructor(
         val username: String,
         val password: String = "",
         val privateKey: String? = null,
-        val passphrase: String? = null
+        val passphrase: String? = null,
+        val expectedFingerprint: String? = null
     )
 
     private val pool = SftpConnectionPool()
@@ -660,16 +661,23 @@ class SftpClient @Inject constructor(
         pool.disconnectAll()
     }
 
-    suspend fun testConnection(host: String, port: Int = 22, username: String, password: String): Result<Unit> =
-        SftpConnectionTester.testConnection(host, port, username, password)
+    suspend fun testConnection(
+        host: String,
+        port: Int = 22,
+        username: String,
+        password: String,
+        expectedFingerprint: String? = null
+    ): Result<Unit> =
+        SftpConnectionTester.testConnection(host, port, username, password, expectedFingerprint)
 
     suspend fun testConnectionWithPrivateKey(
         host: String,
         port: Int = 22,
         username: String,
         privateKey: String,
-        passphrase: String? = null
-    ): Result<Unit> = SftpConnectionTester.testConnectionWithPrivateKey(host, port, username, privateKey, passphrase)
+        passphrase: String? = null,
+        expectedFingerprint: String? = null
+    ): Result<Unit> = SftpConnectionTester.testConnectionWithPrivateKey(host, port, username, privateKey, passphrase, expectedFingerprint)
 
     private fun ensureDirectoryExists(channel: ChannelSftp, remotePath: String) =
         SftpConnectionTester.ensureDirectoryExists(channel, remotePath)

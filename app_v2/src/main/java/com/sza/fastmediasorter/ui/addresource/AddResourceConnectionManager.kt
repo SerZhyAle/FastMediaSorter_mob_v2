@@ -367,6 +367,8 @@ internal class AddResourceConnectionManager(
         val defaultPort = if (protocolType == ResourceType.SFTP) 22 else 21
         val port = binding.etSftpPort.text.toString().trim().toIntOrNull() ?: defaultPort
         val username = binding.etSftpUsername.text.toString().trim()
+        val expectedFingerprint = binding.etSftpHostKeyFingerprint.text.toString().trim().ifEmpty { null }
+        Timber.d("S0046: SFTP test-connection, host-key pin set=${expectedFingerprint != null}")
 
         if (protocolType == ResourceType.SFTP && binding.rbSftpSshKey.isChecked) {
             val privateKey = binding.etSftpPrivateKey.text.toString().trim()
@@ -376,11 +378,12 @@ internal class AddResourceConnectionManager(
             }
             viewModel.testSftpConnectionWithKey(
                 host, port, username, privateKey,
-                binding.etSftpKeyPassphrase.text.toString().trim().ifEmpty { null }
+                binding.etSftpKeyPassphrase.text.toString().trim().ifEmpty { null },
+                expectedFingerprint
             )
         } else {
             viewModel.testSftpFtpConnection(protocolType, host, port, username,
-                binding.etSftpPassword.text.toString().trim())
+                binding.etSftpPassword.text.toString().trim(), expectedFingerprint)
         }
     }
 

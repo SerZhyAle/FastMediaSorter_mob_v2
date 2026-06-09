@@ -105,7 +105,6 @@ class PlayerDeleteUndoCoordinator(
 
                         // S0360: editor-initiated delete returns to browse instead of advancing.
                         if (finishOnSuccess) {
-                            Timber.d("S0360: editor delete success, returning to browse")
                             MediaFilesCacheManager.removeFile(resource.id, currentFile.path)
                             sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
                             return@launch

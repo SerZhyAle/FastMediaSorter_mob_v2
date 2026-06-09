@@ -264,7 +264,6 @@ class BrowseDialogHelper(
         }
 
         dialog.show()
-        Timber.d("S0370: filter dialog shown - icon action buttons")
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 

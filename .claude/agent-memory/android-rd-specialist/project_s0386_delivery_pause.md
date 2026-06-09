@@ -1,13 +1,17 @@
 ---
-name: s0386-delivery-pause
-description: S0386 on-demand delivery - additive parts (channel/UX/contract/extensions screen) done & inert; debundle core still BlockExternal pending multi-ABI payload hosting + device validation
+name: s0386-delivery-status
+description: S0386 on-demand delivery - ALL code phases done & 4 flavors build-green; ticket at BlockNeedUserTest, only owner device-test + release unpack-verify remain
 type: project
 ---
 
-S0386 (on-demand OCR/translation/heavy-asset delivery): phases 01-04, 06, 08 and steps 05.1-05.2 done and `standardDebug`-green as of 2026-06-09 (commit `9a097b7e` on `DEBUG-v013`). Delivered and **inert** (nothing stripped from the base yet, so no behavior change): delivery channel (descriptor/manifest/integrity-verifier/downloader), capability contract, default-OFF migration, enable-intercept UX, set-contributor extension point, the store translation Play dynamic-feature path (`:translate_feature` module + shared `translationMlKit` source set), and the "Downloadable Extensions" manager screen (Pillar G, Phase 08 - built ahead of Phase 07).
+S0386 (on-demand OCR/translation/heavy-asset delivery): **all 9 code phases done** as of 2026-06-09 (commit `8ed28604` on `DEBUG-v013`), ticket at **BlockNeedUserTest**.
 
-Debundle core (phases 05.3-05.7, 07) remains at **BlockExternal**.
+Delivered & build-green on `standard`/`noLegal`/`legacy`/`vr` debug:
+- Set A translation: store = Play dynamic-feature `:translate_feature`; sideload/VR = bundled (Google `.so` not re-hosted).
+- Set B OCR (Tesseract all flavors; +PaddleOCR on noLegal), Set C audio-viz, Set D FFmpeg DTS: native `.so` stripped from every base via `packaging.jniLibs.excludes`; delivered on demand from GitHub mirror `delivery-so-v1` (all-ABI hosted; hashes in `temp/s0386_so_table.txt`).
+- `DeliverableDescriptorCatalog` holds ABI-aware app-pinned SHA-256/size per `.so`.
+- `DeliveredNativeLibraryLoader` attaches by **splicing filesDir/delivery/<set> into the classloader native search path** (reflection over `DexPathList.nativeLibraryDirectories`/`makePathElements`, API 23-25 + 26+ variants) - required because Tesseract/Paddle/media3 load their libs via `System.loadLibrary(name)` in a static initializer we cannot edit, which a bare `System.load(absolutePath)` cannot satisfy.
 
-**Why:** Removing the native libs/assets from the base breaks live OCR/translation/DTS/audio-viz until Phase 07 attaches the delivered payloads, and that needs (a) OSS payloads hosted for ALL store ABIs - store flavors ship `arm64-v8a/armeabi-v7a/x86/x86_64`, but only `arm64-v8a` is hosted in GitHub release `delivery-so-v1`; (b) Set C audio-viz hosted; (c) a release build + on-device validation pass. Hosting is owner-only (`gh` is not available to the agent), and store-flavor device tests are not automatable here. Set A translation is split by flavor: store = Play dynamic-feature, sideload/VR (`noLegal`/`vr`) = bundled (Google `.so` are not re-hosted).
+**Why:** This is the keystone discovery. `TessBaseAPI` clinit runs `System.loadLibrary("jpeg"/"pngx"/"leptonica"/"tesseract")`, `PaddleLiteInitializer` runs `loadLibrary("paddle_lite_jni")`, media3 `FfmpegLibrary` loads `ffmpegJNI` - all by name, so the delivered dir must be on the classloader's native path before the wrapper initializes. The prior agent paused 05.3 exactly here.
 
-**How to apply:** The additive work is safe to extend without the block. To resume the debundle: host the remaining OSS `.so` (armeabi-v7a/x86/x86_64) + Set C, then execute 05.3-05.6 + Phase 07 together and validate on a release build + device. Verify current state against the spec header / INDEX before acting - this snapshot is point-in-time.
+**How to apply:** To verify/close: the remaining gate is owner-only - on-device enable->download->use (OCR recognize, DTS play), refusal stays unavailable, re-enable skips download, survives update/cache-clear, and `standardRelease`/`noLegalRelease` unpack-verify (release signing from the release worktree). The hidden-API reflection in the loader is the highest-risk part - validate on the target API levels on a real arm64 device (XR emulator unsuited to the 2D UI). Verify current state against the spec header / INDEX before acting - point-in-time snapshot.

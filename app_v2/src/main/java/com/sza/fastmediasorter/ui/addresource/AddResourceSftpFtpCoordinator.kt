@@ -9,8 +9,10 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
+import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -32,17 +34,52 @@ internal class AddResourceSftpFtpCoordinator(
     private val bridge: AddResourceBridge
 ) {
 
+    /**
+     * S0046: blank input -> null (permissive). Non-blank but unparseable -> emit a typed validation
+     * error and return null with `ok=false` so the caller aborts. Otherwise the canonical fingerprint.
+     */
+    private fun normalizeFingerprintOrEmitError(raw: String?): Pair<Boolean, String?> {
+        if (raw.isNullOrBlank()) return true to null
+        val canonical = SshFingerprintNormalizer.canonical(raw)
+        if (canonical == null) {
+            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.sftp_host_key_fingerprint_invalid)))
+            return false to null
+        }
+        return true to canonical
+    }
+
+    /** S0046: route a pinned host-key rejection to its own message, distinct from auth failures. */
+    private fun emitSftpTestFailure(e: Throwable) {
+        if (e is HostKeyMismatchException) {
+            val message = context.getString(R.string.sftp_host_key_mismatch_title) + "\n" +
+                context.getString(
+                    R.string.sftp_host_key_mismatch_body_format,
+                    SshFingerprintNormalizer.shortForList(e.expected),
+                    e.actual
+                )
+            bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = false))
+        } else {
+            bridge.emit(AddResourceEvent.ShowTestResult(
+                context.getString(R.string.addresource_connection_failed),
+                isSuccess = false
+            ))
+        }
+    }
+
     fun testSftpFtpConnection(
         protocolType: ResourceType,
         host: String,
         port: Int,
         username: String,
-        password: String
+        password: String,
+        expectedFingerprint: String? = null
     ) {
         if (host.isBlank()) {
             bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
+        val (fpOk, canonicalFingerprint) = normalizeFingerprintOrEmitError(expectedFingerprint)
+        if (!fpOk) return
 
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
@@ -50,16 +87,14 @@ internal class AddResourceSftpFtpCoordinator(
             when (protocolType) {
                 ResourceType.SFTP -> {
                     smbOperationsUseCase.testSftpConnection(
-                        host = host, port = port, username = username, password = password
+                        host = host, port = port, username = username, password = password,
+                        expectedFingerprint = canonicalFingerprint
                     ).onSuccess { message ->
                         Timber.d("SFTP test connection successful")
                         bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
                     }.onFailure { e ->
                         Timber.e(e, "SFTP test connection failed")
-                        bridge.emit(AddResourceEvent.ShowTestResult(
-                            context.getString(R.string.addresource_connection_failed),
-                            isSuccess = false
-                        ))
+                        emitSftpTestFailure(e)
                     }
                 }
                 ResourceType.FTP -> {
@@ -87,26 +122,27 @@ internal class AddResourceSftpFtpCoordinator(
         host: String,
         port: Int,
         username: String,
-        password: String
+        password: String,
+        expectedFingerprint: String? = null
     ) {
         if (host.isBlank()) {
             bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
+        val (fpOk, canonicalFingerprint) = normalizeFingerprintOrEmitError(expectedFingerprint)
+        if (!fpOk) return
 
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
             smbOperationsUseCase.testSftpConnection(
-                host = host, port = port, username = username, password = password
+                host = host, port = port, username = username, password = password,
+                expectedFingerprint = canonicalFingerprint
             ).onSuccess { message ->
                 Timber.d("SFTP test connection successful")
                 bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
             }.onFailure { e ->
                 Timber.e(e, "SFTP test connection failed")
-                bridge.emit(AddResourceEvent.ShowTestResult(
-                    context.getString(R.string.addresource_connection_failed),
-                    isSuccess = false
-                ))
+                emitSftpTestFailure(e)
             }
             bridge.markLoading(false)
         }
@@ -130,12 +166,15 @@ internal class AddResourceSftpFtpCoordinator(
         disableThumbnails: Boolean = false,
         showSubfoldersAsItems: Boolean = false,
         accessPin: String? = null,
-        profile: ResourceProfile = ResourceProfile.NONE
+        profile: ResourceProfile = ResourceProfile.NONE,
+        hostKeyFingerprint: String? = null
     ) {
         if (host.isBlank()) {
             bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
+        val (fpOk, canonicalFingerprint) = normalizeFingerprintOrEmitError(hostKeyFingerprint)
+        if (!fpOk) return
 
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
@@ -195,7 +234,8 @@ internal class AddResourceSftpFtpCoordinator(
                     disableThumbnails = disableThumbnails,
                     showSubfoldersAsItems = showSubfoldersAsItems,
                     accessPin = accessPin?.ifBlank { null },
-                    profile = profile
+                    profile = profile,
+                    hostKeyFingerprint = if (protocolType == ResourceType.SFTP) canonicalFingerprint else null
                 )
 
                 addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->

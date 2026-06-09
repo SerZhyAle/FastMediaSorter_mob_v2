@@ -90,8 +90,6 @@ object ScrollableTextDialog {
             Timber.w("ScrollableTextDialog: skipping show - Activity is finishing/destroyed")
             return null
         }
-        Timber.d("S0384: scrollable text dialog shown (unified component)")
-
         val fullText = if (details != null) "$message\n\n$details" else message
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_error_detail, null)

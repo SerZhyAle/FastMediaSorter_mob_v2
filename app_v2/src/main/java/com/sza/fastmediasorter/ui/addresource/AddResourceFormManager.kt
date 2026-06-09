@@ -117,6 +117,7 @@ internal class AddResourceFormManager(
         installTextInputTapFocusBridge(activity, binding.tilSftpPath, binding.etSftpPath)
         installTextInputTapFocusBridge(activity, binding.tilSftpResourceName, binding.etSftpResourceName)
         installTextInputTapFocusBridge(activity, binding.tilSftpPinCode, binding.etSftpPinCode)
+        installTextInputTapFocusBridge(activity, binding.tilSftpHostKeyFingerprint, binding.etSftpHostKeyFingerprint)
     }
 
     private fun updateMediaTypeCheckboxes(
@@ -376,6 +377,8 @@ internal class AddResourceFormManager(
         val resourceName = binding.etSftpResourceName.text.toString().trim()
         val comment = binding.etSftpComment.text.toString().trim()
         val accessPin = binding.etSftpPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
+        val hostKeyFingerprint = binding.etSftpHostKeyFingerprint.text.toString().trim().ifEmpty { null }
+        Timber.d("S0046: SFTP add-resource, host-key pin set=${hostKeyFingerprint != null}")
         val commonParams = Triple(supportedTypes, accessPin, sftpProfilePreset)
 
         if (protocolType == ResourceType.SFTP && binding.rbSftpSshKey.isChecked) {
@@ -397,7 +400,8 @@ internal class AddResourceFormManager(
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
                 disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
                 showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
-                accessPin = commonParams.second, profile = commonParams.third
+                accessPin = commonParams.second, profile = commonParams.third,
+                hostKeyFingerprint = hostKeyFingerprint
             )
         } else {
             viewModel.addSftpFtpResource(
@@ -412,7 +416,8 @@ internal class AddResourceFormManager(
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
                 disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
                 showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
-                accessPin = commonParams.second, profile = commonParams.third
+                accessPin = commonParams.second, profile = commonParams.third,
+                hostKeyFingerprint = hostKeyFingerprint
             )
         }
     }

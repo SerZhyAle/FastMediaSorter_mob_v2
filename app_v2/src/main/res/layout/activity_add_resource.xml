@@ -461,6 +461,13 @@
 
             </LinearLayout>
 
+            <!-- S0046: expected host-key fingerprint (optional, common to password and key auth) -->
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_host_key_fingerprint_hint" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Test Connection placed after auth block and before path - per spec F5.3 -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 

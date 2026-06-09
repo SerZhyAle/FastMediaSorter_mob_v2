@@ -123,6 +123,8 @@ class AddResourceHelper(
                 // Pre-fill credentials
                 if (username != null) binding.etSftpUsername.setText(username)
                 binding.etSftpPinCode.setText(resource.accessPin.orEmpty())
+                // S0046: prefill the pinned host-key fingerprint; clearing it on save reverts to permissive mode.
+                binding.etSftpHostKeyFingerprint.setText(resource.hostKeyFingerprint.orEmpty())
 
                 if (sshKey != null) {
                     binding.rbSftpSshKey.isChecked = true

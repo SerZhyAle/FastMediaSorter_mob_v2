@@ -19,6 +19,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
 - **Office & PDF document handoff** `[Standard / VR]`: Filter and open DOC, DOCX, RTF, ODT, or protected PDF files in external apps or fallback viewers with integrated password indicators.
 - **External file viewing** `[Standard / VR]`: When you open a file from another app, page through the neighbouring files in the same folder (next, previous, random, slideshow), and use *Open in FastMediaSorter* to jump straight into the in-app player on that file.
+- **External image editing** `[Standard / VR]`: When you open an image from another app, edit it right there - crop, save a cropped copy, make a compressed copy, and toggle screen rotation - the same image actions as the in-app player.
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
@@ -66,6 +67,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery & speed test** `[Standard / VR]`: Scans subnets for SMB/FTP/SFTP, tests network speed to optimize copy thread counts, and supports high-performance streaming.
+- **SFTP key auth & host-key pinning** `[Standard / VR]`: SFTP resources support SSH private-key authentication with optional passphrase, and host-key fingerprint pinning to detect server impersonation. Key auth is also available for predefined resources shipped in the bundled XML config.
 - **Cloud OAuth storage** `[Standard Only]`: Authenticates Google Drive, Dropbox, and OneDrive with remote editing and settings backup.
 
 ## 15. Smart Widgets & Integration

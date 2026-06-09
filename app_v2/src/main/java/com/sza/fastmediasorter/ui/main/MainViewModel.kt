@@ -495,7 +495,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun moveResourceToTop(resource: MediaResource) {
-        Timber.d("S0377: move resource to top")
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val currentList = state.value.resources
 
@@ -516,7 +515,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun moveResourceToBottom(resource: MediaResource) {
-        Timber.d("S0377: move resource to bottom")
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val currentList = state.value.resources
 

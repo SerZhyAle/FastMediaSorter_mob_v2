@@ -8,4 +8,15 @@
         android:title="@string/open_in_fms"
         app:showAsAction="never" />
 
+    <!-- S0390: Group A image actions that spill to overflow (shown only for editable local images) -->
+    <item
+        android:id="@+id/menu_edit_crop_to_file"
+        android:title="@string/menu_crop_to_file"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_edit_compress"
+        android:title="@string/menu_compress_copy"
+        app:showAsAction="never" />
+
 </menu>

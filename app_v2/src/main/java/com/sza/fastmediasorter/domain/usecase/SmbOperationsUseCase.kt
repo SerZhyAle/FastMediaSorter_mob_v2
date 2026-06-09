@@ -307,13 +307,14 @@ class SmbOperationsUseCase @Inject constructor(
         username: String,
         password: String,
         privateKey: String? = null,
-        keyPassphrase: String? = null
+        keyPassphrase: String? = null,
+        expectedFingerprint: String? = null
     ): Result<String> = withContext(ioDispatcher) {
         try {
             val result = if (privateKey != null) {
-                sftpClient.testConnectionWithPrivateKey(host, port, username, privateKey, keyPassphrase)
+                sftpClient.testConnectionWithPrivateKey(host, port, username, privateKey, keyPassphrase, expectedFingerprint)
             } else {
-                sftpClient.testConnection(host, port, username, password)
+                sftpClient.testConnection(host, port, username, password, expectedFingerprint)
             }
             
             if (result.isSuccess) {
@@ -477,14 +478,16 @@ class SmbOperationsUseCase @Inject constructor(
         port: Int = 22,
         username: String,
         password: String,
-        remotePath: String = "/"
+        remotePath: String = "/",
+        expectedFingerprint: String? = null
     ): Result<List<MediaFile>> = withContext(ioDispatcher) {
         try {
             val connectionInfo = SftpClient.SftpConnectionInfo(
                 host = host,
                 port = port,
                 username = username,
-                password = password
+                password = password,
+                expectedFingerprint = expectedFingerprint
             )
             
             val listResult = sftpClient.listFiles(connectionInfo, remotePath)
@@ -515,7 +518,8 @@ class SmbOperationsUseCase @Inject constructor(
     /** List files in SFTP directory using saved credentials */
     suspend fun listSftpFilesWithCredentials(
         credentialsId: String,
-        remotePath: String = "/"
+        remotePath: String = "/",
+        hostKeyFingerprint: String? = null
     ): Result<List<MediaFile>> = withContext(ioDispatcher) {
         try {
             val credentialsResult = getSftpCredentials(credentialsId)
@@ -533,7 +537,8 @@ class SmbOperationsUseCase @Inject constructor(
                 port = credentials.port,
                 username = credentials.username,
                 password = credentials.password,
-                remotePath = remotePath
+                remotePath = remotePath,
+                expectedFingerprint = hostKeyFingerprint
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to list SFTP files with credentials")
@@ -545,7 +550,8 @@ class SmbOperationsUseCase @Inject constructor(
     suspend fun checkTrashFolders(
         type: com.sza.fastmediasorter.domain.model.ResourceType,
         credentialsId: String,
-        path: String
+        path: String,
+        hostKeyFingerprint: String? = null
     ): Result<Pair<Boolean, List<String>>> {
         return try {
             when (type) {
@@ -579,7 +585,8 @@ class SmbOperationsUseCase @Inject constructor(
                         port = credentials.port,
                         username = credentials.username,
                         password = credentials.password,
-                        privateKey = credentials.sshPrivateKey
+                        privateKey = credentials.sshPrivateKey,
+                        expectedFingerprint = hostKeyFingerprint
                     )
                     val files = sftpClient.listFiles(connectionInfo, remotePath).getOrDefault(emptyList())
                     val trashFolders = files.filter { it.path.substringAfterLast('/').startsWith(".trash_") }
@@ -608,10 +615,11 @@ class SmbOperationsUseCase @Inject constructor(
     suspend fun cleanupTrash(
         type: com.sza.fastmediasorter.domain.model.ResourceType,
         credentialsId: String,
-        path: String
+        path: String,
+        hostKeyFingerprint: String? = null
     ): Result<Int> {
         return try {
-            val (hasTrash, trashFolders) = checkTrashFolders(type, credentialsId, path).getOrThrow()
+            val (hasTrash, trashFolders) = checkTrashFolders(type, credentialsId, path, hostKeyFingerprint).getOrThrow()
             if (!hasTrash) return Result.success(0)
             
             var deletedCount = 0
@@ -643,7 +651,8 @@ class SmbOperationsUseCase @Inject constructor(
                         port = credentials.port,
                         username = credentials.username,
                         password = credentials.password,
-                        privateKey = credentials.sshPrivateKey
+                        privateKey = credentials.sshPrivateKey,
+                        expectedFingerprint = hostKeyFingerprint
                     )
                     trashFolders.forEach { folderName ->
                         val fullPath = if (remotePath.isEmpty()) folderName else "$remotePath/$folderName"
