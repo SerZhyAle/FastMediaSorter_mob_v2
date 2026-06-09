@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-04*
+*Last updated: 2026-06-09*
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
@@ -9,139 +9,66 @@ This document is the canonical inventory of all user-facing features implemented
 ---
 
 ## 0. Setup & Configuration
-- **First-run device profile setup** `[Standard / VR]`: On initial launch, select a device profile (phone, tablet, TV/media box, car head unit, media player, photo frame, video player, audio player, e-book reader, VR headset, or Other) with auto-detection recommendations based on platform signals. The selected profile applies optimized defaults for content types, interaction patterns, safety confirmations, screen behavior, command priorities, and feature visibility tailored to the device's intended use case.
+- **First-run device profile setup** `[Standard / VR]`: Select a device profile (phone, tablet, TV, head unit, media player, photo frame, VR headset, etc.) on first launch with auto-detection recommendations. The chosen profile applies optimized default settings (content types, layouts, security, screen behavior) tailored to the device's usage.
 
 ## 1. Sources & Storage
-- **Multiple resource types** `[Standard / VR]`: Connect Local folders, SMB network folders (Windows share/NAS), FTP, SFTP, and cloud drives (Google Drive, Dropbox, OneDrive) in a single interface.
-- **Resource profiles (quick presets)** `[Standard / VR]`: Configure new folders using presets (Audio Library, Video Library, Photo Storage, Documents, File Manager Mode) that automatically apply optimal sorting, filtering, and display settings.
-- **Per-resource parameters** `[Standard / VR]`: Customize supported media types, sort mode, thumbnail loading, PIN access, and subfolder scanning individually for each folder.
-- **Intelligent caching** `[Standard / VR]`: Persists file indexes and directory structures in a local database to bypass network fetching on subsequent visits to large network or cloud directories.
-- **Connection test & Security** `[Standard / VR]`: Verify network or cloud resource accessibility before trying to open it. Protect folders with a PIN code, and support a "Read-only" mode to prevent accidental changes.
-- **Browse position saving** `[Standard / VR]`: Saves and restores the exact scroll position and last viewed file for every resource, opening directly into subfolders on resume.
+- **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
+- **Intelligent caching & sync** `[Standard / VR]`: Persists index databases to bypass slow network fetches on subsequent visits, with a built-in connection test and PIN-code protection for folders.
 
 ## 2. Media Browsing
-- **Extensive sort modes** `[Standard / VR]`: Sort by Name, Date, Size, Type, Artist, Title, Duration, Date Taken, Random, or Manual order (ascending/descending) with memory per resource.
-- **Filter panel & search** `[Standard / VR]`: Instantly filter items by filename substring, date ranges, size limits, or specific media types (including Office documents), with a one-tap action to re-check every type.
-- **Hidden files & filter bypass** `[Standard / VR]`: Toggle visibility of system-hidden files, or activate File Manager Mode to bypass media filters and manage any file or archive (ZIP, APK, EXE, etc.).
-- **Office document handoff** `[Standard / VR]`: Open DOC, DOCX, RTF, and ODT files in an installed external application, with full integration in media filters across local, network, and cloud resources.
-- **Protected document fallback** `[Standard / VR]`: Detect protected PDF, Office, and EPUB cases the internal viewer cannot decrypt and route to a clear message or external-open fallback; passwords are not stored.
-- **Intelligent thumbnails** `[Standard / VR]`: Previews for photos and video frames. Video thumbnails automatically skip a black initial frame (checking offsets at 5 s, 15 s, and 30 s).
-- **Random file selection** `[Standard / VR]`: Quickly jump to a random file inside a folder using a dedicated dice button without changing playback order.
-- **Multi-window & DeX** `[Standard Only]`: Open folders or players in a separate parallel window on supported platforms (Chromebook, Samsung DeX).
+- **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
+- **Office & PDF document handoff** `[Standard / VR]`: Filter and open DOC, DOCX, RTF, ODT, or protected PDF files in external apps or fallback viewers with integrated password indicators.
 
 ## 3. File Operations
-- **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination.
-- **Flexible deleting & Undo** `[Standard / VR]`: Move files to a recoverable Trash bin (recoverable for up to 5 minutes) or permanently delete them immediately with the option to undo the last operation.
-- **Batch processing** `[Standard / VR]`: Multi-select items for batch copying, moving, deleting, or sharing.
-- **Duplicate file finder** `[Standard / VR]`: Locate and remove identical files across all storage using a 3-phase scanning engine (Size -> Hash -> SHA-256) with review and auto-delete modes.
-- **Archive management** `[Standard / VR]`: Pack selected files into a single background ZIP archive; extract archives into the current folder with percentage progress, including password-protected ZIPs after a one-time password prompt.
-- **Camera & Mic capture** `[Standard / VR]`: Take photos or record audio directly into the current folder (local, network, or cloud).
-- **Smooth progress indication** `[Standard / VR]`: Progress bar displays byte percentage, transfer speed, and estimated time remaining (ETA) for all operations.
+- **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
+- **Duplicate file finder** `[Standard / VR]`: Scans storage to locate and remove identical files using a 3-phase matching engine (Size -> Hash -> SHA-256) with auto-delete or manual review options.
+- **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
 
 ## 4. Destination Management
-- **Instant sorting panel** `[Standard / VR]`: Configure up to 10 distinct shortcut buttons inside the player representing favorite folders for quick moving or copying.
-- **Auto-advance** `[Standard / VR]`: Automatically jump to the next media file in the queue as soon as a copy or move operation completes.
-- **Quick Favorites toggle** `[Standard / VR]`: Mark or unmark the current file as a Favorite directly from the viewer, persisting it in a global cross-source list.
+- **Instant sorting panel** `[Standard / VR]`: Set up to 10 favorite target folders inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.
 
 ## 5. Image & GIF Viewer
-- **Crop to fullscreen** `[Standard / VR]`: Fills the screen by cropping out black bars when image and device orientations match.
-- **Dynamic background** `[Standard / VR]`: Generates a blurred ambient color background matching the photo's dominant color palette.
-- **Quick operations** `[Standard / VR]`: Rotate, flip, and crop an image with changes saved destructively directly to the source file.
-- **Color adjustments & Filters** `[Standard / VR]`: Fine-tune brightness, contrast, and saturation, or apply Grayscale, Sepia, and Negative filters natively.
-- **GIF controls** `[Standard / VR]`: Adjust GIF playback speed from 0.25× to 4× with file-specific memory; save the first frame as static or explode the animation into individual static images.
-- **Send to Telegram** `[Standard / VR]`: Instantly send files to an installed Telegram client from both the browser and the player (button appears automatically if Telegram is installed).
+- **Crop & Color adjustment filters** `[Standard / VR]`: Destructively rotate, flip, and crop images directly on the source, or apply adjustments (brightness, contrast, saturation) and color filters (Sepia, Negative).
+- **Animated GIF speed controls** `[Standard / VR]`: Fine-tune GIF playback speed (0.25x to 4x) and export individual frames as static images.
+- **Send to Telegram** `[Standard / VR]`: Instantly share media files to a local Telegram client directly from the browser or player.
 
 ## 6. Drawing & Annotations Editor
-- **Drawing tools** `[Standard / VR]`: Full-screen canvas with brush, oval, rectangle, eraser, and text annotation tools.
-- **Palette & Sizes** `[Standard / VR]`: Choose from 16 colors with adjustable brush size, text size, and opacity.
-- **Blank canvas creation** `[Standard / VR]`: Create a new empty `.jpg` drawing directly from the Browse toolbar in local, network, or cloud folders.
-- **Export & integration** `[Standard / VR]`: Undo changes and export finished drawings directly to Google Keep or other external apps.
+- **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, exporting results directly to Google Keep.
 
 ## 7. Video Player
-- **Session save & restore** `[Standard / VR]`: Remembers the exact playback position and restores active network/cloud sessions upon cold start.
-- **Playback modes** `[Standard / VR]`: Cycle between Loop List, Play Through, Shuffle, and Repeat One.
-- **Picture-in-Picture (PiP)** `[Standard Only]`: Shrinks video into a floating window when exiting to the home screen (on Android 12+).
-- **Touch zones & gestures** `[Standard Only]`: Configurable screen tap regions for next/prev, play/pause, volume adjustment, and seeking.
-- **Unified Control dialog** `[Standard / VR]`: Manage audio track, internal subtitles, HUE rotation, GPU brightness, speed, and sleep timer (15-120 minutes) in a single dialog.
-- **Video screenshots** `[Standard / VR]`: Capture the current video frame and save it as a PNG file.
-- **3D & 360° support** `[Standard / VR]`: Recognizes 360° metadata in MP4. Detects Side-by-Side (SBS) and Over-Under (OU) video with a single-eye crop mode for 2D screens.
-- **Big Buttons Mode** `[Standard Only]`: Scales control buttons to full screen width with 2× height for car head units or easy one-handed use.
-- **Diagnostic overlays** `[Standard / VR]`: Integrated FPS overlay bubble and "Black Screen" mode for blind listening in dark environments.
+- **Session save & restore** `[Standard / VR]`: Remembers exact playback coordinates and restores remote active network/cloud sessions upon app cold start.
+- **Video screenshot capture** `[Standard / VR]`: Capture video frames in high quality and save them as PNG/JPG to any local or network resource.
+- **Picture-in-Picture & D-pad focus** `[Standard Only]`: Runs videos in a floating window (Android 12+) and supports complete D-pad/remote focus navigation for TV boxes and head units.
 
 ## 8. VR Edition & OpenXR
-- **Dedicated VR build** `[VR Only]`: Full OpenXR engine integration for Meta Quest and Android XR headsets (API 26+).
-- **Immersive stereoscopic render** `[VR Only]`: Stereoscopic per-eye rendering for 3D video (SBS/OU, VR180, 360°) and 3D photos with manual format overrides.
-- **Stereo screenshots** `[VR Only]`: Captures SBS PNG screenshots maintaining the exact perspective of both eyes.
-- **VR Navigation & HUD** `[VR Only]`: Head-locked floating HUD menu with aiming rays, physical button mapping, and Quest Hand Tracking gestures.
-- **Virtual cinema** `[VR Only]`: Play standard 2D video and slideshows on a massive, customizable virtual screen inside the VR scene.
-- **Passthrough snapshot** `[VR Only]`: Capture mixed-reality photos using front-facing cameras (on Quest 3).
-- **VR Entry point** `[VR Only]`: Instantly trigger the immersive OpenXR layer from the flat player using a floating `VR` action badge.
-- **3D/VR default settings** `[VR Only]`: Tune how the app auto-detects 3D/VR formats (filename markers, embedded metadata, aspect-ratio guess), pick the default mode for unrecognized media, and set immersive behavior — all from the VR section of Media settings; per-file overrides still take priority.
+- **Dedicated VR build & OpenXR engine** `[VR Only]`: Immersive stereoscopic rendering (SBS/OU, VR180, 360°), virtual cinema screen for flat files, head tracking HUD, and passthrough snapshot capture on Quest 3.
 
 ## 9. Audio Player
-- **Background playback** `[Standard Only]`: Runs on a persistent foreground service with quick media notification drawer controls.
-- **Smart album covers** `[Standard / VR]`: Extracts cover images from ID3 tags or retrieves them online with local caching.
-- **Lyrics display** `[Standard / VR]`: Full-screen lyrics overlay with automatic online lyrics search.
-- **MIDI playback** `[Standard / VR]`: Plays MID/MIDI files as regular audio tracks across local, network, and cloud storage.
-- **YouTube Music integration** `[Standard / VR]`: Bridges current track details into a YouTube Music search in one tap.
-- **Chromecast streaming** `[Standard Only]`: Cast audio, images, and local video to compatible Cast receivers directly.
-- **Visualizations** `[Standard / VR]`: Render Canvas visualizers (waves, frequency bars, pulses) or play a slideshow of photos from a designated folder in the background.
+- **Background audio service & Casting** `[Standard Only]`: Runs playback on a persistent background service with notification drawer controls and direct Chromecast casting support.
+- **Lyrics display & MIDI integration** `[Standard / VR]`: View lyrics, play MID/MIDI files on network resources, and bridge current tracks into YouTube Music searches in one tap.
 
 ## 10. Slideshow Mode
-- **Custom intervals** `[Standard / VR]`: Adjust image switching interval from 1 second to 1 hour.
-- **Background music** `[Standard / VR]`: Designate any folder to play random music continuously during the slideshow.
-- **Smart gating** `[Standard / VR]`: Pauses slideshow advancement on video files, waiting until they finish playing.
-- **Shuffle mode** `[Standard / VR]`: Shuffles images, GIFs, and videos randomly in the slideshow queue.
+- **Slideshow with background music** `[Standard / VR]`: Rotate images/GIFs with custom intervals (1s to 1h), play background tracks from a selected resource, and auto-pause slides on video files.
 
 ## 11. PDF & EPUB Reader
-- **PDF reading features** `[Standard / VR]`: Horizontal page flipping or continuous vertical scrolling, thumbnail slider navigation, and reading themes (Light, Night, Sepia).
-- **EPUB custom formatting** `[Standard / VR]`: Configure Serif, Sans, or Monospace fonts, adjust line spacing, margins, and custom themes (including OLED black).
-- **Read Aloud (TTS)** `[Standard / VR]`: Synthesizes current pages or chapters through the system text-to-speech engine.
-- **Print support** `[Standard Only]`: Print PDF documents, notes, and photos natively via the Android Print service.
-- **Text selection & copy** `[Standard / VR]`: Long-press to select a word in PDF, EPUB and TXT/MD, drag the handles to adjust the range, and use the floating Copy action; in PDF the selection opens through the on-page text mode (TXT button).
+- **E-book reader formatting** `[Standard / VR]`: View DRM-free EPUBs with customizable fonts, margins, line spacing, themes (including OLED black), and chapter maps.
+- **Read Aloud (TTS) & Text selection** `[Standard / VR]`: Synthesizes page text via Text-to-Speech (TTS) and copy text fragments using long-press drag handles.
 
 ## 12. Text Editor
-- **Rendering & syntax** `[Standard / VR]`: Auto-detects charsets, renders Markdown, and highlights code syntax.
-- **In-place editing** `[Standard / VR]`: Modify `.txt` and `.md` files with auto-save and undo history (Undo/Redo) for local and remote files.
-- **Quick notes** `[Standard / VR]`: Create new text notes directly from the Browse toolbar with auto-saving and name conflict resolution.
-- **Action panel** `[Standard / VR]`: Dedicated control buttons (Save, Close, Share, Send to Keep) with unsaved change highlights.
-- **Embedded calculator from text** `[Standard / VR]`: Opens the embedded calculator from the editor action menu with result insertion, and from read-only text selection menus for OCR, translations, PDF/EPUB text, and lyrics without writing the result back.
-- **Font auto-fit** `[Standard / VR]`: Scales text size automatically to fit the screen, with swipe-based manual size lock.
+- **In-place Markdown editor** `[Standard / VR]`: Edit `.txt` and `.md` files directly on local or remote storage with live syntax highlighting, Markdown rendering, and auto-save.
+- **Embedded text calculator** `[Standard / VR]`: Parse and solve math equations from selected reader/OCR/lyrics text blocks without writing results back.
 
 ## 13. Offline OCR & Translation
-- **Local OCR engine** `[Standard / VR]`: Extract text from images and PDFs completely offline using ML Kit and Tesseract.
-- **Language identification** `[Standard / VR]`: Automatically recognizes the source language before performing translation.
-- **Expanded language picker** `[Standard / VR]`: Select translation and OCR source languages in Settings, player translation dialogs, and Camera OCR through a searchable list with regional flags, app-language names, native names, and capability labels for translation, basic OCR, quality OCR, and noLegal OCR; the ML Kit translation catalog includes Czech and the full supported language set.
-- **AR translation overlay** `[Standard / VR]`: Draws translated text precisely over original coordinates on images and PDFs.
-- **Quality models on-demand** `[Standard / VR]`: Download improved Cyrillic/Ukrainian Tesseract models (`tessdata_best`) directly in Settings with SHA-256 validation.
-- **Photo OCR translation** `[Standard / VR]`: Opt-in quick flow (enable in Settings -> Playback -> Other functionality) launched from the main menu or a dedicated home-screen widget — capture a photo, save it to the camera folder (or Downloads), then automatically run OCR and translation; shows the translation large on top with the recognized text below, supports an OCR-only mode, and saves the result as a `.txt` file in Downloads. After capture you can drag a rectangle to crop the photo so OCR, translation and the saved image apply only to the selected area; leaving the frame untouched processes the whole photo. On the crop screen you also see and change the OCR and translation languages — shown as a flag plus two-letter code — before recognition runs; with OCR language set to auto-detect the translation is performed from the language detected in the recognized text. The results screen lets you re-translate the recognized text into another language without re-capturing.
+- **Offline OCR & Translation engine** `[Standard / VR]`: Extract text from images/PDFs and translate it completely offline using ML Kit and Tesseract with custom models.
+- **Photo OCR capture flow** `[Standard / VR]`: In-app camera translation with area cropping, language selector on the crop screen, and editable results saved as `.txt`.
 
 ## 14. Network & Cloud Integration
-- **NAS auto-discovery** `[Standard / VR]`: Scans the local subnet (ports 445, 21, 22) for active SMB, FTP, and SFTP endpoints.
-- **Smart folder import** `[Standard / VR]`: Directly pick discovered SMB folders from host scans when setting up resources.
-- **Built-in Speed test** `[Standard / VR]`: Measures bandwidth to recommend optimal copy thread counts.
-- **High-performance streaming** `[Standard / VR]`: Connection pooling, socket auto-recovery, and native BD-TS packet parsing for `.m2ts` files on the fly.
-- **Google Drive, Dropbox, OneDrive** `[Standard Only]`: Secure OAuth authorization, direct streaming, remote editing, and backup of app settings to Google Drive in JSON.
+- **NAS auto-discovery & speed test** `[Standard / VR]`: Scans subnets for SMB/FTP/SFTP, tests network speed to optimize copy thread counts, and supports high-performance streaming.
+- **Cloud OAuth storage** `[Standard Only]`: Authenticates Google Drive, Dropbox, and OneDrive with remote editing and settings backup.
 
 ## 15. Smart Widgets & Integration
-- **Icon-style home widgets** `[Standard / Lite / Photos / Legacy / VR]`: Compact 1×1 widgets render as clean launcher-style icons instead of mini cards, Camera OCR launches from its own 1×1 widget, and Settings → "Add widget to home screen.." pins an existing widget from inside the app, with a clear fallback when the launcher can't place it automatically.
-- **Resource shortcuts** `[Standard Only]`: Single-tap home screen widgets to open a specific folder or NAS drive immediately.
-- **Capture & OCR panel** `[Standard / Legacy / VR]`: Resizable home-screen action widget that groups Camera Photos and Camera OCR shortcuts in one horizontal panel; unavailable actions stay hidden until their standalone flow exists.
-- **Audio Now Playing widget** `[Standard / Legacy / VR]`: Resizable home-screen widget showing the current background-audio track with previous, play/pause, next, and safe favorite controls.
-- **Random Photo Frame widget** `[Standard / Lite / Photos / Legacy / VR]`: Resizable home-screen photo widget bound to a selected resource; it periodically shows a cached random image from that source, opens the shown file fullscreen on tap, and falls back to the resource browser when no renderable photo is cached.
-- **Quick Recorder widget** `[Standard / Legacy / VR]`: Icon-style 1×1 home-screen widget that starts a voice recording on the first tap and stops and saves it on the next, recording in the background with a notification and a Stop action; the first use asks for microphone access.
-- **Scheduled Tasks widget** `[Standard / Lite / Photos / Legacy / VR]`: Home-screen widget (2×1 / 2×2) showing the number of active scheduled file operations, the last run's status and time, and the next upcoming tasks, with one-tap Run All and Pause/Resume All controls; tapping the status opens the scheduled-operations settings.
-- **Embedded calculator** `[Standard / Lite / Photos / Legacy]`: Enable Calculator in General settings -> Other functionality, then open it from the main menu or the Calculator widget; the calculator can share the current result and save or clear calculation history. It keeps calculation history between sessions (cleared only via Clear history), offers scientific functions through the Function menu (trigonometry in degrees, square and cube roots, powers, reciprocal, log₁₀, ln, factorial and π), and evaluates selected or pasted text as a full math expression with parentheses, operator precedence, and implicit summation of separate numbers. It also has a memory register (M+/M−/MR/MC) shown above the result and kept between sessions in a collapsible row, plus a modulo (remainder) function.
-- **Embedded mini-game** `[Standard / Lite / Photos / Legacy / VR]`: Optional turn-based puzzle, disabled by default, launched from the Settings-enabled main menu entry or a dedicated home-screen widget, with an in-game rules and color legend screen.
-- **Continue Reading beacon** `[Standard Only]`: Interactive widget to quickly resume your exact last document or video session.
-- **Launcher shortcuts** `[Standard Only]`: Long-press app icon to access recent folder history.
-- **Intent hooks** `[Standard / VR]`: Configures the app as a default media viewer and Share target.
+- **Icon-style home widgets** `[Standard / VR]`: 1x1 quick launch buttons (Voice recorder, Quick capture, Camera OCR), resizable widgets (Scheduled tasks, Audio Now Playing, Photo Frame), and settings integration.
 
 ## 16. Settings & Navigation
-- **Settings search** `[Standard / VR]`: Full-text instant indexing search with yellow spotlight targeting of matched settings.
-- **Color theme** `[Standard / Lite / Photos / Legacy / VR]`: Choose the app color theme — Auto (follow device), Light, or Dark — independently of the system setting, for devices where the system light/dark switch is unavailable or unreliable.
-- **Complete DPAD support** `[Standard / VR]`: Scales all preferences for TV remotes, keyboards, mice, and gamepads with DPAD acceleration.
-- **TV button remapping** `[Standard Only]`: Custom assignments for remote color buttons and Channel Up/Down actions.
-- **Diagnostic logs** `[Standard / VR]`: Integrated stack-trace inspector with sharing actions for troubleshooting.
-- **System info** `[Standard / Lite / Photos / Legacy / VR]`: View, copy, and share a technical summary of your device and the app from a button next to Permissions in General settings — grouped sections for device, hardware (CPU, ABIs, SoC, kernel), battery, display, network (type, IP, VPN), storage, system and time, plus approximate memory- and storage-speed benchmarks. No permissions beyond network state and no device identifiers are collected.
-- **Wear OS Companion** `[Standard Only]`: Smartwatch application supporting independent NAS/Cloud browsing, photo viewing, and phone playback control.
+- **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
+- **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
