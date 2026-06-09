@@ -348,6 +348,82 @@
                         функции</a>
                 </details>
             </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">📱</span>
+                        <h3>Умные виджеты домашнего экрана</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Добавляйте ярлыки на домашний экран для быстрой записи аудиозаметок, сканирования документов или запуска синхронизации.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Подробно</summary>
+                    <ul class="detail-list">
+                        <li>Записывайте голосовые заметки в один клик прямо на домашний сервер NAS.</li>
+                        <li>Настройте виджет случайного фото для слайд-шоу на экране.</li>
+                        <li>Следите за очередями копирования или синхронизации через активные виджеты.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.md#умные-виджеты-домашнего-экрана" class="card-footer" target="_blank">Открыть описание сценария</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">🕶️</span>
+                        <h3>Иммерсивный кинотеатр OpenXR VR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Только VR</span></div>
+                    <p class="card-summary">Смотрите 3D SBS-фильмы, видео 360°/180° или обычные файлы на огромном виртуальном экране в виртуальной реальности.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Подробно</summary>
+                    <ul class="detail-list">
+                        <li>Переключайтесь в иммерсивный 3D-режим с помощью плавающей кнопки VR.</li>
+                        <li>Управляйте меню жестами рук (Quest Hand Tracking) или лучами контроллеров.</li>
+                        <li>Делайте стереоскопические снимки экрана и скриншоты смешанной реальности.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.md#иммерсивный-кинотеатр-openxr-vr" class="card-footer" target="_blank">Открыть описание сценария</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">🧮</span>
+                        <h3>Быстрые вычисления из текста</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Выделяйте формулы и числа в документах PDF, книгах или на фото с распознанным текстом для мгновенного расчёта.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Подробно</summary>
+                    <ul class="detail-list">
+                        <li>Выделите формулу вида (45 + 12) * 3 внутри любого просмотрщика.</li>
+                        <li>Запустите встроенный калькулятор прямо из всплывающего меню выделения.</li>
+                        <li>Сохраняйте историю расчётов и ячейки памяти (M+/M-) между сессиями.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.md#быстрые-вычисления-из-текста-и-ocr" class="card-footer" target="_blank">Открыть описание сценария</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">📝</span>
+                        <h3>Облачные заметки Markdown и код</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard для облака</span><span class="scenario-badge common">Все версии локально</span></div>
+                    <p class="card-summary">Создавайте и редактируйте файлы Markdown или фрагменты кода прямо на облачных дисках, локальных хранилищах или сетевых ресурсах.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Подробно</summary>
+                    <ul class="detail-list">
+                        <li>Используйте встроенный текстовый редактор с подсветкой синтаксиса Markdown.</li>
+                        <li>Создавайте новые заметки непосредственно на диске NAS (SMB) или Google Drive.</li>
+                        <li>Просматривайте форматированный Markdown, экспортируйте файлы в другие сервисы.</li>
+                    </ul>
+                    <a href="docs/HOW_TO_RU.md#облачные-заметки-markdown-и-код" class="card-footer" target="_blank">Открыть описание сценария</a>
+                </details>
+            </article>
         </div>
 
         <!-- Руководства пользователя -->
@@ -711,7 +787,11 @@
                 { id: 'ocr', label: '🔎 OCR-перевод' },
                 { id: 'tv', label: '🛋️ NAS для TV' },
                 { id: 'duplicates', label: '🧬 Очистка дубликатов' },
-                { id: 'chromecast', label: '📺 Chromecast' }
+                { id: 'chromecast', label: '📺 Chromecast' },
+                { id: 'widgets', label: '📱 Умные виджеты' },
+                { id: 'vrcinema', label: '🕶️ Иммерсивный кинотеатр' },
+                { id: 'calculator', label: '🧮 Быстрые вычисления' },
+                { id: 'cloudnotes', label: '📝 Облачные заметки' }
             ];
 
             // Селекторы сценариев
@@ -755,6 +835,18 @@
                 if (text.indexOf('chromecast') !== -1 || text.indexOf('cast') !== -1) {
                     links.push({ url: 'docs/FEATURES_RU.md#9-аудиоплеер', label: '📺 Chromecast' });
                 }
+                if (text.indexOf('виджет') !== -1 || text.indexOf('widget') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.md#умные-виджеты-домашнего-экрана', label: '📱 Умные виджеты' });
+                }
+                if (text.indexOf('vrcinema') !== -1 || text.indexOf('кинотеатр') !== -1 || text.indexOf('openxr') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.md#иммерсивный-кинотеатр-openxr-vr', label: '🕶️ Иммерсивный кинотеатр' });
+                }
+                if (text.indexOf('вычислен') !== -1 || text.indexOf('формул') !== -1 || text.indexOf('калькулятор') !== -1 || text.indexOf('расчёт') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.md#быстрые-вычисления-из-текста-и-ocr', label: '🧮 Быстрые вычисления' });
+                }
+                if (text.indexOf('cloudnotes') !== -1 || text.indexOf('заметк') !== -1 || text.indexOf('markdown') !== -1) {
+                    links.push({ url: 'docs/HOW_TO_RU.md#облачные-заметки-markdown-и-код', label: '📝 Облачные заметки' });
+                }
 
                 return links;
             }
@@ -773,6 +865,10 @@
                 if (t.indexOf('tv') !== -1 || t.indexOf('тв') !== -1 || t.indexOf('телевиз') !== -1) return 'tv';
                 if (t.indexOf('дубл') !== -1 || t.indexOf('duplicates') !== -1 || t.indexOf('cleanup') !== -1) return 'duplicates';
                 if (t.indexOf('chromecast') !== -1 || t.indexOf('cast') !== -1) return 'chromecast';
+                if (t.indexOf('виджет') !== -1 || t.indexOf('widget') !== -1) return 'widgets';
+                if (t.indexOf('openxr') !== -1 || t.indexOf('кинотеатр') !== -1) return 'vrcinema';
+                if (t.indexOf('вычислен') !== -1 || t.indexOf('расчёт') !== -1 || t.indexOf('math') !== -1) return 'calculator';
+                if (t.indexOf('заметк') !== -1 || t.indexOf('markdown') !== -1) return 'cloudnotes';
                 return null;
             }
 

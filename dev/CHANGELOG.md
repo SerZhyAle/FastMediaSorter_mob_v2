@@ -16522,3 +16522,7 @@ Format: | datetime | file | target | description |
 | 2026-06-09 02:46:51 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | S0386 P03.1: enableTranslation/enableOcr default OFF [branch: DEBUG-v013] |
 | 2026-06-09 02:46:51 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/TextRecognitionSettingsStore.kt` | `spec-dev` | S0386 P03.1: read fallback default OFF (preserve persisted) [branch: DEBUG-v013] |
 | 2026-06-09 02:46:51 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev` | S0386 P03.2: all profile presets OCR/translation OFF [branch: DEBUG-v013] |
+| 2026-06-09 03:19:25 | `docs/FEATURES.md` | `Features List` | Pruned canonical features list to ~35 key features [branch: DEBUG-v013] |
+| 2026-06-09 03:19:26 | `docs/HOW_TO.md` | `Scenario Guides` | Added 4 new usage scenarios: smart widgets, OpenXR VR cinema, scientific calculator, cloud Markdown notes [branch: DEBUG-v013] |
+| 2026-06-09 03:19:26 | `docs/howto/index.md` | `Guides Index` | Added quick links and table entries for the 4 new scenarios [branch: DEBUG-v013] |
+| 2026-06-09 03:19:26 | `index.html` | `Landing Pages` | Added scenario cards and updated JavaScript filters/links mappings for 4 new scenarios [branch: DEBUG-v013] |

@@ -342,6 +342,82 @@
                         details</a>
                 </details>
             </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">📱</span>
+                        <h3>Home-Screen Smart Widgets</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Add one-tap shortcuts to your home screen to record voice notes, scan documents, or run background sync tasks.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Details</summary>
+                    <ul class="detail-list">
+                        <li>Place a voice recorder widget to save audio notes directly to a NAS.</li>
+                        <li>Set up a random photo widget for an home-screen slideshow.</li>
+                        <li>Monitor background copy or sync queues with active widgets.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.md#home-screen-smart-widgets" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">🕶️</span>
+                        <h3>OpenXR VR Immersive Cinema</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">VR Only</span></div>
+                    <p class="card-summary">Watch SBS 3D movies, 360°/180° videos, or flat files on a massive virtual screen in virtual reality.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Details</summary>
+                    <ul class="detail-list">
+                        <li>Switch to immersive 3D/360° per-eye rendering with the VR Badge.</li>
+                        <li>Control menus with Quest Hand Tracking gestures or aiming rays.</li>
+                        <li>Capture stereoscopic snapshots and mixed-reality screenshots.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.md#openxr-vr-immersive-cinema" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">🧮</span>
+                        <h3>Quick Math &amp; Calculations</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Select mathematical equations or numbers within PDFs, books, or OCR overlays to evaluate them instantly.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Details</summary>
+                    <ul class="detail-list">
+                        <li>Highlight a formula like (45 + 12) * 3 inside any viewer.</li>
+                        <li>Open the scientific calculator directly from the selection menu.</li>
+                        <li>Save history and memory slots (M+/M-) between sessions.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.md#quick-math-and-text-calculations" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon">📝</span>
+                        <h3>Cloud Markdown &amp; Code Notes</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard for cloud</span><span class="scenario-badge common">All editions locally</span></div>
+                    <p class="card-summary">Create and edit Markdown files or code snippets directly on cloud folders, local storage, or network shares.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Details</summary>
+                    <ul class="detail-list">
+                        <li>Use the built-in syntax-highlighted Markdown editor.</li>
+                        <li>Create new notes directly on NAS (SMB) or Google Drive.</li>
+                        <li>Render Markdown, resolve naming conflicts, and export files.</li>
+                    </ul>
+                    <a href="docs/HOW_TO.md#cloud-markdown-and-code-notes" class="card-footer" target="_blank">Open related guide</a>
+                </details>
+            </article>
         </div>
 
         <!-- User Guides -->
@@ -860,7 +936,11 @@
                 { id: 'ocr', label: '🔎 OCR Translation' },
                 { id: 'tv', label: '🛋️ NAS Media Shelf' },
                 { id: 'duplicates', label: '🧬 Duplicate Cleanup' },
-                { id: 'chromecast', label: '📺 Chromecast' }
+                { id: 'chromecast', label: '📺 Chromecast' },
+                { id: 'widgets', label: '📱 Smart Widgets' },
+                { id: 'vrcinema', label: '🕶️ Immersive Cinema' },
+                { id: 'calculator', label: '🧮 Quick Calculations' },
+                { id: 'cloudnotes', label: '📝 Cloud & Markdown Notes' }
             ];
 
             // Scenario Links Mapper
@@ -887,22 +967,34 @@
                     links.push({ url: 'docs/howto/scenario-download-organizer.md', label: '🧹 Download Organizer' });
                 }
                 if (text.indexOf('offline') !== -1 || text.indexOf('travel') !== -1 || text.indexOf('local folder') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.md#prepare-a-folder-for-travel-without-stable-internet', label: '🧳 Offline Travel Folder' });
+                    links.push({ url: 'docs/HOW_TO.html#prepare-a-folder-for-travel-without-stable-internet', label: '🧳 Offline Travel Folder' });
                 }
                 if (text.indexOf('document') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('reading') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.md#read-cloud-documents-and-epubs-on-the-go', label: '📚 Cloud Documents' });
+                    links.push({ url: 'docs/HOW_TO.html#read-cloud-documents-and-epubs-on-the-go', label: '📚 Cloud Documents' });
                 }
                 if (text.indexOf('ocr') !== -1 || text.indexOf('translation') !== -1 || text.indexOf('translate') !== -1 || text.indexOf('tesseract') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.md#translate-signs-scans-and-screenshots-with-ocr', label: '🔎 OCR Translation' });
+                    links.push({ url: 'docs/HOW_TO.html#translate-signs-scans-and-screenshots-with-ocr', label: '🔎 OCR Translation' });
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('living-room') !== -1 || text.indexOf('living room') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.md#turn-a-nas-into-a-living-room-media-shelf', label: '🛋️ NAS Media Shelf' });
+                    links.push({ url: 'docs/HOW_TO.html#turn-a-nas-into-a-living-room-media-shelf', label: '🛋️ NAS Media Shelf' });
                 }
                 if (text.indexOf('duplicate') !== -1 || text.indexOf('sha-256') !== -1) {
                     links.push({ url: 'docs/FEATURES.md#3-file-operations', label: '🧬 Duplicate Cleanup' });
                 }
                 if (text.indexOf('chromecast') !== -1 || text.indexOf('cast ') !== -1 || text.indexOf('cast-compatible') !== -1) {
                     links.push({ url: 'docs/FEATURES.md#9-audio-player', label: '📺 Chromecast Playback' });
+                }
+                if (text.indexOf('widgets') !== -1 || text.indexOf('widget') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#home-screen-smart-widgets', label: '📱 Smart Widgets' });
+                }
+                if (text.indexOf('vrcinema') !== -1 || text.indexOf('immersive cinema') !== -1 || text.indexOf('openxr') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#openxr-vr-immersive-cinema', label: '🕶️ Immersive Cinema' });
+                }
+                if (text.indexOf('calculator') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1 || text.indexOf('scientific') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#quick-math-and-text-calculations', label: '🧮 Quick Calculations' });
+                }
+                if (text.indexOf('cloudnotes') !== -1 || text.indexOf('note') !== -1 || text.indexOf('markdown') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#cloud-markdown-and-code-notes', label: '📝 Cloud & Markdown Notes' });
                 }
 
                 return links;
@@ -922,6 +1014,10 @@
                 if (t.indexOf('tv') !== -1 || t.indexOf('nas') !== -1) return 'tv';
                 if (t.indexOf('duplicate') !== -1 || t.indexOf('cleanup') !== -1) return 'duplicates';
                 if (t.indexOf('chromecast') !== -1 || t.indexOf('cast') !== -1) return 'chromecast';
+                if (t.indexOf('widget') !== -1) return 'widgets';
+                if (t.indexOf('openxr') !== -1 || t.indexOf('immersive cinema') !== -1) return 'vrcinema';
+                if (t.indexOf('calculation') !== -1 || t.indexOf('math') !== -1) return 'calculator';
+                if (t.indexOf('note') !== -1 || t.indexOf('markdown') !== -1) return 'cloudnotes';
                 return null;
             }
 

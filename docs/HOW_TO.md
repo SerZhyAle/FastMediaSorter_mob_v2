@@ -44,36 +44,40 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 2. [Run a slideshow with background music for a room display](#run-a-slideshow-with-background-music-for-a-room-display)
 3. [Watch SBS 3D videos in VR mode](#watch-sbs-3d-videos-in-vr-mode)
 4. [Use FMS on Android TV Box](#how-to-use-fms-on-android-tv-box)
+5. [OpenXR VR Immersive Cinema](#openxr-vr-immersive-cinema)
 
 #### Travel, reading and document workflows
 
-5. [Prepare a folder for travel without stable internet](#prepare-a-folder-for-travel-without-stable-internet)
-6. [Read cloud documents and EPUBs on the go](#read-cloud-documents-and-epubs-on-the-go)
-7. [Translate signs, scans and screenshots with OCR](#translate-signs-scans-and-screenshots-with-ocr)
-8. [Hand network files off to specialist apps](#hand-network-files-off-to-specialist-apps)
+6. [Prepare a folder for travel without stable internet](#prepare-a-folder-for-travel-without-stable-internet)
+7. [Read cloud documents and EPUBs on the go](#read-cloud-documents-and-epubs-on-the-go)
+8. [Translate signs, scans and screenshots with OCR](#translate-signs-scans-and-screenshots-with-ocr)
+9. [Hand network files off to specialist apps](#hand-network-files-off-to-specialist-apps)
+10. [Quick Math & Text Calculations](#quick-math-and-text-calculations)
+11. [Cloud Markdown & Code Notes](#cloud-markdown-and-code-notes)
 
 #### Power-user and mixed media workflows
 
-9. [Sort a family photo archive with Quick Sort](#sort-a-family-photo-archive-with-quick-sort)
-10. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
-11. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
-12. [Auto-Translation](#auto-translation)
+12. [Sort a family photo archive with Quick Sort](#sort-a-family-photo-archive-with-quick-sort)
+13. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
+14. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
+15. [Auto-Translation](#auto-translation)
+16. [Home-Screen Smart Widgets](#home-screen-smart-widgets)
 
 ### Core Task Reference
 
-13. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
-14. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
-15. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
-16. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
-17. [Use Touch Zones](#how-to-use-touch-zones)
-18. [Edit Photos](#how-to-edit-photos)
-19. [Create Slideshow](#how-to-create-slideshow)
-20. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
-21. [Empty Trash](#how-to-empty-trash)
-22. [Backup Settings](#how-to-backup-settings)
-23. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
-24. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
-25. [View Song Lyrics](#how-to-view-song-lyrics)
+17. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
+18. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
+19. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
+20. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
+21. [Use Touch Zones](#how-to-use-touch-zones)
+22. [Edit Photos](#how-to-edit-photos)
+23. [Create Slideshow](#how-to-create-slideshow)
+24. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
+25. [Empty Trash](#how-to-empty-trash)
+26. [Backup Settings](#how-to-backup-settings)
+27. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
+28. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
+29. [View Song Lyrics](#how-to-view-song-lyrics)
 
 ---
 
@@ -162,6 +166,32 @@ These sections are intentionally more varied than the core reference blocks belo
 
 - Do not expect Over-Under material to behave like SBS.
 - Do not assume every wide video is 3D; verify before saving a playback preset.
+
+## OpenXR VR Immersive Cinema
+
+**Available in:** VR Only
+
+**Quick Path**
+
+1. Launch FastMediaSorter on your Meta Quest or Android XR headset.
+2. Select any media file (3D or 2D) from local or network/cloud folders.
+3. For 3D/360° stereoscopic media, use the **VR Entry Point** floating badge to switch into full immersive mode.
+4. For standard 2D files, view them on a large virtual screen inside the cinema interface.
+
+**Scenario Walkthrough**
+
+- Open a Side-by-Side (SBS) or Over-Under (OU) video file and enable auto-detection to render the 3D depth correctly.
+- Use **Quest Hand Tracking** gestures or aiming rays to navigate the player menus without physical controllers.
+- Capture passthrough mixed-reality snapshots or stereo screenshots of both eyes while in VR mode.
+
+**When It Helps**
+
+- You want to watch immersive SBS 3D movies or explore 360°/VR180 vacation photos in high-quality per-eye rendering.
+- You want to view flat media files on a simulated large theater screen in virtual space.
+
+**Avoid This**
+
+- Do not use non-VR builds (Standard/Lite/Legacy) expecting full headset tracking; the VR edition requires the dedicated OpenXR build.
 
 ## Travel, reading and document workflows
 
@@ -268,6 +298,56 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not expect cloud handoff through this exact flow yet.
+
+## Quick Math & Text Calculations
+
+**Available in:** Standard, Legacy, VR
+
+**Quick Path**
+
+1. Open any PDF document, EPUB e-book, text file, or run OCR translation on an image.
+2. Long-press to select any text block containing numbers or math equations.
+3. From the floating text action menu, tap the **Calculator** button.
+4. The calculator evaluates the mathematical formula instantly in a popup overlay.
+
+**Scenario Walkthrough**
+
+- Select a text line containing numbers with operator symbols (like `(45 + 12) * 3`) in a PDF or an OCR translate result.
+- Use the built-in scientific calculator's function menu for complex operations (trigonometry, roots, powers, logs).
+- The calculator keeps calculation history between sessions and supports memory slots (M+/M-/MR/MC) for quick data tracking.
+
+**When It Helps**
+
+- You are reading a manual, screenshot scan, or document and need to quickly solve formulas or sum up currency/numbers without switching to a different calculator app.
+
+**Avoid This**
+
+- Do not paste raw alphabetic strings; only valid numbers, parentheses, and math operators can be parsed.
+
+## Cloud Markdown & Code Notes
+
+**Available in:** Standard (for cloud), Standard/Lite/Photos/Legacy (locally/network)
+
+**Quick Path**
+
+1. Browse to any local folder, home NAS (SMB), FTP/SFTP server, or cloud drive (Google Drive).
+2. Tap the **New Note (📝)** button in the folder toolbar.
+3. Type your content inside the editor. The app highlights Markdown tags and code syntax.
+4. Tap **Save** (or let it auto-save) to write the changes directly to the remote source.
+
+**Scenario Walkthrough**
+
+- Keep a `.md` journal file in your Google Drive or home NAS and edit it from any device using in-place editing.
+- Create new notes in key resources with automatic name conflict resolution (e.g. `Note_1.txt`, `Note_2.txt`).
+- View rendered Markdown layouts in read-only mode, or export notes directly to external services like Google Keep.
+
+**When It Helps**
+
+- You want to maintain simple notes, code snippets, or todo lists directly on your central network/cloud drives without local copy-paste workflows.
+
+**Avoid This**
+
+- Do not expect cloud storage note creation on Lite or Legacy flavors.
 
 ## Power-user and mixed media workflows
 
@@ -906,6 +986,32 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 5. The translated text will appear in an overlay.
 
 **Note:** Tesseract initialization (for Cyrillic) might take 1-2 seconds longer than ML Kit.
+
+## Home-Screen Smart Widgets
+
+**Available in:** Standard, Legacy, VR
+
+**Quick Path**
+
+1. Go to your Android Home Screen, long-press, and select **Widgets**.
+2. Drag a **FastMediaSorter** widget (like 1×1 Quick Voice Recorder or Camera OCR) to your screen.
+3. Configure the destination folder and capture settings, then tap **Save**.
+4. Use the widget to execute tasks in one tap directly from your Home Screen.
+
+**Scenario Walkthrough**
+
+- Use 1×1 widgets as dedicated launcher icons to start background actions instantly (e.g., tap once to start recording voice, tap again to save it to your NAS).
+- Set up a **Scheduled Tasks widget** to monitor background file transfers or trigger a "Run All" operation.
+- Place a **Random Photo Frame widget** to display a rotating slideshow of family photos fetched directly from an SMB share.
+
+**When It Helps**
+
+- You want quick shortcuts on your home screen for daily captures (receipts, voice memos) without opening the main app interface.
+- You need clear widgets to control media or trigger scheduled operations instantly.
+
+**Avoid This**
+
+- Do not attempt to add widgets if your Android launcher restricts custom widget creation.
 
 ---
 
