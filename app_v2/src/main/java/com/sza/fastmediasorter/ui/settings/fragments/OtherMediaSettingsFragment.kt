@@ -226,7 +226,10 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
         binding.layoutExtensionsManager?.let { layout ->
             layout.setOnClickListener {
-                parentFragmentManager.beginTransaction()
+                // This fragment lives inside the settings ViewPager, whose child FragmentManager does
+                // not own android.R.id.content; use the activity FragmentManager so the full-screen
+                // overlay attaches to a real container (else: "No view found for id android:id/content").
+                requireActivity().supportFragmentManager.beginTransaction()
                     .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
                     .addToBackStack(null)
                     .commit()
