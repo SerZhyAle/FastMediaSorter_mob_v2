@@ -2359,17 +2359,14 @@
     <string name="perm_desc_camera">Знімати фото прямо в застосунку для OCR-захоплення та збереження в поточний ресурс. Потрібно, якщо ви хочете робити знімки без переходу в системну камеру.</string>
     <string name="perm_group_camera">Камера</string>
     <string name="camera_permission_required">Щоб знімати фото в застосунку, потрібен доступ до камери. Надайте дозвіл і спробуйте ще раз.</string>
-    <string name="setting_camera_to_resource_section_title">Фото з Камери</string>
     <string name="setting_camera_to_resource_enabled_title">Увімкнути зйомку фото</string>
     <string name="setting_camera_to_resource_enabled_desc">Показувати команду фотоапарата у браузері файлів і зберігати нові знімки в поточний ресурс.</string>
     <string name="setting_camera_ask_filename_title">Питати назву кожної фотографії</string>
     <string name="setting_camera_ask_filename_desc">Показувати діалог перейменування перед збереженням кожної знятої фотографії.</string>
     <string name="setting_camera_open_for_editing_title">Відкривати зняте фото для редагування</string>
     <string name="setting_camera_open_for_editing_desc">Одразу відкривати збережене фото в редакторі малювання після зйомки.</string>
-    <string name="setting_camera_permission_note">Зйомка фото в застосунку потребує доступу до камери.</string>
     <string name="perm_group_optional">Необов\'язкові дозволи</string>
     <string name="cmd_video_capture">Записати відео</string>
-    <string name="setting_video_capture_section_title">Запис відео</string>
     <string name="setting_video_capture_enable_title">Увімкнути запис відео</string>
     <string name="setting_video_capture_enable_desc">Показувати команду запису відео прямо в поточний ресурс.</string>
     <string name="setting_video_capture_open_in_player_title">Відкривати записане відео у плеєрі</string>

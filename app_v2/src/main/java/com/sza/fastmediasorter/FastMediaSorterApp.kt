@@ -195,16 +195,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
-        // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
-        // Skipped on flavors without Cast support (VR - Horizon OS has no Google Play Services Cast module).
-        if (BuildConfig.SUPPORT_CAST) {
-            try {
-                com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
-                Timber.d("FastMediaSorterApp: Cast SDK initialized")
-            } catch (e: Exception) {
-                Timber.w("FastMediaSorterApp: Cast SDK not available - ${e.message}")
-            }
-        }
+        // Cast SDK is initialised lazily by CastMediaManager.init() when a player opens, not here.
+        // Eager init loaded the cast.framework.dynamite module on every cold start - even on sessions
+        // that never open a player - which both slowed startup and exposed the process to GMS forcing
+        // a SIG 9 restart when it hot-swaps that dynamite module. The only thing lost is warm device
+        // discovery before the first cast tap; CastMediaManager already creates the singleton on demand.
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
 

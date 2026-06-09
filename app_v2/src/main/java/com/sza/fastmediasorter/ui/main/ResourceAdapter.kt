@@ -304,10 +304,15 @@ class ResourceAdapter(
                         R.drawable.bg_icon_media_storage_frame
                     )
                 } else {
-                    ivResourceTypeIcon.isClickable = false
+                    // Non-library resources: tapping the icon opens the resource in Browse, identical
+                    // to tapping the card body. The listener must be set explicitly - setOnClickListener(null)
+                    // leaves the view clickable (View.setOnClickListener calls setClickable(true)) with no
+                    // handler, so the icon would swallow the tap instead of letting it bubble to the row.
+                    ivResourceTypeIcon.isClickable = true
+                    ivResourceTypeIcon.isFocusable = false
                     ivResourceTypeIcon.foreground = null
-                    ivResourceTypeIcon.setOnClickListener(null)
                     ivResourceTypeIcon.background = null
+                    ivResourceTypeIcon.setOnClickListenerDebounced { onItemClick(resource) }
                     ivResourceTypeIcon.contentDescription =
                         root.context.getString(R.string.resource_type_icon)
                 }
@@ -518,10 +523,15 @@ class ResourceAdapter(
                         R.drawable.bg_icon_media_storage_frame
                     )
                 } else {
-                    ivResourceTypeIcon.isClickable = false
+                    // Non-library resources: tapping the icon opens the resource in Browse, identical
+                    // to tapping the card body. The listener must be set explicitly - setOnClickListener(null)
+                    // leaves the view clickable (View.setOnClickListener calls setClickable(true)) with no
+                    // handler, so the icon would swallow the tap instead of letting it bubble to the row.
+                    ivResourceTypeIcon.isClickable = true
+                    ivResourceTypeIcon.isFocusable = false
                     ivResourceTypeIcon.foreground = null
-                    ivResourceTypeIcon.setOnClickListener(null)
                     ivResourceTypeIcon.background = null
+                    ivResourceTypeIcon.setOnClickListenerDebounced { onItemClick(resource) }
                     ivResourceTypeIcon.contentDescription =
                         root.context.getString(R.string.resource_type_icon)
                 }

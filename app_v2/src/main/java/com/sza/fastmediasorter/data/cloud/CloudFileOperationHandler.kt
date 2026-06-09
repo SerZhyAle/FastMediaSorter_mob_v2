@@ -460,7 +460,6 @@ class CloudFileOperationHandler @Inject constructor(
         fileName: String,
         progressCallback: ByteProgressCallback? = null
     ): Boolean {
-        Timber.d("S0355: cloud download temp-transfer guard reached")
         val normalizedDestPath = normalizeNetworkPath(destPath)
         Timber.d("downloadFromCloudTo: $cloudPath → $normalizedDestPath (orig: $destPath)")
         // S0266: build a scope bound to the current suspend context so the cloud progress adapter

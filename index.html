@@ -454,6 +454,15 @@
         <!-- Interactive Feature Explorer Dashboard -->
         <h2 class="section-title">✨ Application Features</h2>
         <div class="explorer-panel">
+            <!-- Dashboard Variant Switcher (S0387) -->
+            <div class="variant-switcher">
+                <span class="variant-title">Dashboard:</span>
+                <button class="variant-btn active" id="var-btn-v1">🗂️ Categories</button>
+                <button class="variant-btn" id="var-btn-v2">🗺️ Media Map</button>
+                <button class="variant-btn" id="var-btn-v3">✨ Highlights / All</button>
+                <button class="variant-btn" id="var-btn-v4">🎯 Scenarios</button>
+            </div>
+
             <div class="explorer-controls">
                 <div class="explorer-tabs">
                     <button class="tab-btn active" id="tab-all">🌟 Highlights</button>
@@ -465,6 +474,23 @@
                     <input type="text" id="featureSearch" class="search-input" placeholder="Search features..">
                 </div>
             </div>
+
+            <!-- Additional controls for Variant 3 (Highlights / All toggle) -->
+            <div class="toggle-v3-controls" id="toggleV3Controls" style="display: none;">
+                <div class="toggle-v3-group">
+                    <button class="toggle-v3-btn active" id="toggle-v3-key">✨ Highlights</button>
+                    <button class="toggle-v3-btn" id="toggle-v3-all">📋 All Features</button>
+                </div>
+            </div>
+
+            <!-- Additional controls for Variant 4 (Scenario Filter) -->
+            <div class="scenarios-pills-container" id="scenariosPillsContainer" style="display: none;">
+                <div class="scenarios-pills-label">Select a scenario to filter:</div>
+                <div class="scenarios-pills" id="scenariosPills">
+                    <!-- Generated dynamically via JS -->
+                </div>
+            </div>
+
             <div class="feature-grid" id="featureExplorerGrid">
                 <!-- Grid items generated dynamically from FEATURES.md -->
                 <noscript>
@@ -479,7 +505,7 @@
         <details class="full-features-panel">
             <summary>📋 Canonical Feature Inventory (Jekyll Markdown)</summary>
             <div id="full-features-content" class="full-features-content">
-                <em>Loading canonical feature list…</em>
+                <em>Loading canonical feature list..</em>
             </div>
             <a class="full-features-link" href="docs/FEATURES.md" target="_blank">Open full page in a new tab →</a>
         </details>
@@ -745,6 +771,10 @@
             var allFeatures = [];
             var activeFilter = 'all'; // 'all', 'standard', 'vr'
             var searchQuery = '';
+            var activeVariant = 'v1'; // 'v1', 'v2', 'v3', 'v4'
+            var activeCategoryV1 = null;
+            var activeToggleV3 = 'key'; // 'key', 'all'
+            var activeScenarioV4 = 'all';
 
             var hiddenFeatureTitles = [
                 'Per-resource parameters',
@@ -760,6 +790,77 @@
                 'Intent hooks',
                 'Settings search',
                 'Diagnostic logs'
+            ];
+
+            var keyFeatures = [
+                'First-run device profile setup',
+                'Multiple resource types',
+                'Cross-protocol transfers',
+                'Duplicate file finder',
+                'Record video to resource',
+                'Session save & restore',
+                '3D & 360° support',
+                'Immersive stereoscopic render',
+                'Background playback',
+                'PDF reading features',
+                'Local OCR engine',
+                'AR translation overlay',
+                'Icon-style home widgets',
+                'Wear OS Companion',
+                'Settings search'
+            ];
+
+            var categoryMapping = {
+                "0. Setup & Configuration": "setup",
+                "1. Sources & Storage": "network",
+                "2. Media Browsing": "filemanager",
+                "3. File Operations": "filemanager",
+                "4. Destination Management": "filemanager",
+                "5. Image & GIF Viewer": "players",
+                "6. Drawing & Annotations Editor": "notes",
+                "7. Video Player": "players",
+                "8. VR Edition & OpenXR": "vr",
+                "9. Audio Player": "players",
+                "10. Slideshow Mode": "players",
+                "11. PDF & EPUB Reader": "notes",
+                "12. Text Editor": "notes",
+                "13. Offline OCR & Translation": "notes",
+                "14. Network & Cloud Integration": "network",
+                "15. Smart Widgets & Integration": "widgets",
+                "16. Settings & Navigation": "setup"
+            };
+
+            var majorCategories = [
+                { id: 'network', label: '🌐 Network & Cloud' },
+                { id: 'players', label: '🎬 Players & Slideshow' },
+                { id: 'filemanager', label: '📂 File Manager' },
+                { id: 'notes', label: '📝 Notes, Editors & OCR' },
+                { id: 'widgets', label: '🧩 Widgets & Integration' },
+                { id: 'setup', label: '⚙️ Setup & Navigation' },
+                { id: 'vr', label: '🥽 VR Mode' }
+            ];
+
+            var dashboardColumns = [
+                { id: 'sources', label: '📡 Sources', categories: [1, 14] },
+                { id: 'processing', label: '⚙️ Processing', categories: [2, 3, 4, 6] },
+                { id: 'viewers', label: '🍿 Viewers', categories: [5, 7, 9, 10, 11, 12, 13] },
+                { id: 'platforms', label: '📱 Platforms', categories: [0, 8, 15, 16] }
+            ];
+
+            var scenariosList = [
+                { id: 'all', label: '🌟 All Scenarios' },
+                { id: 'photo', label: '🖼️ Photo Frame' },
+                { id: 'music', label: '🚗 In-Car Music' },
+                { id: 'video', label: '🍿 Home Cinema' },
+                { id: 'smb', label: '📡 SMB Setup' },
+                { id: 'backup', label: '📷 Camera Backup' },
+                { id: 'download', label: '🧹 Download Organizer' },
+                { id: 'offline', label: '🧳 Offline Travel' },
+                { id: 'docs', label: '📚 Cloud Documents' },
+                { id: 'ocr', label: '🔎 OCR Translation' },
+                { id: 'tv', label: '🛋️ NAS Media Shelf' },
+                { id: 'duplicates', label: '🧬 Duplicate Cleanup' },
+                { id: 'chromecast', label: '📺 Chromecast' }
             ];
 
             // Scenario Links Mapper
@@ -807,14 +908,35 @@
                 return links;
             }
 
+            function mapTitleToScenario(title) {
+                var t = title.toLowerCase();
+                if (t.indexOf('frame') !== -1 || t.indexOf('photo') !== -1) return 'photo';
+                if (t.indexOf('car') !== -1 || t.indexOf('music') !== -1) return 'music';
+                if (t.indexOf('cinema') !== -1 || t.indexOf('movie') !== -1 || t.indexOf('video') !== -1) return 'video';
+                if (t.indexOf('organizer') !== -1 || t.indexOf('download') !== -1) return 'download';
+                if (t.indexOf('backup') !== -1) return 'backup';
+                if (t.indexOf('smb') !== -1 || t.indexOf('network') !== -1) return 'smb';
+                if (t.indexOf('travel') !== -1 || t.indexOf('offline') !== -1) return 'offline';
+                if (t.indexOf('docs') !== -1 || t.indexOf('cloud') !== -1 || t.indexOf('document') !== -1 || t.indexOf('epub') !== -1) return 'docs';
+                if (t.indexOf('ocr') !== -1 || t.indexOf('translation') !== -1) return 'ocr';
+                if (t.indexOf('tv') !== -1 || t.indexOf('nas') !== -1) return 'tv';
+                if (t.indexOf('duplicate') !== -1 || t.indexOf('cleanup') !== -1) return 'duplicates';
+                if (t.indexOf('chromecast') !== -1 || t.indexOf('cast') !== -1) return 'chromecast';
+                return null;
+            }
+
             function renderExplorer() {
                 var grid = document.getElementById('featureExplorerGrid');
                 grid.innerHTML = '';
 
+                // Show/hide variant specific controls
+                document.getElementById('toggleV3Controls').style.display = (activeVariant === 'v3') ? 'flex' : 'none';
+                document.getElementById('scenariosPillsContainer').style.display = (activeVariant === 'v4') ? 'flex' : 'none';
+
                 var filtered = allFeatures.filter(function (f) {
                     // Platform Filter
                     if (activeFilter === 'standard') {
-                        if (f.tag !== 'Standard' && f.tag !== 'Standard / VR') return false;
+                        if (f.tag !== 'Standard' && f.tag !== 'Standard / VR' && f.tag !== 'Standard Only') return false;
                     } else if (activeFilter === 'vr') {
                         if (f.tag !== 'VR Only' && f.tag !== 'Standard / VR') return false;
                     }
@@ -835,10 +957,7 @@
                     return;
                 }
 
-                filtered.forEach(function (f) {
-                    var card = document.createElement('div');
-                    card.className = 'feature-card';
-
+                function getFeatureCardHtml(f, forceOpen) {
                     var tagClass = 'tag-common';
                     var badgeClass = 'badge-common';
                     var badgeLabel = 'Standard / VR';
@@ -853,13 +972,11 @@
                         badgeLabel = 'VR Only';
                     }
 
-                    card.className += ' ' + tagClass;
-
                     var headerHtml = '<span class="feature-header">' +
                         '<span class="feature-title">' + f.title + '</span>' +
                         '<span style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
                         '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
-                        '<span class="toggle-icon">▼</span>' +
+                        (forceOpen ? '' : '<span class="toggle-icon">▼</span>') +
                         '</span>' +
                         '</span>';
 
@@ -875,12 +992,408 @@
                         linksHtml += '</div>';
                     }
 
-                    card.innerHTML = '<details class="feature-details">' +
-                        '<summary>' + headerHtml + '</summary>' +
-                        descHtml + linksHtml +
-                        '</details>';
+                    if (forceOpen) {
+                        return '<div class="feature-card ' + tagClass + '">' +
+                            headerHtml + descHtml + linksHtml +
+                            '</div>';
+                    } else {
+                        return '<div class="feature-card ' + tagClass + '">' +
+                            '<details class="feature-details">' +
+                            '<summary>' + headerHtml + '</summary>' +
+                            descHtml + linksHtml +
+                            '</details>' +
+                            '</div>';
+                    }
+                }
 
-                    grid.appendChild(card);
+                if (activeVariant === 'v1') {
+                    // --- Variant 1: Category Explorer ---
+                    var grouped = {};
+                    majorCategories.forEach(function (c) { grouped[c.id] = []; });
+
+                    filtered.forEach(function (f) {
+                        var catName = f.category;
+                        var matchedGroup = 'setup';
+                        for (var key in categoryMapping) {
+                            if (catName.indexOf(key) !== -1) {
+                                matchedGroup = categoryMapping[key];
+                                break;
+                            }
+                        }
+                        if (grouped[matchedGroup]) {
+                            grouped[matchedGroup].push(f);
+                        }
+                    });
+
+                    var availableCats = majorCategories.filter(function (c) { return grouped[c.id].length > 0; });
+                    if (availableCats.length === 0) {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No categories available for current filters.</div>';
+                        return;
+                    }
+                    if (!activeCategoryV1 || !grouped[activeCategoryV1] || grouped[activeCategoryV1].length === 0) {
+                        activeCategoryV1 = availableCats[0].id;
+                    }
+
+                    var container = document.createElement('div');
+                    container.className = 'explorer-v1-container';
+
+                    var sidebar = document.createElement('div');
+                    sidebar.className = 'explorer-v1-sidebar';
+                    availableCats.forEach(function (cat) {
+                        var btn = document.createElement('button');
+                        btn.className = 'v1-cat-btn' + (cat.id === activeCategoryV1 ? ' active' : '');
+                        btn.innerText = cat.label;
+                        btn.addEventListener('click', function () {
+                            activeCategoryV1 = cat.id;
+                            renderExplorer();
+                        });
+                        sidebar.appendChild(btn);
+                    });
+
+                    var content = document.createElement('div');
+                    content.className = 'explorer-v1-content';
+
+                    var catFeatures = grouped[activeCategoryV1];
+                    var majorList = [];
+                    var minorList = [];
+                    catFeatures.forEach(function (f) {
+                        if (keyFeatures.indexOf(f.title) !== -1) {
+                            majorList.push(f);
+                        } else {
+                            minorList.push(f);
+                        }
+                    });
+
+                    if (majorList.length > 0) {
+                        var majorGrid = document.createElement('div');
+                        majorGrid.className = 'feature-grid';
+                        majorList.forEach(function (f) {
+                            majorGrid.innerHTML += getFeatureCardHtml(f, true);
+                        });
+                        content.appendChild(majorGrid);
+                    }
+
+                    if (minorList.length > 0) {
+                        var minorTitle = document.createElement('h3');
+                        minorTitle.className = 'v1-accordion-title';
+                        minorTitle.innerText = '📋 Other Features';
+                        content.appendChild(minorTitle);
+
+                        var minorGrid = document.createElement('div');
+                        minorGrid.className = 'feature-grid';
+                        minorList.forEach(function (f) {
+                            minorGrid.innerHTML += getFeatureCardHtml(f, false);
+                        });
+                        content.appendChild(minorGrid);
+                    }
+
+                    container.appendChild(sidebar);
+                    container.appendChild(content);
+                    grid.appendChild(container);
+
+                } else if (activeVariant === 'v2') {
+                    // --- Variant 2: Media Dashboard ---
+                    var container = document.createElement('div');
+                    container.className = 'dashboard-v2-grid';
+
+                    dashboardColumns.forEach(function (col) {
+                        var colFeatures = filtered.filter(function (f) {
+                            var numMatch = f.category.match(/^(\d+)/);
+                            var num = numMatch ? parseInt(numMatch[1], 10) : -1;
+                            return col.categories.indexOf(num) !== -1;
+                        });
+
+                        if (colFeatures.length === 0) return;
+
+                        var colDiv = document.createElement('div');
+                        colDiv.className = 'dashboard-v2-col';
+
+                        var header = document.createElement('div');
+                        header.className = 'dashboard-v2-header';
+                        header.innerText = col.label;
+                        colDiv.appendChild(header);
+
+                        var list = document.createElement('div');
+                        list.className = 'dashboard-v2-list';
+                        colFeatures.forEach(function (f) {
+                            var item = document.createElement('div');
+                            item.className = 'dashboard-v2-item';
+                            
+                            var tagBadge = '';
+                            if (f.tag === 'VR Only') tagBadge = ' <span style="font-size:0.65rem; color:#22d3ee; border:1px solid rgba(0,229,255,0.3); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; text-transform:uppercase;">VR</span>';
+                            
+                            item.innerHTML = '<span>' + f.title + tagBadge + '</span><span class="dashboard-v2-item-arrow">→</span>';
+                            item.addEventListener('click', function () {
+                                openDrawer(f);
+                            });
+                            list.appendChild(item);
+                        });
+                        colDiv.appendChild(list);
+                        container.appendChild(colDiv);
+                    });
+
+                    grid.appendChild(container);
+
+                } else if (activeVariant === 'v3') {
+                    // --- Variant 3: Highlights / All ---
+                    if (activeToggleV3 === 'key') {
+                        var majorGrid = document.createElement('div');
+                        majorGrid.className = 'major-grid-v3';
+
+                        var keyList = filtered.filter(function (f) {
+                            return keyFeatures.indexOf(f.title) !== -1;
+                        });
+
+                        if (keyList.length === 0) {
+                            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No key features found for current filters.</div>';
+                            return;
+                        }
+
+                        keyList.forEach(function (f) {
+                            var tagClass = 'tag-common';
+                            if (f.tag === 'Standard Only' || f.tag === 'Standard') tagClass = 'tag-standard';
+                            else if (f.tag === 'VR Only') tagClass = 'tag-vr';
+
+                            var scLinks = getScenarioLinks(f.title, f.desc);
+                            var linksHtml = '';
+                            if (scLinks.length > 0) {
+                                linksHtml = '<div class="feature-links">';
+                                scLinks.forEach(function (l) {
+                                    linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank">' + l.label + '</a>';
+                                });
+                                linksHtml += '</div>';
+                            }
+
+                            var card = document.createElement('div');
+                            card.className = 'feature-card-major ' + tagClass;
+                            card.innerHTML = '<div>' +
+                                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">' +
+                                '<span class="feature-title">' + f.title + '</span>' +
+                                '<span class="feature-badge ' + (f.tag === 'VR Only' ? 'badge-vr' : (f.tag === 'Standard' || f.tag === 'Standard Only' ? 'badge-standard' : 'badge-common')) + '">' + (f.tag === 'VR Only' ? 'VR Only' : (f.tag === 'Standard' || f.tag === 'Standard Only' ? 'Standard' : 'Standard / VR')) + '</span>' +
+                                '</div>' +
+                                '<div class="feature-desc">' + f.desc + '</div>' +
+                                '</div>' + linksHtml;
+                            majorGrid.appendChild(card);
+                        });
+                        grid.appendChild(majorGrid);
+                    } else {
+                        var treeContainer = document.createElement('div');
+                        treeContainer.className = 'compact-tree-container';
+
+                        var categories = [];
+                        filtered.forEach(function (f) {
+                            if (categories.indexOf(f.category) === -1) {
+                                categories.push(f.category);
+                            }
+                        });
+
+                        categories.forEach(function (cat) {
+                            var catFeatures = filtered.filter(function (f) { return f.category === cat; });
+                            var catDiv = document.createElement('div');
+                            catDiv.className = 'compact-tree-cat';
+
+                            var title = document.createElement('div');
+                            title.className = 'compact-tree-cat-title';
+                            title.innerText = cat;
+                            catDiv.appendChild(title);
+
+                            var list = document.createElement('div');
+                            list.className = 'compact-tree-list';
+                            catFeatures.forEach(function (f) {
+                                var item = document.createElement('div');
+                                item.className = 'compact-tree-item';
+                                var tagBadge = ' <span style="font-size:0.65rem; opacity:0.7;">[' + f.tag + ']</span>';
+                                item.innerHTML = '<span class="compact-tree-item-text"><strong class="compact-tree-item-title">' + f.title + '</strong>' + tagBadge + ': ' + f.desc + '</span>';
+                                list.appendChild(item);
+                            });
+                            catDiv.appendChild(list);
+                            treeContainer.appendChild(catDiv);
+                        });
+
+                        grid.appendChild(treeContainer);
+                    }
+
+                } else if (activeVariant === 'v4') {
+                    // --- Variant 4: Scenario Filter ---
+                    var scenarioFeatures = filtered;
+                    if (activeScenarioV4 !== 'all') {
+                        scenarioFeatures = filtered.filter(function (f) {
+                            var scLinks = getScenarioLinks(f.title, f.desc);
+                            return scLinks.some(function (l) {
+                                return l.url.indexOf(activeScenarioV4) !== -1;
+                            });
+                        });
+                    }
+
+                    if (activeScenarioV4 !== 'all') {
+                        var scenarioObj = scenariosList.find(function (s) { return s.id === activeScenarioV4; });
+                        var labelText = scenarioObj ? scenarioObj.label : activeScenarioV4;
+
+                        var badge = document.createElement('div');
+                        badge.style.gridColumn = '1/-1';
+                        badge.innerHTML = '<div class="filter-pill-active">' +
+                            '<span>Showing features for: <strong>' + labelText + '</strong></span>' +
+                            '<button class="clear-filter-btn" id="clearScenarioFilter">✖</button>' +
+                            '</div>';
+                        grid.appendChild(badge);
+                    }
+
+                    if (scenarioFeatures.length === 0) {
+                        var noData = document.createElement('div');
+                        noData.style.gridColumn = '1/-1';
+                        noData.style.textAlign = 'center';
+                        noData.style.color = 'var(--text-muted)';
+                        noData.style.padding = '3rem 0';
+                        noData.innerText = 'No features found for this scenario matching current filters.';
+                        grid.appendChild(noData);
+                    } else {
+                        var scenarioGrid = document.createElement('div');
+                        scenarioGrid.style.gridColumn = '1/-1';
+                        scenarioGrid.className = 'feature-grid';
+                        scenarioFeatures.forEach(function (f) {
+                            scenarioGrid.innerHTML += getFeatureCardHtml(f, true);
+                        });
+                        grid.appendChild(scenarioGrid);
+                    }
+
+                    var clearBtn = document.getElementById('clearScenarioFilter');
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', function () {
+                            activeScenarioV4 = 'all';
+                            document.querySelectorAll('.scenario-pill-btn').forEach(function (b) {
+                                if (b.getAttribute('data-id') === 'all') b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+                            renderExplorer();
+                        });
+                    }
+                }
+            }
+
+            function openDrawer(feature) {
+                document.getElementById('drawerTitle').innerText = feature.title;
+                document.getElementById('drawerCat').innerText = feature.category;
+                document.getElementById('drawerDesc').innerText = feature.desc;
+
+                var linksHtml = '';
+                var scLinks = getScenarioLinks(feature.title, feature.desc);
+                if (scLinks.length > 0) {
+                    linksHtml = '<div style="margin-top: 1rem; border-top: 1px solid var(--border-glass); padding-top: 1rem;"><div class="detail-drawer-cat" style="margin-bottom: 0.5rem;">Related Scenarios:</div>';
+                    scLinks.forEach(function (l) {
+                        linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank" style="margin-right: 0.8rem; display: inline-block;">' + l.label + '</a>';
+                    });
+                    linksHtml += '</div>';
+                }
+                document.getElementById('drawerLinks').innerHTML = linksHtml;
+
+                document.getElementById('detailDrawer').classList.add('open');
+                document.getElementById('detailDrawerOverlay').classList.add('open');
+            }
+
+            function closeDrawer() {
+                document.getElementById('detailDrawer').classList.remove('open');
+                document.getElementById('detailDrawerOverlay').classList.remove('open');
+            }
+
+            function buildScenarioPills() {
+                var container = document.getElementById('scenariosPills');
+                if (!container) return;
+                container.innerHTML = '';
+                scenariosList.forEach(function (sc) {
+                    var btn = document.createElement('button');
+                    btn.className = 'scenario-pill-btn' + (sc.id === activeScenarioV4 ? ' active' : '');
+                    btn.setAttribute('data-id', sc.id);
+                    btn.innerText = sc.label;
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.scenario-pill-btn').forEach(function (b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        activeScenarioV4 = sc.id;
+                        renderExplorer();
+                    });
+                    container.appendChild(btn);
+                });
+            }
+
+            function setupSwitcher() {
+                var btns = {
+                    'v1': document.getElementById('var-btn-v1'),
+                    'v2': document.getElementById('var-btn-v2'),
+                    'v3': document.getElementById('var-btn-v3'),
+                    'v4': document.getElementById('var-btn-v4')
+                };
+
+                function setVariant(v) {
+                    activeVariant = v;
+                    for (var key in btns) {
+                        if (btns[key]) {
+                            if (key === v) btns[key].classList.add('active');
+                            else btns[key].classList.remove('active');
+                        }
+                    }
+                    renderExplorer();
+                }
+
+                if (btns.v1) btns.v1.addEventListener('click', function () { setVariant('v1'); });
+                if (btns.v2) btns.v2.addEventListener('click', function () { setVariant('v2'); });
+                if (btns.v3) btns.v3.addEventListener('click', function () { setVariant('v3'); });
+                if (btns.v4) btns.v4.addEventListener('click', function () { setVariant('v4'); });
+
+                var keyBtn = document.getElementById('toggle-v3-key');
+                var allBtn = document.getElementById('toggle-v3-all');
+                if (keyBtn && allBtn) {
+                    keyBtn.addEventListener('click', function () {
+                        keyBtn.classList.add('active');
+                        allBtn.classList.remove('active');
+                        activeToggleV3 = 'key';
+                        renderExplorer();
+                    });
+                    allBtn.addEventListener('click', function () {
+                        allBtn.classList.add('active');
+                        keyBtn.classList.remove('active');
+                        activeToggleV3 = 'all';
+                        renderExplorer();
+                    });
+                }
+            }
+
+            function setupDrawer() {
+                var closeBtn = document.getElementById('detailDrawerClose');
+                var overlay = document.getElementById('detailDrawerOverlay');
+                if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+                if (overlay) overlay.addEventListener('click', closeDrawer);
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closeDrawer();
+                });
+            }
+
+            function setupScenarioCards() {
+                document.querySelectorAll('.scenario-card').forEach(function (card) {
+                    card.addEventListener('click', function (e) {
+                        if (e.target.tagName === 'A' || e.target.closest('a') || e.target.tagName === 'SUMMARY' || e.target.closest('summary')) return;
+                        var h3 = card.querySelector('h3');
+                        if (!h3) return;
+
+                        var text = h3.innerText.trim();
+                        var scId = mapTitleToScenario(text);
+                        if (scId) {
+                            e.preventDefault();
+                            activeVariant = 'v4';
+                            activeScenarioV4 = scId;
+
+                            document.querySelectorAll('.variant-btn').forEach(function (b) {
+                                if (b.id === 'var-btn-v4') b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+
+                            document.querySelectorAll('.scenario-pill-btn').forEach(function (b) {
+                                if (b.getAttribute('data-id') === scId) b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+
+                            renderExplorer();
+                            document.querySelector('.explorer-panel').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
                 });
             }
 
@@ -944,9 +1457,15 @@
                         }
                     }
 
+                    // Initialize
+                    setupSwitcher();
+                    buildScenarioPills();
+                    setupDrawer();
+                    setupScenarioCards();
                     renderExplorer();
                 })
-                .catch(function () {
+                .catch(function (err) {
+                    console.error(err);
                     document.getElementById('featureExplorerGrid').innerHTML =
                         '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Failed to load feature inventory. Please refresh the page.</div>';
                 });
@@ -981,6 +1500,19 @@
         }());
     </script>
 
+    <!-- Detail Drawer Overlay and Container for Variant 2 (S0387) -->
+    <div class="detail-drawer-overlay" id="detailDrawerOverlay"></div>
+    <div class="detail-drawer" id="detailDrawer">
+        <div class="detail-drawer-header">
+            <h3 id="drawerTitle">Feature Details</h3>
+            <button class="detail-drawer-close" id="detailDrawerClose">&times;</button>
+        </div>
+        <div class="detail-drawer-body">
+            <div class="detail-drawer-cat" id="drawerCat">Category</div>
+            <div class="detail-drawer-desc" id="drawerDesc">Description..</div>
+            <div id="drawerLinks"></div>
+        </div>
+    </div>
 </body>
 
 </html>

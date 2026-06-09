@@ -2444,17 +2444,14 @@ Close the player and try again.</string>
     <string name="perm_desc_camera">Take photos inside the app for OCR capture and saving to the current resource. Needed when you want to shoot without leaving the app.</string>
     <string name="perm_group_camera">Camera</string>
     <string name="camera_permission_required">Camera access is needed to take photos in the app. Grant the permission and try again.</string>
-    <string name="setting_camera_to_resource_section_title">Camera Photos</string>
     <string name="setting_camera_to_resource_enabled_title">Enable photo capture</string>
     <string name="setting_camera_to_resource_enabled_desc">Show the camera command in the file browser and save new photos to the current resource.</string>
     <string name="setting_camera_ask_filename_title">Ask for each photo name</string>
     <string name="setting_camera_ask_filename_desc">Show a rename dialog before saving each captured photo.</string>
     <string name="setting_camera_open_for_editing_title">Open captured photo for editing</string>
     <string name="setting_camera_open_for_editing_desc">Open the saved photo in the drawing editor right after capture.</string>
-    <string name="setting_camera_permission_note">In-app photo capture needs camera access.</string>
     <string name="perm_group_optional">Optional permissions</string>
     <string name="cmd_video_capture">Record video</string>
-    <string name="setting_video_capture_section_title">Video recording</string>
     <string name="setting_video_capture_enable_title">Enable video recording</string>
     <string name="setting_video_capture_enable_desc">Show a command to record video straight into the current resource.</string>
     <string name="setting_video_capture_open_in_player_title">Open recorded video in player</string>

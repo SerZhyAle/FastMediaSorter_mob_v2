@@ -2396,17 +2396,14 @@
     <string name="perm_desc_camera">Снимать фото прямо в приложении для OCR-захвата и сохранения на текущий ресурс. Нужно, если вы хотите делать снимки без перехода в системную камеру.</string>
     <string name="perm_group_camera">Камера</string>
     <string name="camera_permission_required">Чтобы снимать фото в приложении, нужен доступ к камере. Выдайте разрешение и попробуйте ещё раз.</string>
-    <string name="setting_camera_to_resource_section_title">Фото с Камеры</string>
     <string name="setting_camera_to_resource_enabled_title">Включить съёмку фото</string>
     <string name="setting_camera_to_resource_enabled_desc">Показывать команду фотоаппарата в браузере файлов и сохранять новые снимки в текущий ресурс.</string>
     <string name="setting_camera_ask_filename_title">Спрашивать имя каждой фотографии</string>
     <string name="setting_camera_ask_filename_desc">Показывать диалог переименования перед сохранением каждой снятой фотографии.</string>
     <string name="setting_camera_open_for_editing_title">Открывать снятое фото для редактирования</string>
     <string name="setting_camera_open_for_editing_desc">Сразу открывать сохранённое фото в редакторе рисования после съёмки.</string>
-    <string name="setting_camera_permission_note">Съёмка фото в приложении требует доступа к камере.</string>
     <string name="perm_group_optional">Необязательные разрешения</string>
     <string name="cmd_video_capture">Записать видео</string>
-    <string name="setting_video_capture_section_title">Запись видео</string>
     <string name="setting_video_capture_enable_title">Включить запись видео</string>
     <string name="setting_video_capture_enable_desc">Показывать команду записи видео прямо в текущий ресурс.</string>
     <string name="setting_video_capture_open_in_player_title">Открывать записанное видео в плеере</string>

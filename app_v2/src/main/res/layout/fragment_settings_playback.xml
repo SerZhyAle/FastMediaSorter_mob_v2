@@ -429,26 +429,6 @@
                     </LinearLayout>
 
                     <!-- S0367: Camera Photos block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
-                    <TextView
-                        android:id="@+id/tvCameraToResourceSectionTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:text="@string/setting_camera_to_resource_section_title"
-                        android:textColor="@color/text_color_primary"
-                        android:textSize="@dimen/toggler_title_text_size"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvCameraPermissionNote"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:text="@string/setting_camera_permission_note"
-                        android:textColor="@color/text_color_secondary"
-                        android:textSize="@dimen/toggler_desc_text_size" />
-
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowCameraToResourceEnabled"
                         android:layout_width="match_parent"
@@ -494,38 +474,37 @@
                                 android:textSize="@dimen/toggler_title_text_size"
                                 android:layout_marginBottom="@dimen/margin_small" />
 
-                            <TextView
-                                android:id="@+id/tvCameraPhotosDest"
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/setting_camera_photos_destination_default_camera"
-                                android:textColor="@color/text_color_secondary"
-                                android:textSize="@dimen/toggler_title_text_size"
-                                android:gravity="center" />
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
 
-                            <Button
-                                android:id="@+id/btnSelectCameraPhotosDest"
-                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_select_destination"
-                                android:textAllCaps="false" />
+                                <TextView
+                                    android:id="@+id/tvCameraPhotosDest"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="@dimen/margin_small"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="@string/setting_camera_photos_destination_default_camera"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <Button
+                                    android:id="@+id/btnSelectCameraPhotosDest"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_select_destination"
+                                    android:textAllCaps="false" />
+                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
 
                     <!-- S0371: Video recording block. Sibling of camera photos; master toggle stored inverted. -->
-                    <TextView
-                        android:id="@+id/tvVideoCaptureSectionTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:text="@string/setting_video_capture_section_title"
-                        android:textColor="@color/text_color_primary"
-                        android:textSize="@dimen/toggler_title_text_size"
-                        android:textStyle="bold" />
-
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowVideoCaptureEnabled"
                         android:layout_width="match_parent"
@@ -565,23 +544,33 @@
                                 android:textSize="@dimen/toggler_title_text_size"
                                 android:layout_marginBottom="@dimen/margin_small" />
 
-                            <TextView
-                                android:id="@+id/tvVideoRecordingDest"
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/setting_video_recording_destination_default_movies"
-                                android:textColor="@color/text_color_secondary"
-                                android:textSize="@dimen/toggler_title_text_size"
-                                android:gravity="center" />
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
 
-                            <Button
-                                android:id="@+id/btnSelectVideoRecordingDest"
-                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/setting_select_destination"
-                                android:textAllCaps="false" />
+                                <TextView
+                                    android:id="@+id/tvVideoRecordingDest"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="@dimen/margin_small"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="@string/setting_video_recording_destination_default_movies"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <Button
+                                    android:id="@+id/btnSelectVideoRecordingDest"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_select_destination"
+                                    android:textAllCaps="false" />
+                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -619,23 +608,33 @@
                             android:textSize="@dimen/toggler_title_text_size"
                             android:layout_marginBottom="@dimen/margin_small" />
 
-                        <TextView
-                            android:id="@+id/tvMicRecordingDest"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            android:text="@string/setting_mic_recording_destination_default_downloads"
-                            android:textColor="@color/text_color_secondary"
-                            android:textSize="@dimen/toggler_title_text_size"
-                            android:gravity="center" />
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                        <Button
-                            android:id="@+id/btnSelectMicRecordingDest"
-                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_select_destination"
-                            android:textAllCaps="false" />
+                            <TextView
+                                android:id="@+id/tvMicRecordingDest"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="@dimen/margin_small"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/setting_mic_recording_destination_default_downloads"
+                                android:textColor="@color/text_color_secondary"
+                                android:textSize="@dimen/toggler_title_text_size" />
+
+                            <Button
+                                android:id="@+id/btnSelectMicRecordingDest"
+                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/setting_select_destination"
+                                android:textAllCaps="false" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <!-- S0050: Show Black Screen button toggle (moved from Behaviour, S0318) -->

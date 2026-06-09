@@ -79,12 +79,12 @@ data class AppSettings(
     val epubHorizontalMargin: Int = 16, // EPUB horizontal margin in px (0 - 48)
     
     // Translation settings (always available, works with Images/PDF/TXT)
-    val enableTranslation: Boolean = true, // Enable translation feature using ML Kit OCR + Translate
+    val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
     val translationSourceLanguage: String = "auto", // Source language code (auto = auto-detect, en, ru, uk, etc.)
     val translationTargetLanguage: String = "ru", // Target language code (en, ru, uk, etc.)
     val translationLensStyle: Boolean = true, // Google Lens style - draw translated text blocks over original positions (for images and PDFs)
     val enableGoogleLens: Boolean = false, // Enable sending to Google Lens app
-    val enableOcr: Boolean = true, // Enable OCR text recognition (extract text from images/PDF for copying)
+    val enableOcr: Boolean = false, // S0386: default OFF - OCR engines delivered on demand
     val cameraOcrTranslationEnabled: Boolean = false, // Opt-in quick Photo-OCR-Translation flow
     val cameraOcrOnly: Boolean = false, // Under camera-ocr-translation: only perform OCR, no translation
     val ocrDefaultFontSize: String = "AUTO", // Default font size for OCR results (AUTO, MINIMUM, SMALL, MEDIUM, LARGE, HUGE)

@@ -38,6 +38,10 @@ class PlaybackSettingsFragment : Fragment() {
     private val viewModel: SettingsViewModel by activityViewModels()
     private var isUpdatingFromSettings = false
 
+    // Latest recipient resources for the capture destination pickers. Kept hot by collecting
+    // viewModel.destinations in observeData(); the WhileSubscribed flow would otherwise be cold here.
+    private var destinationTargets: List<MediaResource> = emptyList()
+
     // S0367: RECORD_AUDIO consent for the relocated microphone-recording master toggle.
     // Must be created at field-init time (Fragment requirement for registerForActivityResult).
     private val recordAudioPermissionLauncher = registerForActivityResult(
@@ -476,16 +480,16 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     /**
-     * S0367: single-choice picker over writable, non-virtual resources usable as a capture target.
-     * Includes an explicit "(clear)" entry that resolves the setting back to its documented fallback.
+     * S0367: single-choice picker over recipient resources usable as a capture target. Restricted to
+     * resources that are also destinations (a real folder); predefined/virtual resources such as
+     * "all files" are excluded. Includes an explicit "(clear)" entry that resolves the setting back
+     * to its documented fallback.
      */
     private fun showDestinationPicker(
         currentResourceId: Long?,
         onPicked: (MediaResource?) -> Unit
     ) {
-        val targets = viewModel.resources.value.filter {
-            !it.isReadOnly && !com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(it.path)
-        }
+        val targets = destinationTargets
         if (targets.isEmpty()) {
             Toast.makeText(requireContext(), R.string.no_resources_available, Toast.LENGTH_SHORT).show()
             return
@@ -521,6 +525,8 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     private fun observeData() {
+        // Only recipient resources (a real destination folder) are valid capture targets.
+        collectOnLifecycle(viewModel.destinations) { destinationTargets = it }
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
                     

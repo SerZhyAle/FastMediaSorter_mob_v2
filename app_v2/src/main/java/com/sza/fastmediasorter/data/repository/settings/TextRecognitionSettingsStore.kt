@@ -48,12 +48,14 @@ object TextRecognitionSettingsStore {
     )
 
     fun read(preferences: Preferences): Values = Values(
-        enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: true,
+        // S0386: default OFF - OCR/translation engines are now delivered on demand. A persisted
+        // key (existing users, incl. prior default-true) is preserved; only fresh stores get false.
+        enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: false,
         translationSourceLanguage = preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] ?: "auto",
         translationTargetLanguage = preferences[KEY_TRANSLATION_TARGET_LANGUAGE] ?: "ru",
         translationLensStyle = preferences[KEY_TRANSLATION_LENS_STYLE] ?: true,
         enableGoogleLens = preferences[KEY_ENABLE_GOOGLE_LENS] ?: true,
-        enableOcr = preferences[KEY_ENABLE_OCR] ?: true,
+        enableOcr = preferences[KEY_ENABLE_OCR] ?: false,
         cameraOcrTranslationEnabled = preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] ?: false,
         cameraOcrOnly = preferences[KEY_CAMERA_OCR_ONLY] ?: false,
         ocrDefaultFontSize = preferences[KEY_OCR_DEFAULT_FONT_SIZE] ?: "AUTO",

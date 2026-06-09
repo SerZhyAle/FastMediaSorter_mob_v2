@@ -460,6 +460,15 @@
         <!-- Інтерактивний дашборд можливостей -->
         <h2 class="section-title">✨ Можливості програми</h2>
         <div class="explorer-panel">
+            <!-- Перемикач варіантів дашборду (S0387) -->
+            <div class="variant-switcher">
+                <span class="variant-title">Вигляд дашборду:</span>
+                <button class="variant-btn active" id="var-btn-v1">🗂️ Рубрикатор</button>
+                <button class="variant-btn" id="var-btn-v2">🗺️ Карта медіа</button>
+                <button class="variant-btn" id="var-btn-v3">✨ Головне / Все</button>
+                <button class="variant-btn" id="var-btn-v4">🎯 Сценарії</button>
+            </div>
+
             <div class="explorer-controls">
                 <div class="explorer-tabs">
                     <button class="tab-btn active" id="tab-all">🌟 Ключові функції</button>
@@ -471,6 +480,23 @@
                     <input type="text" id="featureSearch" class="search-input" placeholder="Пошук функцій..">
                 </div>
             </div>
+
+            <!-- Додаткові контролі для Варіанта 3 (дворівневий перемикач) -->
+            <div class="toggle-v3-controls" id="toggleV3Controls" style="display: none;">
+                <div class="toggle-v3-group">
+                    <button class="toggle-v3-btn active" id="toggle-v3-key">✨ Головне</button>
+                    <button class="toggle-v3-btn" id="toggle-v3-all">📋 Всі функції</button>
+                </div>
+            </div>
+
+            <!-- Додаткові контролі для Варіанта 4 (фільтр сценаріїв) -->
+            <div class="scenarios-pills-container" id="scenariosPillsContainer" style="display: none;">
+                <div class="scenarios-pills-label">Виберіть сценарій для фільтрації:</div>
+                <div class="scenarios-pills" id="scenariosPills">
+                    <!-- Буде згенеровано динамічно JS -->
+                </div>
+            </div>
+
             <div class="feature-grid" id="featureExplorerGrid">
                 <!-- Картки генеруються динамічно з FEATURES_UK.md -->
                 <noscript>
@@ -485,7 +511,7 @@
         <details class="full-features-panel">
             <summary>📋 Канонічний перелік можливостей (Jekyll Markdown)</summary>
             <div id="full-features-content" class="full-features-content">
-                <em>Завантаження канонічного переліку можливостей…</em>
+                <em>Завантаження канонічного переліку можливостей..</em>
             </div>
             <a class="full-features-link" href="docs/FEATURES_UK.html" target="_blank">Відкрити повну сторінку в новій
                 вкладці →</a>
@@ -747,12 +773,16 @@
         }());
     </script>
 
-    <!-- Інтерактивний Feature Explorer движок -->
+    <!-- Інтерактивний Feature Explorer движок (S0387) -->
     <script>
         (function () {
             var allFeatures = [];
             var activeFilter = 'all'; // 'all', 'standard', 'vr'
             var searchQuery = '';
+            var activeVariant = 'v1'; // 'v1', 'v2', 'v3', 'v4'
+            var activeCategoryV1 = 'network';
+            var activeToggleV3 = 'key'; // 'key', 'all'
+            var activeScenarioV4 = 'all';
 
             var hiddenFeatureTitles = [
                 'Індивідуальні параметри',
@@ -768,6 +798,77 @@
                 'Реєстрація системних Intent',
                 'Пошук за налаштуваннями',
                 'Журнали налагодження'
+            ];
+
+            var keyFeatures = [
+                'Вибір профілю пристрою при першому запуску',
+                'Підтримка різних типів ресурсів',
+                'Крос-протокольні передачі',
+                'Пошук дублікатів',
+                'Запис відео в ресурс',
+                'Збереження та відновлення сеансу',
+                'Підтримка 3D та 360°',
+                'Іммерсивний стерео-рендер',
+                'Фонове відтворення',
+                'Зручне читання PDF',
+                'Локальний OCR двигун',
+                'AR оверлей перекладу',
+                'Іконкові віджети',
+                'Wear OS Companion',
+                'Пошук за налаштуваннями'
+            ];
+
+            var categoryMapping = {
+                "0. Налаштування та Конфігурація": "setup",
+                "1. Джерела та Сховища": "network",
+                "2. Браузер Медіафайлів": "filemanager",
+                "3. Файлові Операції": "filemanager",
+                "4. Управління Призначеннями": "filemanager",
+                "5. Перегляд Зображень та GIF": "players",
+                "6. Редактор Малюнків та Анотацій": "notes",
+                "7. Відеопрогравач": "players",
+                "8. VR-Редакція та OpenXR": "vr",
+                "9. Аудіопрогравач": "players",
+                "10. Режим Слайд-шоу": "players",
+                "11. Перегляд PDF та EPUB": "notes",
+                "12. Текстовий Редактор": "notes",
+                "13. Переклад та OCR (Офлайн)": "notes",
+                "14. Мережеві Технології та Хмари": "network",
+                "15. Розумні Віджети та Інтеграція": "widgets",
+                "16. Налаштування та Навігація": "setup"
+            };
+
+            var majorCategories = [
+                { id: 'network', label: '🌐 Мережеві технології та Хмари' },
+                { id: 'players', label: '🎬 Плеєри та Слайд-шоу' },
+                { id: 'filemanager', label: '📂 Файловий менеджер' },
+                { id: 'notes', label: '📝 Нотатки, Редактори та OCR' },
+                { id: 'widgets', label: '🧩 Віджети та Інтеграція' },
+                { id: 'setup', label: '⚙️ Налаштування та Навігація' },
+                { id: 'vr', label: '🥽 VR-режим' }
+            ];
+
+            var dashboardColumns = [
+                { id: 'sources', label: '📡 Джерела', categories: [1, 14] },
+                { id: 'processing', label: '⚙️ Обробка', categories: [2, 3, 4, 6] },
+                { id: 'viewers', label: '🍿 Перегляд', categories: [5, 7, 9, 10, 11, 12, 13] },
+                { id: 'platforms', label: '📱 Середовища', categories: [0, 8, 15, 16] }
+            ];
+
+            var scenariosList = [
+                { id: 'all', label: '🌟 Всі сценарії' },
+                { id: 'photo', label: '🖼️ Фоторамка' },
+                { id: 'music', label: '🚗 В авто' },
+                { id: 'video', label: '🍿 Кінотеатр' },
+                { id: 'smb', label: '📡 Налаштування SMB' },
+                { id: 'backup', label: '📷 Автобекап' },
+                { id: 'download', label: '🧹 Органайзер' },
+                { id: 'offline', label: '🧳 Офлайн-папка' },
+                { id: 'docs', label: '📚 Документи з хмари' },
+                { id: 'ocr', label: '🔎 OCR-переклад' },
+                { id: 'tv', label: '🛋️ NAS для TV' },
+                { id: 'duplicates', label: '🧬 Очищення дублікатів' },
+                { id: 'chromecast', label: '📺 Chromecast' }
             ];
 
             // Селектори сценаріїв
@@ -815,14 +916,35 @@
                 return links;
             }
 
+            function mapTitleToScenario(title) {
+                var t = title.toLowerCase();
+                if (t.indexOf('рамк') !== -1 || t.indexOf('frame') !== -1) return 'photo';
+                if (t.indexOf('муз') !== -1 || t.indexOf('music') !== -1) return 'music';
+                if (t.indexOf('кіно') !== -1 || t.indexOf('кино') !== -1 || t.indexOf('cinema') !== -1) return 'video';
+                if (t.indexOf('орган') !== -1 || t.indexOf('organizer') !== -1) return 'download';
+                if (t.indexOf('бекап') !== -1 || t.indexOf('бэкап') !== -1 || t.indexOf('backup') !== -1) return 'backup';
+                if (t.indexOf('smb') !== -1 || t.indexOf('мереж') !== -1 || t.indexOf('сет') !== -1) return 'smb';
+                if (t.indexOf('подор') !== -1 || t.indexOf('поез') !== -1 || t.indexOf('travel') !== -1 || t.indexOf('офлайн') !== -1 || t.indexOf('offline') !== -1) return 'offline';
+                if (t.indexOf('хмар') !== -1 || t.indexOf('облак') !== -1 || t.indexOf('docs') !== -1 || t.indexOf('cloud') !== -1) return 'docs';
+                if (t.indexOf('ocr') !== -1 || t.indexOf('переклад') !== -1 || t.indexOf('перевод') !== -1 || t.indexOf('translation') !== -1) return 'ocr';
+                if (t.indexOf('tv') !== -1 || t.indexOf('тв') !== -1 || t.indexOf('телевиз') !== -1) return 'tv';
+                if (t.indexOf('дубл') !== -1 || t.indexOf('duplicates') !== -1 || t.indexOf('cleanup') !== -1) return 'duplicates';
+                if (t.indexOf('chromecast') !== -1 || t.indexOf('cast') !== -1) return 'chromecast';
+                return null;
+            }
+
             function renderExplorer() {
                 var grid = document.getElementById('featureExplorerGrid');
                 grid.innerHTML = '';
 
+                // Сховати/показати специфічні контролі варіантів
+                document.getElementById('toggleV3Controls').style.display = (activeVariant === 'v3') ? 'flex' : 'none';
+                document.getElementById('scenariosPillsContainer').style.display = (activeVariant === 'v4') ? 'flex' : 'none';
+
                 var filtered = allFeatures.filter(function (f) {
                     // Фільтр по платформі
                     if (activeFilter === 'standard') {
-                        if (f.tag !== 'Standard' && f.tag !== 'Standard / VR') return false;
+                        if (f.tag !== 'Standard' && f.tag !== 'Standard / VR' && f.tag !== 'Standard Only') return false;
                     } else if (activeFilter === 'vr') {
                         if (f.tag !== 'VR Only' && f.tag !== 'Standard / VR') return false;
                     }
@@ -843,10 +965,7 @@
                     return;
                 }
 
-                filtered.forEach(function (f) {
-                    var card = document.createElement('div');
-                    card.className = 'feature-card';
-
+                function getFeatureCardHtml(f, forceOpen) {
                     var tagClass = 'tag-common';
                     var badgeClass = 'badge-common';
                     var badgeLabel = 'Standard / VR';
@@ -861,13 +980,11 @@
                         badgeLabel = 'VR Only';
                     }
 
-                    card.className += ' ' + tagClass;
-
                     var headerHtml = '<span class="feature-header">' +
                         '<span class="feature-title">' + f.title + '</span>' +
                         '<span style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
                         '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
-                        '<span class="toggle-icon">▼</span>' +
+                        (forceOpen ? '' : '<span class="toggle-icon">▼</span>') +
                         '</span>' +
                         '</span>';
 
@@ -883,12 +1000,408 @@
                         linksHtml += '</div>';
                     }
 
-                    card.innerHTML = '<details class="feature-details">' +
-                        '<summary>' + headerHtml + '</summary>' +
-                        descHtml + linksHtml +
-                        '</details>';
+                    if (forceOpen) {
+                        return '<div class="feature-card ' + tagClass + '">' +
+                            headerHtml + descHtml + linksHtml +
+                            '</div>';
+                    } else {
+                        return '<div class="feature-card ' + tagClass + '">' +
+                            '<details class="feature-details">' +
+                            '<summary>' + headerHtml + '</summary>' +
+                            descHtml + linksHtml +
+                            '</details>' +
+                            '</div>';
+                    }
+                }
 
-                    grid.appendChild(card);
+                if (activeVariant === 'v1') {
+                    // --- Варіант 1: Category Explorer ---
+                    var grouped = {};
+                    majorCategories.forEach(function (c) { grouped[c.id] = []; });
+
+                    filtered.forEach(function (f) {
+                        var catName = f.category;
+                        var matchedGroup = 'setup';
+                        for (var key in categoryMapping) {
+                            if (catName.indexOf(key) !== -1) {
+                                matchedGroup = categoryMapping[key];
+                                break;
+                            }
+                        }
+                        if (grouped[matchedGroup]) {
+                            grouped[matchedGroup].push(f);
+                        }
+                    });
+
+                    var availableCats = majorCategories.filter(function (c) { return grouped[c.id].length > 0; });
+                    if (availableCats.length === 0) {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Немає доступних категорій для поточних фільтрів.</div>';
+                        return;
+                    }
+                    if (!activeCategoryV1 || !grouped[activeCategoryV1] || grouped[activeCategoryV1].length === 0) {
+                        activeCategoryV1 = availableCats[0].id;
+                    }
+
+                    var container = document.createElement('div');
+                    container.className = 'explorer-v1-container';
+
+                    var sidebar = document.createElement('div');
+                    sidebar.className = 'explorer-v1-sidebar';
+                    availableCats.forEach(function (cat) {
+                        var btn = document.createElement('button');
+                        btn.className = 'v1-cat-btn' + (cat.id === activeCategoryV1 ? ' active' : '');
+                        btn.innerText = cat.label;
+                        btn.addEventListener('click', function () {
+                            activeCategoryV1 = cat.id;
+                            renderExplorer();
+                        });
+                        sidebar.appendChild(btn);
+                    });
+
+                    var content = document.createElement('div');
+                    content.className = 'explorer-v1-content';
+
+                    var catFeatures = grouped[activeCategoryV1];
+                    var majorList = [];
+                    var minorList = [];
+                    catFeatures.forEach(function (f) {
+                        if (keyFeatures.indexOf(f.title) !== -1) {
+                            majorList.push(f);
+                        } else {
+                            minorList.push(f);
+                        }
+                    });
+
+                    if (majorList.length > 0) {
+                        var majorGrid = document.createElement('div');
+                        majorGrid.className = 'feature-grid';
+                        majorList.forEach(function (f) {
+                            majorGrid.innerHTML += getFeatureCardHtml(f, true);
+                        });
+                        content.appendChild(majorGrid);
+                    }
+
+                    if (minorList.length > 0) {
+                        var minorTitle = document.createElement('h3');
+                        minorTitle.className = 'v1-accordion-title';
+                        minorTitle.innerText = '📋 Інші функції';
+                        content.appendChild(minorTitle);
+
+                        var minorGrid = document.createElement('div');
+                        minorGrid.className = 'feature-grid';
+                        minorList.forEach(function (f) {
+                            minorGrid.innerHTML += getFeatureCardHtml(f, false);
+                        });
+                        content.appendChild(minorGrid);
+                    }
+
+                    container.appendChild(sidebar);
+                    container.appendChild(content);
+                    grid.appendChild(container);
+
+                } else if (activeVariant === 'v2') {
+                    // --- Варіант 2: Media Dashboard ---
+                    var container = document.createElement('div');
+                    container.className = 'dashboard-v2-grid';
+
+                    dashboardColumns.forEach(function (col) {
+                        var colFeatures = filtered.filter(function (f) {
+                            var numMatch = f.category.match(/^(\d+)/);
+                            var num = numMatch ? parseInt(numMatch[1], 10) : -1;
+                            return col.categories.indexOf(num) !== -1;
+                        });
+
+                        if (colFeatures.length === 0) return;
+
+                        var colDiv = document.createElement('div');
+                        colDiv.className = 'dashboard-v2-col';
+
+                        var header = document.createElement('div');
+                        header.className = 'dashboard-v2-header';
+                        header.innerText = col.label;
+                        colDiv.appendChild(header);
+
+                        var list = document.createElement('div');
+                        list.className = 'dashboard-v2-list';
+                        colFeatures.forEach(function (f) {
+                            var item = document.createElement('div');
+                            item.className = 'dashboard-v2-item';
+
+                            var tagBadge = '';
+                            if (f.tag === 'VR Only') tagBadge = ' <span style="font-size:0.65rem; color:#22d3ee; border:1px solid rgba(0,229,255,0.3); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; text-transform:uppercase;">VR</span>';
+
+                            item.innerHTML = '<span>' + f.title + tagBadge + '</span><span class="dashboard-v2-item-arrow">→</span>';
+                            item.addEventListener('click', function () {
+                                openDrawer(f);
+                            });
+                            list.appendChild(item);
+                        });
+                        colDiv.appendChild(list);
+                        container.appendChild(colDiv);
+                    });
+
+                    grid.appendChild(container);
+
+                } else if (activeVariant === 'v3') {
+                    // --- Варіант 3: Highlights / All ---
+                    if (activeToggleV3 === 'key') {
+                        var majorGrid = document.createElement('div');
+                        majorGrid.className = 'major-grid-v3';
+
+                        var keyList = filtered.filter(function (f) {
+                            return keyFeatures.indexOf(f.title) !== -1;
+                        });
+
+                        if (keyList.length === 0) {
+                            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">У поточних фільтрах ключові функції відсутні.</div>';
+                            return;
+                        }
+
+                        keyList.forEach(function (f) {
+                            var tagClass = 'tag-common';
+                            if (f.tag === 'Standard Only' || f.tag === 'Standard') tagClass = 'tag-standard';
+                            else if (f.tag === 'VR Only') tagClass = 'tag-vr';
+
+                            var scLinks = getScenarioLinks(f.title, f.desc);
+                            var linksHtml = '';
+                            if (scLinks.length > 0) {
+                                linksHtml = '<div class="feature-links">';
+                                scLinks.forEach(function (l) {
+                                    linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank">' + l.label + '</a>';
+                                });
+                                linksHtml += '</div>';
+                            }
+
+                            var card = document.createElement('div');
+                            card.className = 'feature-card-major ' + tagClass;
+                            card.innerHTML = '<div>' +
+                                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">' +
+                                '<span class="feature-title">' + f.title + '</span>' +
+                                '<span class="feature-badge ' + (f.tag === 'VR Only' ? 'badge-vr' : (f.tag === 'Standard' || f.tag === 'Standard Only' ? 'badge-standard' : 'badge-common')) + '">' + (f.tag === 'VR Only' ? 'VR Only' : (f.tag === 'Standard' || f.tag === 'Standard Only' ? 'Standard' : 'Standard / VR')) + '</span>' +
+                                '</div>' +
+                                '<div class="feature-desc">' + f.desc + '</div>' +
+                                '</div>' + linksHtml;
+                            majorGrid.appendChild(card);
+                        });
+                        grid.appendChild(majorGrid);
+                    } else {
+                        var treeContainer = document.createElement('div');
+                        treeContainer.className = 'compact-tree-container';
+
+                        var categories = [];
+                        filtered.forEach(function (f) {
+                            if (categories.indexOf(f.category) === -1) {
+                                categories.push(f.category);
+                            }
+                        });
+
+                        categories.forEach(function (cat) {
+                            var catFeatures = filtered.filter(function (f) { return f.category === cat; });
+                            var catDiv = document.createElement('div');
+                            catDiv.className = 'compact-tree-cat';
+
+                            var title = document.createElement('div');
+                            title.className = 'compact-tree-cat-title';
+                            title.innerText = cat;
+                            catDiv.appendChild(title);
+
+                            var list = document.createElement('div');
+                            list.className = 'compact-tree-list';
+                            catFeatures.forEach(function (f) {
+                                var item = document.createElement('div');
+                                item.className = 'compact-tree-item';
+                                var tagBadge = ' <span style="font-size:0.65rem; opacity:0.7;">[' + f.tag + ']</span>';
+                                item.innerHTML = '<span class="compact-tree-item-text"><strong class="compact-tree-item-title">' + f.title + '</strong>' + tagBadge + ': ' + f.desc + '</span>';
+                                list.appendChild(item);
+                            });
+                            catDiv.appendChild(list);
+                            treeContainer.appendChild(catDiv);
+                        });
+
+                        grid.appendChild(treeContainer);
+                    }
+
+                } else if (activeVariant === 'v4') {
+                    // --- Варіант 4: Scenario Filter ---
+                    var scenarioFeatures = filtered;
+                    if (activeScenarioV4 !== 'all') {
+                        scenarioFeatures = filtered.filter(function (f) {
+                            var scLinks = getScenarioLinks(f.title, f.desc);
+                            return scLinks.some(function (l) {
+                                return l.url.indexOf(activeScenarioV4) !== -1;
+                            });
+                        });
+                    }
+
+                    if (activeScenarioV4 !== 'all') {
+                        var scenarioObj = scenariosList.find(function (s) { return s.id === activeScenarioV4; });
+                        var labelText = scenarioObj ? scenarioObj.label : activeScenarioV4;
+
+                        var badge = document.createElement('div');
+                        badge.style.gridColumn = '1/-1';
+                        badge.innerHTML = '<div class="filter-pill-active">' +
+                            '<span>Показано функції для: <strong>' + labelText + '</strong></span>' +
+                            '<button class="clear-filter-btn" id="clearScenarioFilter">✖</button>' +
+                            '</div>';
+                        grid.appendChild(badge);
+                    }
+
+                    if (scenarioFeatures.length === 0) {
+                        var noData = document.createElement('div');
+                        noData.style.gridColumn = '1/-1';
+                        noData.style.textAlign = 'center';
+                        noData.style.color = 'var(--text-muted)';
+                        noData.style.padding = '3rem 0';
+                        noData.innerText = 'Функцій для цього сценарію за вибраними фільтрами не знайдено.';
+                        grid.appendChild(noData);
+                    } else {
+                        var scenarioGrid = document.createElement('div');
+                        scenarioGrid.style.gridColumn = '1/-1';
+                        scenarioGrid.className = 'feature-grid';
+                        scenarioFeatures.forEach(function (f) {
+                            scenarioGrid.innerHTML += getFeatureCardHtml(f, true);
+                        });
+                        grid.appendChild(scenarioGrid);
+                    }
+
+                    var clearBtn = document.getElementById('clearScenarioFilter');
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', function () {
+                            activeScenarioV4 = 'all';
+                            document.querySelectorAll('.scenario-pill-btn').forEach(function (b) {
+                                if (b.getAttribute('data-id') === 'all') b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+                            renderExplorer();
+                        });
+                    }
+                }
+            }
+
+            function openDrawer(feature) {
+                document.getElementById('drawerTitle').innerText = feature.title;
+                document.getElementById('drawerCat').innerText = feature.category;
+                document.getElementById('drawerDesc').innerText = feature.desc;
+
+                var linksHtml = '';
+                var scLinks = getScenarioLinks(feature.title, feature.desc);
+                if (scLinks.length > 0) {
+                    linksHtml = '<div style="margin-top: 1rem; border-top: 1px solid var(--border-glass); padding-top: 1rem;"><div class="detail-drawer-cat" style="margin-bottom: 0.5rem;">Пов\'язані сценарії:</div>';
+                    scLinks.forEach(function (l) {
+                        linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank" style="margin-right: 0.8rem; display: inline-block;">' + l.label + '</a>';
+                    });
+                    linksHtml += '</div>';
+                }
+                document.getElementById('drawerLinks').innerHTML = linksHtml;
+
+                document.getElementById('detailDrawer').classList.add('open');
+                document.getElementById('detailDrawerOverlay').classList.add('open');
+            }
+
+            function closeDrawer() {
+                document.getElementById('detailDrawer').classList.remove('open');
+                document.getElementById('detailDrawerOverlay').classList.remove('open');
+            }
+
+            function buildScenarioPills() {
+                var container = document.getElementById('scenariosPills');
+                if (!container) return;
+                container.innerHTML = '';
+                scenariosList.forEach(function (sc) {
+                    var btn = document.createElement('button');
+                    btn.className = 'scenario-pill-btn' + (sc.id === activeScenarioV4 ? ' active' : '');
+                    btn.setAttribute('data-id', sc.id);
+                    btn.innerText = sc.label;
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.scenario-pill-btn').forEach(function (b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        activeScenarioV4 = sc.id;
+                        renderExplorer();
+                    });
+                    container.appendChild(btn);
+                });
+            }
+
+            function setupSwitcher() {
+                var btns = {
+                    'v1': document.getElementById('var-btn-v1'),
+                    'v2': document.getElementById('var-btn-v2'),
+                    'v3': document.getElementById('var-btn-v3'),
+                    'v4': document.getElementById('var-btn-v4')
+                };
+
+                function setVariant(v) {
+                    activeVariant = v;
+                    for (var key in btns) {
+                        if (btns[key]) {
+                            if (key === v) btns[key].classList.add('active');
+                            else btns[key].classList.remove('active');
+                        }
+                    }
+                    renderExplorer();
+                }
+
+                if (btns.v1) btns.v1.addEventListener('click', function () { setVariant('v1'); });
+                if (btns.v2) btns.v2.addEventListener('click', function () { setVariant('v2'); });
+                if (btns.v3) btns.v3.addEventListener('click', function () { setVariant('v3'); });
+                if (btns.v4) btns.v4.addEventListener('click', function () { setVariant('v4'); });
+
+                var keyBtn = document.getElementById('toggle-v3-key');
+                var allBtn = document.getElementById('toggle-v3-all');
+                if (keyBtn && allBtn) {
+                    keyBtn.addEventListener('click', function () {
+                        keyBtn.classList.add('active');
+                        allBtn.classList.remove('active');
+                        activeToggleV3 = 'key';
+                        renderExplorer();
+                    });
+                    allBtn.addEventListener('click', function () {
+                        allBtn.classList.add('active');
+                        keyBtn.classList.remove('active');
+                        activeToggleV3 = 'all';
+                        renderExplorer();
+                    });
+                }
+            }
+
+            function setupDrawer() {
+                var closeBtn = document.getElementById('detailDrawerClose');
+                var overlay = document.getElementById('detailDrawerOverlay');
+                if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+                if (overlay) overlay.addEventListener('click', closeDrawer);
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closeDrawer();
+                });
+            }
+
+            function setupScenarioCards() {
+                document.querySelectorAll('.scenario-card').forEach(function (card) {
+                    card.addEventListener('click', function (e) {
+                        if (e.target.tagName === 'A' || e.target.closest('a') || e.target.tagName === 'SUMMARY' || e.target.closest('summary')) return;
+                        var h3 = card.querySelector('h3');
+                        if (!h3) return;
+
+                        var text = h3.innerText.trim();
+                        var scId = mapTitleToScenario(text);
+                        if (scId) {
+                            e.preventDefault();
+                            activeVariant = 'v4';
+                            activeScenarioV4 = scId;
+
+                            document.querySelectorAll('.variant-btn').forEach(function (b) {
+                                if (b.id === 'var-btn-v4') b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+
+                            document.querySelectorAll('.scenario-pill-btn').forEach(function (b) {
+                                if (b.getAttribute('data-id') === scId) b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+
+                            renderExplorer();
+                            document.querySelector('.explorer-panel').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
                 });
             }
 
@@ -952,9 +1465,15 @@
                         }
                     }
 
+                    // Ініціалізація
+                    setupSwitcher();
+                    buildScenarioPills();
+                    setupDrawer();
+                    setupScenarioCards();
                     renderExplorer();
                 })
-                .catch(function () {
+                .catch(function (err) {
+                    console.error(err);
                     document.getElementById('featureExplorerGrid').innerHTML =
                         '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Не вдалося завантажити реєстр можливостей. Спробуйте оновити сторінку.</div>';
                 });
@@ -989,6 +1508,16 @@
         }());
     </script>
 
-</body>
-
-</html>
+    <!-- Оверлей і бічна шторка (Drawer) для Варіанта 2 (S0387) -->
+    <div class="detail-drawer-overlay" id="detailDrawerOverlay"></div>
+    <div class="detail-drawer" id="detailDrawer">
+        <div class="detail-drawer-header">
+            <h3 id="drawerTitle">Деталі функції</h3>
+            <button class="detail-drawer-close" id="detailDrawerClose">&times;</button>
+        </div>
+        <div class="detail-drawer-body">
+            <div class="detail-drawer-cat" id="drawerCat">Категорія</div>
+            <div class="detail-drawer-desc" id="drawerDesc">Опис..</div>
+            <div id="drawerLinks"></div>
+        </div>
+    </div>
