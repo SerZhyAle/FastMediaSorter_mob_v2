@@ -16911,3 +16911,17 @@ Format: | datetime | file | target | description |
 | 2026-06-10 23:01:27 | `app_v2/src/main/java/com/sza/fastmediasorter/di/CapabilityAvailabilityModule.kt` | `S0396 phase-01.2` | Add @Multibinds empty-set default for compiled-capability set [branch: DEBUG-v013] |
 | 2026-06-10 23:03:45 | `app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliverableDownloadRunnerImpl.kt` | `DeliverableDownloadRunnerImpl` | implement S0397 app-scoped element download runner [branch: DEBUG-v013] |
 | 2026-06-10 23:06:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliverableDownloadRunnerImpl.kt` | `DeliverableDownloadRunnerImpl` | implement S0397 app-scoped element download runner [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/INDEX.md` | `spec-tech` | Create tactical plan for S0398 (6 phases, welcome skeleton) [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/PHASE_01__welcome-shell-framework.md` | `spec-tech` | Phase 01: welcome-shell-framework [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/PHASE_02__decorative-removal.md` | `spec-tech` | Phase 02: decorative-removal [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/PHASE_03__page0-theme-row.md` | `spec-tech` | Phase 03: page0-theme-row [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/PHASE_04__networks-decorative-page.md` | `spec-tech` | Phase 04: networks-decorative-page [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/PHASE_05__reentry-fixes.md` | `spec-tech` | Phase 05: reentry-fixes [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup [branch: DEBUG-v013] |
+| 2026-06-10 23:24:31 | `PLAN/S0398_welcome-skeleton-form-pages.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v013] |
+| 2026-06-10 23:36:15 | `app_v2/src/ocrEnabled/java/com/sza/fastmediasorter/di/OcrCapabilityModule.kt` | `spec-dev` | S0396 phase-02.1: OCR @IntoSet contribution to compiled-capability set [branch: DEBUG-v013] |
+| 2026-06-10 23:36:15 | `app_v2/src/translationEnabled/java/com/sza/fastmediasorter/di/TranslationCapabilityModule.kt` | `spec-dev` | S0396 phase-02.2: translation @IntoSet contribution [branch: DEBUG-v013] |
+| 2026-06-10 23:36:15 | `app_v2/src/vrOnly/java/com/sza/fastmediasorter/di/VrCapabilityModule.kt` | `spec-dev` | S0396 phase-02.3: VR @IntoSet contribution [branch: DEBUG-v013] |
+| 2026-06-10 23:39:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `spec-dev` | S0396 phase-03.1: migrate translation/OCR row visibility to CapabilityAvailability [branch: DEBUG-v013] |
+| 2026-06-10 23:39:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | S0396 phase-03.2: @AndroidEntryPoint + migrate camera-OCR row visibility to CapabilityAvailability [branch: DEBUG-v013] |
+| 2026-06-10 23:52:01 | `PLAN/S0396_welcome-availability-contract.md` | `spec-dev` | All 4 phases done; CapabilityAvailability contract + flavor contributions + settings migration; standard+lite build-green; status -> Implemented [branch: DEBUG-v013] |

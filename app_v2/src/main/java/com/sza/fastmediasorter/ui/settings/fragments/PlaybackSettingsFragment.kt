@@ -29,13 +29,21 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PlaybackSettingsFragment : Fragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
+
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
+
     private var isUpdatingFromSettings = false
 
     // Latest recipient resources for the capture destination pickers. Kept hot by collecting
@@ -97,7 +105,7 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     private fun applyFlavorRestrictions() {
-        val hasOcrAndTranslation = BuildConfig.ENABLE_TRANSLATION && 
+        val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
             com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
         binding.rowCameraOcrTranslationEnabled.isVisible = hasOcrAndTranslation
         binding.layoutCameraOcrOnly.isVisible = hasOcrAndTranslation
@@ -530,7 +538,7 @@ class PlaybackSettingsFragment : Fragment() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
                     
-                    val hasOcrAndTranslation = BuildConfig.ENABLE_TRANSLATION && 
+                    val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
                         com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
                     if (hasOcrAndTranslation) {
                         if (binding.rowCameraOcrTranslationEnabled.isChecked != settings.cameraOcrTranslationEnabled) {

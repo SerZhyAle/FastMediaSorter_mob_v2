@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -30,6 +31,9 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
     @Inject
     lateinit var deliveryEnableInterceptor: DeliveryEnableInterceptor
+
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
 
     private var _binding: FragmentSettingsOtherBinding? = null
     private val binding get() = _binding!!
@@ -101,8 +105,8 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
      * Translation and OCR features require ENABLE_TRANSLATION=true.
      */
     private fun applyFlavorRestrictions() {
-        // Translation and OCR features are only available when ENABLE_TRANSLATION is true
-        if (!BuildConfig.ENABLE_TRANSLATION) {
+        // Translation and OCR rows are visible only when the build compiles the translation capability.
+        if (!capabilityAvailability.isTranslationAvailable()) {
             // After migration the row IS the visible element; no extra wrapper container.
             binding.rowEnableTranslation.isVisible = false
             binding.layoutTranslationLanguages.isVisible = false
@@ -476,7 +480,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateTranslationPrewarmStatus(status: TranslationModelPrewarmStatus) {
-        if (!BuildConfig.ENABLE_TRANSLATION || !viewModel.settings.value.enableTranslation) {
+        if (!capabilityAvailability.isTranslationAvailable() || !viewModel.settings.value.enableTranslation) {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.btnTranslationPrewarmRetry.isVisible = false
             return
