@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.data.delivery
 
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
 import kotlinx.coroutines.Dispatchers
@@ -17,12 +16,18 @@ import javax.inject.Singleton
  * Resolves the effective [DeliverableSourceDescriptor] for a [DeliverableSet] by overlaying the
  * remote manifest's source URLs on top of the compiled bundled descriptor (S0386 strategic §6.1 B2).
  *
- * The manifest - hosted on our mirror, keyed by the running app [BuildConfig.VERSION_CODE] - supplies
- * **only** the source URLs per file, so mirror endpoints can be moved without an app release. The
- * authoritative `sha256`/`minSize` integrity anchors always come from the compiled bundled descriptor
- * and are never read from the manifest, so a tampered manifest cannot weaken native-`.so` verification.
- * If the manifest is unreachable or malformed, the bundled descriptor is used verbatim - the shipping
- * version's URLs are baked in, so the first run works offline of the manifest.
+ * The manifest - a single **stationary** file on our mirror (fixed tag, not keyed by app version) -
+ * supplies **only** the source URLs per file, so mirror endpoints can be moved without an app release.
+ * The authoritative `sha256`/`minSize` integrity anchors always come from the compiled bundled
+ * descriptor and are never read from the manifest, so a tampered manifest cannot weaken native-`.so`
+ * verification - and a stale URL just fails the app-pinned hash and falls back. If the manifest is
+ * unreachable or malformed, the bundled descriptor is used verbatim - the shipping version's URLs are
+ * baked in, so the first run works offline of the manifest.
+ *
+ * A fixed URL (not `delivery-v<versionCode>/`) is intentional: per-app-version URL isolation is
+ * unnecessary because hashes are app-pinned and verification fails safe, and a stationary address is
+ * the whole point - one file we can edit in place to move endpoints. If version-specific URLs are ever
+ * needed, key them inside the JSON by `versionCode`, not in the path.
  */
 @Singleton
 class DeliveryManifestDataSource @Inject constructor(
@@ -55,7 +60,7 @@ class DeliveryManifestDataSource @Inject constructor(
      */
     private suspend fun fetchUrlOverrides(): Map<String, Map<String, List<String>>>? =
         withContext(Dispatchers.IO) {
-            val url = "$MANIFEST_BASE/delivery-v${BuildConfig.VERSION_CODE}/$MANIFEST_FILE"
+            val url = "$MANIFEST_BASE/$MANIFEST_TAG/$MANIFEST_FILE"
             try {
                 okHttpClient.newCall(Request.Builder().url(url).build()).execute().use { response ->
                     if (!response.isSuccessful) {
@@ -92,6 +97,8 @@ class DeliveryManifestDataSource @Inject constructor(
 
     private companion object {
         const val MANIFEST_BASE = "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download"
+        // Stationary tag, co-located with the payloads - not keyed by app versionCode (see class doc).
+        const val MANIFEST_TAG = "delivery-so-v1"
         const val MANIFEST_FILE = "delivery-manifest.json"
         const val KEY_SETS = "sets"
     }

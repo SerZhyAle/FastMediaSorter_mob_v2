@@ -6,7 +6,9 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.PayloadFile
+import com.google.android.play.core.splitinstall.SplitInstallException
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
+import com.google.android.play.core.splitinstall.model.SplitInstallErrorCode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -154,19 +156,43 @@ class RealDeliverableSetDownloader @Inject constructor(
         }
         
         splitInstallManager.registerListener(listener)
-        
-        val request = com.google.android.play.core.splitinstall.SplitInstallRequest.newBuilder()
-            .addModule(moduleName)
-            .build()
-            
-        splitInstallManager.startInstall(request)
-            .addOnFailureListener { exception ->
-                trySend(DownloadProgress.Failed(exception.message ?: "Failed to start install"))
-                close(exception)
-            }
-            
+
+        try {
+            val request = com.google.android.play.core.splitinstall.SplitInstallRequest.newBuilder()
+                .addModule(moduleName)
+                .build()
+
+            splitInstallManager.startInstall(request)
+                .addOnFailureListener { exception ->
+                    // Complete the flow with a Failed result - never close(cause), which would
+                    // re-throw SplitInstallException into the collector's coroutine and crash the app.
+                    // APP_NOT_OWNED (-15) is expected for sideloaded / non-Play store builds (debug):
+                    // the Play dynamic-feature cannot be fetched, so translation degrades gracefully.
+                    trySend(DownloadProgress.Failed(dfmFailureReason(exception)))
+                    close()
+                }
+        } catch (t: Throwable) {
+            Timber.w(t, "DFM startInstall threw synchronously for %s", moduleName)
+            trySend(DownloadProgress.Failed(dfmFailureReason(t)))
+            close()
+        }
+
         awaitClose {
             splitInstallManager.unregisterListener(listener)
+        }
+    }
+
+    /**
+     * Human-readable reason for a Play dynamic-feature install failure. APP_NOT_OWNED (-15) means the
+     * app was not acquired from Google Play (sideload / debug), so the split cannot be fetched here.
+     */
+    private fun dfmFailureReason(error: Throwable): String {
+        val code = (error as? SplitInstallException)?.errorCode
+        return when (code) {
+            SplitInstallErrorCode.APP_NOT_OWNED ->
+                "Translation module is delivered via Google Play and is unavailable on this build (not installed from Play)"
+            null -> error.message ?: "Failed to start dynamic-feature install"
+            else -> "Dynamic-feature install failed (code $code)"
         }
     }
 
