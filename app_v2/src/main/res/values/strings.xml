@@ -2501,4 +2501,9 @@ Close the player and try again.</string>
     <string name="sftp_host_key_fingerprint_invalid">Cannot parse fingerprint. Use SHA256:base64, hex with colons, or raw base64.</string>
     <string name="sftp_host_key_mismatch_title">Host key mismatch</string>
     <string name="sftp_host_key_mismatch_body_format">Expected fingerprint:\n%1$s\n\nServer offered:\n%2$s\n\nConnection refused — possible MITM attack or legitimate key change. Update the resource manually if you trust this server.</string>
+    <string name="ext_section_ocr">OCR</string>
+    <string name="ext_section_translation">Translation</string>
+    <string name="ext_section_media_playback">Media playback</string>
+    <string name="ext_shortcut_packs_title">OCR &amp; translation downloads</string>
+    <string name="ext_shortcut_packs_desc">Open downloadable extensions to install OCR and translation packs</string>
 </resources>

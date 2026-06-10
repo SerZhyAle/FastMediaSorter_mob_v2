@@ -6,19 +6,27 @@ import kotlinx.coroutines.flow.Flow
  * Persists the registry/inventory of available deliverable items (modules and language data).
  * Displays statuses, sizes, and manages installation/uninstallation (S0386 Phase 08).
  */
+/**
+ * Logical grouping the Extensions Manager screen renders as sections (S0386 Phase 11): OCR engines +
+ * OCR language data, translation module + translation language packs, and media-playback assets.
+ */
+enum class ExtensionSection { OCR, TRANSLATION, MEDIA_PLAYBACK }
+
 sealed class ExtensionItem {
     abstract val id: String
     abstract val displayNameRes: Int
     abstract val descriptionRes: Int
     abstract val sizeLabel: String
+    abstract val section: ExtensionSection
     abstract val statusFlow: Flow<ExtensionStatus>
-    
+
     data class Module(
         override val id: String,
         val set: DeliverableSet,
         override val displayNameRes: Int,
         override val descriptionRes: Int,
         override val sizeLabel: String,
+        override val section: ExtensionSection,
         override val statusFlow: Flow<ExtensionStatus>
     ) : ExtensionItem()
 
@@ -28,6 +36,7 @@ sealed class ExtensionItem {
         override val displayNameRes: Int,
         override val descriptionRes: Int,
         override val sizeLabel: String,
+        override val section: ExtensionSection,
         override val statusFlow: Flow<ExtensionStatus>
     ) : ExtensionItem()
 }

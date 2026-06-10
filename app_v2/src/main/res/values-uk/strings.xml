@@ -2416,4 +2416,9 @@
     <string name="sftp_host_key_fingerprint_invalid">Не вдалося розібрати відбиток. Підтримуються SHA256:base64, hex з двокрапками, чистий base64.</string>
     <string name="sftp_host_key_mismatch_title">Відбиток host-key не збігається</string>
     <string name="sftp_host_key_mismatch_body_format">Очікувався відбиток:\n%1$s\n\nСервер надіслав:\n%2$s\n\nЗ\'єднання відхилено — можлива підміна сервера або легітимна заміна ключа. Якщо ви довіряєте цьому серверу, оновіть ресурс вручну.</string>
+    <string name="ext_section_ocr">OCR</string>
+    <string name="ext_section_translation">Переклад</string>
+    <string name="ext_section_media_playback">Відтворення медіа</string>
+    <string name="ext_shortcut_packs_title">Завантаження OCR та перекладу</string>
+    <string name="ext_shortcut_packs_desc">Відкрити завантажувані розширення для встановлення пакетів OCR та перекладу</string>
 </resources>

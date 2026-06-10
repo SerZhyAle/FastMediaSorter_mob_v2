@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
+import com.sza.fastmediasorter.domain.delivery.ExtensionSection
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -45,6 +46,8 @@ class DeliverableInventoryImpl @Inject constructor(
     // progress emitted during a download is observed by the list row.
     private val activeDownloads = ConcurrentHashMap<String, MutableStateFlow<ExtensionStatus>>()
 
+    // Ordered + sectioned for the grouped screen (S0386 Phase 11/12): OCR (engines + OCR languages),
+    // then Translation (module), then Media Playback (audio-viz + FFmpeg DTS).
     override fun getExtensions(): List<ExtensionItem> = listOf(
         ExtensionItem.Module(
             id = moduleKey(DeliverableSet.OCR_ENGINES),
@@ -52,31 +55,8 @@ class DeliverableInventoryImpl @Inject constructor(
             displayNameRes = R.string.ext_ocr_engines_title,
             descriptionRes = R.string.ext_ocr_engines_desc,
             sizeLabel = moduleSizeLabel(DeliverableSet.OCR_ENGINES),
+            section = ExtensionSection.OCR,
             statusFlow = moduleStatusFlow(DeliverableSet.OCR_ENGINES)
-        ),
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.TRANSLATION),
-            set = DeliverableSet.TRANSLATION,
-            displayNameRes = R.string.ext_translation_title,
-            descriptionRes = R.string.ext_translation_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.TRANSLATION),
-            statusFlow = moduleStatusFlow(DeliverableSet.TRANSLATION)
-        ),
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.AUDIO_VISUALIZATIONS),
-            set = DeliverableSet.AUDIO_VISUALIZATIONS,
-            displayNameRes = R.string.ext_audio_viz_title,
-            descriptionRes = R.string.ext_audio_viz_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.AUDIO_VISUALIZATIONS),
-            statusFlow = moduleStatusFlow(DeliverableSet.AUDIO_VISUALIZATIONS)
-        ),
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.FFMPEG_DTS),
-            set = DeliverableSet.FFMPEG_DTS,
-            displayNameRes = R.string.ext_ffmpeg_dts_title,
-            descriptionRes = R.string.ext_ffmpeg_dts_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.FFMPEG_DTS),
-            statusFlow = moduleStatusFlow(DeliverableSet.FFMPEG_DTS)
         ),
         ExtensionItem.LanguageData(
             id = languageKey("rus"),
@@ -84,6 +64,7 @@ class DeliverableInventoryImpl @Inject constructor(
             displayNameRes = R.string.ext_lang_rus_title,
             descriptionRes = R.string.ext_lang_rus_desc,
             sizeLabel = formatBytes(LANG_SIZE_RUS),
+            section = ExtensionSection.OCR,
             statusFlow = languageStatusFlow("rus")
         ),
         ExtensionItem.LanguageData(
@@ -92,7 +73,35 @@ class DeliverableInventoryImpl @Inject constructor(
             displayNameRes = R.string.ext_lang_ukr_title,
             descriptionRes = R.string.ext_lang_ukr_desc,
             sizeLabel = formatBytes(LANG_SIZE_UKR),
+            section = ExtensionSection.OCR,
             statusFlow = languageStatusFlow("ukr")
+        ),
+        ExtensionItem.Module(
+            id = moduleKey(DeliverableSet.TRANSLATION),
+            set = DeliverableSet.TRANSLATION,
+            displayNameRes = R.string.ext_translation_title,
+            descriptionRes = R.string.ext_translation_desc,
+            sizeLabel = moduleSizeLabel(DeliverableSet.TRANSLATION),
+            section = ExtensionSection.TRANSLATION,
+            statusFlow = moduleStatusFlow(DeliverableSet.TRANSLATION)
+        ),
+        ExtensionItem.Module(
+            id = moduleKey(DeliverableSet.AUDIO_VISUALIZATIONS),
+            set = DeliverableSet.AUDIO_VISUALIZATIONS,
+            displayNameRes = R.string.ext_audio_viz_title,
+            descriptionRes = R.string.ext_audio_viz_desc,
+            sizeLabel = moduleSizeLabel(DeliverableSet.AUDIO_VISUALIZATIONS),
+            section = ExtensionSection.MEDIA_PLAYBACK,
+            statusFlow = moduleStatusFlow(DeliverableSet.AUDIO_VISUALIZATIONS)
+        ),
+        ExtensionItem.Module(
+            id = moduleKey(DeliverableSet.FFMPEG_DTS),
+            set = DeliverableSet.FFMPEG_DTS,
+            displayNameRes = R.string.ext_ffmpeg_dts_title,
+            descriptionRes = R.string.ext_ffmpeg_dts_desc,
+            sizeLabel = moduleSizeLabel(DeliverableSet.FFMPEG_DTS),
+            section = ExtensionSection.MEDIA_PLAYBACK,
+            statusFlow = moduleStatusFlow(DeliverableSet.FFMPEG_DTS)
         )
     )
 

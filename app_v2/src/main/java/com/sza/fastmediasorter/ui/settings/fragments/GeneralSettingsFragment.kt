@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
@@ -207,6 +208,15 @@ class GeneralSettingsFragment : Fragment() {
             requireActivity().supportFragmentManager
                 .beginTransaction()
                 .replace(android.R.id.content, PermissionsManagementFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+        // S0386 Phase 10: app-wide Downloadable Extensions aggregator lives on the General tab. Uses
+        // the activity FragmentManager so the full-screen overlay attaches to a real container.
+        binding.btnDownloadableExtensions?.setOnClickListener {
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
                 .addToBackStack(null)
                 .commit()
         }

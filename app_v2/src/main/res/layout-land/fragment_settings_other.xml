@@ -28,14 +28,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/ext_manager_title"
+                    android:text="@string/ext_shortcut_packs_title"
                     android:textSize="@dimen/toggler_title_text_size"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/ext_manager_desc_short"
+                    android:text="@string/ext_shortcut_packs_desc"
                     android:textSize="@dimen/toggler_desc_text_size"
                     android:textColor="?attr/colorOnSurface"
                     android:alpha="0.7"

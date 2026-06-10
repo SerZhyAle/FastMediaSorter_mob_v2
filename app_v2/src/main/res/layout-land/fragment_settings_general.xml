@@ -585,6 +585,27 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- S0386 Phase 10: Downloadable Extensions - app-wide download aggregator, after all groups, before other buttons. Non-full-width (wrap_content) in portrait and landscape. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginHorizontal="@dimen/settings_margin_standard"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDownloadableExtensions"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ext_manager_title"
+                app:icon="@drawable/ic_cloud_download"
+                app:iconGravity="start" />
+
+        </LinearLayout>
+
         <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog -->
         <LinearLayout
             android:layout_width="match_parent"
