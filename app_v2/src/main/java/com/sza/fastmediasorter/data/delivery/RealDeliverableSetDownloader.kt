@@ -255,11 +255,28 @@ class RealDeliverableSetDownloader @Inject constructor(
         return true
     }
 
-    /** Atomically replace [payloadDir] with the verified [stagingDir]. */
+    /**
+     * Replace [payloadDir] with the verified [stagingDir] without destroying the prior payload until
+     * the new one is in place: move the old payload aside to a `.bak`, rename staging in, then drop
+     * the backup. If the final rename fails, restore the backup so a re-download keeps the previous
+     * working payload instead of being left with nothing. Renames within `filesDir` are atomic.
+     */
     private fun promote(stagingDir: File, payloadDir: File): Boolean {
-        payloadDir.deleteRecursively()
         payloadDir.parentFile?.mkdirs()
-        return stagingDir.renameTo(payloadDir)
+        val backup = File(payloadDir.parentFile, "${payloadDir.name}.bak")
+        backup.deleteRecursively()
+
+        val movedOldAside = payloadDir.exists() && payloadDir.renameTo(backup)
+        // If the old payload existed but could not be moved aside, remove it in place (best effort).
+        if (payloadDir.exists()) payloadDir.deleteRecursively()
+
+        if (stagingDir.renameTo(payloadDir)) {
+            backup.deleteRecursively()
+            return true
+        }
+        // Promotion failed - restore the previous payload if we had set it aside.
+        if (movedOldAside) backup.renameTo(payloadDir)
+        return false
     }
 
     private companion object {

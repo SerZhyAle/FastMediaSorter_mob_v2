@@ -32,11 +32,14 @@ class DeliveryPromptDialogFragment : DialogFragment() {
     private var _binding: DialogDeliveryPromptBinding? = null
     private val binding get() = _binding!!
 
+    private lateinit var deliverableSet: DeliverableSet
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogDeliveryPromptBinding.inflate(LayoutInflater.from(requireContext()))
         val set = DeliverableSet.valueOf(
             requireArguments().getString(ARG_SET) ?: DeliverableSet.OCR_ENGINES.name
         )
+        deliverableSet = set
         isCancelable = false
         setupButtons()
         observeState()
@@ -137,7 +140,10 @@ class DeliveryPromptDialogFragment : DialogFragment() {
 
     private fun finish(outcome: DeliveryPromptOutcome) {
         if (!isAdded) return
-        setFragmentResult(REQUEST_KEY, bundleOf(RESULT_OUTCOME to outcome.name))
+        // Per-set result key so two enable points gating different sets on the same owner cannot
+        // cross-wire each other's outcome (the single shared key would deliver one dialog's result
+        // to the other gate's listener).
+        setFragmentResult(requestKey(deliverableSet), bundleOf(RESULT_OUTCOME to outcome.name))
         dismissAllowingStateLoss()
     }
 
@@ -151,6 +157,9 @@ class DeliveryPromptDialogFragment : DialogFragment() {
         const val RESULT_OUTCOME = "delivery_prompt_outcome"
         private const val ARG_SET = "delivery_set"
         private const val TAG = "delivery_prompt_dialog"
+
+        /** Per-set fragment-result key; the listener and the dialog must agree on it. */
+        fun requestKey(set: DeliverableSet): String = "${REQUEST_KEY}_${set.name}"
 
         /** Show the prompt for [set]; the caller observes [REQUEST_KEY] via setFragmentResultListener. */
         fun show(fragmentManager: FragmentManager, set: DeliverableSet) {

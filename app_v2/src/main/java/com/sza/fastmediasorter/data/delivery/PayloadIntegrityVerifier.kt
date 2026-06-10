@@ -35,6 +35,12 @@ class PayloadIntegrityVerifier @Inject constructor() {
             return fail(expected.fileName, "size $size < minSize ${expected.minSize}")
         }
         if (expected.sha256.isBlank()) {
+            // Pure-resource files (blank pinned hash) are verified by size bounds only; add an upper
+            // bound so a substituted/corrupt oversized file cannot flood filesDir (the lower bound
+            // alone would accept an arbitrarily large payload).
+            if (size > MAX_UNVERIFIED_RESOURCE_BYTES) {
+                return fail(expected.fileName, "unverified resource too large: $size > $MAX_UNVERIFIED_RESOURCE_BYTES")
+            }
             return Result.Verified
         }
         val actual = sha256(file)
@@ -66,5 +72,8 @@ class PayloadIntegrityVerifier @Inject constructor() {
 
     private companion object {
         const val BUFFER_SIZE = 8192
+        // Sanity ceiling for hash-less pure-resource files (e.g. audio-viz videos are ~1-2 MB each);
+        // far above any real delivered resource, only guards against an oversized substitution.
+        const val MAX_UNVERIFIED_RESOURCE_BYTES = 64L * 1024 * 1024
     }
 }

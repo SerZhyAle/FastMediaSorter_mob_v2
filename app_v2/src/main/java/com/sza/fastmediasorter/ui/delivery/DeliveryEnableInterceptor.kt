@@ -57,7 +57,7 @@ class DeliveryEnableInterceptor @Inject constructor(
             onReady()
             return
         }
-        fragmentManager.setFragmentResultListener(DeliveryPromptDialogFragment.REQUEST_KEY, owner) { _, bundle ->
+        fragmentManager.setFragmentResultListener(DeliveryPromptDialogFragment.requestKey(set), owner) { _, bundle ->
             val outcome = runCatching {
                 DeliveryPromptOutcome.valueOf(
                     bundle.getString(DeliveryPromptDialogFragment.RESULT_OUTCOME)

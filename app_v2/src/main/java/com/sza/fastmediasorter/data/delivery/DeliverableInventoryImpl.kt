@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.data.delivery
 
-import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapability
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
@@ -13,7 +12,6 @@ import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionSection
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -34,13 +32,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class DeliverableInventoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val downloader: DeliverableSetDownloader,
     private val repository: DeliverableCapabilityRepository,
+    private val tesseractModelManager: TesseractModelManager,
     private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>
 ) : DeliverableInventory {
-
-    private val tesseractModelManager = TesseractModelManager(context)
 
     // One status flow per item id; shared between the UI status flow and the download driver so
     // progress emitted during a download is observed by the list row.

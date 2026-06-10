@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -11,12 +12,18 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Manages high-quality Tesseract offline language models (tessdata_best).
  * Handles installation verification, downloads with progress tracking, and file cleanup.
+ *
+ * Hilt-injectable (S0386 audit); flavor source sets that need it before a Hilt graph exists may
+ * still construct it directly with an application context.
  */
-class TesseractModelManager(private val context: Context) {
+@Singleton
+class TesseractModelManager @Inject constructor(@param:ApplicationContext private val context: Context) {
 
     companion object {
         private const val TESS_DATA_DIR = "tessdata"
