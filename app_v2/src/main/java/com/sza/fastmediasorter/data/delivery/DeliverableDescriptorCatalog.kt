@@ -23,7 +23,10 @@ object DeliverableDescriptorCatalog {
         "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1"
 
     /** A single native library variant: its on-device name and the app-pinned integrity anchors. */
-    private data class NativeLib(val soName: String, val sha256: String, val size: Long)
+    // [rev] is the element revision baked into the hosted file NAME (e.g. libtesseract-v1.so), so a
+    // future incompatible build of an element uploads a NEW name (-v2) while the old file stays for
+    // older app versions. The address (tag) is permanent; versioning lives in the filename (B2).
+    private data class NativeLib(val soName: String, val sha256: String, val size: Long, val rev: String = "v1")
 
     /** ABIs we host payloads for, in descriptor preference order. */
     private val SUPPORTED_ABIS = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
@@ -117,14 +120,22 @@ object DeliverableDescriptorCatalog {
         set = set,
         files = libs.map { lib ->
             PayloadFile(
+                // On-device name stays unversioned (the engine loads `libtesseract.so`); only the
+                // remote asset name carries the ABI + element revision.
                 fileName = lib.soName,
-                sources = listOf("$MIRROR/$abi-${lib.soName}"),
+                sources = listOf("$MIRROR/$abi-${withRev(lib.soName, lib.rev)}"),
                 sha256 = lib.sha256,
                 minSize = lib.size
             )
         }
     )
 
-    private fun resource(name: String, sha256: String, minSize: Long): PayloadFile =
-        PayloadFile(fileName = name, sources = listOf("$MIRROR/$name"), sha256 = sha256, minSize = minSize)
+    private fun resource(name: String, sha256: String, minSize: Long, rev: String = "v1"): PayloadFile =
+        PayloadFile(fileName = name, sources = listOf("$MIRROR/${withRev(name, rev)}"), sha256 = sha256, minSize = minSize)
+
+    /** Insert the element revision before the extension: `libtesseract.so` + `v1` -> `libtesseract-v1.so`. */
+    private fun withRev(name: String, rev: String): String {
+        val dot = name.lastIndexOf('.')
+        return if (dot < 0) "$name-$rev" else name.substring(0, dot) + "-" + rev + name.substring(dot)
+    }
 }
