@@ -141,6 +141,8 @@ Journal `name` field is the **bare slug** - no `spec_` prefix. Placeholder `-Fil
 
 > **Communication policy note:** if scope touches user-visible strings (toasts, errors, dialogs, empty states, CTAs), add a §3.2 constraint requiring compliance with `docs/COMMUNICATION_POLICY.md`. Reference the tone checklist (§6 of the policy) as a mandatory gate before string integration.
 
+> **Research artifact rule:** any §6 item resolved through actually performed research (codebase digging, web search, experiments) persists its findings to `PLAN/<Sxxxx>_<short-name>/research/<NN>__<topic-slug>.md` (`NN` = §6 item number; create the folder - `/spec-tech` adds `INDEX.md` beside it later). The §6 item links the artifact via `**Артефакт:**`. Findings that shaped §5 decisions must not live only in chat or `temp/` - `/spec-tech` re-reads these files when ordering phases.
+
 ```powershell
 & pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
@@ -321,6 +323,7 @@ Block states (any active spec transitions in/out via `update.ps1 -Status Block..
    - **Варианты:** <если известны>
    - **Нужно выяснить:** <что проверить>
    - **Статус:** Open / Resolved
+   - **Артефакт:** `PLAN/<Sxxxx>_<short-name>/research/<NN>__<topic-slug>.md` <обязателен, если Resolved получен проведённым ресёрчем; опустить для Open или тривиального ответа>
 
 <Если вопросов нет - «Открытых вопросов нет.»>
 

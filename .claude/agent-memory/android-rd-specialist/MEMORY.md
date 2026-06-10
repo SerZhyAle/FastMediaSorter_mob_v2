@@ -1,8 +1,10 @@
 # Memory Index
 
+- [spec-tech plan quality discipline](feedback_spec_tech_plan_quality.md) - owner: misordered phases + doc-shuffling steps are dominant plan defects; keep 3.1-3.4/5.5 + research/ convention intact
 - [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
 - [S0386 delivery: ALL code done, at BlockNeedUserTest](project_s0386_delivery_pause.md) - 9 phases done & 4 flavors build-green (commit 8ed28604); only owner device-test + release unpack-verify remain; loader keystone = classloader native-path injection
-- [photos flavor OCR build break (S0386 in-flight)](project_photos_flavor_ocr_break.md) - while S0386 uncommitted in WT, photos/vr/noLegal fail compiling TesseractManager (TessBaseAPI unresolved); verify on standard, not your regression
+- [photos/lite OCR build break - RESOLVED 2026-06-10](project_photos_flavor_ocr_break.md) - Tesseract moved to src/ocrEnabled bucket, NoOp default in src/ocrDisabled for photos/lite; new Tesseract code must go in ocrEnabled, never src/main
+- [Players are a family of activities - mirror per-host glue](feedback_player_family_glue_mirroring.md) - shared engine/use-case/capability changes propagate; per-host delegate/layout changes must be mirrored (compiler won't catch); host-seam refactor = S0392
 
 - [Camera capture is permission-free; in-app camera forces CAMERA on all of it](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE fallback (SecurityException); S0359 Variant 1: in-app CameraX is sole path, no perm-free fallback
 - [Draft style is approval-gate, not drafting friction](feedback_draft_style_gate.md) - spec `..`/ё + lists-over-tables sanitation enforced only at Draft->Approved; drafts may stay rough, no hygiene-only sweeps

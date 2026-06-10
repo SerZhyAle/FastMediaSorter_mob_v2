@@ -1,7 +1,11 @@
 ---
 name: s0386-delivery-status
-description: S0386 on-demand delivery - ALL code phases done & 4 flavors build-green; ticket at BlockNeedUserTest, only owner device-test + release unpack-verify remain
+description: S0386 on-demand delivery - phases 01-11 done & 6 flavors build-green; debundle + Extensions-screen restructure device-verified on emulator; at BlockNeedUserTest (12.3 dedup + native-attach device check remain)
 type: project
+---
+
+**2026-06-10 update (Phases 10-12, commit `d2fe8d53`):** owner added an Extensions-screen restructure, implemented + emulator-verified (API 33 x86_64): the primary "Downloadable Extensions" entry now lives on the Settings **General** tab (non-full-width, after groups, before permission/about buttons; layout-land mirrored); the Translation/OCR group keeps a contextual "OCR & translation downloads" shortcut; the screen is grouped into **OCR / Translation / Media Playback** sections (multi-view-type adapter + `ExtensionSection` enum on `ExtensionItem`), with the rus/ukr OCR models listed under OCR. Deferred: 12.3 (remove the now-redundant inline OCR-best-models from `OtherMediaSettingsFragment` - ~230-line cross-file deletion), 11.3 (manifest-404 red banner - comes from the shared global OkHttp interceptor). **Concurrency note:** done on a working tree carrying another agent's uncommitted `ocrEnabled`/`ocrDisabled` OCR-source-set refactor (TesseractManager/OcrModule moved to `src/ocrEnabled`); only S0386 files were committed (selective `git add`, unstage foreign staged renames first).
+
 ---
 
 S0386 (on-demand OCR/translation/heavy-asset delivery): **all 9 code phases done** as of 2026-06-09 (commit `8ed28604` on `DEBUG-v013`), ticket at **BlockNeedUserTest**.

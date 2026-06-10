@@ -147,7 +147,9 @@ Run dev log for the strategic spec file.
 
 Follow `/spec-tech`. If tactical folder exists, refresh phases without discarding `[x] done` steps. Run dev log for INDEX.md and each phase file.
 
-> **Refinement passes** (`/spec-update`) skipped unless §6 has Open research items unresolvable from codebase. If resolvable inline - resolve, patch spec, continue.
+Research artifacts in `PLAN/Sxxxx_<slug>/research/*.md` are mandatory F2 input - `/spec-tech` steps 2–3 plan from them (coverage inventory + ordering). Never skip them on resume.
+
+> **Refinement passes** (`/spec-update`) skipped unless §6 has Open research items unresolvable from codebase. If resolvable inline - resolve, persist findings to `PLAN/Sxxxx_<slug>/research/<NN>__<topic-slug>.md` with an `**Артефакт:**` link in §6 (see `/research` step 5), patch spec, continue.
 
 ### Stage F3 - Implementation
 

@@ -182,7 +182,6 @@ class StandalonePlayerViewModel @Inject constructor(
     private fun initFolderPaging(uri: Uri) {
         viewModelScope.launch {
             val resolution = resolveLocalPathFromUriUseCase(uri)
-            Timber.d("S0389: standalone folder paging init, local=${resolution is LocalPathResolution.Local}")
             // S0390: a local static image becomes editable once its real filesystem path is known.
             _editableImageFile.value = if (resolution is LocalPathResolution.Local &&
                 state.value.mediaType == MediaType.IMAGE

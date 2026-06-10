@@ -11,6 +11,7 @@ Repeatable research pass before dev, docs, or cross-surface debugging. Builds a 
 
 ```
 /research [topic or question]
+/research <Sxxxx> [topic or question]    # ticket-bound: findings persist to PLAN/<Sxxxx>_<slug>/research/
 ```
 
 Examples:
@@ -18,6 +19,7 @@ Examples:
 - `/research where does cloud auth recovery happen?`
 - `/research prepare context for browse caching docs`
 - `/research build retry failures in standardDebug`
+- `/research S0123 best Room FTS strategy for filename search`
 
 ---
 
@@ -25,8 +27,9 @@ Examples:
 
 On `$ARGUMENTS`:
 
-**Step 1 - Determine topic, module, optional flavor.**
+**Step 1 - Determine topic, module, optional flavor, optional ticket.**
 - Use explicit user target when given.
+- First token matching `^S\d{4}$` → ticket-bound run: resolve slug via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`; remaining text is the topic. A topic clearly scoped to one active ticket counts as ticket-bound too.
 - Infer `Module` = `app_v2` | `wear` | `all` from request + current file.
 - Preserve explicit flavor constraints (`standard`, `lite`, `photos`, `legacy`, `vr`, ..) for dossier metadata.
 
@@ -54,11 +57,17 @@ Use `/catalog` after the dossier for class-level lookup, DI consumers, or post-c
 - Use dossier to avoid repeated global greps.
 - Cross-surface questions stay grounded in dossier sections.
 
+**Step 5 - Persist findings (ticket-bound runs only).**
+- Write the curated findings - conclusions, chosen option, rejected options with reasons, affected areas - to `PLAN/<Sxxxx>_<slug>/research/<NN>__<topic-slug>.md`. `NN` = matching strategic §6 item number; next free number for questions outside §6. Create the folder if missing.
+- Update the strategic §6 item: flip `Статус:` to Resolved, add the `**Артефакт:**` link.
+- The `temp/` dossier stays scratch. The artifact is the durable result `/spec-tech` consumes when ordering phases - raw grep dumps stay out of it.
+
 ---
 
 ## Output
 
 - Report dossier path in `temp/`.
+- Ticket-bound: report artifact path in `PLAN/<Sxxxx>_<slug>/research/`.
 - List next 3-6 high-value reads.
 - Answer any direct research question after the dossier-backed reads.
 - If a section had no matches, say so and continue.

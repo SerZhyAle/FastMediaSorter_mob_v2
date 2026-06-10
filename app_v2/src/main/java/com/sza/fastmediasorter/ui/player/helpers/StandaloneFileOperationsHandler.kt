@@ -251,7 +251,6 @@ class StandaloneFileOperationsHandler(
         val uri = (file.contentUri ?: file.path).toUri()
         activity.lifecycleScope.launch {
             val target = resolveOpenInFmsTarget(uri, file.type)
-            Timber.d("S0389: openInFms target=$target for ${file.name}")
             when (target) {
                 is OpenInFmsTarget.Resolved -> {
                     activity.startActivity(

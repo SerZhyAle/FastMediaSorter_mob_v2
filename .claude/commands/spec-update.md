@@ -57,7 +57,10 @@ Targets:
 
 - Every strategic §2 Goal maps to >=1 tactical phase (or marked deferred).
 - Every open §6 Research item appears in INDEX "Pre-Implementation Blockers".
+- Every Resolved §6 item resolved by performed research carries an `**Артефакт:**` link to `PLAN/Sxxxx_<slug>/research/<NN>__<topic-slug>.md`, and the file exists.
+- INDEX `Research inputs:` lists every file under `research/` (or "none"). Absent line on pre-convention tactical plans is a finding, not an error.
 - Every §9 ADR applied somewhere in tactical.
+- Resolving a §6 item during this skill follows the same artifact rule: persist findings to `research/`, link via `**Артефакт:**`.
 
 ### 6. `style`
 
