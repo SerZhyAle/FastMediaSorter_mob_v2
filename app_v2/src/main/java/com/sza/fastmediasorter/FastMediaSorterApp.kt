@@ -88,6 +88,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var s0200AuthStateWipe: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0200AuthStateWipe>
 
+    /** S0386 Phase 13: run-once de-bundle upgrade reconciliation (force-OFF un-installed toggles). */
+    @Inject
+    lateinit var s0386UpgradeReconciliation: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0386UpgradeReconciliation>
+
     @Inject
     lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
 
@@ -227,7 +231,14 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0200AuthStateWipe.get().runIfNeeded()
         }
-        
+
+        // S0386 Phase 13: reconcile OCR/translation toggles after the de-bundle upgrade - run once,
+        // idempotent, no downloads. Forces OFF a toggle that is ON but whose set is not installed.
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            s0386UpgradeReconciliation.get().runIfNeeded()
+        }
+
         // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
         // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
         // Left for potential future background tasks (e.g., network resource sync)

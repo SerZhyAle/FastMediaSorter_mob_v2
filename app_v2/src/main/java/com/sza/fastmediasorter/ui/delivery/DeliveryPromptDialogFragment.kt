@@ -41,10 +41,20 @@ class DeliveryPromptDialogFragment : DialogFragment() {
         setupButtons()
         observeState()
         viewModel.start(set)
+        // S0386 Phase 13.2: title names the specific capability being enabled (OCR / Translation /
+        // Audio visualizations / DTS) so the offer explains what the download is for, not just its size.
         return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.delivery_prompt_title)
+            .setTitle(featureNameRes(set))
             .setView(binding.root)
             .create()
+    }
+
+    @androidx.annotation.StringRes
+    private fun featureNameRes(set: DeliverableSet): Int = when (set) {
+        DeliverableSet.OCR_ENGINES -> R.string.ext_ocr_engines_title
+        DeliverableSet.TRANSLATION -> R.string.ext_translation_title
+        DeliverableSet.AUDIO_VISUALIZATIONS -> R.string.ext_audio_viz_title
+        DeliverableSet.FFMPEG_DTS -> R.string.ext_ffmpeg_dts_title
     }
 
     private fun setupButtons() {
