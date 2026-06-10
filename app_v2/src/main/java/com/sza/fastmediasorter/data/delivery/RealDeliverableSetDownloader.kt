@@ -73,45 +73,51 @@ class RealDeliverableSetDownloader @Inject constructor(
                 return@flow
             }
 
-            val totalEstimate = descriptor.files.sumOf { it.minSize }.coerceAtLeast(1L)
-            var completedBytes = 0L
+            // `finally` deletes the staging dir on ANY non-promoted exit - failure, early return, or
+            // coroutine cancellation (collector closed mid-download) - so a cancelled download never
+            // leaves an orphaned `<set>.tmp` in filesDir. After a successful promote the staging dir
+            // is gone (renamed), so `promoted` skips the cleanup.
+            var promoted = false
+            try {
+                val totalEstimate = descriptor.files.sumOf { it.minSize }.coerceAtLeast(1L)
+                var completedBytes = 0L
 
-            for (file in descriptor.files) {
-                val staged = File(stagingDir, "${file.fileName}.tmp")
-                val ok = downloadWithFailover(file, staged, completedBytes, totalEstimate)
-                if (!ok) {
-                    stagingDir.deleteRecursively()
-                    emit(DownloadProgress.Failed("all sources failed for ${file.fileName}"))
-                    return@flow
-                }
-
-                emit(DownloadProgress.Verifying)
-                when (val result = verifier.verify(staged, file)) {
-                    is PayloadIntegrityVerifier.Result.Failed -> {
-                        stagingDir.deleteRecursively()
-                        emit(DownloadProgress.Failed(result.reason))
+                for (file in descriptor.files) {
+                    val staged = File(stagingDir, "${file.fileName}.tmp")
+                    val ok = downloadWithFailover(file, staged, completedBytes, totalEstimate)
+                    if (!ok) {
+                        emit(DownloadProgress.Failed("all sources failed for ${file.fileName}"))
                         return@flow
                     }
-                    PayloadIntegrityVerifier.Result.Verified -> {
-                        val finalFile = File(stagingDir, file.fileName)
-                        if (!staged.renameTo(finalFile)) {
-                            stagingDir.deleteRecursively()
-                            emit(DownloadProgress.Failed("cannot finalize ${file.fileName}"))
+
+                    emit(DownloadProgress.Verifying)
+                    when (val result = verifier.verify(staged, file)) {
+                        is PayloadIntegrityVerifier.Result.Failed -> {
+                            emit(DownloadProgress.Failed(result.reason))
                             return@flow
                         }
-                        completedBytes += finalFile.length()
+                        PayloadIntegrityVerifier.Result.Verified -> {
+                            val finalFile = File(stagingDir, file.fileName)
+                            if (!staged.renameTo(finalFile)) {
+                                emit(DownloadProgress.Failed("cannot finalize ${file.fileName}"))
+                                return@flow
+                            }
+                            completedBytes += finalFile.length()
+                        }
                     }
                 }
-            }
 
-            if (!promote(stagingDir, payloadDir)) {
-                stagingDir.deleteRecursively()
-                emit(DownloadProgress.Failed("cannot install payload for $set"))
-                return@flow
-            }
+                if (!promote(stagingDir, payloadDir)) {
+                    emit(DownloadProgress.Failed("cannot install payload for $set"))
+                    return@flow
+                }
+                promoted = true
 
-            repository.markInstalled(set)
-            emit(DownloadProgress.Installed)
+                repository.markInstalled(set)
+                emit(DownloadProgress.Installed)
+            } finally {
+                if (!promoted) stagingDir.deleteRecursively()
+            }
         }.flowOn(Dispatchers.IO)
     }
 

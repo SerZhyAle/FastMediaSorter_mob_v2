@@ -46,7 +46,9 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
                 val splitInstallManager = com.google.android.play.core.splitinstall.SplitInstallManagerFactory.create(context)
                 splitInstallManager.deferredUninstall(listOf("translate_feature"))
             } catch (e: Exception) {
-                // ignore
+                // Play schedules the uninstall opportunistically; a failure here is non-fatal (the
+                // module stays until Play reclaims it) but must not be silent.
+                timber.log.Timber.w(e, "translate_feature deferred uninstall request failed")
             }
         }
         markerStore.deletePayload(set)

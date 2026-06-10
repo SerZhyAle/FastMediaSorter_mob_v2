@@ -114,6 +114,13 @@ class DeliverableInventoryImpl @Inject constructor(
             }
             progressFlow.collect { progress ->
                 statusFlow.value = progress.toExtensionStatus()
+                // Persist the installed marker on success so the capability flow re-emits and the row
+                // flips to Installed even for a set whose downloader does not write the marker itself -
+                // the translation Play dynamic-feature path (the file-set downloader already marks it;
+                // re-marking is idempotent).
+                if (progress == DownloadProgress.Installed && item is ExtensionItem.Module) {
+                    repository.markInstalled(item.set)
+                }
                 emit(progress)
             }
         }
