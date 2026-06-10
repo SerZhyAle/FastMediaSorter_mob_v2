@@ -1,5 +1,6 @@
 # Memory Index
 
+- [S0395 signed off; S0396-S0402 created](project_s0395_welcome_redesign_research.md) - welcome redesign split into 7 Draft tickets; no Skip btn, networks page decorative until S0391; .so Play-blocker = S0401
 - [spec-tech plan quality discipline](feedback_spec_tech_plan_quality.md) - owner: misordered phases + doc-shuffling steps are dominant plan defects; keep 3.1-3.4/5.5 + research/ convention intact
 - [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
 - [S0386 delivery: ALL code done, at BlockNeedUserTest](project_s0386_delivery_pause.md) - 9 phases done & 4 flavors build-green (commit 8ed28604); only owner device-test + release unpack-verify remain; loader keystone = classloader native-path injection

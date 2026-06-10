@@ -89,6 +89,12 @@ import androidx.media3.common.Player
 // StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With" handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded to startActivity/startService - received URIs are only passed to ExoPlayer/Glide as media.
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
+// TODO(S0393): remove once nothing launches StandalonePlayerActivity. All external routing already
+// goes to the specialized PhotoVideo/Audio/Document/Text hosts via StandalonePlayerDispatcherActivity
+// (no manifest alias targets this class). Its previously-unique capabilities have been harvested into
+// the specialized hosts (S0393 HARVEST.md U1 PiP, U2 playback-control dialog, U3 WebView ActionMode,
+// U4/U5 keyboard, U7/U8 EPUB translator guard). Kept only as a direct/fallback target until removal.
+@Deprecated("S0393: superseded by the specialized standalone hosts; pending removal once unreferenced.")
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
@@ -240,7 +246,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         pipManager = PictureInPictureManager(
             activity = this,
-            binding = binding,
+            playerView = binding.playerView,
+            chromeToHide = listOf(binding.toolbar, binding.topCommandPanel),
             getPlayer = { viewManager.getExoPlayer() },
             onPlay = { viewManager.play() },
             onPause = { viewManager.pause() },

@@ -51,9 +51,13 @@ class StandalonePlayerDispatcherActivity : Activity() {
             }
         }
 
-        // Carry over action, data, type, extras and URI-read grants verbatim; only retarget the class.
+        // S0393: normalize the forward to ACTION_VIEW + the resolved URI so the specialized host reads
+        // it regardless of the original action (ACTION_SEND_MULTIPLE has no `data`, and the hosts only
+        // read `data`/`EXTRA_STREAM`). Carries over type/extras/grants.
         val forward = Intent(intent).apply {
             setClass(this@StandalonePlayerDispatcherActivity, target)
+            action = Intent.ACTION_VIEW
+            data = uri
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         startActivity(forward)
@@ -67,6 +71,15 @@ class StandalonePlayerDispatcherActivity : Activity() {
             } else {
                 @Suppress("DEPRECATION")
                 source.getParcelableExtra(Intent.EXTRA_STREAM)
+            }
+        // S0393: defensive parity with legacy - no manifest filter declares SEND_MULTIPLE today, but if
+        // one is ever added, open the first stream URI rather than failing.
+        Intent.ACTION_SEND_MULTIPLE ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                source.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.firstOrNull()
+            } else {
+                @Suppress("DEPRECATION")
+                source.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
             }
         else -> source?.data
     }

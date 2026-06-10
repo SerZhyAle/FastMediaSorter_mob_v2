@@ -1,31 +1,28 @@
-# Колекція APK FastMediaSorter
+# Завантаження APK FastMediaSorter
 
-⚠️ **ВАЖЛИВО:** Скомпільовані APK файли **НЕ зберігаються в цьому GitHub репозиторії**.
+Скомпільовані APK публікуються як **ассети GitHub Release** - у репозиторій вони не комітяться.
 
-Всі збірки автоматично завантажуються в **Google Drive** після успішної компіляції.
+## Завантажити (рекомендовано)
 
-## Завантажити збірки
+🔗 **[Останній реліз](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)**
 
-🔗 **[Завантажити з Google Drive](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)**
+Кожен реліз містить по одному ассету на публічну збірку, ім'я файлу - `FastMediaSorter-<редакція>-<версія>.apk`:
 
-🔐 **Пароль від ZIP: `1`**
+- **standard** - повнофункціональний додаток (телефон / TV / авто)
+- **vr** - редакція для Meta Quest / XR
+- **lite** - полегшена збірка (зображення та відео, без хмари)
+- **photos** - збірка для фотографій
+- **legacy** - старі пристрої Android (API 23+)
+- **wear** - APK-компаньйон для Wear OS (ручне встановлення через adb)
 
-## Доступні варіанти
+Кнопки завантаження на сайті ведуть прямо на ці ассети та завжди показують актуальну версію.
 
-Колекція включає такі варіанти (всі в захищених паролем ZIP-архівах):
+## Дзеркало (Google Drive)
 
-- **FastMediaSorter_standard_release.zip** - Повнофункціональний додаток
-- **FastMediaSorter_legacy_release.zip** - Сумісний зі старими пристроями Android
-- **FastMediaSorter_lite_release.zip** - Полегшена версія з обмеженим функціоналом
-- **FastMediaSorter_photos_release.zip** - Оптимізована для керування фотографіями
-
-Доступні як **Debug** (для тестування), так і **Release** (оптимізовані/підписані) версії.
+🔗 **[Тека на Google Drive](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)** - захищені паролем ZIP-архіви, **пароль від ZIP: `1`**. Використовуйте, якщо мережа блокує пряме завантаження `.apk`.
 
 ## Як це працює
 
-Кожного разу при запуску збірки (наприклад, за допомогою `..\scripts\build-and-push-all.ps1` або інших скриптів), отримані APK-файли автоматично:
-
-1. Компілюються та упаковуються
-2. Стискаються в захищені паролем ZIP-архіви
-3. Завантажуються в Google Drive
-4. Інформація про збірку записується в `builds_versions.lst`
+1. `scripts/release/build-release-spectrum.ps1` збирає всі релізні редакції на одній спільній версії.
+2. `scripts/release/publish-github-release.ps1` завантажує їх усі в один тег GitHub Release.
+3. ZIP-дзеркало на Google Drive оновлюється скриптами збірки паралельно.

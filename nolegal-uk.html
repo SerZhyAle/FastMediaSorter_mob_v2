@@ -76,10 +76,56 @@
             лише для sideload. Вона побудована поверх VR-версії та додає можливості, які не можна поширювати
             через Google Play або Meta Horizon Store через ліцензії на перерозповсюдження, політики магазинів,
             патентні обмеження чи важкий рантайм на пристрої.</p>
-            <p>Ця сторінка не рекламується з основного сайту, і тут немає посилання на завантаження для широкого
-            загалу - вона існує, щоб показати, що вміє збірка та чому ці можливості лишаються поза опублікованими
-            флейворами.</p>
+            <p>Ця сторінка не рекламується з основного сайту, але підписаний sideload-APK доступний нижче для тих,
+            хто цілеспрямовано його шукає - тут також показано, що вміє збірка та чому ці можливості лишаються поза
+            опублікованими флейворами.</p>
         </div>
+
+        <!-- Sideload download - noLegal asset from the latest GitHub Release (S0394) -->
+        <h2 class="section-title">📦 Завантаження для sideload</h2>
+        <p class="topology-lead">Збірка noLegal лише для ручного встановлення (sideload). Завантажте підписаний APK
+        нижче та встановіть вручну - її немає на основному сайті й у жодному сторі.</p>
+        <div id="apkDownloads" class="apk-downloads" data-flavors="noLegal">
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
+                target="_blank" rel="noopener">Відкрити останній реліз на GitHub →</a>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById('apkDownloads');
+                if (!box) return;
+                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
+                var wanted = (box.getAttribute('data-flavors') || '').split(',')
+                    .map(function (s) { return s.trim(); }).filter(Boolean);
+                var labels = { noLegal: 'noLegal' };
+                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+                    { headers: { 'Accept': 'application/vnd.github+json' } })
+                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
+                    .then(function (rel) {
+                        var ver = rel.tag_name || '';
+                        var assets = rel.assets || [];
+                        var made = [];
+                        wanted.forEach(function (flavor) {
+                            var prefix = 'FastMediaSorter-' + flavor + '-';
+                            var a = assets.find(function (x) {
+                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
+                            });
+                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
+                        });
+                        if (!made.length) return; // keep the static fallback link
+                        box.innerHTML = '';
+                        made.forEach(function (m) {
+                            var link = document.createElement('a');
+                            link.className = 'apk-btn apk-btn-nolegal';
+                            link.href = m.url;
+                            link.setAttribute('rel', 'noopener');
+                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
+                                '</span> <span class="apk-ver">' + ver + '</span>';
+                            box.appendChild(link);
+                        });
+                    })
+                    .catch(function () { /* leave the static fallback link in place */ });
+            }());
+        </script>
 
         <h2 class="section-title">🧩 Як noLegal співвідноситься з іншими збірками</h2>
         <p class="topology-lead">FastMediaSorter виходить у вигляді вкладених збірок. Кожен рівень - надмножина

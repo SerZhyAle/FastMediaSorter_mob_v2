@@ -52,7 +52,6 @@
 
                 <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/pdf_text_mode_enter" android:text="TXT" android:textColor="@color/selector_player_button_tint" android:textStyle="bold" android:gravity="center" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:visibility="gone" android:focusable="true" android:clickable="true" />
 
-                <ImageButton android:id="@+id/btnPdfTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
 
                 <!-- EPUB cmd buttons (visibility owned by EpubViewerManager.displayEpub) -->
                 <ImageButton android:id="@+id/btnSearchEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@drawable/ic_search" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
@@ -72,11 +71,12 @@
 
                 <ImageButton android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
 
-                <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
-
             </LinearLayout>
 
         </HorizontalScrollView>
+
+        <!-- S0393: overflow pinned outside the scroll so it stays reachable when the doc-button row overflows. -->
+        <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
 
     </LinearLayout>
 

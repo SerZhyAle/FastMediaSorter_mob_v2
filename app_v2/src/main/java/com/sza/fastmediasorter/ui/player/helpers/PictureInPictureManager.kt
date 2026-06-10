@@ -16,7 +16,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import timber.log.Timber
 
 /**
@@ -30,7 +29,10 @@ import timber.log.Timber
  */
 class PictureInPictureManager(
     private val activity: android.app.Activity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0393 U1: binding-agnostic - take the player view + the chrome views to hide in PiP, so both the
+    // in-app player (toolbar + command panel) and the standalone hosts (command panel only) can reuse it.
+    private val playerView: androidx.media3.ui.PlayerView,
+    private val chromeToHide: List<android.view.View>,
     private val getPlayer: () -> ExoPlayer?,
     private val onPlay: () -> Unit,
     private val onPause: () -> Unit,
@@ -61,7 +63,7 @@ class PictureInPictureManager(
      */
     fun setupPipButton(enablePip: Boolean, isAudio: Boolean = false) {
         isEnabled = enablePip && isSupported && !isAudio
-        val pipButton = binding.playerView.findViewById<ImageButton>(R.id.btnPictureInPicture)
+        val pipButton = playerView.findViewById<ImageButton>(R.id.btnPictureInPicture)
         if (!isEnabled) {
             pipButton?.isVisible = false
             return
@@ -99,20 +101,19 @@ class PictureInPictureManager(
     fun onPictureInPictureModeChanged(isInPipMode: Boolean) {
         Timber.d("PiPManager: mode changed, isInPip=$isInPipMode")
 
-        binding.toolbar.isVisible = !isInPipMode
-        binding.topCommandPanel.isVisible = !isInPipMode
+        chromeToHide.forEach { it.isVisible = !isInPipMode }
 
         if (isInPipMode) {
             // Hide ExoPlayer controller in PiP (controlled via remote actions)
             // Receiver is already registered in enterPipApi31(), but guard with registerPipReceiver()
             // idempotency check in case system triggers this path without enterPictureInPictureMode().
-            binding.playerView.useController = false
+            playerView.useController = false
             registerPipReceiver()
         } else {
             // Re-enable and explicitly show the controller - useController=true only
             // *permits* showing but does NOT auto-show after being hidden in PiP.
-            binding.playerView.useController = true
-            binding.playerView.showController()
+            playerView.useController = true
+            playerView.showController()
             unregisterPipReceiver()
         }
     }

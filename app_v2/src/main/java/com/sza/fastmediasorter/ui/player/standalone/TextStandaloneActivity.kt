@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,6 +82,21 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+    @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
+    @Inject lateinit var capabilityAvailability: CapabilityAvailability
+
+    // S0393 wave-C: enables in-place text editing (save) for writable local text files.
+    private val textEditorSaveFlow by lazy {
+        com.sza.fastmediasorter.ui.player.helpers.TextEditorSaveFlow(
+            context = this,
+            saveTextNoteUseCase = saveTextNoteUseCase,
+            scope = lifecycleScope,
+        )
+    }
+
+    // S0393 U4/U5: keyboard / D-pad handler (text-scroll + paging).
+    private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
@@ -123,11 +139,21 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             settingsRepository = settingsRepository,
             callback = object : TranslationManager.TranslationCallback {
                 override fun showError(message: String) = showToastError(message)
+                // S0393 wave-C: real download prompt so first-use translation doesn't silently no-op.
                 override fun showModelDownloadPrompt(
                     languageName: String,
                     onConfirm: () -> Unit,
                     onCancel: () -> Unit
-                ) { /* translation UI not exposed in standalone */ }
+                ) {
+                    if (isFinishing || isDestroyed) { onCancel(); return }
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(this@TextStandaloneActivity)
+                        .setTitle(R.string.download_translation_model_title)
+                        .setMessage(getString(R.string.download_translation_model_message, languageName))
+                        .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
+                        .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+                        .setOnCancelListener { onCancel() }
+                        .show()
+                }
             }
         )
     }
@@ -139,6 +165,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
+            saveFlow = textEditorSaveFlow,
             callback = object : TextViewerManager.TextViewerCallback {
                 override fun showError(message: String) = showToastError(message)
                 override fun showTranslationSettingsDialog() { /* not exposed in standalone */ }
@@ -179,8 +206,84 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         setupBackPressHandler()
         setupFileOperationButtons()
         textViewerManager.setupControls()
+        setupTextActionButtons()
         pagingControls.setupClicks()
+        setupKeyboardHandler()
         parseIncomingIntent()
+    }
+
+    // S0393 wave-C: surface the text-action buttons that TextViewerManager.setupControls() already binds
+    // (copy is universal; translate is flavor-gated). Were present-but-gone (dead-weight) before.
+    private fun setupTextActionButtons() {
+        binding.btnCopyTextCmd.isVisible = true
+        binding.btnTranslateTextCmd.isVisible = capabilityAvailability.isTranslationAvailable()
+        binding.btnSearchTextCmd.isVisible = true
+        binding.btnSearchTextCmd.setOnClickListener { showTextSearchDialog() }
+    }
+
+    // S0393 wave-C: simple find-in-text - prompt for a query, highlight the first match, report the count.
+    private fun showTextSearchDialog() {
+        val input = android.widget.EditText(this).apply { hint = getString(R.string.search) }
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.search)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val q = input.text?.toString()?.trim().orEmpty()
+                if (q.isNotEmpty()) {
+                    val matches = textViewerManager.searchText(q)
+                    if (matches > 0) textViewerManager.highlightSearchMatch(q, 0)
+                    Toast.makeText(this, "${getString(R.string.search)}: $matches", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // S0393 U4/U5: keyboard / D-pad layer (text-scroll PAGE_UP/DOWN/HOME/END + paging), ported from legacy host.
+    private fun setupKeyboardHandler() {
+        keyboardHandler = com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager(
+            keyBindingManager = keyBindingManager,
+            getCurrentMediaType = { viewModel.state.value.mediaType },
+            onDelete = { fileOperations.deleteCurrentFile() },
+            onExit = { finish() },
+            onShowRename = { fileOperations.showStandaloneRenameDialog() },
+            onShowInfo = { showFileInfo() },
+            onToggleCommandPanel = {
+                binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+            },
+            onToggleFavourite = { viewModel.toggleFavorite() },
+            onNextFile = { viewModel.pageNext() },
+            onPreviousFile = { viewModel.pagePrevious() },
+            onToggleSlideshow = { viewModel.toggleSlideshow() },
+            onTextScrollDown = { textViewerManager.scrollDown() },
+            onTextScrollUp = { textViewerManager.scrollUp() },
+            onTextHome = { textViewerManager.scrollToTop() },
+            onTextEnd = { textViewerManager.scrollToBottom() },
+            onShowHelp = {
+                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
+                    supportFragmentManager,
+                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                )
+            },
+        ).handler
+    }
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        if (::keyboardHandler.isInitialized &&
+            keyboardHandler.handleKeyDown(keyCode, event)) return true
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        if (::keyboardHandler.isInitialized &&
+            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+        return super.dispatchGenericMotionEvent(event)
+    }
+
+    // S0393: reapply window insets after rotation (configChanges -> no recreate), ported from legacy.
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
 
     private fun setupWindowAndInsets() {
@@ -223,6 +326,12 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
+            listOf(R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
+                R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_youtube_music, R.id.menu_ocr_image,
+                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
+                R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)
+                .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
@@ -301,7 +410,10 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
                 return@collectOnLifecycle
             }
             if (file.path != lastShownPath) {
-                textViewerManager.displayText(file, isWritable = false)
+                // S0393 wave-C: allow editing for writable local text files (content-URI opens stay read-only).
+                val writable = file.path.startsWith("/") && runCatching { java.io.File(file.path).canWrite() }.getOrDefault(false)
+                textViewerManager.displayText(file, isWritable = writable)
+                binding.btnEditTextCmd.isVisible = writable
                 lastShownPath = file.path
             }
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)

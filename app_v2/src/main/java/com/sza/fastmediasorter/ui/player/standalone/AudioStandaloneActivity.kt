@@ -16,6 +16,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -40,6 +41,8 @@ import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
+import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -92,6 +95,11 @@ class AudioStandaloneActivity :
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+    @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+
+    // S0393 U4/U5: keyboard / D-pad layer (audio transport + paging), ported from legacy host.
+    private lateinit var keyboardHandler: PlayerKeyboardHandler
 
     private val viewManager: StandaloneViewManager by lazy {
         StandaloneViewManager(
@@ -160,7 +168,112 @@ class AudioStandaloneActivity :
         setupBackPressHandler()
         setupFileOperationButtons()
         pagingControls.setupClicks()
+        setupKeyboardHandler()
         parseIncomingIntent()
+    }
+
+    // S0393: playback-speed picker for the audio lane (replaces the legacy speed control).
+    private fun showPlaybackSpeedDialog() {
+        val player = viewManager.getPlayer(viewModel.state.value.mediaType) ?: return
+        val speeds = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
+        val labels = speeds.map { "${it}x" }.toTypedArray()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.cd_playback_speed)
+            .setItems(labels) { _, which -> player.setPlaybackSpeed(speeds[which]) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // S0393 wave-C: lyrics search via SearchLyricsUseCase, shown in a scrollable dialog.
+    private fun showLyrics() {
+        val file = viewModel.state.value.mediaFile ?: return
+        lifecycleScope.launch {
+            val text = searchLyricsUseCase.execute(file).getOrNull()
+            if (!text.isNullOrBlank()) {
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
+                    this@AudioStandaloneActivity, title = getString(R.string.lyrics), message = text)
+            } else {
+                Toast.makeText(this@AudioStandaloneActivity, R.string.lyrics_not_found, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private var sleepTimerJob: kotlinx.coroutines.Job? = null
+
+    // S0393 wave-C: sleep timer - pause playback after the chosen interval.
+    private fun showSleepTimerDialog() {
+        val minutes = intArrayOf(15, 30, 45, 60)
+        val labels = minutes.map { "$it ${getString(R.string.minutes)}" }.toTypedArray()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.menu_sleep_timer)
+            .setItems(labels) { _, which ->
+                sleepTimerJob?.cancel()
+                sleepTimerJob = lifecycleScope.launch {
+                    kotlinx.coroutines.delay(minutes[which] * 60_000L)
+                    viewManager.getPlayer(viewModel.state.value.mediaType)?.pause()
+                    Toast.makeText(this@AudioStandaloneActivity, R.string.menu_sleep_timer, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // S0393 wave-C: search the current track in YouTube Music (app if installed, else browser).
+    private fun searchInYouTubeMusic() {
+        val file = viewModel.state.value.mediaFile ?: return
+        val query = file.name.substringBeforeLast('.')
+        val uri = Uri.parse("https://music.youtube.com/search?q=" + Uri.encode(query))
+        try {
+            val app = Intent(Intent.ACTION_VIEW, uri).setPackage("com.google.android.apps.youtube.music")
+            if (app.resolveActivity(packageManager) != null) startActivity(app)
+            else startActivity(Intent(Intent.ACTION_VIEW, uri))
+        } catch (e: Exception) {
+            Timber.e(e, "AudioStandalone: YouTube Music search failed")
+            Toast.makeText(this, R.string.search_in_youtube_music_no_app, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupKeyboardHandler() {
+        keyboardHandler = StandaloneKeyboardManager(
+            keyBindingManager = keyBindingManager,
+            getActivePlayer = { viewManager.getPlayer(viewModel.state.value.mediaType) },
+            getCurrentMediaType = { viewModel.state.value.mediaType },
+            onDelete = { fileOperations.deleteCurrentFile() },
+            onExit = { finish() },
+            onShowRename = { fileOperations.showStandaloneRenameDialog() },
+            onShowInfo = { showFileInfo() },
+            onToggleCommandPanel = {
+                binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+            },
+            onToggleFavourite = { viewModel.toggleFavorite() },
+            onNextFile = { viewModel.pageNext() },
+            onPreviousFile = { viewModel.pagePrevious() },
+            onToggleSlideshow = { viewModel.toggleSlideshow() },
+            onShowHelp = {
+                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
+                    supportFragmentManager,
+                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                )
+            },
+        ).handler
+    }
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        if (::keyboardHandler.isInitialized &&
+            keyboardHandler.handleKeyDown(keyCode, event)) return true
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        if (::keyboardHandler.isInitialized &&
+            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+        return super.dispatchGenericMotionEvent(event)
+    }
+
+    // S0393: reapply window insets after rotation (configChanges -> no recreate), ported from legacy.
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
 
     private fun setupWindowAndInsets() {
@@ -206,9 +319,18 @@ class AudioStandaloneActivity :
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S0393: shared menu - hide image/video-only items; keep audio items (YouTube/lyrics/sleep).
+            listOf(R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
+                R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_ocr_image,
+                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame)
+                .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
+                    R.id.menu_youtube_music -> { searchInYouTubeMusic(); true }
+                    R.id.menu_lyrics -> { showLyrics(); true }
+                    R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
+                    R.id.menu_playback_speed -> { showPlaybackSpeedDialog(); true }
                     else -> false
                 }
             }

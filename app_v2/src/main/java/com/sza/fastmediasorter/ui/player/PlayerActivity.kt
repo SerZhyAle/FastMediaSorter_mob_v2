@@ -70,6 +70,12 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
+import android.view.ViewGroup
+import android.graphics.Bitmap
+import android.graphics.RectF
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -82,7 +88,7 @@ import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost {
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
@@ -922,6 +928,53 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
             return
         }
         audioMetadataManager.onMetadataLoaded(metadata, current)
+    }
+
+    // ── PlayerActionHost (S0393) ──────────────────────────────────────────────
+    // Adapter over the existing binding/VM so type-specific delegates consume the seam, not this
+    // Activity. Behaviour-preserving: these members mirror what the in-app delegates already read.
+
+    override val hostActivity: AppCompatActivity get() = this
+    override val hostScope: LifecycleCoroutineScope get() = lifecycleScope
+    override val actionCurrentFile: MediaFile? get() = viewModel.state.value.currentFile
+    override val actionCurrentResource: MediaResource? get() = viewModel.state.value.resource
+    override val overlayMountTarget: ViewGroup get() = activityBinding.mediaContentArea
+    override val imagePinchTarget: View get() = activityBinding.photoView
+    override fun imageDisplayRect(): RectF = activityBinding.photoView.displayRect
+
+    // S0393: the in-app player can display via either photoView (zoomable) or imageView (non-zoomable),
+    // so normalize BOTH to FIT_CENTER before crop (restores pre-seam PlayerCropDelegate behaviour).
+    override fun prepareImageSurfacesForCrop() {
+        activityBinding.photoView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        activityBinding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+    }
+    override val displayedBitmap: Bitmap? get() = viewModel.currentDisplayedBitmap
+
+    override fun reloadCurrentImageInPlace() {
+        if (isMediaLoaderManagerInitialized) mediaLoaderManager.reloadCurrentImage()
+    }
+
+    override fun onFileSavedInFolder(savedPath: String) {
+        val fileName = savedPath.substringAfterLast('/')
+        val currentParent = viewModel.state.value.currentFile?.path?.substringBeforeLast('/') ?: ""
+        val savedParent = savedPath.substringBeforeLast('/')
+        if (currentParent.isNotEmpty() && currentParent == savedParent) {
+            viewModel.reloadFiles()
+            lifecycleScope.launch {
+                val files = withTimeoutOrNull(10_000L) {
+                    viewModel.state.map { it.files }.distinctUntilChanged()
+                        .first { fs -> fs.any { it.path == savedPath } }
+                }
+                val idx = files?.indexOfFirst { it.path == savedPath } ?: -1
+                if (idx >= 0) {
+                    viewModel.jumpToIndex(idx, manual = true)
+                } else {
+                    Toast.makeText(this@PlayerActivity, getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
+                }
+            }
+        } else {
+            Toast.makeText(this@PlayerActivity, getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
+        }
     }
 
     // ── PlayerHostCapabilities ────────────────────────────────────────────────

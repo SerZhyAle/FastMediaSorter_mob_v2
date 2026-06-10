@@ -2,8 +2,8 @@ package com.sza.fastmediasorter.ui.delivery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
-import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +22,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class DeliveryPromptViewModel @Inject constructor(
-    private val downloader: DeliverableSetDownloader,
+    private val runner: DeliverableDownloadRunner,
     private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>
 ) : ViewModel() {
 
@@ -45,7 +45,8 @@ class DeliveryPromptViewModel @Inject constructor(
         val set = current ?: return
         downloadJob?.cancel()
         downloadJob = viewModelScope.launch {
-            downloader.download(set).collect { progress ->
+            runner.enqueue(set)
+            runner.progressOf(set).collect { progress ->
                 _uiState.value = when (progress) {
                     DownloadProgress.Queued -> DeliveryPromptUiState.Downloading(0)
                     is DownloadProgress.Running -> DeliveryPromptUiState.Downloading(progress.percent)

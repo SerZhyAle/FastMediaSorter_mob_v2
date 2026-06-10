@@ -2506,4 +2506,9 @@ Close the player and try again.</string>
     <string name="ext_section_media_playback">Media playback</string>
     <string name="ext_shortcut_packs_title">OCR &amp; translation downloads</string>
     <string name="ext_shortcut_packs_desc">Open downloadable extensions to install OCR and translation packs</string>
+    <string name="download_runner_notif_channel_name">Element Downloads</string>
+    <string name="download_runner_notif_title_running">Downloading %s</string>
+    <string name="download_runner_notif_title_installed">%s successfully installed</string>
+    <string name="download_runner_notif_title_queued">Download queued</string>
+    <string name="download_runner_notif_title_failed">Failed to download %s</string>
 </resources>

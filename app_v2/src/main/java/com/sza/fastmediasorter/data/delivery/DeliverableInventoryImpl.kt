@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapability
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
+import com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
@@ -32,6 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DeliverableInventoryImpl @Inject constructor(
+    private val runner: DeliverableDownloadRunner,
     private val downloader: DeliverableSetDownloader,
     private val repository: DeliverableCapabilityRepository,
     private val tesseractModelManager: TesseractModelManager,
@@ -105,7 +107,10 @@ class DeliverableInventoryImpl @Inject constructor(
         val statusFlow = statusFlowFor(item)
         return flow {
             val progressFlow = when (item) {
-                is ExtensionItem.Module -> downloader.download(item.set)
+                is ExtensionItem.Module -> {
+                    runner.enqueue(item.set)
+                    runner.progressOf(item.set)
+                }
                 is ExtensionItem.LanguageData -> downloadTesseractModel(item.languageCode)
             }
             progressFlow.collect { progress ->

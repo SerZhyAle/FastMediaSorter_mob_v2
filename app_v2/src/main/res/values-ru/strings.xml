@@ -2458,4 +2458,9 @@
     <string name="ext_section_media_playback">Проигрывание медиа</string>
     <string name="ext_shortcut_packs_title">Загрузки OCR и перевода</string>
     <string name="ext_shortcut_packs_desc">Открыть загружаемые расширения для установки пакетов OCR и перевода</string>
+    <string name="download_runner_notif_channel_name">Загрузка элементов</string>
+    <string name="download_runner_notif_title_running">Загрузка: %s</string>
+    <string name="download_runner_notif_title_installed">%s успешно установлен</string>
+    <string name="download_runner_notif_title_queued">Загрузка поставлена в очередь</string>
+    <string name="download_runner_notif_title_failed">Ошибка загрузки %s</string>
 </resources>

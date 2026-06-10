@@ -18,9 +18,15 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.core.graphics.drawable.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
@@ -42,10 +48,19 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
+import com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
+import com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate
+import com.sza.fastmediasorter.domain.model.MediaResource
+import android.view.ViewGroup
+import android.graphics.RectF
+import android.graphics.Bitmap
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
-import com.sza.fastmediasorter.ui.player.helpers.PhotoVideoStandaloneKeyboardManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.PhotoVideoStandaloneVideoHandle
 import com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -76,7 +91,7 @@ import javax.inject.Inject
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class PhotoVideoStandaloneActivity :
-    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities {
+    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -107,22 +122,25 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+    // S0393 wave-C: image edit dialog (rotate/flip/filters/adjust) use-cases.
+    @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
+    @Inject lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
+    @Inject lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
+    @Inject lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
+    @Inject lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
+    @Inject lateinit var capabilityAvailability: CapabilityAvailability
 
     // S0390: screen-rotation toggle for the Group A rotate button; capability hidden without a sensor.
     private val screenRotationManager = ScreenRotationManager()
     private val hasAccelerometer: Boolean by lazy { screenRotationManager.isAccelerometerPresent(this) }
 
-    // S0390: Group A image editing (crop / crop-to-file / compress) reusing the generic ImageCropManager.
-    private val imageEditController: StandaloneImageEditController by lazy {
-        StandaloneImageEditController(
-            activity = this,
-            mediaContentArea = binding.mediaContentArea,
-            pinchTarget = binding.photoView,
+    // S0393: Group A image editing reuses the shared seam-based PlayerCropDelegate (replaces the
+    // standalone-only StandaloneImageEditController). The PlayerActionHost members below supply the
+    // resolved editable file, overlay mount and in-place re-render hook.
+    private val cropDelegate: PlayerCropDelegate by lazy {
+        PlayerCropDelegate(
+            host = this,
             imageCropManager = ImageCropManager(this, lifecycleScope, fileOperationUseCase),
-            getEditFile = { viewModel.editableImageFile.value },
-            onInPlaceCropSaved = {
-                viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) }
-            },
         )
     }
 
@@ -151,6 +169,155 @@ class PhotoVideoStandaloneActivity :
 
     private var videoControlsManager: StandaloneVideoControlsManager? = null
     private var fullscreenManager: StandaloneFullscreenManager? = null
+    // S0393 U1: Picture-in-Picture, ported from legacy StandalonePlayerActivity.
+    private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
+
+    // S0393 wave-C: black-screen overlay (dim screen during video playback). Generic manager.
+    private val blackScreenManager by lazy {
+        com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager(
+            java.lang.ref.WeakReference(this),
+            com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager(this),
+        )
+    }
+
+    // S0393 wave-C: TranslationManager only for its OCR recognition facade (extractTextOnly).
+    private val ocrTranslationManager by lazy {
+        com.sza.fastmediasorter.ui.player.helpers.TranslationManager(
+            context = this,
+            settingsRepository = settingsRepository,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
+                override fun showError(message: String) =
+                    Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
+                override fun showModelDownloadPrompt(languageName: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
+                    if (isFinishing || isDestroyed) { onCancel(); return }
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PhotoVideoStandaloneActivity)
+                        .setTitle(R.string.download_translation_model_title)
+                        .setMessage(getString(R.string.download_translation_model_message, languageName))
+                        .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
+                        .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+                        .setOnCancelListener { onCancel() }
+                        .show()
+                }
+            },
+        )
+    }
+
+    // S0393 wave-C: OCR the displayed image and show extracted text in a scrollable, copyable dialog.
+    private fun ocrCurrentImage() {
+        if (!capabilityAvailability.isTranslationAvailable()) return
+        val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
+            Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val sourceLang = com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+                .languageCodeToMLKit(settings.translationSourceLanguage)
+            val text = withContext(Dispatchers.IO) { ocrTranslationManager.extractTextOnly(bitmap, sourceLang) }
+            if (text != null && text.isNotBlank()) {
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
+                    this@PhotoVideoStandaloneActivity,
+                    title = getString(R.string.camera_ocr_pane_original),
+                    message = text,
+                    monospace = true,
+                )
+            } else {
+                Toast.makeText(this@PhotoVideoStandaloneActivity, R.string.ocr_no_text_found, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // S0393 wave-C: OCR + translate the displayed image, show the translation in a dialog.
+    private fun translateCurrentImage() {
+        if (!capabilityAvailability.isTranslationAvailable()) return
+        val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
+            Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show(); return
+        }
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val src = com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+                .languageCodeToMLKit(settings.translationSourceLanguage)
+            val tgt = com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+                .languageCodeToMLKit(settings.translationTargetLanguage)
+            val result = withContext(Dispatchers.IO) { ocrTranslationManager.recognizeAndTranslate(bitmap, src, tgt) }
+            if (result != null) {
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
+                    this@PhotoVideoStandaloneActivity,
+                    title = getString(R.string.translate),
+                    message = result.second,
+                    details = result.first,
+                )
+            } else {
+                Toast.makeText(this@PhotoVideoStandaloneActivity, R.string.ocr_no_text_found, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // S0393 wave-C: print the displayed image via the platform PrintHelper.
+    private fun printCurrentImage() {
+        val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
+            Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show(); return
+        }
+        val name = viewModel.state.value.mediaFile?.name ?: "image"
+        androidx.print.PrintHelper(this).apply {
+            scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
+        }.printBitmap(name, bitmap)
+    }
+
+    // S0393 wave-C: capture the current video frame from the TextureView and save it to Pictures.
+    private fun saveCurrentFrame() {
+        val texture = findTextureView(binding.playerView) ?: run {
+            Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show(); return
+        }
+        val bitmap = runCatching { texture.bitmap }.getOrNull() ?: run {
+            Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show(); return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val name = "frame_${(viewModel.state.value.mediaFile?.name ?: "video").substringBeforeLast('.')}_${System.nanoTime()}.jpg"
+            val values = android.content.ContentValues().apply {
+                put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, name)
+                put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES)
+            }
+            val ok = runCatching {
+                val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                    ?: return@runCatching false
+                contentResolver.openOutputStream(uri)?.use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, it) }
+                true
+            }.getOrDefault(false)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@PhotoVideoStandaloneActivity,
+                    if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun findTextureView(view: android.view.View?): android.view.TextureView? = when (view) {
+        is android.view.TextureView -> view
+        is android.view.ViewGroup -> (0 until view.childCount)
+            .firstNotNullOfOrNull { findTextureView(view.getChildAt(it)) }
+        else -> null
+    }
+
+    private var sleepTimerJob: kotlinx.coroutines.Job? = null
+
+    // S0393 wave-C: sleep timer - pause playback after the chosen interval.
+    private fun showSleepTimerDialog() {
+        val minutes = intArrayOf(15, 30, 45, 60)
+        val labels = minutes.map { "$it ${getString(R.string.minutes)}" }.toTypedArray()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.menu_sleep_timer)
+            .setItems(labels) { _, which ->
+                sleepTimerJob?.cancel()
+                sleepTimerJob = lifecycleScope.launch {
+                    kotlinx.coroutines.delay(minutes[which] * 60_000L)
+                    viewManager.getExoPlayer()?.pause()
+                    Toast.makeText(this@PhotoVideoStandaloneActivity, R.string.menu_sleep_timer, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
     private var trackSelectionManager: VideoTrackSelectionManager? = null
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
@@ -244,7 +411,7 @@ class PhotoVideoStandaloneActivity :
         binding.btnRenameCmd.setOnClickListener { fileOperations.showStandaloneRenameDialog() }
         // S0390: Group A bar buttons; visibility is driven from VM state in observeData.
         binding.btnEditCrop.setOnClickListener {
-            imageEditController.enterCropMode(ImageCropManager.CropMode.CROP)
+            cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
         }
         binding.btnEditRotate.setOnClickListener { viewModel.toggleRotationSensor() }
         binding.btnOverflowMenu.isVisible = true
@@ -255,13 +422,41 @@ class PhotoVideoStandaloneActivity :
             val editable = viewModel.editableImageFile.value != null
             popup.menu.findItem(R.id.menu_edit_crop_to_file).isVisible = editable
             popup.menu.findItem(R.id.menu_edit_compress).isVisible = editable
+            popup.menu.findItem(R.id.menu_edit_image).isVisible = editable
+            popup.menu.findItem(R.id.menu_google_lens).isVisible = editable
+            popup.menu.findItem(R.id.menu_ocr_image).isVisible =
+                editable && capabilityAvailability.isTranslationAvailable()
+            popup.menu.findItem(R.id.menu_translate_image).isVisible =
+                editable && capabilityAvailability.isTranslationAvailable()
+            popup.menu.findItem(R.id.menu_print).isVisible = editable
+            val isVideo = viewModel.state.value.mediaType == MediaType.VIDEO
+            popup.menu.findItem(R.id.menu_black_screen).isVisible = isVideo
+            popup.menu.findItem(R.id.menu_save_frame).isVisible = isVideo
+            popup.menu.findItem(R.id.menu_sleep_timer).isVisible = isVideo
+            popup.menu.findItem(R.id.menu_youtube_music).isVisible = false // audio host only
+            popup.menu.findItem(R.id.menu_lyrics).isVisible = false // audio host only
+            popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
                     R.id.menu_edit_crop_to_file -> {
-                        imageEditController.enterCropMode(ImageCropManager.CropMode.CROP_TO_FILE); true
+                        cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP_TO_FILE); true
                     }
-                    R.id.menu_edit_compress -> { imageEditController.startCompressedCopy(); true }
+                    R.id.menu_edit_compress -> { cropDelegate.startCompressedCopy(); true }
+                    R.id.menu_edit_image -> { openImageEditDialog(); true }
+                    R.id.menu_ocr_image -> { ocrCurrentImage(); true }
+                    R.id.menu_translate_image -> { translateCurrentImage(); true }
+                    R.id.menu_print -> { printCurrentImage(); true }
+                    R.id.menu_save_frame -> { saveCurrentFrame(); true }
+                    R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
+                    R.id.menu_google_lens -> {
+                        viewModel.editableImageFile.value?.let {
+                            com.sza.fastmediasorter.ui.player.helpers.GoogleLensShare
+                                .shareImageFile(this, java.io.File(it.path))
+                        }
+                        true
+                    }
+                    R.id.menu_black_screen -> { blackScreenManager.show(); true }
                     else -> false
                 }
             }
@@ -269,8 +464,9 @@ class PhotoVideoStandaloneActivity :
         }
     }
 
+    // S0393: unified onto the shared StandaloneKeyboardManager (was PhotoVideoStandaloneKeyboardManager).
     private fun setupKeyboardHandler() {
-        keyboardHandler = PhotoVideoStandaloneKeyboardManager(
+        keyboardHandler = StandaloneKeyboardManager(
             keyBindingManager = keyBindingManager,
             getActivePlayer = { viewManager.getExoPlayer() },
             getCurrentMediaType = { viewModel.state.value.mediaFile?.type },
@@ -286,6 +482,16 @@ class PhotoVideoStandaloneActivity :
             onNextFile = { viewModel.pageNext() },
             onPreviousFile = { viewModel.pagePrevious() },
             onToggleSlideshow = { viewModel.toggleSlideshow() },
+            onShowContextMenu = {
+                binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+            },
+            onToggleRotationSensor = { viewModel.toggleRotationSensor() },
+            onShowHelp = {
+                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
+                    supportFragmentManager,
+                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                )
+            },
         ).handler
     }
 
@@ -420,15 +626,82 @@ class PhotoVideoStandaloneActivity :
 
     // ── Video controls (mirrors StandalonePlayerActivity's VIDEO subset) ──────────
 
+    // S0393 wave-C: full image edit (rotate/flip/filters/adjust) via the generic ImageEditDialog;
+    // onEditComplete re-decodes the in-place-edited file through the existing seam reload path.
+    private fun openImageEditDialog() {
+        val file = viewModel.editableImageFile.value ?: return
+        if (isFinishing || isDestroyed) return
+        com.sza.fastmediasorter.ui.dialog.ImageEditDialog(
+            context = this,
+            imagePath = file.path,
+            rotateImageUseCase = rotateImageUseCase,
+            flipImageUseCase = flipImageUseCase,
+            networkImageEditUseCase = networkImageEditUseCase,
+            applyImageFilterUseCase = applyImageFilterUseCase,
+            adjustImageUseCase = adjustImageUseCase,
+            onEditComplete = { viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) } },
+        ).show()
+    }
+
+    // S0393 U2: per-file playback-control dialog (speed / track / subtitles / hue / brightness),
+    // ported from legacy StandalonePlayerActivity.showPlaybackControlDialog.
+    private fun showPlaybackControlDialog() {
+        if (isFinishing || isDestroyed) return
+        val type = viewModel.state.value.mediaType
+        if (type != MediaType.VIDEO && type != MediaType.AUDIO) return
+        val fm = supportFragmentManager
+        if (fm.isStateSaved) return
+        if (fm.findFragmentByTag(PlaybackControlDialogFragment.TAG) != null) return
+        PlaybackControlDialogFragment().show(fm, PlaybackControlDialogFragment.TAG)
+    }
+
+    // S0393 U1: wire Picture-in-Picture once a video PlayerView is ready (mirrors legacy host).
+    private fun setupPictureInPicture(pv: PlayerView) {
+        if (pipManager != null) return
+        val manager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
+            activity = this,
+            playerView = pv,
+            chromeToHide = listOf(binding.topCommandPanel),
+            getPlayer = { viewManager.getExoPlayer() },
+            onPlay = { viewManager.getExoPlayer()?.play() },
+            onPause = { viewManager.getExoPlayer()?.pause() },
+            isVideoPlaying = { viewManager.getExoPlayer()?.isPlaying == true },
+        )
+        pipManager = manager
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            manager.setupPipButton(settings.enablePictureInPicture, isAudio = false)
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        pipManager?.onUserLeaveHint(pipManager?.isEnabled ?: false)
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
+    }
+
+    // S0393: reapply window insets after rotation (configChanges handles orientation here, so the
+    // activity is not recreated) - ported from legacy host to keep the panel clear of system bars.
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
+    }
+
     private fun setupVideoControls(pv: PlayerView) {
         val controlsManager = StandaloneVideoControlsManager(
             playerView = pv,
             callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
-                override fun showPlaybackControlDialog() { /* control dialog not wired in this lane */ }
+                // S0393 U2: ported from legacy StandalonePlayerActivity - the dialog reads this host
+                // via PlayerHostCapabilities + videoPlayerHandle (both already implemented).
+                override fun showPlaybackControlDialog() = this@PhotoVideoStandaloneActivity.showPlaybackControlDialog()
             }
         )
         controlsManager.setupVideoControls()
         videoControlsManager = controlsManager
+        setupPictureInPicture(pv)
 
         val fsManager = StandaloneFullscreenManager(this)
         fullscreenManager = fsManager
@@ -485,7 +758,9 @@ class PhotoVideoStandaloneActivity :
     }
 
     override fun onPause() {
-        viewManager.onPause()
+        // S0393 U1: keep playback running when the activity pauses to enter PiP.
+        val isInPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
+        if (!isInPip) viewManager.onPause()
         super.onPause()
     }
 
@@ -496,8 +771,32 @@ class PhotoVideoStandaloneActivity :
         trackSelectionManager = null
         videoTouchDelegate = null
         playerSettingsManager = null
+        pipManager?.release()
+        pipManager = null
         viewManager.release()
         super.onDestroy()
+    }
+
+    // ── PlayerActionHost (S0393) ──────────────────────────────────────────────
+    // Single external file, no resource context. actionCurrentFile is the URI resolved to a writable
+    // local image path (editableImageFile), which crop needs to overwrite in place / save a copy.
+
+    override val hostActivity: AppCompatActivity get() = this
+    override val hostScope: LifecycleCoroutineScope get() = lifecycleScope
+    override val actionCurrentFile: MediaFile? get() = viewModel.editableImageFile.value
+    override val actionCurrentResource: MediaResource? get() = null
+    override val overlayMountTarget: ViewGroup get() = binding.mediaContentArea
+    override val imagePinchTarget: View get() = binding.photoView
+    override fun imageDisplayRect(): RectF = binding.photoView.displayRect
+    override val displayedBitmap: Bitmap? get() = null // draw overlay not yet wired in standalone
+
+    override fun reloadCurrentImageInPlace() {
+        viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) }
+    }
+
+    override fun onFileSavedInFolder(savedPath: String) {
+        val fileName = savedPath.substringAfterLast('/')
+        Toast.makeText(this, getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
     }
 
     // ── PlayerHostCapabilities ──────────────────────────────────────────────────

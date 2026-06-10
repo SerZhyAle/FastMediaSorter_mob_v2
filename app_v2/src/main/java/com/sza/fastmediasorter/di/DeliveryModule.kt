@@ -43,6 +43,12 @@ abstract class DeliveryModule {
 
     @Binds
     @Singleton
+    abstract fun bindDeliverableDownloadRunner(
+        impl: com.sza.fastmediasorter.data.delivery.DeliverableDownloadRunnerImpl
+    ): com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
+
+    @Binds
+    @Singleton
     abstract fun bindDeliverableInventory(
         impl: com.sza.fastmediasorter.data.delivery.DeliverableInventoryImpl
     ): com.sza.fastmediasorter.domain.delivery.DeliverableInventory

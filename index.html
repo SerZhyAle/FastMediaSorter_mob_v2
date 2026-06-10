@@ -512,20 +512,70 @@
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon">📦</span>
-                        <h3>Download APK Builds</h3>
+                        <h3>APK Editions &amp; Mirrors</h3>
                     </div>
-                    <p class="card-summary">Get compiled installation packages for supported builds.</p>
+                    <p class="card-summary">Edition notes plus Google Drive ZIP mirrors for the compiled builds.</p>
                 </div>
                 <details class="card-details">
                     <summary>Details</summary>
                     <ul class="detail-list">
-                        <li>Lists public APK download options and edition notes.</li>
-                        <li>Use it when installing outside Google Play.</li>
+                        <li>Explains the edition differences and the alternate Google Drive mirror.</li>
+                        <li>One-tap downloads are in the Download APK Builds section below.</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.md" class="card-footer" target="_blank">Download APK</a>
+                    <a href="docs/DOWNLOADS_EN.md" class="card-footer" target="_blank">Open details</a>
                 </details>
             </article>
         </div>
+
+        <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
+        <h2 class="section-title">📦 Download APK Builds</h2>
+        <p class="section-lead">Direct downloads from the latest GitHub Release. Pick the edition that matches your
+            device — the version updates automatically.</p>
+        <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
+                target="_blank" rel="noopener">Open the latest release on GitHub →</a>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById('apkDownloads');
+                if (!box) return;
+                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
+                var wanted = (box.getAttribute('data-flavors') || '').split(',')
+                    .map(function (s) { return s.trim(); }).filter(Boolean);
+                // Build identifiers are kept in English across locales (brand-ish flavor names).
+                var labels = {
+                    standard: 'Standard', vr: 'VR', lite: 'Lite', photos: 'Photos',
+                    legacy: 'Legacy', wear: 'Wear OS'
+                };
+                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+                    { headers: { 'Accept': 'application/vnd.github+json' } })
+                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
+                    .then(function (rel) {
+                        var ver = rel.tag_name || '';
+                        var assets = rel.assets || [];
+                        var made = [];
+                        wanted.forEach(function (flavor) {
+                            var prefix = 'FastMediaSorter-' + flavor + '-';
+                            var a = assets.find(function (x) {
+                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
+                            });
+                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
+                        });
+                        if (!made.length) return; // keep the static fallback link
+                        box.innerHTML = '';
+                        made.forEach(function (m) {
+                            var link = document.createElement('a');
+                            link.className = 'apk-btn';
+                            link.href = m.url;
+                            link.setAttribute('rel', 'noopener');
+                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
+                                '</span> <span class="apk-ver">' + ver + '</span>';
+                            box.appendChild(link);
+                        });
+                    })
+                    .catch(function () { /* leave the static fallback link in place */ });
+            }());
+        </script>
 
         <!-- Interactive Feature Explorer Dashboard -->
         <h2 class="section-title">✨ Application Features</h2>

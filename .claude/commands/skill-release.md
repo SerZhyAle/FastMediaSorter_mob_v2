@@ -303,8 +303,8 @@ Both cases: after this step dev dir is on `$NEXT_DEBUG`, release worktree stays 
 ```bash
 # From development directory - a.ps1 auto-delegates to the release worktree
 cd P:/ANDROID/FastMediaSorter_mob_v2
-.\a.ps1 r
-.\a.ps1 vr
+.\a.ps1 r        # standard AAB (Play) + APK + Google Drive mirror + fastlane changelogs; stamps version V
+# vr and the rest of the GitHub spectrum are built in Step 12a at the same version V.
 ```
 
 `a.ps1 r` automatically before building:
@@ -312,7 +312,7 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 2. Runs the release build script from inside `P:/ANDROID/FastMediaSorter_release`.
 3. Copies build artifacts back to `DOWNLOADS/` in the dev directory.
 
-`a.ps1 vr` runs after `a.ps1 r` and reuses the current release `versionName`; it must not bump the version. Keeps GitHub Store assets aligned as `FastMediaSorter-standard-$NEW_VERSION.apk` and `FastMediaSorter-vr-$NEW_VERSION.apk`.
+The full GitHub Release spectrum (incl. `vr`) is built in Step 12a by `build-release-spectrum.ps1 -ReuseVersion`, which reuses the version `a.ps1 r` just stamped - keeping the Play AAB and every GitHub asset (`FastMediaSorter-<flavor>-$NEW_VERSION.apk`) on the same version. Do not bump the version between `a.ps1 r` and Step 12a.
 
 ---
 
@@ -321,8 +321,11 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 Run GitHub Store publication in the release worktree, Google Play publication from the dev directory. Both belong to the same release window as `standard_release`; do not publish GitHub Store assets as a standalone version.
 
 ```powershell
-# GitHub Store source release (release worktree on main)
+# GitHub Release - full spectrum (release worktree on main)
 cd P:/ANDROID/FastMediaSorter_release
+# Build every release edition + wear, reusing the version a.ps1 r stamped (no skew vs the Play AAB) (S0394):
+pwsh -NoProfile -File scripts/release/build-release-spectrum.ps1 -ReuseVersion
+# Publish all assets (standard, vr, lite, photos, legacy, noLegal, wear) under one tag:
 pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -DryRun
 pwsh -NoProfile -File scripts/release/publish-github-release.ps1
 
@@ -346,7 +349,7 @@ Automated steps above cover Google Play + GitHub Store. A complete plateau relea
    - One-time gate that blocks the commit: **Foreground service permissions** declaration in Play Console -> App content. Re-declare whenever a NEW `FOREGROUND_SERVICE_*` type ships (e.g. `FOREGROUND_SERVICE_MICROPHONE` arrived with Quick Recorder widget). Microphone/camera/location FGS require a short demo video link. AAB uploads fine but commit returns HTTP 403 until the declaration is saved; the uncommitted edit is harmless - re-run the publisher after saving.
    - Do NOT pass `changesNotSentForReview` (Play API returns HTTP 400 for auto-review apps; already removed from the script).
 
-2. **GitHub Store** (`standard` + `vr` APK) - automated via `publish-github-release.ps1`: creates GitHub Release `v<version>` from `main` with both APKs (deterministic names, signing fingerprint pinned). github-store.org indexes releases automatically; its `app?repo=` page is only a deep-link launcher into the Android client (sits on "Redirecting.." with no client installed - not a failure). Needs `gh` CLI (script auto-resolves from standard install dir).
+2. **GitHub Release / Store** (full spectrum: `standard`, `vr`, `lite`, `photos`, `legacy`, `wear`, `noLegal`) - built at one shared version by `build-release-spectrum.ps1` (S0394), then automated via `publish-github-release.ps1`: creates GitHub Release `v<version>` from `main` with all seven assets (deterministic `FastMediaSorter-<flavor>-<version>.apk` names, single signing fingerprint pinned - all flavors + wear share the one release key). The website download buttons (`index*.html`; `noLegal` only on `nolegal*.html`) and `docs/DOWNLOADS_*` consume this release automatically via the GitHub API. github-store.org indexes releases automatically; its `app?repo=` page is only a deep-link launcher into the Android client (sits on "Redirecting.." with no client installed - not a failure). Needs `gh` CLI (script auto-resolves from standard install dir).
 
 3. **Google Drive** - automated inside `a.ps1 r` (`build-aab-release.ps1`): copies standard AAB+APK to the synced Drive folder, writes a password-protected ZIP (`FastMediaSorter_standard_release.zip`, password `1`). Other flavors (`lite`/`photos`/`legacy`) refresh their Drive ZIPs only when their own `a.ps1` build runs. No separate step - ensure the Drive desktop-sync folder is present (script warns and skips if absent).
 

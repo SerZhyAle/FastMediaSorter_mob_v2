@@ -287,7 +287,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             fileOperationUseCase = activity.fileOperationUseCase
         )
         activity.cropDelegate = com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate(
-            activity = activity,
+            host = activity,
             imageCropManager = activity.imageCropManager,
         )
         // S0107: Draw overlay manager; S0162: pass rotation manager for ADR-4 exit restore
@@ -718,7 +718,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.pipManager = PictureInPictureManager(
             activity = activity,
-            binding = activity.activityBinding,
+            playerView = activity.activityBinding.playerView,
+            chromeToHide = listOf(activity.activityBinding.toolbar, activity.activityBinding.topCommandPanel),
             getPlayer = { activity.videoPlayerManager.getPlayer() },
             onPlay = {
                 val isAudio = activity.isMediaLoaderManagerInitialized &&

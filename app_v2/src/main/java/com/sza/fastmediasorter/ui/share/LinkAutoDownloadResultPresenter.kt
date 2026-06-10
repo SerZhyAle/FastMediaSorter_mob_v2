@@ -17,7 +17,7 @@ import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.domain.usecase.link.YtMusicAudioOnlyContract
-import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
+import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -277,7 +277,9 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
 
     private fun launchPlayer(host: AppCompatActivity, uri: android.net.Uri) {
         try {
-            val intent = Intent(host, StandalonePlayerActivity::class.java)
+            // S0393: route through the dispatcher (resolves media family -> specialized host); legacy
+            // StandalonePlayerActivity is @Deprecated. Dispatcher reads intent.data for non-SEND intents.
+            val intent = Intent(host, StandalonePlayerDispatcherActivity::class.java)
                 .setData(uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             host.startActivity(intent)

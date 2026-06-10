@@ -2421,4 +2421,9 @@
     <string name="ext_section_media_playback">Відтворення медіа</string>
     <string name="ext_shortcut_packs_title">Завантаження OCR та перекладу</string>
     <string name="ext_shortcut_packs_desc">Відкрити завантажувані розширення для встановлення пакетів OCR та перекладу</string>
+    <string name="download_runner_notif_channel_name">Завантаження елементів</string>
+    <string name="download_runner_notif_title_running">Завантаження: %s</string>
+    <string name="download_runner_notif_title_installed">%s успішно встановлено</string>
+    <string name="download_runner_notif_title_queued">Завантаження поставлено в чергу</string>
+    <string name="download_runner_notif_title_failed">Помилка завантаження %s</string>
 </resources>

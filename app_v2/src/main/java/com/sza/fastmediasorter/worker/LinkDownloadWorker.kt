@@ -18,7 +18,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
-import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
+import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import dagger.assisted.Assisted
@@ -371,7 +371,9 @@ class LinkDownloadWorker @AssistedInject constructor(
      * launch in [com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter.launchPlayer].
      */
     private fun buildOpenInPlayerPendingIntent(uri: Uri, originalUrl: String): PendingIntent {
-        val intent = Intent(context, StandalonePlayerActivity::class.java)
+        // S0393: route through the dispatcher (resolves media family -> specialized host); the legacy
+        // StandalonePlayerActivity is @Deprecated. Dispatcher reads intent.data for non-SEND intents.
+        val intent = Intent(context, StandalonePlayerDispatcherActivity::class.java)
             .setData(uri)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         return PendingIntent.getActivity(
