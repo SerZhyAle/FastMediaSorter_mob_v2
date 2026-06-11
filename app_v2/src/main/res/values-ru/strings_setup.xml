@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="welcome_battery_optim_message">Для надёжной работы операций по расписанию в фоне разрешите приложению работать без ограничений энергосбережения. Особенно важно на устройствах Xiaomi, Huawei и Samsung.</string>
     <string name="welcome_default_player_btn_audio">Аудио</string>
     <string name="welcome_default_player_btn_docs">Документы</string>
     <string name="welcome_default_player_btn_images">Изображения</string>
@@ -11,14 +10,7 @@
     <string name="welcome_default_player_title">Плеер по умолчанию</string>
     <string name="welcome_description_1">Ваш универсальный медиаорганайзер.\nПросматривайте, сортируйте и управляйте файлами на локальных, сетевых и облачных хранилищах - всё с помощью интуитивных жестов.</string>
     <string name="welcome_description_1_details">FastMediaSorter собирает все виды медиа в одном месте. Открывайте фото, видео, GIF и музыку с устройства, из сетевой папки или из облака - и раскладывайте их быстрыми касаниями вместо долгих меню.\n\nВсё, что вы настроите здесь, потом можно изменить в настройках, так что неправильного выбора на этом экране нет - просто нажмите «Далее».</string>
-    <string name="welcome_description_2">Подключайтесь к любому хранилищу:\n\n📱 ЛОКАЛЬНЫЕ - Папки устройства, SD-карты\n\n🌐 СЕТЕВЫЕ - SMB/CIFS, SFTP, FTP\n\n☁️ ОБЛАЧНЫЕ - Google Drive, OneDrive, Dropbox\n\nДобавляйте ресурсы в Настройках в любое время.</string>
-    <string name="welcome_description_2_details">Локальные источники - это папки на устройстве и карты памяти. Сетевые подключаются по SMB/CIFS, SFTP и FTP. Облачные связывают Google Drive, OneDrive и Dropbox.\n\nИспользуйте сколько угодно - каждый источник появится отдельной строкой на главном экране. Добавить или убрать источник можно в любой момент в «Настройки → Ресурсы».</string>
     <string name="welcome_description_3" formatted="false">Проигрыватель использует 9 сенсорных зон (сетка 3×3) для быстрых действий. Нажимайте на зоны для навигации, копирования, перемещения, удаления файлов или доступа к командной панели. Схема показана выше.</string>
-    <string name="welcome_description_3_details" formatted="false">В полноэкранном просмотре фото и видео экран разделён на сетку 3×3. Угловые зоны перелистывают файлы, боковые - выполняют копирование, перемещение и удаление текущего файла, центральная - открывает панель команд.\n\nМаленькая схема выше показывает, что делает каждая зона. Действия зон можно переназначить позже в настройках.</string>
-    <string name="welcome_description_4">РЕСУРСЫ - Папки из любого типа хранилища.\n\nБЫСТРАЯ СОРТИРОВКА - До 30 папок назначения с цветовой маркировкой для быстрых операций копирования/перемещения.\n\nНастраивайте в Настройках в любое время!</string>
-    <string name="welcome_description_4_details">Ресурс - это папка, которую вы просматриваете, в любом хранилище. Назначение быстрой сортировки - папка, куда файл отправляется одним касанием; их можно задать до 30, у каждой свой цвет и подпись.\n\nКоснитесь цвета во время просмотра файла - и он сразу скопируется или переместится туда. И ресурсы, и назначения настраиваются в «Настройки → Ресурсы».</string>
-    <string name="welcome_description_5">Не только просмотр медиа - FastMediaSorter содержит профессиональные инструменты для текста, документов и аудио.</string>
-    <string name="welcome_description_5_details">Кроме просмотра, FastMediaSorter - это ещё плеер и мастерская: аудиоплеер для музыкальных библиотек, видеотека с управлением воспроизведением, читалка PDF и EPUB, просмотр и редактирование текста, OCR и перевод прямо на изображении, слайдшоу, виджеты на домашнем экране, плановые операции с файлами, избранное и сортировка по цвету в одно касание.\n\nЧто из этого доступно, зависит от редакции приложения - карточки ниже показывают, что входит в вашу.</string>
     <string name="welcome_feature_audio">Аудиоплеер</string>
     <string name="welcome_feature_cloud">Облачное хранилище</string>
     <string name="welcome_feature_cloud_sync">Синхронизация с облаком</string>
@@ -38,8 +30,6 @@
     <string name="welcome_feature_video_library">Видеотека</string>
     <string name="welcome_feature_widgets">Виджеты</string>
     <string name="welcome_language_picker_hint">Выберите язык приложения</string>
-    <string name="welcome_permissions_description">FastMediaSorter требуется доступ к вашим фото, видео и аудиофайлам для сканирования и отображения медиа. Мы не передаём ваши файлы третьим лицам.</string>
-    <string name="welcome_permissions_title">Доступ к медиафайлам</string>
     <string name="welcome_profile_audio_player_desc">Для прослушивания музыки. Скрывает фото и видео; оптимизирует фоновый звук и экран текущего трека.</string>
     <string name="welcome_profile_audio_player_title">Аудиопроигрыватель</string>
     <string name="welcome_profile_car_head_unit_desc">Для автомобильных магнитол. Увеличивает кнопки управления, блокирует выключение экрана и ставит в приоритет управление плеером.</string>
@@ -65,15 +55,6 @@
     <string name="welcome_profile_vr_headset_title">VR-шлем</string>
     <string name="welcome_recommended_badge">(Рекомендуется)</string>
     <string name="welcome_title_1">Добро пожаловать в FastMediaSorter!</string>
-    <string name="welcome_title_2">Типы ресурсов</string>
-    <string name="welcome_title_3">Сенсорные зоны (Изображения/Видео)\nиспользовать в полноэкранном режиме</string>
-    <string name="welcome_title_4">Ресурсы и назначения</string>
-    <string name="welcome_title_5">Дополнительные возможности</string>
-    <string name="welcome_vr_description">Погрузитесь в ваши медиафайлы.\nFastMediaSorter VR автоматически определяет стереоскопический 3D-контент и воспроизводит его прямо в шлеме - без дополнительных приложений.</string>
-    <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
-    <string name="welcome_vr_feature_headset">Воспроизведение в Quest</string>
-    <string name="welcome_vr_feature_stereo">Определение 3D-стерео</string>
-    <string name="welcome_vr_title">3D и VR</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">Уровень API</string>
@@ -148,4 +129,33 @@
     <string name="sysinfo_section_system">Система</string>
     <string name="sysinfo_section_time">Время</string>
     <string name="sysinfo_section_user">Пользователь</string>
+    <string name="welcome_theme_picker_hint">Выберите тему приложения</string>
+    <string name="welcome_theme_applies_after_setup">Тема применится после настройки.</string>
+    <string name="welcome_theme_auto">Авто</string>
+    <string name="welcome_theme_light">Светлая</string>
+    <string name="welcome_theme_dark">Тёмная</string>
+    <string name="welcome_networks_title">Сетевые источники</string>
+    <string name="welcome_networks_description">Добавляйте медиа из сетевых папок и удалённых хранилищ.</string>
+    <string name="welcome_network_tile_smb">SMB (локальная сеть)</string>
+    <string name="welcome_network_tile_ftp">(S)FTP</string>
+    <string name="welcome_network_tile_cloud">Облако</string>
+    <!-- S0399 device-profile page -->
+    <string name="welcome_profiles_title">Как вы будете использовать устройство?</string>
+    <string name="welcome_profiles_subtitle">Выберите профиль — настроим всё под него.</string>
+    <!-- S0400 functionality page -->
+    <string name="welcome_functionality_title">Что приложение будет делать?</string>
+    <string name="welcome_functionality_subtitle">Включите нужное. Позже можно изменить в настройках.</string>
+    <string name="welcome_func_file_manager">Файловый менеджер (все файлы)</string>
+    <string name="welcome_func_audio">Аудио</string>
+    <string name="welcome_func_video">Видео</string>
+    <string name="welcome_func_documents">Документы</string>
+    <string name="welcome_func_ocr">Распознавание текста (OCR)</string>
+    <string name="welcome_func_translation">Перевод</string>
+    <string name="welcome_func_elements_button">Загружаемые элементы</string>
+    <string name="welcome_func_downloading">Загрузка.. %1$d%%</string>
+    <string name="welcome_func_download_failed">Не удалось загрузить — нажмите для повтора</string>
+    <string name="welcome_func_download_done">Готово</string>
+    <!-- S0402 permissions page -->
+    <string name="welcome_permissions_title">Несколько разрешений</string>
+    <string name="welcome_permissions_subtitle">Дайте доступ, чтобы приложение показывало ваши медиа.</string>
 </resources>

@@ -60,14 +60,23 @@ class WelcomeViewModel @Inject constructor(
                 DeviceProfileType.PERSONAL_SMARTPHONE
             }
             val confidence = if (recommended == result.profile) result.confidence else DetectionConfidence.LOW
+            // On a Settings re-entry pre-select the profile the user previously stored (strategic §6:
+            // pre-populate pages from settings), falling back to the recommendation if that profile is
+            // not available in this flavor. First run keeps the detected recommendation pre-selected.
+            val selected = if (isWelcomeCompleted()) {
+                val stored = deviceProfileRepository.getCurrentProfile().first().type
+                if (deviceProfileAvailability.isAvailable(stored)) stored else recommended
+            } else {
+                recommended
+            }
             updateState {
                 it.copy(
                     recommendedProfile = recommended,
-                    selectedProfile = recommended,
+                    selectedProfile = selected,
                     detectorConfidence = confidence
                 )
             }
-            Timber.i("Device profile auto-detected: detected=${result.profile}, recommended=$recommended, confidence=$confidence")
+            Timber.i("Device profile auto-detected: detected=${result.profile}, recommended=$recommended, selected=$selected, confidence=$confidence")
         }
     }
 
@@ -75,6 +84,10 @@ class WelcomeViewModel @Inject constructor(
         updateState { it.copy(selectedProfile = type) }
         Timber.i("Device profile manually selected in Welcome: $type")
     }
+
+    /** Profiles selectable in this flavor (VR hidden where unavailable). The dedicated device-profile
+     *  page (S0399) renders these as a grid; ordering (small-screen-first) is applied by the page. */
+    fun selectableProfiles(): List<DeviceProfileType> = deviceProfileAvailability.selectableProfiles
 
     fun saveDeviceProfile(isSkipped: Boolean) {
         viewModelScope.launch(exceptionHandler) {
@@ -97,6 +110,13 @@ class WelcomeViewModel @Inject constructor(
                 DetectionConfidence.NONE
             }
 
+            // Read the previously stored profile and the re-entry flag BEFORE overwriting the
+            // profile, to decide whether the preset must be reapplied. On a genuine first run
+            // welcome_completed is still false, so the preset always applies; on a Settings re-run
+            // an unchanged profile keeps user-tuned settings and a changed one is confirmed first.
+            val reentry = isWelcomeCompleted()
+            val previousType = deviceProfileRepository.getCurrentProfile().first().type
+
             val profile = DeviceProfile(
                 type = finalType,
                 source = finalSource,
@@ -107,17 +127,38 @@ class WelcomeViewModel @Inject constructor(
             )
 
             deviceProfileRepository.saveProfile(profile)
-            Timber.i("Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped)")
+            Timber.i("Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped, reentry=$reentry)")
 
-            // Apply preset values for this profile after the selected profile is persisted.
-            applyProfilePresetUseCase.apply(finalType, presetVersion = 1)
-                .onSuccess {
-                    if (profileImpliesAllFilesUseCase(finalType)) {
-                        ensureAllFilesPredefinedResourceUseCase()
-                            .onFailure { Timber.e(it, "WelcomeViewModel: failed to ensure All Files resource") }
-                    }
+            Timber.d("S0398: saveDeviceProfile reentry=$reentry selected=$finalType previous=$previousType")
+            when {
+                // First run: always apply the preset - there are no user-tuned settings to protect.
+                !reentry -> applyProfilePreset(finalType)
+                // Re-entry, profile unchanged: skip the preset so the re-run keeps tuned settings.
+                finalType == previousType ->
+                    Timber.i("Welcome re-entry with unchanged profile - preset apply skipped")
+                // Re-entry, profile changed: confirm before overwriting settings (Settings warn parity).
+                else -> sendEvent(WelcomeEvent.ConfirmProfilePresetReapply(finalType))
+            }
+        }
+    }
+
+    /** Apply the device-profile preset and, when the profile implies the All Files resource, ensure
+     *  that resource exists. Shared by the first-run path and the confirmed re-entry reapply. */
+    private suspend fun applyProfilePreset(finalType: DeviceProfileType) {
+        applyProfilePresetUseCase.apply(finalType, presetVersion = 1)
+            .onSuccess {
+                if (profileImpliesAllFilesUseCase(finalType)) {
+                    ensureAllFilesPredefinedResourceUseCase()
+                        .onFailure { Timber.e(it, "WelcomeViewModel: failed to ensure All Files resource") }
                 }
-                .onFailure { Timber.e(it, "WelcomeViewModel: failed to apply profile preset") }
+            }
+            .onFailure { Timber.e(it, "WelcomeViewModel: failed to apply profile preset") }
+    }
+
+    /** Apply the preset for [finalType] after the user confirms the re-entry overwrite warning. */
+    fun confirmProfilePresetReapply(finalType: DeviceProfileType) {
+        viewModelScope.launch(exceptionHandler) {
+            applyProfilePreset(finalType)
         }
     }
 
@@ -186,6 +227,18 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
+    /** Persist the chosen colour theme ("AUTO"|"LIGHT"|"DARK") to the canonical DataStore settings.
+     *  The synchronous startup mirror (ColorThemePrefs) is written by the Activity, mirroring the
+     *  Settings split where the UI layer owns the mirror and the ViewModel owns DataStore. */
+    fun saveColorTheme(value: String) {
+        viewModelScope.launch {
+            val current = settingsRepository.getSettings().first()
+            if (current.colorTheme != value) {
+                settingsRepository.updateSettings(current.copy(colorTheme = value))
+            }
+        }
+    }
+
     fun setMediaPermissionsGranted(granted: Boolean) {
         StrictModeHelper.allowDiskWrites {
             context.getSharedPreferences(APP_PREFS_NAME, Context.MODE_PRIVATE)
@@ -202,4 +255,7 @@ data class WelcomeState(
     val detectorConfidence: DetectionConfidence = DetectionConfidence.NONE
 )
 
-sealed class WelcomeEvent
+sealed class WelcomeEvent {
+    /** Re-entry from Settings changed the device profile; ask before overwriting tuned settings. */
+    data class ConfirmProfilePresetReapply(val type: DeviceProfileType) : WelcomeEvent()
+}

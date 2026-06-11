@@ -130,8 +130,41 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             evaluateFlavorGates(entry.flavorGates)
         }
 
+    override fun getWelcomeEntries(allFiles: Boolean, audioEnabled: Boolean): List<PermissionEntry> {
+        val base = getEntries().filter { entry ->
+            when (entry.manifestName) {
+                // "All files" + manage-media are only meaningful for file-manager profiles.
+                Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+                Manifest.permission.MANAGE_MEDIA -> allFiles
+                // Audio-recording permission is irrelevant unless audio support is on.
+                Manifest.permission.RECORD_AUDIO -> audioEnabled
+                else -> true
+            }
+        }
+        // POST_NOTIFICATIONS is flavor-gated out of the full Settings list on builds without persistent
+        // audio playback, but onboarding always asks for it (welcome-only relaxation). Re-add it directly
+        // from the raw registry, honouring only its SDK bound, when getEntries() filtered it out.
+        val notifications = allEntries.firstOrNull {
+            it.manifestName == Manifest.permission.POST_NOTIFICATIONS &&
+                it.minSdk <= Build.VERSION.SDK_INT &&
+                it.maxSdk >= Build.VERSION.SDK_INT
+        }
+        return if (notifications != null && base.none { it.manifestName == notifications.manifestName }) {
+            base + notifications
+        } else {
+            base
+        }
+    }
+
     override fun getGroups(): List<PermissionGroupHeader> {
-        val applicableGroups = getEntries().map { it.group }.toSet()
+        // SDK-applicable groups, ignoring flavor gates: a group whose only entry is flavor-gated-out
+        // still gets a header, so the welcome adaptive set (which re-adds POST_NOTIFICATIONS past its
+        // ENABLE_PERSISTENT_AUDIO_PLAYBACK gate) can render it. Both Settings and welcome buildRows
+        // skip groups that resolve to no entries, so a header without entries is harmless.
+        val applicableGroups = allEntries
+            .filter { it.minSdk <= Build.VERSION.SDK_INT && it.maxSdk >= Build.VERSION.SDK_INT }
+            .map { it.group }
+            .toSet()
         return PermissionGroup.entries
             .filter { it in applicableGroups }
             .map { group ->

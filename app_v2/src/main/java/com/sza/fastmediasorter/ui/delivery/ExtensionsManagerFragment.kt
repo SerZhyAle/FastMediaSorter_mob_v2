@@ -8,6 +8,9 @@ import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -32,7 +35,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Fragment displaying the Extensions Manager settings screen (S0386 Phase 08, grouped in Phase 11).
- * Lists all modules and language data packs under OCR / Translation / Media Playback section headers,
+ * Lists all modules and language data packs under Translation &amp; OCR / Media Playback section headers,
  * showing statuses, sizes, and download/uninstall actions.
  */
 @AndroidEntryPoint
@@ -59,9 +62,14 @@ class ExtensionsManagerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        applyWindowInsets()
+
         binding.btnBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
+
+        binding.btnInstallAll.setOnClickListener { viewModel.installAll() }
+        binding.btnUninstallAll.setOnClickListener { confirmUninstallAll() }
 
         val adapter = ExtensionsAdapter(
             lifecycleOwner = viewLifecycleOwner,
@@ -75,15 +83,49 @@ class ExtensionsManagerFragment : Fragment() {
         adapter.submitList(buildRows(viewModel.extensions))
     }
 
-    // Inserts a section header before the first item of each section (items arrive already ordered by
-    // section from the inventory), so the screen reads as OCR / Translation / Media Playback groups.
+    // Edge-to-edge safety (CLAUDE.md Rule 17): the header keeps its colored background under the status
+    // bar but pads its content below it, and the footer button bar pads above the navigation bar, so
+    // neither the title nor the bulk-action buttons sit under system bars / display cutout (Android 16).
+    private fun applyWindowInsets() {
+        // Base paddings declared in XML, captured once so repeated inset dispatches add the system-bar
+        // offset on top of the design padding instead of accumulating or discarding it.
+        val appBar = binding.appBar
+        val baseAppBarLeft = appBar.paddingLeft
+        val baseAppBarRight = appBar.paddingRight
+        val footer = binding.footerActions
+        val baseFooterLeft = footer.paddingLeft
+        val baseFooterRight = footer.paddingRight
+        val baseFooterBottom = footer.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            appBar.updatePadding(
+                left = baseAppBarLeft + bars.left,
+                top = bars.top,
+                right = baseAppBarRight + bars.right
+            )
+            footer.updatePadding(
+                left = baseFooterLeft + bars.left,
+                right = baseFooterRight + bars.right,
+                bottom = baseFooterBottom + bars.bottom
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
+    }
+
+    // Inserts a section header before the first item whose header title differs from the previous row's.
+    // Items arrive already ordered by section from the inventory, and OCR + Translation map to the same
+    // combined title, so they collapse into one "Translation & OCR" group while Media playback stays apart.
     private fun buildRows(items: List<ExtensionItem>): List<ExtensionRow> {
         val rows = mutableListOf<ExtensionRow>()
-        var lastSection: ExtensionSection? = null
+        var lastTitleRes: Int? = null
         for (item in items) {
-            if (item.section != lastSection) {
-                rows.add(ExtensionRow.Header(sectionTitleRes(item.section)))
-                lastSection = item.section
+            val titleRes = sectionTitleRes(item.section)
+            if (titleRes != lastTitleRes) {
+                rows.add(ExtensionRow.Header(titleRes))
+                lastTitleRes = titleRes
             }
             rows.add(ExtensionRow.Entry(item))
         }
@@ -92,8 +134,7 @@ class ExtensionsManagerFragment : Fragment() {
 
     @StringRes
     private fun sectionTitleRes(section: ExtensionSection): Int = when (section) {
-        ExtensionSection.OCR -> R.string.ext_section_ocr
-        ExtensionSection.TRANSLATION -> R.string.ext_section_translation
+        ExtensionSection.OCR, ExtensionSection.TRANSLATION -> R.string.ext_section_ocr_translation
         ExtensionSection.MEDIA_PLAYBACK -> R.string.ext_section_media_playback
     }
 
@@ -105,6 +146,16 @@ class ExtensionsManagerFragment : Fragment() {
             .setMessage(getString(R.string.ext_delete_confirm_message, getString(item.displayNameRes)))
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.ocr_best_model_delete) { _, _ -> viewModel.uninstall(item) }
+            .show()
+    }
+
+    // Bulk delete is destructive across every installed extension, so it gets its own confirmation.
+    private fun confirmUninstallAll() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.ext_uninstall_all_confirm_title)
+            .setMessage(R.string.ext_uninstall_all_confirm_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.ocr_best_model_delete) { _, _ -> viewModel.uninstallAll() }
             .show()
     }
 

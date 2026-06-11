@@ -13,6 +13,7 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlin.coroutines.resume
 import kotlinx.coroutines.flow.first
@@ -28,20 +29,37 @@ class TranslationBackend(
     private val context: Context,
     private val callback: TranslationManager.TranslationCallback,
     private val settingsRepository: SettingsRepository,
-    private val capabilityRepository: DeliverableCapabilityRepository
+    private val capabilityRepository: DeliverableCapabilityRepository,
+    private val libraryLoader: DeliveredNativeLibraryLoader
 ) : TextTranslationFacade {
 
     private var translator: Translator? = null
 
-    private val languageIdentifier = LanguageIdentification.getClient(
-        LanguageIdentificationOptions.Builder()
-            .setConfidenceThreshold(0.5f)
-            .build()
-    )
+    private val languageIdentifier by lazy {
+        LanguageIdentification.getClient(
+            LanguageIdentificationOptions.Builder()
+                .setConfidenceThreshold(0.5f)
+                .build()
+        )
+    }
     private val modelManager = RemoteModelManager.getInstance()
 
     private var currentSourceLang = TranslateLanguage.ENGLISH
     private var currentTargetLang = TranslateLanguage.RUSSIAN
+
+    private fun ensureNativeLibrariesLoaded(): Boolean {
+        if (!capabilityRepository.isInstalledBlocking(DeliverableSet.TRANSLATION)) {
+            Timber.i("Translation engine not installed - native libraries unavailable")
+            return false
+        }
+        try {
+            libraryLoader.load(DeliverableSet.TRANSLATION)
+            return true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load translation native libraries")
+            return false
+        }
+    }
 
     override suspend fun getTargetLanguageCode(): String? {
         val settings = settingsRepository.getSettings().first()
@@ -50,6 +68,7 @@ class TranslationBackend(
 
     override suspend fun detectLanguage(text: String): String {
         if (text.isBlank()) return TranslateLanguage.ENGLISH
+        if (!ensureNativeLibrariesLoaded()) return TranslateLanguage.ENGLISH
 
         return try {
             val detectedLang = languageIdentifier.identifyLanguage(text).await()
@@ -86,8 +105,7 @@ class TranslationBackend(
         // Capability gate: the translation engine must be bundled or downloaded (S0386 Pillar A).
         // The enable-point UX (Phase 06) prompts for download before reaching here; this is the
         // defensive fallback so a missing engine degrades to "no translation" instead of crashing.
-        if (!capabilityRepository.isInstalledBlocking(DeliverableSet.TRANSLATION)) {
-            Timber.i("Translation engine not installed - translation unavailable")
+        if (!ensureNativeLibrariesLoaded()) {
             return null
         }
 

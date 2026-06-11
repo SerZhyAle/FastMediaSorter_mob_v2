@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.delivery
 
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapability
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
@@ -30,6 +32,10 @@ import javax.inject.Singleton
  * [DeliverableCapabilityRepository], language state from [TesseractModelManager]; download sizes are
  * read from the contributed [DeliverableSourceDescriptor] map when a flavor ships one, else from a
  * pinned estimate (the map is empty until the Phase 05 de-bundle lands).
+ *
+ * The inventory is flavor-scoped (S0401): a row is emitted only when its set is offered in the
+ * running flavor, so lite/photos (no OCR/translation capability, no media-playback descriptor) never
+ * show rows that could not install there.
  */
 @Singleton
 class DeliverableInventoryImpl @Inject constructor(
@@ -37,6 +43,8 @@ class DeliverableInventoryImpl @Inject constructor(
     private val downloader: DeliverableSetDownloader,
     private val repository: DeliverableCapabilityRepository,
     private val tesseractModelManager: TesseractModelManager,
+    private val capabilityAvailability: CapabilityAvailability,
+    private val bundled: BundledDeliverableSets,
     private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>
 ) : DeliverableInventory {
 
@@ -45,63 +53,96 @@ class DeliverableInventoryImpl @Inject constructor(
     private val activeDownloads = ConcurrentHashMap<String, MutableStateFlow<ExtensionStatus>>()
 
     // Ordered + sectioned for the grouped screen (S0386 Phase 11/12): OCR (engines + OCR languages),
-    // then Translation (module), then Media Playback (audio-viz + FFmpeg DTS).
-    override fun getExtensions(): List<ExtensionItem> = listOf(
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.OCR_ENGINES),
-            set = DeliverableSet.OCR_ENGINES,
-            displayNameRes = R.string.ext_ocr_engines_title,
-            descriptionRes = R.string.ext_ocr_engines_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.OCR_ENGINES),
-            section = ExtensionSection.OCR,
-            statusFlow = moduleStatusFlow(DeliverableSet.OCR_ENGINES)
-        ),
-        ExtensionItem.LanguageData(
-            id = languageKey("rus"),
-            languageCode = "rus",
-            displayNameRes = R.string.ext_lang_rus_title,
-            descriptionRes = R.string.ext_lang_rus_desc,
-            sizeLabel = formatBytes(LANG_SIZE_RUS),
-            section = ExtensionSection.OCR,
-            statusFlow = languageStatusFlow("rus")
-        ),
-        ExtensionItem.LanguageData(
-            id = languageKey("ukr"),
-            languageCode = "ukr",
-            displayNameRes = R.string.ext_lang_ukr_title,
-            descriptionRes = R.string.ext_lang_ukr_desc,
-            sizeLabel = formatBytes(LANG_SIZE_UKR),
-            section = ExtensionSection.OCR,
-            statusFlow = languageStatusFlow("ukr")
-        ),
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.TRANSLATION),
-            set = DeliverableSet.TRANSLATION,
-            displayNameRes = R.string.ext_translation_title,
-            descriptionRes = R.string.ext_translation_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.TRANSLATION),
-            section = ExtensionSection.TRANSLATION,
-            statusFlow = moduleStatusFlow(DeliverableSet.TRANSLATION)
-        ),
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.AUDIO_VISUALIZATIONS),
-            set = DeliverableSet.AUDIO_VISUALIZATIONS,
-            displayNameRes = R.string.ext_audio_viz_title,
-            descriptionRes = R.string.ext_audio_viz_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.AUDIO_VISUALIZATIONS),
-            section = ExtensionSection.MEDIA_PLAYBACK,
-            statusFlow = moduleStatusFlow(DeliverableSet.AUDIO_VISUALIZATIONS)
-        ),
-        ExtensionItem.Module(
-            id = moduleKey(DeliverableSet.FFMPEG_DTS),
-            set = DeliverableSet.FFMPEG_DTS,
-            displayNameRes = R.string.ext_ffmpeg_dts_title,
-            descriptionRes = R.string.ext_ffmpeg_dts_desc,
-            sizeLabel = moduleSizeLabel(DeliverableSet.FFMPEG_DTS),
-            section = ExtensionSection.MEDIA_PLAYBACK,
-            statusFlow = moduleStatusFlow(DeliverableSet.FFMPEG_DTS)
-        )
-    )
+    // then Translation (module), then Media Playback (audio-viz + FFmpeg DTS). Each row is gated on
+    // whether its set is offered in the running flavor (S0401): lite/photos compile in no OCR/
+    // translation capability and contribute no media-playback descriptor, so those rows are dropped
+    // rather than shown as non-installable.
+    override fun getExtensions(): List<ExtensionItem> = buildList {
+        if (isOcrOffered()) {
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.OCR_ENGINES),
+                    set = DeliverableSet.OCR_ENGINES,
+                    displayNameRes = R.string.ext_ocr_engines_title,
+                    descriptionRes = R.string.ext_ocr_engines_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.OCR_ENGINES),
+                    section = ExtensionSection.OCR,
+                    statusFlow = moduleStatusFlow(DeliverableSet.OCR_ENGINES)
+                )
+            )
+            // OCR language data is unusable without the OCR engine, so it follows the engine row.
+            add(
+                ExtensionItem.LanguageData(
+                    id = languageKey("rus"),
+                    languageCode = "rus",
+                    displayNameRes = R.string.ext_lang_rus_title,
+                    descriptionRes = R.string.ext_lang_rus_desc,
+                    sizeLabel = formatBytes(LANG_SIZE_RUS),
+                    section = ExtensionSection.OCR,
+                    statusFlow = languageStatusFlow("rus")
+                )
+            )
+            add(
+                ExtensionItem.LanguageData(
+                    id = languageKey("ukr"),
+                    languageCode = "ukr",
+                    displayNameRes = R.string.ext_lang_ukr_title,
+                    descriptionRes = R.string.ext_lang_ukr_desc,
+                    sizeLabel = formatBytes(LANG_SIZE_UKR),
+                    section = ExtensionSection.OCR,
+                    statusFlow = languageStatusFlow("ukr")
+                )
+            )
+        }
+        if (capabilityAvailability.isTranslationAvailable()) {
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.TRANSLATION),
+                    set = DeliverableSet.TRANSLATION,
+                    displayNameRes = R.string.ext_translation_title,
+                    descriptionRes = R.string.ext_translation_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.TRANSLATION),
+                    section = ExtensionSection.TRANSLATION,
+                    statusFlow = moduleStatusFlow(DeliverableSet.TRANSLATION)
+                )
+            )
+        }
+        if (isSetOffered(DeliverableSet.AUDIO_VISUALIZATIONS)) {
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.AUDIO_VISUALIZATIONS),
+                    set = DeliverableSet.AUDIO_VISUALIZATIONS,
+                    displayNameRes = R.string.ext_audio_viz_title,
+                    descriptionRes = R.string.ext_audio_viz_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.AUDIO_VISUALIZATIONS),
+                    section = ExtensionSection.MEDIA_PLAYBACK,
+                    statusFlow = moduleStatusFlow(DeliverableSet.AUDIO_VISUALIZATIONS)
+                )
+            )
+        }
+        if (isSetOffered(DeliverableSet.FFMPEG_DTS)) {
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.FFMPEG_DTS),
+                    set = DeliverableSet.FFMPEG_DTS,
+                    displayNameRes = R.string.ext_ffmpeg_dts_title,
+                    descriptionRes = R.string.ext_ffmpeg_dts_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.FFMPEG_DTS),
+                    section = ExtensionSection.MEDIA_PLAYBACK,
+                    statusFlow = moduleStatusFlow(DeliverableSet.FFMPEG_DTS)
+                )
+            )
+        }
+    }
+
+    // OCR_ENGINES + TRANSLATION are gated by compile-time capability (the .so / DFM may be delivered
+    // on demand with no descriptor at this point), while data-payload sets (AUDIO_VISUALIZATIONS) and
+    // the DTS decoder are gated by whether the flavor contributes a descriptor or bundles the set -
+    // lite/photos contribute neither.
+    private fun isOcrOffered(): Boolean = capabilityAvailability.isOcrCompiledIn()
+
+    private fun isSetOffered(set: DeliverableSet): Boolean =
+        descriptors.containsKey(set) || bundled.contains(set)
 
     override fun download(item: ExtensionItem): Flow<DownloadProgress> {
         val statusFlow = statusFlowFor(item)

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Decorative onboarding page introducing remote media sources: pinned header (icon + title +
+     short description) over a row of three static tiles (SMB / (S)FTP / Cloud), styled like the
+     feature tiles on page 0. Purely informational in S0398 - S0391 later turns the tiles into group
+     toggles. The Cloud tile (@id/tileNetworkCloud) is hidden by the holder when
+     MediaCapabilities.supportsCloud is false.
+     All ids must stay in sync with the landscape variant (layout-land/page_welcome_networks.xml). -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/welcome_page_padding">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutContent"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Header: icon -->
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/welcome_icon_size"
+            android:layout_height="@dimen/welcome_icon_size"
+            android:layout_marginTop="@dimen/welcome_icon_margin_top"
+            android:contentDescription="@string/welcome_networks_title"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Header: title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_title_margin_top"
+            android:gravity="center"
+            android:text="@string/welcome_networks_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_title_text_size"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivIcon" />
+
+        <!-- Header: short description -->
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:alpha="0.85"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.3"
+            android:text="@string/welcome_networks_description"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_description_text_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+        <!-- Scrollable body so the tile row never clips on short screens -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvDescription">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <!-- SMB tile -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tileNetworkSmb"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/welcome_feature_card_margin"
+                    android:layout_marginEnd="@dimen/welcome_feature_card_margin"
+                    android:layout_weight="1"
+                    android:clickable="false"
+                    android:contentDescription="@string/welcome_network_tile_smb"
+                    android:focusable="false"
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:rippleColor="@android:color/transparent"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:minHeight="72dp"
+                        android:orientation="vertical"
+                        android:padding="@dimen/welcome_feature_card_padding">
+
+                        <ImageView
+                            android:layout_width="@dimen/welcome_feature_card_icon_size"
+                            android:layout_height="@dimen/welcome_feature_card_icon_size"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_resource_smb"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:ellipsize="end"
+                            android:gravity="center"
+                            android:maxLines="2"
+                            android:text="@string/welcome_network_tile_smb"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/welcome_feature_card_text_size" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- (S)FTP tile -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tileNetworkFtp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/welcome_feature_card_margin"
+                    android:layout_marginEnd="@dimen/welcome_feature_card_margin"
+                    android:layout_weight="1"
+                    android:clickable="false"
+                    android:contentDescription="@string/welcome_network_tile_ftp"
+                    android:focusable="false"
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:rippleColor="@android:color/transparent"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:minHeight="72dp"
+                        android:orientation="vertical"
+                        android:padding="@dimen/welcome_feature_card_padding">
+
+                        <ImageView
+                            android:layout_width="@dimen/welcome_feature_card_icon_size"
+                            android:layout_height="@dimen/welcome_feature_card_icon_size"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_resource_ftp"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:ellipsize="end"
+                            android:gravity="center"
+                            android:maxLines="2"
+                            android:text="@string/welcome_network_tile_ftp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/welcome_feature_card_text_size" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Cloud tile - hidden by the holder when supportsCloud is false -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tileNetworkCloud"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/welcome_feature_card_margin"
+                    android:layout_marginEnd="@dimen/welcome_feature_card_margin"
+                    android:layout_weight="1"
+                    android:clickable="false"
+                    android:contentDescription="@string/welcome_network_tile_cloud"
+                    android:focusable="false"
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:rippleColor="@android:color/transparent"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:minHeight="72dp"
+                        android:orientation="vertical"
+                        android:padding="@dimen/welcome_feature_card_padding">
+
+                        <ImageView
+                            android:layout_width="@dimen/welcome_feature_card_icon_size"
+                            android:layout_height="@dimen/welcome_feature_card_icon_size"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_resource_cloud"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:ellipsize="end"
+                            android:gravity="center"
+                            android:maxLines="2"
+                            android:text="@string/welcome_network_tile_cloud"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="@dimen/welcome_feature_card_text_size" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

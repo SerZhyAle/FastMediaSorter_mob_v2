@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
+import com.sza.fastmediasorter.core.capability.InstallSourceProvider
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
@@ -41,6 +42,7 @@ class RealDeliverableSetDownloader @Inject constructor(
     private val verifier: PayloadIntegrityVerifier,
     private val markerStore: InstalledSetMarkerStore,
     private val repository: DeliverableCapabilityRepository,
+    private val installSourceProvider: InstallSourceProvider,
     okHttpClient: OkHttpClient
 ) : DeliverableSetDownloader {
 
@@ -53,9 +55,54 @@ class RealDeliverableSetDownloader @Inject constructor(
 
     override fun download(set: DeliverableSet): Flow<DownloadProgress> {
         if (set == DeliverableSet.TRANSLATION) {
-            return downloadDfm("translate_feature")
+            return flow {
+                var dfmFailed = false
+                var failureReason = ""
+                downloadDfm("translate_feature").collect { progress ->
+                    if (progress is DownloadProgress.Failed) {
+                        dfmFailed = true
+                        failureReason = progress.reason
+                    } else {
+                        emit(progress)
+                    }
+                }
+                if (dfmFailed) {
+                    Timber.w("DFM translation download failed: %s. Falling back to HTTP/GitHub mirror.", failureReason)
+                    downloadFromSources(DeliverableSet.TRANSLATION).collect { emit(it) }
+                }
+            }
         }
 
+        // Play policy (Device & Network Abuse) forbids fetching executable code (.so) from a non-Play
+        // source. On a Play install of a store flavor the native sets must not hit the GitHub mirror;
+        // the direct download stays only for non-Play contexts (sideload/debug/noLegal), which keeps
+        // the existing failover path unchanged there (S0401 §6.1). Data payloads (Set C .mp4, OCR
+        // traineddata) are not code and keep direct download everywhere, so the gate is .so-only.
+        if (set.isNativeCodeSet() && installSourceProvider.isPlayInstall()) {
+            Timber.d("S0401: native-set delivery gated to Play-compliant path, set=$set")
+            return downloadNativeSetOnPlay(set)
+        }
+
+        return downloadFromSources(set)
+    }
+
+    /**
+     * Play-compliant branch for a native (`.so`-bearing) set on a Play install. The store flavors
+     * (standard/legacy) de-bundle these sets (S0386 Phase 05) and the build strips the `.so` from
+     * every base artifact, so a Play install does not carry them and they cannot be re-fetched without
+     * violating policy. Mirror the graceful APP_NOT_OWNED handling of [downloadDfm]: report a
+     * human-readable unavailable result with no network call. Bundling for store flavors is deferred
+     * (would re-bloat the size-optimized APK and collide with the runtime loader); when it lands the
+     * set becomes bundled and [DeliverableCapabilityRepository.isInstalledBlocking] short-circuits the
+     * UI before this branch is reached.
+     */
+    private fun downloadNativeSetOnPlay(set: DeliverableSet): Flow<DownloadProgress> = flow {
+        emit(DownloadProgress.Queued)
+        Timber.i("Native set %s is delivered via Google Play and is unavailable on this install", set)
+        emit(DownloadProgress.Failed("This module is delivered via Google Play and is unavailable on this build"))
+    }
+
+    private fun downloadFromSources(set: DeliverableSet): Flow<DownloadProgress> {
         return flow {
             emit(DownloadProgress.Queued)
 
@@ -278,6 +325,12 @@ class RealDeliverableSetDownloader @Inject constructor(
         if (movedOldAside) backup.renameTo(payloadDir)
         return false
     }
+
+    // The sets whose payload is executable native code (`.so`); only these are gated on install
+    // source. AUDIO_VISUALIZATIONS (.mp4) and OCR language data (.traineddata) are pure data and are
+    // never gated. TRANSLATION is handled earlier via SplitInstall, so it never reaches this check.
+    private fun DeliverableSet.isNativeCodeSet(): Boolean =
+        this == DeliverableSet.OCR_ENGINES || this == DeliverableSet.FFMPEG_DTS
 
     private companion object {
         const val TIMEOUT_SECONDS = 15L

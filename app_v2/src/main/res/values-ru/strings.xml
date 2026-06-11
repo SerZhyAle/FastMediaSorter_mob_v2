@@ -2447,14 +2447,17 @@
     <string name="ext_lang_ukr_desc">Высококачественная модель украинского языка для офлайн-распознавания текста Tesseract.</string>
     <string name="ext_delete_confirm_title">Удалить расширение?</string>
     <string name="ext_delete_confirm_message">Удалить %1$s и освободить место? Позже можно скачать снова.</string>
+    <string name="ext_install_all">Установить все</string>
+    <string name="ext_uninstall_all">Удалить все</string>
+    <string name="ext_uninstall_all_confirm_title">Удалить все расширения?</string>
+    <string name="ext_uninstall_all_confirm_message">Удалить все установленные расширения и освободить место? Позже можно скачать снова.</string>
     <string name="slideshow_stop">Остановить слайд-шоу</string>
     <string name="open_in_fms_external_file_notice">Этот файл находится вне папки, добавленной в приложение, поэтому открылся главный экран.</string>
     <string name="sftp_host_key_fingerprint_hint">Ожидаемый отпечаток host-key (SHA256, опционально)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не удалось разобрать отпечаток. Поддерживаются SHA256:base64, hex с двоеточиями, чистый base64.</string>
     <string name="sftp_host_key_mismatch_title">Отпечаток host-key не совпадает</string>
     <string name="sftp_host_key_mismatch_body_format">Ожидался отпечаток:\n%1$s\n\nСервер прислал:\n%2$s\n\nСоединение отклонено — возможна подмена сервера или легитимная смена ключа. Если вы доверяете этому серверу, обновите ресурс вручную.</string>
-    <string name="ext_section_ocr">OCR</string>
-    <string name="ext_section_translation">Перевод</string>
+    <string name="ext_section_ocr_translation">Перевод и распознавание OCR</string>
     <string name="ext_section_media_playback">Проигрывание медиа</string>
     <string name="ext_shortcut_packs_title">Загрузки OCR и перевода</string>
     <string name="ext_shortcut_packs_desc">Открыть загружаемые расширения для установки пакетов OCR и перевода</string>
@@ -2463,4 +2466,16 @@
     <string name="download_runner_notif_title_installed">%s успешно установлен</string>
     <string name="download_runner_notif_title_queued">Загрузка поставлена в очередь</string>
     <string name="download_runner_notif_title_failed">Ошибка загрузки %s</string>
+    <string name="screen_capture_saved_to">Сохранено в %1$s: %2$s</string>
+    <string name="screen_capture_service_notification_title">Снимок экрана</string>
+    <string name="screen_capture_service_notification_text">Захватываю текущий экран..</string>
+    <string name="setting_group_system_apps_title">Системные приложения</string>
+    <string name="setting_subgroup_screen_gestures_title">Жесты экрана</string>
+    <string name="setting_gesture_overlay_title">Оверлей жестов</string>
+    <string name="setting_gesture_overlay_summary">Показывать тонкую полосу жестов у левого края поверх других приложений</string>
+    <string name="setting_screenshot_gesture_down_title">Скриншот жестом вниз</string>
+    <string name="setting_screenshot_gesture_down_summary">Проведите от полосы вправо-вниз, чтобы снять текущий экран</string>
+    <string name="setting_screenshot_destination_title">Загружать скриншоты в..</string>
+    <string name="setting_screenshot_destination_default">Папка скриншотов устройства (или Downloads)</string>
+    <string name="screenshot_overlay_permission_rationale">Разрешите показ поверх других приложений, чтобы отображать полосу жестов</string>
 </resources>

@@ -26,8 +26,7 @@ import javax.inject.Singleton
  * ReLinker technique) before the wrapper's own loader runs, then warm-load each `.so` to fail fast.
  *
  * Scope: self-downloaded first-party / OSS `.so` only - Tesseract (+ leptonica/jpeg/pngx), PaddleOCR,
- * FFmpeg DTS. ML Kit Translate is out of scope here (store = `:translate_feature` dynamic module via
- * `SplitInstallHelper.loadLibrary`; sideload/VR = bundled, loads normally - 2026-06-09 decision).
+ * FFmpeg DTS, and ML Kit Translate (fallback delivery for store flavors).
  */
 @Singleton
 class DeliveredNativeLibraryLoader @Inject constructor(

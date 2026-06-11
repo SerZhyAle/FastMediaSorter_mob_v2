@@ -184,8 +184,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260610233
-        versionName = "2.60.6102.339"
+        versionCode = 260611153
+        versionName = "2.60.6111.537"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -521,7 +521,7 @@ android {
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
-            kotlin.directories.add("src/translationDynamicFeature/java")
+            kotlin.directories.add("src/translationMlKit/java")
             // S0250 / S0245 wiring closure: NoOp XR Hilt bindings live in src/vrStub/java.
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
@@ -546,7 +546,7 @@ android {
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
-            kotlin.directories.add("src/translationDynamicFeature/java")
+            kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrStub/java")
         }
         getByName("vr") {
@@ -875,6 +875,12 @@ androidComponents {
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
         // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
         // would leave OCR/DTS in a half-migrated state.
+
+        // S0401: Exclude translation native libraries from standard and legacy base APKs
+        if (flavorName == "standard" || flavorName == "legacy") {
+            variant.packaging.jniLibs.excludes.add("**/libtranslate_jni.so")
+            variant.packaging.jniLibs.excludes.add("**/liblanguage_id_l2c_jni.so")
+        }
     }
 }
 
@@ -1110,6 +1116,10 @@ dependencies {
     "noLegalImplementation"("com.google.mlkit:language-id:17.0.6")
     "vrImplementation"("com.google.mlkit:translate:17.0.3")
     "vrImplementation"("com.google.mlkit:language-id:17.0.6")
+    "standardImplementation"("com.google.mlkit:translate:17.0.3")
+    "standardImplementation"("com.google.mlkit:language-id:17.0.6")
+    "legacyImplementation"("com.google.mlkit:translate:17.0.3")
+    "legacyImplementation"("com.google.mlkit:language-id:17.0.6")
 
     // S0386: com.google.mlkit:text-recognition is completely removed from all builds.
 

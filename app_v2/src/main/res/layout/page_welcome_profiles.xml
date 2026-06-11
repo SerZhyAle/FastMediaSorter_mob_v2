@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0399 device-profile onboarding page. Pinned header (title + subtitle) over a RecyclerView of
+     full profile tiles (item_device_profile_tile.xml via DeviceProfileTileAdapter). The holder
+     (ProfilesPageViewHolder) builds the grid layout manager, orders profiles small-screen-first,
+     pre-selects + auto-scrolls to the recommended tile, and keeps a cached adapter for direct
+     selection refresh. Dense layout: minimal page padding, tile spacing comes from the item margin.
+     All ids must stay in sync with the landscape variant (layout-land/page_welcome_profiles.xml). -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/welcome_page_padding">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutContent"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Header: title -->
+        <TextView
+            android:id="@+id/tvProfilesTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_title_margin_top"
+            android:gravity="center"
+            android:text="@string/welcome_profiles_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_title_text_size"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Header: subtitle -->
+        <TextView
+            android:id="@+id/tvProfilesSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:alpha="0.85"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.3"
+            android:text="@string/welcome_profiles_subtitle"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_description_text_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProfilesTitle" />
+
+        <!-- Tile grid: fills the rest. Focusable so D-pad enters the grid; afterDescendants lets
+             RecyclerView's grid focus-search move tile-to-tile and absorb LEFT/RIGHT until a true
+             row edge. clipToPadding=false keeps the small inset spacing while allowing overscroll. -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvProfiles"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:descendantFocusability="afterDescendants"
+            android:focusable="true"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
+            android:paddingBottom="8dp"
+            android:scrollbars="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProfilesSubtitle"
+            tools:listitem="@layout/item_device_profile_tile" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -153,6 +153,9 @@ data class AppSettings(
     // S0367: default destination for camera photos; null = fallback to device camera folder (DCIM/Camera).
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
+    val gestureOverlayEnabled: Boolean = false,
+    val screenshotGestureDownEnabled: Boolean = true,
+    val screenshotDestinationResourceId: String? = null,
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,

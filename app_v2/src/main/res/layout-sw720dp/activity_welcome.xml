@@ -62,20 +62,6 @@
             android:orientation="horizontal"
             android:gravity="center"
             app:layout_constraintStart_toEndOf="@id/btnPrevious"
-            app:layout_constraintEnd_toStartOf="@id/btnSkip"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSkip"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/skip"
-            android:textColor="?attr/colorOnSurface"
-            android:alpha="0.7"
-            android:textSize="@dimen/welcome_button_text_size"
-            android:minHeight="@dimen/welcome_button_min_height"
             app:layout_constraintEnd_toStartOf="@id/btnNext"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

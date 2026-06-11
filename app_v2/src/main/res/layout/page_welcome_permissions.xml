@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Permissions welcome page - centred, max-width capped for TV -->
+<!-- S0402 permissions onboarding page (adaptive permission set in the pager). Centred-column header
+     (icon + title + subtitle) over a "Grant all" affordance and a scrollable list of the adaptive
+     permission rows (reuses item_permission_entry / item_permission_group_header via
+     PermissionRowAdapter). Forward navigation is the pager's shared bottom nav (Next/Finish), so this
+     page has no continue button. WelcomePermissionsManager owns the row data + grant-all launchers.
+     The generated binding name PageWelcomePermissionsBinding must stay stable.
+     All ids must stay in sync with the landscape variant (layout-land/page_welcome_permissions.xml). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/welcome_page_padding">
 
-    <!-- Centred content column -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutContent"
         android:layout_width="0dp"
@@ -17,20 +22,22 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
+        <!-- Header: icon -->
         <ImageView
-            android:id="@+id/ivIcon"
+            android:id="@+id/ivPermissionsIcon"
             android:layout_width="@dimen/welcome_icon_size"
             android:layout_height="@dimen/welcome_icon_size"
             android:layout_marginTop="@dimen/welcome_icon_margin_top"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/ic_folder"
-            app:tint="?attr/colorPrimary"
+            android:contentDescription="@string/welcome_permissions_title"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_launcher"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Header: title -->
         <TextView
-            android:id="@+id/tvTitle"
+            android:id="@+id/tvPermissionsTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/welcome_title_margin_top"
@@ -41,43 +48,62 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivIcon" />
+            app:layout_constraintTop_toBottomOf="@id/ivPermissionsIcon" />
 
-        <ScrollView
+        <!-- Header: subtitle -->
+        <TextView
+            android:id="@+id/tvPermissionsSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:alpha="0.85"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.3"
+            android:text="@string/welcome_permissions_subtitle"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_description_text_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvPermissionsTitle" />
+
+        <!-- Grant-all CTA: hidden by the manager when nothing is left to grant -->
+        <Button
+            android:id="@+id/btnGrantAll"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:text="@string/perm_btn_grant_all"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvPermissionsSubtitle" />
+
+        <!-- Escape hatch to the OS app-details screen -->
+        <Button
+            android:id="@+id/btnOpenSettings"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/perm_btn_open_system_settings"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnGrantAll" />
+
+        <!-- Adaptive permission rows -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvPermissions"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/welcome_description_margin_top"
-            android:layout_marginBottom="@dimen/margin_medium"
-            android:fillViewport="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle"
-            app:layout_constraintBottom_toTopOf="@id/btnGrant">
-
-            <TextView
-                android:id="@+id/tvDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@string/welcome_permissions_description"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="@dimen/welcome_description_text_size"
-                android:lineSpacingMultiplier="1.3" />
-
-        </ScrollView>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGrant"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_large"
-            android:text="@string/grant_permissions"
-            android:paddingStart="@dimen/padding_xxlarge"
-            android:paddingEnd="@dimen/padding_xxlarge"
+            android:clipToPadding="false"
+            android:fadeScrollbars="false"
+            android:scrollbarStyle="outsideOverlay"
+            android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnOpenSettings" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

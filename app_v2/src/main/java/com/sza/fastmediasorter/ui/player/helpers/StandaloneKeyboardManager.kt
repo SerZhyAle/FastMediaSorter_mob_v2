@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.domain.model.MediaType
+import timber.log.Timber
 
 /**
  * S0393 U4/U5: shared keyboard / D-pad / TV layer for the standalone hosts. The [PlayerKeyboardHandler]
@@ -43,6 +44,9 @@ class StandaloneKeyboardManager(
     private val onShowHelp: () -> Unit = {},
     private val onToggleRotationSensor: () -> Unit = {},
 ) {
+    init {
+        Timber.d("S0393: shared standalone keyboard/D-pad layer wired (audio/doc/text/photo-video)")
+    }
 
     val handler: PlayerKeyboardHandler = PlayerKeyboardHandler(
         callback = object : PlayerKeyboardHandler.PlayerKeyboardCallback {

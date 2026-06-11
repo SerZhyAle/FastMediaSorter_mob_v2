@@ -10,8 +10,7 @@
     android:orientation="vertical"
     android:background="?attr/colorSurface"
     android:clickable="true"
-    android:focusable="true"
-    android:fitsSystemWindows="true">
+    android:focusable="true">
 
     <!-- AppBar/Header -->
     <LinearLayout
@@ -75,5 +74,45 @@
         android:paddingBottom="8dp"
         android:clipToPadding="false"
         tools:listitem="@layout/item_extension" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant"
+        android:alpha="0.3" />
+
+    <!-- Bulk actions footer -->
+    <LinearLayout
+        android:id="@+id/footerActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="?attr/colorSurface"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInstallAll"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="@string/ext_install_all" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUninstallAll"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="@string/ext_uninstall_all" />
+
+    </LinearLayout>
 
 </LinearLayout>

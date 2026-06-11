@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.di
 
-import com.sza.fastmediasorter.delivery.DynamicTextTranslationFacadeFactory
-import com.sza.fastmediasorter.delivery.DynamicTranslationModelPrewarmer
 import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
+import com.sza.fastmediasorter.domain.usecase.PrewarmTranslationModelUseCase
+import com.sza.fastmediasorter.ui.player.helpers.MlKitTextTranslationFacadeFactory
 import com.sza.fastmediasorter.ui.player.helpers.TextTranslationFacadeFactory
 import dagger.Binds
 import dagger.Module
@@ -17,12 +17,12 @@ abstract class TranslationFlavorModule {
     @Binds
     @Singleton
     abstract fun bindTextTranslationFacadeFactory(
-        impl: DynamicTextTranslationFacadeFactory
+        impl: MlKitTextTranslationFacadeFactory
     ): TextTranslationFacadeFactory
 
     @Binds
     @Singleton
     abstract fun bindTranslationModelPrewarmer(
-        impl: DynamicTranslationModelPrewarmer
+        impl: PrewarmTranslationModelUseCase
     ): TranslationModelPrewarmer
 }

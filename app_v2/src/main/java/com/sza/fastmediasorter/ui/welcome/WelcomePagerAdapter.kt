@@ -12,15 +12,20 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
-import com.sza.fastmediasorter.ui.common.DeviceProfileUi
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeEnhancedBinding
+import com.sza.fastmediasorter.databinding.PageWelcomeFunctionalityBinding
+import com.sza.fastmediasorter.databinding.PageWelcomeNetworksBinding
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
-import com.sza.fastmediasorter.databinding.PageWelcomeTouchZonesBinding
+import com.sza.fastmediasorter.databinding.PageWelcomeProfilesBinding
+import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
+import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
+import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
 
 class WelcomePagerAdapter(
     private val pages: List<WelcomePage>
@@ -28,101 +33,76 @@ class WelcomePagerAdapter(
 
     companion object {
         private const val VIEW_TYPE_NORMAL = 0
-        private const val VIEW_TYPE_TOUCH_ZONES = 1
-        private const val VIEW_TYPE_PERMISSIONS = 2
+        private const val VIEW_TYPE_PROFILES = 1
+        private const val VIEW_TYPE_FUNCTIONALITY = 2
         private const val VIEW_TYPE_ENHANCED = 3
         private const val VIEW_TYPE_DEFAULT_PLAYER = 4
+        private const val VIEW_TYPE_NETWORKS = 5
+        private const val VIEW_TYPE_PERMISSIONS = 6
     }
 
-    /** Binding of the currently-bound welcome page that hosts the profile selector card (page 0). */
-    private var profileSelectorBinding: PageWelcomeEnhancedBinding? = null
+    /** The currently-bound device-profile page holder, kept so the Activity can refresh the grid
+     *  selection directly (ViewPager2 does not reliably rebind the visible page on notifyItemChanged). */
+    private var profilesHolder: ProfilesPageViewHolder? = null
 
-    /**
-     * Refresh the visible welcome profile card directly. ViewPager2 does not reliably rebind the
-     * current page on [notifyItemChanged], so [com.sza.fastmediasorter.ui.welcome.WelcomeActivity]
-     * calls this after the user picks a profile to guarantee the summary card matches the selection.
-     */
-    fun refreshSelectedProfile(recommendedType: DeviceProfileType?, selectedType: DeviceProfileType?) {
-        val binding = profileSelectorBinding ?: return
-        val effective = selectedType ?: recommendedType ?: DeviceProfileType.PERSONAL_SMARTPHONE
-        bindSelectedProfileCard(binding, recommendedType, effective)
-    }
+    // Latest profile recommendation/selection from the (async) detector. Cached here so it is applied
+    // even when it resolves BEFORE the profiles holder binds - onBindViewHolder replays it on bind.
+    private var latestRecommended: DeviceProfileType? = null
+    private var latestSelected: DeviceProfileType? = null
+    private var hasLatestProfiles = false
 
-    private fun bindSelectedProfileCard(
-        binding: PageWelcomeEnhancedBinding,
-        recommendedType: DeviceProfileType?,
-        selectedType: DeviceProfileType,
-    ) {
-        val context = binding.root.context
-        binding.ivSelectedProfileIcon.setImageResource(DeviceProfileUi.iconRes(selectedType))
-        val title = context.getString(DeviceProfileUi.titleRes(selectedType))
-        binding.tvSelectedProfileTitle.text = if (selectedType == recommendedType) {
-            "$title ${context.getString(R.string.welcome_recommended_badge)}"
-        } else {
-            title
-        }
-        binding.tvProfileDescription.text = context.getString(DeviceProfileUi.descRes(selectedType))
+    /** Refresh the device-profile grid selection directly after detection resolves or a pick (S0399). */
+    fun refreshProfiles(recommendedType: DeviceProfileType?, selectedType: DeviceProfileType?) {
+        latestRecommended = recommendedType
+        latestSelected = selectedType
+        hasLatestProfiles = true
+        profilesHolder?.updateSelection(recommendedType, selectedType)
     }
 
     override fun getItemViewType(position: Int): Int {
         return when {
+            pages[position].isProfilesPage -> VIEW_TYPE_PROFILES
+            pages[position].isFunctionalityPage -> VIEW_TYPE_FUNCTIONALITY
             pages[position].isPermissionsPage -> VIEW_TYPE_PERMISSIONS
+            pages[position].isNetworksPage -> VIEW_TYPE_NETWORKS
             pages[position].isDefaultPlayerPage -> VIEW_TYPE_DEFAULT_PLAYER
-            pages[position].showTouchZonesScheme -> VIEW_TYPE_TOUCH_ZONES
             pages[position].featureCards.isNotEmpty() -> VIEW_TYPE_ENHANCED
             else -> VIEW_TYPE_NORMAL
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            VIEW_TYPE_TOUCH_ZONES -> {
-                val binding = PageWelcomeTouchZonesBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                TouchZonesViewHolder(binding)
-            }
-            VIEW_TYPE_PERMISSIONS -> {
-                val binding = PageWelcomePermissionsBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                PermissionsViewHolder(binding)
-            }
-            VIEW_TYPE_DEFAULT_PLAYER -> {
-                val binding = PageWelcomeDefaultPlayerBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                DefaultPlayerViewHolder(binding)
-            }
-            VIEW_TYPE_ENHANCED -> {
-                val binding = PageWelcomeEnhancedBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                EnhancedViewHolder(binding)
-            }
-            else -> {
-                val binding = PageWelcomeBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                WelcomeViewHolder(binding)
-            }
+            VIEW_TYPE_PROFILES ->
+                ProfilesPageViewHolder(PageWelcomeProfilesBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_FUNCTIONALITY ->
+                FunctionalityPageViewHolder(PageWelcomeFunctionalityBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_PERMISSIONS ->
+                PermissionsPageViewHolder(PageWelcomePermissionsBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_NETWORKS ->
+                NetworksViewHolder(PageWelcomeNetworksBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_DEFAULT_PLAYER ->
+                DefaultPlayerViewHolder(PageWelcomeDefaultPlayerBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_ENHANCED ->
+                EnhancedViewHolder(PageWelcomeEnhancedBinding.inflate(inflater, parent, false))
+            else ->
+                WelcomeViewHolder(PageWelcomeBinding.inflate(inflater, parent, false))
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is TouchZonesViewHolder -> holder.bind(pages[position])
-            is PermissionsViewHolder -> holder.bind(pages[position])
+            is ProfilesPageViewHolder -> {
+                profilesHolder = holder
+                holder.bind(pages[position])
+                // Replay the latest detector result if it already resolved before this bind, so the
+                // recommended badge + auto-scroll are not lost to the bind/detection race.
+                if (hasLatestProfiles) holder.updateSelection(latestRecommended, latestSelected)
+            }
+            is FunctionalityPageViewHolder -> holder.bind(pages[position])
+            is PermissionsPageViewHolder -> holder.bind(pages[position])
+            is NetworksViewHolder -> holder.bind(pages[position])
             is DefaultPlayerViewHolder -> holder.bind(pages[position])
             is EnhancedViewHolder -> holder.bind(pages[position])
             is WelcomeViewHolder -> holder.bind(pages[position])
@@ -144,34 +124,6 @@ class WelcomePagerAdapter(
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 300L)
-        }
-    }
-
-    class TouchZonesViewHolder(
-        private val binding: PageWelcomeTouchZonesBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(page: WelcomePage) {
-            binding.tvTitle.text = binding.root.context.getString(page.titleRes)
-            bindDetails(binding.tvDetails, page)
-
-            animateEntrance(binding.tvTitle, 0L)
-            animateEntrance(binding.gridTouchZones, 150L)
-        }
-    }
-
-    class PermissionsViewHolder(
-        private val binding: PageWelcomePermissionsBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(page: WelcomePage) {
-            binding.btnGrant.setOnClickListener {
-                page.onGrantClick?.invoke()
-            }
-
-            animateEntrance(binding.ivIcon, 0L)
-            animateEntrance(binding.tvTitle, 150L)
-            animateEntrance(binding.btnGrant, 300L)
         }
     }
 
@@ -212,7 +164,22 @@ class WelcomePagerAdapter(
         }
     }
 
-    inner class EnhancedViewHolder(
+    class NetworksViewHolder(
+        private val binding: PageWelcomeNetworksBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(page: WelcomePage) {
+            Timber.d("S0398: networks page bound, cloudTileVisible=${page.showCloudNetworkTile}")
+            // Decorative page: only the Cloud tile is conditional (collapsed on no-cloud flavors).
+            binding.tileNetworkCloud.isVisible = page.showCloudNetworkTile
+
+            animateEntrance(binding.ivIcon, 0L)
+            animateEntrance(binding.tvTitle, 150L)
+            animateEntrance(binding.tvDescription, 250L)
+        }
+    }
+
+    class EnhancedViewHolder(
         private val binding: PageWelcomeEnhancedBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -226,7 +193,7 @@ class WelcomePagerAdapter(
 
             // Language picker wiring
             if (page.showLanguagePicker) {
-                binding.layoutLanguagePicker.visibility = android.view.View.VISIBLE
+                binding.layoutLanguagePicker.visibility = View.VISIBLE
                 binding.layoutLanguagePicker.clearOnButtonCheckedListeners()
                 val currentLang = LocaleHelper.getLanguage(binding.root.context)
                 val initialId = when (currentLang) {
@@ -247,23 +214,37 @@ class WelcomePagerAdapter(
                     }
                 }
             } else {
-                binding.layoutLanguagePicker.visibility = android.view.View.GONE
+                binding.layoutLanguagePicker.visibility = View.GONE
             }
 
-            // Profile selector: a pressable card showing the current/recommended profile that opens
-            // the shared tile picker (DeviceProfilePickerDialogFragment). Replaces the old dropdown.
-            if (page.showProfileSelector) {
-                binding.layoutProfileSelector.visibility = View.VISIBLE
-                // Keep a handle to the visible selector card: ViewPager2 does not reliably rebind the
-                // current page on notifyItemChanged, so it is refreshed directly after a pick.
-                profileSelectorBinding = binding
-                val selectedType = page.selectedProfileType
-                    ?: page.recommendedProfileType
-                    ?: DeviceProfileType.PERSONAL_SMARTPHONE
-                bindSelectedProfileCard(binding, page.recommendedProfileType, selectedType)
-                binding.cardSelectedProfile.setOnClickListener { page.onOpenProfilePicker?.invoke() }
+            // Theme picker wiring: mirrors the language picker. Pre-checks the button for the current
+            // ColorThemePrefs mode; the dual-write (DataStore + mirror) happens in the Activity callback.
+            // Welcome stays force-light, so the choice only takes effect on the next cold start.
+            if (page.showThemePicker) {
+                binding.layoutThemePicker.visibility = View.VISIBLE
+                binding.tvThemeAppliesHint.visibility = View.VISIBLE
+                binding.layoutThemePicker.clearOnButtonCheckedListeners()
+                val currentMode = ColorThemePrefs.getMode(binding.root.context)
+                val initialThemeId = when (currentMode) {
+                    "LIGHT" -> R.id.btnThemeLight
+                    "DARK" -> R.id.btnThemeDark
+                    else -> R.id.btnThemeAuto
+                }
+                binding.layoutThemePicker.check(initialThemeId)
+                binding.layoutThemePicker.addOnButtonCheckedListener { _, checkedId, isChecked ->
+                    if (!isChecked) return@addOnButtonCheckedListener
+                    val mode = when (checkedId) {
+                        R.id.btnThemeLight -> "LIGHT"
+                        R.id.btnThemeDark -> "DARK"
+                        else -> "AUTO"
+                    }
+                    if (mode != ColorThemePrefs.getMode(binding.root.context)) {
+                        page.onThemeSelected?.invoke(mode)
+                    }
+                }
             } else {
-                binding.layoutProfileSelector.visibility = View.GONE
+                binding.layoutThemePicker.visibility = View.GONE
+                binding.tvThemeAppliesHint.visibility = View.GONE
             }
 
             // Staggered entrance animations
@@ -272,7 +253,6 @@ class WelcomePagerAdapter(
             animateEntrance(binding.tvDescription, 250L)
             animateEntrance(binding.gridFeatures, 400L)
         }
-
     }
 }
 
@@ -334,16 +314,18 @@ private fun populateFeatureGrid(grid: GridLayout, cards: List<FeatureCard>) {
 }
 
 data class WelcomePage(
-    val iconRes: Int,
-    val titleRes: Int,
-    val descriptionRes: Int,
+    // Header icon/title/description: 0 on pages that render their own content (networks, profiles,
+    // functionality, permissions, default-player).
+    val iconRes: Int = 0,
+    val titleRes: Int = 0,
+    val descriptionRes: Int = 0,
     /** Optional string resource for the scrollable "details" block below the header; 0 = no details. */
     val detailDescriptionRes: Int = 0,
-    val showTouchZonesScheme: Boolean = false,
-    val isPermissionsPage: Boolean = false,
     val isDefaultPlayerPage: Boolean = false,
-    val onGrantClick: (() -> Unit)? = null,
-    val onSkipClick: (() -> Unit)? = null,
+    /** Marks the decorative networks page (SMB / (S)FTP / Cloud tiles). */
+    val isNetworksPage: Boolean = false,
+    /** On the networks page, show the Cloud tile only when the flavor supports cloud sources. */
+    val showCloudNetworkTile: Boolean = false,
     /** Called with the MIME type when the user taps a type-specific default-player button. */
     val onSetDefaultForTypeClick: ((mimeType: String) -> Unit)? = null,
     val featureCards: List<FeatureCard> = emptyList(),
@@ -351,11 +333,28 @@ data class WelcomePage(
     val showLanguagePicker: Boolean = false,
     /** Invoked with the ISO-639-1 language code when the user taps a picker button. */
     val onLanguageSelected: ((code: String) -> Unit)? = null,
-    val showProfileSelector: Boolean = false,
+    /** Show the colour-theme picker strip (Auto/Light/Dark). Only set on the first Welcome page. */
+    val showThemePicker: Boolean = false,
+    /** Invoked with "AUTO"|"LIGHT"|"DARK" when the user taps a theme button. */
+    val onThemeSelected: ((mode: String) -> Unit)? = null,
+    // ── S0399 device-profile page ────────────────────────────────────────────
+    /** Marks the dedicated device-profile selection page (full tile grid). */
+    val isProfilesPage: Boolean = false,
+    /** Profiles selectable in this flavor (from DeviceProfileAvailability); ordered by the page holder. */
+    val selectableProfiles: List<DeviceProfileType> = emptyList(),
     val recommendedProfileType: DeviceProfileType? = null,
     val selectedProfileType: DeviceProfileType? = null,
     val onProfileSelected: ((DeviceProfileType) -> Unit)? = null,
-    val onOpenProfilePicker: (() -> Unit)? = null,
+    // ── S0400 functionality page ─────────────────────────────────────────────
+    /** Marks the functionality (capability toggles + downloads) page. */
+    val isFunctionalityPage: Boolean = false,
+    /** Hands the page binding to WelcomeFunctionalityController, which owns all toggle/download logic. */
+    val onBindFunctionality: ((PageWelcomeFunctionalityBinding) -> Unit)? = null,
+    // ── S0402 permissions page ───────────────────────────────────────────────
+    /** Marks the adaptive permissions page hosted in the pager. */
+    val isPermissionsPage: Boolean = false,
+    /** Hands the page binding to WelcomePermissionsManager, which owns the adaptive set + grant-all. */
+    val onBindPermissions: ((PageWelcomePermissionsBinding) -> Unit)? = null,
 )
 
 data class FeatureCard(

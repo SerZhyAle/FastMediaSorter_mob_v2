@@ -10,6 +10,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 0. Setup & Configuration
 - **First-run device profile setup** `[Standard / VR]`: Select a device profile (phone, tablet, TV, head unit, media player, photo frame, VR headset, etc.) on first launch with auto-detection recommendations. The chosen profile applies optimized default settings (content types, layouts, security, screen behavior) tailored to the device's usage.
+- **Onboarding functionality setup** `[Standard / VR]`: During first-run setup, turn on the capabilities you need (file manager, audio, video, documents, text recognition, translation) and download optional elements inline - each feature activates as soon as its download finishes, with no trip to Settings.
 
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.

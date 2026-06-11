@@ -49,11 +49,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    sourceSets {
-        getByName("main") {
-            kotlin.directories.add("../app_v2/src/translationMlKit/java")
-        }
-    }
+
 }
 
 dependencies {

@@ -42,6 +42,14 @@ object ColorThemePrefs {
             .apply()
     }
 
+    /** Current normalized mode ("AUTO"|"LIGHT"|"DARK") from the synchronous mirror; used by callers
+     *  that need to pre-select a control without waiting for the async DataStore value. */
+    fun getMode(context: Context): String = normalizeValue(
+        context.applicationContext
+            .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_COLOR_THEME, DEFAULT)
+    )
+
     /**
      * Apply [value] to the process-global night mode immediately.
      *

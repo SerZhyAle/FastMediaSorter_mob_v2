@@ -29,7 +29,8 @@ object LegacyBundledDeliverableSetsModule {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
             DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
             DeliverableSet.OCR_ENGINES to DeliverableDescriptorCatalog.ocrEnginesStore(),
-            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts()
+            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts(),
+            DeliverableSet.TRANSLATION to DeliverableDescriptorCatalog.translation()
         )
     }
 }

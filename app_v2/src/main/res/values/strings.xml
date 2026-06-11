@@ -2495,14 +2495,17 @@ Close the player and try again.</string>
     <string name="ext_lang_ukr_desc">High-quality Ukrainian language model for offline Tesseract OCR text recognition.</string>
     <string name="ext_delete_confirm_title">Delete extension?</string>
     <string name="ext_delete_confirm_message">Remove %1$s and free up its space? You can download it again later.</string>
+    <string name="ext_install_all">Install all</string>
+    <string name="ext_uninstall_all">Delete all</string>
+    <string name="ext_uninstall_all_confirm_title">Delete all extensions?</string>
+    <string name="ext_uninstall_all_confirm_message">Remove all installed extensions and free up their space? You can download them again later.</string>
     <string name="slideshow_stop">Stop slideshow</string>
     <string name="open_in_fms_external_file_notice">This file is outside a folder added to the app, so the app home opened instead.</string>
     <string name="sftp_host_key_fingerprint_hint">Expected host key fingerprint (SHA256, optional)</string>
     <string name="sftp_host_key_fingerprint_invalid">Cannot parse fingerprint. Use SHA256:base64, hex with colons, or raw base64.</string>
     <string name="sftp_host_key_mismatch_title">Host key mismatch</string>
     <string name="sftp_host_key_mismatch_body_format">Expected fingerprint:\n%1$s\n\nServer offered:\n%2$s\n\nConnection refused — possible MITM attack or legitimate key change. Update the resource manually if you trust this server.</string>
-    <string name="ext_section_ocr">OCR</string>
-    <string name="ext_section_translation">Translation</string>
+    <string name="ext_section_ocr_translation">Translation &amp; OCR recognition</string>
     <string name="ext_section_media_playback">Media playback</string>
     <string name="ext_shortcut_packs_title">OCR &amp; translation downloads</string>
     <string name="ext_shortcut_packs_desc">Open downloadable extensions to install OCR and translation packs</string>
@@ -2511,4 +2514,16 @@ Close the player and try again.</string>
     <string name="download_runner_notif_title_installed">%s successfully installed</string>
     <string name="download_runner_notif_title_queued">Download queued</string>
     <string name="download_runner_notif_title_failed">Failed to download %s</string>
+    <string name="screen_capture_saved_to">Saved to %1$s: %2$s</string>
+    <string name="screen_capture_service_notification_title">Screen capture</string>
+    <string name="screen_capture_service_notification_text">Capturing the current screen..</string>
+    <string name="setting_group_system_apps_title">System apps</string>
+    <string name="setting_subgroup_screen_gestures_title">Screen gestures</string>
+    <string name="setting_gesture_overlay_title">Gesture overlay</string>
+    <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
+    <string name="setting_screenshot_gesture_down_title">Screenshot by down gesture</string>
+    <string name="setting_screenshot_gesture_down_summary">Swipe down-right from the strip to capture the current screen</string>
+    <string name="setting_screenshot_destination_title">Save screenshots to..</string>
+    <string name="setting_screenshot_destination_default">Device screenshots folder (or Downloads)</string>
+    <string name="screenshot_overlay_permission_rationale">Allow drawing over other apps to show the gesture strip</string>
 </resources>

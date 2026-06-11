@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.MediaSizeFilterSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.ScreenshotSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SlideshowSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
@@ -259,6 +260,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 val textRec = TextRecognitionSettingsStore.read(preferences)
                 val audio = AudioSettingsStore.read(preferences)
                 val capture = CaptureSettingsStore.read(preferences)
+                val screenshot = ScreenshotSettingsStore.read(preferences)
                 val slideshow = SlideshowSettingsStore.read(preferences)
                 val link = LinkSettingsStore.read(preferences)
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
@@ -383,6 +385,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     micRecordingAskFilename = capture.micRecordingAskFilename,
                     micRecordingDestinationResourceId = capture.micRecordingDestinationResourceId,
                     cameraPhotosDestinationResourceId = capture.cameraPhotosDestinationResourceId,
+                    gestureOverlayEnabled = screenshot.gestureOverlayEnabled,
+                    screenshotGestureDownEnabled = screenshot.screenshotGestureDownEnabled,
+                    screenshotDestinationResourceId = screenshot.screenshotDestinationResourceId,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
@@ -572,6 +577,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
             preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
             CaptureSettingsStore.write(preferences, settings)
+            ScreenshotSettingsStore.write(preferences, settings)
             preferences[KEY_DISABLE_VIDEO_CAPTURE] = settings.disableVideoCapture
             preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] = settings.videoCaptureOpenInPlayer
             preferences.setOrRemove(KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID, settings.videoRecordingDestinationResourceId)

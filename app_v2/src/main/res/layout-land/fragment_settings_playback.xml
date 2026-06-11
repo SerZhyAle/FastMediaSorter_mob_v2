@@ -727,6 +727,63 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- GROUP: System apps (S0405) - noLegal-only screen-gesture overlay; hidden when capability absent. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/groupSystemApps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="2dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSystemApps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/setting_group_system_apps_title" />
+
+                <LinearLayout android:id="@+id/containerSystemApps" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- Subgroup: Screen gestures -->
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/setting_subgroup_screen_gestures_title" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowGestureOverlayEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_gesture_overlay_title"
+                        app:str_subtitle="@string/setting_gesture_overlay_summary" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowScreenshotGestureDown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_screenshot_gesture_down_title"
+                        app:str_subtitle="@string/setting_screenshot_gesture_down_summary" />
+
+                    <!-- Screenshot destination (tap opens the destination picker) -->
+                    <LinearLayout android:id="@+id/rowScreenshotDestination" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_destination_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+
+                        </LinearLayout>
+                        <TextView android:id="@+id/tvScreenshotDestinationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_destination_default" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_playback_section" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" />
 
         <!-- Controls & Keybindings entry -->

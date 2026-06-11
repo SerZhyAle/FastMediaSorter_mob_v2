@@ -646,6 +646,7 @@ class PhotoVideoStandaloneActivity :
     // S0393 U2: per-file playback-control dialog (speed / track / subtitles / hue / brightness),
     // ported from legacy StandalonePlayerActivity.showPlaybackControlDialog.
     private fun showPlaybackControlDialog() {
+        Timber.d("S0393: standalone playback-control dialog (ported from legacy host)")
         if (isFinishing || isDestroyed) return
         val type = viewModel.state.value.mediaType
         if (type != MediaType.VIDEO && type != MediaType.AUDIO) return
@@ -658,6 +659,7 @@ class PhotoVideoStandaloneActivity :
     // S0393 U1: wire Picture-in-Picture once a video PlayerView is ready (mirrors legacy host).
     private fun setupPictureInPicture(pv: PlayerView) {
         if (pipManager != null) return
+        Timber.d("S0393: standalone Picture-in-Picture wired (ported from legacy host)")
         val manager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
             activity = this,
             playerView = pv,

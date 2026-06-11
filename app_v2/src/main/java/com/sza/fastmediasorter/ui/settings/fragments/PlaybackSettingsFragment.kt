@@ -2,9 +2,12 @@ package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,6 +33,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -43,6 +47,10 @@ class PlaybackSettingsFragment : Fragment() {
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
+
+    // S0405: empty on every flavor except noLegal, where the gesture-overlay capability contributes one.
+    @Inject
+    lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
 
     private var isUpdatingFromSettings = false
 
@@ -64,6 +72,19 @@ class PlaybackSettingsFragment : Fragment() {
         }
     }
 
+    // S0405: returns from the system "draw over other apps" screen; enable the overlay only if granted.
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        val controller = screenGestureControllers.firstOrNull() ?: return@registerForActivityResult
+        if (controller.isOverlayPermissionGranted(requireContext())) {
+            controller.setEnabled(true)
+            viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
+        } else {
+            binding.rowGestureOverlayEnabled.setCheckedSilently(false)
+        }
+    }
+
     companion object {
         private const val PREFS_NAME = "playback_sections_state"
         private const val KEY_SORTING_EXPANDED = "section_sorting_expanded"
@@ -72,6 +93,7 @@ class PlaybackSettingsFragment : Fragment() {
         private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
         private const val KEY_BEHAVIOUR_EXPANDED = "section_behaviour_expanded"
         private const val KEY_OTHER_FEATURES_EXPANDED = "section_other_features_expanded"
+        private const val KEY_SYSTEM_APPS_EXPANDED = "section_system_apps_expanded"
     }
 
     private data class ExpandableSection(
@@ -127,6 +149,9 @@ class PlaybackSettingsFragment : Fragment() {
 
         // S0367: camera-photos + microphone-recording capture settings, relocated from Media → Audio.
         setupCaptureSection()
+
+        // S0405: screen-gesture overlay group (noLegal-only capability).
+        setupSystemAppsSection()
 
         binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -299,9 +324,7 @@ class PlaybackSettingsFragment : Fragment() {
             }
         }
 
-        // S0003: Link auto-download - master toggle + open-in-player toggle.
-        // Resource picker (row_link_autodownload_resource) is wired in Phase 05;
-        // for Phase 01 the row stays informational and reflects the persisted id.
+        // S0003: Link auto-download - master toggle, open-in-player toggle, destination-resource picker.
         binding.rowLinkAutodownloadEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -311,6 +334,16 @@ class PlaybackSettingsFragment : Fragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(linkAutoDownloadOpenInPlayer = isChecked))
+        }
+        // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
+        // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
+        binding.rowLinkAutodownloadResource.setOnClickListener {
+            showDestinationPicker(
+                currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
+            ) { resource ->
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(linkAutoDownloadResourceId = resource?.id))
+            }
         }
         binding.rowResumeOnNextLaunch.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -483,6 +516,57 @@ class PlaybackSettingsFragment : Fragment() {
                     val current = viewModel.settings.value
                     viewModel.updateSettings(current.copy(micRecordingDestinationResourceId = resource?.id?.toString()))
                 }
+            }
+        }
+    }
+
+    /**
+     * S0405: wires the screen-gesture overlay rows. The whole group is hidden on flavors without the
+     * capability (empty controller set). Enabling the overlay routes the user to grant draw-over-apps.
+     */
+    private fun setupSystemAppsSection() {
+        val controller = screenGestureControllers.firstOrNull()
+        if (controller == null) {
+            binding.groupSystemApps.isVisible = false
+            return
+        }
+
+        binding.rowGestureOverlayEnabled.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            if (isChecked) {
+                if (!controller.isOverlayPermissionGranted(requireContext())) {
+                    Snackbar.make(
+                        binding.root,
+                        R.string.screenshot_overlay_permission_rationale,
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                    overlayPermissionLauncher.launch(
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:" + requireContext().packageName)
+                        )
+                    )
+                    return@setOnCheckedChangeListener
+                }
+                controller.setEnabled(true)
+                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
+            } else {
+                controller.setEnabled(false)
+                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
+            }
+        }
+
+        binding.rowScreenshotGestureDown.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureDownEnabled = isChecked))
+        }
+
+        binding.rowScreenshotDestination.setOnClickListener {
+            showDestinationPicker(
+                currentResourceId = viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
+            ) { resource ->
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
             }
         }
     }
@@ -676,12 +760,11 @@ class PlaybackSettingsFragment : Fragment() {
                     binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
                     binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
                     binding.tvLinkAutodownloadResourceValue.isEnabled = settings.linkAutoDownloadEnabled
-                    binding.tvLinkAutodownloadResourceValue.text = if (settings.linkAutoDownloadResourceId == null) {
-                        getString(R.string.link_autodownload_resource_not_set)
-                    } else {
-                        // Phase 05 will resolve the resource label via GetDestinationsUseCase.
-                        getString(R.string.link_autodownload_resource_not_set)
-                    }
+                    refreshDestinationLabel(
+                        resourceId = settings.linkAutoDownloadResourceId?.toString(),
+                        target = binding.tvLinkAutodownloadResourceValue,
+                        fallbackRes = R.string.link_autodownload_resource_not_set,
+                    )
                     if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
                         binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
                     }
@@ -693,6 +776,21 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                         binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
+                    }
+
+                    // S0405: screen-gesture overlay rows (only present when the capability is available)
+                    if (screenGestureControllers.isNotEmpty()) {
+                        if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
+                            binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
+                        }
+                        if (binding.rowScreenshotGestureDown.isChecked != settings.screenshotGestureDownEnabled) {
+                            binding.rowScreenshotGestureDown.setCheckedSilently(settings.screenshotGestureDownEnabled)
+                        }
+                        refreshDestinationLabel(
+                            settings.screenshotDestinationResourceId,
+                            binding.tvScreenshotDestinationValue,
+                            R.string.setting_screenshot_destination_default
+                        )
                     }
 
                     isUpdatingFromSettings = false
@@ -729,6 +827,7 @@ class PlaybackSettingsFragment : Fragment() {
             ExpandableSection(binding.headerTouchZones, binding.containerTouchZones, KEY_TOUCH_ZONES_EXPANDED, false),
             ExpandableSection(binding.headerBehaviour, binding.containerBehaviour, KEY_BEHAVIOUR_EXPANDED, false),
             ExpandableSection(binding.headerOtherFeatures, binding.containerOtherFeatures, KEY_OTHER_FEATURES_EXPANDED, false),
+            ExpandableSection(binding.headerSystemApps, binding.containerSystemApps, KEY_SYSTEM_APPS_EXPANDED, false),
         )
 
         sections.forEach { section ->
@@ -755,7 +854,8 @@ class PlaybackSettingsFragment : Fragment() {
                 KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
                 KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
                 KEY_BEHAVIOUR_EXPANDED to prefs.getBoolean(KEY_BEHAVIOUR_EXPANDED, false),
-                KEY_OTHER_FEATURES_EXPANDED to prefs.getBoolean(KEY_OTHER_FEATURES_EXPANDED, false)
+                KEY_OTHER_FEATURES_EXPANDED to prefs.getBoolean(KEY_OTHER_FEATURES_EXPANDED, false),
+                KEY_SYSTEM_APPS_EXPANDED to prefs.getBoolean(KEY_SYSTEM_APPS_EXPANDED, false)
             )
         }
     }

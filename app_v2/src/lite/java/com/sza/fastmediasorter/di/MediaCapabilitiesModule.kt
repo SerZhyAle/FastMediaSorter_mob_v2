@@ -26,5 +26,6 @@ object MediaCapabilitiesModule {
         supportsDocuments = BuildConfig.SUPPORT_DOCUMENTS,
         supportsEpub = BuildConfig.ENABLE_EPUB,
         supportsCloud = BuildConfig.SUPPORT_CLOUD,
+        supportsDefaultPlayer = BuildConfig.SUPPORTS_DEFAULT_PLAYER,
     )
 }

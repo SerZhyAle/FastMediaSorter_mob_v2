@@ -136,9 +136,13 @@ object AppModule {
             )
             // Log HTTP errors (4xx / 5xx) to Logcat via Timber so they surface in search-log.ps1 -Errors
             builder.addInterceptor { chain ->
-                val response = chain.proceed(chain.request())
+                val request = chain.request()
+                val response = chain.proceed(request)
                 if (!response.isSuccessful) {
-                    Timber.e("HTTP ${response.code} ${response.request.method} ${response.request.url}")
+                    val isManifest = request.url.toString().endsWith("/delivery-manifest.json")
+                    if (!isManifest) {
+                        Timber.e("HTTP ${response.code} ${request.method} ${request.url}")
+                    }
                 }
                 response
             }

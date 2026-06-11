@@ -133,7 +133,7 @@ class GatherSystemInfoUseCase @Inject constructor(
     } ?: listOf(label(R.string.sysinfo_field_bench_memory) to UNKNOWN)
 
     private fun formatMbps(value: Double): String =
-        if (value < 0) UNKNOWN else String.format(Locale.US, "%.0f MB/s (%s)", value, "")
+        if (value < 0) UNKNOWN else String.format(Locale.US, "%.0f MB/s (%s)", value, "~")
 
     private fun systemFields(): List<Pair<String, String>> = safeList {
         listOf(
