@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -10,6 +11,8 @@ import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
+import com.sza.fastmediasorter.domain.repository.RawAuthSession
+import java.net.HttpCookie
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -114,6 +117,8 @@ object BackupMapper {
         return BackupSettings(
             isResourceGridMode = settings.isResourceGridMode,
             language = settings.language,
+            defaultUser = settings.defaultUser,
+            defaultPassword = settings.defaultPassword,
             preventSleep = settings.preventSleep,
             showSmallControls = settings.showSmallControls,
             embeddedGameEnabled = settings.embeddedGameEnabled,
@@ -240,6 +245,7 @@ object BackupMapper {
             cloudProvider = resource.cloudProvider?.name,
             cloudFolderId = resource.cloudFolderId,
             accountId = resource.accountId,
+            credentialsId = resource.credentialsId,
             displayMode = resource.displayMode.name,
             sortMode = resource.sortMode.name,
             displayOrder = resource.displayOrder,
@@ -273,7 +279,9 @@ object BackupMapper {
             preventSleep = backup.preventSleep,
             showSmallControls = backup.showSmallControls,
             embeddedGameEnabled = backup.embeddedGameEnabled,
-            // Keep credentials from current: defaultUser, defaultPassword
+            // S0406: restore global default network login from backup (was kept-from-current before).
+            defaultUser = backup.defaultUser,
+            defaultPassword = backup.defaultPassword,
             networkParallelism = backup.networkParallelism,
             cacheSizeMb = backup.cacheSizeMb,
             isCacheSizeUserModified = backup.isCacheSizeUserModified,
@@ -408,6 +416,7 @@ object BackupMapper {
             cloudProvider = backup.cloudProvider?.let { safeParseCloudProvider(it) },
             cloudFolderId = backup.cloudFolderId,
             accountId = backup.accountId,
+            credentialsId = backup.credentialsId,
             displayMode = safeParseDisplayMode(backup.displayMode.gsonSafe("LIST")),
             sortMode = safeParseSortMode(backup.sortMode.gsonSafe("NAME_ASC")),
             displayOrder = backup.displayOrder,
@@ -465,6 +474,86 @@ object BackupMapper {
     private fun safeParseResourceProfile(value: String): com.sza.fastmediasorter.domain.model.ResourceProfile {
         return try { com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value) }
         catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
+    }
+
+    // S0406: network credential mapping. Export reads the decrypted password/SSH key;
+    // import re-encrypts via the Keystore-backed factory so secrets land in the right format.
+    fun toBackupNetworkCredential(entity: NetworkCredentialsEntity): BackupNetworkCredential {
+        return BackupNetworkCredential(
+            credentialId = entity.credentialId,
+            type = entity.type,
+            server = entity.server,
+            port = entity.port,
+            username = entity.username,
+            domain = entity.domain,
+            shareName = entity.shareName,
+            sshPrivateKey = entity.decryptedSshPrivateKey,
+            accountId = entity.accountId,
+            password = entity.password
+        )
+    }
+
+    fun toNetworkCredentialsEntity(backup: BackupNetworkCredential): NetworkCredentialsEntity {
+        return NetworkCredentialsEntity.create(
+            credentialId = backup.credentialId.gsonSafe("").ifBlank { java.util.UUID.randomUUID().toString() },
+            type = backup.type.gsonSafe("SMB"),
+            server = backup.server.gsonSafe(""),
+            port = backup.port,
+            username = backup.username.gsonSafe(""),
+            plaintextPassword = backup.password.gsonSafe(""),
+            domain = backup.domain.gsonSafe(""),
+            shareName = backup.shareName?.takeIf { it.isNotBlank() },
+            sshPrivateKey = backup.sshPrivateKey?.takeIf { it.isNotBlank() },
+            accountId = backup.accountId.gsonSafe("")
+        )
+    }
+
+    // S0406: web auth session mapping (cookies for link downloads).
+    fun toBackupWebAuthSession(raw: RawAuthSession): BackupWebAuthSession {
+        val now = System.currentTimeMillis()
+        return BackupWebAuthSession(
+            host = raw.host,
+            accountId = raw.accountId,
+            displayName = raw.displayName,
+            userAgent = raw.userAgent,
+            savedAtEpochMillis = raw.savedAtEpochMillis,
+            lastUsedAtEpochMillis = raw.lastUsedAtEpochMillis,
+            cookies = raw.cookies.map { cookie ->
+                BackupCookie(
+                    name = cookie.name,
+                    value = cookie.value ?: "",
+                    domain = (cookie.domain ?: raw.host).ifBlank { raw.host },
+                    path = (cookie.path ?: "/").ifBlank { "/" },
+                    secure = cookie.secure,
+                    httpOnly = cookie.isHttpOnly,
+                    // maxAge >= 0 → persistent cookie; convert relative TTL to absolute epoch.
+                    expiresAtEpochMillis = if (cookie.maxAge >= 0L) now + cookie.maxAge * 1000L else null
+                )
+            }
+        )
+    }
+
+    fun toRawAuthSession(backup: BackupWebAuthSession): RawAuthSession {
+        val now = System.currentTimeMillis()
+        return RawAuthSession(
+            host = backup.host.gsonSafe(""),
+            accountId = backup.accountId.gsonSafe(""),
+            displayName = backup.displayName.gsonSafe(""),
+            userAgent = backup.userAgent,
+            savedAtEpochMillis = backup.savedAtEpochMillis,
+            lastUsedAtEpochMillis = backup.lastUsedAtEpochMillis,
+            cookies = backup.cookies.gsonSafeList().mapNotNull { c ->
+                if (c.name.isBlank()) return@mapNotNull null
+                HttpCookie(c.name, c.value.gsonSafe("")).apply {
+                    domain = c.domain.gsonSafe("").ifBlank { backup.host }
+                    path = c.path.gsonSafe("").ifBlank { "/" }
+                    secure = c.secure
+                    isHttpOnly = c.httpOnly
+                    val expires = c.expiresAtEpochMillis
+                    maxAge = if (expires != null) ((expires - now) / 1000L).coerceAtLeast(1L) else -1L
+                }
+            }
+        )
     }
 
     fun toBackupFavorites(

@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
+import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -41,15 +43,20 @@ class RestoreFromGoogleDriveUseCaseTest {
     private val driveClient = mockk<GoogleDriveRestClient>()
     private val favoritesDao = mockk<FavoritesDao>(relaxed = true)
     private val scheduledRepo = mockk<ScheduledOperationRepository>(relaxed = true)
+    private val credentialsRepository = mockk<NetworkCredentialsRepository>(relaxed = true)
+    private val authSessionRepository = mockk<AuthSessionRepository>(relaxed = true)
     private val workManagerScheduler = mockk<WorkManagerScheduler>(relaxed = true)
     private lateinit var useCase: RestoreFromGoogleDriveUseCase
 
     @Before
     fun setup() {
-        useCase = RestoreFromGoogleDriveUseCase(
-            context, settingsRepository, resourceRepository, driveClient,
-            favoritesDao, scheduledRepo, workManagerScheduler,
+        // S0406: Restore now delegates to the shared applier; build a real one from mocked repos
+        // so the behavioral assertions below still exercise the merge logic.
+        val applyUseCase = ApplyBackupPayloadUseCase(
+            settingsRepository, resourceRepository, favoritesDao, scheduledRepo,
+            credentialsRepository, authSessionRepository, workManagerScheduler,
         )
+        useCase = RestoreFromGoogleDriveUseCase(context, driveClient, applyUseCase)
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
         coEvery { settingsRepository.updateSettings(any()) } just Runs
     }

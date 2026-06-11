@@ -100,7 +100,7 @@
 16. UI consistency: Support keyboard, D-pad/TV, and mouse inputs. Set focusable, clickable, nextFocus*.
 17. System bar safety: Keep UI inside `systemBars` + `displayCutout` safe bounds in portrait/landscape.
 18. Lazy optimization: Use Hilt `dagger.Lazy<T>`, `<ViewStub>` for optional layouts, release player/media resources immediately when paused.
-19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`).
+19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`).
 20. Dead-weight hygiene: Delete orphaned classes, resources, string keys, and keep rules in the same change. Verify on release/target-variant builds.
 
 ## 11. Feature & UI Policies

@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S0383 umbrella gate: run all four neuroslop ratchet detectors and aggregate.
+    S0383 umbrella gate: run all neuroslop ratchet detectors and aggregate.
 
 .DESCRIPTION
     Thin orchestrator over the per-dimension detectors (no detection logic of its
@@ -14,6 +14,9 @@
       - assert-empty-catch.ps1             (swallowing catch blocks)
       - assert-layout-hardcoded-colors.ps1 (hardcoded hex in layout XML)
       - assert-unsafe-collect.ps1          (non-lifecycle-aware Flow collects)
+      - assert-globalscope.ps1             (Tier 1: GlobalScope coroutine usage)
+      - assert-nontimber-log.ps1           (Tier 1: Log.*/println/System.out)
+      - assert-stub-todo.ps1               (Tier 1: TODO()/NotImplementedError stubs)
 
     Ratchet contract: baselines only go DOWN via each child's -UpdateBaseline;
     raising a baseline is forbidden without an offsetting refactor. Cleanup of the
@@ -53,7 +56,10 @@ $children = @(
     'assert-trivial-comments.ps1',
     'assert-empty-catch.ps1',
     'assert-layout-hardcoded-colors.ps1',
-    'assert-unsafe-collect.ps1'
+    'assert-unsafe-collect.ps1',
+    'assert-globalscope.ps1',
+    'assert-nontimber-log.ps1',
+    'assert-stub-todo.ps1'
 )
 
 $failures = 0

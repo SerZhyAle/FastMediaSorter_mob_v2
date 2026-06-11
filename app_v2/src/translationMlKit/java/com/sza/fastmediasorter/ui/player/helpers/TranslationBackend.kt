@@ -42,7 +42,10 @@ class TranslationBackend(
                 .build()
         )
     }
-    private val modelManager = RemoteModelManager.getInstance()
+    // Lazy for the same reason as PrewarmTranslationModelUseCase: ML Kit's init provider ships in
+    // the on-demand :translate_feature module (S0386), so getInstance() must not run at
+    // construction - only on first use, which is gated behind ensureNativeLibrariesLoaded().
+    private val modelManager by lazy { RemoteModelManager.getInstance() }
 
     private var currentSourceLang = TranslateLanguage.ENGLISH
     private var currentTargetLang = TranslateLanguage.RUSSIAN
@@ -189,6 +192,7 @@ class TranslationBackend(
 
                 // Check if model is downloaded, prompt user if not
                 val targetModel = TranslateRemoteModel.Builder(targetLang).build()
+                Timber.d("S0386: lazy ML Kit modelManager access (translator re-init, target=$targetLang)")
                 val isModelDownloaded = modelManager.isModelDownloaded(targetModel).await()
 
                 if (!isModelDownloaded) {

@@ -78,3 +78,4 @@ This document is the canonical inventory of all user-facing features implemented
 - **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
 - **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
 - **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.
+- **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format — to a local file or Google Drive — and restore everything after a reinstall.
