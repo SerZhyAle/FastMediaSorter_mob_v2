@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import java.util.Collections
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -31,7 +33,13 @@ class DiscoverNetworkResourcesUseCaseTest {
         private val fakeLocalIp: String? = "10.0.0.5"
     ) : DiscoverNetworkResourcesUseCase() {
 
-        val probedPorts = mutableListOf<Pair<String, Int>>() // recorded for assertions
+        // Run the 254-host probe fan-out on a controlled dispatcher so it stays inside the test
+        // scheduler instead of escaping to the shared IO pool (which races probedPorts and floods
+        // real threads across the whole unit-test suite).
+        override val probeDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher()
+
+        // Synchronized because probes still resolve concurrently within the test scheduler.
+        val probedPorts = Collections.synchronizedList(mutableListOf<Pair<String, Int>>())
 
         override fun isTcpPortOpen(ip: String, port: Int, timeoutMs: Int): Boolean {
             probedPorts.add(ip to port)

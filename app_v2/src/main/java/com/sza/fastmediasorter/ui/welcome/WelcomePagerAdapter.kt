@@ -218,8 +218,8 @@ class WelcomePagerAdapter(
             }
 
             // Theme picker wiring: mirrors the language picker. Pre-checks the button for the current
-            // ColorThemePrefs mode; the dual-write (DataStore + mirror) happens in the Activity callback.
-            // Welcome stays force-light, so the choice only takes effect on the next cold start.
+            // ColorThemePrefs mode; the dual-write (DataStore + mirror) and immediate recreate happen
+            // in the Activity callback.
             if (page.showThemePicker) {
                 binding.layoutThemePicker.visibility = View.VISIBLE
                 binding.tvThemeAppliesHint.visibility = View.VISIBLE

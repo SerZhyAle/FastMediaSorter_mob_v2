@@ -348,6 +348,7 @@ Android может отложить задачи WorkManager на несколь
 - 🚀 **Быстрый старт:** [QUICK_START_RU.md](QUICK_START_RU.md)
 - 🔧 **Устранение неполадок:** [TROUBLESHOOTING_RU.md](TROUBLESHOOTING_RU.md)
 - �📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net) - для любых вопросов: помощь с настройкой, описание ошибки, пожелания к функциям
+- 🌐 **Страница автора:** [sza.od.ua](https://sza.od.ua)
 - 🐛 **Сообщить об ошибке:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - предпочтительно для воспроизводимых багов; укажите версию Android и что вы делали в момент ошибки
 - 📖 **Полная документация:** [Портал документации](https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html)
 

@@ -58,6 +58,13 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
     override fun isInstalledBlocking(set: DeliverableSet): Boolean {
         if (bundled.contains(set)) return true
         if (set == DeliverableSet.TRANSLATION) {
+            // Translation reaches the device two ways: as a Play dynamic feature (installedModules) on
+            // a Play acquire, or as a downloaded native .so payload under filesDir/delivery/TRANSLATION
+            // on a non-Play build via the HTTP/GitHub fallback (RealDeliverableSetDownloader). Either
+            // proves the engine is usable, so honor both. Checking only the DFM left a sideloaded build
+            // able to download the payload yet never report it installed - the Extensions row stayed on
+            // "Available" (re-clickable forever) and TranslationBackend's native-lib gate stayed shut.
+            if (markerStore.isPayloadPresent(set)) return true
             return try {
                 val splitInstallManager = com.google.android.play.core.splitinstall.SplitInstallManagerFactory.create(context)
                 splitInstallManager.installedModules.contains("translate_feature")

@@ -25,7 +25,9 @@ class AddResourceUseCaseTest {
     }
 
     @Test
-    fun `single add assigns displayOrder max plus one`() = runTest {
+    fun `single add assigns displayOrder equal to normalized count`() = runTest {
+        // invoke() densifies existing displayOrders to 0..n-1 before appending, so the new
+        // resource gets the count (2), not max(existing)+1.
         repo.setResources(
             listOf(
                 createMediaResource(id = 1L, displayOrder = 3),
@@ -36,7 +38,7 @@ class AddResourceUseCaseTest {
         val result = useCase(createMediaResource(id = 0L, name = "new"))
 
         assertTrue(result.isSuccess)
-        assertEquals(8, repo.addedResources.single().displayOrder)
+        assertEquals(2, repo.addedResources.single().displayOrder)
     }
 
     @Test
@@ -61,6 +63,8 @@ class AddResourceUseCaseTest {
 
     @Test
     fun `addMultiple assigns sequential display orders`() = runTest {
+        // The single existing resource is densified to displayOrder 0, so the two new
+        // resources are appended as 1 and 2 (not 6, 7 from the original sparse order).
         repo.setResources(listOf(createMediaResource(id = 1L, displayOrder = 5)))
 
         useCase.addMultiple(
@@ -70,7 +74,7 @@ class AddResourceUseCaseTest {
             )
         )
 
-        assertEquals(listOf(6, 7), repo.addedResources.map { it.displayOrder })
+        assertEquals(listOf(1, 2), repo.addedResources.map { it.displayOrder })
     }
 
     @Test

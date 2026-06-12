@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.player.standalone.DocumentStandaloneActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
@@ -31,6 +32,11 @@ class StandalonePlayerDispatcherActivity : Activity() {
         val uri = extractUri(intent)
         if (uri == null) {
             Toast.makeText(this, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+        if (DefaultPlayerProbe.isProbe(uri)) {
+            Timber.d("Dispatcher: ignoring default-player probe URI, finishing")
             finish()
             return
         }

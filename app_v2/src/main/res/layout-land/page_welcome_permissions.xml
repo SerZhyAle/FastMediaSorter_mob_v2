@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0402 permissions onboarding page (landscape). Same centred-column structure and ids as the
-     portrait variant (layout/page_welcome_permissions.xml): header (icon + title + subtitle), grant-all
-     CTA, open-settings text button, and the scrollable adaptive permission list. The list takes the
-     remaining height so the rows never clip on short landscape screens.
-     All ids must stay in sync with the portrait variant. -->
+<!-- S0402 permissions onboarding page (landscape). Same compact structure and ids as the portrait
+     variant (layout/page_welcome_permissions.xml): header (title + subtitle, no launcher icon), a single
+     action row (grant-all + open-settings side by side), and the bounded scrollable card holding the
+     adaptive permission list. The card takes the remaining height so the rows never clip on short
+     landscape screens. All ids must stay in sync with the portrait variant. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -20,33 +20,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Header: icon -->
-        <ImageView
-            android:id="@+id/ivPermissionsIcon"
-            android:layout_width="@dimen/welcome_icon_size"
-            android:layout_height="@dimen/welcome_icon_size"
-            android:layout_marginTop="@dimen/welcome_icon_margin_top"
-            android:contentDescription="@string/welcome_permissions_title"
-            android:scaleType="fitCenter"
-            android:src="@mipmap/ic_launcher"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Header: title -->
+        <!-- Header: title (compact, no icon) -->
         <TextView
             android:id="@+id/tvPermissionsTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/welcome_title_margin_top"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
             android:gravity="center"
             android:text="@string/welcome_permissions_title"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/welcome_title_text_size"
+            android:textSize="@dimen/welcome_permissions_title_text_size"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivPermissionsIcon" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Header: subtitle -->
         <TextView
@@ -56,7 +43,6 @@
             android:layout_marginTop="@dimen/welcome_description_margin_top"
             android:alpha="0.85"
             android:gravity="center"
-            android:lineSpacingMultiplier="1.3"
             android:text="@string/welcome_permissions_subtitle"
             android:textColor="?attr/colorOnSurface"
             android:textSize="@dimen/welcome_description_text_size"
@@ -64,44 +50,65 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvPermissionsTitle" />
 
-        <!-- Grant-all CTA: hidden by the manager when nothing is left to grant -->
-        <Button
-            android:id="@+id/btnGrantAll"
+        <!-- Action row: grant-all (hidden by the manager when nothing is left to grant) + open-settings -->
+        <LinearLayout
+            android:id="@+id/layoutPermActions"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/welcome_description_margin_top"
-            android:text="@string/perm_btn_grant_all"
-            android:visibility="gone"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvPermissionsSubtitle" />
+            app:layout_constraintTop_toBottomOf="@id/tvPermissionsSubtitle">
 
-        <!-- Escape hatch to the OS app-details screen -->
-        <Button
-            android:id="@+id/btnOpenSettings"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/perm_btn_open_system_settings"
-            android:textColor="?attr/colorPrimary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnGrantAll" />
+            <Button
+                android:id="@+id/btnGrantAll"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/perm_btn_grant_all"
+                android:visibility="gone" />
 
-        <!-- Adaptive permission rows -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvPermissions"
+            <Button
+                android:id="@+id/btnOpenSettings"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/welcome_perm_actions_gap"
+                android:text="@string/perm_btn_open_system_settings"
+                android:textColor="?attr/colorPrimary" />
+
+        </LinearLayout>
+
+        <!-- Bounded, scrollable list panel: the filled surface + outline signals "this scrolls" -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPermissions"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/welcome_description_margin_top"
-            android:clipToPadding="false"
-            android:fadeScrollbars="false"
-            android:scrollbarStyle="outsideOverlay"
-            android:scrollbars="vertical"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="@dimen/welcome_perm_list_corner"
+            app:cardElevation="0dp"
+            app:contentPadding="@dimen/welcome_perm_list_content_padding"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnOpenSettings" />
+            app:layout_constraintTop_toBottomOf="@id/layoutPermActions">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPermissions"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:fadeScrollbars="false"
+                android:scrollbarStyle="outsideOverlay"
+                android:scrollbars="vertical" />
+
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

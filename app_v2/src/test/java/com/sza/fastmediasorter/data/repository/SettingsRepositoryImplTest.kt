@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * S0018: regression tests for the no-op write guard in [SettingsRepositoryImpl.updateSettings].
@@ -22,8 +25,13 @@ import org.junit.Test
  * The guard short-circuits when the incoming AppSettings equals the currently stored
  * value, eliminating the spam of redundant DataStore writes triggered by settings UI
  * listeners during initial inflation.
+ *
+ * Robolectric: the write path reaches StrictModeHelper.allowDiskReads, which needs a real
+ * StrictMode implementation (the JVM stub returns null and NPEs on Builder.build()).
  */
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class SettingsRepositoryImplTest {
 
     private lateinit var mockContext: Context

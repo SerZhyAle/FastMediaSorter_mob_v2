@@ -1,35 +1,20 @@
 # Build, install, and launch debug build on connected device
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
+param(
+    [switch]$AutoVersion
+)
+
 # ADB path
 $adb = "C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe"
 
-Write-Host "Building debug APK (auto-versioned)..." -ForegroundColor Cyan
-
-# Generate version
-$now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
-
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
-
-Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+Write-Host "Building debug APK.." -ForegroundColor Cyan
+if ($AutoVersion) {
+    Write-Host "Mode: auto-versioned device build" -ForegroundColor Yellow
+}
+else {
+    Write-Host "Mode: fast device build (stable Gradle version fields)" -ForegroundColor Yellow
+}
 
 # Start the Gradle build process (Debug only for speed)
 # Note: Now builds 'standardDebug' flavor automatically
@@ -38,16 +23,41 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 $logDir = "$projectRoot\temp"
 
-# Update build.gradle.kts
-$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
-
 # Start the Gradle build process (Debug only for speed)
 # Note: Now builds 'standardDebug' flavor automatically
-& $gradlew assembleStandardDebug "-Pchaquopy.enabled=false" --configuration-cache
+$gradleArgs = @(
+    "assembleStandardDebug",
+    "-Pchaquopy.enabled=false",
+    "--configuration-cache"
+)
+if ($AutoVersion) {
+    $now = Get-Date
+    $year = $now.Year
+    $month = $now.Month
+    $day = $now.Day
+    $hour = $now.Hour
+    $minute = $now.Minute
+
+    $firstYearDigit = [int]($year.ToString()[0].ToString())
+    $lastYearDigit = [int]($year.ToString()[-1].ToString())
+    $firstMonthDigit = [int]($month.ToString("00")[0].ToString())
+    $secondMonthDigit = [int]($month.ToString("00")[1].ToString())
+    $dayStr = $day.ToString("00")
+    $firstHourDigit = [int]($hour.ToString("00")[0].ToString())
+    $secondHourDigit = [int]($hour.ToString("00")[1].ToString())
+    $minuteStr = $minute.ToString("00")
+    $firstMinuteDigit = [int]($minuteStr[0].ToString())
+
+    $versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
+    $versionCodeInt = [Convert]::ToInt32($versionCodeStr)
+    $versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+    Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+    $gradleArgs += @(
+        "-Pfms.versionCode=$versionCodeInt",
+        "-Pfms.versionName=$versionName"
+    )
+}
+& $gradlew @gradleArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

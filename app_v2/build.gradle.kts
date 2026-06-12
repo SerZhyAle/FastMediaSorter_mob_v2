@@ -156,6 +156,23 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val defaultAppVersionCode = 260612114
+val defaultAppVersionName = "2.60.6121.144"
+val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
+    raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
+}
+val overrideAppVersionName = providers.gradleProperty("fms.versionName").orNull
+val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.let { raw ->
+    when {
+        raw.equals("true", ignoreCase = true) -> true
+        raw.equals("false", ignoreCase = true) -> false
+        else -> throw GradleException("Invalid -Pfms.xrNative value: '$raw'")
+    }
+} ?: gradle.startParameter.taskNames.any { taskName ->
+    val t = taskName.lowercase()
+    t.contains("nolegal") || t.contains("vr")
+}
+
 android {
     val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
@@ -180,12 +197,14 @@ android {
         // Keep targetSdk aligned with compileSdk
         // CRITICAL: Do not change - required for Play Store compliance and latest Android behavior
         targetSdk = 35
-        // Version is auto-updated by build scripts
+        // Local fast checks keep these defaults stable so configuration-cache reuse survives
+        // across repeated debug builds. Artifact-oriented helper scripts can override them
+        // via -Pfms.versionCode / -Pfms.versionName when a timestamped package is needed.
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260611175
-        versionName = "2.60.6111.750"
+        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -241,18 +260,13 @@ android {
     dynamicFeatures += listOf(":translate_feature")
     
     productFlavors {
-        // Per-flavor CMake target filtering: only vr builds the native OpenXR bridge.
-        // Non-vr flavors skip CMake entirely by declaring no build targets.
+        // XR native build is enabled only for vr/noLegal task graphs. Standard/lite/photos/legacy
+        // leave the entire CMake pipeline disabled so local debug loops avoid per-ABI no-op work.
         // ABI selection is handled per-flavor (not per-buildType) because AGP merges
         // flavor+buildType ndk.abiFilters via UNION, not intersection. Setting abiFilters
         // on a buildType would leak extra slices (e.g. x86) into VR AABs. Keeping ABI
         // configuration flavor-local gives each flavor exactly what Play delivers to users.
         fun com.android.build.api.dsl.ProductFlavor.disableNativeBuild() {
-            externalNativeBuild {
-                cmake {
-                    targets.clear()
-                }
-            }
             // Distribution ABIs for non-VR flavors: all four production ABIs.
             // Covers Android 8+ phones/tablets (arm64-v8a + armeabi-v7a), Chromebooks
             // and emulators (x86/x86_64). AAB per-device delivery keeps user download size
@@ -314,25 +328,27 @@ android {
             ndk {
                 abiFilters += listOf("arm64-v8a", "x86_64")
             }
-            externalNativeBuild {
-                cmake {
-                    // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) — same
-                    // JNI bridge as vr flavor. OpenXR loader AAR ships arm64-v8a only.
-                    targets += listOf("fms_diagnostic_xr")
-                    // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
-                    // fms_diagnostic_xr for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
-                    abiFilters += listOf("arm64-v8a")
-                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
-                    arguments += listOf(
-                        "-DANDROID_STL=c++_shared",
-                        "-DANDROID_PLATFORM=android-26",
-                        // S0249 Phase 02: gates the fms_diagnostic_xr SHARED target in
-                        // src/vr/cpp/CMakeLists.txt. Without this flag CMake emits no targets
-                        // and AGP fails with "Unexpected native build target …".
-                        "-DFMS_BUILD_XR_RUNTIME=ON",
-                        // Revision 4: invalidates stale .tmp cmake cache from prior vr runs.
-                        "-DFMS_BUILD_REVISION=4"
-                    )
+            if (isXrNativeBuildRequested) {
+                externalNativeBuild {
+                    cmake {
+                        // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) — same
+                        // JNI bridge as vr flavor. OpenXR loader AAR ships arm64-v8a only.
+                        targets += listOf("fms_diagnostic_xr")
+                        // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
+                        // fms_diagnostic_xr for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
+                        abiFilters += listOf("arm64-v8a")
+                        cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                        arguments += listOf(
+                            "-DANDROID_STL=c++_shared",
+                            "-DANDROID_PLATFORM=android-26",
+                            // S0249 Phase 02: gates the fms_diagnostic_xr SHARED target in
+                            // src/vr/cpp/CMakeLists.txt. Without this flag CMake emits no targets
+                            // and AGP fails with "Unexpected native build target …".
+                            "-DFMS_BUILD_XR_RUNTIME=ON",
+                            // Revision 4: invalidates stale .tmp cmake cache from prior vr runs.
+                            "-DFMS_BUILD_REVISION=4"
+                        )
+                    }
                 }
             }
             // S0117: keep the full standard capability surface while isolating
@@ -455,28 +471,30 @@ android {
             ndk {
                 abiFilters += listOf("arm64-v8a")
             }
-            externalNativeBuild {
-                cmake {
-                    // S0249 Phase 02: build the diagnostic XR native runtime (fms_diagnostic_xr).
-                    // OpenXR loader ships prebuilt in the Khronos AAR via prefab.
-                    targets += listOf("fms_diagnostic_xr")
-                    // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
-                    // otherwise AGP tries to build fms_diagnostic_xr for every ABI in the buildType
-                    // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
-                    // because those OpenXR slices do not exist. ndk.abiFilters above only
-                    // governs packaging; externalNativeBuild.cmake.abiFilters governs configure.
-                    abiFilters += listOf("arm64-v8a")
-                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
-                    arguments += listOf(
-                        "-DANDROID_STL=c++_shared",
-                        "-DANDROID_PLATFORM=android-26",
-                        // Gate fms_diagnostic_xr target in src/vr/cpp/CMakeLists.txt: non-vr
-                        // flavors omit this flag so CMake configure succeeds without the
-                        // Khronos OpenXR AAR on the prefab classpath.
-                        "-DFMS_BUILD_XR_RUNTIME=ON",
-                        // Force new cmake config hash to avoid stale .tmp file lock (2026-04-21)
-                        "-DFMS_BUILD_REVISION=3"
-                    )
+            if (isXrNativeBuildRequested) {
+                externalNativeBuild {
+                    cmake {
+                        // S0249 Phase 02: build the diagnostic XR native runtime (fms_diagnostic_xr).
+                        // OpenXR loader ships prebuilt in the Khronos AAR via prefab.
+                        targets += listOf("fms_diagnostic_xr")
+                        // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
+                        // otherwise AGP tries to build fms_diagnostic_xr for every ABI in the buildType
+                        // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
+                        // because those OpenXR slices do not exist. ndk.abiFilters above only
+                        // governs packaging; externalNativeBuild.cmake.abiFilters governs configure.
+                        abiFilters += listOf("arm64-v8a")
+                        cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                        arguments += listOf(
+                            "-DANDROID_STL=c++_shared",
+                            "-DANDROID_PLATFORM=android-26",
+                            // Gate fms_diagnostic_xr target in src/vr/cpp/CMakeLists.txt: non-vr
+                            // flavors omit this flag so CMake configure succeeds without the
+                            // Khronos OpenXR AAR on the prefab classpath.
+                            "-DFMS_BUILD_XR_RUNTIME=ON",
+                            // Force new cmake config hash to avoid stale .tmp file lock (2026-04-21)
+                            "-DFMS_BUILD_REVISION=3"
+                        )
+                    }
                 }
             }
             // S0241: keep the VR visual shell/source-set overlay buildable while routing the
@@ -703,17 +721,18 @@ android {
         viewBinding = true
         buildConfig = true
         compose = true
-        // Prefab consumes native headers/libs from AAR dependencies
-        // (required by OpenXR loader AAR in vr flavor).
-        prefab = true
+        // Prefab is needed only when the XR native bridge is part of the requested task graph.
+        prefab = isXrNativeBuildRequested
     }
 
-    // Native build (vr flavor only — gated via per-flavor CMake targets list below).
-    // CMake glues Kotlin JNI calls to the OpenXR loader shipped in the AAR.
-    externalNativeBuild {
-        cmake {
-            path = file("src/vr/cpp/CMakeLists.txt")
-            version = "3.22.1"
+    if (isXrNativeBuildRequested) {
+        // Native build (vr/noLegal only; standard/lite/photos/legacy skip the entire pipeline).
+        // CMake glues Kotlin JNI calls to the OpenXR loader shipped in the AAR.
+        externalNativeBuild {
+            cmake {
+                path = file("src/vr/cpp/CMakeLists.txt")
+                version = "3.22.1"
+            }
         }
     }
 

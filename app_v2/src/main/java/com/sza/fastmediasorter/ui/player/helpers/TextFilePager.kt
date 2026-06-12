@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
 
@@ -50,9 +51,18 @@ class TextFilePager(
     }
 
     override fun close() {
+        Timber.d("S0408: TextFilePager.close on teardown, file=${file.name}")
         synchronized(rafLock) {
-            raf?.close()
-            raf = null
+            try {
+                raf?.close()
+            } catch (e: IOException) {
+                // EIO/other close failure means the backing fd or volume is already gone
+                // (SD/USB unmount, dead content-provider fd). The descriptor is abandoned during
+                // teardown either way - swallow so onDestroy is not crashed by a doomed close().
+                Timber.w(e, "TextFilePager: close failed, fd already lost; abandoning")
+            } finally {
+                raf = null
+            }
         }
         Timber.d("TextFilePager: closed")
     }

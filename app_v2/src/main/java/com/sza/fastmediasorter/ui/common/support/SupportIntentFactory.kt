@@ -54,11 +54,14 @@ object SupportIntentFactory {
         Intent(Intent.ACTION_VIEW, Uri.parse(helpUrl(context)))
 
     private fun reportProblem(subject: String): Intent {
-        val builder = Uri.parse(SUPPORT_MAILTO).buildUpon()
-        if (subject.isNotBlank()) {
-            builder.appendQueryParameter("subject", subject)
+        // mailto: is an opaque URI; Uri.Builder.appendQueryParameter drops the opaque address part
+        // (producing "mailto:?subject=..") so the recipient is lost. Concatenate the query manually.
+        val uriString = if (subject.isNotBlank()) {
+            "$SUPPORT_MAILTO?subject=${Uri.encode(subject)}"
+        } else {
+            SUPPORT_MAILTO
         }
-        val intent = Intent(Intent.ACTION_SENDTO, builder.build())
+        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(uriString))
         if (subject.isNotBlank()) {
             intent.putExtra(Intent.EXTRA_SUBJECT, subject)
         }

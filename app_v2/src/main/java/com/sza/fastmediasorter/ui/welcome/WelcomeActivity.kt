@@ -16,7 +16,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -132,11 +131,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Onboarding is intentionally a bright pastel experience. Force the day (light) resource set
-        // so the welcome pages keep dark-text-on-pastel-background readability even when the system
-        // is in dark mode - the night palette uses saturated backgrounds with white text, which is
-        // unreadable (e.g. white-on-#E65100 on the "Resources and Destinations" page).
-        delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
         super.onCreate(savedInstanceState)
         savedInstanceState?.let { state ->
             restoredPage = state.getInt(KEY_CURRENT_PAGE, 0)
@@ -441,13 +435,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     private fun onWelcomeThemeSelected(mode: String) {
-        Timber.d("S0398: page0 theme selected mode=$mode (dual-write, applied next cold start)")
-        // Dual-write, mirroring the Settings split: the ViewModel persists the canonical DataStore
-        // value; the synchronous startup mirror is written here in the UI layer. Welcome stays
-        // force-light (onCreate forces MODE_NIGHT_NO), so the theme is applied on the next cold start
-        // - intentionally no applyMode()/recreate() here.
+        Timber.d("S0398: page0 theme selected mode=$mode (dual-write, recreate immediately)")
+        // Mirror the Settings split: DataStore remains canonical in the ViewModel while the
+        // synchronous SharedPreferences mirror updates here so the next Activity launch picks the
+        // same mode before inflation. Welcome now follows that mode immediately via recreate().
         viewModel.saveColorTheme(mode)
         ColorThemePrefs.setMode(this, mode)
+        ColorThemePrefs.applyMode(mode)
+        recreate()
     }
 
     override fun onWelcomeComplete() {

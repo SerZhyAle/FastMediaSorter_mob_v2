@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
 - [S0398 keystone welcome-skeleton (BlockNeedUserTest)](project_s0398_inprogress.md) - build-green; DEBUG-v013 auto-commit + temp_stash_s0397 gotchas; ColorThemePrefs.getMode()
 - [Welcome redesign: S0399/S0400/S0401/S0402 Implemented+BlockNeedUserTest 2026-06-11](project_s0395_welcome_redesign_research.md) - central-skeleton+onBind-callback arch; pager order hero/profile/networks/functionality/permissions/default-player; deferrals
 - [translationMlKit shared with :translate_feature DFM (no Hilt)](project_translationmlkit_shared_with_dfm.md) - translation DI contributors go in translationDynamicFeature, never translationMlKit

@@ -45,14 +45,18 @@ class CollapsibleSectionHeaderTest {
     @Test
     fun `title prefix flips on expand`() {
         val header = newHeader()
+        // The glyph lives in its own csh_prefix view; csh_title holds only the title text.
+        val prefixView = header.findViewById<TextView>(R.id.csh_prefix)
         val titleView = header.findViewById<TextView>(R.id.csh_title)
 
         header.setTitle("Authorization")
         header.setExpanded(true, notify = false)
-        assertEquals("▼ Authorization", titleView.text.toString())
+        assertEquals("▼", prefixView.text.toString())
+        assertEquals("Authorization", titleView.text.toString())
 
         header.setExpanded(false, notify = false)
-        assertEquals("▶ Authorization", titleView.text.toString())
+        assertEquals("▶", prefixView.text.toString())
+        assertEquals("Authorization", titleView.text.toString())
     }
 
     @Test

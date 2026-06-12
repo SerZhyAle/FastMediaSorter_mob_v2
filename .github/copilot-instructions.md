@@ -51,7 +51,8 @@
 
 ## 7. Scripts Reference
 - Logs: `scripts/utils/search-log.ps1` (`-Summary`, `-Spam`, `-Errors`, `-Warnings`, `-Pattern`, `-Tag`).
-- Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
+- Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
+- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
 - Device: `scripts/utils/extract-device-logs.ps1`, `Install_release_on_adb_connected_device.ps1`, `build-standard-device.ps1`.
 - Tests: `scripts/utils/run-maestro-smoke.ps1`, `run-stress.ps1`, `setup_test_media.ps1`.
 - Utilities: `scripts/utils/commit-push.ps1`, `generate-changelog.ps1`, `check-typo-lint.ps1`, `set-android-string.ps1`, `add_to_dev_log.ps1`, `catalog_sync.ps1`.

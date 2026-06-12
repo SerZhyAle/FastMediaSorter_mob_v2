@@ -4,6 +4,7 @@
 param(
     [switch]$SkipZip,
     [string]$Task = "assembleStandardDebug",
+    [switch]$AutoVersion,
     # S0190 Phase 01 tooling: explicit opt-in for Chaquopy on tasks that don't auto-detect.
     # Auto-enabled when -Task contains "noLegal" (case-insensitive), since the noLegal source
     # set imports com.chaquo.python.* and won't compile without the plugin.
@@ -43,39 +44,13 @@ function Test-QuietSuppress([string]$line) {
     return $false
 }
 
-Write-Host "Building debug APK (auto-versioned)..." -ForegroundColor Cyan
-
-# Generate version code and name
-$now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
-
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
-
-Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
-
-# Update build.gradle.kts
-$buildGradlePath = "$PSScriptRoot\..\..\\app_v2\build.gradle.kts"
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
+Write-Host "Building debug APK.." -ForegroundColor Cyan
+if ($AutoVersion) {
+    Write-Host "Mode: auto-versioned artifact build" -ForegroundColor Yellow
+}
+else {
+    Write-Host "Mode: fast reusable debug build (stable Gradle version fields)" -ForegroundColor Yellow
+}
 
 # Start the Gradle build process (Debug only for speed)
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
@@ -134,6 +109,35 @@ function Invoke-DebugBuild {
         [switch]$NoDaemon
     )
 
+    $versionOverrideArgs = @()
+    if ($script:AutoVersion) {
+        $now = Get-Date
+        $year = $now.Year
+        $month = $now.Month
+        $day = $now.Day
+        $hour = $now.Hour
+        $minute = $now.Minute
+
+        $firstYearDigit = [int]($year.ToString()[0].ToString())
+        $lastYearDigit = [int]($year.ToString()[-1].ToString())
+        $firstMonthDigit = [int]($month.ToString("00")[0].ToString())
+        $secondMonthDigit = [int]($month.ToString("00")[1].ToString())
+        $dayStr = $day.ToString("00")
+        $firstHourDigit = [int]($hour.ToString("00")[0].ToString())
+        $secondHourDigit = [int]($hour.ToString("00")[1].ToString())
+        $minuteStr = $minute.ToString("00")
+        $firstMinuteDigit = [int]($minuteStr[0].ToString())
+
+        $versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
+        $versionCodeInt = [Convert]::ToInt32($versionCodeStr)
+        $versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+        $versionOverrideArgs = @(
+            "-Pfms.versionCode=$versionCodeInt",
+            "-Pfms.versionName=$versionName"
+        )
+        Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+    }
+
     # S0190 Phase 01: enable Chaquopy when -Chaquopy switch is set OR when the task name
     # contains "noLegal" (the only flavor that bundles the Python runtime). Standard / lite /
     # photos / legacy builds keep Chaquopy off for speed.
@@ -156,6 +160,9 @@ function Invoke-DebugBuild {
     }
     if ($NoDaemon) {
         $gradleArgs += "--no-daemon"
+    }
+    if ($versionOverrideArgs.Count -gt 0) {
+        $gradleArgs += $versionOverrideArgs
     }
 
     Write-Host "Starting Gradle: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray

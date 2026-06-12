@@ -43,3 +43,4 @@
 
 ## 7. Validation
 - Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y`.
+- Prefer the cheapest proof that matches the change: `.\a.ps1 fk` for Kotlin symbol edits, `.\a.ps1 fr` for resources/manifests, `.\a.ps1 fc` for mixed small changes, and full debug APK builds only when packaging/install behavior matters.

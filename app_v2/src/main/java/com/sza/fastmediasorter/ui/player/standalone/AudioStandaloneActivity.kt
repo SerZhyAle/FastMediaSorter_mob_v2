@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
+import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
@@ -370,6 +371,11 @@ class AudioStandaloneActivity :
         }
         if (uri == null) {
             Toast.makeText(this, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+        if (DefaultPlayerProbe.isProbe(uri)) {
+            Timber.d("AudioStandalone: ignoring default-player probe URI, finishing")
             finish()
             return
         }

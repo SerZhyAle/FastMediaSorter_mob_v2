@@ -4,11 +4,18 @@ import android.content.Context
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * S0266 — Verifies the cloud branch of [BaseFileOperationHandler.extractFileName] returns the
  * caller-supplied fallback (which is the display-name when the caller used [CloudFileHandle]).
+ *
+ * Robolectric: the content-URI branch calls Uri.decode, which returns null on the plain JVM.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class BaseFileOperationHandlerExtractFileNameTest {
 
     private val context: Context = mockk(relaxed = true)

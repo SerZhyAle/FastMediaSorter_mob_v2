@@ -123,8 +123,8 @@
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
                 <!-- Theme picker: visible only on the first Welcome page. Mirrors the language picker
-                     (styling, focusability); the welcome flow itself stays force-light, so the choice
-                     is applied on the next cold start - see the caption below. -->
+                     (styling, focusability) and recreates the activity immediately after a selection
+                     so the current welcome page redraws in the chosen app theme. -->
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/layoutThemePicker"
                     android:layout_width="wrap_content"
@@ -172,7 +172,7 @@
 
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
-                <!-- Caption: theme takes effect after setup (no live preview during welcome) -->
+                <!-- Caption: selection applies immediately to the current welcome flow. -->
                 <TextView
                     android:id="@+id/tvThemeAppliesHint"
                     android:layout_width="wrap_content"

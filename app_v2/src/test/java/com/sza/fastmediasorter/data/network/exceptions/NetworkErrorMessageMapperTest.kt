@@ -23,9 +23,11 @@ class NetworkErrorMessageMapperTest {
     }
 
     @Test
-    fun `unknown host maps to connection_lost`() {
+    fun `unknown host maps to timeout`() {
+        // NetworkErrorClassifier treats an unresolved host as a transient timeout condition,
+        // so DNS failures surface the timeout copy rather than connection-lost.
         val res = NetworkErrorMessageMapper.toMessageRes(UnknownHostException("no host"))
-        assertEquals(R.string.error_network_connection_lost, res)
+        assertEquals(R.string.error_network_timeout, res)
     }
 
     @Test

@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import timber.log.Timber
 import java.io.File
 
@@ -260,7 +261,7 @@ object DefaultPlayerHelper {
         }
 
         return try {
-            val dir = File(context.cacheDir, "default_player_probe").apply { mkdirs() }
+            val dir = File(context.cacheDir, DefaultPlayerProbe.PROBE_DIR_NAME).apply { mkdirs() }
             val file = File(dir, "probe.$extension")
             if (!file.exists()) {
                 file.writeBytes(byteArrayOf(0x00))

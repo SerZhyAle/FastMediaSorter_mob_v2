@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0400 functionality onboarding page (landscape). Same centred-column structure and ids as the
-     portrait variant (layout/page_welcome_functionality.xml); the ScrollView keeps the toggle stack
-     from clipping on short landscape heights. Rows are hidden by WelcomeFunctionalityController per
-     the S0396 availability contract; OCR/translation rows carry an inline download progress group.
-     All ids must stay in sync with the portrait variant. -->
+<!-- S0400 functionality onboarding page (landscape). Same ids and centred header as the portrait
+     variant (layout/page_welcome_functionality.xml), but the toggle stack is laid out in TWO columns
+     to use the wide landscape canvas, and every row carries an inline description (str_subtitle) that
+     portrait omits. Left column: file manager / audio / video. Right column: documents / OCR (+inline
+     download progress) / translation (+inline download progress). The "All downloadable (optional)
+     elements" button is centred below both columns with wrap-content width. Rows are hidden by
+     WelcomeFunctionalityController per the
+     S0396 availability contract; a hidden row just collapses its column slot. All ids must stay in sync
+     with the portrait variant and the generated binding name PageWelcomeFunctionalityBinding. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -14,7 +18,7 @@
         android:id="@+id/layoutContent"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+        app:layout_constraintWidth_max="@dimen/welcome_functionality_max_width_land"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -64,7 +68,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvFunctionalityTitle" />
 
-        <!-- Scrollable body so the toggle stack never clips on short landscape heights -->
+        <!-- Scrollable body so the two columns never clip on short landscape heights -->
         <ScrollView
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -81,107 +85,143 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowFileManager"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/welcome_func_file_manager" />
-
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowAudio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/welcome_func_audio" />
-
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowVideo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/welcome_func_video" />
-
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowDocuments"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/welcome_func_documents" />
-
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowOcr"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/welcome_func_ocr" />
-
-                <!-- Inline OCR download progress; hidden until a download starts -->
+                <!-- Two side-by-side toggle columns -->
                 <LinearLayout
-                    android:id="@+id/groupOcrProgress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="0dp"
-                    android:visibility="gone">
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
 
-                    <ProgressBar
-                        android:id="@+id/progressOcr"
-                        style="?android:attr/progressBarStyleHorizontal"
+                    <!-- Left column: media basics -->
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:max="100" />
+                        android:orientation="vertical"
+                        android:paddingEnd="@dimen/welcome_func_column_gap">
 
-                    <TextView
-                        android:id="@+id/tvOcrStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:accessibilityLiveRegion="polite"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowFileManager"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_file_manager_desc"
+                            app:str_title="@string/welcome_func_file_manager" />
 
-                </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowAudio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_audio_desc"
+                            app:str_title="@string/welcome_func_audio" />
 
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowTranslation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/welcome_func_translation" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowVideo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_video_desc"
+                            app:str_title="@string/welcome_func_video" />
 
-                <!-- Inline translation download progress; hidden until a download starts -->
-                <LinearLayout
-                    android:id="@+id/groupTranslationProgress"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="0dp"
-                    android:visibility="gone">
+                    </LinearLayout>
 
-                    <ProgressBar
-                        android:id="@+id/progressTranslation"
-                        style="?android:attr/progressBarStyleHorizontal"
+                    <!-- Right column: documents + downloadable text features -->
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:max="100" />
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/welcome_func_column_gap">
 
-                    <TextView
-                        android:id="@+id/tvTranslationStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:accessibilityLiveRegion="polite"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowDocuments"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_documents_desc"
+                            app:str_title="@string/welcome_func_documents" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowOcr"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_ocr_desc"
+                            app:str_title="@string/welcome_func_ocr" />
+
+                        <!-- Inline OCR download progress; hidden until a download starts -->
+                        <LinearLayout
+                            android:id="@+id/groupOcrProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="0dp"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:id="@+id/progressOcr"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:max="100" />
+
+                            <TextView
+                                android:id="@+id/tvOcrStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:accessibilityLiveRegion="polite"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowTranslation"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_translation_desc"
+                            app:str_title="@string/welcome_func_translation" />
+
+                        <!-- Inline translation download progress; hidden until a download starts -->
+                        <LinearLayout
+                            android:id="@+id/groupTranslationProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="0dp"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:id="@+id/progressTranslation"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:max="100" />
+
+                            <TextView
+                                android:id="@+id/tvTranslationStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:accessibilityLiveRegion="polite"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnElements"
                     style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:layout_marginTop="24dp"
                     android:text="@string/welcome_func_elements_button" />
 

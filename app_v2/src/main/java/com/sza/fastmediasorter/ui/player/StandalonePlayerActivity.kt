@@ -207,7 +207,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         setupWindowAndInsets()
 
         val incomingUri = resolveIncomingUri()
-        val isDefaultPlayerProbe = incomingUri?.toString()?.contains("default_player_probe") == true
+        val isDefaultPlayerProbe = DefaultPlayerProbe.isProbe(incomingUri)
         if (BuildConfig.DEBUG) {
             Timber.d("StandalonePlayer[debug]: setupViews START - isProbe=$isDefaultPlayerProbe uri=$incomingUri")
         }
@@ -472,7 +472,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         // Probe files created by DefaultPlayerHelper for the "set as default" flow must not be
         // played - they are 1-byte stubs and will crash viewers. Silently finish.
-        if (uri.toString().contains("default_player_probe")) {
+        if (DefaultPlayerProbe.isProbe(uri)) {
             Timber.d("StandalonePlayer: ignoring default-player probe URI, finishing")
             finish()
             return

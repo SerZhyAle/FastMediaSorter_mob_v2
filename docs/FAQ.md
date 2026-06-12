@@ -348,6 +348,7 @@ Didn't find an answer above, or something isn't working as described? **Please r
 - 🚀 **Quick Start:** [QUICK_START.md](QUICK_START.md)
 - 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - �📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net) - for anything: setup help, bug descriptions, feature wishes
+- 🌐 **Author's page:** [sza.od.ua](https://sza.od.ua)
 - 🐛 **Bug report:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - preferred for reproducible bugs; include Android version and what you were doing
 - 📖 **Full docs:** [Documentation Portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 

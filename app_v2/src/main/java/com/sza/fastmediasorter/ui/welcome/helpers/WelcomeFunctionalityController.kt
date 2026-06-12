@@ -258,7 +258,7 @@ class WelcomeFunctionalityController @Inject constructor(
     ) {
         progressGroup.visibility = View.VISIBLE
         progressBar.isIndeterminate = true
-        statusView.text = context.getString(R.string.welcome_func_downloading, 0)
+        statusView.text = statusView.context.getString(R.string.welcome_func_downloading, 0)
 
         downloadRunner.enqueue(set)
         Timber.i("WelcomeFunctionalityController: enqueued deliverable %s", set)
@@ -287,21 +287,21 @@ class WelcomeFunctionalityController @Inject constructor(
         when (progress) {
             is DownloadProgress.Queued, is DownloadProgress.Verifying -> {
                 progressBar.isIndeterminate = true
-                statusView.text = context.getString(R.string.welcome_func_downloading, 0)
+                statusView.text = statusView.context.getString(R.string.welcome_func_downloading, 0)
             }
             is DownloadProgress.Running -> {
                 progressBar.isIndeterminate = false
                 progressBar.progress = progress.percent
-                statusView.text = context.getString(R.string.welcome_func_downloading, progress.percent)
+                statusView.text = statusView.context.getString(R.string.welcome_func_downloading, progress.percent)
             }
             is DownloadProgress.Installed -> {
                 progressBar.isIndeterminate = false
                 progressBar.progress = 100
-                statusView.text = context.getString(R.string.welcome_func_download_done)
+                statusView.text = statusView.context.getString(R.string.welcome_func_download_done)
             }
             is DownloadProgress.Failed -> {
                 progressBar.isIndeterminate = false
-                statusView.text = context.getString(R.string.welcome_func_download_failed)
+                statusView.text = statusView.context.getString(R.string.welcome_func_download_failed)
                 Timber.i("WelcomeFunctionalityController: deliverable %s failed - %s", set, progress.reason)
             }
         }

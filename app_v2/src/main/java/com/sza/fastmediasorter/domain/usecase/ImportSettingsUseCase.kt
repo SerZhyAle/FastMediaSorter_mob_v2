@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -531,10 +532,53 @@ class ImportSettingsUseCase @Inject constructor(
 
     /**
      * S0406: auto lookup - prefer the unified JSON backup, fall back to the legacy XML file.
+     * For each candidate name try the MediaStore query first, then a direct read from the
+     * public Downloads directory. The direct read covers backups not owned by the current
+     * install (export -> uninstall -> reinstall, or a different package variant), which the
+     * MediaStore Downloads query never returns under scoped storage.
      */
     private fun getImportFileInputStream(): InputStream? =
-        getFileInputStream(ExportSettingsUseCase.EXPORT_FILE_NAME)
-            ?: getFileInputStream(LEGACY_XML_FILE_NAME)
+        openImportCandidate(ExportSettingsUseCase.EXPORT_FILE_NAME)
+            ?: openImportCandidate(LEGACY_XML_FILE_NAME)
+
+    private fun openImportCandidate(fileName: String): InputStream? =
+        getFileInputStream(fileName)
+            ?: getFileInputStreamFromPublicDownloads(fileName)
+
+    /**
+     * S0406: direct-File fallback for the auto lookup. The MediaStore Downloads query only
+     * returns files owned by the current install, so a backup made by a previous install or
+     * a different package variant is invisible to it even though it sits in Downloads. With
+     * all-files access granted the file is readable directly regardless of owner.
+     */
+    private fun getFileInputStreamFromPublicDownloads(fileName: String): InputStream? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            !PermissionHelper.hasAllFilesAccessPermission(context)
+        ) {
+            // Without all-files access scoped storage blocks reading non-owned Downloads files.
+            return null
+        }
+        @Suppress("DEPRECATION")
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadsDir.isDirectory) return null
+
+        val baseName = fileName.substringBeforeLast(".")
+        val extension = fileName.substringAfterLast(".")
+        // Match "<base>.ext" and Android's "<base> (1).ext" duplicates; pick the most recent.
+        val match = downloadsDir.listFiles { f ->
+            f.isFile &&
+                f.name.startsWith(baseName, ignoreCase = true) &&
+                f.name.endsWith(".$extension", ignoreCase = true)
+        }?.maxByOrNull { it.lastModified() } ?: return null
+
+        Timber.d("S0406: auto-search direct Downloads fallback selected ${match.name}")
+        return try {
+            FileInputStream(match)
+        } catch (e: Exception) {
+            Timber.e(e, "ImportSettings: failed to open fallback file ${match.absolutePath}")
+            null
+        }
+    }
 
     /**
      * Get input stream for file in Downloads folder using appropriate API for the Android version.

@@ -130,17 +130,10 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             evaluateFlavorGates(entry.flavorGates)
         }
 
-    override fun getWelcomeEntries(allFiles: Boolean, audioEnabled: Boolean): List<PermissionEntry> {
-        val base = getEntries().filter { entry ->
-            when (entry.manifestName) {
-                // "All files" + manage-media are only meaningful for file-manager profiles.
-                Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                Manifest.permission.MANAGE_MEDIA -> allFiles
-                // Audio-recording permission is irrelevant unless audio support is on.
-                Manifest.permission.RECORD_AUDIO -> audioEnabled
-                else -> true
-            }
-        }
+    override fun getWelcomeEntries(): List<PermissionEntry> {
+        // Show every permission this build can request; the user decides which to grant. No narrowing by
+        // functionality toggles - opting out happens by leaving a permission ungranted, not by hiding it.
+        val base = getEntries()
         // POST_NOTIFICATIONS is flavor-gated out of the full Settings list on builds without persistent
         // audio playback, but onboarding always asks for it (welcome-only relaxation). Re-add it directly
         // from the raw registry, honouring only its SDK bound, when getEntries() filtered it out.

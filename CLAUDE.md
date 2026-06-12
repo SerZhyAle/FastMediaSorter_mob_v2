@@ -77,9 +77,9 @@
 - **Logging**: Timber only.
 
 ## 9. Common Commands (a.ps1 launcher)
-- Build: `.\a.ps1 d` (debug), `db` (debug no-zip), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB via release worktree), `bf` (build failure structured digest).
-- Checks: `.\a.ps1 ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
-- Tests: `.\gradlew.bat testStandardDebugUnitTest`. kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
+- Build: `.\a.ps1 d` (fast reusable debug APK), `db` (fast debug no-zip), `dav` (debug APK with timestamped app version), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB via release worktree), `bf` (build failure structured digest).
+- Checks: `.\a.ps1 fk` (Kotlin compile), `fr` (resources/manifest), `fc` (code + resources), `ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
+- Tests: `.\a.ps1 fu` (full unit suite) or `.\gradlew.bat testStandardDebugUnitTest`. kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
 
 ## 10. Strict Rules
 1. No root writes. Use `temp/`.
@@ -114,6 +114,6 @@
   - Doc: Grep for content.
   - Script: Run, exit 0.
   - Config: Target build passes.
-  - Kotlin/Java: Catalog sync + affected tests pass.
+  - Kotlin/Java: prefer `.\a.ps1 fk` for compile-only symbol changes; escalate to `.\a.ps1 fc`, targeted `--tests`, or full `.\a.ps1 d` only when the touched area needs packaging/resource proof.
   - Python: Syntax check + test.
   - Layout/manifest: Target build passes.

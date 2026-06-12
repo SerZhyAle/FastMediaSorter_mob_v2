@@ -443,6 +443,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## Contact 📧
 
 - **Developer**: <sza@ukr.net>
+- **Author's page**: [https://sza.od.ua](https://sza.od.ua)
 - **Website**: [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 - **GitHub Issues**: [https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues)
 

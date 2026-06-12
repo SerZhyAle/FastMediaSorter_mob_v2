@@ -106,7 +106,9 @@ class CommandPanelLayoutPlanner {
         // TEXT
         SEARCH_TEXT(310, R.id.menu_search, true, R.string.search,
             android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
-        EDIT_TEXT(320, R.id.menu_edit_text, true, R.string.edit,
+        // Edit is the primary text action - rank it ahead of RENAME(200) so it reaches
+        // the command bar before the less-frequent rename.
+        EDIT_TEXT(199, R.id.menu_edit_text, true, R.string.edit,
             android.R.drawable.ic_menu_edit, R.string.big_btn_short_edit),
         TRANSLATE_TEXT(330, R.id.menu_translate, true, R.string.translate,
             R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously

@@ -10,8 +10,13 @@
     vr   - Build VR Release APK
     ivn  - Install noLegal Debug APK on device (no launch)
     dc   - Build Debug Clean
-    d    - Build Debug
-    db   - Build Debug (without zip)
+    d    - Fast reusable debug build
+    db   - Fast reusable debug build (without zip)
+    dav  - Debug build with timestamped app version
+    fk   - Fast Kotlin compile check
+    fr   - Fast resources/manifest check
+    fc   - Fast code + resources check
+    fu   - Fast full unit-test suite
     cd   - Clean + Debug + Zip
     cdb  - Clean + Debug (without zip)
     cls  - Clean Gradle caches
@@ -55,10 +60,15 @@ $scripts = @{
     'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
     'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{} }
     'db'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ SkipZip = $true } }
+    'dav'       = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ AutoVersion = $true } }
     'bd'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ SkipZip = $true } }  # typo-tolerant alias for 'db'
     'dq'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{ SkipZip = $true; Quiet = $true } }  # quiet debug: filters known noise
     'cd'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
     'cdb'       = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{ SkipZip = $true } }
+    'fk'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code' } }
+    'fr'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources' } }
+    'fc'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'CodeAndResources' } }
+    'fu'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit' } }
     'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @{} }
     'c'         = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @{} }
     'ch'        = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @{} }
@@ -82,12 +92,17 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  vr   - Build VR Release APK" -ForegroundColor Cyan
     Write-Host "  ivn  - Install noLegal Debug APK on device (NO launch)" -ForegroundColor Cyan
     Write-Host "  dc   - Build Debug Clean" -ForegroundColor Cyan
-    Write-Host "  d    - Build Debug" -ForegroundColor Cyan
-    Write-Host "  db   - Build Debug without zip" -ForegroundColor Cyan
+    Write-Host "  d    - Fast reusable debug build" -ForegroundColor Cyan
+    Write-Host "  db   - Fast reusable debug build without zip" -ForegroundColor Cyan
+    Write-Host "  dav  - Debug build with timestamped app version" -ForegroundColor Cyan
     Write-Host "  bd   - Build Debug without zip (typo-tolerant alias for db)" -ForegroundColor Cyan
     Write-Host "  dq   - Build Debug quiet (no zip, suppresses known-noise lines)" -ForegroundColor Cyan
     Write-Host "  cd   - Clean + Debug + zip" -ForegroundColor Cyan
     Write-Host "  cdb  - Clean + Debug without zip" -ForegroundColor Cyan
+    Write-Host "  fk   - Fast Kotlin compile check" -ForegroundColor Cyan
+    Write-Host "  fr   - Fast resources/manifest check" -ForegroundColor Cyan
+    Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
+    Write-Host "  fu   - Fast full unit-test suite" -ForegroundColor Cyan
     Write-Host "  cls  - Clean Gradle caches" -ForegroundColor Cyan
     Write-Host "  c    - Commit & Push" -ForegroundColor Cyan
     Write-Host "  ch   - Check Typo/Lint" -ForegroundColor Cyan

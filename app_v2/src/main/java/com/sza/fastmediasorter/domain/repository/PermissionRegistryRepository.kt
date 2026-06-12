@@ -8,13 +8,12 @@ interface PermissionRegistryRepository {
     fun getGroups(): List<PermissionGroupHeader>
 
     /**
-     * Adaptive permission set for the welcome onboarding page (S0402). Unlike [getEntries] (the full,
-     * non-adaptive Settings list), this narrows the set to what the user actually opted into:
-     * - "All files" (MANAGE_EXTERNAL_STORAGE) + MANAGE_MEDIA only when [allFiles] is on.
-     * - RECORD_AUDIO only when [audioEnabled] is on.
-     * - POST_NOTIFICATIONS (API 33+) is included regardless of the ENABLE_PERSISTENT_AUDIO_PLAYBACK
-     *   flavor gate that constrains it in [getEntries] (welcome-only relaxation).
-     * All other SDK/flavor registry behaviour is preserved.
+     * Permission set for the welcome onboarding page (S0402). Shows every permission this build can
+     * request (the full [getEntries] set, SDK- and flavor-filtered) so the user sees and decides on all
+     * of them; the user opts out by leaving individual permissions ungranted rather than the set being
+     * pre-narrowed by their functionality toggles. POST_NOTIFICATIONS (API 33+) is additionally included
+     * regardless of the ENABLE_PERSISTENT_AUDIO_PLAYBACK flavor gate that constrains it in [getEntries]
+     * (welcome-only relaxation).
      */
-    fun getWelcomeEntries(allFiles: Boolean, audioEnabled: Boolean): List<PermissionEntry>
+    fun getWelcomeEntries(): List<PermissionEntry>
 }

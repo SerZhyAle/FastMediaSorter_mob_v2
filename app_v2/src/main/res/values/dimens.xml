@@ -86,11 +86,20 @@
     <dimen name="welcome_title_text_size">24sp</dimen>
     <dimen name="welcome_description_margin_top">12dp</dimen>
     <dimen name="welcome_description_text_size">15sp</dimen>
+    <!-- Compact header for the permissions page (S0402): no icon, smaller title to free list space -->
+    <dimen name="welcome_permissions_title_text_size">20sp</dimen>
+    <dimen name="welcome_perm_actions_gap">8dp</dimen>
+    <dimen name="welcome_perm_list_corner">16dp</dimen>
+    <dimen name="welcome_perm_list_content_padding">4dp</dimen>
     <dimen name="welcome_feature_card_icon_size">32dp</dimen>
     <dimen name="welcome_feature_card_text_size">12sp</dimen>
     <dimen name="welcome_feature_card_padding">12dp</dimen>
     <dimen name="welcome_feature_card_margin">6dp</dimen>
     <dimen name="welcome_content_max_width">600dp</dimen>
+    <!-- Wider cap for the landscape two-column functionality page (S0400) so both toggle columns breathe -->
+    <dimen name="welcome_functionality_max_width_land">920dp</dimen>
+    <!-- Gutter between the two toggle columns on the landscape functionality page -->
+    <dimen name="welcome_func_column_gap">16dp</dimen>
 
     <!-- Resource list items -->
     <dimen name="resource_item_padding">12dp</dimen>

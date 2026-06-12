@@ -13,7 +13,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
@@ -21,29 +20,25 @@ import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionRow
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionRowAdapter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Owns the welcome permissions page (S0402): builds the adaptive permission set from the user's
- * functionality choices (all-files only when the file manager is on, RECORD_AUDIO only when audio is
- * on, POST_NOTIFICATIONS in the common 33+ batch), renders the rows into the page, and runs the
+ * Owns the welcome permissions page (S0402): shows every permission this build can request (the full
+ * SDK/flavor-filtered registry set, so the user sees and decides on all of them - opting out means
+ * leaving a permission ungranted, not pre-hiding it), renders the rows into the page, and runs the
  * grant-all stepwise flow (regular batch then special-permission walk) via Activity-registered
- * ActivityResult launchers. The Settings permission screen keeps the full, non-adaptive list.
+ * ActivityResult launchers.
  *
  * Field-injected into WelcomeActivity (Hilt deps) then [attach]ed to the Activity so it can own the
  * launchers; the grant-all run state survives recreation through [onSaveInstanceState]/[onRestoreInstanceState].
  */
 class WelcomePermissionsManager @Inject constructor(
     private val registry: PermissionRegistryRepository,
-    private val settingsRepository: SettingsRepository,
     private val checkStatus: CheckPermissionStatusUseCase,
 ) {
 
@@ -59,8 +54,7 @@ class WelcomePermissionsManager @Inject constructor(
     private var binding: PageWelcomePermissionsBinding? = null
     private val adapter = PermissionRowAdapter { entry, status -> onRowAction(entry, status) }
 
-    // Adaptive permission list for the current functionality choices; resolved asynchronously from
-    // settings in attach(). Empty until the first settings emission arrives (a single DataStore read).
+    // Full permission set this build can request (SDK + flavor filtered); resolved once in attach().
     private var welcomeEntries: List<PermissionEntry> = emptyList()
 
     private var requestMultiple: ActivityResultLauncher<Array<String>>? = null
@@ -121,15 +115,11 @@ class WelcomePermissionsManager @Inject constructor(
             }
         })
 
-        // Resolve the adaptive set from the user's functionality choices, then render.
-        activity.lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
-            welcomeEntries = registry.getWelcomeEntries(
-                allFiles = settings.allFiles,
-                audioEnabled = settings.supportAudio,
-            )
-            refreshRows()
-        }
+        // The welcome set is every permission this build can request (SDK + flavor only, no user-toggle
+        // narrowing), so it is static - resolve once, synchronously, no settings dependency.
+        welcomeEntries = registry.getWelcomeEntries()
+        Timber.d("S0402: welcome permissions set resolved, entries=${welcomeEntries.size}")
+        refreshRows()
     }
 
     /** Render the adaptive permission rows + grant-all affordance into the page. */
@@ -177,16 +167,24 @@ class WelcomePermissionsManager @Inject constructor(
         // permission via its own system screen, one at a time.
         grantAllInProgress = true
         shownSpecialInRun.clear()
-        // Special permissions are excluded - they require dedicated system screens and are silently
-        // ignored by requestMultiplePermissions().
-        val denied = welcomeEntries
-            .filter { checkStatus(act, it) == PermissionStatus.DENIED }
+        // Request every not-yet-granted regular permission. PERMANENTLY_DENIED is included on purpose:
+        // a never-requested runtime permission reports shouldShowRequestPermissionRationale==false and is
+        // classified PERMANENTLY_DENIED (indistinguishable from a real permanent denial without caller
+        // tracking), yet requestMultiplePermissions() still shows the first-time system dialog for it.
+        // A genuinely permanent denial is silently no-op'd by the system, so including it is harmless.
+        // Special permissions are excluded - they need dedicated system screens (walked afterwards).
+        val requestable = welcomeEntries
             .filter { it.manifestName !in specialGrantPermissions }
+            .filter {
+                val status = checkStatus(act, it)
+                status == PermissionStatus.DENIED || status == PermissionStatus.PERMANENTLY_DENIED
+            }
             .map { it.manifestName }
             .toTypedArray()
-        if (denied.isNotEmpty()) {
+        Timber.d("S0402: grant-all requesting ${requestable.size} regular permission(s)")
+        if (requestable.isNotEmpty()) {
             // launchNextSpecialPermission() runs in the requestMultiple callback.
-            requestMultiple?.launch(denied)
+            requestMultiple?.launch(requestable)
         } else {
             // No regular permissions left - open the first pending special permission directly.
             launchNextSpecialPermission()
@@ -267,8 +265,14 @@ class WelcomePermissionsManager @Inject constructor(
     private fun refreshRows() {
         val act = activity ?: return
         adapter.refresh(buildRows(act))
-        val hasDenied = welcomeEntries.any { checkStatus(act, it) == PermissionStatus.DENIED }
-        binding?.btnGrantAll?.visibility = if (hasDenied) View.VISIBLE else View.GONE
+        // Offer grant-all while anything is still ungranted. PERMANENTLY_DENIED is included: on first run
+        // a never-requested permission is classified PERMANENTLY_DENIED, yet grant-all can still prompt
+        // for it (see startGrantAllRun), so hiding the CTA on that status would strand the user.
+        val hasPending = welcomeEntries.any {
+            val status = checkStatus(act, it)
+            status != PermissionStatus.GRANTED && status != PermissionStatus.NOT_APPLICABLE
+        }
+        binding?.btnGrantAll?.visibility = if (hasPending) View.VISIBLE else View.GONE
     }
 
     private fun buildRows(act: FragmentActivity): List<PermissionRow> {

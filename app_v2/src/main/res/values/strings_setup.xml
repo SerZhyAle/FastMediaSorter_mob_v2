@@ -130,7 +130,7 @@
     <string name="sysinfo_section_time">Time</string>
     <string name="sysinfo_section_user">User</string>
     <string name="welcome_theme_picker_hint">Select app theme</string>
-    <string name="welcome_theme_applies_after_setup">The theme will be applied after setup.</string>
+    <string name="welcome_theme_applies_after_setup">The theme is applied immediately.</string>
     <string name="welcome_theme_auto">Auto</string>
     <string name="welcome_theme_light">Light</string>
     <string name="welcome_theme_dark">Dark</string>
@@ -151,7 +151,14 @@
     <string name="welcome_func_documents">Documents</string>
     <string name="welcome_func_ocr">Text recognition (OCR)</string>
     <string name="welcome_func_translation">Translation</string>
-    <string name="welcome_func_elements_button">Downloadable elements</string>
+    <!-- Landscape-only toggle descriptions (two-column functionality page) -->
+    <string name="welcome_func_file_manager_desc">Browse, move and organize every file on the device.</string>
+    <string name="welcome_func_audio_desc">Play music and audio, sort tracks into folders.</string>
+    <string name="welcome_func_video_desc">Play videos and sort clips with the built-in player.</string>
+    <string name="welcome_func_documents_desc">Open PDF, text, e-books and office files.</string>
+    <string name="welcome_func_ocr_desc">Recognize and copy text from images and scans.</string>
+    <string name="welcome_func_translation_desc">Translate recognized and selected text offline.</string>
+    <string name="welcome_func_elements_button">All downloadable (optional) elements</string>
     <string name="welcome_func_downloading">Downloading.. %1$d%%</string>
     <string name="welcome_func_download_failed">Download failed - tap to retry</string>
     <string name="welcome_func_download_done">Ready</string>

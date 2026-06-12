@@ -247,7 +247,6 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             // the cached status is stale (e.g. GMS updated mid-session). Without this branch the
             // user sees a generic UnknownError CTA instead of the actionable "Update Play Services".
             is GetCredentialProviderConfigurationException -> {
-                Timber.d("S0239: mapException safety-net GetCredentialProviderConfigurationException -> PlayServicesOutdated")
                 IdentitySignInResult.Failed(IdentityFailureReason.PlayServicesOutdated, t)
             }
             is GetCredentialException -> IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, t)
@@ -272,7 +271,6 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
      *   2. GMS can be updated via Play Store between process start and the user tapping sign-in.
      */
     private fun gmsGuard(): IdentityFailureReason? {
-        Timber.d("S0239: gmsGuard live re-eval for Credential Manager minimum")
         GmsAvailabilityChecker.recheckFor(
             appContext,
             GmsAvailabilityChecker.MIN_GMS_VERSION_FOR_CREDENTIAL_MANAGER

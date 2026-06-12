@@ -130,7 +130,7 @@
     <string name="sysinfo_section_time">Время</string>
     <string name="sysinfo_section_user">Пользователь</string>
     <string name="welcome_theme_picker_hint">Выберите тему приложения</string>
-    <string name="welcome_theme_applies_after_setup">Тема применится после настройки.</string>
+    <string name="welcome_theme_applies_after_setup">Тема применяется сразу.</string>
     <string name="welcome_theme_auto">Авто</string>
     <string name="welcome_theme_light">Светлая</string>
     <string name="welcome_theme_dark">Тёмная</string>
@@ -151,7 +151,14 @@
     <string name="welcome_func_documents">Документы</string>
     <string name="welcome_func_ocr">Распознавание текста (OCR)</string>
     <string name="welcome_func_translation">Перевод</string>
-    <string name="welcome_func_elements_button">Загружаемые элементы</string>
+    <!-- Landscape-only toggle descriptions (two-column functionality page) -->
+    <string name="welcome_func_file_manager_desc">Просматривайте, перемещайте и упорядочивайте любые файлы на устройстве.</string>
+    <string name="welcome_func_audio_desc">Воспроизведение музыки и аудио, сортировка треков по папкам.</string>
+    <string name="welcome_func_video_desc">Воспроизведение видео и сортировка роликов встроенным плеером.</string>
+    <string name="welcome_func_documents_desc">Открытие PDF, текста, электронных книг и офисных файлов.</string>
+    <string name="welcome_func_ocr_desc">Распознавание и копирование текста с изображений и сканов.</string>
+    <string name="welcome_func_translation_desc">Перевод распознанного и выделенного текста офлайн.</string>
+    <string name="welcome_func_elements_button">Все загружаемые (опциональные) элементы</string>
     <string name="welcome_func_downloading">Загрузка.. %1$d%%</string>
     <string name="welcome_func_download_failed">Не удалось загрузить — нажмите для повтора</string>
     <string name="welcome_func_download_done">Готово</string>

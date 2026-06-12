@@ -45,10 +45,12 @@ Dependency version policy:
 - If absent, treat module Gradle files as authoritative
 
 ## 5) Fast Commands
-- Primary debug build: `./dev/build-with-version.ps1`
-- Fast debug build: `./build-debug.PS1`
+- Primary debug build: `./a.ps1 d`
+- Timestamped debug artifact: `./a.ps1 dav`
+- Fast code check: `./a.ps1 fk`
+- Fast code + resources check: `./a.ps1 fc`
 - Flavor debug build: `./gradlew.bat assembleStandardDebug`
-- Unit tests: `./gradlew.bat testStandardDebugUnitTest`
+- Unit tests: `./a.ps1 fu` or `./gradlew.bat testStandardDebugUnitTest`
 - Lint: `./gradlew.bat lintStandardDebug`
 - Wear debug build: `./gradlew.bat :wear:assembleDebug`
 - Show current branch: `git branch --show-current`
