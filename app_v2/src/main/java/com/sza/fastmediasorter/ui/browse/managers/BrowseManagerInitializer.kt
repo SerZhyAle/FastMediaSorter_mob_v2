@@ -846,7 +846,6 @@ class BrowseManagerInitializer(
         if (viewModel.state.value.mediaFiles.isEmpty()) return Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         viewModel.reshuffleRandom()
         val resource = viewModel.state.value.resource
-        Timber.d("S0358: Browse play-random launches player with shuffle override")
         val intent = PlayerActivity.createPanelIntent(
             context = activity,
             resourceId = resource?.id ?: 0L,

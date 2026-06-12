@@ -1052,11 +1052,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         val resolvedMode = overrideMode ?: PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
 
         if (overrideMode != null) {
-            Timber.d("S0358: player consumed shuffle override for resource=$resourceId")
             PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
             intent.removeExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
-        } else {
-            Timber.d("S0358: player restored playback order for resource=$resourceId mode=${resolvedMode.name}")
         }
 
         applyPlaybackOrderModeToActivePlayer(resolvedMode)
@@ -1076,7 +1073,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         val mediaType = currentState.currentFile?.type
         val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
         if (resourceId != null) {
-            Timber.d("S0358: player playback-order changed by user for resource=$resourceId")
             PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
         } else {
             prefs.edit()

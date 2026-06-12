@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
@@ -63,7 +62,6 @@ class CreateDrawingUseCase @Inject constructor(
         val initialBytes = buildBlankDrawingBytes()
 
         val resolvedParentPath = DrawingTargetPolicy.resolveParentPath(resource, parentPath)
-        Timber.d("S0363: create drawing target resolved -> %s (resource=%s)", resolvedParentPath, resource.path)
         DrawingTargetPolicy.ensureFallbackDirectoryIfNeeded(resource, resolvedParentPath)
             .onFailure { return@withContext Result.failure(it) }
 

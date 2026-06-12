@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.PageWelcomeProfilesBinding
 import com.sza.fastmediasorter.ui.profile.DeviceProfileTileAdapter
 import com.sza.fastmediasorter.ui.welcome.WelcomePage
-import timber.log.Timber
 
 /**
  * Device-profile onboarding page (S0399). Renders the full profile tiles (icon + title + 2-line
@@ -36,7 +35,6 @@ class ProfilesPageViewHolder(
     fun bind(page: WelcomePage) {
         orderedProfiles = orderSmallScreenFirst(page.selectableProfiles)
         onProfileSelected = page.onProfileSelected
-        Timber.d("S0399: profiles page bound, tiles=${orderedProfiles.size} recommended=${page.recommendedProfileType}")
         renderedRecommended = null
         hasRecommendedValue = false
         autoScrolled = false
