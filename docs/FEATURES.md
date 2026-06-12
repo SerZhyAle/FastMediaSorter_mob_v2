@@ -18,6 +18,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 2. Media Browsing
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
+- **Protected archive extraction** `[Standard / VR]`: Open password-protected ZIP archives - enter the password when prompted and the contents extract in place; an archive that uses an unsupported protection method is reported with a clear message instead of failing silently.
 - **Office & PDF document handoff** `[Standard / VR]`: Filter and open DOC, DOCX, RTF, ODT, or protected PDF files in external apps or fallback viewers with integrated password indicators.
 - **External file viewing** `[Standard / VR]`: When you open a file from another app, page through the neighbouring files in the same folder (next, previous, random, slideshow), and use *Open in FastMediaSorter* to jump straight into the in-app player on that file.
 - **External image editing** `[Standard / VR]`: When you open an image from another app, edit it right there - crop, save a cropped copy, make a compressed copy, and toggle screen rotation - the same image actions as the in-app player.
