@@ -105,6 +105,14 @@ internal class PlayerObserverManager(
     }
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
+        // S0358: consume the per-resource playback-order override / restore the saved order on the
+        // live state path. This used to live in a PlayerActivity.updateUI() that was orphaned when
+        // the state collector was rewired to call this manager directly, so "Play random" never
+        // flipped the order button to Shuffle. A true return means the mode changed and a fresh
+        // state emission will re-enter updateUI(), so skip the rest of this pass.
+        if (activity.syncPlaybackOrderForCurrentResource(state)) {
+            return
+        }
         activity.uiStateCoordinator.updateUI(state)
         val isAudio = state.currentFile?.type == MediaType.AUDIO
         if (!isAudio) {

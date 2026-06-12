@@ -552,13 +552,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal fun adjustTouchZonesForVideo(isVideo: Boolean) =
         mediaLoaderManager.adjustTouchZonesForVideo(isVideo, useTouchZones)
 
-    private fun updateUI(state: PlayerViewModel.PlayerState) {
-        if (syncPlaybackOrderForCurrentResource(state)) {
-            return
-        }
-        observerManager.updateUI(state)
-    }
-
     internal fun updatePanelVisibility(showCommandPanel: Boolean) {
         dialogAndUiStateManager.updatePanelVisibility(showCommandPanel)
         controlsSetupManager.updateDocumentFullscreenExitButtonVisibility()
@@ -1037,7 +1030,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         }
     }
 
-    private fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
+    internal fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
         val resourceId = state.resource?.id ?: return false
         val mediaType = state.currentFile?.type ?: return false
         val contextKey = "$resourceId:${PlaybackControlPreferences.modeScopeFor(mediaType)}"
