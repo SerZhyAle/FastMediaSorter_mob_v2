@@ -24,6 +24,8 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.widget.Toast
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
@@ -74,8 +76,14 @@ class AudioPlaybackService : MediaSessionService() {
     // Position persistence for SFTP/SMB/FTP/Cloud audio
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var positionSaveLoop: PositionSaveLoop? = null
+    // Number of tracks skipped in a row due to skippable source errors; reset once a track actually
+    // reaches STATE_READY. Bounds the skip loop under REPEAT_MODE_ALL (see S0413 research/03).
+    private var consecutiveSkipCount = 0
+    private var lastSkipToastElapsedMs = 0L
     companion object {
         private const val AUTO_STOP_DELAY_MS = 10_000L
+        /** Suppress repeat skip toasts within this window so a run of bad files does not spam (S0413). */
+        private const val SKIP_TOAST_DEBOUNCE_MS = 3_000L
         /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
         private const val POSITION_SAVE_INTERVAL_MS = 15_000L
         const val ACTION_WIDGET_COMMAND = "com.sza.fastmediasorter.action.AUDIO_WIDGET_COMMAND"
@@ -178,6 +186,7 @@ class AudioPlaybackService : MediaSessionService() {
                     }
                     Player.STATE_READY -> {
                         // New track loaded - cancel auto-stop, start position save loop
+                        consecutiveSkipCount = 0
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                         // S0172: begin periodic save once player is ready
                         startPositionSaving()
@@ -212,11 +221,32 @@ class AudioPlaybackService : MediaSessionService() {
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                // SOURCE_ERROR typically means the cached file was evicted from unified_network_cache
-                // while the service still held a file:// URI to it (ENOENT). Stop the service
-                // immediately so the mini bar disappears and isRunning flips to false.
-                Timber.e(error, "AudioPlaybackService: playback error - stopping service (errorCode=${error.errorCode})")
                 autoStopHandler.removeCallbacks(autoStopRunnable)
+                val p = player
+                if (p != null && error.isSkippable() && p.hasNextMediaItem()
+                    && consecutiveSkipCount < p.mediaItemCount
+                ) {
+                    // Per-file parsing/decoding error in a playlist: skip the bad track and continue.
+                    Timber.d("S0413: skippable audio source error - advancing to next track")
+                    consecutiveSkipCount++
+                    Timber.w(error, "AudioPlaybackService: skippable source error - advancing to next track")
+                    showSkipMessage(currentItemDisplayName(p))
+                    p.seekToNextMediaItem()
+                    p.prepare()
+                    return
+                }
+                // Fatal error, single file, or the whole queue failed in a row. A cache eviction
+                // (FILE_NOT_FOUND, 2xxx) lands here on purpose so a genuine session failure is not masked.
+                if (p != null && error.isSkippable() && p.mediaItemCount > 1
+                    && consecutiveSkipCount >= p.mediaItemCount
+                ) {
+                    Toast.makeText(
+                        this@AudioPlaybackService,
+                        getString(R.string.s0413_audio_queue_unplayable),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                Timber.e(error, "AudioPlaybackService: fatal playback error - stopping service")
                 AudioNowPlayingSnapshotStore.clear(this@AudioPlaybackService)
                 stopSelf()
             }
@@ -382,6 +412,33 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun saveCurrentPosition() {
         positionSaveLoop?.saveNow()
+    }
+
+    // Parsing (3xxx) and decoding (4xxx) errors are intrinsic to a single file's bytes/format, so the
+    // track can be skipped. IO/runtime errors (e.g. evicted cache -> FILE_NOT_FOUND) may affect the whole
+    // session and keep the stop behavior. See S0413 research/01.
+    private fun PlaybackException.isSkippable(): Boolean = errorCode in 3000..4999
+
+    private fun currentItemDisplayName(p: Player): String {
+        val item = p.currentMediaItem
+        val title = p.mediaMetadata.title?.toString()
+            ?: item?.mediaMetadata?.title?.toString()
+        if (!title.isNullOrBlank()) return title
+        val uri = item?.localConfiguration?.uri?.toString().orEmpty()
+        return uri.substringAfterLast('/').substringBeforeLast('.')
+    }
+
+    private fun showSkipMessage(fileName: String) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastSkipToastElapsedMs < SKIP_TOAST_DEBOUNCE_MS) return
+        lastSkipToastElapsedMs = now
+        autoStopHandler.post {
+            Toast.makeText(
+                this,
+                getString(R.string.s0413_audio_track_skipped, fileName),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     // ────────────────────────────────────────────────────────────────────────

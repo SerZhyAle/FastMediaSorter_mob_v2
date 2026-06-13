@@ -297,6 +297,13 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
+        // Keep content above the nav bar — setDecorFitsSystemWindows(false) makes the window
+        // draw behind it, so content area needs an explicit bottom inset offset.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
+            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(0, 0, 0, nav.bottom)
+            insets
+        }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
 

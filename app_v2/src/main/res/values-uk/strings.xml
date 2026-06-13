@@ -2445,4 +2445,6 @@
     <string name="welcome_enable_all">Увімкнути все</string>
     <string name="welcome_enable_all_content_description">Увімкнути все та завершити налаштування</string>
     <string name="default_player_choose_in_settings">У системних налаштуваннях оберіть FastMediaSorter додатком за замовчуванням для цього типу.</string>
+    <string name="s0413_audio_track_skipped">Пропущено файл «%1$s» - не вдалося відтворити.</string>
+    <string name="s0413_audio_queue_unplayable">Не вдалося відтворити жоден файл.</string>
 </resources>

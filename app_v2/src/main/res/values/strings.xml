@@ -2530,4 +2530,6 @@ Close the player and try again.</string>
     <string name="welcome_enable_all">Enable all</string>
     <string name="welcome_enable_all_content_description">Enable everything and finish setup</string>
     <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
+    <string name="s0413_audio_track_skipped">Skipped &quot;%1$s&quot; - this file cannot be played.</string>
+    <string name="s0413_audio_queue_unplayable">Nothing here could be played.</string>
 </resources>

@@ -313,6 +313,13 @@ class AudioStandaloneActivity :
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
+        // Without bottom-inset padding the ExoPlayer button row is hidden behind the nav bar
+        // because setDecorFitsSystemWindows(false) makes the window draw behind it.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
+            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(0, 0, 0, nav.bottom)
+            insets
+        }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
 

@@ -1,619 +1,636 @@
-Reusing configuration cache.
+Calculating task graph as no cached configuration is available for tasks: assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease :wear:assembleDebug :wear:assembleRelease
 Using the build cache is enabled, but no build caches are configured or enabled.
-> Task :app_v2:generateStandardDebugAssets UP-TO-DATE
+
+> Configure project :app_v2
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+Using the build cache is enabled, but no build caches are configured or enabled.
+
 > Task :translate_feature:generateStandardDebugAssets UP-TO-DATE
 > Task :translate_feature:preBuild UP-TO-DATE
-> Task :translate_feature:preLiteDebugBuild UP-TO-DATE
+> Task :app_v2:generateStandardDebugAssets UP-TO-DATE
 > Task :app_v2:generateLiteDebugAssets UP-TO-DATE
 > Task :translate_feature:preStandardDebugBuild UP-TO-DATE
-> Task :translate_feature:javaPreCompileStandardDebug UP-TO-DATE
-> Task :translate_feature:generateStandardDebugResources UP-TO-DATE
 > Task :translate_feature:featureStandardDebugWriter UP-TO-DATE
+> Task :translate_feature:generateStandardDebugResources UP-TO-DATE
+> Task :translate_feature:javaPreCompileStandardDebug UP-TO-DATE
 > Task :translate_feature:generateStandardDebugGlobalSynthetics UP-TO-DATE
-> Task :translate_feature:featureLiteDebugWriter UP-TO-DATE
-> Task :app_v2:generateStandardDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:generatePhotosStagingFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:mapStandardDebugSourceSetPaths UP-TO-DATE
 > Task :app_v2:generateLiteDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:mergeStandardDebugJniLibFolders UP-TO-DATE
-> Task :translate_feature:generateLiteDebugResources UP-TO-DATE
-> Task :translate_feature:packageStandardDebugResources UP-TO-DATE
+> Task :app_v2:generateStandardDebugFeatureTransitiveDeps UP-TO-DATE
+> Task :translate_feature:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:generatePhotosStagingFeatureTransitiveDeps UP-TO-DATE
 > Task :translate_feature:generateStandardDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:generatePhotosStagingFeatureTransitiveDeps UP-TO-DATE
+> Task :translate_feature:mergeStandardDebugJniLibFolders UP-TO-DATE
 > Task :translate_feature:desugarStandardDebugFileDependencies UP-TO-DATE
-> Task :app_v2:checkPhotosStagingLibraries UP-TO-DATE
 > Task :app_v2:checkStandardDebugLibraries UP-TO-DATE
+> Task :translate_feature:generatePhotosStagingFeatureTransitiveDeps UP-TO-DATE
+> Task :translate_feature:packageStandardDebugResources UP-TO-DATE
+> Task :app_v2:checkPhotosStagingLibraries UP-TO-DATE
 > Task :translate_feature:generateLiteDebugFeatureTransitiveDeps UP-TO-DATE
+> Task :translate_feature:preLiteDebugBuild UP-TO-DATE
 > Task :app_v2:checkLiteDebugLibraries UP-TO-DATE
-> Task :translate_feature:javaPreCompileLiteDebug UP-TO-DATE
-> Task :translate_feature:generateLiteDebugAssets UP-TO-DATE
-> Task :translate_feature:packageLiteDebugResources UP-TO-DATE
-> Task :app_v2:verifyNoPlatformNames UP-TO-DATE
-> Task :app_v2:preBuild UP-TO-DATE
-> Task :app_v2:preStandardDebugBuild UP-TO-DATE
-> Task :translate_feature:generateLiteDebugGlobalSynthetics UP-TO-DATE
-> Task :app_v2:mergeStandardDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:generateStandardDebugResources UP-TO-DATE
-> Task :translate_feature:mergeLiteDebugAssets UP-TO-DATE
-> Task :translate_feature:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :translate_feature:checkStandardDebugDuplicateClasses UP-TO-DATE
 > Task :translate_feature:mergeStandardDebugAssets UP-TO-DATE
+> Task :translate_feature:mergeStandardDebugNativeLibs NO-SOURCE
+> Task :translate_feature:stripStandardDebugDebugSymbols NO-SOURCE
 > Task :translate_feature:mergeStandardDebugResources UP-TO-DATE
-> Task :translate_feature:mergeStandardDebugNativeLibs UP-TO-DATE
+> Task :translate_feature:generateLiteDebugAssets UP-TO-DATE
+> Task :translate_feature:compressStandardDebugAssets UP-TO-DATE
+> Task :translate_feature:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :translate_feature:featureLiteDebugWriter
+> Task :translate_feature:desugarLiteDebugFileDependencies
+> Task :translate_feature:generateLiteDebugResources
+> Task :translate_feature:javaPreCompileLiteDebug
+> Task :translate_feature:mergeExtDexStandardDebug UP-TO-DATE
+> Task :translate_feature:mapLiteDebugSourceSetPaths
+> Task :app_v2:verifyNoPlatformNames UP-TO-DATE
+> Task :translate_feature:checkLiteDebugDuplicateClasses
+> Task :app_v2:preBuild UP-TO-DATE
+> Task :app_v2:prePhotosStagingBuild UP-TO-DATE
+> Task :app_v2:preStandardDebugBuild UP-TO-DATE
+> Task :app_v2:mergeStandardDebugNativeDebugMetadata NO-SOURCE
+> Task :translate_feature:checkLiteDebugAarMetadata
+> Task :translate_feature:mergeLiteDebugJniLibFolders
+> Task :translate_feature:packageLiteDebugResources
 > Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
+> Task :app_v2:generateStandardDebugResources UP-TO-DATE
 > Task :app_v2:javaPreCompileStandardDebug UP-TO-DATE
+> Task :translate_feature:mergeLiteDebugAssets
 > Task :app_v2:generateStandardDebugGlobalSynthetics UP-TO-DATE
 > Task :app_v2:l8DexDesugarLibStandardDebug UP-TO-DATE
-> Task :app_v2:desugarStandardDebugFileDependencies UP-TO-DATE
 > Task :app_v2:mergeStandardDebugAssets UP-TO-DATE
-> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
+> Task :translate_feature:mergeLiteDebugResources
+> Task :app_v2:packageStandardDebugResources UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
 > Task :app_v2:mergeStandardDebugResources UP-TO-DATE
-> Task :app_v2:compressStandardDebugAssets UP-TO-DATE
 > Task :app_v2:mapStandardDebugSourceSetPaths UP-TO-DATE
 > Task :app_v2:createStandardDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
 > Task :app_v2:writeStandardDebugModuleMetadata UP-TO-DATE
+> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app_v2:compressStandardDebugAssets UP-TO-DATE
+> Task :app_v2:desugarStandardDebugFileDependencies UP-TO-DATE
 > Task :app_v2:generateStandardDebugFeatureMetadata UP-TO-DATE
-> Task :app_v2:checkStandardDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
-> Task :app_v2:prePhotosStagingBuild UP-TO-DATE
-> Task :translate_feature:checkStandardDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:mergeLibDexStandardDebug UP-TO-DATE
 > Task :translate_feature:extractDeepLinksStandardDebug UP-TO-DATE
-> Task :app_v2:packageStandardDebugResources UP-TO-DATE
+> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
 > Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
+> Task :app_v2:checkStandardDebugDuplicateClasses UP-TO-DATE
 > Task :app_v2:generateStandardDebugRFile UP-TO-DATE
 > Task :app_v2:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mergeLibDexStandardDebug UP-TO-DATE
+> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
+> Task :app_v2:mergeExtDexStandardDebug UP-TO-DATE
 > Task :app_v2:mergeStandardDebugJniLibFolders UP-TO-DATE
 > Task :app_v2:validateSigningStandardDebug UP-TO-DATE
 > Task :app_v2:writeStandardDebugAppMetadata UP-TO-DATE
 > Task :app_v2:writeStandardDebugSigningConfigVersions UP-TO-DATE
 > Task :app_v2:signingConfigWriterStandardDebug UP-TO-DATE
-> Task :app_v2:mergeExtDexStandardDebug UP-TO-DATE
-> Task :translate_feature:compressStandardDebugAssets UP-TO-DATE
-> Task :translate_feature:processStandardDebugNavigationResources UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
-> Task :translate_feature:parseStandardDebugLocalResources UP-TO-DATE
 > Task :translate_feature:processStandardDebugMainManifest UP-TO-DATE
 > Task :translate_feature:copyStandardDebugMergedManifest UP-TO-DATE
-> Task :translate_feature:generateStandardDebugRFile UP-TO-DATE
 > Task :translate_feature:processApplicationManifestStandardDebugForBundle UP-TO-DATE
+> Task :translate_feature:processManifestStandardDebugForFeature UP-TO-DATE
+> Task :translate_feature:processStandardDebugNavigationResources UP-TO-DATE
+> Task :translate_feature:parseStandardDebugLocalResources UP-TO-DATE
+> Task :translate_feature:generateStandardDebugRFile UP-TO-DATE
 > Task :translate_feature:compileStandardDebugNavigationResources UP-TO-DATE
 > Task :translate_feature:processStandardDebugManifestForPackage UP-TO-DATE
-> Task :translate_feature:processManifestStandardDebugForFeature UP-TO-DATE
-> Task :translate_feature:stripStandardDebugDebugSymbols UP-TO-DATE
 > Task :app_v2:preLiteDebugBuild UP-TO-DATE
 > Task :app_v2:mergeLiteDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLiteDebug UP-TO-DATE
-> Task :translate_feature:mergeExtDexStandardDebug UP-TO-DATE
-> Task :app_v2:generateLiteDebugResources UP-TO-DATE
-> Task :app_v2:processLiteDebugNavigationResources UP-TO-DATE
-> Task :app_v2:packageLiteDebugResources UP-TO-DATE
-> Task :app_v2:parseLiteDebugLocalResources UP-TO-DATE
-> Task :app_v2:mergeLiteDebugResources UP-TO-DATE
-> Task :app_v2:generateLiteDebugBuildConfig UP-TO-DATE
-> Task :app_v2:generateLiteDebugRFile UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesLiteDebug UP-TO-DATE
-> Task :app_v2:javaPreCompileLiteDebug UP-TO-DATE
-> Task :app_v2:mergeLiteDebugAssets UP-TO-DATE
-> Task :app_v2:compressLiteDebugAssets UP-TO-DATE
-> Task :app_v2:generateLiteDebugGlobalSynthetics UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibLiteDebug UP-TO-DATE
 > Task :app_v2:processStandardDebugMainManifest UP-TO-DATE
 > Task :app_v2:processStandardDebugManifest UP-TO-DATE
 > Task :app_v2:processStandardDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:checkLiteDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:desugarLiteDebugFileDependencies UP-TO-DATE
-> Task :app_v2:mergeExtDexLiteDebug UP-TO-DATE
-> Task :app_v2:mergeLibDexLiteDebug UP-TO-DATE
-> Task :app_v2:checkLiteDebugAarMetadata UP-TO-DATE
-> Task :app_v2:mapLiteDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:compileLiteDebugNavigationResources UP-TO-DATE
-> Task :app_v2:createLiteDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksLiteDebug UP-TO-DATE
-> Task :app_v2:writeLiteDebugModuleMetadata UP-TO-DATE
-> Task :app_v2:generateLiteDebugFeatureMetadata UP-TO-DATE
 > Task :app_v2:processStandardDebugResources UP-TO-DATE
-> Task :translate_feature:extractDeepLinksLiteDebug UP-TO-DATE
-> Task :translate_feature:processLiteDebugMainManifest UP-TO-DATE
-> Task :translate_feature:copyLiteDebugMergedManifest UP-TO-DATE
-> Task :translate_feature:processApplicationManifestLiteDebugForBundle UP-TO-DATE
-> Task :translate_feature:processManifestLiteDebugForFeature UP-TO-DATE
-> Task :app_v2:processLiteDebugMainManifest UP-TO-DATE
-> Task :app_v2:processLiteDebugManifest UP-TO-DATE
-> Task :app_v2:processLiteDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:processLiteDebugResources UP-TO-DATE
-> Task :app_v2:mergeLiteDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:validateSigningLiteDebug UP-TO-DATE
-> Task :app_v2:writeLiteDebugAppMetadata UP-TO-DATE
-> Task :app_v2:writeLiteDebugSigningConfigVersions UP-TO-DATE
-> Task :app_v2:signingConfigWriterLiteDebug UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLiteDebug UP-TO-DATE
+> Task :app_v2:generateLiteDebugResources
 > Task :translate_feature:processStandardDebugResources UP-TO-DATE
-> Task :translate_feature:compressLiteDebugAssets UP-TO-DATE
-> Task :translate_feature:processLiteDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:checkLiteDebugDuplicateClasses UP-TO-DATE
-> Task :translate_feature:parseLiteDebugLocalResources UP-TO-DATE
-> Task :translate_feature:desugarLiteDebugFileDependencies UP-TO-DATE
-> Task :translate_feature:generateLiteDebugRFile UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptStandardDebugKotlin UP-TO-DATE
+> Task :translate_feature:generateLiteDebugGlobalSynthetics
+> Task :app_v2:processLiteDebugNavigationResources
+> Task :app_v2:generateLiteDebugBuildConfig
 > Task :app_v2:configureCMakeDebug[x86]
 > Task :app_v2:configureCMakeDebug[arm64-v8a]
-> Task :translate_feature:mergeExtDexLiteDebug UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[x86]
-> Task :translate_feature:checkLiteDebugAarMetadata UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[arm64-v8a]
-> Task :translate_feature:mapLiteDebugSourceSetPaths UP-TO-DATE
-> Task :translate_feature:processLiteDebugManifestForPackage UP-TO-DATE
-> Task :translate_feature:mergeLiteDebugJniLibFolders UP-TO-DATE
-> Task :translate_feature:compileLiteDebugNavigationResources UP-TO-DATE
-> Task :app_v2:generatePhotosDebugAssets UP-TO-DATE
-> Task :translate_feature:prePhotosDebugBuild UP-TO-DATE
 > Task :app_v2:configureCMakeDebug[x86_64]
-> Task :app_v2:generatePhotosDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:featurePhotosDebugWriter UP-TO-DATE
 > Task :app_v2:configureCMakeDebug[armeabi-v7a]
-> Task :translate_feature:generatePhotosDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:mergeLiteDebugNativeLibs UP-TO-DATE
-> Task :translate_feature:mergeLiteDebugResources UP-TO-DATE
-> Task :translate_feature:generatePhotosDebugResources UP-TO-DATE
-> Task :app_v2:checkPhotosDebugLibraries UP-TO-DATE
-> Task :app_v2:prePhotosDebugBuild UP-TO-DATE
-> Task :translate_feature:stripLiteDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:mergePhotosDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosDebug UP-TO-DATE
 > Task :app_v2:buildCMakeDebug[x86_64]
-> Task :app_v2:generatePhotosDebugResources UP-TO-DATE
-> Task :app_v2:javaPreCompilePhotosDebug UP-TO-DATE
-> Task :app_v2:processPhotosDebugNavigationResources UP-TO-DATE
-> Task :app_v2:generatePhotosDebugBuildConfig UP-TO-DATE
-> Task :app_v2:mergePhotosDebugAssets UP-TO-DATE
-> Task :app_v2:generatePhotosDebugGlobalSynthetics UP-TO-DATE
 > Task :app_v2:buildCMakeDebug[armeabi-v7a]
-> Task :app_v2:compressPhotosDebugAssets UP-TO-DATE
-> Task :translate_feature:processLiteDebugResources UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibPhotosDebug UP-TO-DATE
-> Task :app_v2:checkPhotosDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:desugarPhotosDebugFileDependencies UP-TO-DATE
-> Task :app_v2:mergeLibDexPhotosDebug UP-TO-DATE
-> Task :app_v2:checkPhotosDebugAarMetadata UP-TO-DATE
-> Task :app_v2:mergeLiteDebugNativeLibs UP-TO-DATE
-> Task :app_v2:mapPhotosDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:stripLiteDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:createPhotosDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksPhotosDebug UP-TO-DATE
+> Task :app_v2:buildCMakeDebug[arm64-v8a]
+> Task :app_v2:buildCMakeDebug[x86]
+> Task :app_v2:javaPreCompileLiteDebug
 > Task :app_v2:mergeStandardDebugNativeLibs UP-TO-DATE
-> Task :app_v2:compilePhotosDebugNavigationResources UP-TO-DATE
-> Task :app_v2:writePhotosDebugModuleMetadata UP-TO-DATE
-> Task :app_v2:mergeExtDexPhotosDebug UP-TO-DATE
 > Task :app_v2:stripStandardDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:generatePhotosDebugFeatureMetadata UP-TO-DATE
-> Task :app_v2:writePhotosDebugAppMetadata UP-TO-DATE
-> Task :app_v2:writePhotosDebugSigningConfigVersions UP-TO-DATE
-> Task :app_v2:validateSigningPhotosDebug UP-TO-DATE
-> Task :app_v2:signingConfigWriterPhotosDebug UP-TO-DATE
-> Task :app_v2:mergePhotosDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:mergePhotosDebugResources UP-TO-DATE
-> Task :translate_feature:javaPreCompilePhotosDebug UP-TO-DATE
-> Task :translate_feature:extractDeepLinksPhotosDebug UP-TO-DATE
-> Task :translate_feature:generatePhotosDebugAssets UP-TO-DATE
-> Task :app_v2:packagePhotosDebugResources UP-TO-DATE
-> Task :translate_feature:packagePhotosDebugResources UP-TO-DATE
-> Task :translate_feature:mergePhotosDebugAssets UP-TO-DATE
-> Task :translate_feature:processPhotosDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:compressPhotosDebugAssets UP-TO-DATE
-> Task :translate_feature:parsePhotosDebugLocalResources UP-TO-DATE
-> Task :translate_feature:generatePhotosDebugGlobalSynthetics UP-TO-DATE
-> Task :app_v2:parsePhotosDebugLocalResources UP-TO-DATE
-> Task :translate_feature:generatePhotosDebugRFile UP-TO-DATE
-> Task :translate_feature:checkPhotosDebugDuplicateClasses UP-TO-DATE
-> Task :translate_feature:processPhotosDebugMainManifest UP-TO-DATE
-> Task :translate_feature:copyPhotosDebugMergedManifest UP-TO-DATE
-> Task :app_v2:generatePhotosDebugRFile UP-TO-DATE
-> Task :translate_feature:processApplicationManifestPhotosDebugForBundle UP-TO-DATE
-> Task :translate_feature:checkPhotosDebugAarMetadata UP-TO-DATE
-> Task :translate_feature:processManifestPhotosDebugForFeature UP-TO-DATE
-> Task :translate_feature:mapPhotosDebugSourceSetPaths UP-TO-DATE
-> Task :translate_feature:compilePhotosDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:processPhotosDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:mergePhotosDebugNativeLibs UP-TO-DATE
-> Task :app_v2:stripPhotosDebugDebugSymbols UP-TO-DATE
-> Task :translate_feature:mergePhotosDebugResources UP-TO-DATE
-> Task :translate_feature:mergePhotosDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesPhotosDebug UP-TO-DATE
-> Task :app_v2:generateLegacyDebugAssets UP-TO-DATE
-> Task :translate_feature:preLegacyDebugBuild UP-TO-DATE
-> Task :app_v2:processPhotosDebugMainManifest UP-TO-DATE
-> Task :translate_feature:featureLegacyDebugWriter UP-TO-DATE
-> Task :app_v2:generateLegacyDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:processPhotosDebugManifest UP-TO-DATE
-> Task :app_v2:processPhotosDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:generateLegacyStagingFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:generateLegacyDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:desugarPhotosDebugFileDependencies UP-TO-DATE
-> Task :translate_feature:mergePhotosDebugNativeLibs UP-TO-DATE
-> Task :app_v2:checkLegacyDebugLibraries UP-TO-DATE
-> Task :app_v2:preLegacyDebugBuild UP-TO-DATE
-> Task :translate_feature:generateLegacyStagingFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:stripPhotosDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:generateLegacyDebugResources UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugResources UP-TO-DATE
-> Task :app_v2:processLegacyDebugNavigationResources UP-TO-DATE
-> Task :app_v2:generateLegacyDebugBuildConfig UP-TO-DATE
-> Task :app_v2:javaPreCompileLegacyDebug UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyDebug UP-TO-DATE
-> Task :translate_feature:mergeExtDexPhotosDebug UP-TO-DATE
-> Task :app_v2:processPhotosDebugResources UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugAssets UP-TO-DATE
-> Task :app_v2:generateLegacyDebugGlobalSynthetics UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibLegacyDebug UP-TO-DATE
-> Task :app_v2:compressLegacyDebugAssets UP-TO-DATE
-> Task :app_v2:checkLegacyDebugAarMetadata UP-TO-DATE
-> Task :app_v2:checkLegacyDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:packageLegacyDebugResources UP-TO-DATE
-> Task :translate_feature:processPhotosDebugResources UP-TO-DATE
-> Task :app_v2:createLegacyDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:mapLegacyDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:parseLegacyDebugLocalResources UP-TO-DATE
-> Task :app_v2:extractDeepLinksLegacyDebug UP-TO-DATE
-> Task :app_v2:compileLegacyDebugNavigationResources UP-TO-DATE
-> Task :app_v2:writeLegacyDebugModuleMetadata UP-TO-DATE
-> Task :app_v2:generateLegacyDebugFeatureMetadata UP-TO-DATE
-> Task :app_v2:generateLegacyDebugRFile UP-TO-DATE
-> Task :app_v2:checkLegacyStagingLibraries UP-TO-DATE
-> Task :app_v2:preLegacyStagingBuild UP-TO-DATE
-> Task :translate_feature:extractDeepLinksLegacyDebug UP-TO-DATE
-> Task :app_v2:mergeLibDexLegacyDebug UP-TO-DATE
-> Task :translate_feature:processLegacyDebugMainManifest UP-TO-DATE
-> Task :app_v2:configureCMakeDebug[arm64-v8a]-3
-> Task :translate_feature:copyLegacyDebugMergedManifest UP-TO-DATE
-> Task :translate_feature:processApplicationManifestLegacyDebugForBundle UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[arm64-v8a]-2
-> Task :translate_feature:processManifestLegacyDebugForFeature UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesLegacyDebug UP-TO-DATE
-> Task :app_v2:processLegacyDebugMainManifest UP-TO-DATE
-> Task :app_v2:configureCMakeDebug[x86]-2
-> Task :app_v2:processLegacyDebugManifest UP-TO-DATE
-> Task :app_v2:desugarLegacyDebugFileDependencies UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[x86]-2
-> Task :app_v2:processLegacyDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:configureCMakeDebug[x86_64]-2
-> Task :app_v2:processLegacyDebugResources UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[x86_64]-2
-> Task :app_v2:mergeLegacyDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:validateSigningLegacyDebug UP-TO-DATE
-> Task :app_v2:writeLegacyDebugSigningConfigVersions UP-TO-DATE
-> Task :app_v2:signingConfigWriterLegacyDebug UP-TO-DATE
-> Task :app_v2:writeLegacyDebugAppMetadata UP-TO-DATE
-> Task :translate_feature:generateLegacyDebugResources UP-TO-DATE
-> Task :translate_feature:packageLegacyDebugResources UP-TO-DATE
-> Task :translate_feature:processLegacyDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:javaPreCompileLegacyDebug UP-TO-DATE
-> Task :translate_feature:generateLegacyDebugAssets UP-TO-DATE
-> Task :translate_feature:parseLegacyDebugLocalResources UP-TO-DATE
-> Task :translate_feature:generateLegacyDebugRFile UP-TO-DATE
-> Task :translate_feature:mergeLegacyDebugAssets UP-TO-DATE
-> Task :translate_feature:generateLegacyDebugGlobalSynthetics UP-TO-DATE
-> Task :translate_feature:compressLegacyDebugAssets UP-TO-DATE
-> Task :translate_feature:desugarLegacyDebugFileDependencies UP-TO-DATE
-> Task :app_v2:configureCMakeDebug[armeabi-v7a]-2
-> Task :translate_feature:checkLegacyDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[armeabi-v7a]-2
-> Task :translate_feature:checkLegacyDebugAarMetadata UP-TO-DATE
-> Task :translate_feature:mapLegacyDebugSourceSetPaths UP-TO-DATE
-> Task :translate_feature:compileLegacyDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:mergeExtDexLegacyDebug UP-TO-DATE
-> Task :translate_feature:processLegacyDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugNativeLibs UP-TO-DATE
-> Task :translate_feature:mergeLegacyDebugResources UP-TO-DATE
-> Task :app_v2:stripLegacyDebugDebugSymbols UP-TO-DATE
-> Task :translate_feature:mergeLegacyDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:generateVrDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:generateVrDebugFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:checkVrDebugLibraries UP-TO-DATE
-> Task :app_v2:preVrDebugBuild UP-TO-DATE
-> Task :translate_feature:mergeLegacyDebugNativeLibs UP-TO-DATE
-> Task :app_v2:mergeVrDebugNativeDebugMetadata NO-SOURCE
-> Task :translate_feature:stripLegacyDebugDebugSymbols UP-TO-DATE
-> Task :translate_feature:processLegacyDebugResources UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsVrDebug UP-TO-DATE
-> Task :app_v2:generateVrDebugResources UP-TO-DATE
-> Task :app_v2:generateVrDebugBuildConfig UP-TO-DATE
-> Task :app_v2:processVrDebugNavigationResources UP-TO-DATE
-> Task :app_v2:javaPreCompileVrDebug UP-TO-DATE
-> Task :app_v2:generateVrDebugAssets UP-TO-DATE
-> Task :app_v2:mergeVrDebugAssets UP-TO-DATE
-> Task :app_v2:compressVrDebugAssets UP-TO-DATE
-> Task :app_v2:generateVrDebugGlobalSynthetics UP-TO-DATE
-> Task :app_v2:mergeVrDebugResources UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibVrDebug UP-TO-DATE
-> Task :app_v2:packageVrDebugResources UP-TO-DATE
-> Task :app_v2:desugarVrDebugFileDependencies UP-TO-DATE
-> Task :app_v2:parseVrDebugLocalResources UP-TO-DATE
-> Task :app_v2:checkVrDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:generateVrDebugRFile UP-TO-DATE
-> Task :app_v2:checkVrDebugAarMetadata UP-TO-DATE
-> Task :app_v2:mergeLibDexVrDebug UP-TO-DATE
-> Task :app_v2:mergeExtDexVrDebug UP-TO-DATE
-> Task :app_v2:createVrDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:mapVrDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:extractDeepLinksVrDebug UP-TO-DATE
-> Task :app_v2:compileVrDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:preVrDebugBuild UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesVrDebug UP-TO-DATE
-> Task :app_v2:writeVrDebugModuleMetadata UP-TO-DATE
-> Task :translate_feature:featureVrDebugWriter UP-TO-DATE
-> Task :app_v2:generateVrDebugFeatureMetadata UP-TO-DATE
-> Task :app_v2:generateVrStagingFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:extractDeepLinksVrDebug UP-TO-DATE
-> Task :translate_feature:generateVrStagingFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:checkVrStagingLibraries UP-TO-DATE
-> Task :app_v2:preVrStagingBuild UP-TO-DATE
-> Task :translate_feature:processVrDebugMainManifest UP-TO-DATE
-> Task :translate_feature:copyVrDebugMergedManifest UP-TO-DATE
-> Task :translate_feature:processApplicationManifestVrDebugForBundle UP-TO-DATE
-> Task :translate_feature:processManifestVrDebugForFeature UP-TO-DATE
-> Task :app_v2:mergeExtDexLegacyDebug UP-TO-DATE
-> Task :app_v2:processVrDebugMainManifest UP-TO-DATE
-> Task :app_v2:mergeVrDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:configureCMakeDebug[arm64-v8a]-4
-> Task :app_v2:validateSigningVrDebug UP-TO-DATE
-> Task :app_v2:processVrDebugManifest UP-TO-DATE
-> Task :app_v2:processVrDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:writeVrDebugAppMetadata UP-TO-DATE
-> Task :app_v2:writeVrDebugSigningConfigVersions UP-TO-DATE
-> Task :app_v2:signingConfigWriterVrDebug UP-TO-DATE
-> Task :translate_feature:generateVrDebugResources UP-TO-DATE
-> Task :translate_feature:packageVrDebugResources UP-TO-DATE
-> Task :app_v2:processVrDebugResources UP-TO-DATE
-> Task :translate_feature:javaPreCompileVrDebug UP-TO-DATE
-> Task :translate_feature:generateVrDebugAssets UP-TO-DATE
-> Task :translate_feature:processVrDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:parseVrDebugLocalResources UP-TO-DATE
-> Task :translate_feature:mergeVrDebugAssets UP-TO-DATE
-> Task :translate_feature:generateVrDebugRFile UP-TO-DATE
-> Task :translate_feature:generateVrDebugGlobalSynthetics UP-TO-DATE
-> Task :translate_feature:compressVrDebugAssets UP-TO-DATE
-> Task :translate_feature:desugarVrDebugFileDependencies UP-TO-DATE
-> Task :translate_feature:checkVrDebugDuplicateClasses UP-TO-DATE
-> Task :translate_feature:checkVrDebugAarMetadata UP-TO-DATE
-> Task :translate_feature:mapVrDebugSourceSetPaths UP-TO-DATE
-> Task :translate_feature:compileVrDebugNavigationResources UP-TO-DATE
-> Task :translate_feature:mergeExtDexVrDebug UP-TO-DATE
-> Task :translate_feature:mergeVrDebugResources UP-TO-DATE
-> Task :translate_feature:processVrDebugManifestForPackage UP-TO-DATE
-> Task :translate_feature:mergeVrDebugJniLibFolders UP-TO-DATE
-> Task :translate_feature:mergeVrDebugNativeLibs NO-SOURCE
-> Task :translate_feature:stripVrDebugDebugSymbols NO-SOURCE
-> Task :translate_feature:processVrDebugResources UP-TO-DATE
-> Task :app_v2:generatePhotosReleaseFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:generateStandardReleaseFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:generatePhotosReleaseFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:checkPhotosReleaseLibraries UP-TO-DATE
-> Task :app_v2:prePhotosReleaseBuild UP-TO-DATE
-> Task :translate_feature:generateStandardReleaseFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:configureCMakeRelWithDebInfo[armeabi-v7a]
-> Task :app_v2:buildCMakeRelWithDebInfo[armeabi-v7a]
-> Task :app_v2:configureCMakeRelWithDebInfo[arm64-v8a]
-> Task :app_v2:buildCMakeRelWithDebInfo[arm64-v8a]
-> Task :app_v2:configureCMakeRelWithDebInfo[x86]
-> Task :app_v2:buildCMakeRelWithDebInfo[x86]
-> Task :app_v2:checkStandardReleaseLibraries UP-TO-DATE
-> Task :app_v2:preStandardReleaseBuild UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseJniLibFolders UP-TO-DATE
-> Task :translate_feature:preStandardReleaseBuild UP-TO-DATE
-> Task :app_v2:configureCMakeRelWithDebInfo[x86_64]
-> Task :app_v2:buildCMakeRelWithDebInfo[x86_64]
-> Task :translate_feature:mergeStandardReleaseJniLibFolders UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseNativeLibs UP-TO-DATE
-> Task :translate_feature:mergeStandardReleaseNativeLibs UP-TO-DATE
-> Task :app_v2:stripStandardReleaseDebugSymbols UP-TO-DATE
-> Task :translate_feature:stripStandardReleaseDebugSymbols UP-TO-DATE
-> Task :app_v2:extractStandardReleaseNativeDebugMetadata UP-TO-DATE
-> Task :translate_feature:extractStandardReleaseNativeDebugMetadata UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseNativeDebugMetadata NO-SOURCE
-> Task :app_v2:writeStandardReleaseModuleMetadata UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsStandardRelease UP-TO-DATE
-> Task :app_v2:generateStandardReleaseResources UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseArtProfile UP-TO-DATE
-> Task :app_v2:expandStandardReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsLiteDebugKotlin UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseResources UP-TO-DATE
-> Task :app_v2:processStandardReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:packageStandardReleaseResources UP-TO-DATE
-> Task :app_v2:generateStandardReleaseBuildConfig UP-TO-DATE
-> Task :app_v2:parseStandardReleaseLocalResources UP-TO-DATE
-> Task :app_v2:buildCMakeDebug[arm64-v8a][fms_diagnostic_xr]-2
-> Task :app_v2:javaPreCompileStandardRelease UP-TO-DATE
-> Task :app_v2:generateStandardReleaseRFile UP-TO-DATE
-> Task :app_v2:checkStandardReleaseAarMetadata UP-TO-DATE
-> Task :app_v2:mapStandardReleaseSourceSetPaths UP-TO-DATE
-> Task :app_v2:compileStandardReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesStandardRelease UP-TO-DATE
-> Task :app_v2:createStandardReleaseCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksStandardRelease UP-TO-DATE
-> Task :translate_feature:featureStandardReleaseWriter UP-TO-DATE
-> Task :app_v2:mergeVrDebugNativeLibs UP-TO-DATE
-> Task :app_v2:generateStandardReleaseFeatureMetadata UP-TO-DATE
-> Task :translate_feature:extractDeepLinksStandardRelease UP-TO-DATE
-> Task :app_v2:stripVrDebugDebugSymbols UP-TO-DATE
-> Task :translate_feature:generateStandardReleaseResources UP-TO-DATE
-> Task :translate_feature:packageStandardReleaseResources UP-TO-DATE
-> Task :translate_feature:processStandardReleaseMainManifest UP-TO-DATE
-> Task :translate_feature:copyStandardReleaseMergedManifest UP-TO-DATE
-> Task :translate_feature:processStandardReleaseNavigationResources UP-TO-DATE
-> Task :translate_feature:processApplicationManifestStandardReleaseForBundle UP-TO-DATE
-> Task :app_v2:kaptLiteDebugKotlin UP-TO-DATE
-> Task :translate_feature:processManifestStandardReleaseForFeature UP-TO-DATE
-> Task :translate_feature:parseStandardReleaseLocalResources UP-TO-DATE
-> Task :translate_feature:generateStandardReleaseRFile UP-TO-DATE
-> Task :app_v2:processStandardReleaseMainManifest UP-TO-DATE
-> Task :translate_feature:javaPreCompileStandardRelease UP-TO-DATE
-> Task :app_v2:processStandardReleaseManifest UP-TO-DATE
-> Task :translate_feature:checkStandardReleaseAarMetadata UP-TO-DATE
-> Task :app_v2:processStandardReleaseManifestForPackage UP-TO-DATE
-> Task :translate_feature:mapStandardReleaseSourceSetPaths UP-TO-DATE
-> Task :translate_feature:compileStandardReleaseNavigationResources UP-TO-DATE
-> Task :translate_feature:mergeStandardReleaseResources UP-TO-DATE
-> Task :app_v2:processStandardReleaseResources UP-TO-DATE
-> Task :translate_feature:processStandardReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:convertLinkedResourcesToBinaryStandardRelease UP-TO-DATE
-> Task :app_v2:checkStandardReleaseDuplicateClasses UP-TO-DATE
-> Task :translate_feature:processStandardReleaseResources UP-TO-DATE
-> Task :app_v2:extractProguardFiles UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseStartupProfile UP-TO-DATE
-> Task :translate_feature:checkStandardReleaseDuplicateClasses UP-TO-DATE
-> Task :translate_feature:desugarStandardReleaseFileDependencies UP-TO-DATE
-> Task :translate_feature:bundleStandardReleaseResources UP-TO-DATE
-> Task :app_v2:generateStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:compressStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:extractStandardReleaseVersionControlInfo UP-TO-DATE
-> Task :app_v2:collectStandardReleaseDependencies UP-TO-DATE
-> Task :translate_feature:mergeExtDexStandardRelease UP-TO-DATE
-> Task :app_v2:validateSigningStandardRelease UP-TO-DATE
-> Task :app_v2:sdkStandardReleaseDependencyData UP-TO-DATE
-> Task :app_v2:writeStandardReleaseAppMetadata UP-TO-DATE
-> Task :app_v2:writeStandardReleaseSigningConfigVersions UP-TO-DATE
-> Task :translate_feature:generateStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:signingConfigWriterStandardRelease UP-TO-DATE
-> Task :translate_feature:mergeStandardReleaseAssets UP-TO-DATE
-> Task :translate_feature:compressStandardReleaseAssets UP-TO-DATE
-> Task :translate_feature:optimizeStandardReleaseResources UP-TO-DATE
-> Task :translate_feature:preLiteReleaseBuild UP-TO-DATE
-> Task :app_v2:generateLiteReleaseFeatureTransitiveDeps UP-TO-DATE
-> Task :translate_feature:mergeLiteReleaseJniLibFolders UP-TO-DATE
-> Task :translate_feature:generateLiteReleaseFeatureTransitiveDeps UP-TO-DATE
-> Task :app_v2:checkLiteReleaseLibraries UP-TO-DATE
-> Task :app_v2:preLiteReleaseBuild UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseJniLibFolders UP-TO-DATE
-> Task :translate_feature:mergeLiteReleaseNativeLibs UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseNativeLibs UP-TO-DATE
-> Task :translate_feature:stripLiteReleaseDebugSymbols UP-TO-DATE
-> Task :app_v2:stripLiteReleaseDebugSymbols UP-TO-DATE
-> Task :translate_feature:extractLiteReleaseNativeDebugMetadata UP-TO-DATE
-> Task :app_v2:extractLiteReleaseNativeDebugMetadata UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseArtProfile UP-TO-DATE
-> Task :app_v2:expandLiteReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseNativeDebugMetadata NO-SOURCE
-> Task :app_v2:writeLiteReleaseModuleMetadata UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLiteRelease UP-TO-DATE
-> Task :app_v2:generateLiteReleaseResources UP-TO-DATE
-> Task :app_v2:processLiteReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:packageLiteReleaseResources UP-TO-DATE
-> Task :app_v2:parseLiteReleaseLocalResources UP-TO-DATE
-> Task :app_v2:generateLiteReleaseBuildConfig UP-TO-DATE
-> Task :app_v2:generateLiteReleaseRFile UP-TO-DATE
-> Task :app_v2:javaPreCompileLiteRelease UP-TO-DATE
-> Task :app_v2:checkLiteReleaseAarMetadata UP-TO-DATE
-> Task :app_v2:mapLiteReleaseSourceSetPaths UP-TO-DATE
-> Task :app_v2:compileLiteReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:createLiteReleaseCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksLiteRelease UP-TO-DATE
-> Task :translate_feature:featureLiteReleaseWriter UP-TO-DATE
-> Task :app_v2:generateLiteReleaseFeatureMetadata UP-TO-DATE
-> Task :translate_feature:extractDeepLinksLiteRelease UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseResources UP-TO-DATE
-> Task :translate_feature:processLiteReleaseMainManifest UP-TO-DATE
-> Task :translate_feature:copyLiteReleaseMergedManifest UP-TO-DATE
-> Task :translate_feature:processApplicationManifestLiteReleaseForBundle UP-TO-DATE
-> Task :translate_feature:processManifestLiteReleaseForFeature UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesLiteRelease UP-TO-DATE
-> Task :app_v2:processLiteReleaseMainManifest UP-TO-DATE
-> Task :app_v2:processLiteReleaseManifest UP-TO-DATE
-> Task :app_v2:processLiteReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:kaptStandardDebugKotlin UP-TO-DATE
-> Task :app_v2:processLiteReleaseResources UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsLegacyDebugKotlin UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsPhotosDebugKotlin UP-TO-DATE
-> Task :translate_feature:generateLiteReleaseResources UP-TO-DATE
-> Task :translate_feature:packageLiteReleaseResources UP-TO-DATE
-> Task :translate_feature:processLiteReleaseNavigationResources UP-TO-DATE
-> Task :translate_feature:parseLiteReleaseLocalResources UP-TO-DATE
-> Task :translate_feature:generateLiteReleaseRFile UP-TO-DATE
-> Task :translate_feature:javaPreCompileLiteRelease UP-TO-DATE
-> Task :app_v2:convertLinkedResourcesToBinaryLiteRelease UP-TO-DATE
-> Task :translate_feature:checkLiteReleaseAarMetadata UP-TO-DATE
-> Task :translate_feature:mapLiteReleaseSourceSetPaths UP-TO-DATE
-> Task :translate_feature:compileLiteReleaseNavigationResources UP-TO-DATE
-> Task :translate_feature:mergeLiteReleaseResources UP-TO-DATE
-> Task :translate_feature:processLiteReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:kaptLegacyDebugKotlin UP-TO-DATE
-> Task :translate_feature:processLiteReleaseResources UP-TO-DATE
-> Task :app_v2:checkLiteReleaseDuplicateClasses UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseStartupProfile UP-TO-DATE
-> Task :app_v2:kaptPhotosDebugKotlin UP-TO-DATE
-> Task :translate_feature:bundleLiteReleaseResources UP-TO-DATE
-> Task :translate_feature:checkLiteReleaseDuplicateClasses UP-TO-DATE
-> Task :translate_feature:desugarLiteReleaseFileDependencies UP-TO-DATE
-> Task :translate_feature:mergeExtDexLiteRelease UP-TO-DATE
-> Task :app_v2:generateLiteReleaseAssets UP-TO-DATE
-> Task :app_v2:mergeLiteReleaseAssets UP-TO-DATE
-> Task :app_v2:compressLiteReleaseAssets UP-TO-DATE
-> Task :app_v2:extractLiteReleaseVersionControlInfo UP-TO-DATE
-> Task :app_v2:collectLiteReleaseDependencies UP-TO-DATE
-> Task :app_v2:sdkLiteReleaseDependencyData UP-TO-DATE
-> Task :app_v2:validateSigningLiteRelease UP-TO-DATE
-> Task :app_v2:writeLiteReleaseAppMetadata UP-TO-DATE
-> Task :app_v2:writeLiteReleaseSigningConfigVersions UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsVrDebugKotlin UP-TO-DATE
-> Task :app_v2:signingConfigWriterLiteRelease UP-TO-DATE
-> Task :translate_feature:generateLiteReleaseAssets UP-TO-DATE
-> Task :translate_feature:mergeLiteReleaseAssets UP-TO-DATE
-> Task :translate_feature:compressLiteReleaseAssets UP-TO-DATE
-> Task :translate_feature:optimizeLiteReleaseResources UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseJniLibFolders UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseNativeLibs UP-TO-DATE
-> Task :app_v2:stripPhotosReleaseDebugSymbols UP-TO-DATE
-> Task :app_v2:extractPhotosReleaseNativeDebugMetadata UP-TO-DATE
-> Task :translate_feature:prePhotosReleaseBuild UP-TO-DATE
-> Task :translate_feature:mergePhotosReleaseJniLibFolders UP-TO-DATE
-> Task :translate_feature:mergePhotosReleaseNativeLibs UP-TO-DATE
-> Task :translate_feature:stripPhotosReleaseDebugSymbols UP-TO-DATE
-> Task :translate_feature:extractPhotosReleaseNativeDebugMetadata UP-TO-DATE
-> Task :app_v2:kaptVrDebugKotlin UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseNativeDebugMetadata NO-SOURCE
-> Task :app_v2:mergePhotosReleaseArtProfile UP-TO-DATE
-> Task :app_v2:expandPhotosReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :app_v2:writePhotosReleaseModuleMetadata UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosRelease UP-TO-DATE
-> Task :app_v2:generatePhotosReleaseResources UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseResources UP-TO-DATE
-> Task :app_v2:packagePhotosReleaseResources UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsStandardReleaseKotlin UP-TO-DATE
-> Task :app_v2:processPhotosReleaseNavigationResources
-> Task :app_v2:kaptGenerateStubsLiteReleaseKotlin UP-TO-DATE
-> Task :app_v2:parsePhotosReleaseLocalResources
-> Task :app_v2:compileLegacyDebugKotlin UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesPhotosRelease
-> Task :app_v2:generatePhotosReleaseBuildConfig
+> Task :app_v2:desugarLiteDebugFileDependencies
+> Task :app_v2:mergeLiteDebugAssets
 > Task :app_v2:compileStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:checkLiteDebugAarMetadata
+> Task :app_v2:mapLiteDebugSourceSetPaths
+> Task :app_v2:compressLiteDebugAssets
+> Task :app_v2:createLiteDebugCompatibleScreenManifests
+> Task :app_v2:compileLiteDebugNavigationResources
+> Task :app_v2:extractDeepLinksLiteDebug
+> Task :app_v2:writeLiteDebugModuleMetadata
 > Task :app_v2:compileStandardDebugJavaWithJavac UP-TO-DATE
-> Task :app_v2:generatePhotosReleaseRFile
+> Task :translate_feature:extractDeepLinksLiteDebug
+> Task :app_v2:generateLiteDebugFeatureMetadata
 > Task :app_v2:processStandardDebugJavaRes UP-TO-DATE
+> Task :app_v2:checkLiteDebugDuplicateClasses
 > Task :app_v2:mergeStandardDebugJavaResource UP-TO-DATE
+> Task :translate_feature:processLiteDebugMainManifest
+> Task :translate_feature:copyLiteDebugMergedManifest
+> Task :translate_feature:processApplicationManifestLiteDebugForBundle
+> Task :app_v2:mergeLibDexLiteDebug
+> Task :translate_feature:processManifestLiteDebugForFeature
+> Task :app_v2:mergeLiteDebugJniLibFolders
 > Task :app_v2:hiltSyncStandardDebug UP-TO-DATE
+> Task :app_v2:mergeLiteDebugNativeLibs
 > Task :app_v2:hiltAggregateDepsStandardDebug UP-TO-DATE
+> Task :app_v2:processLiteDebugMainManifest
+> Task :app_v2:processLiteDebugManifest
+> Task :app_v2:packageLiteDebugResources
+> Task :app_v2:generateLiteDebugGlobalSynthetics
+> Task :app_v2:processLiteDebugManifestForPackage
+> Task :app_v2:writeLiteDebugAppMetadata
+> Task :app_v2:writeLiteDebugSigningConfigVersions
+> Task :translate_feature:processLiteDebugNavigationResources
+> Task :app_v2:validateSigningLiteDebug
+> Task :translate_feature:parseLiteDebugLocalResources
 > Task :app_v2:hiltJavaCompileStandardDebug UP-TO-DATE
-> Task :app_v2:compileVrDebugKotlin UP-TO-DATE
+> Task :app_v2:signingConfigWriterLiteDebug
 > Task :app_v2:bundleStandardDebugClassesToCompileJar UP-TO-DATE
-> Task :app_v2:transformStandardDebugClassesWithAsm UP-TO-DATE
-> Task :translate_feature:compileStandardDebugKotlin UP-TO-DATE
+> Task :translate_feature:generateLiteDebugRFile
+> Task :translate_feature:compileStandardDebugKotlin NO-SOURCE
 > Task :translate_feature:compileStandardDebugJavaWithJavac NO-SOURCE
+> Task :translate_feature:compressLiteDebugAssets
+> Task :translate_feature:dexBuilderStandardDebug UP-TO-DATE
+> Task :translate_feature:processStandardDebugJavaRes NO-SOURCE
+> Task :translate_feature:mergeProjectDexStandardDebug UP-TO-DATE
+> Task :app_v2:stripLiteDebugDebugSymbols
+> Task :translate_feature:compileLiteDebugNavigationResources
+> Task :translate_feature:mergeStandardDebugJavaResource UP-TO-DATE
+> Task :translate_feature:processLiteDebugManifestForPackage
+> Task :app_v2:generatePhotosDebugFeatureTransitiveDeps
+> Task :translate_feature:generatePhotosDebugFeatureTransitiveDeps
+> Task :app_v2:checkPhotosDebugLibraries
+> Task :app_v2:prePhotosDebugBuild
+> Task :app_v2:mergePhotosDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosDebug
+> Task :app_v2:generatePhotosDebugResources
+> Task :app_v2:transformStandardDebugClassesWithAsm UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibLiteDebug
 > Task :app_v2:bundleStandardDebugClassesToRuntimeJar UP-TO-DATE
 > Task :translate_feature:mergeLibDexStandardDebug UP-TO-DATE
-> Task :translate_feature:dexBuilderStandardDebug UP-TO-DATE
-> Task :translate_feature:mergeProjectDexStandardDebug UP-TO-DATE
-> Task :translate_feature:processStandardDebugJavaRes UP-TO-DATE
-> Task :translate_feature:mergeStandardDebugJavaResource UP-TO-DATE
+> Task :translate_feature:packageStandardDebug UP-TO-DATE
+> Task :translate_feature:createStandardDebugApkListingFileRedirect UP-TO-DATE
+> Task :translate_feature:assembleStandardDebug UP-TO-DATE
 > Task :app_v2:dexBuilderStandardDebug UP-TO-DATE
 > Task :app_v2:mergeProjectDexStandardDebug UP-TO-DATE
 > Task :app_v2:packageStandardDebug UP-TO-DATE
 > Task :app_v2:createStandardDebugApkListingFileRedirect UP-TO-DATE
 > Task :app_v2:assembleStandardDebug UP-TO-DATE
-> Task :translate_feature:packageStandardDebug
-> Task :translate_feature:createStandardDebugApkListingFileRedirect UP-TO-DATE
-> Task :translate_feature:assembleStandardDebug
+> Task :translate_feature:mergeExtDexLiteDebug
+> Task :app_v2:processPhotosDebugNavigationResources
+> Task :app_v2:generatePhotosDebugBuildConfig
+> Task :app_v2:generatePhotosDebugAssets UP-TO-DATE
+> Task :app_v2:javaPreCompilePhotosDebug
+> Task :app_v2:parseLiteDebugLocalResources
+> Task :translate_feature:mergeLiteDebugNativeLibs
+> Task :app_v2:mergePhotosDebugAssets
+> Task :app_v2:generateLiteDebugRFile
+> Task :app_v2:compressPhotosDebugAssets
+> Task :app_v2:checkPhotosDebugDuplicateClasses
+> Task :app_v2:desugarPhotosDebugFileDependencies
+
+> Task :translate_feature:stripLiteDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: liblanguage_id_l2c_jni.so, libtranslate_jni.so. Run with --info option to learn more.
+
+> Task :app_v2:mergeLibDexPhotosDebug
+> Task :app_v2:checkPhotosDebugAarMetadata
+> Task :app_v2:mapPhotosDebugSourceSetPaths
+> Task :app_v2:generatePhotosDebugGlobalSynthetics
+> Task :app_v2:createPhotosDebugCompatibleScreenManifests
+> Task :app_v2:extractDeepLinksPhotosDebug
+> Task :translate_feature:prePhotosDebugBuild UP-TO-DATE
+> Task :app_v2:writePhotosDebugModuleMetadata
+> Task :translate_feature:featurePhotosDebugWriter
+> Task :app_v2:l8DexDesugarLibPhotosDebug
+> Task :app_v2:generatePhotosDebugFeatureMetadata
+> Task :app_v2:compilePhotosDebugNavigationResources
+> Task :translate_feature:extractDeepLinksPhotosDebug
+> Task :app_v2:validateSigningPhotosDebug
+> Task :app_v2:mergePhotosDebugJniLibFolders
+> Task :app_v2:writePhotosDebugAppMetadata
+> Task :app_v2:writePhotosDebugSigningConfigVersions
+> Task :app_v2:signingConfigWriterPhotosDebug
+> Task :translate_feature:processPhotosDebugMainManifest
+> Task :app_v2:mergePhotosDebugNativeLibs
+> Task :translate_feature:copyPhotosDebugMergedManifest
+> Task :translate_feature:processApplicationManifestPhotosDebugForBundle
+> Task :translate_feature:generatePhotosDebugResources
+> Task :translate_feature:packagePhotosDebugResources
+> Task :translate_feature:processPhotosDebugNavigationResources
+> Task :translate_feature:processManifestPhotosDebugForFeature
+> Task :translate_feature:parsePhotosDebugLocalResources
+> Task :app_v2:stripPhotosDebugDebugSymbols
+> Task :app_v2:mergeLiteDebugResources
+> Task :translate_feature:javaPreCompilePhotosDebug
+> Task :translate_feature:generatePhotosDebugRFile
+> Task :translate_feature:generatePhotosDebugAssets UP-TO-DATE
+> Task :translate_feature:mergePhotosDebugAssets
+> Task :translate_feature:compressPhotosDebugAssets
+> Task :app_v2:processPhotosDebugMainManifest
+> Task :app_v2:processPhotosDebugManifest
+> Task :app_v2:processPhotosDebugManifestForPackage
+> Task :translate_feature:checkPhotosDebugDuplicateClasses
+> Task :translate_feature:desugarPhotosDebugFileDependencies
+> Task :translate_feature:mergeExtDexPhotosDebug
+> Task :translate_feature:checkPhotosDebugAarMetadata
+> Task :translate_feature:mapPhotosDebugSourceSetPaths
+> Task :translate_feature:compilePhotosDebugNavigationResources
+> Task :translate_feature:mergePhotosDebugResources
+> Task :translate_feature:processPhotosDebugManifestForPackage
+> Task :translate_feature:mergePhotosDebugJniLibFolders
+> Task :translate_feature:generatePhotosDebugGlobalSynthetics
+> Task :app_v2:generateLegacyDebugFeatureTransitiveDeps
+> Task :translate_feature:generateLegacyDebugFeatureTransitiveDeps
+> Task :app_v2:checkLegacyDebugLibraries
+> Task :app_v2:preLegacyDebugBuild
+> Task :app_v2:mergeLegacyDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyDebug
+> Task :app_v2:generateLegacyDebugResources
+> Task :translate_feature:mergePhotosDebugNativeLibs
+> Task :app_v2:dataBindingGenBaseClassesLiteDebug
+
+> Task :translate_feature:stripPhotosDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: liblanguage_id_l2c_jni.so, libtranslate_jni.so. Run with --info option to learn more.
+
+> Task :app_v2:packagePhotosDebugResources
+> Task :app_v2:packageLegacyDebugResources
+> Task :app_v2:processLegacyDebugNavigationResources
+> Task :app_v2:parsePhotosDebugLocalResources
+> Task :app_v2:processLiteDebugResources
+> Task :app_v2:parseLegacyDebugLocalResources
+> Task :app_v2:generateLegacyDebugBuildConfig
+> Task :app_v2:generatePhotosDebugRFile
+> Task :app_v2:generateLegacyDebugRFile
+> Task :app_v2:generateLegacyDebugAssets UP-TO-DATE
+> Task :app_v2:javaPreCompileLegacyDebug
+> Task :app_v2:mergeLegacyDebugAssets
+> Task :app_v2:compressLegacyDebugAssets
+> Task :translate_feature:processLiteDebugResources
+> Task :app_v2:mergePhotosDebugResources
+> Task :app_v2:checkLegacyDebugDuplicateClasses
+> Task :app_v2:generateLegacyDebugGlobalSynthetics
+> Task :app_v2:dataBindingGenBaseClassesPhotosDebug
+> Task :app_v2:processPhotosDebugResources
+> Task :app_v2:desugarLegacyDebugFileDependencies
+> Task :app_v2:mergeLegacyDebugResources
+> Task :app_v2:dataBindingGenBaseClassesLegacyDebug
+> Task :app_v2:l8DexDesugarLibLegacyDebug
+> Task :translate_feature:processPhotosDebugResources
+> Task :app_v2:mergeLibDexLegacyDebug
+> Task :app_v2:mapLegacyDebugSourceSetPaths
+> Task :app_v2:mergeExtDexPhotosDebug
+> Task :app_v2:createLegacyDebugCompatibleScreenManifests
+> Task :app_v2:extractDeepLinksLegacyDebug
+> Task :translate_feature:preLegacyDebugBuild UP-TO-DATE
+> Task :app_v2:checkLegacyDebugAarMetadata
+> Task :app_v2:writeLegacyDebugModuleMetadata
+> Task :translate_feature:featureLegacyDebugWriter
+> Task :translate_feature:extractDeepLinksLegacyDebug
+> Task :app_v2:compileLegacyDebugNavigationResources
+> Task :app_v2:generateLegacyStagingFeatureTransitiveDeps
+> Task :app_v2:generateLegacyDebugFeatureMetadata
+> Task :translate_feature:generateLegacyStagingFeatureTransitiveDeps
+> Task :app_v2:checkLegacyStagingLibraries
+> Task :app_v2:preLegacyStagingBuild
+> Task :translate_feature:processLegacyDebugMainManifest
+> Task :translate_feature:copyLegacyDebugMergedManifest
+> Task :app_v2:mergeLegacyDebugJniLibFolders
+> Task :translate_feature:processApplicationManifestLegacyDebugForBundle
+> Task :app_v2:configureCMakeDebug[arm64-v8a]-3
+> Task :app_v2:buildCMakeDebug[arm64-v8a]-2
+> Task :app_v2:configureCMakeDebug[armeabi-v7a]-2
+> Task :translate_feature:processManifestLegacyDebugForFeature
+> Task :app_v2:buildCMakeDebug[armeabi-v7a]-2
+> Task :app_v2:configureCMakeDebug[x86_64]-2
+> Task :app_v2:configureCMakeDebug[x86]-2
+> Task :app_v2:buildCMakeDebug[x86_64]-2
+> Task :app_v2:buildCMakeDebug[x86]-2
+> Task :app_v2:validateSigningLegacyDebug
+> Task :app_v2:writeLegacyDebugAppMetadata
+> Task :app_v2:writeLegacyDebugSigningConfigVersions
+> Task :app_v2:signingConfigWriterLegacyDebug
+> Task :app_v2:mergeLegacyDebugNativeLibs
+> Task :app_v2:processLegacyDebugMainManifest
+> Task :app_v2:processLegacyDebugManifest
+> Task :app_v2:mergeExtDexLiteDebug
+> Task :translate_feature:processLegacyDebugNavigationResources
+> Task :translate_feature:generateLegacyDebugResources
+> Task :translate_feature:packageLegacyDebugResources
+> Task :translate_feature:parseLegacyDebugLocalResources
+> Task :translate_feature:generateLegacyDebugRFile
+> Task :translate_feature:generateLegacyDebugAssets UP-TO-DATE
+> Task :translate_feature:javaPreCompileLegacyDebug
+> Task :translate_feature:mergeLegacyDebugAssets
+> Task :translate_feature:compressLegacyDebugAssets
+> Task :app_v2:processLegacyDebugManifestForPackage
+> Task :translate_feature:checkLegacyDebugDuplicateClasses
+> Task :translate_feature:desugarLegacyDebugFileDependencies
+> Task :translate_feature:mergeExtDexLegacyDebug
+> Task :translate_feature:checkLegacyDebugAarMetadata
+> Task :translate_feature:mapLegacyDebugSourceSetPaths
+> Task :translate_feature:compileLegacyDebugNavigationResources
+> Task :translate_feature:mergeLegacyDebugResources
+> Task :translate_feature:processLegacyDebugManifestForPackage
+> Task :translate_feature:mergeLegacyDebugJniLibFolders
+> Task :translate_feature:mergeLegacyDebugNativeLibs NO-SOURCE
+> Task :translate_feature:stripLegacyDebugDebugSymbols NO-SOURCE
+> Task :app_v2:generateVrDebugFeatureTransitiveDeps
+> Task :translate_feature:generateVrDebugFeatureTransitiveDeps
+> Task :app_v2:checkVrDebugLibraries
+> Task :app_v2:preVrDebugBuild
+> Task :app_v2:mergeVrDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsVrDebug
+> Task :app_v2:generateVrDebugResources
+> Task :app_v2:stripLegacyDebugDebugSymbols
+> Task :translate_feature:generateLegacyDebugGlobalSynthetics
+> Task :app_v2:processVrDebugNavigationResources
+> Task :app_v2:generateVrDebugBuildConfig
+> Task :app_v2:javaPreCompileVrDebug
+> Task :app_v2:generateVrDebugAssets UP-TO-DATE
+> Task :app_v2:mergeVrDebugAssets
+> Task :app_v2:compressVrDebugAssets
+> Task :app_v2:generateVrDebugGlobalSynthetics
+> Task :app_v2:l8DexDesugarLibVrDebug
+> Task :app_v2:checkVrDebugDuplicateClasses
+> Task :app_v2:desugarVrDebugFileDependencies
+> Task :app_v2:processLegacyDebugResources
+> Task :translate_feature:processLegacyDebugResources
+> Task :app_v2:mergeLibDexVrDebug
+> Task :app_v2:checkVrDebugAarMetadata
+> Task :app_v2:mapVrDebugSourceSetPaths
+> Task :app_v2:compileVrDebugNavigationResources
+> Task :app_v2:createVrDebugCompatibleScreenManifests
+> Task :app_v2:extractDeepLinksVrDebug
+> Task :translate_feature:preVrDebugBuild UP-TO-DATE
+> Task :app_v2:writeVrDebugModuleMetadata
+> Task :translate_feature:featureVrDebugWriter
+> Task :app_v2:generateVrDebugFeatureMetadata
+> Task :translate_feature:extractDeepLinksVrDebug
+> Task :app_v2:packageVrDebugResources
+> Task :translate_feature:processVrDebugMainManifest
+> Task :translate_feature:copyVrDebugMergedManifest
+> Task :translate_feature:processApplicationManifestVrDebugForBundle
+> Task :app_v2:parseVrDebugLocalResources
+> Task :translate_feature:processManifestVrDebugForFeature
+> Task :app_v2:generateVrDebugRFile
+> Task :app_v2:generateVrStagingFeatureTransitiveDeps
+> Task :translate_feature:generateVrStagingFeatureTransitiveDeps
+> Task :app_v2:checkVrStagingLibraries
+> Task :app_v2:preVrStagingBuild
+> Task :app_v2:configureCMakeDebug[arm64-v8a]-4
+> Task :app_v2:processVrDebugMainManifest
+> Task :app_v2:processVrDebugManifest
+> Task :app_v2:processVrDebugManifestForPackage
+> Task :app_v2:mergeVrDebugJniLibFolders
+> Task :app_v2:validateSigningVrDebug
+> Task :app_v2:writeVrDebugAppMetadata
+> Task :app_v2:writeVrDebugSigningConfigVersions
+> Task :app_v2:signingConfigWriterVrDebug
+> Task :translate_feature:generateVrDebugResources
+> Task :translate_feature:packageVrDebugResources
+> Task :translate_feature:processVrDebugNavigationResources
+> Task :translate_feature:parseVrDebugLocalResources
+> Task :translate_feature:generateVrDebugRFile
+> Task :translate_feature:javaPreCompileVrDebug
+> Task :translate_feature:generateVrDebugAssets UP-TO-DATE
+> Task :translate_feature:mergeVrDebugAssets
+> Task :translate_feature:compressVrDebugAssets
+> Task :translate_feature:generateVrDebugGlobalSynthetics
+> Task :translate_feature:checkVrDebugDuplicateClasses
+> Task :translate_feature:desugarVrDebugFileDependencies
+> Task :translate_feature:mergeExtDexVrDebug
+> Task :translate_feature:checkVrDebugAarMetadata
+> Task :translate_feature:mapVrDebugSourceSetPaths
+> Task :translate_feature:compileVrDebugNavigationResources
+> Task :translate_feature:mergeVrDebugResources
+> Task :translate_feature:processVrDebugManifestForPackage
+> Task :translate_feature:mergeVrDebugJniLibFolders
+> Task :translate_feature:mergeVrDebugNativeLibs NO-SOURCE
+> Task :translate_feature:stripVrDebugDebugSymbols NO-SOURCE
+> Task :app_v2:generatePhotosReleaseFeatureTransitiveDeps
+> Task :translate_feature:generatePhotosReleaseFeatureTransitiveDeps
+> Task :app_v2:checkPhotosReleaseLibraries
+> Task :app_v2:prePhotosReleaseBuild
+> Task :app_v2:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :app_v2:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :app_v2:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app_v2:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app_v2:configureCMakeRelWithDebInfo[x86]
+> Task :app_v2:buildCMakeRelWithDebInfo[x86]
+> Task :app_v2:configureCMakeRelWithDebInfo[x86_64]
+> Task :app_v2:buildCMakeRelWithDebInfo[x86_64]
+> Task :app_v2:generateStandardReleaseFeatureTransitiveDeps
+> Task :translate_feature:generateStandardReleaseFeatureTransitiveDeps
+> Task :app_v2:checkStandardReleaseLibraries
+> Task :app_v2:preStandardReleaseBuild
+> Task :app_v2:mergeStandardReleaseJniLibFolders
+> Task :app_v2:mergeStandardReleaseNativeLibs
+> Task :app_v2:mergeVrDebugResources
+> Task :app_v2:buildCMakeDebug[arm64-v8a][fms_diagnostic_xr]-2
+> Task :app_v2:stripStandardReleaseDebugSymbols
+> Task :app_v2:dataBindingGenBaseClassesVrDebug
+> Task :app_v2:processVrDebugResources
+> Task :app_v2:mergeVrDebugNativeLibs
+> Task :app_v2:kaptGenerateStubsLiteDebugKotlin
+> Task :app_v2:mergeExtDexLegacyDebug
+> Task :translate_feature:processVrDebugResources
+> Task :translate_feature:preStandardReleaseBuild UP-TO-DATE
+> Task :app_v2:extractStandardReleaseNativeDebugMetadata
+> Task :translate_feature:mergeStandardReleaseJniLibFolders
+> Task :translate_feature:mergeStandardReleaseNativeLibs NO-SOURCE
+> Task :translate_feature:stripStandardReleaseDebugSymbols NO-SOURCE
+> Task :translate_feature:extractStandardReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:mergeStandardReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:writeStandardReleaseModuleMetadata
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardRelease
+> Task :app_v2:generateStandardReleaseResources
+> Task :app_v2:mergeStandardReleaseArtProfile
+> Task :app_v2:stripVrDebugDebugSymbols
+> Task :app_v2:expandStandardReleaseL8ArtProfileWildcards
+> Task :app_v2:processStandardReleaseNavigationResources
+> Task :app_v2:generateStandardReleaseBuildConfig
+> Task :app_v2:javaPreCompileStandardRelease
+> Task :app_v2:checkStandardReleaseAarMetadata
+> Task :app_v2:mapStandardReleaseSourceSetPaths
+> Task :app_v2:compileStandardReleaseNavigationResources
+> Task :app_v2:createStandardReleaseCompatibleScreenManifests
+> Task :app_v2:extractDeepLinksStandardRelease
+> Task :translate_feature:featureStandardReleaseWriter
+> Task :app_v2:generateStandardReleaseFeatureMetadata
+> Task :translate_feature:extractDeepLinksStandardRelease
+> Task :translate_feature:processStandardReleaseMainManifest
+> Task :translate_feature:copyStandardReleaseMergedManifest
+> Task :translate_feature:processApplicationManifestStandardReleaseForBundle
+> Task :translate_feature:processManifestStandardReleaseForFeature
+
+> Task :app_v2:processStandardReleaseMainManifest
+P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml Warning:
+	uses-permission#android.permission.WAKE_LOCK@android:maxSdkVersion was tagged at AndroidManifest.xml:0 to remove other declarations but no other declaration present
+P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml:25:9-28:47 Warning:
+	receiver#com.sza.fastmediasorter.worker.ScheduledOperationsBootReceiver@android:enabled was tagged at AndroidManifest.xml:25 to replace other declarations but no other declaration present
+
+> Task :app_v2:processStandardReleaseManifest
+> Task :app_v2:processStandardReleaseManifestForPackage
+> Task :translate_feature:generateStandardReleaseResources
+> Task :translate_feature:packageStandardReleaseResources
+> Task :translate_feature:processStandardReleaseNavigationResources
+> Task :translate_feature:parseStandardReleaseLocalResources
+> Task :translate_feature:generateStandardReleaseRFile
+> Task :translate_feature:javaPreCompileStandardRelease
+> Task :translate_feature:checkStandardReleaseAarMetadata
+> Task :translate_feature:mapStandardReleaseSourceSetPaths
+> Task :translate_feature:compileStandardReleaseNavigationResources
+> Task :translate_feature:mergeStandardReleaseResources
+> Task :translate_feature:processStandardReleaseManifestForPackage
+> Task :app_v2:checkStandardReleaseDuplicateClasses
+> Task :app_v2:extractProguardFiles
+> Task :app_v2:mergeStandardReleaseStartupProfile
+> Task :translate_feature:checkStandardReleaseDuplicateClasses
+> Task :translate_feature:desugarStandardReleaseFileDependencies
+> Task :translate_feature:mergeExtDexStandardRelease
+> Task :app_v2:generateStandardReleaseAssets UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseAssets
+> Task :app_v2:compressStandardReleaseAssets
+> Task :app_v2:extractStandardReleaseVersionControlInfo
+> Task :app_v2:mergeExtDexVrDebug
+> Task :app_v2:validateSigningStandardRelease
+> Task :app_v2:writeStandardReleaseAppMetadata
+> Task :app_v2:writeStandardReleaseSigningConfigVersions
+> Task :app_v2:signingConfigWriterStandardRelease
+> Task :translate_feature:generateStandardReleaseAssets UP-TO-DATE
+> Task :translate_feature:mergeStandardReleaseAssets
+> Task :translate_feature:compressStandardReleaseAssets
+> Task :app_v2:generateLiteReleaseFeatureTransitiveDeps
+> Task :translate_feature:generateLiteReleaseFeatureTransitiveDeps
+> Task :app_v2:checkLiteReleaseLibraries
+> Task :app_v2:preLiteReleaseBuild
+> Task :app_v2:mergeLiteReleaseJniLibFolders
+> Task :app_v2:mergeLiteReleaseNativeLibs
+> Task :app_v2:collectStandardReleaseDependencies
+> Task :app_v2:stripLiteReleaseDebugSymbols
+> Task :app_v2:extractLiteReleaseNativeDebugMetadata
+> Task :translate_feature:preLiteReleaseBuild UP-TO-DATE
+> Task :translate_feature:mergeLiteReleaseJniLibFolders
+> Task :app_v2:sdkStandardReleaseDependencyData
+> Task :app_v2:mergeLiteReleaseArtProfile
+> Task :app_v2:expandLiteReleaseL8ArtProfileWildcards
+> Task :app_v2:writeLiteReleaseModuleMetadata
+> Task :app_v2:dataBindingMergeDependencyArtifactsLiteRelease
+> Task :app_v2:generateLiteReleaseResources
+> Task :translate_feature:mergeLiteReleaseNativeLibs
+> Task :app_v2:packageStandardReleaseResources
+
+> Task :translate_feature:stripLiteReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: liblanguage_id_l2c_jni.so, libtranslate_jni.so. Run with --info option to learn more.
+
+> Task :translate_feature:extractLiteReleaseNativeDebugMetadata
+> Task :app_v2:mergeLiteReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:parseStandardReleaseLocalResources
+> Task :app_v2:generateStandardReleaseRFile
+> Task :app_v2:processLiteReleaseNavigationResources
+> Task :app_v2:generateLiteReleaseBuildConfig
+> Task :app_v2:javaPreCompileLiteRelease
+> Task :app_v2:checkLiteReleaseAarMetadata
+> Task :app_v2:mapLiteReleaseSourceSetPaths
+> Task :app_v2:compileLiteReleaseNavigationResources
+> Task :app_v2:createLiteReleaseCompatibleScreenManifests
+> Task :app_v2:extractDeepLinksLiteRelease
+> Task :translate_feature:featureLiteReleaseWriter
+> Task :app_v2:generateLiteReleaseFeatureMetadata
+> Task :translate_feature:extractDeepLinksLiteRelease
+> Task :translate_feature:processLiteReleaseMainManifest
+> Task :translate_feature:copyLiteReleaseMergedManifest
+> Task :translate_feature:processApplicationManifestLiteReleaseForBundle
+> Task :translate_feature:processManifestLiteReleaseForFeature
+
+> Task :app_v2:processLiteReleaseMainManifest
+P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml Warning:
+	uses-permission#android.permission.WAKE_LOCK@android:maxSdkVersion was tagged at AndroidManifest.xml:0 to remove other declarations but no other declaration present
+P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml:25:9-28:47 Warning:
+	receiver#com.sza.fastmediasorter.worker.ScheduledOperationsBootReceiver@android:enabled was tagged at AndroidManifest.xml:25 to replace other declarations but no other declaration present
+
+> Task :app_v2:processLiteReleaseManifest
+> Task :app_v2:processLiteReleaseManifestForPackage
+> Task :translate_feature:generateLiteReleaseResources
+> Task :translate_feature:packageLiteReleaseResources
+> Task :translate_feature:processLiteReleaseNavigationResources
+> Task :translate_feature:parseLiteReleaseLocalResources
+> Task :translate_feature:generateLiteReleaseRFile
+> Task :translate_feature:javaPreCompileLiteRelease
+> Task :translate_feature:checkLiteReleaseAarMetadata
+> Task :translate_feature:mapLiteReleaseSourceSetPaths
+> Task :translate_feature:compileLiteReleaseNavigationResources
+> Task :translate_feature:mergeLiteReleaseResources
+> Task :translate_feature:processLiteReleaseManifestForPackage
+> Task :app_v2:checkLiteReleaseDuplicateClasses
+> Task :app_v2:mergeLiteReleaseStartupProfile
+> Task :translate_feature:checkLiteReleaseDuplicateClasses
+> Task :translate_feature:desugarLiteReleaseFileDependencies
+> Task :translate_feature:mergeExtDexLiteRelease
+> Task :app_v2:generateLiteReleaseAssets UP-TO-DATE
+> Task :app_v2:mergeLiteReleaseAssets
+> Task :app_v2:compressLiteReleaseAssets
+> Task :app_v2:extractLiteReleaseVersionControlInfo
+> Task :app_v2:collectLiteReleaseDependencies
+> Task :app_v2:sdkLiteReleaseDependencyData
+> Task :app_v2:validateSigningLiteRelease
+> Task :app_v2:writeLiteReleaseAppMetadata
+> Task :app_v2:writeLiteReleaseSigningConfigVersions
+> Task :app_v2:signingConfigWriterLiteRelease
+> Task :translate_feature:generateLiteReleaseAssets UP-TO-DATE
+> Task :translate_feature:mergeLiteReleaseAssets
+> Task :translate_feature:compressLiteReleaseAssets
+> Task :app_v2:mergePhotosReleaseJniLibFolders
+> Task :app_v2:mergePhotosReleaseNativeLibs
+> Task :app_v2:kaptGenerateStubsPhotosDebugKotlin
+> Task :app_v2:packageLiteReleaseResources
+> Task :app_v2:stripPhotosReleaseDebugSymbols
+> Task :app_v2:extractPhotosReleaseNativeDebugMetadata
+> Task :translate_feature:prePhotosReleaseBuild UP-TO-DATE
+> Task :translate_feature:mergePhotosReleaseJniLibFolders
+> Task :app_v2:parseLiteReleaseLocalResources
+> Task :app_v2:generateLiteReleaseRFile
+> Task :app_v2:mergePhotosReleaseArtProfile
+> Task :app_v2:expandPhotosReleaseL8ArtProfileWildcards
+> Task :app_v2:writePhotosReleaseModuleMetadata
+> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosRelease
+> Task :app_v2:generatePhotosReleaseResources
+> Task :translate_feature:mergePhotosReleaseNativeLibs
+> Task :app_v2:mergeStandardReleaseResources
+
+> Task :translate_feature:stripPhotosReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: liblanguage_id_l2c_jni.so, libtranslate_jni.so. Run with --info option to learn more.
+
+> Task :app_v2:dataBindingGenBaseClassesStandardRelease
+> Task :app_v2:mergeLiteReleaseResources
+> Task :app_v2:processStandardReleaseResources
+> Task :app_v2:dataBindingGenBaseClassesLiteRelease
+> Task :app_v2:kaptGenerateStubsLegacyDebugKotlin
+> Task :app_v2:convertLinkedResourcesToBinaryStandardRelease
+> Task :translate_feature:processStandardReleaseResources
+> Task :translate_feature:bundleStandardReleaseResources
+> Task :translate_feature:optimizeStandardReleaseResources
+> Task :app_v2:mergePhotosReleaseResources
+> Task :translate_feature:extractPhotosReleaseNativeDebugMetadata
+> Task :app_v2:mergePhotosReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:processLiteReleaseResources
+> Task :app_v2:convertLinkedResourcesToBinaryLiteRelease
+> Task :translate_feature:processLiteReleaseResources
+> Task :translate_feature:bundleLiteReleaseResources
+> Task :translate_feature:optimizeLiteReleaseResources
+> Task :app_v2:processPhotosReleaseNavigationResources
+> Task :app_v2:generatePhotosReleaseBuildConfig
 > Task :app_v2:javaPreCompilePhotosRelease
 > Task :app_v2:checkPhotosReleaseAarMetadata
 > Task :app_v2:mapPhotosReleaseSourceSetPaths
@@ -636,26 +653,19 @@ P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml:25:9-28
 
 > Task :app_v2:processPhotosReleaseManifest
 > Task :app_v2:processPhotosReleaseManifestForPackage
-> Task :app_v2:processPhotosReleaseResources
 > Task :translate_feature:generatePhotosReleaseResources
 > Task :translate_feature:packagePhotosReleaseResources
 > Task :translate_feature:processPhotosReleaseNavigationResources
 > Task :translate_feature:parsePhotosReleaseLocalResources
 > Task :translate_feature:generatePhotosReleaseRFile
 > Task :translate_feature:javaPreCompilePhotosRelease
-> Task :app_v2:convertLinkedResourcesToBinaryPhotosRelease
 > Task :translate_feature:checkPhotosReleaseAarMetadata
 > Task :translate_feature:mapPhotosReleaseSourceSetPaths
 > Task :translate_feature:compilePhotosReleaseNavigationResources
 > Task :translate_feature:mergePhotosReleaseResources
 > Task :translate_feature:processPhotosReleaseManifestForPackage
-> Task :app_v2:compileLegacyDebugJavaWithJavac
-> Task :app_v2:processLegacyDebugJavaRes UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugJavaResource UP-TO-DATE
-> Task :translate_feature:processPhotosReleaseResources
 > Task :app_v2:checkPhotosReleaseDuplicateClasses
 > Task :app_v2:mergePhotosReleaseStartupProfile
-> Task :translate_feature:bundlePhotosReleaseResources
 > Task :translate_feature:checkPhotosReleaseDuplicateClasses
 > Task :translate_feature:desugarPhotosReleaseFileDependencies
 > Task :translate_feature:mergeExtDexPhotosRelease
@@ -672,10 +682,6 @@ P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml:25:9-28
 > Task :translate_feature:generatePhotosReleaseAssets UP-TO-DATE
 > Task :translate_feature:mergePhotosReleaseAssets
 > Task :translate_feature:compressPhotosReleaseAssets
-> Task :app_v2:compileVrDebugJavaWithJavac
-> Task :translate_feature:optimizePhotosReleaseResources
-> Task :app_v2:processVrDebugJavaRes UP-TO-DATE
-> Task :app_v2:mergeVrDebugJavaResource UP-TO-DATE
 > Task :app_v2:generateLegacyReleaseFeatureTransitiveDeps
 > Task :translate_feature:generateLegacyReleaseFeatureTransitiveDeps
 > Task :app_v2:checkLegacyReleaseLibraries
@@ -690,95 +696,20 @@ P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\release\AndroidManifest.xml:25:9-28
 > Task :app_v2:buildCMakeRelWithDebInfo[x86_64]-2
 > Task :app_v2:mergeLegacyReleaseJniLibFolders
 > Task :app_v2:mergeLegacyReleaseNativeLibs
+> Task :app_v2:packagePhotosReleaseResources
 > Task :app_v2:stripLegacyReleaseDebugSymbols
 > Task :app_v2:extractLegacyReleaseNativeDebugMetadata
 > Task :translate_feature:preLegacyReleaseBuild UP-TO-DATE
 > Task :translate_feature:mergeLegacyReleaseJniLibFolders
-> Task :translate_feature:mergeLegacyReleaseNativeLibs
-
-> Task :translate_feature:stripLegacyReleaseDebugSymbols
-Unable to strip the following libraries, packaging them as they are: liblanguage_id_l2c_jni.so, libtranslate_jni.so. Run with --info option to learn more.
-
-> Task :translate_feature:extractLegacyReleaseNativeDebugMetadata
+> Task :translate_feature:mergeLegacyReleaseNativeLibs NO-SOURCE
+> Task :translate_feature:stripLegacyReleaseDebugSymbols NO-SOURCE
+> Task :translate_feature:extractLegacyReleaseNativeDebugMetadata NO-SOURCE
 > Task :app_v2:mergeLegacyReleaseNativeDebugMetadata NO-SOURCE
 > Task :app_v2:mergeLegacyReleaseArtProfile
-
-> Task :app_v2:kaptLiteReleaseKotlin
-Note: [1] Wrote GeneratedAppGlideModule with: [com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule]
-
 > Task :app_v2:expandLegacyReleaseL8ArtProfileWildcards
-
-> Task :app_v2:kaptStandardReleaseKotlin
-Note: [1] Wrote GeneratedAppGlideModule with: [com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule]
-
 > Task :app_v2:writeLegacyReleaseModuleMetadata
 > Task :app_v2:dataBindingMergeDependencyArtifactsLegacyRelease
 > Task :app_v2:generateLegacyReleaseResources
-> Task :app_v2:hiltSyncLegacyDebug
-> Task :app_v2:hiltAggregateDepsLegacyDebug UP-TO-DATE
-> Task :app_v2:compileLiteDebugKotlin
-> Task :app_v2:hiltSyncVrDebug
-> Task :app_v2:compilePhotosDebugKotlin
-> Task :app_v2:hiltAggregateDepsVrDebug UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsPhotosReleaseKotlin
-> Task :app_v2:hiltJavaCompileLegacyDebug
-> Task :app_v2:mergeLegacyReleaseResources
-> Task :app_v2:bundleLegacyDebugClassesToCompileJar
-
-> Task :translate_feature:compileLegacyDebugKotlin
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/translationMlKit/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt:32:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to property.
-- To opt in to applying to both value parameter and property, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-
-> Task :translate_feature:compileLegacyDebugJavaWithJavac NO-SOURCE
-> Task :translate_feature:processLegacyDebugJavaRes
-> Task :translate_feature:mergeLegacyDebugJavaResource
-> Task :translate_feature:dexBuilderLegacyDebug
-> Task :translate_feature:mergeProjectDexLegacyDebug
-> Task :app_v2:hiltJavaCompileVrDebug
-> Task :app_v2:packageLegacyReleaseResources
-> Task :app_v2:bundleVrDebugClassesToCompileJar
-> Task :app_v2:transformLegacyDebugClassesWithAsm
-
-> Task :translate_feature:compileVrDebugKotlin
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/translationMlKit/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt:32:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to property.
-- To opt in to applying to both value parameter and property, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-
-> Task :app_v2:compileLiteDebugKotlin
-
-> Task :app_v2:compilePhotosDebugKotlin
-
-> Task :app_v2:compileLiteReleaseKotlin
-> Task :app_v2:compileStandardReleaseKotlin
-> Task :app_v2:compilePhotosDebugKotlin FAILED
-> Task :app_v2:transformVrDebugClassesWithAsm
-> Task :app_v2:compileLiteDebugKotlin FAILED
-> Task :app_v2:bundleLegacyDebugClassesToRuntimeJar
-> Task :app_v2:dexBuilderLegacyDebug
-
-> Task :app_v2:compileLiteReleaseKotlin FAILED
-
-> Task :app_v2:compileStandardReleaseKotlin
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/data/detector/DetectionHelper.kt:49:48 'static field FEATURE_TELEVISION: String' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt:7:8 'data class AuthSessionDomain : Any' is deprecated. Use AuthAccountDomain.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt:199:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt:202:26 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt:211:26 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt:219:26 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/AuthSessionRepository.kt:63:37 'data class AuthSessionDomain : Any' is deprecated. Use AuthAccountDomain.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/common/input/FocusRingHelper.kt:53:20 'static fun postInvalidateOnAnimation(p0: View): Unit' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt:11:8 'class DefaultDataSourceFactory : Any, DataSource.Factory' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt:96:52 'constructor(p0: Context): DefaultDataSourceFactory' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt:59:27 'fun shouldStartPlayback(p0: Long, p1: Float, p2: Boolean, p3: Long): Boolean' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt:77:18 'fun onTracksSelected(p0: Array<(out) Renderer>, p1: TrackGroupArray, p2: Array<(out) ExoTrackSelection>): Unit' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/Media3SegmentDownloader.kt:43:8 Annotation 'androidx.media3.common.util.UnstableApi' is not annotated with '@RequiresOptIn'. '@OptIn' has no effect.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/Media3SegmentDownloader.kt:61:21 'constructor(p0: File, p1: CacheEvictor): SimpleCache' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/Media3SegmentDownloader.kt:66:61 'fun loadFor(domain: String): List<HttpCookie>' is deprecated. Use loadForAccount(host, accountId).
-w: Detected multiple Kotlin daemon sessions at 
-671 actionable tasks: 131 executed, 540 up-to-date
-Configuration cache entry reused.
+> Task :app_v2:parsePhotosReleaseLocalResources
+> Task :app_v2:dataBindingGenBaseClassesPhotosRelease
+> Task :app_v2:generatePhotosReleaseRFile

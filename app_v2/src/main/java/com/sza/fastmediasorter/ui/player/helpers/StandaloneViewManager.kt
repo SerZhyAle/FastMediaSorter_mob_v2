@@ -95,6 +95,14 @@ class StandaloneViewManager(
     // Works on the full unified layout and on a trimmed specialized standalone layout (id lookup).
     private val safeViews = PlayerBindingSafeViews(root)
 
+    private var onDocumentEnterFullscreen: (() -> Unit)? = null
+    private var onDocumentExitFullscreen: (() -> Unit)? = null
+
+    fun setFullscreenCallbacks(onEnter: () -> Unit, onExit: () -> Unit) {
+        onDocumentEnterFullscreen = onEnter
+        onDocumentExitFullscreen = onExit
+    }
+
     private val networkFileManager: NetworkFileManager by lazy {
         NetworkFileManager(
             context = activity,
@@ -352,14 +360,27 @@ class StandaloneViewManager(
         currentVideoFilePath = mediaFile.path
         lastSavedPosition = -1L
         player.setMediaItem(MediaItem.fromUri(mediaFile.path.toUri()))
-        player.prepare()
-        lifecycleScope.launch {
-            restorePlaybackPosition(mediaFile.path)
-            startPositionAutoSave(mediaFile.path)
-        }
         player.playWhenReady = true
         acquireWakeLock()
         onVideoReady?.invoke(playerView)
+        // Fetch saved position before prepare() so seekTo() runs before the playback thread
+        // starts, preventing DefaultVideoFrameProcessor.flush() from firing on an uninitialised
+        // InputSwitcher (Media3 1.2.1: activeTextureManager is null before the first frame).
+        lifecycleScope.launch {
+            val savedPos = try {
+                playbackPositionRepository.getPosition(mediaFile.path) ?: -1L
+            } catch (e: Exception) {
+                Timber.e(e, "StandaloneViewManager: Failed to restore position for ${mediaFile.path}")
+                -1L
+            }
+            if (player != exoPlayer) return@launch  // player released while we were querying DB
+            if (savedPos > 0L) {
+                player.seekTo(savedPos)
+                Timber.d("StandaloneViewManager: Restored position ${savedPos}ms for ${mediaFile.path}")
+            }
+            player.prepare()
+            startPositionAutoSave(mediaFile.path)
+        }
     }
 
     private fun applyVideoColorEffects() {
@@ -498,8 +519,8 @@ class StandaloneViewManager(
             coroutineScope = lifecycleScope,
             callback = object : OfficeDocumentViewerHost.Callback {
                 override fun showError(message: String) = showToastError(message)
-                override fun onEnterFullscreenMode() {}
-                override fun onExitFullscreenMode() {}
+                override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
+                override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
                 override fun onTranslateSelection(text: String) = translateOfficeSelection(text)
                 override fun onRequireExternalFallback(mediaFile: MediaFile) {
                     // S0301 Phase 05: engine could not render internally - show the explicit
@@ -673,7 +694,7 @@ class StandaloneViewManager(
             val msg = when (error.errorCode) {
                 PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND           -> activity.getString(R.string.error_file_not_found)
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> activity.getString(R.string.error_network_connection)
-                PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK        -> activity.getString(R.string.error_codec_unsupported)
+                PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK        -> activity.getString(R.string.error_playback_failed)
                 PlaybackException.ERROR_CODE_TIMEOUT                     -> activity.getString(R.string.error_playback_timeout)
                 PlaybackException.ERROR_CODE_REMOTE_ERROR                -> activity.getString(R.string.error_network_playback)
                 PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW          -> activity.getString(R.string.error_behind_live_window)
@@ -698,18 +719,6 @@ class StandaloneViewManager(
     }
 
     // ── Position tracking ────────────────────────────────────────────────────
-
-    private suspend fun restorePlaybackPosition(filePath: String) {
-        try {
-            val savedPos = playbackPositionRepository.getPosition(filePath)
-            if (savedPos != null && savedPos > 0L) {
-                exoPlayer?.seekTo(savedPos)
-                Timber.d("StandaloneViewManager: Restored position ${savedPos}ms for $filePath")
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "StandaloneViewManager: Failed to restore position for $filePath")
-        }
-    }
 
     private fun startPositionAutoSave(filePath: String) {
         stopPositionAutoSave()
@@ -760,8 +769,8 @@ class StandaloneViewManager(
                 override fun shareFileToGoogleLens(file: File) { /* not exposed in standalone */ }
                 override fun isLandscapeMode(): Boolean =
                     activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-                override fun onEnterFullscreenMode() { /* not exposed in standalone */ }
-                override fun onExitFullscreenMode() { /* not exposed in standalone */ }
+                override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
+                override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
             },
             translationManager = translationManager,
             playbackPositionRepository = playbackPositionRepository
@@ -779,8 +788,8 @@ class StandaloneViewManager(
             callback = object : EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) = showToastError(message)
                 override fun displayTranslatedText(text: String) = showTranslatedTextDialog(text)
-                override fun onEnterFullscreenMode() { /* not exposed in standalone */ }
-                override fun onExitFullscreenMode() { /* not exposed in standalone */ }
+                override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
+                override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
             },
             playbackPositionRepository = playbackPositionRepository,
             translationManager = translationManager

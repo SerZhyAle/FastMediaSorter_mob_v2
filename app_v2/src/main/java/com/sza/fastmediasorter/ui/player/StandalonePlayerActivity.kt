@@ -244,6 +244,21 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         lifecycleManager = StandalonePlayerLifecycleManager(activity = this, viewManager = viewManager)
         lifecycleManager.onCreate(null)
 
+        fullscreenManager = StandaloneFullscreenManager(this)
+
+        viewManager.setFullscreenCallbacks(
+            onEnter = {
+                fullscreenManager?.enterFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                    updateFullscreenButtonState(isActive)
+                }
+            },
+            onExit = {
+                fullscreenManager?.exitFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                    updateFullscreenButtonState(isActive)
+                }
+            }
+        )
+
         pipManager = PictureInPictureManager(
             activity = this,
             playerView = binding.playerView,
@@ -259,6 +274,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         setupBackPressHandler()
         hidePlaylistControls()
         setupFileOperationButtons()
+        setupFullscreenButton()
         setupPdfButtons()
         setupEpubButtons()
         setupSearchControls()
@@ -316,7 +332,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     p.volume = if (p.volume > 0f) 0f else 1f
                 }
                 override fun onToggleFullscreen() {
-                    fullscreenManager?.toggleFullscreen()
+                    toggleStandaloneFullscreen()
                 }
                 override fun onChangeVolume(delta: Int) {
                     val p = viewManager.getPlayer(viewModel.state.value.mediaFile?.type) ?: return
@@ -558,6 +574,46 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // btnTranslateEpubCmd listener is set by SearchControlsManager.setupSearchControls() (ADR-4)
     }
 
+    // ── Fullscreen Button ────────────────────────────────────────────────
+
+    private fun setupFullscreenButton() {
+        binding.btnFullscreenCmd.setOnClickListener { toggleStandaloneFullscreen() }
+        updateFullscreenButtonState(false)
+        // Exit fullscreen when transient system bars appear (user edge-swipe in immersive mode).
+        // Guard ensures this only acts when the user has entered panel-hiding fullscreen.
+        fullscreenManager?.setupTransientBarsExitCallback(window.decorView) {
+            if (!binding.topCommandPanel.isVisible) {
+                fullscreenManager?.exitFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                    updateFullscreenButtonState(isActive)
+                }
+            }
+        }
+    }
+
+    private fun toggleStandaloneFullscreen() {
+        fullscreenManager?.toggleFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+            updateFullscreenButtonState(isActive)
+        }
+    }
+
+    private fun updateFullscreenButtonState(isActive: Boolean) {
+        binding.btnFullscreenCmd.setImageResource(
+            if (isActive) R.drawable.ic_fullscreen_exit else R.drawable.ic_fullscreen
+        )
+        binding.btnFullscreenCmd.contentDescription = getString(
+            if (isActive) R.string.exit_fullscreen else R.string.fullscreen_mode
+        )
+    }
+
+    private fun applyFullscreenButtonVisibility(type: MediaType) {
+        binding.btnFullscreenCmd.isVisible = type == MediaType.IMAGE
+            || type == MediaType.GIF
+            || type == MediaType.VIDEO
+            || type == MediaType.PDF
+            || type == MediaType.EPUB
+            || type == MediaType.OFFICE_DOCUMENT
+    }
+
     // ── Search Controls ──────────────────────────────────────────────────
 
     private fun setupSearchControls() {
@@ -690,9 +746,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         setupPlaybackControls(pv)
 
-        val fsManager = StandaloneFullscreenManager(this)
-        fullscreenManager = fsManager
-        fsManager.enterFullscreen()
+        fullscreenManager?.enterFullscreen()
 
         val trackManager = VideoTrackSelectionManager(
             getPlayer = { viewManager.getExoPlayer() },
@@ -808,6 +862,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     setupPlaybackControls(binding.playerView)
                 }
                 contentLoaded = true
+                applyFullscreenButtonVisibility(type)
                 // EpubViewerManager unconditionally shows btnTranslateEpubCmd; enforce orientation guard.
                 if (type == MediaType.EPUB) updateEpubTranslatorVisibility()
             }
