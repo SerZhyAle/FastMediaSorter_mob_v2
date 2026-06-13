@@ -2478,4 +2478,8 @@
     <string name="setting_screenshot_destination_title">Загружать скриншоты в..</string>
     <string name="setting_screenshot_destination_default">Папка скриншотов устройства (или Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Разрешите показ поверх других приложений, чтобы отображать полосу жестов</string>
+    <string name="cache_size_installed_toast">Установлен кэш: %1$d МБ</string>
+    <string name="welcome_enable_all">Включить всё</string>
+    <string name="welcome_enable_all_content_description">Включить всё и завершить настройку</string>
+    <string name="default_player_choose_in_settings">В системных настройках выберите FastMediaSorter приложением по умолчанию для этого типа.</string>
 </resources>

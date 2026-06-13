@@ -14,7 +14,9 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.LocalPathResolution
+import com.sza.fastmediasorter.domain.usecase.MaterializeUriToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveLocalPathFromUriUseCase
+import com.sza.fastmediasorter.domain.usecase.UriMaterialization
 import com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator
 import com.sza.fastmediasorter.ui.player.standalone.StandaloneFolderPagingManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +40,7 @@ class StandalonePlayerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val favoritesUseCase: FavoritesUseCase,
     private val resolveLocalPathFromUriUseCase: ResolveLocalPathFromUriUseCase,
+    private val materializeUriToFileUseCase: MaterializeUriToFileUseCase,
     private val localMediaScanner: LocalMediaScanner,
     private val settingsRepository: SettingsRepository,
     stereoFormatOverrideDao: StereoFormatOverrideDao
@@ -86,6 +89,26 @@ class StandalonePlayerViewModel @Inject constructor(
 
     fun toggleRotationSensor() {
         _rotationSensorEnabled.value = !_rotationSensorEnabled.value
+    }
+
+    /**
+     * S0410: guarantee the current static image has a local editable path so file-based actions
+     * (crop-to-file / compress) can read a source. If the URI already resolved to a local path the
+     * gate is already set; otherwise materialize the source URI into a cache file. The action saves
+     * its result as a new file - the original (possibly non-writable) URI is never written back.
+     */
+    suspend fun ensureEditableImage() {
+        if (_editableImageFile.value != null) return
+        val file = state.value.mediaFile ?: return
+        if (state.value.mediaType != MediaType.IMAGE) return
+        Timber.d("S0410: standalone materialize editable image for crop/compress")
+        val uri = Uri.parse(file.contentUri ?: file.path)
+        when (val result = materializeUriToFileUseCase(uri, file.name)) {
+            is UriMaterialization.Materialized ->
+                _editableImageFile.value = file.copy(path = result.absolutePath)
+            UriMaterialization.Failed ->
+                _messageFlow.tryEmit(context.getString(R.string.error_opening_file_simple))
+        }
     }
 
     private val _messageFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)

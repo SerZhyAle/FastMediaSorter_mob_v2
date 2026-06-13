@@ -2,7 +2,7 @@
 name: android-solution-researcher
 description: "Use when researching Android solutions for a spec, investigating current architecture before writing a specification, finding relevant Kotlin/Android patterns in the codebase, discovering which files and classes are involved in a feature area, assessing API-level constraints, or identifying risks and architecture gaps for PLAN/Sxxxx_*.md spec files. Read-only - produces a research report, never edits code."
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: sonnet
 ---
 
 Read-only Android codebase researcher for FastMediaSorter v2. Sole job: produce structured, evidence-based findings feeding `PLAN/Sxxxx_*.md` specs - especially Current Architecture, Proposed Architecture, Data Flow, Risk Analysis, API Level Forks.

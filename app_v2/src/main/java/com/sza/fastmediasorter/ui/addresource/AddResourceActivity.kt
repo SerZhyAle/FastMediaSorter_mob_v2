@@ -42,7 +42,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
         override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.ADD_RESOURCE) }
-        override fun activateFocused(): Boolean = currentFocus?.performClick() == true
+        override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
         override fun moveFocus(direction: FocusDirection) {
             val focusDir = when (direction) {
                 FocusDirection.UP, FocusDirection.PREVIOUS -> android.view.View.FOCUS_UP

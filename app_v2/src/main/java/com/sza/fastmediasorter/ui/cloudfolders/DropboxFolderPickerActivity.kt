@@ -34,7 +34,7 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
     private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
         override fun activateFocused(): Boolean {
             // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
-            return currentFocus?.performClick() == true
+            return activateFocusedViewOrAncestor()
         }
         override fun navigateUp() { handleBackNavigation() }
         override fun refresh() { viewModel.loadFolders() }

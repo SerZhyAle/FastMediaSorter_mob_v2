@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Specification Implementation Audit
 
 Audit a spec against actual repository state. Auto-detects strategic vs tactical scope.

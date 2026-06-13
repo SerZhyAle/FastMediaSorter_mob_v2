@@ -25,7 +25,8 @@
     <color name="welcome_page_1_background">#1A237E</color>
     <color name="welcome_page_2_background">#1B5E20</color>
     <color name="welcome_page_3_background">#4A148C</color>
-    <color name="welcome_page_4_background">#E65100</color>
+    <color name="welcome_page_4_background">#4E2600</color>    <!-- Deep burnt orange: dark enough for white text (~10:1), unlike the bright Orange 900 -->
+
     <color name="welcome_page_5_background">#33691E</color>
     <color name="welcome_page_6_background">#263238</color>
     <color name="welcome_page_7_background">#283593</color>    <!-- Indigo 800 -->

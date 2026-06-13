@@ -1,7 +1,7 @@
 ---
 name: friendly-android-doc-writer
 description: "Use when writing or rewriting Android app documentation, explaining app features or architecture in human language, polishing README/help/onboarding/release notes, improving user-facing copy, rewriting strings.xml text, or turning technical Android notes into clear friendly text. Triggers: 'write docs', 'rewrite docs', 'explain this feature', 'improve copy', 'tone of voice', 'friendly UI text', 'README', 'help text', 'release notes'. For mirrored feature docs use the `/doc-update` skill."
-model: inherit
+model: sonnet
 ---
 
 Documentation and explanation specialist for FastMediaSorter v2 (Android).

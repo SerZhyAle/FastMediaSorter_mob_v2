@@ -437,12 +437,12 @@
 
         <!-- Standalone Player for external intents. Retained as a fallback / direct-launch target;
              external routing now goes through the per-type specialized activities + aliases below (S0380). -->
-        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:supportsPictureInPicture="true" android:taskAffinity="${applicationId}.player" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <!-- S0380: specialized standalone activities. Reached via the per-type VIEW aliases below
              (runtime-toggled) and the dispatcher trampoline. exported=false - the aliases own external
              access; the dispatcher forwards explicitly within the app. Routing is in the aliases. -->
-        <activity android:name=".ui.player.standalone.PhotoVideoStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.standalone.PhotoVideoStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:supportsPictureInPicture="true" android:taskAffinity="${applicationId}.player" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
         <activity android:name=".ui.player.standalone.AudioStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
         <activity android:name=".ui.player.standalone.DocumentStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
         <activity android:name=".ui.player.standalone.TextStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
@@ -489,7 +489,7 @@
         </activity-alias>
 
         <!-- Video alias: mp4, mkv, avi, mov, webm, flv, wmv, 3gp, etc. -->
-        <activity-alias android:name=".StandaloneVideoPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.standalone.PhotoVideoStandaloneActivity">
+        <activity-alias android:name=".StandaloneVideoPlayer" android:enabled="false" android:exported="true" android:taskAffinity="${applicationId}.player" android:targetActivity=".ui.player.standalone.PhotoVideoStandaloneActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -511,7 +511,7 @@
         </activity-alias>
 
         <!-- Image alias: jpg, png, webp, heic, heif, bmp, avif (NO gif) -->
-        <activity-alias android:name=".StandaloneImagePlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.standalone.PhotoVideoStandaloneActivity">
+        <activity-alias android:name=".StandaloneImagePlayer" android:enabled="false" android:exported="true" android:taskAffinity="${applicationId}.player" android:targetActivity=".ui.player.standalone.PhotoVideoStandaloneActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

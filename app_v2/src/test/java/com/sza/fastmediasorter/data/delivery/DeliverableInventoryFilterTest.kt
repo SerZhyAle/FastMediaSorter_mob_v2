@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.delivery
 
+import android.content.Context
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
@@ -19,9 +20,10 @@ import org.junit.Test
 
 /**
  * Verifies the S0401 flavor filter in [DeliverableInventoryImpl.getExtensions]: a row is emitted only
- * when its set is offered in the running flavor. OCR engine + OCR language rows follow the compiled
- * OCR capability, translation follows the translation capability, and the data/DTS rows follow the
- * contributed descriptor (or a bundled set). lite/photos offer none of these.
+ * when its set is offered in the running flavor. OCR engine + OCR language rows follow the combined
+ * OCR availability (compiled-in AND runnable on this device), translation follows the translation
+ * capability, and the data/DTS rows follow the contributed descriptor (or a bundled set). lite/photos
+ * offer none of these; a device that cannot run OCR drops the OCR rows even on an OCR-compiled flavor.
  */
 class DeliverableInventoryFilterTest {
 
@@ -31,14 +33,18 @@ class DeliverableInventoryFilterTest {
     private val tesseractModelManager = mockk<TesseractModelManager>(relaxed = true)
     private val capabilityAvailability = mockk<CapabilityAvailability>()
     private val bundled = mockk<BundledDeliverableSets>()
+    private val appContext = mockk<Context>(relaxed = true)
 
+    // `ocr` here means "OCR offered on this build AND runnable on this device" - the inventory now
+    // gates OCR rows on the combined CapabilityAvailability.isOcrAvailable() axis (compile-time +
+    // device-runtime), so a flavor that compiles OCR in but runs on a too-weak device passes ocr=false.
     private fun inventory(
         ocr: Boolean,
         translation: Boolean,
         descriptors: Map<DeliverableSet, DeliverableSourceDescriptor> = emptyMap(),
         bundledSets: Set<DeliverableSet> = emptySet()
     ): DeliverableInventoryImpl {
-        every { capabilityAvailability.isOcrCompiledIn() } returns ocr
+        every { capabilityAvailability.isOcrAvailable(any()) } returns ocr
         every { capabilityAvailability.isTranslationAvailable() } returns translation
         every { bundled.contains(any()) } answers { firstArg<DeliverableSet>() in bundledSets }
         return DeliverableInventoryImpl(
@@ -48,7 +54,8 @@ class DeliverableInventoryFilterTest {
             tesseractModelManager = tesseractModelManager,
             capabilityAvailability = capabilityAvailability,
             bundled = bundled,
-            descriptors = descriptors
+            descriptors = descriptors,
+            appContext = appContext
         )
     }
 
@@ -103,6 +110,17 @@ class DeliverableInventoryFilterTest {
         assertFalse(items.moduleSets().contains(DeliverableSet.OCR_ENGINES))
         assertTrue("OCR language rows must not appear without OCR", items.languageCodes().isEmpty())
         // Translation still shows because its capability is on.
+        assertTrue(items.moduleSets().contains(DeliverableSet.TRANSLATION))
+    }
+
+    @Test
+    fun `OCR rows are dropped on a device that cannot run OCR even when translation is available`() {
+        // OCR compiled into the flavor but the device fails the runtime check (low RAM / old API):
+        // isOcrAvailable() is false, so the engine + language rows must not be offered.
+        val items = inventory(ocr = false, translation = true).getExtensions()
+
+        assertFalse(items.moduleSets().contains(DeliverableSet.OCR_ENGINES))
+        assertTrue("OCR language rows must not appear on a non-OCR device", items.languageCodes().isEmpty())
         assertTrue(items.moduleSets().contains(DeliverableSet.TRANSLATION))
     }
 

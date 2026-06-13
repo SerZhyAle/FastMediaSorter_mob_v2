@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Catalog Guide - File/Class Database
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**

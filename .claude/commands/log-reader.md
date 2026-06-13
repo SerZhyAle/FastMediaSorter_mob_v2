@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Log Reader - Android Logcat Analyst
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**

@@ -90,4 +90,9 @@
 
     </FrameLayout>
 
+    <!-- S0410: draw overlay toolbar (root GONE by default; ImageDrawOverlayManager toggles it during draw mode) -->
+    <include
+        android:id="@+id/draw_overlay_toolbar_stub"
+        layout="@layout/player_draw_overlay_toolbar_content" />
+
 </LinearLayout>

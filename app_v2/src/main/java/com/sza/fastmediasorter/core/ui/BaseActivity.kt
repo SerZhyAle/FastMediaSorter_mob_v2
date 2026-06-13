@@ -321,6 +321,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     protected open fun getMouseScrollTargetView(): View? = null
 
     /**
+     * Keyboard/D-pad focus can land on a non-clickable child inside a clickable row or card.
+     * Walk up the parent chain so Enter/Center activates the owning control instead of no-oping.
+     */
+    protected fun activateFocusedViewOrAncestor(startView: View? = currentFocus): Boolean {
+        var candidate = startView
+        while (candidate != null) {
+            if (candidate.performClick()) return true
+            candidate = candidate.parent as? View
+        }
+        return false
+    }
+
+    /**
      * Default context-click behaviour: long-click the current interaction target.
      */
     protected open fun onMouseContextClick(view: View, x: Float, y: Float) {

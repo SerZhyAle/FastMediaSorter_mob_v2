@@ -1,5 +1,4 @@
 {
-  "agent": "android-rd-specialist",
   "permissions": {
     "allow": [
       "Bash(./gradlew.bat *)",
@@ -15,5 +14,9 @@
       "Bash(powershell -Command \".\\\\scripts\\\\add_to_dev_log.ps1 'PLAN/tasks/README.md' 'memory-leak-tasks' 'Research complete: 11 tasks created \\(2 CRITICAL, 5 HIGH, 4 MEDIUM\\), 2 already implemented \\(ML-001 PDF-manager, ML-002 OneDrive-GlobalScope\\), remaining 9 pending'\")"
     ],
     "defaultMode": "acceptEdits"
+  },
+  "agent": "android-rd-specialist",
+  "enabledPlugins": {
+    "telegram@claude-plugins-official": true
   }
 }

@@ -70,6 +70,10 @@ class WelcomePermissionsManager @Inject constructor(
     // forever (each return triggers the next one, not the same one).
     private val shownSpecialInRun = mutableSetOf<String>()
 
+    // Invoked once when a grant-all run finishes (after the last special-permission screen returns).
+    // Lets the enable-all orchestrator chain the default-player stage onto the permissions stage.
+    private var grantAllOnComplete: (() -> Unit)? = null
+
     /** Wire the manager to its host Activity (owns the ActivityResult launchers). */
     fun attach(activity: FragmentActivity) {
         this.activity = activity
@@ -118,19 +122,17 @@ class WelcomePermissionsManager @Inject constructor(
         // The welcome set is every permission this build can request (SDK + flavor only, no user-toggle
         // narrowing), so it is static - resolve once, synchronously, no settings dependency.
         welcomeEntries = registry.getWelcomeEntries()
-        Timber.d("S0402: welcome permissions set resolved, entries=${welcomeEntries.size}")
         refreshRows()
     }
 
     /** Render the adaptive permission rows + grant-all affordance into the page. */
     fun bind(binding: PageWelcomePermissionsBinding) {
-        Timber.d("S0402: permissions page bound, adaptiveEntries=${welcomeEntries.size}")
         this.binding = binding
         binding.rvPermissions.apply {
             layoutManager = LinearLayoutManager(binding.root.context)
             adapter = this@WelcomePermissionsManager.adapter
         }
-        binding.btnGrantAll.setOnClickListener { startGrantAllRun() }
+        binding.btnGrantAll.setOnClickListener { runGrantAll {} }
         binding.btnOpenSettings.setOnClickListener { openAppSettings() }
         refreshRows()
     }
@@ -161,6 +163,13 @@ class WelcomePermissionsManager @Inject constructor(
         }
     }
 
+    /** Public entry: run grant-all, then invoke [onComplete] once the run finishes (callable by the
+     *  enable-all orchestrator to chain onto the next stage). The page button passes an empty callback. */
+    fun runGrantAll(onComplete: () -> Unit) {
+        grantAllOnComplete = onComplete
+        startGrantAllRun()
+    }
+
     private fun startGrantAllRun() {
         val act = activity ?: return
         // Start a fresh run: regular permissions first (one batch dialog), then each denied special
@@ -181,7 +190,6 @@ class WelcomePermissionsManager @Inject constructor(
             }
             .map { it.manifestName }
             .toTypedArray()
-        Timber.d("S0402: grant-all requesting ${requestable.size} regular permission(s)")
         if (requestable.isNotEmpty()) {
             // launchNextSpecialPermission() runs in the requestMultiple callback.
             requestMultiple?.launch(requestable)
@@ -208,6 +216,8 @@ class WelcomePermissionsManager @Inject constructor(
             Timber.i("WelcomePermissions: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)")
             grantAllInProgress = false
             shownSpecialInRun.clear()
+            grantAllOnComplete?.invoke()
+            grantAllOnComplete = null
         }
     }
 

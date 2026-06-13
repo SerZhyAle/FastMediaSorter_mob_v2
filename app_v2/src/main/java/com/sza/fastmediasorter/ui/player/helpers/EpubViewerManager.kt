@@ -266,9 +266,12 @@ class EpubViewerManager(
         safeViews.playerView.isVisible = false
         safeViews.audioCoverArtView.isVisible = false
         safeViews.audioInfoOverlay.isVisible = false
-        safeViews.textViewerContainer.isVisible = false
+        // S0380: text-viewer and the deprecated image-translate button are cross-type views the
+        // trimmed document-standalone layout omits (it never shows text/image). Reset by presence so
+        // EpubViewerManager works on both the full unified layout and the trimmed standalone one.
+        safeViews.setVisibleIfPresent(R.id.textViewerContainer, false)
         safeViews.pdfControlsLayout.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
+        safeViews.setVisibleIfPresent(R.id.btnTranslateImage, false)
         safeViews.playerProgressBar.isVisible = true
 
         // Force UI update to ensure progressBar is actually visible before async work

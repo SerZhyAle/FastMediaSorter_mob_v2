@@ -2441,4 +2441,8 @@
     <string name="setting_screenshot_destination_title">Завантажувати знімки до..</string>
     <string name="setting_screenshot_destination_default">Папка знімків пристрою (або Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Дозвольте показ поверх інших застосунків, щоб відображати смугу жестів</string>
+    <string name="cache_size_installed_toast">Установлено кеш: %1$d МБ</string>
+    <string name="welcome_enable_all">Увімкнути все</string>
+    <string name="welcome_enable_all_content_description">Увімкнути все та завершити налаштування</string>
+    <string name="default_player_choose_in_settings">У системних налаштуваннях оберіть FastMediaSorter додатком за замовчуванням для цього типу.</string>
 </resources>

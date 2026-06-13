@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Spec Sweep - Batch Device-Test of BlockNeedUserTest Tickets
 
 > **GLOBAL DIRECTIVES (anti-bureaucracy):**
@@ -8,6 +12,8 @@
 On-demand batch device-test sweep over every active `BlockNeedUserTest` ticket honestly verifiable on a connected emulator / device. Operational execution of strategic spec **S0307** (`PLAN/S0307_emulator-user-test-sweep.md`) - run periodically to drain the manual-verification backlog.
 
 Per eligible ticket it delegates to the single-ticket runners: `/spec-test-device <Sxxxx>` (full evidence) -> `/spec-check <Sxxxx>` (evidence -> final status). The sweep owns only discovery, exclusion filtering, classification, batch ordering, roll-up report.
+
+**Context isolation (mandatory):** the per-ticket device run (step 5.1) is delegated to a **subagent**, not run inline. mobile-mcp screenshots, logcat dumps, and build output are large and stay in context for the rest of a session; across a multi-ticket sweep run inline they accumulate and bloat the parent context linearly. Isolating each device run in a throwaway subagent keeps that evidence in the subagent's own context - the parent receives only a compact text verdict. The status-flip / tag-removal / git work (step 5.2 `/spec-check`) stays in the parent so all git is centralized and sequential (parallel subagent git would clobber).
 
 ## Usage
 
@@ -75,12 +81,15 @@ If `--dry-run`: stop here. Write classification + route matrix to report and exi
 
 ### 5 - Per-ticket evidence run (direct emulator + reproducible local-service)
 
-For each ticket in priority order (highest catalog `priority` first), run the full single-ticket pipeline:
+For each ticket in priority order (highest catalog `priority` first), run the two-step pipeline. Process tickets **strictly sequentially** - never spawn the per-ticket subagents in parallel (step 5.2 commits to git; concurrent subagent git would clobber).
 
-1. `/spec-test-device <Sxxxx>` - inherit `--flavor` / `--device` from sweep args. Builds, installs, drives mobile-mcp scenario, harvests logcat (including the spec's own `Timber.d("Sxxxx:` probes - the spec is `BlockNeedUserTest`, so the tags exist), patches the ticket's `## Last Audit` Manual block with PASS/FAIL/expected-actual. Does **not** flip status.
-2. `/spec-check <Sxxxx>` - audit the now-evidenced ticket, flip status to `Verified` / `Partial` / `Broken`. On the `Verified` transition `/spec-check` removes the `Timber.d("Sxxxx:` tags (CLAUDE.md "Debug Verification Tags"); the sweep never touches those tags itself.
+**5.1 - device evidence (subagent-isolated).** Delegate the device run to a subagent (Task tool, `subagent_type: android-rd-specialist` - it needs mobile-mcp + Skill access; never a read-only researcher). The subagent runs `/spec-test-device <Sxxxx>` (inheriting `--flavor` / `--device` from sweep args): builds, installs, drives the mobile-mcp scenario, harvests logcat (including the spec's own `Timber.d("Sxxxx:` probes - the spec is `BlockNeedUserTest`, so the tags exist), and patches the ticket's `## Last Audit` Manual block with PASS/FAIL / expected-actual. It does **not** flip status and does **not** touch git.
 
-Idempotency: one ticket per inner pipeline; a failure in one ticket's run is recorded and the sweep continues with the next. Honor `--limit`.
+Subagent brief must require it to return **only** a compact text verdict - id, PASS/FAIL/INCONCLUSIVE, one-line expected-vs-actual, evidence path under `temp/`. Screenshots, logcat, and build output stay in the subagent context and must **not** be echoed back. The parent records the verdict line and moves on.
+
+**5.2 - finalize (parent, no subagent).** In the parent context run `/spec-check <Sxxxx>` against the evidence the subagent wrote to `## Last Audit`: audit, flip status to `Verified` / `Partial` / `Broken`, and on the `Verified` transition remove the `Timber.d("Sxxxx:` tags (CLAUDE.md "Debug Verification Tags") and commit. Keeping this in the parent centralizes all git so the sequential sweep never races itself.
+
+Idempotency: one ticket per pipeline; a failure (or a dead/aborted subagent) is recorded and the sweep continues with the next. Honor `--limit`.
 
 For **external dependency** / **not testable** tickets, do not run the inner pipeline - set the verdict status directly:
 

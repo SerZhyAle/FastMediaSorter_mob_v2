@@ -277,8 +277,11 @@ class PdfViewerManager(
         safeViews.btnExitEpubFullscreen.isVisible = false
         safeViews.audioCoverArtView.isVisible = false
         safeViews.audioInfoOverlay.isVisible = false
-        safeViews.textViewerContainer.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
+        // S0380: text-viewer and the deprecated image-translate button are cross-type views the
+        // trimmed document-standalone layout omits (it never shows text/image). Reset by presence so
+        // PdfViewerManager works on both the full unified layout and the trimmed standalone one.
+        safeViews.setVisibleIfPresent(R.id.textViewerContainer, false)
+        safeViews.setVisibleIfPresent(R.id.btnTranslateImage, false)
         safeViews.pdfControlsLayout.isVisible = true
         safeViews.playerProgressBar.isVisible = true
         // btnCopyTextCmd is re-shown by CommandPanelController in landscape; routes to copyPageTextToClipboard().

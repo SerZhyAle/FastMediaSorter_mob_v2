@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Verify - On-Device Sanity Check
 
 > **GLOBAL DIRECTIVES (anti-bureaucracy):**

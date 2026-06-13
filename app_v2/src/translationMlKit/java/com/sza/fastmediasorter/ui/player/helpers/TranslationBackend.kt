@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.common.sdkinternal.MlKitContext
 import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.languageid.LanguageIdentificationOptions
@@ -57,11 +58,24 @@ class TranslationBackend(
         }
         try {
             libraryLoader.load(DeliverableSet.TRANSLATION)
-            return true
         } catch (e: Exception) {
             Timber.e(e, "Failed to load translation native libraries")
             return false
         }
+        return ensureMlKitInitialized()
+    }
+
+    // MlKitInitProvider ships in the on-demand translate module and is removed from the base manifest
+    // (S0386), so it never runs in this process after the module is installed on demand. Initialize
+    // MlKitContext explicitly (idempotent) before the first Translation/LanguageIdentification/
+    // RemoteModelManager client is created, otherwise getClient()/getInstance() throws
+    // "MlKitContext has not been initialized". Failure degrades to "no translation" instead of a crash.
+    private fun ensureMlKitInitialized(): Boolean = try {
+        MlKitContext.initializeIfNeeded(context.applicationContext)
+        true
+    } catch (e: Exception) {
+        Timber.e(e, "ML Kit context initialization failed - translation unavailable")
+        false
     }
 
     override suspend fun getTargetLanguageCode(): String? {

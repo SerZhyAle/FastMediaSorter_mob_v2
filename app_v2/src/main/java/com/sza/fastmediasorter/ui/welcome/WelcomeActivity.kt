@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeEnableAllManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -55,6 +56,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     /** Owns the permissions page (S0402): adaptive permission set + grant-all flow (Activity launchers). */
     @Inject
     lateinit var permissionsManager: WelcomePermissionsManager
+
+    /** Owns the "Enable all" sequence (S0409): profile + settings + permissions + default-player + finish. */
+    @Inject
+    lateinit var enableAllManager: WelcomeEnableAllManager
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private lateinit var pagesList: MutableList<WelcomePage>
@@ -95,6 +100,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
         // The permissions page (S0402) owns ActivityResult launchers - wire it before the pager binds.
         permissionsManager.attach(this)
+
+        // The enable-all sequence (S0409) owns its own launcher; re-wire host refs on every (re)creation
+        // so the default-player walk resumes after a rotation.
+        enableAllManager.attach(this, permissionsManager) { completeWelcomeFlow() }
 
         setupViewPager()
         setupButtons()
@@ -138,12 +147,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         // Restore the permissions grant-all run state (S0402) so a rotation mid-special-permission walk
         // resumes instead of restarting.
         permissionsManager.onRestoreInstanceState(savedInstanceState)
+        enableAllManager.onRestoreInstanceState(savedInstanceState)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_CURRENT_PAGE, currentPage)
         permissionsManager.onSaveInstanceState(outState)
+        enableAllManager.onSaveInstanceState(outState)
     }
 
     private fun applyEdgeToEdgeInsets() {
@@ -392,6 +403,15 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             // Finish goes straight to completion (grants already happened on the permissions page).
             completeWelcomeFlow()
         }
+
+        // S0409: one-tap full setup. Sets profile OTHER, enables everything, walks permission +
+        // default-player dialogs, then finishes - skipping the remaining pages.
+        binding.btnEnableAll.setOnClickListener {
+            enableAllManager.start {
+                viewModel.onProfileSelected(DeviceProfileType.OTHER)
+                viewModel.saveDeviceProfile(isSkipped = false)
+            }
+        }
     }
 
     private fun updateUI() {
@@ -402,7 +422,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         val isFirstPage = currentPage == 0
 
         binding.btnPrevious.visibility = if (isFirstPage) View.INVISIBLE else View.VISIBLE
-        
+
+        // S0409: the Enable-all shortcut lives only on the first page, beside Next.
+        binding.btnEnableAll.visibility = if (isFirstPage) View.VISIBLE else View.GONE
+
         if (isLastPage) {
             binding.btnNext.visibility = View.GONE
             binding.btnFinish.visibility = View.VISIBLE
@@ -435,7 +458,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     private fun onWelcomeThemeSelected(mode: String) {
-        Timber.d("S0398: page0 theme selected mode=$mode (dual-write, recreate immediately)")
         // Mirror the Settings split: DataStore remains canonical in the ViewModel while the
         // synchronous SharedPreferences mirror updates here so the next Activity launch picks the
         // same mode before inflation. Welcome now follows that mode immediately via recreate().
@@ -476,7 +498,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         } else {
             // Re-entry from Settings: return to the caller (the Settings back stack) instead of
             // clearing the task to MainActivity, so the user lands back where they opened onboarding.
-            Timber.d("S0398: welcome re-entry complete, finishing to return to caller (no CLEAR_TASK)")
             finish()
         }
     }
@@ -563,11 +584,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
     /** ENTER / DPAD_CENTER: activate the focused clickable control, else the visible primary CTA. */
     private fun handleSliderSelect(): Boolean {
-        val focused = currentFocus
-        if (focused != null && focused.isClickable) {
-            focused.performClick()
-            return true
-        }
+        if (activateFocusedViewOrAncestor()) return true
         return when {
             binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
             binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }

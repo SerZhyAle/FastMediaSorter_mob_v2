@@ -130,10 +130,32 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
     @Inject lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+    // S0410: draw overlay collaborators (shared with the in-app player).
+    @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
+    @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 
     // S0390: screen-rotation toggle for the Group A rotate button; capability hidden without a sensor.
     private val screenRotationManager = ScreenRotationManager()
     private val hasAccelerometer: Boolean by lazy { screenRotationManager.isAccelerometerPresent(this) }
+
+    // S0410: created lazily on the first Draw tap; back-press only consults it if already created.
+    private var drawSaveHelper: StandaloneDrawSaveHelper? = null
+
+    private fun ensureDrawHelper(): StandaloneDrawSaveHelper =
+        drawSaveHelper ?: StandaloneDrawSaveHelper(
+            activity = this,
+            imageContainer = binding.mediaContentArea,
+            toolbarRoot = binding.root.findViewById(R.id.draw_overlay_toolbar_stub),
+            screenRotationManager = screenRotationManager,
+            hasAccelerometer = hasAccelerometer,
+            keepExportHelper = drawKeepExportHelper,
+            mergeDrawOverlayUseCase = mergeDrawOverlayUseCase,
+            lifecycleScope = lifecycleScope,
+            getCurrentFile = { viewModel.state.value.mediaFile },
+            getDisplayedBitmap = { binding.photoView.drawable?.toBitmap() },
+            getImageDisplayRect = { binding.photoView.displayRect },
+            onDelete = { fileOperations.deleteCurrentFile() },
+        ).also { drawSaveHelper = it }
 
     // S0393: Group A image editing reuses the shared seam-based PlayerCropDelegate (replaces the
     // standalone-only StandaloneImageEditController). The PlayerActionHost members below supply the
@@ -394,7 +416,11 @@ class PhotoVideoStandaloneActivity :
 
     private fun setupBackPressHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() { finish() }
+            override fun handleOnBackPressed() {
+                // S0410: back cancels an active draw session before leaving the viewer.
+                if (drawSaveHelper?.handleBackPress() == true) return
+                finish()
+            }
         })
     }
 
@@ -415,21 +441,40 @@ class PhotoVideoStandaloneActivity :
             cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
         }
         binding.btnEditRotate.setOnClickListener { viewModel.toggleRotationSensor() }
+        // S0393: the rotation toggle is a screen-orientation control (locks/unlocks the sensor),
+        // independent of the file, so it is gated on the device sensor only - not on
+        // editableImageFile, which would hide it for non-local content-URI images.
+        binding.btnEditRotate.isVisible = hasAccelerometer
+        Timber.d("S0393: standalone rotation toggle decoupled from editable accel=$hasAccelerometer")
         binding.btnOverflowMenu.isVisible = true
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
-            // S0390: the two crop overflow items appear only for an editable local image.
+            // S0393: crop/compress/edit/Lens overwrite or share the source file, so they need a
+            // resolved local writable image (editableImageFile). OCR/translate/print operate purely on
+            // the displayed bitmap, so they only need a rendered image - gate those on the drawable,
+            // which also restores them for non-local content-URI images (e.g. a share from another app),
+            // matching the in-app player where they are gated on isImage, not on write access.
             val editable = viewModel.editableImageFile.value != null
-            popup.menu.findItem(R.id.menu_edit_crop_to_file).isVisible = editable
-            popup.menu.findItem(R.id.menu_edit_compress).isVisible = editable
+            val hasBitmap = binding.photoView.drawable != null
+            Timber.d("S0393: standalone image-action gate editable=$editable hasBitmap=$hasBitmap")
+            // S0410: crop-to-file / compress produce a NEW file, so they apply to any static image -
+            // a non-local source is materialized to a cache file on tap (ensureEditableImage). Gate
+            // them on the static-image type (mirrors the in-app isStaticBitmap); edit-in-place and
+            // Lens still need a resolved local file (editableImageFile).
+            val isStaticImage = viewModel.state.value.mediaType == MediaType.IMAGE
+            popup.menu.findItem(R.id.menu_edit_crop_to_file).isVisible = isStaticImage
+            popup.menu.findItem(R.id.menu_edit_compress).isVisible = isStaticImage
+            popup.menu.findItem(R.id.menu_draw_overlay).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_edit_image).isVisible = editable
             popup.menu.findItem(R.id.menu_google_lens).isVisible = editable
             popup.menu.findItem(R.id.menu_ocr_image).isVisible =
-                editable && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable()
             popup.menu.findItem(R.id.menu_translate_image).isVisible =
-                editable && capabilityAvailability.isTranslationAvailable()
-            popup.menu.findItem(R.id.menu_print).isVisible = editable
+                hasBitmap && capabilityAvailability.isTranslationAvailable()
+            popup.menu.findItem(R.id.menu_image_text_settings).isVisible =
+                hasBitmap && capabilityAvailability.isTranslationAvailable()
+            popup.menu.findItem(R.id.menu_print).isVisible = hasBitmap
             val isVideo = viewModel.state.value.mediaType == MediaType.VIDEO
             popup.menu.findItem(R.id.menu_black_screen).isVisible = isVideo
             popup.menu.findItem(R.id.menu_save_frame).isVisible = isVideo
@@ -441,10 +486,34 @@ class PhotoVideoStandaloneActivity :
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
                     R.id.menu_edit_crop_to_file -> {
-                        cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP_TO_FILE); true
+                        // S0410: materialize a non-local source to a cache file first, then crop.
+                        lifecycleScope.launch {
+                            viewModel.ensureEditableImage()
+                            cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP_TO_FILE)
+                        }
+                        true
                     }
-                    R.id.menu_edit_compress -> { cropDelegate.startCompressedCopy(); true }
+                    R.id.menu_edit_compress -> {
+                        lifecycleScope.launch {
+                            viewModel.ensureEditableImage()
+                            cropDelegate.startCompressedCopy()
+                        }
+                        true
+                    }
+                    R.id.menu_image_text_settings -> {
+                        Timber.d("S0410: standalone translation/OCR settings dialog opened")
+                        com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog.show(
+                            context = this,
+                            lifecycleOwner = this,
+                            settingsRepository = settingsRepository,
+                        )
+                        true
+                    }
                     R.id.menu_edit_image -> { openImageEditDialog(); true }
+                    R.id.menu_draw_overlay -> {
+                        Timber.d("S0410: standalone draw overlay entered")
+                        ensureDrawHelper().enterDrawMode(); true
+                    }
                     R.id.menu_ocr_image -> { ocrCurrentImage(); true }
                     R.id.menu_translate_image -> { translateCurrentImage(); true }
                     R.id.menu_print -> { printCurrentImage(); true }
@@ -605,9 +674,9 @@ class PhotoVideoStandaloneActivity :
         // S0390: gate Group A image actions on the editable-image state × the type-specific capability.
         collectOnLifecycle(viewModel.editableImageFile) { editFile ->
             Timber.d("S0390: standalone Group A gate editable=${editFile != null}")
-            val show = editFile != null && supportsTypeSpecificActions
-            binding.btnEditCrop.isVisible = show
-            binding.btnEditRotate.isVisible = show && hasAccelerometer
+            // Crop overwrites the source in place, so it needs a writable local image. The rotation
+            // toggle is decoupled (set once in setupFileOperationButtons) - it needs no file.
+            binding.btnEditCrop.isVisible = editFile != null && supportsTypeSpecificActions
         }
         collectOnLifecycle(viewModel.rotationSensorEnabled) { enabled ->
             if (hasAccelerometer) {
@@ -796,7 +865,8 @@ class PhotoVideoStandaloneActivity :
     override val overlayMountTarget: ViewGroup get() = binding.mediaContentArea
     override val imagePinchTarget: View get() = binding.photoView
     override fun imageDisplayRect(): RectF = binding.photoView.displayRect
-    override val displayedBitmap: Bitmap? get() = null // draw overlay not yet wired in standalone
+    // S0410: the draw overlay merges its strokes onto this base bitmap.
+    override val displayedBitmap: Bitmap? get() = binding.photoView.drawable?.toBitmap()
 
     override fun reloadCurrentImageInPlace() {
         viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) }

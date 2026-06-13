@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
-import timber.log.Timber
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeEnhancedBinding
@@ -169,7 +168,6 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
-            Timber.d("S0398: networks page bound, cloudTileVisible=${page.showCloudNetworkTile}")
             // Decorative page: only the Cloud tile is conditional (collapsed on no-cloud flavors).
             binding.tileNetworkCloud.isVisible = page.showCloudNetworkTile
 

@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Spec Arc - Archive a Specification
 
 Move a spec's files to `temp/done/` (git-ignored) and mark the journal record `Archived`. Works from any non-Archived status. No tactical folder required.

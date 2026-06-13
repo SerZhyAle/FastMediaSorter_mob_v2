@@ -39,7 +39,9 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
+import com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
+import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -168,6 +170,7 @@ class AudioStandaloneActivity :
         setupCloseButton()
         setupBackPressHandler()
         setupFileOperationButtons()
+        setupPlaybackControls()
         pagingControls.setupClicks()
         setupKeyboardHandler()
         parseIncomingIntent()
@@ -183,6 +186,27 @@ class AudioStandaloneActivity :
             .setItems(labels) { _, which -> player.setPlaybackSpeed(speeds[which]) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    // The audio lane reuses the shared PlayerView controller layout, so the gear button must be
+    // wired explicitly in this specialized host as well.
+    private fun setupPlaybackControls() {
+        binding.playerView.findViewById<android.widget.ImageButton>(R.id.btnPlaybackControl)?.apply {
+            setOnClickListener { showPlaybackControlDialog() }
+            contentDescription = getString(R.string.control)
+        }
+    }
+
+    private fun showPlaybackControlDialog() {
+        if (isFinishing || isDestroyed) return
+        if (viewModel.state.value.mediaType != MediaType.AUDIO) return
+        val fragmentManager = supportFragmentManager
+        if (fragmentManager.isStateSaved) return
+        if (fragmentManager.findFragmentByTag(PlaybackControlDialogFragment.TAG) != null) return
+        PlaybackControlDialogFragment().show(
+            fragmentManager,
+            PlaybackControlDialogFragment.TAG
+        )
     }
 
     // S0393 wave-C: lyrics search via SearchLyricsUseCase, shown in a scrollable dialog.
@@ -480,8 +504,35 @@ class AudioStandaloneActivity :
     override fun rememberStereoModeForCurrentFile(mode: StereoMode) =
         viewModel.rememberStereoModeForCurrentFile(mode)
 
-    // No video player in the audio lane.
-    override val videoPlayerHandle: VideoPlayerHandle? = null
+    // Audio still uses the shared playback-control dialog, which reads speed from this handle.
+    override val videoPlayerHandle: VideoPlayerHandle by lazy {
+        object : VideoPlayerHandle {
+            override fun getAvailableAudioTracks(): List<VideoTrackSelectionManager.TrackInfo> = emptyList()
+
+            override fun selectAudioTrack(groupIndex: Int, trackIndex: Int) = Unit
+
+            override fun getAvailableSubtitleTracks(): List<VideoTrackSelectionManager.TrackInfo> = emptyList()
+
+            override fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) = Unit
+
+            override fun getHueAdjustmentDegrees(): Float = 0f
+
+            override fun setHueAdjustmentDegrees(degrees: Float) = Unit
+
+            override fun getBrightnessProgress(): Int = 50
+
+            override fun setBrightnessProgress(progress: Int) = Unit
+
+            override fun getBrightnessPercentOffset(): Int = 0
+
+            override fun getPlaybackSpeed(): Float =
+                viewManager.getPlayer(viewModel.state.value.mediaType)?.playbackParameters?.speed ?: 1.0f
+
+            override fun setPlaybackSpeed(speed: Float) {
+                viewManager.getPlayer(viewModel.state.value.mediaType)?.setPlaybackSpeed(speed)
+            }
+        }
+    }
 
     // The shared playback-control dialog (which reads this flag) is not wired in this trimmed lane.
     override val isAudioServiceActive: Boolean = false

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.preset.DeviceProfilePresetApplier
 import com.sza.fastmediasorter.data.preset.DeviceProfilePresetCsvDataSource
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
@@ -31,7 +32,7 @@ class ApplyProfilePresetUseCase @Inject constructor(
 
         val overrides = presetDataSource.load()[profileType].orEmpty()
 
-        return runCatching {
+        return try {
             val current = settingsRepository.getSettings().first()
             val presetUpdated = overrides.entries.fold(current) { acc, (field, raw) ->
                 presetApplier.applyOverride(acc, field, raw)
@@ -46,6 +47,13 @@ class ApplyProfilePresetUseCase @Inject constructor(
                 profileRepository.updatePresetApplied(presetVersion).getOrThrow()
                 Timber.i("ApplyProfilePresetUseCase: Preset applied successfully for $profileType (${overrides.size} overrides)")
             }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            // Coroutine cancellation is not a failure: never report it as Result.failure (callers log
+            // those at error level). Propagate so structured concurrency unwinds correctly.
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

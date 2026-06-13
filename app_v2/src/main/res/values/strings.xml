@@ -2526,4 +2526,8 @@ Close the player and try again.</string>
     <string name="setting_screenshot_destination_title">Save screenshots to..</string>
     <string name="setting_screenshot_destination_default">Device screenshots folder (or Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Allow drawing over other apps to show the gesture strip</string>
+    <string name="cache_size_installed_toast">Cache set: %1$d MB</string>
+    <string name="welcome_enable_all">Enable all</string>
+    <string name="welcome_enable_all_content_description">Enable everything and finish setup</string>
+    <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
 </resources>

@@ -56,6 +56,18 @@
         android:title="@string/translate"
         app:showAsAction="never" />
 
+    <!-- S0410: translation/OCR settings (image host; ENABLE_TRANSLATION) -->
+    <item
+        android:id="@+id/menu_image_text_settings"
+        android:title="@string/translation_settings"
+        app:showAsAction="never" />
+
+    <!-- S0410: draw overlay (static image host) -->
+    <item
+        android:id="@+id/menu_draw_overlay"
+        android:title="@string/menu_draw_overlay"
+        app:showAsAction="never" />
+
     <!-- S0393 wave-C: print image (image host) -->
     <item
         android:id="@+id/menu_print"

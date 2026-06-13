@@ -38,7 +38,8 @@ class GeneralSettingsSectionsHelper(
             ExpandableSection(binding.headerFileBrowser, binding.containerFileBrowser, KEY_FILE_BROWSER_EXPANDED, false),
             // S0255: Authorization group is collapsed by default per strategic §6.4.
             ExpandableSection(binding.headerAuthorization, binding.containerAuthorization, KEY_AUTHORIZATION_EXPANDED, false),
-            ExpandableSection(binding.headerAppData, binding.containerAppData, KEY_APP_DATA_EXPANDED, true),
+            // Collapsed by default on first install; user controls state via tap.
+            ExpandableSection(binding.headerAppData, binding.containerAppData, KEY_APP_DATA_EXPANDED, false),
             ExpandableSection(binding.headerSystem, binding.containerSystem, KEY_SYSTEM_EXPANDED, false),
         )
         if (BuildConfig.DEBUG) {
@@ -64,7 +65,7 @@ class GeneralSettingsSectionsHelper(
                 KEY_INTERFACE_EXPANDED to prefs.getBoolean(KEY_INTERFACE_EXPANDED, false),
                 KEY_FILE_BROWSER_EXPANDED to prefs.getBoolean(KEY_FILE_BROWSER_EXPANDED, false),
                 KEY_AUTHORIZATION_EXPANDED to prefs.getBoolean(KEY_AUTHORIZATION_EXPANDED, false),
-                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, true),
+                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, false),
                 KEY_SYSTEM_EXPANDED to prefs.getBoolean(KEY_SYSTEM_EXPANDED, false),
                 KEY_DEBUG_EXPANDED to prefs.getBoolean(KEY_DEBUG_EXPANDED, false)
             )

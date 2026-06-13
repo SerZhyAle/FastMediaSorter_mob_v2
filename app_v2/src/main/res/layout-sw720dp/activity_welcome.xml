@@ -62,6 +62,23 @@
             android:orientation="horizontal"
             android:gravity="center"
             app:layout_constraintStart_toEndOf="@id/btnPrevious"
+            app:layout_constraintEnd_toStartOf="@id/btnEnableAll"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- Enable-all Button (page 0 only; toggled by the Activity). Secondary/outlined so Next stays primary. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEnableAll"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@string/welcome_enable_all"
+            android:contentDescription="@string/welcome_enable_all_content_description"
+            android:textSize="@dimen/welcome_button_text_size"
+            android:textColor="?attr/colorPrimary"
+            android:minHeight="@dimen/welcome_button_min_height"
+            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/btnNext"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

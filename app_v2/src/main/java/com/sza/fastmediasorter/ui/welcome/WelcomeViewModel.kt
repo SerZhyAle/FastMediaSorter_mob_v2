@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.data.model.DeviceProfileSource
 import com.sza.fastmediasorter.data.model.DetectionConfidence
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -32,7 +34,8 @@ class WelcomeViewModel @Inject constructor(
     private val applyProfilePresetUseCase: ApplyProfilePresetUseCase,
     private val deviceProfileAvailability: DeviceProfileAvailability,
     private val profileImpliesAllFilesUseCase: ProfileImpliesAllFilesUseCase,
-    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
+    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
+    @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : BaseViewModel<WelcomeState, WelcomeEvent>() {
 
     companion object {
@@ -90,8 +93,19 @@ class WelcomeViewModel @Inject constructor(
     fun selectableProfiles(): List<DeviceProfileType> = deviceProfileAvailability.selectableProfiles
 
     fun saveDeviceProfile(isSkipped: Boolean) {
-        viewModelScope.launch(exceptionHandler) {
-            val currentState = state.value
+        // Capture the screen state and the re-entry flag synchronously, before launching: the Finish
+        // handler calls setWelcomeCompleted() immediately after this, and applicationScope dispatches
+        // on IO (not Main.immediate), so reading these inside the coroutine would race and misread a
+        // genuine first run as a re-entry - silently skipping the first-run preset.
+        val currentState = state.value
+        // Read the re-entry flag BEFORE the Finish handler flips welcome_completed. On a genuine first
+        // run it is still false, so the preset always applies; on a Settings re-run an unchanged profile
+        // keeps user-tuned settings and a changed one is confirmed first.
+        val reentry = isWelcomeCompleted()
+        // Persist on the application scope so the profile save + preset write survive the Activity
+        // finishing right after Finish; viewModelScope is cancelled by finish() mid-apply, which would
+        // drop first-run settings (observed as a JobCancellationException from the preset use case).
+        applicationScope.launch(exceptionHandler) {
             val finalType = if (isSkipped) {
                 currentState.recommendedProfile ?: DeviceProfileType.PERSONAL_SMARTPHONE
             } else {
@@ -110,11 +124,6 @@ class WelcomeViewModel @Inject constructor(
                 DetectionConfidence.NONE
             }
 
-            // Read the previously stored profile and the re-entry flag BEFORE overwriting the
-            // profile, to decide whether the preset must be reapplied. On a genuine first run
-            // welcome_completed is still false, so the preset always applies; on a Settings re-run
-            // an unchanged profile keeps user-tuned settings and a changed one is confirmed first.
-            val reentry = isWelcomeCompleted()
             val previousType = deviceProfileRepository.getCurrentProfile().first().type
 
             val profile = DeviceProfile(
@@ -129,7 +138,6 @@ class WelcomeViewModel @Inject constructor(
             deviceProfileRepository.saveProfile(profile)
             Timber.i("Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped, reentry=$reentry)")
 
-            Timber.d("S0398: saveDeviceProfile reentry=$reentry selected=$finalType previous=$previousType")
             when {
                 // First run: always apply the preset - there are no user-tuned settings to protect.
                 !reentry -> applyProfilePreset(finalType)
@@ -155,9 +163,10 @@ class WelcomeViewModel @Inject constructor(
             .onFailure { Timber.e(it, "WelcomeViewModel: failed to apply profile preset") }
     }
 
-    /** Apply the preset for [finalType] after the user confirms the re-entry overwrite warning. */
+    /** Apply the preset for [finalType] after the user confirms the re-entry overwrite warning.
+     *  Runs on the application scope so the write completes even if the screen closes mid-apply. */
     fun confirmProfilePresetReapply(finalType: DeviceProfileType) {
-        viewModelScope.launch(exceptionHandler) {
+        applicationScope.launch(exceptionHandler) {
             applyProfilePreset(finalType)
         }
     }

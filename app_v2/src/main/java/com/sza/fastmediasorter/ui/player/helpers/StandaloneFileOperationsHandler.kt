@@ -278,6 +278,7 @@ class StandaloneFileOperationsHandler(
     }
 
     private fun launchMainActivity() {
+        Timber.d("S0411: Open-in-FMS fallback launches Browse in main task (standalone player task isolated, not PiP window)")
         activity.startActivity(Intent(activity, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         })

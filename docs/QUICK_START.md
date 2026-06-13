@@ -36,6 +36,7 @@ On the very first launch, right under the language picker, the welcome screen as
 - ⚙️ **Change it later:** **Settings → Interface → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
 - 🧩 **Other / Custom:** keeps your current settings exactly as they are. No preset applied - handy if you like tuning things by hand.
 - ⬆️ **Upgrading from an older version?** Your profile shows as **Other** and your previous settings are kept untouched - no preset was auto-applied. Want one anyway? Pick a profile in Settings.
+- 🎚️ **Next - pick what the app does:** after the profile, a quick screen lets you switch capabilities on or off (file manager, audio, video, documents, text recognition, translation). Optional parts download right there and turn on the moment they finish - all changeable later in Settings.
 
 **The 11 profiles:**
 

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,7 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -101,14 +103,21 @@ fun PermissionsScreen(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        Button(
+        Chip(
             onClick = {
                 Timber.d("Requesting permissions: $mediaPermissions")
                 permissionsState.launchMultiplePermissionRequest()
-            }
-        ) {
-            Text(text = stringResource(R.string.permission_grant_button))
-        }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text(
+                    text = stringResource(R.string.permission_grant_button),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            colors = ChipDefaults.primaryChipColors()
+        )
         
         // Show rationale if needed
         if (permissionsState.shouldShowRationale) {

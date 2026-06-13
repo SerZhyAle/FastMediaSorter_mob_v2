@@ -7,24 +7,34 @@ import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.TextUtils
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import com.sza.fastmediasorter.BuildConfig
 import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isVisible
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.tabs.TabLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
@@ -35,6 +45,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.max
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -72,7 +83,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
         override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.SETTINGS) }
-        override fun activateFocused() { currentFocus?.performClick() }
+        override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
         override fun moveFocus(direction: FocusDirection) {
             val focusDir = when (direction) {
                 FocusDirection.UP, FocusDirection.PREVIOUS -> View.FOCUS_UP
@@ -134,6 +145,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        maybeShowPendingCacheSizeToast()
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
         val tv = TypedValue()
@@ -147,6 +159,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             applyEdgeToEdgeInsets()
         }
+    }
+
+    private fun maybeShowPendingCacheSizeToast() {
+        val cacheSizeMb = LocaleHelper.consumePendingCacheSizeToastMb(this) ?: return
+        Toast.makeText(this, getString(R.string.cache_size_installed_toast, cacheSizeMb), Toast.LENGTH_SHORT).show()
     }
 
     override fun getViewBinding(): ActivitySettingsBinding {
@@ -182,6 +199,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             tab.text = getString(adapter.getTabTitleResId(position))
         }.attach()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
+        setupConnectedTabs(adapter)
 
         val sourceResourceId = intent.getLongExtra(EXTRA_SOURCE_RESOURCE_ID, -1L)
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
@@ -236,6 +254,98 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
     }
 
+    private fun setupConnectedTabs(adapter: SettingsPagerAdapter) {
+        val useFixedTabs = binding.tabLayout.tabCount <= 4
+        binding.tabLayout.tabMode = if (useFixedTabs) TabLayout.MODE_FIXED else TabLayout.MODE_SCROLLABLE
+        binding.tabLayout.tabGravity = if (useFixedTabs) TabLayout.GRAVITY_FILL else TabLayout.GRAVITY_START
+
+        for (position in 0 until binding.tabLayout.tabCount) {
+            val tab = binding.tabLayout.getTabAt(position) ?: continue
+            val title = getString(adapter.getTabTitleResId(position))
+            tab.icon = null
+            tab.contentDescription = title
+            tab.customView = createConnectedTabView(title, position, binding.tabLayout.tabCount)
+            tab.view.minimumWidth = 0
+            tab.view.setPadding(0, 0, 0, 0)
+        }
+
+        if (useFixedTabs) {
+            forceEqualTabWidths()
+        }
+
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
+            override fun onTabUnselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, false)
+            override fun onTabReselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
+        })
+
+        binding.tabLayout.post {
+            for (position in 0 until binding.tabLayout.tabCount) {
+                binding.tabLayout.getTabAt(position)?.let { tab ->
+                    syncConnectedTabState(tab, position == binding.tabLayout.selectedTabPosition)
+                }
+            }
+        }
+    }
+
+    private fun createConnectedTabView(
+        title: String,
+        position: Int,
+        tabCount: Int,
+    ): TextView {
+        val horizontalPadding = resources.getDimensionPixelSize(R.dimen.settings_tab_horizontal_padding)
+        val verticalPadding = resources.getDimensionPixelSize(R.dimen.settings_tab_vertical_padding)
+        return AppCompatTextView(this).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            gravity = Gravity.CENTER
+            text = title
+            isSingleLine = true
+            ellipsize = TextUtils.TruncateAt.END
+            includeFontPadding = false
+            minHeight = resources.getDimensionPixelSize(R.dimen.settings_tab_min_touch_height)
+            setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
+            setTextAppearance(R.style.TextAppearance_FastMediaSorter_SettingsTabConnected)
+            setTextColor(ResourcesCompat.getColorStateList(resources, R.color.settings_tab_text, theme))
+            background = ResourcesCompat.getDrawable(resources, resolveConnectedTabBackground(position, tabCount), theme)
+            isDuplicateParentStateEnabled = true
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+    }
+
+    private fun resolveConnectedTabBackground(position: Int, tabCount: Int): Int = when {
+        tabCount <= 1 -> R.drawable.bg_settings_tab_single
+        position == 0 -> R.drawable.bg_settings_tab_start
+        position == tabCount - 1 -> R.drawable.bg_settings_tab_end
+        else -> R.drawable.bg_settings_tab_middle
+    }
+
+    private fun syncConnectedTabState(tab: TabLayout.Tab, selected: Boolean) {
+        tab.customView?.isSelected = selected
+        tab.customView?.refreshDrawableState()
+    }
+
+    private fun forceEqualTabWidths() {
+        val tabStrip = binding.tabLayout.getChildAt(0) as? LinearLayout ?: return
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val landscapeTabWidth = resources.getDimensionPixelSize(R.dimen.settings_tab_land_width)
+        for (index in 0 until tabStrip.childCount) {
+            val child = tabStrip.getChildAt(index)
+            val params = child.layoutParams as? LinearLayout.LayoutParams ?: continue
+            if (isLandscape) {
+                params.width = landscapeTabWidth
+                params.weight = 0f
+            } else {
+                params.width = 0
+                params.weight = 1f
+            }
+            child.layoutParams = params
+        }
+        tabStrip.requestLayout()
+    }
+
     private fun applyEdgeToEdgeInsets() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             applyWindowInsets(insets)
@@ -287,7 +397,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             updateLandscapeToolbarHeight()
         } else {
             val titleH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_title_row_height)
-            val tabH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
+            val tabH = if (compact) {
+                resources.getDimensionPixelSize(R.dimen.settings_tabs_height_compact)
+            } else {
+                resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
+            }
             binding.root.findViewById<View>(R.id.titleRow)?.let { titleRow ->
                 titleRow.layoutParams.height = titleH
                 titleRow.requestLayout()
@@ -307,7 +421,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * Called from both applyCompactToolbar and applyWindowInsets to keep heights in sync.
      */
     private fun updateLandscapeToolbarHeight() {
-        val contentH = if (toolbarCompact) (actionBarSizePx * 0.65f).toInt() else actionBarSizePx
+        val compactMinHeight = resources.getDimensionPixelSize(R.dimen.settings_tabs_height_compact)
+        val contentH = if (toolbarCompact) max((actionBarSizePx * 0.65f).toInt(), compactMinHeight) else actionBarSizePx
         val totalH = contentH + statusBarInsetPx
         val lp = binding.toolbarContainer.layoutParams ?: return
         if (lp.height != totalH) {

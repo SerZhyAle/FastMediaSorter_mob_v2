@@ -58,7 +58,6 @@ class WelcomeFunctionalityController @Inject constructor(
     private var translationProgressJob: Job? = null
 
     fun bind(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
-        Timber.d("S0400: functionality page bound")
         ocrProgressJob?.cancel()
         translationProgressJob?.cancel()
         ocrProgressJob = null

@@ -54,4 +54,30 @@ class SettingsKeyboardNavigationManagerTest {
         assertFalse(consumed)
         verify(exactly = 0) { callback.openSearchOverlay() }
     }
+
+    @Test
+    fun `enter uses callback activation result`() {
+        every { callback.activateFocused() } returns true
+
+        val consumed = manager.handleKeyDown(
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER),
+        )
+
+        assertTrue(consumed)
+        verify(exactly = 1) { callback.activateFocused() }
+    }
+
+    @Test
+    fun `enter stays unconsumed when nothing activates`() {
+        every { callback.activateFocused() } returns false
+
+        val consumed = manager.handleKeyDown(
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER),
+        )
+
+        assertFalse(consumed)
+        verify(exactly = 1) { callback.activateFocused() }
+    }
 }

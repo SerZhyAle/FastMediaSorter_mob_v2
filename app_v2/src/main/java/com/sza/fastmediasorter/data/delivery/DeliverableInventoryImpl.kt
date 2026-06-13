@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.delivery
 
+import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
@@ -15,6 +16,7 @@ import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionSection
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -35,7 +37,8 @@ import javax.inject.Singleton
  *
  * The inventory is flavor-scoped (S0401): a row is emitted only when its set is offered in the
  * running flavor, so lite/photos (no OCR/translation capability, no media-playback descriptor) never
- * show rows that could not install there.
+ * show rows that could not install there. OCR rows additionally honour the device-runtime axis: a
+ * device that cannot run OCR (DeviceCapabilities) never sees OCR downloads it could not use.
  */
 @Singleton
 class DeliverableInventoryImpl @Inject constructor(
@@ -45,7 +48,8 @@ class DeliverableInventoryImpl @Inject constructor(
     private val tesseractModelManager: TesseractModelManager,
     private val capabilityAvailability: CapabilityAvailability,
     private val bundled: BundledDeliverableSets,
-    private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>
+    private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>,
+    @ApplicationContext private val appContext: Context
 ) : DeliverableInventory {
 
     // One status flow per item id; shared between the UI status flow and the download driver so
@@ -139,7 +143,10 @@ class DeliverableInventoryImpl @Inject constructor(
     // on demand with no descriptor at this point), while data-payload sets (AUDIO_VISUALIZATIONS) and
     // the DTS decoder are gated by whether the flavor contributes a descriptor or bundles the set -
     // lite/photos contribute neither.
-    private fun isOcrOffered(): Boolean = capabilityAvailability.isOcrCompiledIn()
+    // OCR additionally folds in the device-runtime axis: a device that cannot run OCR (API too old or
+    // RAM too low, see DeviceCapabilities) must not be offered OCR downloads it could never use, so the
+    // engine + OCR language rows are dropped there even on an OCR-compiled flavor.
+    private fun isOcrOffered(): Boolean = capabilityAvailability.isOcrAvailable(appContext)
 
     private fun isSetOffered(set: DeliverableSet): Boolean =
         descriptors.containsKey(set) || bundled.contains(set)
