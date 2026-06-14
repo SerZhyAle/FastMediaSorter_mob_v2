@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution">
 
+    <!-- Code-less delivery container: ML Kit Translate ships bundled in the app_v2 base
+         (standard/noLegal/vr/legacy via flavor-scoped deps + src/translationMlKit). R8 strips
+         this module to zero dex, so hasCode must be false or bundletool rejects the bundle.
+         On-demand translation delivery for store flavors is deferred (parked follow-up). -->
+    <application android:hasCode="false" />
+
     <dist:module
         dist:instant="false"
         dist:title="@string/ext_translation_title">
