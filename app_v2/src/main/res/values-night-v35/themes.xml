@@ -20,8 +20,12 @@
     </style>
 
     <style name="Theme.App.BottomSheetDialog.EdgeToEdgeCompat" parent="ThemeOverlay.Material3.BottomSheetDialog">
-        <!-- Material 1.13.0+: triggers WindowInsetsControllerCompat path, not deprecated APIs -->
+        <!-- Material edge-to-edge path requires both enableEdgeToEdge and a transparent nav bar. -->
         <item name="enableEdgeToEdge">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="paddingBottomSystemWindowInsets">true</item>
+        <item name="paddingLeftSystemWindowInsets">true</item>
+        <item name="paddingRightSystemWindowInsets">true</item>
     </style>
 
     <!-- Edge-to-edge is handled programmatically via enableEdgeToEdge() in BaseActivity. -->

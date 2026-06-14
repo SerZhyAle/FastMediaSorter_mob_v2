@@ -1,0 +1,4 @@
+- [x] Update API 35 bottom-sheet theme overrides for edge-to-edge compatibility.
+- [x] Upgrade AndroidX Activity/AppCompat dependencies to stable versions with newer Android 15 behavior fixes.
+- [x] Run targeted validation for mixed config/resource changes.
+- [x] Sync dev log and post-change artifacts.

@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Writing style: hyphen / ё / ..](feedback_writing_style.md) - owner standard for all text I author: hyphen not em-dash, ё not е, `..` not `...`; self-check before every chat/.md/commit
 - [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
 - [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)

@@ -146,7 +146,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     
     // Activity Compose
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.activity:activity-compose:1.10.1")
     
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
