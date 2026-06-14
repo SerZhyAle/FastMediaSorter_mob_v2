@@ -17437,3 +17437,4 @@ Format: | datetime | file | target | description |
 | 2026-06-14 01:26:03 | `docs/FEATURES_UK.md` | `spec-dev` | S0407 Phase 04: cover-art visualizations (UK) [branch: DEBUG-v013] |
 | 2026-06-14 01:26:03 | `PLAN/S0407_audio-player-extra-visualizations.md` | `spec-dev` | S0407 all phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-14 03:46:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `spec-dev` | S0391: skip the single-option Add Resource type picker (open Local directly when no remote source is available) [branch: DEBUG-v013] |
+| 2026-06-14 04:06:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0391` | Skip single-option Add Folder type picker on ALL/FAVORITES tab entry; gate-direct check [branch: DEBUG-v013] |

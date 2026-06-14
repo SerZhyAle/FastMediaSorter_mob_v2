@@ -121,8 +121,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         com.sza.fastmediasorter.ui.main.ResourceTab.SMB -> showSmbFolderOptions()
                         com.sza.fastmediasorter.ui.main.ResourceTab.FTP_SFTP -> showSftpFolderOptions()
                         com.sza.fastmediasorter.ui.main.ResourceTab.CLOUD -> showCloudStorageOptions()
+                        // ALL/FAVORITES carry no specific source type, so the type picker would show.
+                        // Apply the same single-option skip as the no-extra path (S0391).
                         com.sza.fastmediasorter.ui.main.ResourceTab.ALL,
-                        com.sza.fastmediasorter.ui.main.ResourceTab.FAVORITES -> Unit
+                        com.sza.fastmediasorter.ui.main.ResourceTab.FAVORITES -> maybeSkipTypeSelection()
                     }
                 }
             } ?: binding.root.post { maybeSkipTypeSelection() }
@@ -133,11 +135,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * When the type picker would offer only the always-present Local card - every remote source is
      * disabled (S0391) or unsupported by the flavor - a one-option screen is pointless, so open the
      * Local folder options directly and skip it. Runs only on a fresh add (no preselected tab, not a
-     * copy). Card visibility was already applied by `formManager.applyFlavorRestrictions()`.
+     * copy). Queries the gate directly rather than card visibility, because `setupViews()` (which
+     * applies card visibility) is itself deferred by BaseActivity and may not have run yet -
+     * `anyRemoteEnabled()` is exactly the predicate that drives remote-card visibility.
      */
     private fun maybeSkipTypeSelection() {
-        val remoteCards = listOf(binding.cardNetworkFolder, binding.cardSftpFolder, binding.cardCloudStorage)
-        if (remoteCards.none { it.isVisible }) {
+        if (!remoteSourceGate.anyRemoteEnabled()) {
             Timber.d("S0391: only Local source available - skipping the type picker")
             showLocalFolderOptions()
         }
