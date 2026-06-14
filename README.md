@@ -14,7 +14,7 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6140.424 (June 2026)
+## What's New in v2.60.6141.930 (June 2026)
 
 **New:**
 Downloadable Extensions, smarter setup flow, remote source toggles, standalone viewer parity, All Files resource, quick camera capture, SFTP key authentication, audio visualizations.

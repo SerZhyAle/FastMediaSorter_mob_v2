@@ -44,8 +44,8 @@ android {
         // Version is kept in sync with app_v2 by build-with-version.ps1
         // versionCode format: yyMMddHH (8 digits, same base as main app minus minute digit)
         // versionName format: Y.YM.MDDH.Hmm (identical to main app)
-        versionCode = 26050603
-        versionName = "2.60.5060.300"
+        versionCode = 26061419
+        versionName = "2.60.6141.930"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

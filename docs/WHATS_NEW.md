@@ -1,6 +1,6 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6140.424** (June 2026)
+**Current release: 2.60.6141.930** (June 2026)
 
 > Changes since version 2.60.6050.126
 
