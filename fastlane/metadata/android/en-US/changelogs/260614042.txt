@@ -1,0 +1,6 @@
+• Downloadable Extensions - install OCR, translation, DTS, and audio backgrounds on demand.
+• Smarter setup - onboarding now includes profiles, functionality toggles, permissions, and Enable All.
+• Remote source toggles - disable SMB, (S)FTP, or cloud sources without deleting resources.
+• Standalone viewer parity - shared images now support OCR, translation, drawing, crop, and fullscreen.
+• All Files resource - first-run file-manager entry opens newest-first full browsing.
+..

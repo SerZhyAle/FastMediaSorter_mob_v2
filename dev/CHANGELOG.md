@@ -17438,3 +17438,7 @@ Format: | datetime | file | target | description |
 | 2026-06-14 01:26:03 | `PLAN/S0407_audio-player-extra-visualizations.md` | `spec-dev` | S0407 all phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-14 03:46:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `spec-dev` | S0391: skip the single-option Add Resource type picker (open Local directly when no remote source is available) [branch: DEBUG-v013] |
 | 2026-06-14 04:06:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0391` | Skip single-option Add Folder type picker on ALL/FAVORITES tab entry; gate-direct check [branch: DEBUG-v013] |
+| 2026-06-14 04:26:10 | `scripts/builders/build-aab-release.ps1` | `skill-release` | Allow explicit version override for release builder to prevent release-version skew [branch: DEBUG-v013] |
+| 2026-06-14 04:26:10 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6140.424 - plateau merge from DEBUG-v013 [branch: DEBUG-v013] |
+| 2026-06-14 04:27:08 | `scripts/release/gen_fastlane_changelog.ps1` | `skill-release` | Strip markdown separators from generated fastlane changelogs [branch: DEBUG-v013] |
+| 2026-06-14 04:27:32 | `scripts/release/gen_fastlane_changelog.ps1` | `skill-release` | Trim leading blank lines from generated fastlane changelogs [branch: DEBUG-v013] |

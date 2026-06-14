@@ -1,6 +1,33 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6050.126** (June 2026)
+**Current release: 2.60.6140.424** (June 2026)
+
+> Changes since version 2.60.6050.126
+
+---
+
+## What's New
+
+- **Downloadable Extensions** - install OCR, translation, DTS, and audio backgrounds on demand.
+- **Smarter setup** - onboarding now includes profiles, functionality toggles, permissions, and Enable All.
+- **Remote source toggles** - disable SMB, (S)FTP, or cloud sources without deleting resources.
+- **Standalone viewer parity** - shared images now support OCR, translation, drawing, crop, and fullscreen.
+- **All Files resource** - first-run file-manager entry opens newest-first full browsing.
+- **Quick camera capture** - 1×1 widget saves photos or videos to a chosen target.
+- **SFTP key authentication** - connect with private keys, passphrases, and host-key pinning.
+- **Audio visualizations** - downloadable background video set with automatic safe fallback.
+
+## What's Fixed
+
+- Broken audio tracks now skip instead of stopping playback.
+- Recent Media no longer shows a false cancelled-scan error.
+- Too-short microphone recordings no longer save broken files.
+- Report-a-problem email now fills the support address.
+- Drawing toolbar no longer hides behind the system navigation bar.
+
+---
+
+## Previous Release: 2.60.6050.126 (June 2026)
 
 > Changes since version 2.60.6031.424
 

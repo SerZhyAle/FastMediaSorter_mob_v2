@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6050.126 (June 2026)
+## What's New in v2.60.6140.424 (June 2026)
 
 **New:**
-Camera OCR crop-screen languages, re-translate OCR results, icon-style home widgets, Camera OCR / Audio Now Playing / Random Photo Frame / Quick Recorder / Scheduled Tasks widgets, add widgets from Settings.
+Downloadable Extensions, smarter setup flow, remote source toggles, standalone viewer parity, All Files resource, quick camera capture, SFTP key authentication, audio visualizations.
 
 **Fixed:**
-Network video playback no longer freezes on buffering. Opening network media no longer crashes on bad entries. Camera OCR crop frame now renders and aligns correctly.
+Broken audio track skip, Recent Media false-scan error, too-short microphone recordings, support-recipient mailto fix, draw toolbar safe positioning.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
