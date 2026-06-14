@@ -152,6 +152,7 @@ internal class AddResourceFormManager(
         bindCollapsibleHeader(binding.headerSmbConditions, binding.contentSmbConditions, sectionKey("smb", "conditions"))
         bindCollapsibleHeader(binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, sectionKey("smb", "media_types"))
         bindCollapsibleHeader(binding.headerSmbAdditional, binding.contentSmbAdditional, sectionKey("smb", "additional"))
+        bindCollapsibleHeader(binding.headerSftpServerVerification, binding.contentSftpServerVerification, sectionKey("sftp", "server_verification"))
         bindCollapsibleHeader(binding.headerSftpConditions, binding.contentSftpConditions, sectionKey("sftp", "conditions"))
         bindCollapsibleHeader(binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, sectionKey("sftp", "media_types"))
         bindCollapsibleHeader(binding.headerSftpAdditional, binding.contentSftpAdditional, sectionKey("sftp", "additional"))

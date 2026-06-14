@@ -8,6 +8,7 @@ model: sonnet
 > 1. **Dry technical prose only** - no filler.
 > 2. **Autonomy:** resolve minor path/spec gaps without asking. Ask only when log file resolution still yields no existing target after the fallback order is exhausted.
 > 3. **Terse report:** one dry statement of what was done and why.
+> 4. **Park out-of-scope findings (CLAUDE.md §3.1):** a log analysis that surfaces problems unrelated to the requested focus and non-trivial (own research + fix) → auto `/spec-draft`, one per distinct problem, after dedup via `scripts/spec_catalog/search.ps1`. Capture the symptom + offending log lines into the skeleton's §0. List the parked `Sxxxx` ids in the verdict. Already-ticketed or trivial findings are not parked.
 
 Analyse FastMediaSorter Android logcat files for patterns, errors, warnings, behaviour flows.
 
@@ -111,6 +112,7 @@ Report structure:
 5. **Spam tags** - tags with > 100 occurrences
 6. **Spec verification tags** - see dedicated subsection; list which `Sxxxx` probes fired (count + first time). Omit only if none found.
 7. **Verdict** - one paragraph: crashes? repeated errors? suspicious patterns?
+8. **Parked findings** - out-of-scope, non-trivial problems captured as `/spec-draft` skeletons per directive 4 (id + slug + one-line symptom). Omit if none parked.
 
 ---
 

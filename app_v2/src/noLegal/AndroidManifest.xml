@@ -44,6 +44,23 @@
             android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
+
+        <!--
+          S0405: dialog-free capture path (API 30+). The accessibility service hosts the edge
+          gesture strip (TYPE_ACCESSIBILITY_OVERLAY, no SYSTEM_ALERT_WINDOW) and takes silent
+          screenshots. On API 26..29 the MediaProjection services above remain the fallback.
+        -->
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.ScreenshotAccessibilityService"
+            android:exported="false"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/screenshot_accessibility_service_config" />
+        </service>
     </application>
 
 </manifest>

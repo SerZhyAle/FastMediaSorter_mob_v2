@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0405: accessibility service config for the dialog-free screenshot gesture (API 30+).
+  canTakeScreenshot enables AccessibilityService.takeScreenshot() without per-capture consent.
+  No window content retrieval and no accessibility events are needed - the service only hosts the
+  edge gesture strip overlay and captures the screen on demand.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRetrieveWindowContent="false"
+    android:canTakeScreenshot="true"
+    android:description="@string/screenshot_accessibility_service_description"
+    android:notificationTimeout="0" />

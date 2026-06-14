@@ -15,6 +15,7 @@ Senior Android engineer/architect for FastMediaSorter. Deep in Kotlin, Clean+MVV
 - Catalog-first: run `query.ps1` (`-ClassMatches`/`-PathMatches`/`-Role`/`-Injected`) before any Grep/Glob/find for Kotlin classes.
 - Timber only; `Log.d()` prohibited.
 - Never hand-edit `PLAN/spec-catalog.jsonl` - use CLI under `scripts/spec_catalog/`.
+- Auto-capture out-of-scope findings (CLAUDE.md §3.1): at any stage, a problem that is unrelated to the current task + non-trivial (own research + fix) gets parked via `/spec-draft` without asking - dedup via `search.ps1` first, capture symptom/evidence into §0, report `parked: Sxxxx`, resume the task. Never park in-scope work, trivial inline fixes, or already-ticketed issues.
 
 ## Spec Ticket Work (Sxxxx)
 

@@ -411,6 +411,8 @@
             </LinearLayout>
 
             <!-- Authentication Method Selection -->
+            <TextView android:id="@+id/tvSftpAuthMethodLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:labelFor="@id/rgSftpAuthMethod" android:text="@string/sftp_auth_method_label" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_margin_4dp" />
+
             <RadioGroup android:id="@+id/rgSftpAuthMethod" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_12dp">
 
                 <RadioButton android:id="@+id/rbSftpPassword" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sftp_auth_password" android:checked="true"/>
@@ -448,7 +450,7 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/sftp_load_key" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
 
                 </LinearLayout>
 
@@ -461,15 +463,34 @@
 
             </LinearLayout>
 
-            <!-- S0046: expected host-key fingerprint (optional, common to password and key auth) -->
-            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_host_key_fingerprint_hint" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:maxLines="1" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Test Connection placed after auth block and before path - per spec F5.3 -->
+            <!-- Test Connection: primary action in the main flow, before optional security and path -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+
+            <!-- S0046: host-key pinning (optional, collapsible, SFTP-only). Visibility toggled by protocol in AddResourceActivity. -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSftpServerVerification"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/sftp_server_verification_title"
+                        app:csh_showHelp="false"
+                        app:csh_title="@string/sftp_server_verification_title" />
+
+                    <!-- Always-visible one-line hint so the optional-security nature is discoverable while collapsed -->
+                    <TextView android:id="@+id/tvSftpServerVerificationSubtitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:paddingTop="@dimen/resource_margin_2dp" android:paddingBottom="@dimen/resource_margin_2dp" android:text="@string/sftp_server_verification_subtitle" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+
+                    <LinearLayout android:id="@+id/contentSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_host_key_fingerprint_hint" app:helperText="@string/sftp_host_key_fingerprint_helper" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:maxLines="1" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Remote Path and Resource Name in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">

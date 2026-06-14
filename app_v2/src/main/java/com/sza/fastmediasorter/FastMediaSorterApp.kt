@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayStartupCoordinator
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -123,6 +124,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var startupInitializer: dagger.Lazy<AppStartupInitializer>
 
+    @Inject
+    lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
+
     // S0213 Pillar B: OOM-safe wrapper installed into media3 logging at process start so a
     // near-OOM stacktrace stringification cannot itself become a fatal crash.
     @Inject
@@ -141,6 +145,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // Track if app is in foreground
     @Volatile
     private var isInForeground = true
+
+    @Volatile
+    private var gestureOverlayRestoreScheduled = false
 
     override fun onCreate() {
         super.onCreate()
@@ -185,6 +192,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 isInForeground = true
                 Timber.d("App moved to FOREGROUND")
                 onAppForegrounded()
+                scheduleGestureOverlayRestore()
                 firstFrameSignal.signal()
             }
         })
@@ -317,6 +325,18 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             request,
         )
         Timber.i("FastMediaSorterApp: deferred startup worker enqueued")
+    }
+
+    private fun scheduleGestureOverlayRestore() {
+        if (gestureOverlayRestoreScheduled) return
+        gestureOverlayRestoreScheduled = true
+        applicationScope.launch {
+            try {
+                screenGestureOverlayStartupCoordinator.get().restoreIfNeeded()
+            } catch (e: Exception) {
+                Timber.e(e, "FastMediaSorterApp: gesture overlay restore failed on startup")
+            }
+        }
     }
 
     private fun setupDebugStrictMode() {

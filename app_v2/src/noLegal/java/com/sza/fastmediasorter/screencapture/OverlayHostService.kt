@@ -9,6 +9,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
@@ -21,7 +22,24 @@ class OverlayHostService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        overlayManager = ScreenGestureOverlayManager(this)
+        // API 26..29 fallback path: application overlay strip, gesture launches the MediaProjection
+        // consent activity. The API 30+ dialog-free path is hosted by ScreenshotAccessibilityService.
+        overlayManager = ScreenGestureOverlayManager(
+            context = this,
+            overlayWindowType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            onGestureMatched = { launchConsentActivity() }
+        )
+    }
+
+    private fun launchConsentActivity() {
+        val intent = Intent(this, ScreenCaptureConsentActivity::class.java).apply {
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+            )
+        }
+        startActivity(intent)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

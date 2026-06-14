@@ -220,6 +220,19 @@ class CalculatorEngineTest {
     }
 
     @Test
+    fun `integer division returns quotient without remainder`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputOperator("DIV")
+        engine.inputDigit(3)
+        engine.inputEquals()
+
+        assertEquals("3", engine.display)
+    }
+
+    @Test
     fun `decimal input keeps fraction`() {
         val engine = CalculatorEngine()
 
@@ -539,6 +552,19 @@ class CalculatorEngineTest {
         engine.inputDigit(1)
         engine.inputDigit(0)
         engine.inputOperator("mod")
+        engine.inputDigit(0)
+        engine.inputEquals()
+
+        assertEquals(CalculatorError.DIVISION_BY_ZERO, engine.error)
+    }
+
+    @Test
+    fun `integer division by zero is division error`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputOperator("DIV")
         engine.inputDigit(0)
         engine.inputEquals()
 

@@ -47,6 +47,8 @@ class BrowseStateUiUpdater(
     var currentDisplayMode: DisplayMode? = null
     /** Cached audio-only mode to force layout refresh when resource changes. */
     var currentAudioOnlyMode: Boolean? = null
+    /** Cached no-thumbnail flag - grid span count differs for the no-thumbnail "plank" layout (S0419). */
+    private var currentDisableThumbnails: Boolean? = null
 
     /**
      * Apply all UI changes derived from the current [state].
@@ -121,10 +123,15 @@ class BrowseStateUiUpdater(
 
     private suspend fun updateDisplayModeIfNeeded(state: BrowseState) {
         val shouldDisableToggle = state.resource?.isAudioOnly() == true
+        val disableThumbnails = state.resource?.disableThumbnails == true
         onUpdateToggleViewAvailability(shouldDisableToggle)
 
-        if (state.displayMode != currentDisplayMode || shouldDisableToggle != currentAudioOnlyMode) {
+        if (state.displayMode != currentDisplayMode ||
+            shouldDisableToggle != currentAudioOnlyMode ||
+            disableThumbnails != currentDisableThumbnails
+        ) {
             currentAudioOnlyMode = shouldDisableToggle
+            currentDisableThumbnails = disableThumbnails
             currentDisplayMode = state.displayMode
             onUpdateDisplayMode(state.displayMode)
         }

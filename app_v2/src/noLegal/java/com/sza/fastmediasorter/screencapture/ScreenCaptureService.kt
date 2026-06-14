@@ -132,7 +132,6 @@ class ScreenCaptureService : Service() {
         if (captureFinished) return
         val image = imageReader?.acquireLatestImage() ?: return
         captureFinished = true
-        Timber.d("S0405: screen capture frame acquired -> save")
         serviceScope.launch {
             processCapture(image)
         }

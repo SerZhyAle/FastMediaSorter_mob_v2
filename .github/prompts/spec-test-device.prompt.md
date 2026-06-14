@@ -123,17 +123,24 @@ Run the logcat command in the **background** (`run_in_background: true`). Record
 
 ### 6 - Execute scenario via mobile-mcp
 
+Token discipline: `mobile_take_screenshot` returns the image **into context**, and every inline image is re-sent on every later turn - across a multi-step scenario this is the dominant token cost. Drive targeting and verification from the text accessibility tree; never screenshot just to find or check an element (the tool itself instructs: for anything in the view hierarchy use `mobile_list_elements_on_screen` instead).
+
 Walk the scenario steps in order. For each step:
 
-1. `mobile_take_screenshot` → save to `temp/<Sxxxx>_screens/step_<NN>_before.png`.
-2. Read on-screen elements via `mobile_list_elements_on_screen` to resolve coordinates from element ids (NEVER hard-code coordinates from a previous run - densities and dynamic layouts shift them).
-3. Perform the action (`click`, `type_keys`, `swipe`, `press_button`, `open_url`).
-4. `mobile_take_screenshot` → `step_<NN>_after.png`.
-5. Verify expected post-state:
-   - Element id present / absent
-   - Element text matches expected substring
-   - Toast / Snackbar text appears (re-screenshot within 2 s)
-6. Record one row in the scenario's `## Run log` table: `step | action | result (PASS/FAIL/INCONCLUSIVE) | evidence (screenshot path + log lines)`.
+1. `mobile_list_elements_on_screen` → single source of truth for this step: resolve target coordinates from element id/label AND read current state. NEVER hard-code coordinates from a previous run - densities and dynamic layouts shift them.
+2. Perform the action (`click`, `type_keys`, `swipe`, `press_button`, `open_url`) using coordinates from step 1.
+3. `mobile_list_elements_on_screen` again → verify expected post-state from the text tree:
+   - target element present / absent
+   - element text matches expected substring
+   - Toast / Snackbar text appears (re-list within 2 s - toasts auto-dismiss)
+4. Evidence: `mobile_save_screenshot saveTo=temp/<Sxxxx>_screens/step_<NN>.png` - writes a PNG to disk, does NOT load the image into context. One per step at zero token cost.
+5. Record one row in the scenario's `## Run log` table: `step | action | result (PASS/FAIL/INCONCLUSIVE) | evidence (screenshot path + log lines)`.
+
+Use `mobile_take_screenshot` (inline image, costs context) ONLY when the text tree cannot answer:
+- a11y tree empty / non-semantic (custom-rendered surfaces, games, `SurfaceView`/`GLSurfaceView`, WebView internals, Compose without `Modifier.semantics`);
+- a purely visual assertion (colour, layout, rendered image/thumbnail content) the tree cannot express;
+- diagnosing a FAIL whose cause is not visible in the tree.
+One inline screenshot, then return to the text tree. For flows needing many visual states, prefer `mobile_start_screen_recording` / `mobile_stop_screen_recording` (video saved to file, zero context) over a burst of `take_screenshot`.
 
 If a step needs an external Share-sheet roundtrip (e.g. share a URL from Chrome to FMS), drive it via:
 
@@ -243,7 +250,8 @@ Then a one-line follow-up offer if `/spec-fix` or a fresh `/spec` is the obvious
 - **Never run `gradlew.bat` directly** - always go through `scripts/builders/*-device.ps1` (matches `/build` policy).
 - **Never read full logcat into context** for runs > 2 MB - use `search-log.ps1` and quote line numbers only.
 - **Never hard-code element coordinates** - always resolve via `mobile_list_elements_on_screen` immediately before each click. Densities, system bars, and dynamic content shift positions across runs.
-- **Never click without a screenshot first** - silent clicks on unknown layouts produce false PASSes.
+- **Never click without listing elements first** - resolve every target from `mobile_list_elements_on_screen` immediately before the click; silent clicks on stale coordinates produce false PASSes.
+- **Prefer `mobile_save_screenshot` (writes a file) over `mobile_take_screenshot` (loads the image into context)** for evidence. Reserve inline `take_screenshot` for the step-6 fallback cases - inline images accumulate and re-send every turn, dominating token cost.
 - **Never edit `PLAN/spec-catalog.jsonl`** directly - only via `update.ps1`.
 - **Read-only zones** - `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` - ignored.
 - If the device runs `Android < minSdk` for the chosen flavor → abort with the version mismatch.
@@ -259,7 +267,7 @@ Then a one-line follow-up offer if `/spec-fix` or a fresh `/spec` is the obvious
 | Settings footer shows older `versionName` than just-built APK | `adb install` failed silently or wrong `-s <id>` | Re-install with `adb install -r -t -d <apk>`, re-check footer |
 | `mobile_click_on_screen_at_coordinates` lands on adjacent button | Coordinates from a previous run reused; layout shifted | Always re-list elements before each click |
 | Tab switch click does nothing | Tap landed below the tab strip but inside the inactive content area | Increase `y` to the centre of the tab `LinearLayout` (often y ≈ 460 on 1440×2880, varies per density) |
-| Toast / Snackbar disappears before screenshot | 2-second auto-dismiss | Re-screenshot within 1 s of the action; if still missed, mark `INCONCLUSIVE` and rely on logcat trace |
+| Toast / Snackbar gone before it can be read | 2-second auto-dismiss | Re-list elements within 1 s of the action; if still missed, mark `INCONCLUSIVE` and rely on logcat trace |
 | Share-sheet missing FMS entry | `acceptSharedFiles` setting OFF or `ReceiveShareActivity` component-disabled | Toggle `Settings → Playback → Default Media Player → Accept shared files` ON before the run |
 
 ---
@@ -277,7 +285,7 @@ Then a one-line follow-up offer if `/spec-fix` or a fresh `/spec` is the obvious
 | Path | Purpose |
 | --- | --- |
 | `temp/<Sxxxx>_mobile_test_scenario_<TS>.md` | Scenario + run log + log findings + follow-ups |
-| `temp/<Sxxxx>_screens/step_<NN>_{before,after}.png` | Per-step evidence |
+| `temp/<Sxxxx>_screens/step_<NN>.png` | Per-step evidence (via `mobile_save_screenshot`, off-context) |
 | `temp/<Sxxxx>_run_<TS>.log` | Captured logcat for the run window |
 | `PLAN/Sxxxx_<slug>.md` | Strategic spec - `## Last Audit` Manual block updated, `## Revision History` line appended |
 | `dev/CHANGELOG.md` | One row via `add_to_dev_log.ps1` |

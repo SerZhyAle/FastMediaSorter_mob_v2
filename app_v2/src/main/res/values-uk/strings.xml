@@ -2417,8 +2417,12 @@
     <string name="open_in_fms_external_file_notice">Цей файл розташований поза текою, доданою до застосунку, тому відкрився головний екран.</string>
     <string name="sftp_host_key_fingerprint_hint">Очікуваний відбиток host-key (SHA256, опційно)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не вдалося розібрати відбиток. Підтримуються SHA256:base64, hex з двокрапками, чистий base64.</string>
-    <string name="sftp_host_key_mismatch_title">Відбиток host-key не збігається</string>
-    <string name="sftp_host_key_mismatch_body_format">Очікувався відбиток:\n%1$s\n\nСервер надіслав:\n%2$s\n\nЗ\'єднання відхилено — можлива підміна сервера або легітимна заміна ключа. Якщо ви довіряєте цьому серверу, оновіть ресурс вручну.</string>
+    <string name="sftp_host_key_mismatch_title">Не вдалося підтвердити сервер</string>
+    <string name="sftp_host_key_mismatch_body_format">Відбиток не збігається. Перевірте адресу сервера або оновіть збережений відбиток.\n\nОчікувався:\n%1$s\n\nСервер надав:\n%2$s</string>
+    <string name="sftp_auth_method_label">Спосіб входу</string>
+    <string name="sftp_server_verification_title">Перевірка сервера (необов’язково)</string>
+    <string name="sftp_server_verification_subtitle">Необов’язковий захист: підтверджує справжність сервера.</string>
+    <string name="sftp_host_key_fingerprint_helper">Потрібно лише якщо ви хочете закріпити сервер і захиститися від підміни. Формат: SHA256:..</string>
     <string name="ext_section_ocr_translation">Переклад та розпізнавання OCR</string>
     <string name="ext_section_media_playback">Відтворення медіа</string>
     <string name="ext_shortcut_packs_title">Завантаження OCR та перекладу</string>
@@ -2463,4 +2467,10 @@
     <string name="settings_remote_source_cloud_help_message">Доступ до файлів у хмарних сховищах — Google Drive, OneDrive та Dropbox. Підключіть обліковий запис, щоб відкривати свої теки безпосередньо в застосунку.</string>
     <string name="settings_remote_source_disable_confirm_title">Сховати ці теки?</string>
     <string name="settings_remote_source_disable_confirm_message">Теки цього джерела буде сховано, а не видалено. Збережені ресурси залишаться й з\'являться знову, коли ви увімкнете джерело.</string>
+    <string name="screenshot_accessibility_service_description">Дозволяє FastMediaSorter знімати екран краєвим жестом і зберігати знімок без діалогу на кожен знімок.</string>
+    <string name="screenshot_accessibility_permission_rationale">Щоб робити знімки краєвим жестом, увімкніть службу доступності FastMediaSorter:\n\n1. Натисніть «Відкрити налаштування» та увімкніть FastMediaSorter у списку доступності.\n2. Якщо показано Controlled by restricted setting або App was denied access: відкрийте цей застосунок у «Про застосунок», натисніть меню (3 крапки), виберіть Allow restricted settings, підтвердьте та поверніться, щоб увімкнути.\n\nНе вдається ввімкнути? Натисніть «Старий спосіб» — версія, що запитує дозвіл на кожен знімок.</string>
+    <string name="screen_capture_rate_limited">Занадто частий знімок, спробуйте ще раз</string>
+    <string name="screenshot_gesture_permission_dialog_title">Увімкнення жестів екрана</string>
+    <string name="screenshot_gesture_open_settings">Відкрити налаштування</string>
+    <string name="screenshot_gesture_use_old_method">Старий спосіб</string>
 </resources>

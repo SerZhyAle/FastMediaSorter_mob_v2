@@ -160,7 +160,6 @@ class BrowseManagerInitializer(
                 CloudProvider.ONEDRIVE -> cloudAuthManager.launchOneDriveSignIn()
             }
             override fun saveUndoOperation(undoOp: UndoOperation) = viewModel.saveUndoOperation(undoOp)
-            override fun reloadFiles() = viewModel.reloadFiles()
             override fun updateFile(oldPath: String, newFile: MediaFile) = viewModel.updateFile(oldPath, newFile)
             override fun setIgnoringFileChanges(ignoring: Boolean) = viewModel.setIgnoringFileChanges(ignoring)
             override fun createMediaFileFromFile(file: File): MediaFile = viewModel.createMediaFileFromFile(file)
@@ -952,8 +951,9 @@ class BrowseManagerInitializer(
             val resource = viewModel.state.value.resource
             val shouldForceList = resource?.isAudioOnly() == true
             val effectiveMode = if (shouldForceList) DisplayMode.LIST else mode
-            val iconSize = if (shouldForceList) 48 else if (resource?.disableThumbnails == true) 32 else settings.defaultIconSize
-            recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter(), settings.useCompactElements)
+            val noThumbnails = resource?.disableThumbnails == true
+            val iconSize = if (shouldForceList) 48 else if (noThumbnails) 32 else settings.defaultIconSize
+            recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter(), settings.useCompactElements, noThumbnails)
             stateUiUpdater.currentDisplayMode = effectiveMode
             updateToggleViewAvailability(shouldForceList)
             binding.rvMediaFiles.post { scrollButtonManager.updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }

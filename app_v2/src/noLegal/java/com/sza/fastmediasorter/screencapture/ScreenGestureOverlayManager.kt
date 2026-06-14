@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.screencapture
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.Gravity
@@ -15,10 +14,14 @@ import kotlin.math.roundToInt
 
 class ScreenGestureOverlayManager(
     context: Context,
+    private val overlayWindowType: Int,
     private val onGestureMatched: () -> Unit = {}
 ) {
-    private val appContext = context.applicationContext
-    private val windowManager = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    // Use the provided context (service) directly, not the application context: a
+    // TYPE_ACCESSIBILITY_OVERLAY window must be added through the accessibility service's own
+    // WindowManager so the system associates the overlay token with that service.
+    private val overlayContext = context
+    private val windowManager = overlayContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
     private var stripView: View? = null
     private var gestureTriggered = false
@@ -28,7 +31,7 @@ class ScreenGestureOverlayManager(
     fun show() {
         if (stripView != null) return
         val spec = computeStripSpec()
-        val view = View(appContext).apply {
+        val view = View(overlayContext).apply {
             isClickable = false
             isFocusable = false
             setOnTouchListener(::handleTouch)
@@ -36,7 +39,7 @@ class ScreenGestureOverlayManager(
         val params = WindowManager.LayoutParams(
             spec.width,
             spec.height,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            overlayWindowType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
@@ -83,7 +86,6 @@ class ScreenGestureOverlayManager(
                 val angle = Math.toDegrees(atan2(dy, dx).toDouble())
                 if (angle in MIN_MATCH_ANGLE_DEGREES..MAX_MATCH_ANGLE_DEGREES) {
                     gestureTriggered = true
-                    launchConsentActivity()
                     onGestureMatched()
                     view.performClick()
                     return true
@@ -101,21 +103,10 @@ class ScreenGestureOverlayManager(
         return false
     }
 
-    private fun launchConsentActivity() {
-        val intent = Intent(appContext, ScreenCaptureConsentActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-            )
-        }
-        appContext.startActivity(intent)
-    }
-
     private fun computeStripSpec(): StripSpec {
-        val density = appContext.resources.displayMetrics.density
+        val density = overlayContext.resources.displayMetrics.density
         val width = (STRIP_WIDTH_DP * density).roundToInt().coerceAtLeast(1)
-        val metrics = appContext.resources.displayMetrics
+        val metrics = overlayContext.resources.displayMetrics
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = windowManager.currentWindowMetrics

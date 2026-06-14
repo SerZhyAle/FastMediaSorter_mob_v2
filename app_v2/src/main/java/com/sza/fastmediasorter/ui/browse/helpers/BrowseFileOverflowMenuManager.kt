@@ -47,6 +47,13 @@ class BrowseFileOverflowMenuManager @Inject constructor(
     ) {
         val items = mutableListOf<MenuItem>()
 
+        // "Open" (= play) first: lets the user open a playable media file straight from this
+        // menu when the tap landed on the row's overflow button instead of the card itself.
+        // Folders and binary files have their own open semantics and are excluded.
+        if (!file.isDirectory && !file.type.isBinaryFile() && onOpenInPlayer != null) {
+            items += MenuItem(context.getString(R.string.action_open)) { onOpenInPlayer(file) }
+        }
+
         // Basic ops - same gates as the direct buttons
         if (hasDestinations && appSettings.enableCopying)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.copy)) { onCopy(file) }

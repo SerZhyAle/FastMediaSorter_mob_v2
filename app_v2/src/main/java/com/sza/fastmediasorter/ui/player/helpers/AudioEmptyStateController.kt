@@ -59,6 +59,10 @@ class AudioEmptyStateController(
     private var mediaPlayer: MediaPlayer? = null
     private var currentSurface: Surface? = null
     private var pendingFile: File? = null
+    // True while a video visualization is live (set in showVideo(), cleared by hide()/release()/error).
+    // Gates show() so the per-track double invocation (eager + post-cover-check re-show) does not
+    // rebuild the MediaPlayer twice. A real hide() or mode switch clears it and lets show() re-init.
+    private var videoActive = false
     // Guards against calling MediaPlayer.start() before onPrepared (prepareAsync is in flight).
     // A premature start() raises MediaPlayer error -38 (INVALID_OPERATION), whose onError handler
     // hides the video view -> the looping background never renders (S0407). onPrepared is the sole
@@ -68,6 +72,15 @@ class AudioEmptyStateController(
     // ────────────────────────── Public API ──────────────────────────
 
     fun show(mode: String) {
+        // De-dupe the expensive video visualization. AudioCoverArtLoader fires show() twice per track:
+        // once eagerly, then again ~1.5s later when the cover-check resolves to "no cover". Each call
+        // re-picks a random clip and spins up a fresh MediaPlayer, so the background visibly swaps
+        // mid-track and a codec is allocated needlessly. Skip when the same video mode is already live
+        // (no hide() since); hide()/release()/mode switch clear videoActive and allow a genuine re-init.
+        if (mode.isVideoMode() && currentMode.isVideoMode() && videoActive) {
+            Timber.d("AudioEmptyStateController: show(mode=$mode) skipped - video already active")
+            return
+        }
         Timber.d("AudioEmptyStateController: show(mode=$mode)")
         currentMode = mode
         hideAll()
@@ -83,6 +96,7 @@ class AudioEmptyStateController(
 
     fun hide() {
         Timber.d("AudioEmptyStateController: hide()")
+        videoActive = false
         stopBars()
         stopWaves()
         releaseMediaPlayer()
@@ -139,6 +153,7 @@ class AudioEmptyStateController(
 
     fun release() {
         Timber.d("AudioEmptyStateController: release()")
+        videoActive = false
         barsView.stopAndReset()
         wavesView.stopAndReset()
         releaseMediaPlayer()
@@ -146,6 +161,9 @@ class AudioEmptyStateController(
     }
 
     // ────────────────────────── Private ──────────────────────────
+
+    private fun String.isVideoMode(): Boolean =
+        this == MODE_VISUALIZATION || this == MODE_GIF_LOOP
 
     private fun hideAll() {
         audioCoverArtView.isVisible = false
@@ -193,11 +211,13 @@ class AudioEmptyStateController(
         Timber.d("S0407: audio viz showVideo entry")
         val file = deliveredSource.getRandomBackgroundFile()
         if (file == null) {
+            videoActive = false
             Timber.i("AudioEmptyStateController: no delivered video backgrounds found, no background shown")
             videoView.isVisible = false
             showStaticNote()
             return
         }
+        videoActive = true
         pendingFile = file
         Timber.d("AudioEmptyStateController: showVideo file=${file.absolutePath}, " +
             "textureAvailable=${videoView.isAvailable}, " +
@@ -276,6 +296,7 @@ class AudioEmptyStateController(
                         else -> "EXTRA_$extra"
                     }
                     Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - no background shown")
+                    videoActive = false
                     videoView.isVisible = false
                     showStaticNote()
                     true
@@ -290,6 +311,7 @@ class AudioEmptyStateController(
         } catch (e: Exception) {
             surface.release()
             currentSurface = null
+            videoActive = false
             Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - no background shown, file=${file.absolutePath}")
             videoView.isVisible = false
             showStaticNote()

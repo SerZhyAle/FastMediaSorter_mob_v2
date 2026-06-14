@@ -81,6 +81,8 @@
 
     <resource name="Home MP3" path="sftp://46.54.0.135:22022/J:/MEDIA/mp3" type="SFTP" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="true" rememberTheFileList="true" />
 
+    <resource name="SFTP S0046 key" path="sftp://192.168.1.110:22023/C:/Users/sftp_test" type="SFTP" username="sftp_test" auth="key" privateKeyAsset="s0046_test_ed25519" hostKeyFingerprint="SHA256:hYkv5XsSgvbrudae+Jv+IU9usxACMzPgLfKFpccwXyk" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" scanSubdirectories="true" showHiddenFiles="true" showFoldersInList="true" addToDestinations="false" allFiles="true" rememberTheFileList="true" />
+
     <resource name="FTP" path="ftp://193.178.50.43:21/" type="FTP" username="sza" password="SerZhyA25SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" allFiles="true" addToDestinations="true" sortMode="SIZE_DESC" displayMode="LIST" />
 
 </media-resources>

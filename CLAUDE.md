@@ -16,6 +16,7 @@
 - `/quick`: minor fix (design, typo, 1 string), no spec/build. Update `dev/CHANGELOG.md`.
 - `/skill-fix`: fast bug/UI fix, skip doc/git/build/dev-log/spec. Local validation only.
 - `/spec`: create/update strategic spec `PLAN/Sxxxx_*.md`.
+- `/spec-draft`: side-task idea inbox - scaffold `Draft` spec skeleton, capture raw text verbatim + persist attachments in §0; no research/approval/spec-tech chaining, non-disruptive.
 - `/spec-all`: full spec pipeline, idea to verified implementation.
 - `/spec-tech`: break approved strategic spec into tactical plan.
 - `/spec-update`: review/refine spec file.
@@ -30,6 +31,17 @@
 - `/doc-update`: docs sync.
 - `/log-reader`: logcat/log analysis.
 - `/build`, `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
+
+### 3.1 Auto-capture of out-of-scope findings (`/spec-draft`)
+- At **any** stage - research, development, audit, code review, device test, log analysis - when you discover a problem meeting ALL three conditions, invoke the `/spec-draft` procedure to park it, without asking:
+  1. Unrelated to the current task/ticket (out of scope).
+  2. Not trivial enough to fix on the spot (more than a one-liner, or fixing now would derail current work).
+  3. Requires its own research and execution.
+- Before creating: dedup-check by symptom (`scripts/spec_catalog/search.ps1`); if an open ticket already covers it, reference that id instead of drafting a duplicate.
+- Batch discovery: a general log analysis / audit / review surfacing several qualifying problems → one `/spec-draft` per distinct problem (after dedup).
+- Non-disruptive: park it, report `parked: Sxxxx <slug>` in chat, then resume the original task. Never switch the active ticket because of a parked finding.
+- Do NOT park: in-scope work, trivial fixes (do them inline), cosmetic nitpicks not worth a ticket, or already-ticketed issues.
+- Read-only contexts (e.g. `android-solution-researcher`) cannot mutate the catalog: instead list the qualifying findings as `/spec-draft` candidates in the report for the caller to capture.
 
 ## 4. Spec Catalog (Sxxxx tickets)
 - Specs: `PLAN/Sxxxx_<slug>.md`. Directory: `PLAN/Sxxxx_<slug>/`.

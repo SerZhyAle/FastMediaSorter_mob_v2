@@ -4,6 +4,7 @@
 > 1. **Dry technical prose only** - no filler.
 > 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
 > 3. **Terse report:** one dry statement with dossier path + next high-value reads.
+> 4. **Park out-of-scope findings (CLAUDE.md §3.1):** research that uncovers a problem unrelated to the asked topic and non-trivial (own research + fix) → auto `/spec-draft` to park it (dedup via `scripts/spec_catalog/search.ps1` first), then continue the current research; report parked `Sxxxx` ids. Do not derail into solving it.
 
 Repeatable research pass before dev, docs, or cross-surface debugging. Builds a temp dossier first, then narrows into code.
 

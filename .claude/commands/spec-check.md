@@ -37,6 +37,8 @@ Audit a spec against actual repository state. Auto-detects strategic vs tactical
 
 ## Process
 
+> **Out-of-scope discoveries (CLAUDE.md §3.1):** an audit that surfaces a real problem outside this spec's contract and non-trivial (own research + fix) is not a finding against this spec - park it via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), one per distinct problem, and list the parked `Sxxxx` ids alongside the audit verdict. Findings within this spec's contract stay in `## Last Audit` as usual.
+
 **1 - Parse arguments, locate spec.**
 
 Resolve `Sxxxx` and slug via `select.ps1`. Check `PLAN/Sxxxx_<slug>.md` exists - abort if not. Check `PLAN/Sxxxx_<slug>/INDEX.md` - record presence. Apply auto-detection table.

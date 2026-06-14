@@ -2,12 +2,9 @@ package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Rect
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
@@ -535,17 +533,7 @@ class PlaybackSettingsFragment : Fragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             if (isChecked) {
                 if (!controller.isOverlayPermissionGranted(requireContext())) {
-                    Snackbar.make(
-                        binding.root,
-                        R.string.screenshot_overlay_permission_rationale,
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                    overlayPermissionLauncher.launch(
-                        Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:" + requireContext().packageName)
-                        )
-                    )
+                    showGesturePermissionDialog(controller)
                     return@setOnCheckedChangeListener
                 }
                 controller.setEnabled(true)
@@ -569,6 +557,36 @@ class PlaybackSettingsFragment : Fragment() {
                 viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
             }
         }
+    }
+
+    /**
+     * S0405: instructional gate before sending the user to the permission screen. Sideloaded (noLegal)
+     * builds cannot flip the accessibility toggle directly - Android's "restricted settings" gate
+     * blocks it until the user clears it from App info - so the exact tap sequence is spelled out here,
+     * with shortcuts to both the accessibility screen and App info. Any exit without the grant reverts
+     * the row (handled in onDismiss so back-press / outside-tap are covered too).
+     */
+    private fun showGesturePermissionDialog(controller: ScreenGestureOverlayController) {
+        val builder = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.screenshot_gesture_permission_dialog_title)
+            .setMessage(controller.permissionRationaleResId())
+            .setPositiveButton(R.string.screenshot_gesture_open_settings) { _, _ ->
+                overlayPermissionLauncher.launch(controller.permissionSettingsIntent(requireContext()))
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .setOnDismissListener {
+                if (!controller.isOverlayPermissionGranted(requireContext())) {
+                    binding.rowGestureOverlayEnabled.setCheckedSilently(false)
+                }
+            }
+        if (controller.isFallbackCaptureAvailable()) {
+            // Fallback route, offered only when a second path exists: grant draw-over-apps and
+            // capture via MediaProjection (asks on each shot) when accessibility cannot be enabled.
+            builder.setNeutralButton(R.string.screenshot_gesture_use_old_method) { _, _ ->
+                overlayPermissionLauncher.launch(controller.fallbackPermissionSettingsIntent(requireContext()))
+            }
+        }
+        builder.show()
     }
 
     /**

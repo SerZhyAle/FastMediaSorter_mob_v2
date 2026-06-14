@@ -21,6 +21,7 @@ Never edit/create/delete files. Never suggest implementation steps. Output a res
 - DO NOT read read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - DO NOT read `*.backup` files unless the user explicitly asks for historical comparison.
 - ONLY output a structured research report (see Output Format).
+- Read-only: cannot create tickets. Out-of-scope, non-trivial problems found during research (CLAUDE.md §3.1) are NOT silently dropped - list each in a `## /spec-draft candidates` section (symptom + evidence path/line) so the caller can park it. Do not run catalog mutators.
 
 ## Research Protocol
 

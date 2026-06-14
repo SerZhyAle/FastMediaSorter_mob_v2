@@ -2502,8 +2502,12 @@ Close the player and try again.</string>
     <string name="open_in_fms_external_file_notice">This file is outside a folder added to the app, so the app home opened instead.</string>
     <string name="sftp_host_key_fingerprint_hint">Expected host key fingerprint (SHA256, optional)</string>
     <string name="sftp_host_key_fingerprint_invalid">Cannot parse fingerprint. Use SHA256:base64, hex with colons, or raw base64.</string>
-    <string name="sftp_host_key_mismatch_title">Host key mismatch</string>
-    <string name="sftp_host_key_mismatch_body_format">Expected fingerprint:\n%1$s\n\nServer offered:\n%2$s\n\nConnection refused — possible MITM attack or legitimate key change. Update the resource manually if you trust this server.</string>
+    <string name="sftp_host_key_mismatch_title">Couldn’t verify the server</string>
+    <string name="sftp_host_key_mismatch_body_format">The fingerprint doesn’t match. Check the server address or update the saved fingerprint.\n\nExpected:\n%1$s\n\nServer offered:\n%2$s</string>
+    <string name="sftp_auth_method_label">Sign-in method</string>
+    <string name="sftp_server_verification_title">Server verification (optional)</string>
+    <string name="sftp_server_verification_subtitle">Optional security that confirms the server is genuine.</string>
+    <string name="sftp_host_key_fingerprint_helper">Use this only if you want to pin the server and protect against server impersonation. Format: SHA256:..</string>
     <string name="ext_section_ocr_translation">Translation &amp; OCR recognition</string>
     <string name="ext_section_media_playback">Media playback</string>
     <string name="ext_shortcut_packs_title">OCR &amp; translation downloads</string>
@@ -2548,4 +2552,10 @@ Close the player and try again.</string>
     <string name="settings_remote_source_cloud_help_message">Open files in cloud storage - Google Drive, OneDrive, and Dropbox. Connect an account to browse your cloud folders right inside the app.</string>
     <string name="settings_remote_source_disable_confirm_title">Hide these folders?</string>
     <string name="settings_remote_source_disable_confirm_message">The folders for this source will be hidden, not deleted. Your saved resources stay and reappear when you turn the source back on.</string>
+    <string name="screenshot_accessibility_service_description">Lets FastMediaSorter capture the screen with an edge gesture and save it, with no per-shot dialog.</string>
+    <string name="screenshot_accessibility_permission_rationale">To take screenshots with the edge gesture, turn on the FastMediaSorter accessibility service:\n\n1. Tap Open settings, then enable FastMediaSorter in the accessibility list.\n2. If it shows Controlled by restricted setting or App was denied access: open this app in App info, tap the menu (3 dots), choose Allow restricted settings, confirm, then go back and enable it.\n\nIf you cannot enable it, tap Old method to use a version that asks for permission on every shot.</string>
+    <string name="screen_capture_rate_limited">Screenshot was too fast, try again</string>
+    <string name="screenshot_gesture_permission_dialog_title">Enable screen gestures</string>
+    <string name="screenshot_gesture_open_settings">Open settings</string>
+    <string name="screenshot_gesture_use_old_method">Old method</string>
 </resources>

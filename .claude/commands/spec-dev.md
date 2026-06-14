@@ -36,6 +36,8 @@ Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` +
 
 Order is fixed: resolve scope → optional dry-run → execute one step at a time → run that step's verification → update phase/status metadata.
 
+> **Out-of-scope discoveries (CLAUDE.md §3.1):** if, mid-step, you hit a problem unrelated to this ticket and non-trivial (own research + fix), do NOT fix it inline and do NOT expand the current step. Park it via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), note `parked: Sxxxx` in the step log, and continue the planned step. Trivial in-scope issues are still handled inline.
+
 **1 - Parse arguments, load state.**
 
 Compute target step set from flags. Read strategic spec, INDEX, all phase files in scope. Verify Status Gate. Verify all Pre-Implementation Blockers in INDEX are ticked - if any unchecked → abort with blocker text.

@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.graphics.Rect
+import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +27,25 @@ class BrowseRecyclerViewManager(
         fun onDisplayModeChanged(displayMode: DisplayMode)
         fun updateToggleButtonIcon(iconResId: Int)
     }
+
+    private val gridRowSpacing = GridRowSpacingItemDecoration()
+    private var gridRowSpacingAttached = false
+
+    /** Adds a fixed vertical gap below each grid cell so rows do not touch (S0419). */
+    private class GridRowSpacingItemDecoration : RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
+        ) {
+            outRect.bottom = (GRID_ROW_GAP_DP * parent.resources.displayMetrics.density).toInt()
+        }
+    }
+
+    private companion object {
+        const val GRID_ROW_GAP_DP = 4
+    }
     
     init {
         // Set adapter immediately so RecyclerView never reports "No adapter attached"
@@ -40,9 +61,10 @@ class BrowseRecyclerViewManager(
         mode: DisplayMode,
         iconSize: Int,
         showVideoThumbnails: Boolean,
-        isCompactMode: Boolean = false
+        isCompactMode: Boolean = false,
+        disableThumbnails: Boolean = false
     ) {
-        Timber.d("updateDisplayMode: mode=$mode, iconSize=$iconSize, compact=$isCompactMode")
+        Timber.d("updateDisplayMode: mode=$mode, iconSize=$iconSize, compact=$isCompactMode, noThumbs=$disableThumbnails")
 
         // Save current scroll position before changing layout
         val currentLayoutManager = recyclerView.layoutManager
@@ -96,7 +118,7 @@ class BrowseRecyclerViewManager(
 
                 // Calculate span count with minimum for tablets
                 val calculatedSpanCount = (screenWidthDp / itemWidthDp).toInt()
-                val spanCount = if (screenWidthDp >= 600f) {
+                val baseSpanCount = if (screenWidthDp >= 600f) {
                     // Tablet: minimum 3 columns for better space utilization
                     calculatedSpanCount.coerceAtLeast(3)
                 } else {
@@ -104,15 +126,31 @@ class BrowseRecyclerViewManager(
                     calculatedSpanCount.coerceAtLeast(1)
                 }
 
+                // No-thumbnail grid renders horizontal "planks" (square tile + name); halving the
+                // column count gives each plank double width so more of the name fits (S0419).
+                val spanCount = if (disableThumbnails) (baseSpanCount / 2).coerceAtLeast(1) else baseSpanCount
+
                 Timber.d(
-                    "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount compact=$isCompactMode"
+                    "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount compact=$isCompactMode noThumbs=$disableThumbnails"
                 )
 
-                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (calculated=$calculatedSpanCount)")
+                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (base=$baseSpanCount, calculated=$calculatedSpanCount)")
+                Timber.d("S0419: grid span=$spanCount noThumbs=$disableThumbnails rowGap=${GRID_ROW_GAP_DP}dp")
                 GridLayoutManager(recyclerView.context, spanCount)
             }
         }
         recyclerView.layoutManager = newLayoutManager
+
+        // Grid rows otherwise touch (card padding is 0dp); add a small vertical gap between rows (S0419).
+        if (mode == DisplayMode.GRID) {
+            if (!gridRowSpacingAttached) {
+                recyclerView.addItemDecoration(gridRowSpacing)
+                gridRowSpacingAttached = true
+            }
+        } else if (gridRowSpacingAttached) {
+            recyclerView.removeItemDecoration(gridRowSpacing)
+            gridRowSpacingAttached = false
+        }
 
         // Restore scroll position after layout manager change
         if (scrollPosition >= 0) {

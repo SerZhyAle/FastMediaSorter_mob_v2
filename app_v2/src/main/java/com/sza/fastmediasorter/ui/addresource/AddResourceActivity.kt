@@ -236,6 +236,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.rbSftp.id -> if (currentPort.isBlank() || currentPort == "21") binding.etSftpPort.setText(R.string.default_sftp_port)
                 binding.rbFtp.id  -> if (currentPort.isBlank() || currentPort == "22") binding.etSftpPort.setText(R.string.default_ftp_port)
             }
+            // Host-key pinning is an SSH concept; FTP has no host key, so hide the block for FTP.
+            binding.cardSftpServerVerification.isVisible = checkedId == binding.rbSftp.id
         }
 
         // Local buttons
@@ -438,6 +440,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.layoutCloudStorage.isVisible = false
         if (binding.etSftpPort.text.isNullOrBlank()) binding.etSftpPort.setText(R.string.default_sftp_port)
         binding.rbSftp.isChecked = true
+        // SFTP is the default protocol here; ensure the SSH-only host-key block is shown even when the radio state is unchanged.
+        binding.cardSftpServerVerification.isVisible = true
         formManager.initSftpMediaTypes()
     }
 

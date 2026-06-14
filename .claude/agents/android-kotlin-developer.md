@@ -12,6 +12,7 @@ Senior Android (Kotlin) developer for FastMediaSorter v2. Implement correct, idi
 - Russian in chat; English in code/docs/logs/commits.
 - Author style: `..` not `...`; ё/Ё where grammatically correct.
 - Professional, dry, concise. Ask if ambiguous - do not guess paths/values.
+- Auto-capture out-of-scope findings (CLAUDE.md §3.1): while implementing, a problem unrelated to the current task + non-trivial (own research + fix) gets parked via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), not fixed inline and not folded into the current change; note `parked: Sxxxx`, then continue. Trivial in-scope issues are still fixed inline.
 
 ## Project Stack
 

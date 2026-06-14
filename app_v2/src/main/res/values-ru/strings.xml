@@ -2454,8 +2454,12 @@
     <string name="open_in_fms_external_file_notice">Этот файл находится вне папки, добавленной в приложение, поэтому открылся главный экран.</string>
     <string name="sftp_host_key_fingerprint_hint">Ожидаемый отпечаток host-key (SHA256, опционально)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не удалось разобрать отпечаток. Поддерживаются SHA256:base64, hex с двоеточиями, чистый base64.</string>
-    <string name="sftp_host_key_mismatch_title">Отпечаток host-key не совпадает</string>
-    <string name="sftp_host_key_mismatch_body_format">Ожидался отпечаток:\n%1$s\n\nСервер прислал:\n%2$s\n\nСоединение отклонено — возможна подмена сервера или легитимная смена ключа. Если вы доверяете этому серверу, обновите ресурс вручную.</string>
+    <string name="sftp_host_key_mismatch_title">Не удалось подтвердить сервер</string>
+    <string name="sftp_host_key_mismatch_body_format">Отпечаток не совпадает. Проверьте адрес сервера или обновите сохранённый отпечаток.\n\nОжидался:\n%1$s\n\nСервер предъявил:\n%2$s</string>
+    <string name="sftp_auth_method_label">Способ входа</string>
+    <string name="sftp_server_verification_title">Проверка сервера (опционально)</string>
+    <string name="sftp_server_verification_subtitle">Необязательная защита: подтверждает подлинность сервера.</string>
+    <string name="sftp_host_key_fingerprint_helper">Нужно только если хотите закрепить сервер и защититься от подмены. Формат: SHA256:..</string>
     <string name="ext_section_ocr_translation">Перевод и распознавание OCR</string>
     <string name="ext_section_media_playback">Проигрывание медиа</string>
     <string name="ext_shortcut_packs_title">Загрузки OCR и перевода</string>
@@ -2500,4 +2504,10 @@
     <string name="settings_remote_source_cloud_help_message">Доступ к файлам в облачных хранилищах — Google Drive, OneDrive и Dropbox. Подключите аккаунт, чтобы открывать свои папки прямо в приложении.</string>
     <string name="settings_remote_source_disable_confirm_title">Скрыть эти папки?</string>
     <string name="settings_remote_source_disable_confirm_message">Папки этого источника будут скрыты, а не удалены. Сохранённые ресурсы останутся и появятся снова, когда вы включите источник.</string>
+    <string name="screenshot_accessibility_service_description">Позволяет FastMediaSorter снимать экран краевым жестом и сохранять снимок без диалога на каждый снимок.</string>
+    <string name="screenshot_accessibility_permission_rationale">Чтобы делать скриншоты краевым жестом, включите службу спецвозможностей FastMediaSorter:\n\n1. Нажмите «Открыть настройки» и включите FastMediaSorter в списке спецвозможностей.\n2. Если показано Controlled by restricted setting или App was denied access: откройте это приложение в «О приложении», нажмите меню (3 точки), выберите Allow restricted settings, подтвердите и вернитесь, чтобы включить.\n\nНе удаётся включить? Нажмите «Старый способ» — версия, которая запрашивает разрешение на каждый снимок.</string>
+    <string name="screen_capture_rate_limited">Слишком частый снимок, попробуйте ещё раз</string>
+    <string name="screenshot_gesture_permission_dialog_title">Включение жестов экрана</string>
+    <string name="screenshot_gesture_open_settings">Открыть настройки</string>
+    <string name="screenshot_gesture_use_old_method">Старый способ</string>
 </resources>

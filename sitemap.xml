@@ -35,38 +35,7 @@
         <priority>0.9</priority>
     </url>
 
-    <!-- noLegal edition (sideload-only) - hreflang group isolated to the noLegal triplet, not linked from the home page -->
-    <url>
-        <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html</loc>
-        <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html"/>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-ru.html"/>
-        <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html"/>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html"/>
-        <lastmod>2026-05-30</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
-
-    <url>
-        <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-ru.html</loc>
-        <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html"/>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-ru.html"/>
-        <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html"/>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html"/>
-        <lastmod>2026-05-30</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
-
-    <url>
-        <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html</loc>
-        <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html"/>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-ru.html"/>
-        <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html"/>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html"/>
-        <lastmod>2026-05-30</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
+    <!-- noLegal edition (sideload-only) is intentionally excluded from the sitemap and marked noindex:
+         it duplicates the published build and only diluted crawl budget ("Crawled - currently not indexed"). -->
 
 </urlset>
