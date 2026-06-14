@@ -28,8 +28,9 @@ if (-not (Test-Path -LiteralPath $buildGradlePath)) {
 }
 
 $buildContent = Get-Content -LiteralPath $buildGradlePath -Raw
-$versionNameMatch = [regex]::Match($buildContent, 'versionName\s*=\s*"([^"]+)"')
-$versionCodeMatch = [regex]::Match($buildContent, 'versionCode\s*=\s*(\d+)')
+# (?i): version lives in `defaultAppVersionName`/`defaultAppVersionCode` (capital V); match case-insensitively.
+$versionNameMatch = [regex]::Match($buildContent, '(?i)versionName\s*=\s*"([^"]+)"')
+$versionCodeMatch = [regex]::Match($buildContent, '(?i)versionCode\s*=\s*(\d+)')
 
 if (-not $versionNameMatch.Success) {
     throw "Could not parse versionName from $buildGradlePath"

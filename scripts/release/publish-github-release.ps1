@@ -112,7 +112,8 @@ if (-not (Test-Path -LiteralPath $buildGradle)) {
     throw "build.gradle.kts not found at $buildGradle"
 }
 $buildContent = Get-Content -LiteralPath $buildGradle -Raw
-$versionMatch = [regex]::Match($buildContent, 'versionName\s*=\s*"([^"]+)"')
+# (?i): version lives in `defaultAppVersionName` (capital V); match case-insensitively like the writer.
+$versionMatch = [regex]::Match($buildContent, '(?i)versionName\s*=\s*"([^"]+)"')
 if (-not $versionMatch.Success) {
     throw "Could not parse versionName from $buildGradle"
 }
