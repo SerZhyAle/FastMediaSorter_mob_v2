@@ -8,7 +8,9 @@ param(
 
 Write-Host "Building release AAB + APK..." -ForegroundColor Cyan
 
-if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -gt 0)) {
+$versionNameProvided = -not [string]::IsNullOrWhiteSpace($VersionName)
+$versionCodeProvided = $VersionCode -gt 0
+if ($versionNameProvided -xor $versionCodeProvided) {
     throw "Pass both -VersionName and -VersionCode together, or omit both for auto-versioning."
 }
 
