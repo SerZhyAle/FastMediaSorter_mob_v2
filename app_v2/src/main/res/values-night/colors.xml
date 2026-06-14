@@ -74,8 +74,12 @@
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50FFFFFF</color>
 
+    <!-- Night overlays are light (translucent white), so foreground flips to jet black for contrast. -->
+    <color name="player_overlay_on_primary">#FF000000</color>
+    <color name="player_overlay_on_primary_translucent">#80000000</color>
+
     <!-- Text colors -->
-    <color name="player_audio_info_text">#CCCCCC</color>
+    <color name="player_audio_info_text">#FF333333</color>
     <color name="player_countdown_text">#AAAAAA</color>
     <color name="player_search_hint_text">#767676</color>
     <color name="player_zone_text">@color/black</color>

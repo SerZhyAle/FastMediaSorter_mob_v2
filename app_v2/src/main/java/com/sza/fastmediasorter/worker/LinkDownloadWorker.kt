@@ -169,7 +169,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     private fun updateNotification(state: LinkAutoDownloadCoordinator.ProgressState) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
             .setOngoing(true)
             .addAction(buildCancelAction())
@@ -215,7 +215,7 @@ class LinkDownloadWorker @AssistedInject constructor(
         ensureChannel(nm)
 
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setTimeoutAfter(RESULT_NOTIFICATION_TIMEOUT_MS)
@@ -394,8 +394,14 @@ class LinkDownloadWorker @AssistedInject constructor(
      * Uses the existing `link_download_channel` (no new channel introduced).
      */
     private fun buildForegroundInfo(text: String): ForegroundInfo {
+        // S0416: the single-URL doWork path calls setForeground WITHOUT going through
+        // getForegroundInfo, so the channel must be ensured here as well. Android 16 rejects a
+        // foreground notification posted to a missing channel with
+        // CannotPostForegroundServiceNotificationException. ensureChannel is idempotent.
+        ensureChannel(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        Timber.d("S0416: link-download foreground notification built (channel ensured, icon without ?attr tint)")
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
             .setContentText(text)
             .setOngoing(true)

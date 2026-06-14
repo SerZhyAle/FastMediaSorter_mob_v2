@@ -757,7 +757,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/setting_gesture_overlay_title"
-                        app:str_subtitle="@string/setting_gesture_overlay_summary" />
+                        app:str_subtitle="@string/setting_gesture_overlay_summary"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/setting_gesture_overlay_help_title"
+                        app:str_helpMessage="@string/setting_gesture_overlay_help_message" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowScreenshotGestureDown"

@@ -549,14 +549,16 @@ class BrowseDialogHelper(
         if (selectedFiles.size == 1 && selectedFiles.first().isDirectory) {
             showRenameDirectoryDialog(selectedFiles.first())
         } else if (selectedFiles.size == 1) {
-            showRenameSingleDialog(selectedFiles.first().path)
+            showRenameSingleDialog(selectedFiles.first())
         } else {
-            showRenameMultipleDialog(selectedFiles.map { it.path })
+            showRenameMultipleDialog(selectedFiles)
         }
     }
 
     private fun showRenameDirectoryDialog(file: MediaFile) {
-        val currentName = file.path.trimEnd('/').substringAfterLast('/')
+        // Use the display name, not the last path segment: for cloud folders the path
+        // ends with the provider's internal folder id, not a human-readable name.
+        val currentName = file.name.ifBlank { file.path.trimEnd('/').substringAfterLast('/') }
         val editText = android.widget.EditText(activity).apply {
             setText(currentName)
             selectAll()
@@ -575,15 +577,20 @@ class BrowseDialogHelper(
             .show()
     }
     
-    private fun showRenameSingleDialog(filePath: String) {
-        // Create File object that preserves network/cloud paths
-        val file = if (filePath.startsWith("smb://") || 
-                       filePath.startsWith("sftp://") || 
+    private fun showRenameSingleDialog(mediaFile: MediaFile) {
+        val filePath = mediaFile.path
+        val displayName = mediaFile.name
+        // Create File object that preserves network/cloud paths. getName() must return the
+        // display name: a cloud path ends with the provider's internal item id, so the default
+        // File.name would prefill the rename field with that id instead of the real file name.
+        val file = if (filePath.startsWith("smb://") ||
+                       filePath.startsWith("sftp://") ||
                        filePath.startsWith("ftp://") ||
                        filePath.startsWith("cloud://")) {
             object : File(filePath) {
                 override fun getAbsolutePath(): String = filePath
                 override fun getPath(): String = filePath
+                override fun getName(): String = displayName
             }
         } else {
             File(filePath)
@@ -611,16 +618,21 @@ class BrowseDialogHelper(
         ).show()
     }
     
-    private fun showRenameMultipleDialog(filePaths: List<String>) {
-        // Create File objects that preserve network/cloud paths
-        val files = filePaths.map { path ->
-            if (path.startsWith("smb://") || 
-                path.startsWith("sftp://") || 
+    private fun showRenameMultipleDialog(mediaFiles: List<MediaFile>) {
+        // Create File objects that preserve network/cloud paths. getName() must return the
+        // display name so the prefilled rows show real file names rather than the cloud
+        // provider's internal item ids (which are the last segment of a cloud path).
+        val files = mediaFiles.map { mediaFile ->
+            val path = mediaFile.path
+            val displayName = mediaFile.name
+            if (path.startsWith("smb://") ||
+                path.startsWith("sftp://") ||
                 path.startsWith("ftp://") ||
                 path.startsWith("cloud://")) {
                 object : File(path) {
                     override fun getAbsolutePath(): String = path
                     override fun getPath(): String = path
+                    override fun getName(): String = displayName
                 }
             } else {
                 File(path)

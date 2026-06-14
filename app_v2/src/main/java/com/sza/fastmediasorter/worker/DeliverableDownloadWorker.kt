@@ -106,6 +106,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     }
 
     private fun createForegroundInfo(set: DeliverableSet, contentText: String, percent: Int): ForegroundInfo {
+        Timber.d("S0416: deliverable-download foreground notification built (small icon without ?attr tint)")
         val notification = buildNotification(set, contentText, percent)
         val notifId = notificationId(set)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -123,7 +124,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     private fun buildNotification(set: DeliverableSet, contentText: String, percent: Int): Notification {
         val featureName = context.getString(featureNameRes(set))
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.download_runner_notif_title_running, featureName))
             .setContentText(contentText)
             .setOngoing(true)
@@ -141,7 +142,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     private fun showSuccessNotification(set: DeliverableSet) {
         val featureName = context.getString(featureNameRes(set))
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.download_runner_notif_title_installed, featureName))
             .setContentText(context.getString(R.string.friendly_copy_success_generic))
             .setAutoCancel(true)
@@ -152,7 +153,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     private fun showFailureNotification(set: DeliverableSet) {
         val featureName = context.getString(featureNameRes(set))
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.download_runner_notif_title_failed, featureName))
             .setContentText(context.getString(R.string.delivery_state_error))
             .setAutoCancel(true)

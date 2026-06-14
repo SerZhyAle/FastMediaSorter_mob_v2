@@ -602,6 +602,7 @@ class BrowseManagerInitializer(
             onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
                 { f -> viewModel.moveFileDown(f) }
             } else null,
+            onExtractArchive = { f -> viewModel.prepareExtraction(f) },
             onFavorite = { f -> viewModel.toggleFavorite(f) },
             onShare = { f ->
                 val resource = viewModel.state.value.resource

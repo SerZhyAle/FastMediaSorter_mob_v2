@@ -2435,6 +2435,8 @@
     <string name="setting_subgroup_screen_gestures_title">Жести екрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестів</string>
     <string name="setting_gesture_overlay_summary">Показувати тонку смугу жестів біля лівого краю поверх інших застосунків</string>
+    <string name="setting_gesture_overlay_help_title">Оверлей жестів</string>
+    <string name="setting_gesture_overlay_help_message">Біля лівого краю екрана розташована тонка невидима смуга. Щоб зняти поточний екран, проведіть від смуги по діагоналі вниз і вправо (приблизно 45°). Знімок зберігається у вибраний ресурс — типово в папку скриншотів пристрою. Потрібен дозвіл «Поверх інших застосунків». Смуга займає лівий край від 10 до 75 відсотків висоти; верхній кут залишено вільним, щоб не спрацьовувати випадково.</string>
     <string name="setting_screenshot_gesture_down_title">Знімок жестом вниз</string>
     <string name="setting_screenshot_gesture_down_summary">Проведіть від смуги праворуч-вниз, щоб зняти поточний екран</string>
     <string name="setting_screenshot_destination_title">Завантажувати знімки до..</string>
@@ -2448,17 +2450,17 @@
     <string name="s0413_audio_queue_unplayable">Не вдалося відтворити жоден файл.</string>
     <string name="settings_remote_sources_title">Віддалені джерела</string>
     <string name="settings_remote_source_smb_title">SMB</string>
-    <string name="settings_remote_source_smb_subtitle">Мережеві теки через SMB</string>
+    <string name="settings_remote_source_smb_subtitle">Спільні теки в домашній мережі або на NAS</string>
     <string name="settings_remote_source_smb_help_title">Джерела SMB</string>
-    <string name="settings_remote_source_smb_help_message">Коли вимкнено, теки SMB зникають із застосунку й більше не використовуються. Збережені ресурси SMB не видаляються — увімкніть знову, щоб побачити їх.</string>
+    <string name="settings_remote_source_smb_help_message">Доступ до спільних тек у локальній мережі — наприклад, домашній NAS, комп\'ютер із Windows та увімкненим спільним доступом, роутер із USB-накопичувачем або інший пристрій із підтримкою SMB.</string>
     <string name="settings_remote_source_ftp_title">(S)FTP</string>
-    <string name="settings_remote_source_ftp_subtitle">Теки через FTP та SFTP</string>
+    <string name="settings_remote_source_ftp_subtitle">Теки на сервері через FTP та SFTP</string>
     <string name="settings_remote_source_ftp_help_title">Джерела (S)FTP</string>
-    <string name="settings_remote_source_ftp_help_message">Коли вимкнено, теки FTP та SFTP зникають із застосунку й більше не використовуються. Збережені ресурси (S)FTP не видаляються — увімкніть знову, щоб побачити їх.</string>
+    <string name="settings_remote_source_ftp_help_message">Доступ до тек на сервері через FTP або SFTP — наприклад, домашній сервер, NAS, вебхостинг або роутер із підтримкою (S)FTP.</string>
     <string name="settings_remote_source_cloud_title">Хмара</string>
     <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
     <string name="settings_remote_source_cloud_help_title">Хмарні джерела</string>
-    <string name="settings_remote_source_cloud_help_message">Коли вимкнено, хмарні теки (Google Drive, OneDrive, Dropbox) зникають із застосунку й більше не використовуються. Це не виходить з облікових записів і не видаляє збережені ресурси — увімкніть знову, щоб побачити їх.</string>
+    <string name="settings_remote_source_cloud_help_message">Доступ до файлів у хмарних сховищах — Google Drive, OneDrive та Dropbox. Підключіть обліковий запис, щоб відкривати свої теки безпосередньо в застосунку.</string>
     <string name="settings_remote_source_disable_confirm_title">Сховати ці теки?</string>
     <string name="settings_remote_source_disable_confirm_message">Теки цього джерела буде сховано, а не видалено. Збережені ресурси залишаться й з\'являться знову, коли ви увімкнете джерело.</string>
 </resources>

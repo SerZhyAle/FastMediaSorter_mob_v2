@@ -59,6 +59,11 @@ class AudioEmptyStateController(
     private var mediaPlayer: MediaPlayer? = null
     private var currentSurface: Surface? = null
     private var pendingFile: File? = null
+    // Guards against calling MediaPlayer.start() before onPrepared (prepareAsync is in flight).
+    // A premature start() raises MediaPlayer error -38 (INVALID_OPERATION), whose onError handler
+    // hides the video view -> the looping background never renders (S0407). onPrepared is the sole
+    // entry point for the initial start; external start() calls only resume after a pause.
+    private var isPrepared = false
 
     // ────────────────────────── Public API ──────────────────────────
 
@@ -97,7 +102,8 @@ class AudioEmptyStateController(
             }
             MODE_VISUALIZATION, MODE_GIF_LOOP -> {
                 if (playing) {
-                    mediaPlayer?.start()
+                    // Skip until prepared; onPrepared starts playback honoring the latest isPlaying.
+                    if (isPrepared) mediaPlayer?.start()
                 } else {
                     mediaPlayer?.let { mp ->
                         try { if (mp.isPlaying) mp.pause() } catch (_: IllegalStateException) {}
@@ -127,7 +133,7 @@ class AudioEmptyStateController(
             wavesView.startAnimation()
         }
         if (isPlaying && (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP)) {
-            mediaPlayer?.start()
+            if (isPrepared) mediaPlayer?.start()
         }
     }
 
@@ -240,6 +246,7 @@ class AudioEmptyStateController(
                 setVolume(0f, 0f)   // muted: decorative background only
                 isLooping = true
                 setOnPreparedListener { mp ->
+                    isPrepared = true
                     Timber.d("AudioEmptyStateController: MediaPlayer prepared, " +
                         "isPlaying=$isPlaying, " +
                         "video=${mp.videoWidth}x${mp.videoHeight}, " +
@@ -327,6 +334,7 @@ class AudioEmptyStateController(
     }
 
     private fun releaseMediaPlayer() {
+        isPrepared = false
         mediaPlayer?.let {
             try { if (it.isPlaying) it.stop() } catch (_: Exception) {}
             it.reset()

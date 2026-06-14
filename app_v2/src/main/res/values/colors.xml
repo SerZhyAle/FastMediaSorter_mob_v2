@@ -80,6 +80,12 @@
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50000000</color>
 
+    <!-- Foreground (text, seekbar, control icons) drawn on the player overlays.
+         Day overlays are translucent black, so the foreground is white.
+         Night overrides flip these to black because night overlays are translucent white. -->
+    <color name="player_overlay_on_primary">#FFFFFFFF</color>
+    <color name="player_overlay_on_primary_translucent">#80FFFFFF</color>
+
     <!-- Text colors -->
     <color name="player_audio_info_text">#666666</color>
     <color name="player_countdown_text">#888888</color>

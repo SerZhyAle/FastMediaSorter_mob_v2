@@ -72,7 +72,7 @@ class OverlayHostService : Service() {
     private fun startForegroundCompat() {
         createChannel()
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_widget_camera_quick_capture)
+            .setSmallIcon(R.drawable.ic_notification_screen_capture)
             .setContentTitle(getString(R.string.screen_capture_service_notification_title))
             .setOngoing(true)
             .setSilent(true)

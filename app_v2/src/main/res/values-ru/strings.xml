@@ -2472,6 +2472,8 @@
     <string name="setting_subgroup_screen_gestures_title">Жесты экрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_summary">Показывать тонкую полосу жестов у левого края поверх других приложений</string>
+    <string name="setting_gesture_overlay_help_title">Оверлей жестов</string>
+    <string name="setting_gesture_overlay_help_message">У левого края экрана расположена тонкая невидимая полоса. Чтобы снять текущий экран, проведите от полосы по диагонали вниз и вправо (примерно 45°). Снимок сохраняется в выбранный ресурс — по умолчанию в папку скриншотов устройства. Нужно разрешение «Поверх других приложений». Полоса занимает левый край от 10 до 75 процентов высоты; верхний угол оставлен свободным, чтобы не срабатывать случайно.</string>
     <string name="setting_screenshot_gesture_down_title">Скриншот жестом вниз</string>
     <string name="setting_screenshot_gesture_down_summary">Проведите от полосы вправо-вниз, чтобы снять текущий экран</string>
     <string name="setting_screenshot_destination_title">Загружать скриншоты в..</string>
@@ -2485,17 +2487,17 @@
     <string name="s0413_audio_queue_unplayable">Не удалось воспроизвести ни один файл.</string>
     <string name="settings_remote_sources_title">Удалённые источники</string>
     <string name="settings_remote_source_smb_title">SMB</string>
-    <string name="settings_remote_source_smb_subtitle">Сетевые папки по SMB</string>
+    <string name="settings_remote_source_smb_subtitle">Общие папки в домашней сети или на NAS</string>
     <string name="settings_remote_source_smb_help_title">Источники SMB</string>
-    <string name="settings_remote_source_smb_help_message">Когда выключено, папки SMB исчезают из приложения и больше не используются. Сохранённые ресурсы SMB не удаляются — включите снова, чтобы увидеть их.</string>
+    <string name="settings_remote_source_smb_help_message">Доступ к общим папкам по локальной сети — например, домашний NAS, компьютер с Windows и включённым общим доступом, роутер с USB-накопителем или другое устройство с поддержкой SMB.</string>
     <string name="settings_remote_source_ftp_title">(S)FTP</string>
-    <string name="settings_remote_source_ftp_subtitle">Папки по FTP и SFTP</string>
+    <string name="settings_remote_source_ftp_subtitle">Папки на сервере по FTP и SFTP</string>
     <string name="settings_remote_source_ftp_help_title">Источники (S)FTP</string>
-    <string name="settings_remote_source_ftp_help_message">Когда выключено, папки FTP и SFTP исчезают из приложения и больше не используются. Сохранённые ресурсы (S)FTP не удаляются — включите снова, чтобы увидеть их.</string>
+    <string name="settings_remote_source_ftp_help_message">Доступ к папкам на сервере по FTP или SFTP — например, домашний сервер, NAS, веб-хостинг или роутер с поддержкой (S)FTP.</string>
     <string name="settings_remote_source_cloud_title">Облако</string>
     <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
     <string name="settings_remote_source_cloud_help_title">Облачные источники</string>
-    <string name="settings_remote_source_cloud_help_message">Когда выключено, облачные папки (Google Drive, OneDrive, Dropbox) исчезают из приложения и больше не используются. Это не выходит из аккаунтов и не удаляет сохранённые ресурсы — включите снова, чтобы увидеть их.</string>
+    <string name="settings_remote_source_cloud_help_message">Доступ к файлам в облачных хранилищах — Google Drive, OneDrive и Dropbox. Подключите аккаунт, чтобы открывать свои папки прямо в приложении.</string>
     <string name="settings_remote_source_disable_confirm_title">Скрыть эти папки?</string>
     <string name="settings_remote_source_disable_confirm_message">Папки этого источника будут скрыты, а не удалены. Сохранённые ресурсы останутся и появятся снова, когда вы включите источник.</string>
 </resources>

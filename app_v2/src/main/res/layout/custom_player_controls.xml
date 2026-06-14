@@ -25,7 +25,7 @@
                 android:id="@id/exo_position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
+                android:textColor="@color/player_overlay_on_primary"
                 android:textSize="@dimen/player_position_text_size"
                 android:includeFontPadding="false" />
 
@@ -35,16 +35,16 @@
                 android:layout_height="@dimen/player_progress_height"
                 android:layout_weight="1"
                 android:layout_marginHorizontal="@dimen/player_progress_margin_horizontal"
-                app:played_color="@color/white"
-                app:scrubber_color="@color/white"
-                app:buffered_color="@color/white_50_alpha"
+                app:played_color="@color/player_overlay_on_primary"
+                app:scrubber_color="@color/player_overlay_on_primary"
+                app:buffered_color="@color/player_overlay_on_primary_translucent"
                 app:unplayed_color="@color/custom_player_controls_exo_bottom_bar_unplayed_color" />
 
             <TextView
                 android:id="@id/exo_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
+                android:textColor="@color/player_overlay_on_primary"
                 android:textSize="@dimen/player_position_text_size"
                 android:includeFontPadding="false" />
         </LinearLayout>
@@ -62,7 +62,7 @@
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
                 android:src="@drawable/ic_loop_list"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/playback_order_menu_title"
                 android:nextFocusLeft="@id/btnPlaybackControl"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -74,7 +74,7 @@
                 android:layout_height="@dimen/player_medium_button_size"
                 android:layout_marginStart="@dimen/player_group_separator_margin"
                 android:src="@drawable/ic_back"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/previous_file"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -85,7 +85,7 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
                 android:src="@drawable/ic_fast_rewind"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/rewind_10_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -95,7 +95,7 @@
                 android:layout_width="@dimen/player_large_button_size"
                 android:layout_height="@dimen/player_large_button_size"
                 android:layout_marginHorizontal="@dimen/player_play_button_margin_horizontal"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/play_pause"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -105,7 +105,7 @@
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
                 android:src="@drawable/ic_fast_forward"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/forward_10_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -126,7 +126,7 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_group_separator_margin"
                 android:src="@drawable/ic_settings"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/control"
                 android:nextFocusRight="@id/exo_repeat"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -138,7 +138,7 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
                 android:src="@drawable/ic_picture_in_picture"
-                app:tint="@color/selector_player_button_tint"
+                app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/picture_in_picture"
                 android:visibility="gone"
                 android:background="?attr/selectableItemBackgroundBorderless" />

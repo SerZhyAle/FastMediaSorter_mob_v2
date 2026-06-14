@@ -145,8 +145,10 @@ class ScreenGestureOverlayManager(
 
     companion object {
         private const val STRIP_WIDTH_DP = 18
+        // Strip spans the left edge from 10% to 75% of the safe height: the 10% top offset keeps
+        // the corner free so the gesture is not triggered there; the strip ends at 75% downward.
         private const val STRIP_START_FRACTION = 0.10f
-        private const val STRIP_HEIGHT_FRACTION = 0.40f
+        private const val STRIP_HEIGHT_FRACTION = 0.65f
         private const val GESTURE_DISTANCE_PX = 120.0
         private const val MIN_MATCH_ANGLE_DEGREES = 25.0
         private const val MAX_MATCH_ANGLE_DEGREES = 65.0

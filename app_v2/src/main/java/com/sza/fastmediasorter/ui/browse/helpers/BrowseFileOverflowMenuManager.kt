@@ -34,6 +34,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         onDelete: (MediaFile) -> Unit,
         onMoveUp: ((MediaFile) -> Unit)? = null,
         onMoveDown: ((MediaFile) -> Unit)? = null,
+        onExtractArchive: ((MediaFile) -> Unit)? = null,
         onFavorite: ((MediaFile) -> Unit)? = null,
         onShare: ((MediaFile) -> Unit)? = null,
         onSendToTelegram: ((MediaFile) -> Unit)? = null,
@@ -61,6 +62,9 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.move_up)) { onMoveUp(file) }
         if (isGridMode && onMoveDown != null)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.move_down)) { onMoveDown(file) }
+        if (isZipArchive(file) && onExtractArchive != null) {
+            items += MenuItem(context.getString(R.string.unarchive_action_extract)) { onExtractArchive(file) }
+        }
 
         if (appSettings.allowSeparateWindow && onOpenInNewWindow != null) {
             items += MenuItem(context.getString(R.string.action_open_in_separate_window)) {
@@ -201,5 +205,10 @@ class BrowseFileOverflowMenuManager @Inject constructor(
                 add(PlayerCommand.DRAW_OVERLAY)
             }
         }
+    }
+
+    private fun isZipArchive(file: MediaFile): Boolean {
+        return file.type == MediaType.BINARY_ARCHIVE &&
+            file.name.substringAfterLast('.', "").equals("zip", ignoreCase = true)
     }
 }

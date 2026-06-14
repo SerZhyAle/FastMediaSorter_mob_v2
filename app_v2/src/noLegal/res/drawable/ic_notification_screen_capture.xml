@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0405: dedicated notification small icon for the screen-capture / overlay foreground services.
+
+  The shared ic_widget_camera_quick_capture uses android:tint="?attr/colorControlNormal", a theme
+  attribute the system cannot resolve when it inflates the small icon outside the app's themed
+  context. Android 16 rejects such a notification with CannotPostForegroundServiceNotificationException
+  ("Bad notification for startForeground"). A status-bar icon must be white-on-transparent with no
+  theme reference (the system applies its own tint), so this variant drops the ?attr tint entirely.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,15.2c1.77,0 3.2,-1.43 3.2,-3.2s-1.43,-3.2 -3.2,-3.2 -3.2,1.43 -3.2,3.2 1.43,3.2 3.2,3.2zM9,2L7.17,4H4c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V6c0,-1.1 -0.9,-2 -2,-2h-3.17L15,2H9zM12,17c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z" />
+</vector>
