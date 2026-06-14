@@ -73,8 +73,10 @@ function Set-ModuleVersion {
 # ----------------------------------------------------------------------
 if ($ReuseVersion) {
     $appContent = Get-Content -LiteralPath $appGradle -Raw
-    $vnMatch = [regex]::Match($appContent, 'versionName\s*=\s*"([^"]+)"')
-    $vcMatch = [regex]::Match($appContent, 'versionCode\s*=\s*(\d+)')
+    # (?i): build.gradle.kts holds the version in `defaultAppVersionName`/`defaultAppVersionCode`
+    # (capital V); the writer (PowerShell -replace) is case-insensitive, so the reader must be too.
+    $vnMatch = [regex]::Match($appContent, '(?i)versionName\s*=\s*"([^"]+)"')
+    $vcMatch = [regex]::Match($appContent, '(?i)versionCode\s*=\s*(\d+)')
     if (-not ($vnMatch.Success -and $vcMatch.Success)) {
         throw "-ReuseVersion: cannot read versionName/versionCode from $appGradle. Run a.ps1 r first."
     }
