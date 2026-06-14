@@ -469,7 +469,6 @@ class SmbFileOperationHandler @Inject constructor(
     ): SmbResult<String> {
         Timber.d("uploadToSmb: ${localFile.path} → $smbPath")
         
-        // Handle SAF URIs
         val isSaf = localFile.path.startsWith("content:/")
         
         if (!isSaf && !localFile.exists()) {
@@ -628,7 +627,6 @@ class SmbFileOperationHandler @Inject constructor(
             // Parse path to extract server and share
             val tempInfo = SmbPathUtils.parseSmbPath(path) ?: return null
             
-            // Get credentials from repository
             val server = tempInfo.connectionInfo.server
             val share = tempInfo.connectionInfo.shareName
             

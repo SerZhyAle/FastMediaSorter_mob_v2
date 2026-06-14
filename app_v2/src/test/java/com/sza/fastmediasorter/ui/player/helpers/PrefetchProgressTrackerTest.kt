@@ -9,10 +9,9 @@ import com.sza.fastmediasorter.domain.model.StreamViabilityState
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -88,14 +87,24 @@ class PrefetchProgressTrackerTest {
         every { player.playbackState } returns Player.STATE_READY
         tracker.attach(player, plan)
 
+        // Subscribe before emitting: escalation is a replay=0 SharedFlow, so events fired before
+        // a collector exists are lost. Collecting after the fact would suspend forever while the
+        // markReady poll loop keeps the virtual clock busy, spinning the scheduler into an OOM.
+        val events = mutableListOf<EscalationEvent>()
+        backgroundScope.launch { tracker.escalation.collect { events += it } }
+        runCurrent() // let the collector subscribe before any event is emitted
+
         tracker.markReady()
         tracker.recordStall()
+        runCurrent()
         // Single stall → no escalation yet.
-        assertEquals(0, tracker.escalation.replayCache.size)
+        assertTrue("no escalation after a single stall", events.isEmpty())
 
         tracker.recordStall()
+        runCurrent()
         // Second stall crosses soft threshold.
-        val event = tracker.escalation.take(1).first()
+        assertEquals(1, events.size)
+        val event = events.first()
         assertEquals(2, event.stallCount)
         assertEquals(0.1, event.ratioInflation, 0.0001)
         assertFalse("viable+0.1 still under 0.9", event.crossesToNotViable)
@@ -106,10 +115,14 @@ class PrefetchProgressTrackerTest {
         val tracker = PrefetchProgressTracker(backgroundScope)
         tracker.attach(mockk<Player>(relaxed = true), buildPlan(ratio = 0.3))
 
+        val events = mutableListOf<EscalationEvent>()
+        backgroundScope.launch { tracker.escalation.collect { events += it } }
+        runCurrent() // let the collector subscribe before any event is emitted
+
         tracker.markReady()
         repeat(4) { tracker.recordStall() }
+        runCurrent()
 
-        val events = tracker.escalation.take(2).toList()
         assertEquals(2, events.size)
         assertEquals(0.1, events[0].ratioInflation, 0.0001)
         assertEquals(0.2, events[1].ratioInflation, 0.0001)
@@ -156,12 +169,17 @@ class PrefetchProgressTrackerTest {
             buildPlan(viability = StreamViabilityState.MARGINAL, ratio = 0.85)
         )
 
+        val events = mutableListOf<EscalationEvent>()
+        backgroundScope.launch { tracker.escalation.collect { events += it } }
+        runCurrent() // let the collector subscribe before any event is emitted
+
         tracker.markReady()
         tracker.recordStall()
         tracker.recordStall()
+        runCurrent()
 
-        val event = tracker.escalation.take(1).first()
-        assertTrue("MARGINAL+0.1 crosses to NOT_VIABLE", event.crossesToNotViable)
+        assertEquals(1, events.size)
+        assertTrue("MARGINAL+0.1 crosses to NOT_VIABLE", events.first().crossesToNotViable)
     }
 
     @Test

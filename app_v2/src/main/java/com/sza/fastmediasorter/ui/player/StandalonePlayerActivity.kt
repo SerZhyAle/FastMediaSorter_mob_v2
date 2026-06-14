@@ -73,6 +73,7 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import androidx.appcompat.widget.PopupMenu
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,6 +89,12 @@ import androidx.media3.common.Player
 // StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With" handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded to startActivity/startService - received URIs are only passed to ExoPlayer/Glide as media.
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
+// TODO(S0393): remove once nothing launches StandalonePlayerActivity. All external routing already
+// goes to the specialized PhotoVideo/Audio/Document/Text hosts via StandalonePlayerDispatcherActivity
+// (no manifest alias targets this class). Its previously-unique capabilities have been harvested into
+// the specialized hosts (S0393 HARVEST.md U1 PiP, U2 playback-control dialog, U3 WebView ActionMode,
+// U4/U5 keyboard, U7/U8 EPUB translator guard). Kept only as a direct/fallback target until removal.
+@Deprecated("S0393: superseded by the specialized standalone hosts; pending removal once unreferenced.")
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
@@ -110,9 +117,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
             activity = this,
-            binding = binding,
+            root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            findResourceForPath = { parentDir -> viewModel.findResourceForPath(parentDir) },
+            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
             batchDeleteLauncher = batchDeleteLauncher,
@@ -120,23 +127,27 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         )
     }
 
-    // Injected network/cloud clients - needed to construct StandaloneViewManager's NetworkFileManager.
-    // Not exercised for content:// URIs from external intents but required by the constructor.
-    @Inject lateinit var smbClient: SmbClient
-    @Inject lateinit var sftpClient: SftpClient
-    @Inject lateinit var ftpClient: FtpClient
-    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
-    @Inject lateinit var dropboxClient: DropboxClient
-    @Inject lateinit var oneDriveClient: OneDriveRestClient
-    @Inject lateinit var credentialsRepository: NetworkCredentialsRepository
-    @Inject lateinit var smbFileOperationHandler: SmbFileOperationHandler
-    @Inject lateinit var sftpFileOperationHandler: SftpFileOperationHandler
-    @Inject lateinit var ftpFileOperationHandler: FtpFileOperationHandler
-    @Inject lateinit var cloudFileOperationHandler: CloudFileOperationHandler
-    @Inject lateinit var unifiedCache: UnifiedFileCache
+    // Standalone opens local/content URIs far more often than network paths, so these heavy
+    // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
+    @Inject lateinit var smbClient: Lazy<SmbClient>
+    @Inject lateinit var sftpClient: Lazy<SftpClient>
+    @Inject lateinit var ftpClient: Lazy<FtpClient>
+    @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
+    @Inject lateinit var dropboxClient: Lazy<DropboxClient>
+    @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
+    @Inject lateinit var credentialsRepository: Lazy<NetworkCredentialsRepository>
+    @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
+    @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
+    @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
+    @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
+    @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+
+    // S0391: compile-tier capability flags; supplies the cloud-support flag to the debug logger.
+    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
     private lateinit var viewManager: StandaloneViewManager
     private var pipManager: PictureInPictureManager? = null
@@ -198,29 +209,21 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         setupWindowAndInsets()
 
-        // DEBUG: detect probe URI BEFORE StandaloneViewManager construction to understand
-        // whether WebView/ExoPlayer init happens needlessly for probe-only launches.
+        val incomingUri = resolveIncomingUri()
+        val isDefaultPlayerProbe = DefaultPlayerProbe.isProbe(incomingUri)
         if (BuildConfig.DEBUG) {
-            val probeUri = when (intent?.action) {
-                Intent.ACTION_VIEW -> intent?.data
-                Intent.ACTION_SEND -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        intent?.getParcelableExtra(Intent.EXTRA_STREAM)
-                    }
-                }
-                else -> intent?.data
-            }
-            val isProbe = probeUri?.toString()?.contains("default_player_probe") == true
-            Timber.d("StandalonePlayer[debug]: setupViews START - isProbe=$isProbe uri=$probeUri")
+            Timber.d("StandalonePlayer[debug]: setupViews START - isProbe=$isDefaultPlayerProbe uri=$incomingUri")
+        }
+        if (isDefaultPlayerProbe) {
+            Timber.d("StandalonePlayer: short-circuiting default-player probe before standalone init")
+            finish()
+            return
         }
 
         val viewManagerT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         viewManager = StandaloneViewManager(
             activity = this,
-            binding = binding,
+            root = binding.root,
             lifecycleScope = lifecycleScope,
             smbClient = smbClient,
             sftpClient = sftpClient,
@@ -235,6 +238,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             cloudFileOperationHandler = cloudFileOperationHandler,
             unifiedCache = unifiedCache,
             settingsRepository = settingsRepository,
+            // S0380: StandaloneViewManager is fully root-based now (document viewers decoupled),
+            // so only the layout root is needed - the binding param was removed.
             playbackPositionRepository = playbackPositionRepository
         )
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${SystemClock.uptimeMillis() - viewManagerT0}ms")
@@ -242,9 +247,25 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         lifecycleManager = StandalonePlayerLifecycleManager(activity = this, viewManager = viewManager)
         lifecycleManager.onCreate(null)
 
+        fullscreenManager = StandaloneFullscreenManager(this)
+
+        viewManager.setFullscreenCallbacks(
+            onEnter = {
+                fullscreenManager?.enterFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                    updateFullscreenButtonState(isActive)
+                }
+            },
+            onExit = {
+                fullscreenManager?.exitFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                    updateFullscreenButtonState(isActive)
+                }
+            }
+        )
+
         pipManager = PictureInPictureManager(
             activity = this,
-            binding = binding,
+            playerView = binding.playerView,
+            chromeToHide = listOf(binding.toolbar, binding.topCommandPanel),
             getPlayer = { viewManager.getExoPlayer() },
             onPlay = { viewManager.play() },
             onPause = { viewManager.pause() },
@@ -256,6 +277,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         setupBackPressHandler()
         hidePlaylistControls()
         setupFileOperationButtons()
+        setupFullscreenButton()
         setupPdfButtons()
         setupEpubButtons()
         setupSearchControls()
@@ -313,7 +335,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     p.volume = if (p.volume > 0f) 0f else 1f
                 }
                 override fun onToggleFullscreen() {
-                    fullscreenManager?.toggleFullscreen()
+                    toggleStandaloneFullscreen()
                 }
                 override fun onChangeVolume(delta: Int) {
                     val p = viewManager.getPlayer(viewModel.state.value.mediaFile?.type) ?: return
@@ -469,7 +491,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         // Probe files created by DefaultPlayerHelper for the "set as default" flow must not be
         // played - they are 1-byte stubs and will crash viewers. Silently finish.
-        if (uri.toString().contains("default_player_probe")) {
+        if (DefaultPlayerProbe.isProbe(uri)) {
             Timber.d("StandalonePlayer: ignoring default-player probe URI, finishing")
             finish()
             return
@@ -493,7 +515,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
     private fun debugLogLaunchConditions(incomingIntent: Intent?) =
-        com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(this, incomingIntent)
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(
+            this, incomingIntent, mediaCapabilities.supportsCloud,
+        )
 
     // ── Window / Insets Setup ─────────────────────────────────────────────
 
@@ -553,6 +577,46 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         binding.btnEpubTextSettingsCmd.setOnClickListener  { viewManager.showEpubReaderSettings() }
         binding.btnExitEpubFullscreen.setOnClickListener   { viewManager.exitEpubFullscreen() }
         // btnTranslateEpubCmd listener is set by SearchControlsManager.setupSearchControls() (ADR-4)
+    }
+
+    // ── Fullscreen Button ────────────────────────────────────────────────
+
+    private fun setupFullscreenButton() {
+        binding.btnFullscreenCmd.setOnClickListener { toggleStandaloneFullscreen() }
+        updateFullscreenButtonState(false)
+        // Exit fullscreen when transient system bars appear (user edge-swipe in immersive mode).
+        // Guard ensures this only acts when the user has entered panel-hiding fullscreen.
+        fullscreenManager?.setupTransientBarsExitCallback(window.decorView) {
+            if (!binding.topCommandPanel.isVisible) {
+                fullscreenManager?.exitFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                    updateFullscreenButtonState(isActive)
+                }
+            }
+        }
+    }
+
+    private fun toggleStandaloneFullscreen() {
+        fullscreenManager?.toggleFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+            updateFullscreenButtonState(isActive)
+        }
+    }
+
+    private fun updateFullscreenButtonState(isActive: Boolean) {
+        binding.btnFullscreenCmd.setImageResource(
+            if (isActive) R.drawable.ic_fullscreen_exit else R.drawable.ic_fullscreen
+        )
+        binding.btnFullscreenCmd.contentDescription = getString(
+            if (isActive) R.string.exit_fullscreen else R.string.fullscreen_mode
+        )
+    }
+
+    private fun applyFullscreenButtonVisibility(type: MediaType) {
+        binding.btnFullscreenCmd.isVisible = type == MediaType.IMAGE
+            || type == MediaType.GIF
+            || type == MediaType.VIDEO
+            || type == MediaType.PDF
+            || type == MediaType.EPUB
+            || type == MediaType.OFFICE_DOCUMENT
     }
 
     // ── Search Controls ──────────────────────────────────────────────────
@@ -639,11 +703,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         FileInfoDialog(
             this,
             file,
-            smbClient,
-            sftpClient,
-            ftpClient,
-            credentialsRepository,
-            unifiedCache,
+            smbClient.get(),
+            sftpClient.get(),
+            ftpClient.get(),
+            credentialsRepository.get(),
+            unifiedCache.get(),
             downloadNetworkFileUseCase = null,
             audioMetadataLoader = null,
             audioMetadataCacheRepository = null
@@ -687,9 +751,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         setupPlaybackControls(pv)
 
-        val fsManager = StandaloneFullscreenManager(this)
-        fullscreenManager = fsManager
-        fsManager.enterFullscreen()
+        fullscreenManager?.enterFullscreen()
 
         val trackManager = VideoTrackSelectionManager(
             getPlayer = { viewManager.getExoPlayer() },
@@ -742,6 +804,29 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         Timber.d("StandalonePlayer: video controls setup complete")
     }
 
+    private fun resolveIncomingUri(): Uri? {
+        return when (intent?.action) {
+            Intent.ACTION_VIEW -> intent?.data
+            Intent.ACTION_SEND -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent?.getParcelableExtra(Intent.EXTRA_STREAM)
+                }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.firstOrNull()
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent?.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
+                }
+            }
+            else -> intent?.data
+        }
+    }
+
     // ── Media Type Routing ────────────────────────────────────────────────
 
     private fun observeViewModelState() {
@@ -782,6 +867,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     setupPlaybackControls(binding.playerView)
                 }
                 contentLoaded = true
+                applyFullscreenButtonVisibility(type)
                 // EpubViewerManager unconditionally shows btnTranslateEpubCmd; enforce orientation guard.
                 if (type == MediaType.EPUB) updateEpubTranslatorVisibility()
             }

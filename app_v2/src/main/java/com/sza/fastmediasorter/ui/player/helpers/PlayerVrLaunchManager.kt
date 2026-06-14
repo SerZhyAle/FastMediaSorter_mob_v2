@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
+import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchPoint
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
@@ -19,7 +20,6 @@ import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionState
-import com.sza.fastmediasorter.core.xr.readSerializableExtraCompat
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -40,6 +40,7 @@ internal class PlayerVrLaunchManager(
     private val settingsRepository: SettingsRepository,
     private val detectionFacade: XrDetectionFacade,
     private val startVrPlaybackUseCase: StartVrPlaybackUseCase,
+    private val payloadHolder: VrLaunchPayloadHolder,
 ) {
     private val safeViews = PlayerBindingSafeViews(activity.activityBinding)
 
@@ -200,10 +201,12 @@ internal class PlayerVrLaunchManager(
     }
 
     private fun consumeReturnIntent() {
-        pendingReturnResult = activity.intent.readSerializableExtraCompat(VrLaunchInput.EXTRA_LAUNCH_RESULT)
-        pendingReturnTarget = activity.intent
-            .readSerializableExtraCompat<VrPanelReturnTarget>(VrLaunchInput.EXTRA_RETURN_TARGET)
-            as? VrPanelReturnTarget.Player
+        pendingReturnResult = payloadHolder.consume<VrLaunchResult>(
+            activity.intent.getStringExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN)
+        )
+        pendingReturnTarget = payloadHolder.consume<VrPanelReturnTarget>(
+            activity.intent.getStringExtra(VrLaunchInput.EXTRA_RETURN_TARGET_TOKEN)
+        ) as? VrPanelReturnTarget.Player
     }
 
     private fun applyPendingReturnIfReady() {
@@ -255,8 +258,8 @@ internal class PlayerVrLaunchManager(
             VrLaunchResult.CompletedNormally -> Unit
         }
 
-        activity.intent.removeExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT)
-        activity.intent.removeExtra(VrLaunchInput.EXTRA_RETURN_TARGET)
+        activity.intent.removeExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN)
+        activity.intent.removeExtra(VrLaunchInput.EXTRA_RETURN_TARGET_TOKEN)
         pendingReturnTarget = null
         pendingReturnResult = null
     }

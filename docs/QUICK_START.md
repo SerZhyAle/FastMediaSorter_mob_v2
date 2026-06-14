@@ -13,7 +13,7 @@ permalink: /docs/QUICK_START.html
 
 ## Choose Your Flavor 📱
 
-FastMediaSorter v2 is available in **4 versions**. Pick the one that fits your needs:
+FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use, plus the XR / noLegal surface for headset and sideload scenarios. Pick the one that fits your needs:
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|
@@ -21,6 +21,7 @@ FastMediaSorter v2 is available in **4 versions**. Pick the one that fits your n
 | **Lite** | Smaller downloads | Photos + videos only (no audio, cloud) |
 | **Photos** | Photo enthusiasts | Images only, optimized for photo work |
 | **Legacy** | Local media only | Videos, audio, photos - no cloud/network features |
+| **VR / noLegal** | XR headset / sideload | OpenXR and sideload-only extras on supported hardware |
 
 **👉 Most users should download the "Standard" flavor for the complete experience.**
 
@@ -35,6 +36,7 @@ On the very first launch, right under the language picker, the welcome screen as
 - ⚙️ **Change it later:** **Settings → Interface → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
 - 🧩 **Other / Custom:** keeps your current settings exactly as they are. No preset applied - handy if you like tuning things by hand.
 - ⬆️ **Upgrading from an older version?** Your profile shows as **Other** and your previous settings are kept untouched - no preset was auto-applied. Want one anyway? Pick a profile in Settings.
+- 🎚️ **Next - pick what the app does:** after the profile, a quick screen lets you switch capabilities on or off (file manager, audio, video, documents, text recognition, translation). Optional parts download right there and turn on the moment they finish - all changeable later in Settings.
 
 **The 11 profiles:**
 
@@ -199,8 +201,8 @@ FastMediaSorter v2 offers two widget types:
 1. **Resource Shortcut Widget:**
    - Long-press home screen → Widgets → FastMediaSorter
    - Select "Resource Shortcut"
-   - Choose which folder to link
-   - Tap widget to instantly open that folder
+   - Choose which resource to link
+   - Tap widget to instantly open that resource
 
 2. **Continue Reading Widget:**
    - Add the "Continue Reading" widget  

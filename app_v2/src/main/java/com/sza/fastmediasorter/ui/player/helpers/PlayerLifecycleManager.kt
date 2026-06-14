@@ -183,8 +183,10 @@ class PlayerLifecycleManager(
         try { activity.dialogHelper.dismissAll() } catch (_: UninitializedPropertyAccessException) {}
 
         // Release managers with explicit teardown
-        activity.backgroundMusicManager.release()
-        activity.audioBackgroundPhotosManager.release()
+        if (activity.areAudioBackgroundManagersConfigured) {
+            activity.backgroundMusicManager.release()
+            activity.audioBackgroundPhotosManager.release()
+        }
         activity.audioServiceController?.release()
         activity.audioServiceController = null
         activity.sleepTimerManager?.release()
@@ -212,7 +214,6 @@ class PlayerLifecycleManager(
         activity.hideControlsHandler.removeCallbacks(activity.hideControlsRunnable)
         activity.loadingIndicatorHandler.removeCallbacks(activity.showLoadingIndicatorRunnable)
         
-        // Cancel any pending retry
         activity.retryRunnable?.let { activity.retryHandler.removeCallbacks(it) }
         activity.retryRunnable = null
         

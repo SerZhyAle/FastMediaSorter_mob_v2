@@ -82,7 +82,7 @@ class PlayerDialogAndUiStateManager(
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
             .setAction(R.string.s0213_action_skip) { onSkip() }
             .show()
-        Timber.i("S0213 cooldown snackbar shown: remainingSec=$remainingSec")
+        Timber.i("cooldown snackbar shown: remainingSec=$remainingSec")
     }
 
     /**
@@ -91,11 +91,10 @@ class PlayerDialogAndUiStateManager(
      * player" action delegates to [onClosePlayer] (typically `activity.finish()`).
      */
     fun showMemoryDegradationSnackbar(onClosePlayer: () -> Unit) {
-        Timber.d("S0213: Pillar C memory degradation snackbar shown")
         Snackbar.make(binding.root, R.string.s0213_memory_alert_message, Snackbar.LENGTH_INDEFINITE)
             .setAction(R.string.s0213_memory_alert_action) { onClosePlayer() }
             .show()
-        Timber.i("S0213 memory degradation snackbar shown")
+        Timber.i("memory degradation snackbar shown")
     }
 
     // ========================================
@@ -195,7 +194,6 @@ class PlayerDialogAndUiStateManager(
         val currentFile = viewModel.state.value.currentFile ?: return
         
         lifecycleScope.launch {
-            // Show loading
             binding.progressBar.isVisible = true
             Toast.makeText(activity, R.string.pdf_exporting_started, Toast.LENGTH_SHORT).show()
             

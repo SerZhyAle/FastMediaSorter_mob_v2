@@ -23,7 +23,9 @@ import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.cache.BrowseCacheManager
 import com.sza.fastmediasorter.ui.browse.loading.BrowseLoadingManager
+import dagger.Lazy
 import kotlin.coroutines.CoroutineContext
+import kotlin.LazyThreadSafetyMode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -50,13 +52,14 @@ class BrowseResourceLoadManager(
     private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val cachedFileListRepository: CachedFileListRepository,
-    private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
-    private val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient,
-    private val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
+    private val googleDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>,
+    private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
     private val favoritesUseCase: FavoritesUseCase,
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
     private val getResourcesUseCase: com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase,
+    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
     private val cacheManager: BrowseCacheManager,
     private val loadingManager: BrowseLoadingManager,
     private val scope: CoroutineScope,
@@ -87,6 +90,9 @@ class BrowseResourceLoadManager(
     private val setPagingDataFlow: (Flow<PagingData<MediaFile>>?) -> Unit
 ) {
     private var currentScanJob: Job? = null
+    private val resolvedGoogleDriveClient by lazy(LazyThreadSafetyMode.NONE) { googleDriveClient.get() }
+    private val resolvedDropboxClient by lazy(LazyThreadSafetyMode.NONE) { dropboxClient.get() }
+    private val resolvedOneDriveClient by lazy(LazyThreadSafetyMode.NONE) { oneDriveClient.get() }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -123,6 +129,15 @@ class BrowseResourceLoadManager(
             if (resource == null) {
                 Timber.e("BrowseResourceLoadManager.loadResource: resource not found for id=$resourceId")
                 sendEvent(BrowseEvent.ShowError(context.getString(R.string.resource_not_found)))
+                setLoading(false)
+                return@launch
+            }
+
+            // S0391: a disabled source is inert - turn back before any scan/auth/Glide load even if
+            // this resource was reached outside the (already-filtered) main list (widget, deep link).
+            if (!remoteSourceGate.isEnabled(resource)) {
+                Timber.w("BrowseResourceLoadManager.loadResource: source disabled - not loading ${resource.name}")
+                sendEvent(BrowseEvent.ShowError(context.getString(R.string.error_resource_unavailable, resource.name)))
                 setLoading(false)
                 return@launch
             }
@@ -386,11 +401,11 @@ class BrowseResourceLoadManager(
     }
 
     private suspend fun checkGoogleDriveAuth(resource: MediaResource, provider: CloudProvider): Boolean {
-        if (!googleDriveClient.isAuthenticated()) {
-            val restored = googleDriveClient.tryRestoreFromStorage()
+        if (!resolvedGoogleDriveClient.isAuthenticated()) {
+            val restored = resolvedGoogleDriveClient.tryRestoreFromStorage()
             Timber.d("BrowseResourceLoadManager: GDrive auth restore=$restored")
         }
-        val probe = googleDriveClient.listFiles(resource.cloudFolderId ?: "root")
+        val probe = resolvedGoogleDriveClient.listFiles(resource.cloudFolderId ?: "root")
         if (probe is com.sza.fastmediasorter.data.cloud.CloudResult.Error && isAuthError(probe.message)) {
             sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
             return false
@@ -400,15 +415,15 @@ class BrowseResourceLoadManager(
 
     private suspend fun checkDropboxAuth(resource: MediaResource, provider: CloudProvider): Boolean {
         val credId = resource.credentialsId
-        if (credId != null && dropboxClient.tryRestoreForAccount(credId)) return true
-        if (dropboxClient.isAuthenticated()) return true
+        if (credId != null && resolvedDropboxClient.tryRestoreForAccount(credId)) return true
+        if (resolvedDropboxClient.isAuthenticated()) return true
         Timber.w("BrowseResourceLoadManager: Dropbox not authenticated - emitting auth required")
         sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
         return false
     }
 
     private fun checkOneDriveAuth(resource: MediaResource, provider: CloudProvider): Boolean {
-        if (oneDriveClient.isAuthenticated()) return true
+        if (resolvedOneDriveClient.isAuthenticated()) return true
         Timber.w("BrowseResourceLoadManager: OneDrive not authenticated - emitting auth required")
         sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
         return false

@@ -2,12 +2,10 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Rect
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -26,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
+import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
@@ -45,15 +44,35 @@ class ResourceOpsMenuManager @Inject constructor(
         isDestinationsFull: Boolean = false,
         onCameraCapture: (() -> Unit)? = null,
         isCameraVisible: Boolean = false,
+        // S0371: record-video command, gated independently of the camera-photo command.
+        onVideoCapture: (() -> Unit)? = null,
+        isVideoVisible: Boolean = false,
         // S0184: multi-window entry point, controlled by user setting + device capability default.
         allowSeparateWindow: Boolean = false,
         openBrowseInNewWindow: ((Long) -> Unit)? = null,
         // S0096: black screen for audio - shown only for audio-only libraries
         isAudioOnly: Boolean = false,
-        onBlackScreenClicked: (() -> Unit)? = null
+        onBlackScreenClicked: (() -> Unit)? = null,
+        // S0374: adaptive overflow - top-bar commands that did not fit are surfaced here.
+        isOverflowed: (Int) -> Boolean = { false },
+        callbacks: BrowseButtonSetupHelper.ButtonCallbacks? = null,
+        onSortClicked: (() -> Unit)? = null
     ) {
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
+
+        // S0374: a top-bar command appears in this menu iff the overflow manager pushed it off
+        // the bar. Push model - the manager is the single owner of "is this command visible".
+        popup.menu.findItem(R.id.action_overflow_sort)?.isVisible = isOverflowed(R.id.btnSort)
+        popup.menu.findItem(R.id.action_overflow_filter)?.isVisible = isOverflowed(R.id.btnFilter)
+        popup.menu.findItem(R.id.action_overflow_refresh)?.isVisible = isOverflowed(R.id.btnRefresh)
+        popup.menu.findItem(R.id.action_overflow_toggle_view)?.isVisible = isOverflowed(R.id.btnToggleView)
+        popup.menu.findItem(R.id.action_overflow_select_all)?.isVisible = isOverflowed(R.id.btnSelectAll)
+        popup.menu.findItem(R.id.action_overflow_deselect_all)?.isVisible = isOverflowed(R.id.btnDeselectAll)
+        popup.menu.findItem(R.id.action_overflow_play)?.isVisible = isOverflowed(R.id.btnPlay)
+        popup.menu.findItem(R.id.action_overflow_play_random)?.isVisible = isOverflowed(R.id.btnPlayRandom)
+        popup.menu.findItem(R.id.action_overflow_mic)?.isVisible = isOverflowed(R.id.btnMicRecord)
+        Timber.d("S0374: overflow menu surfaced overflowed commands")
 
         // Hide "Create folder" if the resource doesn't support subfolder navigation, is read-only,
         // or is a virtual resource (e.g. "All Video", "Recent") that has no real path to write to.
@@ -63,19 +82,17 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible =
-            canCreateFolder && !isControlVisibleOnScreen(anchor, R.id.btnCreateFolder)
+            canCreateFolder && isOverflowed(R.id.btnCreateFolder)
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
         popup.menu.findItem(R.id.action_create_text_file)?.isVisible =
-            canCreateTextNote && !isControlVisibleOnScreen(anchor, R.id.btnCreateTextFile)
+            canCreateTextNote && isOverflowed(R.id.btnCreateTextFile)
 
-        val canCreateDrawing = resource != null
-            && !resource.isReadOnly
-            && !VirtualPathUtils.isVirtualPath(resource.path)
-            && resource.supportsImages()
+        // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
+        val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         popup.menu.findItem(R.id.action_create_drawing)?.isVisible =
-            canCreateDrawing && !isControlVisibleOnScreen(anchor, R.id.btnCreateDrawing)
+            canCreateDrawing && isOverflowed(R.id.btnCreateDrawing)
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
@@ -99,6 +116,7 @@ class ResourceOpsMenuManager @Inject constructor(
             !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
+        popup.menu.findItem(R.id.action_video_capture)?.isVisible = isVideoVisible && onVideoCapture != null
         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
             allowSeparateWindow && resource != null && openBrowseInNewWindow != null
 
@@ -156,6 +174,10 @@ class ResourceOpsMenuManager @Inject constructor(
                     onCameraCapture?.invoke()
                     true
                 }
+                R.id.action_video_capture -> {
+                    onVideoCapture?.invoke()
+                    true
+                }
                 R.id.action_open_in_separate_window -> {
                     resource?.id?.let { openBrowseInNewWindow?.invoke(it) }
                     true
@@ -164,15 +186,21 @@ class ResourceOpsMenuManager @Inject constructor(
                     onBlackScreenClicked?.invoke()
                     true
                 }
+                // S0374: overflowed top-bar commands route to the same actions as their buttons.
+                R.id.action_overflow_sort -> { onSortClicked?.invoke(); true }
+                R.id.action_overflow_filter -> { callbacks?.onFilterClicked(); true }
+                R.id.action_overflow_refresh -> { callbacks?.onRefreshClicked(); true }
+                R.id.action_overflow_toggle_view -> { callbacks?.onToggleViewClicked(); true }
+                R.id.action_overflow_select_all -> { callbacks?.onSelectAllClicked(); true }
+                R.id.action_overflow_deselect_all -> { callbacks?.onDeselectAllClicked(); true }
+                R.id.action_overflow_play -> { callbacks?.onPlayClicked(); true }
+                R.id.action_overflow_play_random -> { callbacks?.onPlayRandomClicked(); true }
+                // Press-and-hold recording is bar-only; the menu entry fires a single-tap record.
+                R.id.action_overflow_mic -> { callbacks?.onMicRecordSingleTap(); true }
                 else -> false
             }
         }
         popup.show()
-    }
-
-    private fun isControlVisibleOnScreen(anchor: View, viewId: Int): Boolean {
-        val control = anchor.rootView.findViewById<View>(viewId) ?: return false
-        return control.isShown && control.getGlobalVisibleRect(Rect())
     }
 
     // -------------------------------------------------------------------------
@@ -327,7 +355,6 @@ class ResourceOpsMenuManager @Inject constructor(
     }
 
     // -------------------------------------------------------------------------
-    // Create folder
     // -------------------------------------------------------------------------
 
     fun showCreateFolderDialog(viewModel: BrowseViewModel) {
@@ -418,11 +445,7 @@ class ResourceOpsMenuManager @Inject constructor(
 
     fun showCreateDrawingDialog(viewModel: BrowseViewModel) {
         val resource = viewModel.state.value.resource
-        if (resource == null
-            || resource.isReadOnly
-            || VirtualPathUtils.isVirtualPath(resource.path)
-            || !resource.supportsImages()
-        ) {
+        if (!DrawingTargetPolicy.canCreateDrawing(resource)) {
             return
         }
 

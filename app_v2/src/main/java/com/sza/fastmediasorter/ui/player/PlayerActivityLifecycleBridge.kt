@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.domain.model.MediaType
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -33,7 +34,7 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
                     if (activity.memoryAlertShownInSessionAccess) return@collect
                     activity.memoryAlertShownInSessionAccess = true
                     activity.dialogAndUiStateManager.showMemoryDegradationSnackbar {
-                        timber.log.Timber.i("S0213 user closed player from memory alert; event=$event")
+                        timber.log.Timber.i("user closed player from memory alert; event=$event")
                         activity.finish()
                     }
                 }
@@ -85,14 +86,10 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
         // S0021: start collecting FPS once per Activity lifetime; reconcile visibility.
         if (!activity.playerFpsCollectorStartedAccess) {
             activity.playerFpsCollectorStartedAccess = true
-            activity.lifecycleScope.launch {
-                activity.playerFpsMeter.fps.collect { fps ->
-                    activity.activityBinding.tvPlayerFpsOverlay.text = "$fps fps"
-                }
+            activity.collectOnLifecycle(activity.playerFpsMeter.fps) { fps ->
+                activity.activityBinding.tvPlayerFpsOverlay.text = "$fps fps"
             }
-            activity.lifecycleScope.launch {
-                activity.viewModel.settings.collect { activity.updatePlayerFpsOverlay() }
-            }
+            activity.collectOnLifecycle(activity.viewModel.settings) { activity.updatePlayerFpsOverlay() }
         }
         activity.updatePlayerFpsOverlay()
     }

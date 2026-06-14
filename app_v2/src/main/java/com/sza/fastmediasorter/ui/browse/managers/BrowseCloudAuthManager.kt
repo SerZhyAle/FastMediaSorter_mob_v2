@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveInteractiveSignInCoordinator
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import dagger.Lazy
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -15,6 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.LazyThreadSafetyMode
 
 /**
  * Manages cloud authentication flow in BrowseActivity.
@@ -23,11 +25,29 @@ import timber.log.Timber
 class BrowseCloudAuthManager(
     private val context: Context,
     private val coroutineScope: CoroutineScope,
-    @Suppress("unused") private val googleDriveClient: GoogleDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
+    @Suppress("unused") private val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<DropboxClient>,
+    private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
     private val callbacks: CloudAuthCallbacks
 ) {
+    constructor(
+        context: Context,
+        coroutineScope: CoroutineScope,
+        googleDriveClient: GoogleDriveRestClient,
+        dropboxClient: DropboxClient,
+        oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
+        callbacks: CloudAuthCallbacks
+    ) : this(
+        context = context,
+        coroutineScope = coroutineScope,
+        googleDriveClient = eagerLazyOf(googleDriveClient),
+        dropboxClient = eagerLazyOf(dropboxClient),
+        oneDriveClient = eagerLazyOf(oneDriveClient),
+        callbacks = callbacks,
+    )
+
+    private val resolvedDropboxClient by lazy(LazyThreadSafetyMode.NONE) { dropboxClient.get() }
+    private val resolvedOneDriveClient by lazy(LazyThreadSafetyMode.NONE) { oneDriveClient.get() }
     
     interface CloudAuthCallbacks {
         fun onAuthenticationSuccess()
@@ -86,7 +106,7 @@ class BrowseCloudAuthManager(
                     ?: return@launch callbacks.onAuthenticationFailure().also {
                         Timber.e("launchDropboxSignIn: context is not an Activity")
                     }
-                dropboxClient.startPkceAuthentication(activity, context.getString(R.string.dropbox_app_key))
+                resolvedDropboxClient.startPkceAuthentication(activity, context.getString(R.string.dropbox_app_key))
                 isDropboxAuthenticating = true
             } catch (e: Exception) {
                 Timber.e(e, "Failed to start Dropbox authentication")
@@ -102,7 +122,7 @@ class BrowseCloudAuthManager(
     
     fun launchOneDriveSignIn() {
         if (context is android.app.Activity) {
-            oneDriveClient.signIn(context) { result ->
+            resolvedOneDriveClient.signIn(context) { result ->
                coroutineScope.launch {
                    when (result) {
                        is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
@@ -151,7 +171,7 @@ class BrowseCloudAuthManager(
 
         if (isDropboxAuthenticating) {
             coroutineScope.launch {
-                val result = dropboxClient.finishAuthentication()
+                val result = resolvedDropboxClient.finishAuthentication()
                 when (result) {
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
                         Toast.makeText(
@@ -213,4 +233,8 @@ class BrowseCloudAuthManager(
         }
     }
 
+}
+
+private fun <T> eagerLazyOf(value: T): Lazy<T> = object : Lazy<T> {
+    override fun get(): T = value
 }

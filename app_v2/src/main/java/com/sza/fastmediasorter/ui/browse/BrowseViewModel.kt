@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -59,14 +60,13 @@ class BrowseViewModel @Inject constructor(
     private val cachedFileListRepository: CachedFileListRepository,
     private val updateResourceUseCase: UpdateResourceUseCase,
     val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
-    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
+    private val smbClient: Lazy<com.sza.fastmediasorter.data.network.SmbClient>,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val cleanupTrashFoldersUseCase: com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase,
     private val cleanupOrphanedTempFilesUseCase: com.sza.fastmediasorter.domain.usecase.CleanupOrphanedTempFilesUseCase,
-    private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
-    private val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient,
-    private val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
-    private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
+    private val googleDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>,
+    private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
     private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
@@ -91,6 +91,7 @@ class BrowseViewModel @Inject constructor(
     // S0242 Phase 05 - passed into BrowseFileObserverManager so it can canonicalize raw
     // local paths before recording Mutation entries that the Reconciler reads on resume.
     private val pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer,
+    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -139,6 +140,15 @@ class BrowseViewModel @Inject constructor(
             }
             override fun showError(message: String, details: String?, exception: Throwable?) {
                 sendEvent(BrowseEvent.ShowError(message, details, exception))
+            }
+            override suspend fun renameViaFileOperation(currentPath: String, originalName: String): Boolean {
+                // Preserve smb://, sftp://, ftp://, cloud:// schemes: java.io.File collapses "//" to "/".
+                val file = object : java.io.File(currentPath) {
+                    override fun getPath(): String = currentPath
+                    override fun getAbsolutePath(): String = currentPath
+                }
+                val operation = com.sza.fastmediasorter.domain.usecase.FileOperation.Rename(file, originalName)
+                return fileOperationUseCase.execute(operation) is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success
             }
         }
     )
@@ -410,6 +420,7 @@ class BrowseViewModel @Inject constructor(
         audioMetadataLoader = audioMetadataLoader,
         cleanupOrphanedTempFilesUseCase = cleanupOrphanedTempFilesUseCase,
         getResourcesUseCase = getResourcesUseCase,
+        remoteSourceGate = remoteSourceGate,
         cacheManager = cacheManager,
         loadingManager = loadingManager,
         scope = viewModelScope,
@@ -674,6 +685,21 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch {
             state.first { it.mediaFiles.any { f -> f.name == fileName } }
             sendEvent(BrowseEvent.ScrollToFile(fileName))
+        }
+    }
+
+    /**
+     * S0371: after a freshly recorded video is saved and the list reloaded, open it in the player.
+     * Awaits the file's appearance in the reloaded list, resolves its index, and reuses the normal
+     * [openFile] entry point (which emits [BrowseEvent.NavigateToPlayer]). No-op if it never arrives
+     * because the reload was superseded.
+     */
+    fun openCapturedVideoAfterRefresh(fileName: String) {
+        viewModelScope.launch {
+            val files = state.first { it.mediaFiles.any { f -> f.name == fileName } }.mediaFiles
+            val index = files.indexOfFirst { it.name == fileName }
+            val file = files.getOrNull(index) ?: return@launch
+            openFile(file, approximatePosition = index)
         }
     }
 

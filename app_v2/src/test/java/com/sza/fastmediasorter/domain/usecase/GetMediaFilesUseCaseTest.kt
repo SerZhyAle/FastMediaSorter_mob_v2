@@ -52,7 +52,8 @@ class GetMediaFilesUseCaseTest {
             credentialsRepository,
             cachedFileListRepository,
             scanDispatcher,
-            metadataExtractor
+            metadataExtractor,
+            mediaCapabilities = mockk(relaxed = true)
         )
         
         // Default mocks

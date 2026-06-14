@@ -88,7 +88,7 @@ class WatchWearListenerService : WearableListenerService() {
                 val command = WearPlaybackCommand.valueOf(commandName)
                 WatchPlaybackCommandEvents.commandFlow.emit(command)
             } catch (e: Exception) {
-                Timber.e(e, "S0111: Failed to deserialize playback command")
+                Timber.e(e, "Failed to deserialize playback command")
             }
         }
     }

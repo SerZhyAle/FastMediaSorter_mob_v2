@@ -4,17 +4,27 @@ Build automation scripts for FastMediaSorter v2.
 
 ## Debug Builds
 
-Quick builds for development and testing (no version bump):
+Quick builds for development and testing:
 
 ```powershell
-.\scripts\builders\build-debug.PS1              # Standard flavor (all features)
+.\scripts\builders\build-debug.PS1              # Standard flavor, fast reusable debug build
 .\scripts\builders\build-debug.PS1 -SkipZip     # Standard flavor without zip/GDrive archive
+.\scripts\builders\build-debug.PS1 -AutoVersion # Standard flavor with timestamped app version
 .\scripts\builders\build-debug-clean.PS1        # Clean + standard debug + zip
 .\scripts\builders\build-debug-clean.PS1 -SkipZip # Clean + standard debug without zip
 .\scripts\builders\build-standard-debug.ps1     # Standard flavor explicit
 .\scripts\builders\build-lite-debug.ps1         # Lite flavor (no cloud/audio)
 .\scripts\builders\build-photos-debug.ps1       # Photos only flavor
 .\scripts\builders\build-legacy-debug.ps1       # Legacy flavor (no cloud)
+```
+
+Fast validation helpers:
+
+```powershell
+.\scripts\builders\check-standard-fast.ps1 -Mode Code
+.\scripts\builders\check-standard-fast.ps1 -Mode Resources
+.\scripts\builders\check-standard-fast.ps1 -Mode CodeAndResources
+.\scripts\builders\check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
 ```
 
 ## Cleanup

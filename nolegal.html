@@ -9,7 +9,7 @@
     <meta name="keywords"
         content="FastMediaSorter noLegal, sideload Android build, yt-dlp Android, universal media downloader Android, offline OCR Android, PaddleOCR Android, APK install from file manager, embedded office viewer Android, Meta Quest sideload media app">
     <meta name="author" content="SerZhyAle">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="noindex, follow">
     <meta name="theme-color" content="#070512">
     <title>FastMediaSorter noLegal Edition - Sideload-only Build (VR + Unpublishable Capabilities)</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -78,10 +78,56 @@
             sideload-only edition. It is built on top of the VR edition and adds features that cannot be
             distributed through Google Play or the Meta Horizon Store because of redistribution licenses,
             store policies, patent constraints, or heavy on-device runtimes.</p>
-            <p>It is not advertised from the main site and there is no download link here for the general
-            public - this page exists to describe what the build does and why these capabilities stay
-            outside the published flavors.</p>
+            <p>It is not advertised from the main site, but the signed sideload APK is available below for those
+            who specifically seek it - this page also describes what the build does and why these capabilities
+            stay outside the published flavors.</p>
         </div>
+
+        <!-- Sideload download - noLegal asset from the latest GitHub Release (S0394) -->
+        <h2 class="section-title">📦 Sideload Download</h2>
+        <p class="topology-lead">The noLegal build is sideload-only. Download the latest signed APK below and install
+        it manually - it is not offered on the main site or any store.</p>
+        <div id="apkDownloads" class="apk-downloads" data-flavors="noLegal">
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
+                target="_blank" rel="noopener">Open the latest release on GitHub →</a>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById('apkDownloads');
+                if (!box) return;
+                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
+                var wanted = (box.getAttribute('data-flavors') || '').split(',')
+                    .map(function (s) { return s.trim(); }).filter(Boolean);
+                var labels = { noLegal: 'noLegal' };
+                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+                    { headers: { 'Accept': 'application/vnd.github+json' } })
+                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
+                    .then(function (rel) {
+                        var ver = rel.tag_name || '';
+                        var assets = rel.assets || [];
+                        var made = [];
+                        wanted.forEach(function (flavor) {
+                            var prefix = 'FastMediaSorter-' + flavor + '-';
+                            var a = assets.find(function (x) {
+                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
+                            });
+                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
+                        });
+                        if (!made.length) return; // keep the static fallback link
+                        box.innerHTML = '';
+                        made.forEach(function (m) {
+                            var link = document.createElement('a');
+                            link.className = 'apk-btn apk-btn-nolegal';
+                            link.href = m.url;
+                            link.setAttribute('rel', 'noopener');
+                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
+                                '</span> <span class="apk-ver">' + ver + '</span>';
+                            box.appendChild(link);
+                        });
+                    })
+                    .catch(function () { /* leave the static fallback link in place */ });
+            }());
+        </script>
 
         <h2 class="section-title">🧩 How noLegal Relates to the Other Builds</h2>
         <p class="topology-lead">FastMediaSorter ships in layered builds. Each layer is a superset of the one
@@ -235,7 +281,7 @@
                 </div>
                 <div class="card-footer">Open home</div>
             </a>
-            <a href="docs/VR_EDITION.html" class="card" target="_blank">
+            <a href="docs/VR_EDITION.md" class="card" target="_blank">
                 <div>
                     <span class="card-icon">🥽</span>
                     <h3>VR Edition</h3>
@@ -243,7 +289,7 @@
                 </div>
                 <div class="card-footer">Read about VR</div>
             </a>
-            <a href="docs/VR_SIDELOAD.html" class="card" target="_blank">
+            <a href="docs/VR_SIDELOAD.md" class="card" target="_blank">
                 <div>
                     <span class="card-icon">📥</span>
                     <h3>VR Sideload Guide</h3>
@@ -251,7 +297,7 @@
                 </div>
                 <div class="card-footer">Sideload steps</div>
             </a>
-            <a href="docs/VR_CONTROLS.html" class="card" target="_blank">
+            <a href="docs/VR_CONTROLS.md" class="card" target="_blank">
                 <div>
                     <span class="card-icon">🎮</span>
                     <h3>VR Controls</h3>
@@ -259,7 +305,7 @@
                 </div>
                 <div class="card-footer">Open controls</div>
             </a>
-            <a href="docs/DOWNLOADS_EN.html" class="card" target="_blank">
+            <a href="docs/DOWNLOADS_EN.md" class="card" target="_blank">
                 <div>
                     <span class="card-icon">📦</span>
                     <h3>Downloads</h3>
@@ -267,7 +313,7 @@
                 </div>
                 <div class="card-footer">Download APK</div>
             </a>
-            <a href="docs/FAQ.html" class="card" target="_blank">
+            <a href="docs/FAQ.md" class="card" target="_blank">
                 <div>
                     <span class="card-icon">❓</span>
                     <h3>FAQ</h3>
@@ -292,7 +338,7 @@
         <p style="margin: 0.5rem 0;">
             <a href="index.html">Main Site</a>
             &bull;
-            <a href="docs/VR_EDITION.html">VR Edition</a>
+            <a href="docs/VR_EDITION.md">VR Edition</a>
             &bull;
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
         </p>

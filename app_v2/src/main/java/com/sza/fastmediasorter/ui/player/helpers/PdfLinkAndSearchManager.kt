@@ -5,10 +5,10 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.net.Uri
+import android.view.View
 import androidx.annotation.RequiresApi
 import android.os.ParcelFileDescriptor
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +25,9 @@ import java.io.File
  * Extracted from PdfViewerManager (Wave 44 / S0002) to keep that class ≤ 1500 LOC.
  */
 class PdfLinkAndSearchManager(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
+    private val root: View,
+    private val safeViews: PlayerBindingSafeViews,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val translationManager: TranslationManager,
@@ -129,7 +131,7 @@ class PdfLinkAndSearchManager(
         if (boxes.isNullOrEmpty()) return false
 
         val displayMatrix = Matrix()
-        binding.photoView.getDisplayMatrix(displayMatrix)
+        safeViews.photoView.getDisplayMatrix(displayMatrix)
         val invertedMatrix = Matrix()
         if (!displayMatrix.invert(invertedMatrix)) return false
 
@@ -148,7 +150,7 @@ class PdfLinkAndSearchManager(
     }
 
     private fun openUrlInBrowser(url: String) {
-        val context = binding.root.context
+        val context = root.context
         try {
             context.startActivity(
                 Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -157,7 +159,7 @@ class PdfLinkAndSearchManager(
             Timber.d("PDF: opened link → $url")
         } catch (e: Exception) {
             Timber.e(e, "PDF: failed to open URL: $url")
-            onError(binding.root.context.getString(R.string.player_open_link_failed))
+            onError(root.context.getString(R.string.player_open_link_failed))
         }
     }
 
@@ -242,7 +244,7 @@ class PdfLinkAndSearchManager(
         onOcrResult: (String) -> Unit
     ) {
         if (currentBitmap == null) {
-            onError(binding.root.context.getString(R.string.player_page_not_ready))
+            onError(root.context.getString(R.string.player_page_not_ready))
             return
         }
 
@@ -269,7 +271,7 @@ class PdfLinkAndSearchManager(
                 if (!recognizedText.isNullOrBlank()) {
                     onOcrResult(recognizedText)
                 } else {
-                    onError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
+                    onError(root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
                 }
             }
         }
@@ -280,7 +282,7 @@ class PdfLinkAndSearchManager(
      */
     fun copyPageTextToClipboard(currentBitmap: Bitmap?) {
         if (currentBitmap == null) {
-            onError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
+            onError(root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
             return
         }
 
@@ -302,7 +304,7 @@ class PdfLinkAndSearchManager(
 
             withContext(Dispatchers.Main) {
                 if (!recognizedText.isNullOrBlank()) {
-                    val ctx = binding.root.context
+                    val ctx = root.context
                     val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
                             as android.content.ClipboardManager
                     clipboard.setPrimaryClip(android.content.ClipData.newPlainText("pdf_text", recognizedText))
@@ -312,7 +314,7 @@ class PdfLinkAndSearchManager(
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    onError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
+                    onError(root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
                 }
             }
         }
@@ -329,7 +331,7 @@ class PdfLinkAndSearchManager(
 
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val context = binding.root.context
+                val context = root.context
                 val cacheDir = context.externalCacheDir ?: context.cacheDir
                 val tempFile = File(cacheDir, "lens_share_temp.png")
                 java.io.FileOutputStream(tempFile).use { out ->
@@ -341,7 +343,7 @@ class PdfLinkAndSearchManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to save PDF page for Google Lens")
                 withContext(Dispatchers.Main) {
-                    onError(binding.root.context.getString(R.string.toast_error_google_lens))
+                    onError(root.context.getString(R.string.toast_error_google_lens))
                 }
             }
         }

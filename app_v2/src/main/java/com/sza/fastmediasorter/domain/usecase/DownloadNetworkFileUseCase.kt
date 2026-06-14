@@ -76,7 +76,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
         val shareName = pathSegments[0]
         val filePathInShare = pathSegments.drop(1).joinToString("/")
         
-        // Get credentials
         val credentials = credentialsRepository.getByServerAndShare(server, shareName)
             ?: return false
         
@@ -127,7 +126,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
         val port = uri.port.takeIf { it > 0 } ?: 22
         val filePath = uri.path ?: return false
         
-        // Get credentials
         val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
             ?: return false
         
@@ -172,7 +170,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
         val port = uri.port.takeIf { it > 0 } ?: 21
         val filePath = uri.path ?: return false
         
-        // Get credentials
         val credentials = credentialsRepository.getByTypeServerAndPort("FTP", server, port)
             ?: return false
         

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0380: landscape variant of the trimmed standalone image/gif/video layout. Media playback is
+  orientation-agnostic (full-bleed surface + top command bar), so the structure mirrors the portrait
+  layout and reuses the same playerView / photoDualSurfaceContainer / photoView / imageView /
+  tvVideoGestureIndicator ids. Omits all pdf/epub/text/audio-cover/office/control-overlay/touch-zone
+  views (cold-start inflation win).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/black"
+    tools:context=".ui.player.standalone.PhotoVideoStandaloneActivity">
+
+    <!-- Top command panel: Back + file-op actions -->
+    <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
+
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:focusable="true" android:clickable="true" android:nextFocusRight="@id/btnDeleteCmd" />
+
+        <!-- S0389/S0390: scrollable so the full action set stays reachable when it overflows a narrow
+             phone width (otherwise the centred row clips btnPagePrev / btnOverflowMenu to a sliver).
+             fillViewport keeps the row centred while it still fits. -->
+        <HorizontalScrollView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:scrollbars="none" android:fillViewport="true">
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+
+            <!-- S0389: folder-paging controls. Hidden until the opened file resolves to a local folder
+                 with >1 host-supported neighbour; the activity toggles visibility from VM state. -->
+            <ImageButton android:id="@+id/btnPagePrev" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/previous_file" android:src="@drawable/ic_skip_previous" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusRight="@id/btnPageNext" />
+
+            <ImageButton android:id="@+id/btnPageNext" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/next_file" android:src="@drawable/ic_skip_next" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnPagePrev" android:nextFocusRight="@id/btnPageRandom" />
+
+            <ImageButton android:id="@+id/btnPageRandom" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/random_file_description" android:src="@drawable/ic_random_nav" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnPageNext" android:nextFocusRight="@id/btnPageSlideshow" />
+
+            <ImageButton android:id="@+id/btnPageSlideshow" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/slideshow" android:src="@drawable/ic_slideshow" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnPageRandom" android:nextFocusRight="@id/btnDeleteCmd" />
+
+            <ImageButton android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@drawable/ic_delete" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnBack" android:nextFocusRight="@id/btnFavorite" />
+
+            <ImageButton android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/favorite" android:src="@drawable/ic_star_outline" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnDeleteCmd" android:nextFocusRight="@id/btnShareCmd" />
+
+            <ImageButton android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnFavorite" android:nextFocusRight="@id/btnInfoCmd" />
+
+            <ImageButton android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/file_information" android:src="@drawable/ic_info" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnShareCmd" android:nextFocusRight="@id/btnRenameCmd" />
+
+            <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnInfoCmd" android:nextFocusRight="@id/btnEditCrop" />
+
+            <!-- S0390: Group A image actions (crop / screen-rotate). Hidden until the opened file
+                 resolves to a writable local static image; the activity toggles them from VM state. -->
+            <ImageButton android:id="@+id/btnEditCrop" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/menu_crop" android:src="@drawable/ic_crop" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnRenameCmd" android:nextFocusRight="@id/btnEditRotate" />
+
+            <ImageButton android:id="@+id/btnEditRotate" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rotation_toggle_sensor_off_desc" android:src="@drawable/ic_rotation_locked" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnEditCrop" android:nextFocusRight="@id/btnOverflowMenu" />
+
+        </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <!-- S0389: overflow is pinned outside the scroll so 'Open in FastMediaSorter' is always one tap
+             away even when the action row overflows and scrolls. -->
+        <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnEditRotate" />
+
+    </LinearLayout>
+
+    <!-- Media content area: image/gif/video surfaces with the same ids as the unified layout -->
+    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+
+        <!-- surface_type=texture_view + same controller layout as the unified player so
+             StandaloneVideoControlsManager finds btnPlaybackControl in the controller overlay. -->
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+
+        <!-- Standard ImageView for non-zoomable mode (kept for id parity with the unified layout) -->
+        <ImageView android:id="@+id/imageView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitCenter" android:contentDescription="@null" />
+
+        <!-- Dual-surface container for static image rendering (A=current, B=next) -->
+        <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+
+            <!-- Surface B (prepared/next), kept below A by z-order -->
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoViewSurfaceB" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+            <!-- Surface A (current/top). Keep legacy id for compatibility -->
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+        </FrameLayout>
+
+        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
+
+        <!-- Video gesture feedback badge (brightness / volume / seek) driven by StandaloneVideoTouchDelegate -->
+        <TextView android:id="@+id/tvVideoGestureIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:paddingVertical="@dimen/player_button_padding" android:textColor="@color/white" android:textSize="@dimen/activity_player_unified_audioSlideshowSongLabel_textSize" android:textStyle="bold" android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- S0410: draw overlay toolbar (root GONE by default; ImageDrawOverlayManager toggles it during draw mode) -->
+    <include
+        android:id="@+id/draw_overlay_toolbar_stub"
+        layout="@layout/player_draw_overlay_toolbar_content" />
+
+</LinearLayout>

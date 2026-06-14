@@ -5,9 +5,13 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 
@@ -27,6 +31,7 @@ class CrashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crash)
+        applyEdgeToEdgeInsets()
 
         val report = intent.getStringExtra(EXTRA_REPORT).orEmpty()
         findViewById<TextView>(R.id.tvCrashReport).text = report
@@ -58,6 +63,25 @@ class CrashActivity : AppCompatActivity() {
 
         findViewById<MaterialButton>(R.id.btnIgnoreCrash).setOnClickListener {
             finish()
+        }
+    }
+
+    // Android targets edge-to-edge by default, so the report would draw under the status and
+    // navigation bars. Pad the root by the system-bar + cutout insets on top of its base padding.
+    private fun applyEdgeToEdgeInsets() {
+        val root = findViewById<View>(R.id.rootCrash)
+        val basePadding = root.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.updatePadding(
+                left = basePadding + bars.left,
+                top = basePadding + bars.top,
+                right = basePadding + bars.right,
+                bottom = basePadding + bars.bottom
+            )
+            insets
         }
     }
 }

@@ -13,6 +13,7 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val detectionFacade: XrDetectionFacade,
     private val entryGateway: XrEntryGateway,
+    private val payloadHolder: VrLaunchPayloadHolder,
 ) : StartVrPlaybackUseCase {
 
     override suspend fun invoke(request: StartVrPlaybackRequest): StartVrPlaybackUseCase.Result {
@@ -72,7 +73,7 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
 
         return try {
             if (returnTarget != null) {
-                intent.putExtra(VrLaunchInput.EXTRA_RETURN_TARGET, returnTarget)
+                intent.putExtra(VrLaunchInput.EXTRA_RETURN_TARGET_TOKEN, payloadHolder.put(returnTarget))
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             appContext.startActivity(intent)

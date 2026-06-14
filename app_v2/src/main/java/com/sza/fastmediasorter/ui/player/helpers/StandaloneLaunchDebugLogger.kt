@@ -22,7 +22,7 @@ internal object StandaloneLaunchDebugLogger {
         ".StandaloneImageSender",
     )
 
-    fun log(activity: ComponentActivity, incomingIntent: Intent?) {
+    fun log(activity: ComponentActivity, incomingIntent: Intent?, supportsCloud: Boolean) {
         if (!BuildConfig.DEBUG) return
         if (incomingIntent == null) {
             Timber.d("StandalonePlayer[debug]: launch intent is null")
@@ -100,7 +100,8 @@ internal object StandaloneLaunchDebugLogger {
             BuildConfig.SUPPORT_AUDIO,
             BuildConfig.SUPPORT_IMAGES,
             BuildConfig.SUPPORT_DOCUMENTS,
-            BuildConfig.SUPPORT_CLOUD,
+            // S0391: compile-tier cloud flag now comes from MediaCapabilities (Rule 14 migration).
+            supportsCloud,
         )
         Timber.i("StandalonePlayer[debug]: default-player components: %s", aliasStates)
     }

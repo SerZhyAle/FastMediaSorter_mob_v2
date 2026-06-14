@@ -222,19 +222,6 @@
         android:text="@string/settings_set_default_audio_player"
         android:textAllCaps="false" />
 
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowMicRecordingEnabled"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:str_title="@string/settings_mic_recording_enable_title"
-        app:str_subtitle="@string/settings_mic_recording_enable_desc" />
-
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowMicRecordingAskFilename"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:str_title="@string/settings_mic_recording_ask_filename_title"
-        app:str_subtitle="@string/settings_mic_recording_ask_filename_desc" />
+<!-- S0367: microphone-recording and camera-photos settings moved to Playback → "Camera, microphone and Other features". -->
 
 </LinearLayout>

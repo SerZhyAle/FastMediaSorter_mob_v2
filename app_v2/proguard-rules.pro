@@ -209,9 +209,10 @@
 -dontwarn com.nimbusds.jose.**
 -dontwarn com.yubico.yubikit.**
 
-# ===== Gson Serialization (Test Credentials & Config) =====
-# Keep test credentials model (used in integration tests)
--keep class com.sza.fastmediasorter.data.repository.TestCredential** { *; }
+# ===== Gson Serialization =====
+# S0385: removed the force-keep for data.repository.TestCredential** - those models are
+# debug-only (consumed only under BuildConfig.DEBUG), so R8 now strips them in release
+# instead of shipping a credentials-shaped model to production users.
 
 # Keep all classes with @SerializedName annotations
 -keepclassmembers class * {

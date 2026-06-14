@@ -48,7 +48,6 @@ class FlipImageUseCase @Inject constructor(
             val originalBitmap = BitmapFactory.decodeFile(imagePath, options)
                 ?: return@withContext Result.failure(Exception("Failed to decode image"))
 
-            // Create flip matrix
             val matrix = Matrix().apply {
                 when (direction) {
                     FlipDirection.HORIZONTAL -> {
@@ -62,7 +61,6 @@ class FlipImageUseCase @Inject constructor(
                 }
             }
 
-            // Create flipped bitmap
             val flippedBitmap = Bitmap.createBitmap(
                 originalBitmap,
                 0,

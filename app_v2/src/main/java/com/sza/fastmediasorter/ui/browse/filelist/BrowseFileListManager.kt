@@ -36,7 +36,6 @@ class BrowseFileListManager(
         
         Timber.d("removeFiles: Removed ${pathsToRemove.size} files, ${updatedFiles.size} remaining")
         
-        // Update cache
         MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
         
         return updatedFiles
@@ -70,7 +69,6 @@ class BrowseFileListManager(
         
         Timber.d("addFiles: Added ${newFiles.size} files, ${sortedFiles.size} total after dedup and sort")
         
-        // Update cache
         MediaFilesCacheManager.setCachedList(resourceId, sortedFiles)
         
         return sortedFiles
@@ -94,7 +92,6 @@ class BrowseFileListManager(
         
         Timber.d("updateFile: Updated file $oldPath -> ${newFile.path}")
         
-        // Update cache
         MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
         
         // Re-sort if needed

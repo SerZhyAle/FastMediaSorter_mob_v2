@@ -230,7 +230,6 @@ class BackupRestoreFragment : Fragment() {
     }
 
     private fun handleState(state: BackupRestoreUiState) {
-        // Reset visibility
         binding.progressBackup.visibility = View.GONE
         binding.progressRestore.visibility = View.GONE
         binding.btnBackup.isEnabled = true

@@ -140,7 +140,7 @@
     <string name="kbm_help_global_tab">Фокус уперед / назад</string>
     <string name="kbm_help_global_undo_redo">Скасувати / повторити</string>
     <string name="kbm_help_main_add">Додати ресурс</string>
-    <string name="kbm_help_main_open">Відкрити ресурс в огляді</string>
+    <string name="kbm_help_main_open">Відкрити ресурс у браузері файлів</string>
     <string name="kbm_help_nav_arrows">Перемістити фокус</string>
     <string name="kbm_help_nav_backspace">На рівень вище</string>
     <string name="kbm_help_nav_enter">Відкрити поточний елемент</string>

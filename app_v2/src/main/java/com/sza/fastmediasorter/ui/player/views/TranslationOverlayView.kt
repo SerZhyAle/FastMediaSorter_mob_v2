@@ -423,7 +423,6 @@ class TranslationOverlayView @JvmOverloads constructor(
             
             if (!clickedInsideBlock && scaledRects.isNotEmpty()) {
                 Timber.d("TRANSLATION_DEBUG: Click outside blocks detected - hiding overlay")
-                // Hide this overlay
                 visibility = View.GONE
                 clear()
                 // Also hide the old-style overlay if present

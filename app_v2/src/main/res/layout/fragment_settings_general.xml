@@ -16,7 +16,7 @@
 
         </LinearLayout>
 
-        <!-- INTERFACE SECTION -->
+        <!-- INTERFACE SECTION (general app interface) -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -62,56 +62,20 @@
 
                     </LinearLayout>
 
-
-                    <!-- All Files + Show Hidden Files Container -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
-
-                        <!-- All Files -->
-                        <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowAllFiles"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/all_files"
-                                app:str_subtitle="@string/setting_all_files_desc"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_all_files_title"
-                                app:str_helpMessage="@string/tooltip_all_files_message" />
-
-                        </LinearLayout>
-
-                        <!-- Show Hidden Files -->
-                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowShowHiddenFiles"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/show_hidden_files"
-                                app:str_subtitle="@string/setting_show_hidden_files_desc"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_show_hidden_files_title"
-                                app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Show Subfolders as Items + Small Controls -->
+                    <!-- Global scaling (compact elements) + compact controls (small controls) -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="horizontal" android:baselineAligned="false">
 
-                        <LinearLayout android:id="@+id/layoutShowSubfoldersAsItems" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:id="@+id/layoutCompactElements" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowShowSubfoldersAsItems"
+                                android:id="@+id/rowCompactElements"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                app:str_title="@string/show_subfolders_as_items"
-                                app:str_subtitle="@string/setting_show_subfolders_as_items_desc"
+                                app:str_title="@string/compact_elements"
+                                app:str_subtitle="@string/setting_compact_elements_desc"
                                 app:str_showHelp="true"
-                                app:str_helpTitle="@string/show_subfolders_as_items"
-                                app:str_helpMessage="@string/show_subfolders_as_items_hint" />
+                                app:str_helpTitle="@string/tooltip_compact_elements_title"
+                                app:str_helpMessage="@string/tooltip_compact_elements_message" />
 
                         </LinearLayout>
 
@@ -128,33 +92,6 @@
                                 app:str_helpMessage="@string/tooltip_compact_controls_message" />
 
                         </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Compact Elements (Global Scaling) -->
-                    <LinearLayout android:id="@+id/layoutCompactElements" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowCompactElements"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/compact_elements"
-                            app:str_subtitle="@string/setting_compact_elements_desc"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_compact_elements_title"
-                            app:str_helpMessage="@string/tooltip_compact_elements_message" />
-
-                    </LinearLayout>
-
-                    <!-- S0160: Resource ops overflow toggle -->
-                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowResourceOpsInOverflowMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/resource_ops_in_overflow_menu"
-                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
 
                     </LinearLayout>
 
@@ -185,6 +122,68 @@
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_allow_separate_window_title"
                             app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- FILE BROWSER INTERFACE SECTION (S0364) -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerFileBrowser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_category_file_browser" />
+
+                <LinearLayout android:id="@+id/containerFileBrowser" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- All Files keeps the full row in portrait so the create-resource CTA fits beside the switch. -->
+                    <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowAllFiles"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/all_files"
+                            app:str_subtitle="@string/setting_all_files_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_all_files_title"
+                            app:str_helpMessage="@string/tooltip_all_files_message" />
+
+                    </LinearLayout>
+
+                    <!-- Show Hidden Files -->
+                    <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowShowHiddenFiles"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/show_hidden_files"
+                            app:str_subtitle="@string/setting_show_hidden_files_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_show_hidden_files_title"
+                            app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
+
+                    </LinearLayout>
+
+                    <!-- Show Subfolders as Items -->
+                    <LinearLayout android:id="@+id/layoutShowSubfoldersAsItems" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowShowSubfoldersAsItems"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/show_subfolders_as_items"
+                            app:str_subtitle="@string/setting_show_subfolders_as_items_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/show_subfolders_as_items"
+                            app:str_helpMessage="@string/show_subfolders_as_items_hint" />
 
                     </LinearLayout>
 
@@ -224,6 +223,67 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/file_ops_in_overflow_menu"
                         app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
+
+                    <!-- S0160: Resource ops overflow toggle -->
+                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowResourceOpsInOverflowMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/resource_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- S0391: REMOTE SOURCES SECTION - three group toggles (SMB / (S)FTP / Cloud) over the six
+             per-source flags; collapsed by default. Sits between File Browser and Authorization. -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerRemoteSources"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_remote_sources_title" />
+
+                <LinearLayout android:id="@+id/containerRemoteSources" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSourceSmb"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        app:str_title="@string/settings_remote_source_smb_title"
+                        app:str_subtitle="@string/settings_remote_source_smb_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/settings_remote_source_smb_help_title"
+                        app:str_helpMessage="@string/settings_remote_source_smb_help_message" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSourceFtp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/settings_remote_source_ftp_title"
+                        app:str_subtitle="@string/settings_remote_source_ftp_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/settings_remote_source_ftp_help_title"
+                        app:str_helpMessage="@string/settings_remote_source_ftp_help_message" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSourceCloud"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/settings_remote_source_cloud_title"
+                        app:str_subtitle="@string/settings_remote_source_cloud_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/settings_remote_source_cloud_help_title"
+                        app:str_helpMessage="@string/settings_remote_source_cloud_help_message" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -594,6 +654,27 @@
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- S0386 Phase 10: Downloadable Extensions - app-wide download aggregator, after all groups, before other buttons. Non-full-width (wrap_content) in portrait and landscape. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDownloadableExtensions"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ext_manager_title"
+                app:icon="@drawable/ic_cloud_download"
+                app:iconGravity="start" />
+
+        </LinearLayout>
 
         <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog -->
         <LinearLayout

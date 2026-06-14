@@ -230,7 +230,6 @@ class AudioCoverArtLoader(
                             return@withContext
                         }
 
-                        // Check local cache
                         val cached = withContext(Dispatchers.IO) { audioMetadataCacheRepository.readMetadata(file.name) }
                         if (cached != null) {
                             Timber.d("loadAudioCoverArt[$callId]: LOCAL CACHE hit for ${file.name}")

@@ -153,12 +153,40 @@ plugins {
     id("com.android.application")
     id("com.android.legacy-kapt")
     id("com.google.dagger.hilt.android")
-    id("androidx.navigation.safeargs.kotlin")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val defaultAppVersionCode = 260613162
+val defaultAppVersionName = "2.60.6131.623"
+val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
+    raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
+}
+val overrideAppVersionName = providers.gradleProperty("fms.versionName").orNull
+val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.let { raw ->
+    when {
+        raw.equals("true", ignoreCase = true) -> true
+        raw.equals("false", ignoreCase = true) -> false
+        else -> throw GradleException("Invalid -Pfms.xrNative value: '$raw'")
+    }
+} ?: gradle.startParameter.taskNames.any { taskName ->
+    val t = taskName.lowercase()
+    t.contains("nolegal") || t.contains("vr")
+}
+
+fun findRootSecretFile(vararg relativePaths: String): File? =
+    relativePaths
+        .asSequence()
+        .map(rootProject::file)
+        .firstOrNull(File::exists)
+
+fun resolveSiblingPath(baseFile: File, rawPath: String): File {
+    val direct = File(rawPath)
+    return if (direct.isAbsolute) direct else File(baseFile.parentFile, rawPath).normalize()
+}
+
 android {
-    val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
+    val releaseKeystorePropertiesFile = findRootSecretFile(".secrets/keystore.properties", "keystore.properties")
+    val hasReleaseKeystore = releaseKeystorePropertiesFile != null
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
     val hasCustomDebugKeystore = debugKeystorePropertiesFile.exists()
     val requestedTasks = gradle.startParameter.taskNames
@@ -181,12 +209,14 @@ android {
         // Keep targetSdk aligned with compileSdk
         // CRITICAL: Do not change - required for Play Store compliance and latest Android behavior
         targetSdk = 35
-        // Version is auto-updated by build scripts
+        // Local fast checks keep these defaults stable so configuration-cache reuse survives
+        // across repeated debug builds. Artifact-oriented helper scripts can override them
+        // via -Pfms.versionCode / -Pfms.versionName when a timestamped package is needed.
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260605012
-        versionName = "2.60.6050.126"
+        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -239,20 +269,16 @@ android {
     //   (b) a matching redirect URI registered in Azure (OneDrive), Google Cloud (Drive) and
     //       Dropbox app consoles.
     flavorDimensions += listOf("version")
+    dynamicFeatures += listOf(":translate_feature")
     
     productFlavors {
-        // Per-flavor CMake target filtering: only vr builds the native OpenXR bridge.
-        // Non-vr flavors skip CMake entirely by declaring no build targets.
+        // XR native build is enabled only for vr/noLegal task graphs. Standard/lite/photos/legacy
+        // leave the entire CMake pipeline disabled so local debug loops avoid per-ABI no-op work.
         // ABI selection is handled per-flavor (not per-buildType) because AGP merges
         // flavor+buildType ndk.abiFilters via UNION, not intersection. Setting abiFilters
         // on a buildType would leak extra slices (e.g. x86) into VR AABs. Keeping ABI
         // configuration flavor-local gives each flavor exactly what Play delivers to users.
         fun com.android.build.api.dsl.ProductFlavor.disableNativeBuild() {
-            externalNativeBuild {
-                cmake {
-                    targets.clear()
-                }
-            }
             // Distribution ABIs for non-VR flavors: all four production ABIs.
             // Covers Android 8+ phones/tablets (arm64-v8a + armeabi-v7a), Chromebooks
             // and emulators (x86/x86_64). AAB per-device delivery keeps user download size
@@ -314,25 +340,27 @@ android {
             ndk {
                 abiFilters += listOf("arm64-v8a", "x86_64")
             }
-            externalNativeBuild {
-                cmake {
-                    // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) — same
-                    // JNI bridge as vr flavor. OpenXR loader AAR ships arm64-v8a only.
-                    targets += listOf("fms_diagnostic_xr")
-                    // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
-                    // fms_diagnostic_xr for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
-                    abiFilters += listOf("arm64-v8a")
-                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
-                    arguments += listOf(
-                        "-DANDROID_STL=c++_shared",
-                        "-DANDROID_PLATFORM=android-26",
-                        // S0249 Phase 02: gates the fms_diagnostic_xr SHARED target in
-                        // src/vr/cpp/CMakeLists.txt. Without this flag CMake emits no targets
-                        // and AGP fails with "Unexpected native build target …".
-                        "-DFMS_BUILD_XR_RUNTIME=ON",
-                        // Revision 4: invalidates stale .tmp cmake cache from prior vr runs.
-                        "-DFMS_BUILD_REVISION=4"
-                    )
+            if (isXrNativeBuildRequested) {
+                externalNativeBuild {
+                    cmake {
+                        // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) — same
+                        // JNI bridge as vr flavor. OpenXR loader AAR ships arm64-v8a only.
+                        targets += listOf("fms_diagnostic_xr")
+                        // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
+                        // fms_diagnostic_xr for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
+                        abiFilters += listOf("arm64-v8a")
+                        cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                        arguments += listOf(
+                            "-DANDROID_STL=c++_shared",
+                            "-DANDROID_PLATFORM=android-26",
+                            // S0249 Phase 02: gates the fms_diagnostic_xr SHARED target in
+                            // src/vr/cpp/CMakeLists.txt. Without this flag CMake emits no targets
+                            // and AGP fails with "Unexpected native build target …".
+                            "-DFMS_BUILD_XR_RUNTIME=ON",
+                            // Revision 4: invalidates stale .tmp cmake cache from prior vr runs.
+                            "-DFMS_BUILD_REVISION=4"
+                        )
+                    }
                 }
             }
             // S0117: keep the full standard capability surface while isolating
@@ -455,28 +483,30 @@ android {
             ndk {
                 abiFilters += listOf("arm64-v8a")
             }
-            externalNativeBuild {
-                cmake {
-                    // S0249 Phase 02: build the diagnostic XR native runtime (fms_diagnostic_xr).
-                    // OpenXR loader ships prebuilt in the Khronos AAR via prefab.
-                    targets += listOf("fms_diagnostic_xr")
-                    // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
-                    // otherwise AGP tries to build fms_diagnostic_xr for every ABI in the buildType
-                    // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
-                    // because those OpenXR slices do not exist. ndk.abiFilters above only
-                    // governs packaging; externalNativeBuild.cmake.abiFilters governs configure.
-                    abiFilters += listOf("arm64-v8a")
-                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
-                    arguments += listOf(
-                        "-DANDROID_STL=c++_shared",
-                        "-DANDROID_PLATFORM=android-26",
-                        // Gate fms_diagnostic_xr target in src/vr/cpp/CMakeLists.txt: non-vr
-                        // flavors omit this flag so CMake configure succeeds without the
-                        // Khronos OpenXR AAR on the prefab classpath.
-                        "-DFMS_BUILD_XR_RUNTIME=ON",
-                        // Force new cmake config hash to avoid stale .tmp file lock (2026-04-21)
-                        "-DFMS_BUILD_REVISION=3"
-                    )
+            if (isXrNativeBuildRequested) {
+                externalNativeBuild {
+                    cmake {
+                        // S0249 Phase 02: build the diagnostic XR native runtime (fms_diagnostic_xr).
+                        // OpenXR loader ships prebuilt in the Khronos AAR via prefab.
+                        targets += listOf("fms_diagnostic_xr")
+                        // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
+                        // otherwise AGP tries to build fms_diagnostic_xr for every ABI in the buildType
+                        // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
+                        // because those OpenXR slices do not exist. ndk.abiFilters above only
+                        // governs packaging; externalNativeBuild.cmake.abiFilters governs configure.
+                        abiFilters += listOf("arm64-v8a")
+                        cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                        arguments += listOf(
+                            "-DANDROID_STL=c++_shared",
+                            "-DANDROID_PLATFORM=android-26",
+                            // Gate fms_diagnostic_xr target in src/vr/cpp/CMakeLists.txt: non-vr
+                            // flavors omit this flag so CMake configure succeeds without the
+                            // Khronos OpenXR AAR on the prefab classpath.
+                            "-DFMS_BUILD_XR_RUNTIME=ON",
+                            // Force new cmake config hash to avoid stale .tmp file lock (2026-04-21)
+                            "-DFMS_BUILD_REVISION=3"
+                        )
+                    }
                 }
             }
             // S0241: keep the VR visual shell/source-set overlay buildable while routing the
@@ -519,7 +549,9 @@ android {
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
             // S0250 / S0245 wiring closure: NoOp XR Hilt bindings live in src/vrStub/java.
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
@@ -535,28 +567,36 @@ android {
             manifest.srcFile("src/vr/AndroidManifest.xml")
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrStub/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrOnly/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudDisabled/java")
+            kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
         }
     }
@@ -604,16 +644,19 @@ android {
         }
 
         create("release") {
-            val keystorePropertiesFile = rootProject.file("keystore.properties")
-            if (keystorePropertiesFile.exists()) {
+            val keystorePropertiesFile = releaseKeystorePropertiesFile
+            if (keystorePropertiesFile != null) {
                 val keystoreProperties = Properties()
                 FileInputStream(keystorePropertiesFile).use { inputStream ->
                     keystoreProperties.load(inputStream)
                 }
-                
+
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
+                storeFile = resolveSiblingPath(
+                    keystorePropertiesFile,
+                    keystoreProperties["storeFile"] as String
+                )
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
@@ -665,7 +708,8 @@ android {
                 signingConfig = signingConfigs.getByName("release")
             } else if (requiresReleaseSigning) {
                 throw GradleException(
-                    "Release signing is requested, but keystore.properties is missing in project root. " +
+                    "Release signing is requested, but .secrets/keystore.properties is missing " +
+                    "(root keystore.properties is still accepted as a fallback). " +
                     "Create keystore.properties with keyAlias/keyPassword/storeFile/storePassword and ensure storeFile exists."
                 )
             }
@@ -693,17 +737,18 @@ android {
         viewBinding = true
         buildConfig = true
         compose = true
-        // Prefab consumes native headers/libs from AAR dependencies
-        // (required by OpenXR loader AAR in vr flavor).
-        prefab = true
+        // Prefab is needed only when the XR native bridge is part of the requested task graph.
+        prefab = isXrNativeBuildRequested
     }
 
-    // Native build (vr flavor only — gated via per-flavor CMake targets list below).
-    // CMake glues Kotlin JNI calls to the OpenXR loader shipped in the AAR.
-    externalNativeBuild {
-        cmake {
-            path = file("src/vr/cpp/CMakeLists.txt")
-            version = "3.22.1"
+    if (isXrNativeBuildRequested) {
+        // Native build (vr/noLegal only; standard/lite/photos/legacy skip the entire pipeline).
+        // CMake glues Kotlin JNI calls to the OpenXR loader shipped in the AAR.
+        externalNativeBuild {
+            cmake {
+                path = file("src/vr/cpp/CMakeLists.txt")
+                version = "3.22.1"
+            }
         }
     }
 
@@ -719,8 +764,12 @@ android {
             // Исключаем дубликаты нативных библиотек BouncyCastle
             pickFirsts += "**/*.so"
             
-            // APK Size Optimization: Exclude unused BouncyCastle algorithms (~2-3 MB)
-
+            // APK Size Optimization (S0385): drop unused BouncyCastle post-quantum PICNIC
+            // data tables (~1.22 MB of lowmcL1/L3/L5 .bin.properties) and the German locale of
+            // the X.509 cert-path reviewer messages. No code references org.bouncycastle.pqc;
+            // SMB/SFTP use only classical BC crypto, so these data resources are never loaded.
+            excludes += "org/bouncycastle/pqc/crypto/picnic/**"
+            excludes += "org/bouncycastle/x509/CertPathReviewerMessages_de.properties"
         }
         
         jniLibs {
@@ -730,6 +779,23 @@ android {
             // Windows NDK linker can leave locked sibling temp files (*.tmp) next to the
             // final shared library in intermediates/cxx; mergeNativeLibs must ignore them.
             excludes += "**/*.tmp"
+
+            // S0386 Phase 05 de-bundle: strip the on-demand native sets from every base artifact.
+            // The Java/Kotlin wrappers (cz.adaptech:tesseract4android, PaddleLite, media3 FfmpegLibrary)
+            // stay on the compile path; only the `.so` are removed and re-attached at runtime from
+            // filesDir by DeliveredNativeLibraryLoader. These names exist only in OCR/DTS flavors, so a
+            // global exclude is flavor-safe (lite/photos never packaged them).
+            // Set B - Tesseract OCR stack:
+            excludes += "**/libtesseract.so"
+            excludes += "**/libleptonica.so"
+            excludes += "**/libpngx.so"
+            excludes += "**/libjpeg.so"
+            // Set B - PaddleOCR (noLegal):
+            excludes += "**/libpaddle_lite_jni.so"
+            excludes += "**/libpaddle_light_api_shared.so"
+            // Set D - FFmpeg DTS decoder:
+            excludes += "**/libffmpegJNI.so"
+
             useLegacyPackaging = false
         }
     }
@@ -839,6 +905,16 @@ androidComponents {
         // input list without conflicting with the flavor srcFile override.
         if (flavorName == "noLegal") {
             variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml")
+        }
+
+        // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
+        // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
+        // would leave OCR/DTS in a half-migrated state.
+
+        // S0401: Exclude translation native libraries from standard and legacy base APKs
+        if (flavorName == "standard" || flavorName == "legacy") {
+            variant.packaging.jniLibs.excludes.add("**/libtranslate_jni.so")
+            variant.packaging.jniLibs.excludes.add("**/liblanguage_id_l2c_jni.so")
         }
     }
 }
@@ -950,7 +1026,14 @@ dependencies {
     // androidx.browser is consumed by Phase 03 CCT routing — added here to keep all S0200 deps colocated.
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
+    // which is mounted into every flavor EXCEPT lite (lite mounts cloudDisabled). Scope it per-flavor
+    // so the lite APK stops packaging an unused Google-identity dependency.
+    "standardImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "noLegalImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "legacyImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "vrImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "photosImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("androidx.browser:browser:1.8.0")
 
     // Jetpack Compose
@@ -961,6 +1044,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+    // S0385: material-icons-extended is NOT dead — Icons.Filled.Pause / SkipNext / SkipPrevious
+    // (media-control icons in WearSyncSettingsFragment + widget config) live only in the extended
+    // set, not in material-icons-core. Removing it breaks compilation. Kept intentionally.
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
@@ -980,10 +1066,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-process:2.7.0") // For ProcessLifecycleOwner
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
-    
-    // Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.59")
@@ -1056,19 +1138,43 @@ dependencies {
     // PhotoView for pinch-to-zoom and rotation support
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
     
-    // RecyclerView FastScroller (interactive scrollbar)
-    implementation("me.zhanghai.android.fastscroll:library:1.3.0")
-    
     // ExifInterface for image metadata (width, height, camera, GPS, etc.)
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     
+    // Play Store dynamic feature support (Play Core on-demand delivery)
+    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
+
     // ML Kit - Translation and Text Recognition (OCR)
-    implementation("com.google.mlkit:translate:17.0.3")
-    implementation("com.google.mlkit:text-recognition:16.0.1")          // Latin script (also works for Cyrillic to some extent)
-    implementation("com.google.mlkit:language-id:17.0.6")
+    // S0386: ML Kit Translate is on-demand via :translate_feature on store flavors and remains
+    // bundled only on sideload/VR flavors where Play dynamic delivery is unavailable.
+    "noLegalImplementation"("com.google.mlkit:translate:17.0.3")
+    "noLegalImplementation"("com.google.mlkit:language-id:17.0.6")
+    "vrImplementation"("com.google.mlkit:translate:17.0.3")
+    "vrImplementation"("com.google.mlkit:language-id:17.0.6")
+    "standardImplementation"("com.google.mlkit:translate:17.0.3")
+    "standardImplementation"("com.google.mlkit:language-id:17.0.6")
+    "legacyImplementation"("com.google.mlkit:translate:17.0.3")
+    "legacyImplementation"("com.google.mlkit:language-id:17.0.6")
+
+    // S0386: com.google.mlkit:text-recognition is completely removed from all builds.
+
+    implementation("androidx.camera:camera-core:1.5.3")
+    implementation("androidx.camera:camera-camera2:1.5.3")
+    implementation("androidx.camera:camera-lifecycle:1.5.3")
+    implementation("androidx.camera:camera-view:1.5.3")
     
     // Tesseract OCR (Offline, better Cyrillic support)
-    implementation("cz.adaptech:tesseract4android:4.8.0") {
+    // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)
+    "standardImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "legacyImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "noLegalImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "vrImplementation"("cz.adaptech:tesseract4android:4.8.0") {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     
@@ -1174,7 +1280,6 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     // S0116 Phase 07 step 0: MockWebServer for graceful-degradation instrumentation tests.
     androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")

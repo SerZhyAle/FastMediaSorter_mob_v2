@@ -7,16 +7,24 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 /**
  * Unit tests for [CanonicalPathNormalizer].
  *
  * `android.net.Uri` is stubbed via MockK because robolectric is not on this module's
  * test classpath - the normalizer only uses `Uri.parse(..).path` and `Uri.decode(..)`.
+ *
+ * LOCAL non-content paths run through `File.canonicalPath`, which is OS-dependent: on Windows a
+ * POSIX absolute path like `/sdcard/x` is resolved against the current drive (`P:\sdcard\x`). Those
+ * assertions are valid only on a POSIX file system (Android/Linux CI) and are guarded accordingly.
  */
 class CanonicalPathNormalizerTest {
+
+    private val posixFs = File.separatorChar == '/'
 
     private lateinit var normalizer: CanonicalPathNormalizer
 
@@ -39,6 +47,7 @@ class CanonicalPathNormalizerTest {
 
     @Test
     fun `LOCAL identity for already-canonical absolute path`() {
+        assumeTrue("POSIX file system required (File.canonicalPath is OS-dependent)", posixFs)
         val out = normalizer.canonical("/sdcard/DCIM/IMG.jpg", ResourceType.LOCAL)
         assertEquals("/sdcard/DCIM/IMG.jpg", out)
     }
@@ -79,6 +88,9 @@ class CanonicalPathNormalizerTest {
 
     @Test
     fun `idempotent for every covered case`() {
+        // The LOCAL cases feed back through File.canonicalPath on the second pass, so idempotency
+        // only holds on a POSIX file system; SMB/CLOUD cases are covered by their own tests above.
+        assumeTrue("POSIX file system required (File.canonicalPath is OS-dependent)", posixFs)
         val cases: List<Pair<String, ResourceType>> = listOf(
             "/sdcard/DCIM/IMG.jpg" to ResourceType.LOCAL,
             "content://media/external/images/12345" to ResourceType.LOCAL,

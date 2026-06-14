@@ -28,7 +28,6 @@ class AddResourceHelper(
 
         when (resource.type) {
             ResourceType.LOCAL -> {
-                // Show local folder section
                 activity.showLocalFolderOptions()
                 binding.etLocalPinCode.setText(resource.accessPin.orEmpty())
                 // For local, path is already selected by user via folder picker
@@ -124,6 +123,14 @@ class AddResourceHelper(
                 // Pre-fill credentials
                 if (username != null) binding.etSftpUsername.setText(username)
                 binding.etSftpPinCode.setText(resource.accessPin.orEmpty())
+                // S0046: prefill the pinned host-key fingerprint; clearing it on save reverts to permissive mode.
+                binding.etSftpHostKeyFingerprint.setText(resource.hostKeyFingerprint.orEmpty())
+                // Reveal the optional security block when a fingerprint is already pinned so the saved value is visible on edit.
+                // notify=false keeps this transient and avoids persisting the expanded state for future new resources.
+                if (!resource.hostKeyFingerprint.isNullOrBlank()) {
+                    binding.headerSftpServerVerification.setExpanded(true, notify = false)
+                    binding.contentSftpServerVerification.visibility = android.view.View.VISIBLE
+                }
 
                 if (sshKey != null) {
                     binding.rbSftpSshKey.isChecked = true

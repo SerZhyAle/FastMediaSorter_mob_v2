@@ -4,9 +4,6 @@ import android.content.Context
 import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.local.db.FavoritesDao
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.createAppSettings
 import io.mockk.coEvery
@@ -28,21 +25,17 @@ class BackupToGoogleDriveUseCaseTest {
 
     private val context = mockk<Context>(relaxed = true)
     private val settingsRepository = mockk<SettingsRepository>()
-    private val resourceRepository = mockk<ResourceRepository>()
     private val driveClient = mockk<GoogleDriveRestClient>()
-    private val favoritesDao = mockk<FavoritesDao>()
-    private val scheduledRepo = mockk<ScheduledOperationRepository>()
+    private val buildPayloadUseCase = mockk<BuildBackupPayloadUseCase>()
     private lateinit var useCase: BackupToGoogleDriveUseCase
 
     @Before
     fun setup() {
         useCase = BackupToGoogleDriveUseCase(
-            context, settingsRepository, resourceRepository, driveClient, favoritesDao, scheduledRepo,
+            context, settingsRepository, driveClient, buildPayloadUseCase,
         )
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
-        coEvery { resourceRepository.getAllResourcesSync() } returns emptyList()
-        coEvery { favoritesDao.getAllFavoritesSync() } returns emptyList()
-        every { scheduledRepo.getAll() } returns flowOf(emptyList())
+        coEvery { buildPayloadUseCase() } returns BackupPayload(resources = emptyList(), favorites = emptyList())
     }
 
     private fun cloudFile(id: String) = CloudFile(id = id, name = "x", path = "/x", isFolder = true)

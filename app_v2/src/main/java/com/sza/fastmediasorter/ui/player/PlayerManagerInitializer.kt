@@ -168,24 +168,23 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.playerPrefetchManager.setup()
     }
 
-    private fun initBackgroundMedia() {
-        activity.backgroundMusicManager.initialize()
-
-        activity.backgroundMusicManager.setOnTrackChangedListener { trackName ->
-            activity.runOnUiThread {
-                // dialogAndUiStateManager is initialized in initUiCoordinators() - safe here (deferred)
-                activity.dialogAndUiStateManager.updateBackgroundMusicTrackDisplay(trackName)
-            }
+    fun ensureAudioBackgroundManagersConfigured() {
+        if (activity.areAudioBackgroundManagersConfigured) {
+            return
         }
 
+        activity.backgroundMusicManager.initialize()
+        activity.backgroundMusicManager.setOnTrackChangedListener { trackName ->
+            activity.runOnUiThread {
+                runCatching { activity.dialogAndUiStateManager }
+                    .getOrNull()
+                    ?.updateBackgroundMusicTrackDisplay(trackName)
+            }
+        }
         activity.backgroundMusicManager.setOnMusicErrorListener { errorMessage ->
             activity.runOnUiThread {
                 Toast.makeText(activity, errorMessage, Toast.LENGTH_SHORT).show()
             }
-        }
-
-        activity.safeViews.tvBackgroundMusicTrack.setOnClickListener {
-            activity.backgroundMusicManager.skipToNextRandomTrack()
         }
 
         activity.audioBackgroundPhotosManager.initialize()
@@ -204,15 +203,23 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.audioBackgroundPhotosManager.setOnErrorListener { errorMessage ->
             Toast.makeText(activity, errorMessage, Toast.LENGTH_SHORT).show()
         }
+        activity.areAudioBackgroundManagersConfigured = true
+    }
+
+    private fun initBackgroundMedia() {
+        activity.safeViews.tvBackgroundMusicTrack.setOnClickListener {
+            ensureAudioBackgroundManagersConfigured()
+            activity.backgroundMusicManager.skipToNextRandomTrack()
+        }
     }
 
     private fun initCoreCoordination() {
         activity.cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
             coroutineScope = activity.lifecycleScope,
-            googleDriveClient = activity.googleDriveClient,
-            dropboxClient = activity.dropboxClient,
-            oneDriveClient = activity.oneDriveClient,
+            googleDriveClient = activity.googleDriveClientLazy,
+            dropboxClient = activity.dropboxClientLazy,
+            oneDriveClient = activity.oneDriveClientLazy,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
                 override fun onAuthenticationSuccess() {}
                 override fun onAuthenticationFailure() {}
@@ -280,7 +287,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             fileOperationUseCase = activity.fileOperationUseCase
         )
         activity.cropDelegate = com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate(
-            activity = activity,
+            host = activity,
             imageCropManager = activity.imageCropManager,
         )
         // S0107: Draw overlay manager; S0162: pass rotation manager for ADR-4 exit restore
@@ -316,11 +323,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity = activity,
             viewModel = activity.viewModel,
             settingsRepository = activity.settingsRepository,
-            smbClient = activity.smbClient,
-            sftpClient = activity.sftpClient,
-            ftpClient = activity.ftpClient,
-            credentialsRepository = activity.credentialsRepository,
-            unifiedCache = activity.unifiedCache,
+            smbClient = activity.smbClientLazy,
+            sftpClient = activity.sftpClientLazy,
+            ftpClient = activity.ftpClientLazy,
+            credentialsRepository = activity.credentialsRepositoryLazy,
+            unifiedCache = activity.unifiedCacheLazy,
             rotateImageUseCase = activity.rotateImageUseCase,
             flipImageUseCase = activity.flipImageUseCase,
             networkImageEditUseCase = activity.networkImageEditUseCase,
@@ -431,7 +438,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             audioCoverArtView = activity.activityBinding.audioCoverArtView,
             barsView = activity.activityBinding.audioBarsView,
             videoView = activity.activityBinding.audioVideoView,
-            wavesView = activity.activityBinding.audioWaveParticleView
+            wavesView = activity.activityBinding.audioWaveParticleView,
+            deliveredSource = activity.deliveredAudioVisualizationSource
         )
         activity.imageLoadingManager.setAudioEmptyStateController(activity.audioEmptyStateController!!)
     }
@@ -439,18 +447,18 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
     private fun initNetworkAndTranslation() {
         activity.networkFileManager = NetworkFileManager(
             context = activity,
-            smbClient = activity.smbClient,
-            sftpClient = activity.sftpClient,
-            ftpClient = activity.ftpClient,
-            googleDriveClient = activity.googleDriveClient,
-            dropboxClient = activity.dropboxClient,
-            oneDriveClient = activity.oneDriveClient,
-            credentialsRepository = activity.credentialsRepository,
-            smbFileOperationHandler = activity.smbFileOperationHandler,
-            sftpFileOperationHandler = activity.sftpFileOperationHandler,
-            ftpFileOperationHandler = activity.ftpFileOperationHandler,
-            cloudFileOperationHandler = activity.cloudFileOperationHandler,
-            unifiedCache = activity.unifiedCache,
+            smbClient = activity.smbClientLazy,
+            sftpClient = activity.sftpClientLazy,
+            ftpClient = activity.ftpClientLazy,
+            googleDriveClient = activity.googleDriveClientLazy,
+            dropboxClient = activity.dropboxClientLazy,
+            oneDriveClient = activity.oneDriveClientLazy,
+            credentialsRepository = activity.credentialsRepositoryLazy,
+            smbFileOperationHandler = activity.smbFileOperationHandlerLazy,
+            sftpFileOperationHandler = activity.sftpFileOperationHandlerLazy,
+            ftpFileOperationHandler = activity.ftpFileOperationHandlerLazy,
+            cloudFileOperationHandler = activity.cloudFileOperationHandlerLazy,
+            unifiedCache = activity.unifiedCacheLazy,
             callback = object : NetworkFileManager.NetworkFileCallback {
                 override fun getCurrentResource(): com.sza.fastmediasorter.domain.model.MediaResource? =
                     activity.viewModel.state.value.resource
@@ -710,7 +718,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.pipManager = PictureInPictureManager(
             activity = activity,
-            binding = activity.activityBinding,
+            playerView = activity.activityBinding.playerView,
+            chromeToHide = listOf(activity.activityBinding.toolbar, activity.activityBinding.topCommandPanel),
             getPlayer = { activity.videoPlayerManager.getPlayer() },
             onPlay = {
                 val isAudio = activity.isMediaLoaderManagerInitialized &&
@@ -806,6 +815,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             playbackPositionRepository = activity.playbackPositionRepository,
             // S0213 Pillar A: cooldown gate at playVideo entry - short-circuits decoder-error replays.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
+            // S0391: source-availability gate for the Favorites mixed-source playback path.
+            remoteSourceGate = activity.remoteSourceGate,
         )
     }
 
@@ -830,8 +841,14 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity = activity,
             binding = activity.activityBinding,
             viewModel = activity.viewModel,
-            audioBackgroundPhotosManager = activity.audioBackgroundPhotosManager,
-            backgroundMusicManager = activity.backgroundMusicManager,
+            audioBackgroundPhotosManagerProvider = {
+                ensureAudioBackgroundManagersConfigured()
+                activity.audioBackgroundPhotosManager
+            },
+            backgroundMusicManagerProvider = {
+                ensureAudioBackgroundManagersConfigured()
+                activity.backgroundMusicManager
+            },
             dialogAndUiStateManager = activity.dialogAndUiStateManager,
             settingsRepository = activity.settingsRepository,
             lifecycleScope = activity.lifecycleScope,
@@ -855,6 +872,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             settingsRepository = activity.settingsRepository,
             detectionFacade = activity.xrDetectionFacade,
             startVrPlaybackUseCase = activity.startVrPlaybackUseCase,
+            payloadHolder = activity.vrLaunchPayloadHolder,
         ).also { it.bind() }
 
         // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay. Use actual command-panel visibility rather than raw showCommandPanel state, because audio can force the panel visible while the ViewModel flag stays false.

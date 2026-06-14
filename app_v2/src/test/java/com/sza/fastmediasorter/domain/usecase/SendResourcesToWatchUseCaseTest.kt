@@ -197,6 +197,8 @@ private class FakeResourceRepository : ResourceRepository {
     override fun getAllResources(): Flow<List<MediaResource>> = emptyFlow()
     override suspend fun getAllResourcesSync(): List<MediaResource> = resources
     override suspend fun getResourceById(id: Long): MediaResource? = resources.firstOrNull { it.id == id }
+    override suspend fun getLocalResourceByPath(path: String): MediaResource? =
+        resources.firstOrNull { it.type == ResourceType.LOCAL && it.path == path }
     override fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>> = emptyFlow()
     override fun getDestinations(): Flow<List<MediaResource>> = emptyFlow()
     override suspend fun getFilteredResources(

@@ -72,7 +72,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 WearSyncEvents.watchPlaybackStateFlow.emit(payload)
             } catch (e: Exception) {
-                Timber.e(e, "S0111: Failed to deserialize playback state payload")
+                Timber.e(e, "Failed to deserialize playback state payload")
             }
         }
     }
@@ -87,7 +87,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 WearSyncEvents.watchSourcesReceivedFlow.emit(payload)
             } catch (e: Exception) {
-                Timber.e(e, "S0111: failed to deserialize sources export payload")
+                Timber.e(e, "failed to deserialize sources export payload")
             }
         }
     }
@@ -102,7 +102,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 applyWatchFavoritesDeltaUseCase(payload)
             } catch (e: Exception) {
-                Timber.e(e, "S0111: Failed to deserialize favorites delta payload")
+                Timber.e(e, "Failed to deserialize favorites delta payload")
             }
         }
     }

@@ -151,7 +151,7 @@ class NetworkFileDataFetcher(
         fun clearTransientFailuresForResource(resourceKey: String) {
             val cleared = transientFailedVideos.keys.filter { pathBelongsToResource(it, resourceKey) }
             cleared.forEach { transientFailedVideos.remove(it) }
-            if (cleared.isNotEmpty()) Timber.i("[scope=thumbnail S0066 resource=$resourceKey] Cleared ${cleared.size} transient failures")
+            if (cleared.isNotEmpty()) Timber.i("[scope=thumbnail resource=$resourceKey] Cleared ${cleared.size} transient failures")
         }
 
         @Deprecated(

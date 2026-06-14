@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ocr_best_download_error">Загрузка не удалась. Проверьте подключение к сети.</string>
     <string name="ocr_best_model_delete">Удалить</string>
     <string name="ocr_best_model_download">Скачать</string>
-    <string name="ocr_best_model_downloading">Загрузка: %1$d%% (%2$s)</string>
-    <string name="ocr_best_model_installed">Установлена</string>
-    <string name="ocr_best_model_size_mb">Качественная модель (~%1$s МБ)</string>
-    <string name="ocr_best_models_title">Качественные офлайн-модели</string>
-    <string name="ocr_best_rus_title">Русская модель</string>
-    <string name="ocr_best_ukr_title">Украинская модель</string>
     <string name="ocr_button_description">Извлечь текст</string>
     <string name="ocr_engine_type">Движок OCR</string>
     <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
@@ -19,7 +12,7 @@
     <string name="ocr_font_size">Размер шрифта для OCR</string>
     <string name="ocr_images_only">Распознавание текста доступно только для изображений.</string>
     <string name="ocr_no_text_found">Текст на изображении не найден</string>
-    <string name="ocr_processing">Распознавание текста…</string>
+    <string name="ocr_processing">Распознавание текста..</string>
     <string name="ocr_requires_newer_device">OCR недоступен на этом устройстве. %1$s (API: %2$d). Требуется API 26+ и 3 ГБ+ ОЗУ.</string>
     <string name="ocr_result_title">Распознанный текст</string>
     <string name="ocr_unavailable_reason_os">Версия Android слишком старая</string>
@@ -37,6 +30,6 @@
     <string name="translation_settings">Настройки текста</string>
     <string name="translation_source_language">Исходный язык</string>
     <string name="translation_source_language_and_ocr">Исходный язык и OCR</string>
-    <string name="translation_started">Перевод запущен…</string>
+    <string name="translation_started">Перевод запущен..</string>
     <string name="translation_target_language">Перевести на</string>
 </resources>

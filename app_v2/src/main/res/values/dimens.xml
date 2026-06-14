@@ -86,11 +86,20 @@
     <dimen name="welcome_title_text_size">24sp</dimen>
     <dimen name="welcome_description_margin_top">12dp</dimen>
     <dimen name="welcome_description_text_size">15sp</dimen>
+    <!-- Compact header for the permissions page (S0402): no icon, smaller title to free list space -->
+    <dimen name="welcome_permissions_title_text_size">20sp</dimen>
+    <dimen name="welcome_perm_actions_gap">8dp</dimen>
+    <dimen name="welcome_perm_list_corner">16dp</dimen>
+    <dimen name="welcome_perm_list_content_padding">4dp</dimen>
     <dimen name="welcome_feature_card_icon_size">32dp</dimen>
     <dimen name="welcome_feature_card_text_size">12sp</dimen>
     <dimen name="welcome_feature_card_padding">12dp</dimen>
     <dimen name="welcome_feature_card_margin">6dp</dimen>
     <dimen name="welcome_content_max_width">600dp</dimen>
+    <!-- Wider cap for the landscape two-column functionality page (S0400) so both toggle columns breathe -->
+    <dimen name="welcome_functionality_max_width_land">920dp</dimen>
+    <!-- Gutter between the two toggle columns on the landscape functionality page -->
+    <dimen name="welcome_func_column_gap">16dp</dimen>
 
     <!-- Resource list items -->
     <dimen name="resource_item_padding">12dp</dimen>
@@ -108,7 +117,14 @@
     <dimen name="toolbar_row_height_compact">24dp</dimen>
     <!-- Settings Activity: non-compact header heights (replaces actionBarSizePx ~56dp) -->
     <dimen name="settings_title_row_height">28dp</dimen>
-    <dimen name="settings_tabs_height">24dp</dimen>
+    <dimen name="settings_tabs_height">48dp</dimen>
+    <dimen name="settings_tabs_height_compact">40dp</dimen>
+    <dimen name="settings_tab_min_touch_height">40dp</dimen>
+    <dimen name="settings_tab_horizontal_padding">8dp</dimen>
+    <dimen name="settings_tab_vertical_padding">4dp</dimen>
+    <dimen name="settings_tab_corner_radius">8dp</dimen>
+    <dimen name="settings_tab_bottom_cover_height">2dp</dimen>
+    <dimen name="settings_tab_land_width">140dp</dimen>
     <dimen name="control_button_spacing_large">24dp</dimen>
     <dimen name="control_button_spacing_small">8dp</dimen>
     <dimen name="control_button_play_width">96dp</dimen>
@@ -129,6 +145,20 @@
     <dimen name="browse_progress_max_width">250dp</dimen>
     <dimen name="browse_stop_button_margin_start">16dp</dimen>
     <dimen name="elevation_operations_bar">4dp</dimen>
+
+    <!-- S0374 Browse top command bar +20% (Browse-scoped, do not reuse on other screens) -->
+    <!-- Container slot height (48dp base ×1.2). Do NOT point at control_button_size: that is shared with Main/Game. -->
+    <dimen name="browse_cmd_button_size">58dp</dimen>
+    <!-- Visible button height cap. Must be >= browse_cmd_icon_size (29dp) so the +20% glyph is not vertically clamped by MaterialButton. -->
+    <dimen name="browse_cmd_button_min_height">29dp</dimen>
+    <dimen name="browse_cmd_button_max_height">29dp</dimen>
+    <!-- Tap-target width bounds (32dp / 100dp base ×1.2). -->
+    <dimen name="browse_cmd_button_min_width">38dp</dimen>
+    <dimen name="browse_cmd_button_max_width">120dp</dimen>
+    <!-- Icon glyph size (24dp vector intrinsic ×1.2); buttons had no app:iconSize before. -->
+    <dimen name="browse_cmd_icon_size">29dp</dimen>
+    <!-- Portrait/landscape label text (10sp base ×1.2). -->
+    <dimen name="browse_cmd_text_size">12sp</dimen>
 
     <!-- Player Activity -->
     <dimen name="player_cmd_button_size">40dp</dimen>
@@ -233,7 +263,7 @@
 
     <!-- Settings Activity -->
     <dimen name="toolbar_elevation">0dp</dimen>
-    <dimen name="tab_indicator_height">4dp</dimen>
+    <dimen name="tab_indicator_height">0dp</dimen>
 
     <!-- Resource Management (Add/Edit Resource) -->
     <dimen name="resource_card_margin_bottom">4dp</dimen>

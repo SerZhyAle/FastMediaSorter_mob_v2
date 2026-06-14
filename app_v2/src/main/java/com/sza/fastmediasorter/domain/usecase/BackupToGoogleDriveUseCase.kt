@@ -2,12 +2,8 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import com.google.gson.GsonBuilder
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.local.db.FavoritesDao
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -27,10 +23,8 @@ import javax.inject.Inject
 class BackupToGoogleDriveUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
-    private val resourceRepository: ResourceRepository,
     private val googleDriveClient: GoogleDriveRestClient,
-    private val favoritesDao: FavoritesDao,
-    private val scheduledOperationRepository: ScheduledOperationRepository
+    private val buildBackupPayloadUseCase: BuildBackupPayloadUseCase
 ) {
     companion object {
         const val FOLDER_NAME = "FastMediaSorter"
@@ -168,32 +162,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
 
             val accountEmail = googleDriveClient.getAccountEmail() ?: "Unknown"
 
-            // 1. Collect data
-            val settings = settingsRepository.getSettings().first()
-            val resources = resourceRepository.getAllResourcesSync()
+            // 1. Build unified payload (shared with the local-file export path).
+            Timber.d("S0406: backup unified payload to Google Drive")
+            val payload = buildBackupPayloadUseCase()
+            val resourceCount = payload.resources?.size ?: 0
+            val favoritesCount = payload.favorites?.size ?: 0
 
-            // 1b. Collect favorites
-            val favoritesEntities = favoritesDao.getAllFavoritesSync()
-            val resourceLookup = resources.associateBy { it.id }
-            val backupFavorites = BackupMapper.toBackupFavorites(favoritesEntities, resourceLookup)
-
-            // 1c. Collect scheduled operations
-            val scheduledOps = scheduledOperationRepository.getAll().first()
-            val backupScheduledOps = scheduledOps.mapNotNull { op ->
-                BackupMapper.toBackupScheduledOperation(op, resourceLookup)
-            }
-
-            // 2. Build payload
-            val payload = BackupMapper.toBackupPayload(
-                settings = settings,
-                resources = resources,
-                favorites = backupFavorites,
-                appVersionCode = BuildConfig.VERSION_CODE.toLong(),
-                appVersionName = BuildConfig.VERSION_NAME,
-                scheduledOperations = backupScheduledOps
-            )
-
-            // 3. Serialize to JSON
+            // 2. Serialize to JSON
             val gson = GsonBuilder().setPrettyPrinting().create()
             val json = gson.toJson(payload)
             val jsonBytes = json.toByteArray(Charsets.UTF_8)
@@ -214,8 +189,8 @@ class BackupToGoogleDriveUseCase @Inject constructor(
 
             when (uploadResult) {
                 is CloudResult.Success -> {
-                    Timber.i("Backup uploaded as $fileName: ${resources.size} resources, ${backupFavorites.size} favorites")
-                    Result.success(BackupResult(resources.size, backupFavorites.size, accountEmail))
+                    Timber.i("Backup uploaded as $fileName: $resourceCount resources, $favoritesCount favorites")
+                    Result.success(BackupResult(resourceCount, favoritesCount, accountEmail))
                 }
                 is CloudResult.Error -> {
                     Timber.e("Backup upload failed: ${uploadResult.message}")
@@ -235,7 +210,6 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             return findResult.data.id
         }
 
-        // Create new folder
         val createResult = googleDriveClient.createFolder(FOLDER_NAME, null)
         return when (createResult) {
             is CloudResult.Success -> {

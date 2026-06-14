@@ -10,6 +10,7 @@ import android.widget.EditText
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -89,6 +90,7 @@ class ImageDrawOverlayManager(
         fun onSaveAndShareRequested(overlayBitmap: Bitmap)
         fun onShareRequested(overlayBitmap: Bitmap)
         fun onCancelRequested()
+        fun onDeleteRequested()
     }
 
     /**
@@ -124,6 +126,10 @@ class ImageDrawOverlayManager(
     private var toolbarRoot: View? = null
     private val cleanToolbarColor = 0xCC000000.toInt()
     private val dirtyToolbarColor = 0xCC6B2C00.toInt()
+
+    // S0362: gate the "Send to Google Keep" overflow item on actual Keep availability so the
+    // draw editor matches the text editor (item hidden when Keep is not installed).
+    private val keepChecker = com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(activity)
 
     // Reference to current file for filename templating (set before enterDrawMode)
     var currentFile: com.sza.fastmediasorter.domain.model.MediaFile? = null
@@ -242,6 +248,11 @@ class ImageDrawOverlayManager(
     fun bindToolbar(root: View) {
         toolbarRoot = root
 
+        // S0368: keep the draw toolbar inside the system-bar / display-cutout safe area.
+        // Adds maxOf(systemBars, cutout) on top of the existing 8dp base padding; bottom
+        // matters in portrait (nav bar), left/right in landscape (cutout / gesture rail).
+        root.applySystemBarInsetPadding()
+
         // ── Tool selector ────────────────────────────────────────────────
         val selectorBtn = root.findViewById<android.widget.ImageButton>(
             com.sza.fastmediasorter.R.id.btn_draw_tool_selector
@@ -323,6 +334,14 @@ class ImageDrawOverlayManager(
                     ?.isEnabled = hasActions
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_undo_all)
                     ?.isEnabled = hasActions
+                // S0362: hide "Send to Google Keep" when Keep is not installed (unified fallback).
+                val keepAvailable = keepChecker.isKeepAvailable()
+                Timber.d("S0362: draw overflow opened, keepAvailable=$keepAvailable")
+                menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_keep)
+                    ?.isVisible = keepAvailable
+                // S0360: "Delete file" only when a source file is open.
+                menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_delete_file)
+                    ?.isVisible = currentFile != null
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         com.sza.fastmediasorter.R.id.draw_overflow_save_new -> {
@@ -343,6 +362,10 @@ class ImageDrawOverlayManager(
                         }
                         com.sza.fastmediasorter.R.id.draw_overflow_keep -> {
                             launchKeepExport()
+                            true
+                        }
+                        com.sza.fastmediasorter.R.id.draw_overflow_delete_file -> {
+                            actionCallback?.onDeleteRequested()
                             true
                         }
                         else -> false
@@ -390,7 +413,7 @@ class ImageDrawOverlayManager(
         owner.lifecycleScope.launch {
             val result = keepExportHelper.export(activity, baseBitmap, overlay)
             result.onFailure { error ->
-                Timber.e(error, "S0192: Keep export failed")
+                Timber.e(error, "Keep export failed")
                 withContext(Dispatchers.Main) {
                     android.widget.Toast.makeText(
                         activity,

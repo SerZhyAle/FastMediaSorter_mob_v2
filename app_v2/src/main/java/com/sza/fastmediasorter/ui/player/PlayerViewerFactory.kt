@@ -40,6 +40,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             memoryProfileCoordinator = activity.memoryProfileCoordinator,
             // S0213 Pillar A: cooldown tracker for decoder-failure replay throttling.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
+            // S0391: source-availability gate for playback-dispatch gating.
+            remoteSourceGate = activity.remoteSourceGate,
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }
@@ -47,7 +49,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
     fun createPdfViewerManager(): PdfViewerManager {
         return PdfViewerManager(
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
             settingsRepository = activity.settingsRepository,
             coroutineScope = activity.lifecycleScope,
@@ -95,7 +97,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
     fun createEpubViewerManager(): EpubViewerManager {
         return EpubViewerManager(
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
             settingsRepository = activity.settingsRepository,
             coroutineScope = activity.lifecycleScope,
@@ -129,7 +131,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
         )
         return TextViewerManager(
             context = activity,
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
             settingsRepository = activity.settingsRepository,
             coroutineScope = activity.lifecycleScope,
@@ -181,7 +183,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
     /** Creates the flavor-specific embedded Office viewer host (S0301 Phase 03). */
     fun createOfficeDocumentViewerHost(): com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost =
         com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProviderFactory().createViewerHost(
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             coroutineScope = activity.lifecycleScope,
             callback = object : com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost.Callback {
                 override fun showError(message: String) { activity.showError(message) }

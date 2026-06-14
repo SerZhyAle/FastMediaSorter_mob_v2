@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.common.DeviceProfileUi
 import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.launch
 
 /**
  * S0327: owns the "Device Profile" row in Settings -> General.
@@ -28,7 +32,23 @@ class GeneralSettingsProfileHelper(
             val name = bundle.getString(DeviceProfilePickerDialogFragment.RESULT_PROFILE)
                 ?: return@setFragmentResultListener
             runCatching { DeviceProfileType.valueOf(name) }.getOrNull()
-                ?.let { viewModel.saveProfile(it) }
+                ?.let { type ->
+                    fragment.viewLifecycleOwner.lifecycleScope.launch {
+                        if (!viewModel.shouldConfirmAllFilesProvision(type)) {
+                            viewModel.saveProfile(type)
+                            return@launch
+                        }
+
+                        AlertDialog.Builder(fragment.requireContext())
+                            .setTitle(R.string.settings_all_files_profile_confirm_title)
+                            .setMessage(R.string.settings_all_files_profile_confirm_message)
+                            .setPositiveButton(R.string.yes) { _, _ ->
+                                viewModel.saveProfile(type, ensureAllFilesResource = true)
+                            }
+                            .setNegativeButton(R.string.no, null)
+                            .show()
+                    }
+                }
         }
 
         binding.rowDeviceProfile.setOnClickListener {

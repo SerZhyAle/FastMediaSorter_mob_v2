@@ -588,6 +588,12 @@ class PlayerViewModel @Inject constructor(
      */
     fun deleteCurrentFile(): Boolean? = deleteUndoCoordinator.deleteCurrentFile()
 
+    /**
+     * Delete the current file and finish the activity (return to browse) on success.
+     * On failure the activity stays open so the error can be surfaced.
+     */
+    fun deleteCurrentFileAndFinish(): Boolean? = deleteUndoCoordinator.deleteCurrentFile(finishOnSuccess = true)
+
     fun reloadAfterRename() = deleteUndoCoordinator.reloadAfterRename()
 
     fun saveUndoOperation(operation: UndoOperation) = deleteUndoCoordinator.saveUndoOperation(operation)
@@ -715,7 +721,6 @@ class PlayerViewModel @Inject constructor(
             try {
                 val currentFile = state.value.currentFile ?: return@launch
                 
-                // Get updated file size
                 // For network files, increment size by 1 as workaround (actual size changed on server)
                 // The main cache invalidation now happens via NetworkFileData.equals() using path+size
                 val updatedSize = when {
@@ -737,7 +742,6 @@ class PlayerViewModel @Inject constructor(
                     }
                 }
                 
-                // Update file in list
                 val updatedFiles = state.value.files.toMutableList()
                 val currentIndex = state.value.currentIndex
                 if (currentIndex in updatedFiles.indices) {

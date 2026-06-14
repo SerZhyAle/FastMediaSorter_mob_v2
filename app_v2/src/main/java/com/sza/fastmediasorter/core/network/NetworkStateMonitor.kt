@@ -187,7 +187,6 @@ class NetworkStateMonitor @Inject constructor(
             isMonitoring = true
             Timber.i("NetworkStateMonitor: Started monitoring network state")
             
-            // Get initial network state
             val activeNetwork = connectivityManager.activeNetwork
             if (activeNetwork != null) {
                 lastNetworkId = getNetworkId(activeNetwork)

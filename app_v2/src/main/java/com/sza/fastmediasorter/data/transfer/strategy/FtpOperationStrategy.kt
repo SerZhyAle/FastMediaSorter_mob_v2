@@ -617,7 +617,6 @@ class FtpOperationStrategy @Inject constructor(
             collectFtpFilesOnly(sourceInfo.remotePath, allFiles)
             val totalCount = allFiles.size
             
-            // Create destination directory
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
             
             var copiedCount = 0

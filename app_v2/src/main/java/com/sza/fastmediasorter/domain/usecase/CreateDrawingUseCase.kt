@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.domain.files.FileNameConflictResolver
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.util.DrawingTargetPolicy
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -59,18 +61,22 @@ class CreateDrawingUseCase @Inject constructor(
         val requestedName = ensureJpegExtension(trimmedName)
         val initialBytes = buildBlankDrawingBytes()
 
+        val resolvedParentPath = DrawingTargetPolicy.resolveParentPath(resource, parentPath)
+        DrawingTargetPolicy.ensureFallbackDirectoryIfNeeded(resource, resolvedParentPath)
+            .onFailure { return@withContext Result.failure(it) }
+
         runCatching {
             when (resource.type) {
                 ResourceType.LOCAL -> createLocalDrawing(
                     resource = resource,
-                    parentPath = parentPath,
+                    parentPath = resolvedParentPath,
                     requestedName = requestedName,
                     bytes = initialBytes,
                 )
 
                 else -> createStagedDrawing(
                     resource = resource,
-                    parentPath = parentPath,
+                    parentPath = resolvedParentPath,
                     requestedName = requestedName,
                     bytes = initialBytes,
                 )
@@ -101,6 +107,10 @@ class CreateDrawingUseCase @Inject constructor(
             kind = StagedKind.DRAWING,
             location = LocalStagingRegistry.Location.LOCAL_DEFERRED,
         )
+
+        // Register the new JPEG in MediaStore so it surfaces in the "all images" / "camera"
+        // aggregate views, not only in the direct folder listing.
+        MediaStoreNotifier.notifyFile(appContext, targetFile.absolutePath, "create-drawing")
 
         return targetFile
     }

@@ -21,6 +21,10 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 - 🚗 _"I have an Android car stereo and want to play my music from a USB or phone"_ → [In-Car Music Player](scenario-car-music.md)
 - 🧹 _"I have 200 files in Downloads and want to sort them into folders quickly"_ → [Download Organizer (Quick Sort)](scenario-download-organizer.md)
 - 🖥️ _"I hear about SMB/NAS but don't know how to connect"_ → [Connect to NAS / Windows Share](scenario-smb-setup.md)
+- 📱 _"I want to place one-tap shortcuts on my home screen to record notes or start slides"_ → [Home-Screen Smart Widgets](../HOW_TO.md#home-screen-smart-widgets)
+- 🕶️ _"I want to watch SBS 3D movies or flat video files in full VR immersion"_ → [OpenXR VR Immersive Cinema](../HOW_TO.md#openxr-vr-immersive-cinema)
+- 🧮 _"I want to quickly extract numbers and calculate math formulas from texts/images"_ → [Quick Math & Text Calculations](../HOW_TO.md#quick-math-and-text-calculations)
+- 📝 _"I want to edit Markdown and code notes directly on my cloud or network drive"_ → [Cloud Markdown & Code Notes](../HOW_TO.md#cloud-markdown-and-code-notes)
 
 ---
 
@@ -34,6 +38,10 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 | [🧹 Download Organizer (Quick Sort)](scenario-download-organizer.md) | Sort hundreds of files into folders with one tap per file - set up once, use daily | ~10 min | Any |
 | [📷 Scheduled Camera Backup to PC](scenario-camera-backup.md) | Automatic nightly photo backup over Wi-Fi - wakes up, copies, goes back to sleep | ~15 min | Standard |
 | [🖥️ Connect to NAS / Windows Share (SMB)](scenario-smb-setup.md) | Step-by-step SMB setup with every field explained in plain language | ~10 min | All flavors |
+| [📱 Home-Screen Smart Widgets](../HOW_TO.md#home-screen-smart-widgets) | Add one-tap widgets to record voice, run tasks, or show a random photo frame | ~5 min | Standard / Legacy / VR |
+| [🕶️ OpenXR VR Immersive Cinema](../HOW_TO.md#openxr-vr-immersive-cinema) | Watch SBS 3D/360° media and 2D files on a huge screen in virtual reality | ~10 min | VR Only |
+| [🧮 Quick Math & Text Calculations](../HOW_TO.md#quick-math-and-text-calculations) | Select math equations in PDFs or OCR results to evaluate them in a popup | ~5 min | Standard / Legacy / VR |
+| [📝 Cloud Markdown & Code Notes](../HOW_TO.md#cloud-markdown-and-code-notes) | Create and edit Markdown text files and code notes directly on cloud or network drives | ~10 min | Standard / Any local |
 
 ---
 

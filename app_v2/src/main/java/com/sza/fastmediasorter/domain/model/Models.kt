@@ -298,6 +298,6 @@ data class UndoOperation(
     val sourceFiles: List<String>, // Original file paths
     val destinationFolder: String? = null, // For COPY/MOVE operations
     val copiedFiles: List<String>? = null, // Destination paths for copied/moved files
-    val oldNames: List<Pair<String, String>>? = null, // (oldPath, newPath) for RENAME
+    val oldNames: List<Pair<String, String>>? = null, // (currentPathAfterRename, originalDisplayName) for RENAME
     val timestamp: Long = System.currentTimeMillis()
 )

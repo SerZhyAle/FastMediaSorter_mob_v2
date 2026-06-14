@@ -113,7 +113,7 @@ class ThumbnailExtractorHelper @Inject constructor(
                 val frame = retriever.getFrameAtTime(offsetUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
                     ?: break
                 if (VideoFrameDarknessEvaluator.isDark(frame)) {
-                    Timber.d("[S0178] bg-extractor: dark frame at ${offsetUs / 1_000_000}s, retrying: ${localFile.name}")
+                    Timber.d("bg-extractor: dark frame at ${offsetUs / 1_000_000}s, retrying: ${localFile.name}")
                     if (bestBitmap == null) bestBitmap = frame else frame.recycle()
                 } else {
                     bestBitmap?.recycle()

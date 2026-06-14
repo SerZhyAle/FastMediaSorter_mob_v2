@@ -63,7 +63,6 @@ internal class VideoPlayerTracksObserver(
                         .distinct()
                         .joinToString(", ")
                     val msg = manager.context.getString(R.string.warning_m2ts_audio_unsupported, codecs)
-                    Timber.d("S0054: VideoPlayerManager all .m2ts audio tracks unsupported path=$path codecs=$codecs - showing warning toast")
                     Timber.w("VideoPlayerManager: all audio tracks unsupported for $path - codecs=$codecs")
                     Toast.makeText(manager.context, msg, Toast.LENGTH_LONG).show()
                 } else {

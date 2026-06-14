@@ -78,7 +78,6 @@ class FtpDataSource(
                 throw IOException("Failed to get connected FTP client from pool")
             }
 
-            // Set socket timeout
             client?.soTimeout = 30000
 
             // Get file size using SIZE command
@@ -124,7 +123,6 @@ class FtpDataSource(
                 throw IOException("Failed to open FTP file stream: ${client?.replyString}")
             }
             
-            // Apply adaptive buffering
             val resourceKey = "ftp://$host:$port"
             val bufferSize = com.sza.fastmediasorter.data.network.ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
             inputStream = java.io.BufferedInputStream(rawStream, bufferSize)
@@ -212,7 +210,6 @@ class FtpDataSource(
         // Keep `uri` as stable source identity - clearing it on close races the media3 stats
         // wrapper's non-null getUri() check during rapid file switching (same NPE class as SMB).
         // The next open() rebinds it; resources are released below regardless.
-        Timber.d("S0343: FTP data source close preserves URI identity")
 
         // Only close the InputStream - client is managed by pool
         try {

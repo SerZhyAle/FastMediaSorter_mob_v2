@@ -49,7 +49,7 @@ class MigrateS0059UseCase @Inject constructor(
         migrateDownloads(resources)
 
         dataStore.edit { it[KEY_DONE] = true }
-        Timber.i("S0059 migration completed")
+        Timber.i("migration completed")
     }
 
     // -------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.error.ErrorSeverity
-import com.sza.fastmediasorter.ui.dialog.ErrorDialog
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
 
 /**
@@ -12,7 +12,7 @@ import com.sza.fastmediasorter.util.AppErrorNotifier
  *
  * Routing rules:
  * - Short form (Snackbar / Toast) via [showShort] - only [UiMessageSpec.shortMessage] is shown.
- * - Detailed form (ErrorDialog) via [showDetailed] - shows [UiMessageSpec.shortMessage] as
+ * - Detailed form (ScrollableTextDialog) via [showDetailed] - shows [UiMessageSpec.shortMessage] as
  *   the primary text and [UiMessageSpec.detailedMessage] in the collapsible section when present.
  * - Settings-aware routing via [showRespectingSettings] delegates to [showDetailed] or
  *   [showShort] based on the caller's `showDetailedErrors` flag.
@@ -44,7 +44,7 @@ object UiMessageProjector {
     }
 
     /**
-     * Show the detailed form of [spec] via [ErrorDialog].
+     * Show the detailed form of [spec] via [ScrollableTextDialog].
      *
      * The [UiMessageSpec.shortMessage] is the primary text; [UiMessageSpec.detailedMessage]
      * populates the collapsible technical section when present.
@@ -58,7 +58,7 @@ object UiMessageProjector {
         spec: UiMessageSpec,
         title: String = context.getString(R.string.error)
     ) {
-        ErrorDialog.show(
+        ScrollableTextDialog.show(
             context = context,
             title = title,
             message = spec.shortMessage,
@@ -69,7 +69,7 @@ object UiMessageProjector {
     /**
      * Route [spec] to the detailed or short surface based on [showDetailedErrors].
      *
-     * When [showDetailedErrors] is `true`, the full [ErrorDialog] is shown.
+     * When [showDetailedErrors] is `true`, the full [ScrollableTextDialog] is shown.
      * When `false`, only the short Snackbar notification is shown.
      *
      * @param activity           Host activity.

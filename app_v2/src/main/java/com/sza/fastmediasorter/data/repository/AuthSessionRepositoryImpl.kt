@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.repository.RawAuthSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,6 +180,44 @@ class AuthSessionRepositoryImpl @Inject constructor(
         }
         withContext(Dispatchers.IO) {
             store.saveAsDismissedForAccount(host, accountId, displayName.orEmpty())
+            refreshFlows()
+        }
+    }
+
+    override suspend fun exportSessions(): List<RawAuthSession> = withContext(Dispatchers.IO) {
+        store.listAllAccounts()
+            .asSequence()
+            .filter { (_, entry) -> entry.type == EncryptedCookieStore.TYPE_ACTIVE && entry.cookieCount > 0 }
+            .mapNotNull { (host, entry) ->
+                val cookies = store.loadForAccount(host, entry.accountId)
+                if (cookies.isEmpty()) return@mapNotNull null
+                RawAuthSession(
+                    host = host,
+                    accountId = entry.accountId,
+                    displayName = entry.displayName,
+                    userAgent = store.loadUserAgentForAccount(host, entry.accountId),
+                    savedAtEpochMillis = entry.savedAt?.toEpochMilli() ?: 0L,
+                    lastUsedAtEpochMillis = entry.lastUsedAt?.toEpochMilli() ?: 0L,
+                    cookies = cookies,
+                )
+            }
+            .toList()
+    }
+
+    override suspend fun importSessions(sessions: List<RawAuthSession>) {
+        withContext(Dispatchers.IO) {
+            sessions.forEach { session ->
+                if (session.host.isBlank() || session.accountId.isBlank() || session.cookies.isEmpty()) {
+                    return@forEach
+                }
+                store.saveForAccount(
+                    host = session.host,
+                    accountId = session.accountId,
+                    displayName = session.displayName,
+                    cookies = session.cookies,
+                    userAgent = session.userAgent,
+                )
+            }
             refreshFlows()
         }
     }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tint for the player bottom-bar control icons. Mirrors selector_player_button_tint
+     but its default follows player_overlay_on_primary (white in day, black in night)
+     so icons stay readable on the light night-theme controls band. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:color="#FF3333" />
+    <item android:state_focused="true" android:color="#FF3333" />
+    <item android:color="@color/player_overlay_on_primary" />
+</selector>

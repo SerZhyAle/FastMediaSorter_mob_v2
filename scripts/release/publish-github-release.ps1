@@ -1,28 +1,27 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Publish a FastMediaSorter standard + vr release to GitHub Releases so
-    that GitHub Store (OpenHub-Store/GitHub-Store) can index it.
+    Publish the full FastMediaSorter release spectrum to GitHub Releases so
+    that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it.
 
 .DESCRIPTION
-    Spec: S0214 — github-store-publication. Phase 03.
+    Spec: S0214 — github-store-publication; extended to the full spectrum by S0394.
 
     Operator flow (invoke from the release worktree, FastMediaSorter_release,
     checked out to main):
-      1. .\a.ps1 r        # build standard release AAB + APK
-      2. .\a.ps1 vr       # build VR release APK
-      3. .\scripts\release\publish-github-release.ps1
+      1. .\scripts\release\build-release-spectrum.ps1   # build all release flavors + wear at one version
+      2. .\scripts\release\publish-github-release.ps1   # publish all assets under one tag
 
     The script:
       - Reads versionName from app_v2/build.gradle.kts
-      - Discovers the two release APKs via output-metadata.json (fall back
-        to newest-by-LastWriteTime)
-      - Renames them in a temp staging dir per DECISIONS.md
-        (FastMediaSorter-{standard,vr}-{version}.apk)
-      - Verifies signing fingerprint matches the pinned value (Phase 04)
+      - Discovers each spectrum release APK (standard, vr, lite, photos, legacy,
+        noLegal, wear) via output-metadata.json (fall back to newest-by-LastWriteTime)
+      - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk
+        (versioned names - IzzyOnDroid globs the pattern)
+      - Verifies signing fingerprint matches the single pinned value (shared key)
       - Extracts release notes for the version from docs/WHATS_NEW.md
       - Creates a GitHub Release tag v{version} from main with the notes
-      - Uploads both APKs as release assets
+      - Uploads every staged APK as a release asset and verifies all are present
 
     Author hooks: -DryRun for safe parsing / discovery, -Force to allow
     republishing the same version (skips "tag already exists" guard).
@@ -73,9 +72,21 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 
 $repoRoot      = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $buildGradle   = Join-Path $repoRoot "app_v2/build.gradle.kts"
-$standardApkDir = Join-Path $repoRoot "app_v2/build/outputs/apk/standard/release"
-$vrApkDir      = Join-Path $repoRoot "app_v2/build/outputs/apk/vr/release"
 $whatsNewPath  = Join-Path $repoRoot "docs/WHATS_NEW.md"
+
+# Full release spectrum (S0394): flavor -> release APK output dir (relative to repoRoot).
+# All app_v2 flavors share the one release key; wear lives in its own module tree and
+# is signed with the same key (S0394 Phase 01). noLegal is published as an asset but
+# the website links it only from nolegal*.html, never the main page.
+$spectrum = [ordered]@{
+    standard = "app_v2/build/outputs/apk/standard/release"
+    vr       = "app_v2/build/outputs/apk/vr/release"
+    lite     = "app_v2/build/outputs/apk/lite/release"
+    photos   = "app_v2/build/outputs/apk/photos/release"
+    legacy   = "app_v2/build/outputs/apk/legacy/release"
+    noLegal  = "app_v2/build/outputs/apk/noLegal/release"
+    wear     = "wear/build/outputs/apk/release"
+}
 
 # ----------------------------------------------------------------------
 # Branch guard (publishing is allowed only from main)
@@ -140,46 +151,41 @@ function Find-Apk {
     return $newest
 }
 
-$standardApk = Find-Apk -Dir $standardApkDir -Flavor "standard"
-$vrApk       = Find-Apk -Dir $vrApkDir       -Flavor "vr"
-
-Write-Host "standard APK: $($standardApk.FullName)" -ForegroundColor DarkGray
-Write-Host "vr       APK: $($vrApk.FullName)"       -ForegroundColor DarkGray
-
-# Staleness guard: both APKs must be newer than build.gradle.kts minus 24h
-# (i.e. built within ~24h of the version bump that put the current
-# versionName in place).
+# ----------------------------------------------------------------------
+# Discover every spectrum APK, apply the staleness guard, and stage each
+# with a deterministic versioned name:
+#   FastMediaSorter-<flavor>-<version>.apk
+# Versioned names are required - IzzyOnDroid (S0215) globs the pattern.
+# ----------------------------------------------------------------------
 $gradleMtime = (Get-Item -LiteralPath $buildGradle).LastWriteTimeUtc
 $staleCutoff = $gradleMtime.AddHours(-24)
-foreach ($a in @($standardApk, $vrApk)) {
-    if ($a.LastWriteTimeUtc -lt $staleCutoff) {
-        $hours = [int]($gradleMtime - $a.LastWriteTimeUtc).TotalHours
-        throw "$($a.Name) is older than the current build.gradle.kts version by ${hours}h. Rebuild via a.ps1 r / a.ps1 vr before publishing."
-    }
-}
 
-Write-Host "Step 03.2 complete: APK discovery + version + branch guard wired." -ForegroundColor Cyan
-
-# ----------------------------------------------------------------------
-# Stage assets with deterministic names per DECISIONS.md
-#   FastMediaSorter-standard-<version>.apk
-#   FastMediaSorter-vr-<version>.apk
-# ----------------------------------------------------------------------
 $stagingDir = Join-Path $repoRoot "temp/release/$version"
 if (Test-Path -LiteralPath $stagingDir) {
     Remove-Item -LiteralPath $stagingDir -Recurse -Force
 }
 $null = New-Item -ItemType Directory -Path $stagingDir -Force
 
-$standardStaged = Join-Path $stagingDir ("FastMediaSorter-standard-$version.apk")
-$vrStaged       = Join-Path $stagingDir ("FastMediaSorter-vr-$version.apk")
+$stagedAssets = @()
+foreach ($flavor in $spectrum.Keys) {
+    $dir = Join-Path $repoRoot $spectrum[$flavor]
+    $apk = Find-Apk -Dir $dir -Flavor $flavor
 
-Copy-Item -LiteralPath $standardApk.FullName -Destination $standardStaged
-Copy-Item -LiteralPath $vrApk.FullName       -Destination $vrStaged
+    # Staleness guard: every APK must be newer than build.gradle.kts minus 24h
+    # (i.e. built within ~24h of the version bump that put the current
+    # versionName in place).
+    if ($apk.LastWriteTimeUtc -lt $staleCutoff) {
+        $hours = [int]($gradleMtime - $apk.LastWriteTimeUtc).TotalHours
+        throw "$($apk.Name) ($flavor) is older than the current build.gradle.kts version by ${hours}h. Rebuild the spectrum (scripts/release/build-release-spectrum.ps1) before publishing."
+    }
 
-Write-Host "Staged:" -ForegroundColor Green
-Write-Host "  $standardStaged"
-Write-Host "  $vrStaged"
+    $staged = Join-Path $stagingDir ("FastMediaSorter-$flavor-$version.apk")
+    Copy-Item -LiteralPath $apk.FullName -Destination $staged
+    $stagedAssets += $staged
+    Write-Host ("  {0,-9} {1} -> {2}" -f $flavor, $apk.Name, [System.IO.Path]::GetFileName($staged)) -ForegroundColor DarkGray
+}
+
+Write-Host "Discovery + staging complete: $($stagedAssets.Count) assets staged for v$version." -ForegroundColor Cyan
 
 # ----------------------------------------------------------------------
 # Phase 04 — Assert signing fingerprint matches the pinned value.
@@ -255,7 +261,9 @@ See docs/DEV_OPS.md "Release Signing Fingerprint (GitHub Store)" for the rotatio
 }
 
 $pinFile = Join-Path $PSScriptRoot "expected-signing-fingerprint.txt"
-Assert-ExpectedFingerprint -ApkPaths @($standardStaged, $vrStaged) -PinFile $pinFile
+# All spectrum flavors + wear share the one release key (S0394 Phase 01), so a single
+# pinned fingerprint covers every staged asset.
+Assert-ExpectedFingerprint -ApkPaths $stagedAssets -PinFile $pinFile
 
 # ----------------------------------------------------------------------
 # Extract release notes for $version via the Phase 03 helper.
@@ -331,13 +339,10 @@ Write-Host "Release $tag created." -ForegroundColor Green
 # ----------------------------------------------------------------------
 # Step 03.5 — Asset upload + post-publish verification
 # ----------------------------------------------------------------------
-$expectedAssetNames = @(
-    [System.IO.Path]::GetFileName($standardStaged),
-    [System.IO.Path]::GetFileName($vrStaged)
-)
+$expectedAssetNames = @($stagedAssets | ForEach-Object { [System.IO.Path]::GetFileName($_) })
 
 if ($ghOnPath) {
-    foreach ($asset in @($standardStaged, $vrStaged)) {
+    foreach ($asset in $stagedAssets) {
         Write-Host "Uploading $asset .." -ForegroundColor Cyan
         & gh release upload $tag $asset --repo "$Owner/$Repo" --clobber
         if ($LASTEXITCODE -ne 0) {

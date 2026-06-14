@@ -15,7 +15,18 @@
       "Skill(update-config)",
       "Bash(/c/Program Files/PowerShell/7/pwsh.exe *)",
       "Bash(\"/c/Program Files/PowerShell/7/pwsh.exe\" -File \"P:/ANDROID/FastMediaSorter_mob_v2/dev/CATALOG/scripts/query.ps1\" -PathMatches \"*image*\" -Module app_v2)",
-      "Bash(C:/Program Files/PowerShell/7/pwsh.exe *)"
+      "Bash(C:/Program Files/PowerShell/7/pwsh.exe *)",
+      "PowerShell(npm install *)",
+      "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json)",
+      "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json --enable-review-gate)"
     ]
+  },
+  "disabledMcpjsonServers": [
+    "mobile-mcp"
+  ],
+  "statusLine": {
+    "type": "command",
+    "command": "pwsh -NoProfile -File .claude/statusline.ps1",
+    "padding": 0
   }
 }

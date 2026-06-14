@@ -83,19 +83,16 @@ class PlayerSettingsDialog(
             binding.spinnerSubtitleLanguage.alpha = if (isChecked) 1.0f else 0.5f
         }
 
-        // Setup language spinners
         setupLanguageSpinner(binding.spinnerSubtitleLanguage)
         setupLanguageSpinner(binding.spinnerAudioLanguage)
 
         // 3D stereo mode radio group
         setupStereoSection()
 
-        // Cancel button
         binding.btnCancel.setOnClickListener {
             dismiss()
         }
 
-        // Apply button
         binding.btnApply.setOnClickListener {
             val settings = collectSettings()
             onSettingsApplied(settings)
@@ -116,7 +113,6 @@ class PlayerSettingsDialog(
     }
 
     private fun loadCurrentSettings() {
-        // Set playback speed chip
         val speedChipId = when (currentSettings.playbackSpeed) {
             0.25f -> R.id.chipSpeed025
             0.5f -> R.id.chipSpeed05
@@ -129,17 +125,14 @@ class PlayerSettingsDialog(
         }
         binding.chipGroupSpeed.check(speedChipId)
 
-        // Set repeat checkbox
         binding.cbRepeatVideo.isChecked = currentSettings.repeatVideo
 
-        // Set subtitles
         binding.cbShowSubtitles.isChecked = currentSettings.showSubtitles
         binding.spinnerSubtitleLanguage.isEnabled = currentSettings.showSubtitles
         binding.tvSubtitleLanguageLabel.alpha = if (currentSettings.showSubtitles) 1.0f else 0.5f
         binding.spinnerSubtitleLanguage.alpha = if (currentSettings.showSubtitles) 1.0f else 0.5f
         binding.spinnerSubtitleLanguage.setSelection(currentSettings.subtitleLanguage.ordinal)
 
-        // Set audio language
         binding.spinnerAudioLanguage.setSelection(currentSettings.audioLanguage.ordinal)
 
         // Set 3D stereo mode radio - SBS_HALF maps to SBS_FULL in dialog (both shown as "SBS")
@@ -165,7 +158,6 @@ class PlayerSettingsDialog(
             else -> 1.0f
         }
 
-        // Get language selections
         val subtitleLanguage = LanguageOption.entries.getOrElse(
             binding.spinnerSubtitleLanguage.selectedItemPosition
         ) { LanguageOption.DEFAULT }

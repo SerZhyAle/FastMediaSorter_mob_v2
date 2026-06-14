@@ -4,10 +4,12 @@ import android.app.Activity
 import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.util.UriPathResolver
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.FileOperationsHandler
+import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -26,6 +28,7 @@ class PlayerFolderPickerHandler(
     private val coroutineScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
     private val fileOperationsHandler: FileOperationsHandler,
+    private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
     private val onLaunchPicker: (Uri?) -> Unit
 ) {
     data class PendingOp(
@@ -72,16 +75,18 @@ class PlayerFolderPickerHandler(
             Timber.w(e, "PlayerFolderPickerHandler: takePersistableUriPermission failed (non-fatal)")
         }
 
-        val path = UriPathResolver.getPath(activity, uri) ?: uri.path
-        if (path == null) {
-            Timber.w("PlayerFolderPickerHandler: could not resolve path from uri=$uri")
-            Toast.makeText(activity, activity.getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
-            return
+        val normalizedUri = SafHelper.normalizeContentUri(uri.toString())
+        val resolvedPath = UriPathResolver.getPath(activity, uri)
+        val writableResolvedPath = resolvedPath?.takeIf { path ->
+            File(path).let { it.exists() && it.canWrite() }
         }
+        val treeAllowedByPolicy = !SafHelper.isRestrictedTreeUri(normalizedUri) ||
+            restrictedTreeTargetPolicy.allowsRestrictedTreeTargets()
+        val writableSafTree = treeAllowedByPolicy && SafHelper.getTreeRoot(activity, normalizedUri) != null
+        val destinationPath = writableResolvedPath ?: normalizedUri.takeIf { writableSafTree }
 
-        val destDir = File(path)
-        if (!destDir.exists() || !destDir.canWrite()) {
-            Timber.w("PlayerFolderPickerHandler: path=$path is not writable")
+        if (destinationPath == null) {
+            Timber.w("PlayerFolderPickerHandler: uri=$uri is not writable as path or SAF tree")
             Toast.makeText(activity, activity.getString(R.string.error_folder_not_writable), Toast.LENGTH_LONG).show()
             return
         }
@@ -99,8 +104,8 @@ class PlayerFolderPickerHandler(
         }
 
         when (op.operationType) {
-            FileOperationType.COPY -> fileOperationsHandler.performCopyToPath(path)
-            FileOperationType.MOVE -> fileOperationsHandler.performMoveToPath(path)
+            FileOperationType.COPY -> fileOperationsHandler.performCopyToPath(destinationPath)
+            FileOperationType.MOVE -> fileOperationsHandler.performMoveToPath(destinationPath)
             else -> Timber.w("PlayerFolderPickerHandler: unsupported operation type ${op.operationType}")
         }
     }

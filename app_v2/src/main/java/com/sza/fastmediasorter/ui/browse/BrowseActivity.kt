@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.memory.MemoryScenario
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -53,10 +54,13 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.LazyThreadSafetyMode
 
 @AndroidEntryPoint
 class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
@@ -78,18 +82,57 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
-    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
+    private var pendingCameraPermissionResourceId: Long? = null
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val pendingId = pendingCameraPermissionResourceId
+        pendingCameraPermissionResourceId = null
+        if (granted) {
+            val resource = viewModel.state.value.resource?.takeIf { it.id == pendingId }
+            if (resource != null) {
+                cameraCaptureManager.launch(resource)
+            }
+        } else {
+            Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // S0371: separate pending id + launcher for the video-capture command so a granted CAMERA
+    // permission resumes into launchVideo (not the photo path).
+    private var pendingVideoCaptureResourceId: Long? = null
+
+    private val videoCapturePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val pendingId = pendingVideoCaptureResourceId
+        pendingVideoCaptureResourceId = null
+        if (granted) {
+            val resource = viewModel.state.value.resource?.takeIf { it.id == pendingId }
+            if (resource != null) {
+                cameraCaptureManager.launchVideo(resource)
+            }
+        } else {
+            Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
     @Inject lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
     @Inject lateinit var browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
-    @Inject lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
-    @Inject lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+    @Inject lateinit var dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
+    @Inject lateinit var oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
     @Inject lateinit var fileOperationUseCase: FileOperationUseCase
     @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
     @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var smbClient: SmbClient
-    @Inject lateinit var sftpClient: SftpClient
-    @Inject lateinit var ftpClient: FtpClient
-    @Inject lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+    // S0367: resolves a configured capture-destination resource id to a MediaResource for the
+    // camera-photos / mic-recording destination override.
+    @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
+    @Inject lateinit var smbClient: Lazy<SmbClient>
+    @Inject lateinit var sftpClient: Lazy<SftpClient>
+    @Inject lateinit var ftpClient: Lazy<FtpClient>
+    @Inject lateinit var credentialsRepository: Lazy<com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository>
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
     @Inject lateinit var unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -98,11 +141,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
+    @Inject lateinit var cameraCaptureSaver: com.sza.fastmediasorter.data.capture.CameraCaptureSaver
     @Inject lateinit var passthroughCaptureProvider: java.util.Optional<BrowsePassthroughCaptureProvider>
     // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+    @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
@@ -125,6 +170,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0196 Phase 04 measurement hook: one-shot tag emitted on the first non-empty list bind so
     // perf traces can mark "primary content rendered" for the browse surface.
     private var firstListBoundLogged = false
+    private val cloudOperationStrategy by lazy(LazyThreadSafetyMode.NONE) {
+        CloudOperationStrategy(
+            this,
+            googleDriveClient.get(),
+            dropboxClient.get(),
+            oneDriveClient.get(),
+            stagingDirectoryProvider,
+            localStagingRegistry,
+            destinationClassifier,
+            destinationWriter
+        )
+    }
+    private val cloudOperationStrategyProvider: () -> CloudOperationStrategy = { cloudOperationStrategy }
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
@@ -166,12 +224,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         })
-        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient, stagingDirectoryProvider, localStagingRegistry, destinationClassifier, destinationWriter)
         cameraCaptureManager = BrowseCameraCaptureManager(
             activity = this,
             settingsRepository = settingsRepository,
+            resourceRepository = resourceRepository,
             coroutineScope = lifecycleScope,
+            cameraCaptureSaver = cameraCaptureSaver,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
+            onCapturedForEditing = { path, _ -> onCapturedFileSavedForEditing(path) },
+            onVideoCaptured = { fileName -> onVideoCaptured(fileName) },
             onUploadFile = { tempFile, name, resource ->
                 val sourceUri = Uri.fromFile(tempFile)
                 val destUri = Uri.parse(resource.path.trimEnd('/') + '/' + Uri.encode(name))
@@ -179,7 +240,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     ResourceType.FTP -> localToFtpStrategy.copy(sourceUri, destUri, true, null, null)
                     ResourceType.SMB -> localToSmbStrategy.copy(sourceUri, destUri, true, null, null)
                     ResourceType.SFTP -> localToSftpStrategy.copy(sourceUri, destUri, true, null, null)
-                    ResourceType.CLOUD -> cloudStrategy.copyFile(
+                    ResourceType.CLOUD -> cloudOperationStrategyProvider().copyFile(
                         tempFile.absolutePath,
                         resource.path.trimEnd('/') + '/' + name,
                         true, null
@@ -199,6 +260,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         micRecordingManager = BrowseMicRecordingManager(
             activity = this,
             settingsRepository = settingsRepository,
+            resourceRepository = resourceRepository,
             coroutineScope = lifecycleScope,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
             onRecordingStateChanged = { isRecording ->
@@ -214,7 +276,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     ResourceType.FTP -> localToFtpStrategy.copy(sourceUri, destUri, true, null, null)
                     ResourceType.SMB -> localToSmbStrategy.copy(sourceUri, destUri, true, null, null)
                     ResourceType.SFTP -> localToSftpStrategy.copy(sourceUri, destUri, true, null, null)
-                    ResourceType.CLOUD -> cloudStrategy.copyFile(
+                    ResourceType.CLOUD -> cloudOperationStrategyProvider().copyFile(
                         tempFile.absolutePath,
                         resource.path.trimEnd('/') + '/' + name,
                         true, null
@@ -249,7 +311,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
      * Skipped (View.GONE) buttons drop out of nextFocusLeft / nextFocusRight so the chain stays
      * contiguous after a state-driven visibility flip.
      */
-    private fun restitchBrowseControlChain() {
+    // S0374: callable from BrowseCommandOverflowManager to repair focus after an overflow flip.
+    internal fun restitchBrowseControlChain() {
         val candidates = listOf(
             binding.btnBack,
             binding.btnSort,
@@ -313,6 +376,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             binaryFileMenuActions = binaryFileMenuActions,
             browseApkTileBadgeBinder = browseApkTileBadgeBinder,
             reviewRequestManager = reviewRequestManager,
+            restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
         )
 
         initializer.initialize()
@@ -350,6 +414,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             collectOnLifecycle(settingsRepository.getSettings()) { settings ->
                 val showMic = settings.micRecordingEnabled
                 binding.btnMicRecord?.isVisible = showMic
+                // S0374: mic eligibility is owned here (not by the state collector) - report + re-partition.
+                if (::initializer.isInitialized) {
+                    initializer.commandOverflowManager.setFeatureEligibility(R.id.btnMicRecord, showMic)
+                    initializer.commandOverflowManager.recompute()
+                }
             }
         }
         collectOnLifecycle(viewModel.state) { state ->
@@ -405,6 +474,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
         initializer.buttonSetupHelper.updateToolbarButtonLabels(newConfig)
+        // S0374: labels change button widths in landscape - re-partition the bar (cached eligibility).
+        initializer.commandOverflowManager.recompute()
         lifecycleScope.launch {
             initializer.stateUiUpdater.currentDisplayMode?.let { mode ->
                 initializer.stateUiUpdater.currentDisplayMode = null
@@ -568,15 +639,39 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             resource?.let { "{id=${it.id}, type=${it.type}, name=${it.name}}" } ?: "NULL",
         )
         if (resource == null) {
-            Timber.w("S0022-CAM: BrowseActivity.onCameraCaptureClicked ABORT - viewModel resource is null")
+            Timber.w("BrowseActivity.onCameraCaptureClicked ABORT - viewModel resource is null")
             return
         }
         val passthrough = passthroughCaptureProvider.orElse(null)
         if (passthrough != null) {
-            Timber.i("S0058: routing camera capture to passthrough provider")
+            Timber.i("routing camera capture to passthrough provider")
             passthrough.launch(this, resource) { fileName -> onCapturedFileSaved(fileName) }
         } else {
-            cameraCaptureManager.launch(resource)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED
+            ) {
+                cameraCaptureManager.launch(resource)
+            } else {
+                pendingCameraPermissionResourceId = resource.id
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    /**
+     * S0371: record-video command. Always uses the system video-capture intent (no passthrough OEM
+     * provider, which is photo-only), gated by CAMERA permission. The save outcome is handled by
+     * [onVideoCaptured].
+     */
+    internal fun onVideoCaptureClicked() {
+        val resource = viewModel.state.value.resource ?: return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            cameraCaptureManager.launchVideo(resource)
+        } else {
+            pendingVideoCaptureResourceId = resource.id
+            videoCapturePermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -602,6 +697,26 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private fun onCapturedFileSaved(fileName: String) {
         viewModel.reloadFiles()
         viewModel.scrollToFileAfterRefresh(fileName)
+    }
+
+    /**
+     * S0371: completion of a video recording. Always reload + scroll to the new file (never the
+     * drawing editor). When the opt-in [AppSettings.videoCaptureOpenInPlayer] is set, open it in the
+     * player at its resolved index; otherwise leave the user in Browse.
+     */
+    private fun onVideoCaptured(fileName: String) {
+        viewModel.reloadFiles()
+        viewModel.scrollToFileAfterRefresh(fileName)
+        lifecycleScope.launch {
+            if (settingsRepository.getSettings().first().videoCaptureOpenInPlayer) {
+                viewModel.openCapturedVideoAfterRefresh(fileName)
+            }
+        }
+    }
+
+    private fun onCapturedFileSavedForEditing(path: String) {
+        viewModel.reloadFiles()
+        viewModel.openDrawingInEditor(path)
     }
 
     companion object {

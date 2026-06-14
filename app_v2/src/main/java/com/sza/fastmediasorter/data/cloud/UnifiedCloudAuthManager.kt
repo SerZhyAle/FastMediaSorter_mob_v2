@@ -62,7 +62,6 @@ class UnifiedCloudAuthManager @Inject constructor(
      * (Credential Manager), an MSAL callback, or `Activity.onResume` (Dropbox).
      */
     fun startInteractiveSignIn(activity: Activity, provider: CloudProvider) {
-        Timber.d("S0243: UnifiedCloudAuthManager.startInteractiveSignIn provider=${provider.name}")
         subscriptionJob?.cancel()
         subscriptionJob = null
         StructuredLogger.d("Interactive cloud auth begin", "provider" to provider.name)
@@ -123,7 +122,6 @@ class UnifiedCloudAuthManager @Inject constructor(
     private fun processPluginResult(provider: CloudProvider, result: AuthResult) {
         when (result) {
             is AuthResult.Success -> {
-                // Update State Machine
                 // The State Machine's authenticateOrRestore is for silent auth,
                 // but since we already got Success here, we conceptually bypass it.
                 // However, StateMachine state must be updated.

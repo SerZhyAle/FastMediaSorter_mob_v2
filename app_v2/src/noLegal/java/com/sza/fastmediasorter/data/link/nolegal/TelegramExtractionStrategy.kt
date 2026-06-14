@@ -53,7 +53,6 @@ class TelegramExtractionStrategy @Inject constructor(
         url: String,
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
     ): OpenResult = withContext(Dispatchers.IO) {
-        Timber.d("S0303: telegram extraction open() for %s", url)
         val httpUrl = url.toHttpUrlOrNull()
             ?: return@withContext OpenResult.NotFound("telegram_bad_url")
 

@@ -46,6 +46,11 @@ object DefaultPlayerManager {
         if (BuildConfig.SUPPORT_VIDEO)     add(".StandaloneVideoPlayer")
         if (BuildConfig.SUPPORT_IMAGES)    add(".StandaloneImagePlayer")
         if (BuildConfig.SUPPORT_DOCUMENTS) add(".StandaloneDocsPlayer")
+        // S0380: plain text gets its own lightweight standalone activity; included unconditionally
+        // (matches the unconditional text share receiver), and the typeless dispatcher trampoline that
+        // forwards generic / typeless VIEW intents to whichever specialized activity actually fits.
+        add(".StandaloneTextPlayer")
+        add(".StandaloneTypelessPlayer")
     }
 
     /**

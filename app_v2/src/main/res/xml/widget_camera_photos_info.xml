@@ -10,5 +10,4 @@
     android:resizeMode="none"
     android:widgetCategory="home_screen"
     android:theme="@style/Widget.FastMediaSorter"
-    android:previewImage="@drawable/widget_preview_camera_photos"
-    android:previewLayout="@layout/widget_camera_photos" />
+    android:previewImage="@drawable/ic_widget_camera_photos_accent" />

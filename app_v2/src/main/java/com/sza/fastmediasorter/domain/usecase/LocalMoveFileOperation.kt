@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
+import com.sza.fastmediasorter.utils.SafHelper
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -28,6 +29,8 @@ internal class LocalMoveFileOperation(
         var skippedCount = 0
         val skippedPaths = mutableListOf<String>()
         val total = operation.sources.size
+        val destinationPath = operation.destination.path
+        val isDestinationTreeUri = destinationPath.startsWith("content:/")
 
         operation.sources.forEachIndexed { index, source ->
             Timber.d("executeMove: [${index + 1}/$total] Processing ${source.name}")
@@ -37,17 +40,78 @@ internal class LocalMoveFileOperation(
             val isContentUri = sourcePath.startsWith("content:/")
 
             try {
-                if (isContentUri) {
-                    val normalizedUri = if (sourcePath.startsWith("content://")) sourcePath
-                                       else sourcePath.replaceFirst("content:/", "content://")
-                    val uri = Uri.parse(normalizedUri)
-
-                    val fileName = try {
+                val fileName = if (isContentUri) {
+                    try {
                         val decoded = Uri.decode(sourcePath)
                         decoded.substringAfterLast("/").substringAfterLast("%2F")
                     } catch (e: Exception) {
                         source.name
                     }
+                } else {
+                    source.name
+                }
+
+                if (isDestinationTreeUri) {
+                    val normalizedTreeUri = SafHelper.normalizeContentUri(destinationPath)
+                    val existing = SafHelper.findChildInTree(context, normalizedTreeUri, fileName)
+                    if (existing != null && !operation.overwrite) {
+                        Timber.i("executeMove: SKIPPED SAF destination - $fileName already exists")
+                        skippedCount++
+                        skippedPaths.add(existing.uri.toString())
+                        return@forEachIndexed
+                    }
+
+                    val destDoc = SafHelper.getOrCreateWritableChildFile(
+                        context = context,
+                        treeUriString = normalizedTreeUri,
+                        displayName = fileName,
+                        overwrite = operation.overwrite
+                    ) ?: throw IOException("Failed to create destination SAF document")
+
+                    val sourceInput = if (isContentUri) {
+                        val normalizedUri = if (sourcePath.startsWith("content://")) sourcePath
+                        else sourcePath.replaceFirst("content:/", "content://")
+                        context.contentResolver.openInputStream(Uri.parse(normalizedUri))
+                    } else {
+                        if (!source.exists()) {
+                            throw IOException("Source file not found: ${source.absolutePath}")
+                        }
+                        source.inputStream()
+                    } ?: throw IOException("Failed to open source stream")
+
+                    val startTime = System.currentTimeMillis()
+                    sourceInput.use { input ->
+                        context.contentResolver.openOutputStream(destDoc.uri, "w")?.use { output ->
+                            input.copyTo(output)
+                        } ?: throw IOException("Failed to open destination SAF stream")
+                    }
+
+                    val deleted = if (isContentUri) {
+                        val normalizedUri = if (sourcePath.startsWith("content://")) sourcePath
+                        else sourcePath.replaceFirst("content:/", "content://")
+                        SafHelper.deleteContentUri(context, normalizedUri, "FileOperationUseCase.executeMove")
+                    } else if (isSharedStorage(source.absolutePath) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        deleteViaMediaStore(source.absolutePath)
+                    } else {
+                        source.delete()
+                    }
+
+                    if (!deleted) {
+                        throw IOException("Failed to delete source after copy")
+                    }
+
+                    val totalDuration = System.currentTimeMillis() - startTime
+                    movedPaths.add(destDoc.uri.toString())
+                    successCount++
+                    Timber.i("executeMove: SUCCESS - $fileName moved to SAF tree in ${totalDuration}ms")
+                    scanNewFile(destDoc.uri.toString())
+                    return@forEachIndexed
+                }
+
+                if (isContentUri) {
+                    val normalizedUri = if (sourcePath.startsWith("content://")) sourcePath
+                                       else sourcePath.replaceFirst("content:/", "content://")
+                    val uri = Uri.parse(normalizedUri)
 
                     val destFile = File(operation.destination, fileName)
 
@@ -91,7 +155,7 @@ internal class LocalMoveFileOperation(
                     return@forEachIndexed
                 }
 
-                val destFile = File(operation.destination, source.name)
+                val destFile = File(operation.destination, fileName)
 
                 if (source.absolutePath == destFile.absolutePath) {
                     Timber.w("executeMove: Source and destination are the same file - skipping ${source.name}")

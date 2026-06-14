@@ -25,7 +25,6 @@ class OneDriveAuthPlugin @Inject constructor(
     override val results: SharedFlow<AuthResult> = _results.asSharedFlow()
 
     override fun startInteractiveSignIn(activity: Activity) {
-        Timber.d("S0243: OneDriveAuthPlugin.startInteractiveSignIn")
         Timber.d("OneDriveAuthPlugin: starting interactive sign-in")
         // Client encapsulates the MSAL UI flow and invokes the callback
         client.signIn(activity) { result ->

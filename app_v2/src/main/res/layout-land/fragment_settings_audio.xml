@@ -154,29 +154,6 @@
 
     <Button android:id="@+id/btnSetDefaultAudioPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/settings_margin_standard" android:text="@string/settings_set_default_audio_player" android:textAllCaps="false" />
 
-    <!-- Mic-recording toggles paired horizontally in landscape; ask-filename row visibility still toggled by fragment when mic recording flips. -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowMicRecordingEnabled"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="@dimen/settings_margin_standard"
-            app:str_title="@string/settings_mic_recording_enable_title"
-            app:str_subtitle="@string/settings_mic_recording_enable_desc" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowMicRecordingAskFilename"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:visibility="gone"
-            app:str_title="@string/settings_mic_recording_ask_filename_title"
-            app:str_subtitle="@string/settings_mic_recording_ask_filename_desc" />
-    </LinearLayout>
+<!-- S0367: microphone-recording and camera-photos settings moved to Playback → "Camera, microphone and Other features". -->
 
 </LinearLayout>

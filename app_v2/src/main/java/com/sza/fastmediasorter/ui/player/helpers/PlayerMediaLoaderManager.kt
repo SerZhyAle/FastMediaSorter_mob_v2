@@ -72,6 +72,8 @@ class PlayerMediaLoaderManager(
     private val playbackPositionRepository: PlaybackPositionRepository? = null,
     // S0213 Pillar A: cooldown tracker - short-circuits replay of paths that just failed to decode.
     private val decoderFailureTracker: RecentDecoderFailureTracker,
+    // S0391: source-availability gate; the Favorites mixed-source path must not play a hidden source.
+    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
@@ -212,6 +214,20 @@ class PlayerMediaLoaderManager(
         
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
+
+        // S0391: resolve the original source from the path prefix (Favorites aggregates mixed sources)
+        // and turn back when that source is user-disabled, before any loading UI is shown. Guards both
+        // the in-app player route and the audio-service pre-cache route below.
+        if (!isPathSourceEnabled(path, resource?.type)) {
+            Timber.w("PlayerMediaLoaderManager.playVideo: source disabled, refusing playback - path=$path")
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.error_resource_unavailable, path.substringAfterLast('/')),
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
         val isAudioFile = currentFile?.type == MediaType.AUDIO
         Timber.w(
             "PlayerMediaLoaderManager: playing file=" + (currentFile?.name ?: "<unknown>") +
@@ -229,16 +245,12 @@ class PlayerMediaLoaderManager(
         // blurred background (stripes) over the video player pillarbox areas.
         imageLoadingManager.clearForVideoTransition()
 
-        // Hide text viewer controls
         hideTextViewerControls()
         
-        // Hide PDF controls
         hidePdfViewerControls()
         
-        // Hide EPUB controls
         hideEpubViewerControls()
         
-        // Show video player
         binding.playerView.isVisible = true
         
         // Configure PlayerView based on media type
@@ -844,7 +856,6 @@ class PlayerMediaLoaderManager(
      */
     private fun scheduleAudioReadinessFeedback() {
         cancelAudioReadinessFeedback()
-        Timber.d("S0346: armed next-track readiness feedback")
         val runnable = Runnable {
             Toast.makeText(activity, activity.getString(R.string.audio_next_track_loading), Toast.LENGTH_SHORT).show()
         }
@@ -944,7 +955,6 @@ class PlayerMediaLoaderManager(
             // Show touch zones overlay for audio in fullscreen mode
             updateAudioTouchZonesVisibility()
             
-            // Show audio file info
             showAudioFileInfo(currentFile)
         } else {
             // For video: auto-hide controls after 15 seconds
@@ -970,6 +980,22 @@ class PlayerMediaLoaderManager(
 
     private fun determineResourceType(path: String, defaultType: ResourceType?): ResourceType =
         viewVisibility.determineResourceType(path, defaultType)
+
+    /**
+     * S0391: true when the source resolved from [path] (prefix-first, so the Favorites aggregate
+     * resolves each file's original source) is available per the gate. LOCAL is always available;
+     * CLOUD consults the cloud group; SMB/SFTP/FTP map to their [RemoteSourceId].
+     */
+    private fun isPathSourceEnabled(path: String, defaultType: ResourceType?): Boolean {
+        val type = determineResourceType(path, defaultType)
+        return when (type) {
+            ResourceType.LOCAL -> true
+            ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
+            else -> com.sza.fastmediasorter.core.capability.RemoteSourceId
+                .networkFromResourceType(type)
+                ?.let { remoteSourceGate.isEnabled(it) } ?: true
+        }
+    }
 
     private fun playVideoWithResourceType(
         path: String,
@@ -1040,13 +1066,12 @@ class PlayerMediaLoaderManager(
      */
     private fun handleCooldownReentry(path: String, remainingSec: Int) {
         val isSlideshow = viewModel.state.value.isSlideShowActive
-        Timber.d("S0213: Pillar A cooldown re-entry path=$path remainingSec=$remainingSec slideshow=$isSlideshow")
         if (isSlideshow) {
             Toast.makeText(activity, R.string.s0213_decoder_cooldown_skip, Toast.LENGTH_SHORT).show()
-            Timber.i("S0213 cooldown skip (slideshow): path=$path remainingSec=$remainingSec")
+            Timber.i("cooldown skip (slideshow): path=$path remainingSec=$remainingSec")
             viewModel.nextFile(skipDocuments = true)
         } else {
-            Timber.i("S0213 cooldown re-entry (manual): path=$path remainingSec=$remainingSec")
+            Timber.i("cooldown re-entry (manual): path=$path remainingSec=$remainingSec")
             videoPlayerManager.playerCallback.onDecoderCooldownReentry(path, remainingSec)
         }
     }

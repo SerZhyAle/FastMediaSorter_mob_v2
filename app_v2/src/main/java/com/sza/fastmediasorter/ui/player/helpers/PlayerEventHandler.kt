@@ -23,7 +23,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
 
     // Track any open error dialog so we can dismiss it if the Activity is destroyed
     // while the dialog is still showing (prevents WindowLeaked).
-    private var activeDialog: android.app.AlertDialog? = null
+    private var activeDialog: androidx.appcompat.app.AlertDialog? = null
 
     /** Must be called from PlayerActivity.onDestroy() to clean up open dialogs. */
     fun onDestroy() {
@@ -125,7 +125,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     return@launch
                 }
                 // S0118: keep the richer dialog surface, but do not expose raw stack traces to users.
-                activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                activeDialog = com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context = activity,
                     title = activity.getString(R.string.error),
                     message = message
@@ -181,7 +181,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     return@launch
                 }
                 if (isLocalFile) {
-                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    activeDialog = com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message,
@@ -190,7 +190,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     )
                 } else {
                     val networkMessage = "$message\n\n${activity.getString(R.string.unsupported_format_network_hint)}"
-                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    activeDialog = com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = networkMessage

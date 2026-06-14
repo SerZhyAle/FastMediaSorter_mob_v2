@@ -74,9 +74,17 @@
     <color name="player_overlay_subtle">#88000000</color>
     <color name="player_overlay_minimal">#44000000</color>
     <color name="player_overlay_solid">#FF000000</color>
+    <!-- Grey overlay: draw toolbar, where a pure-black backdrop hid the black colour swatch -->
+    <color name="player_overlay_grey">#CC616161</color>
 
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50000000</color>
+
+    <!-- Foreground (text, seekbar, control icons) drawn on the player overlays.
+         Day overlays are translucent black, so the foreground is white.
+         Night overrides flip these to black because night overlays are translucent white. -->
+    <color name="player_overlay_on_primary">#FFFFFFFF</color>
+    <color name="player_overlay_on_primary_translucent">#80FFFFFF</color>
 
     <!-- Text colors -->
     <color name="player_audio_info_text">#666666</color>
@@ -110,6 +118,7 @@
     <color name="activity_player_unified_searchPanel_background">@color/player_overlay_heavy</color>
     <color name="activity_player_unified_topCommandPanel_background">@color/player_overlay_standard</color>
     <color name="player_command_panel_mode_topCommandPanel_background">@color/player_overlay_standard</color>
+    <color name="draw_overlay_toolbar_background">@color/player_overlay_grey</color>
     <color name="activity_player_unified_btnVolumeUp_background">@color/player_overlay_light</color>
     <color name="activity_player_unified_toolbar_background">@color/player_overlay_light</color>
     <color name="activity_player_unified_audioSlideshowSongLabel_background">@color/player_overlay_subtle</color>
@@ -180,6 +189,10 @@
     <!-- Status colors (aliases for resource editor) -->
     <color name="success_green">@color/success_color</color>
     <color name="error_red">@color/error_color</color>
+    <!-- Extensions Manager status tags (S0386 Phase 08); installed/failed reuse success/error.
+         Translucent chip backgrounds are derived in code via ColorUtils.setAlphaComponent. -->
+    <color name="ext_status_available">#FF808080</color>
+    <color name="ext_status_downloading">#FF1976D2</color>
     <color name="recording_active_tint">#E53935</color>
     <!-- TV launcher banner background (dark navy) - used by res/drawable/tv_banner.xml -->
     <color name="tv_banner_bg">#1A1A2E</color>

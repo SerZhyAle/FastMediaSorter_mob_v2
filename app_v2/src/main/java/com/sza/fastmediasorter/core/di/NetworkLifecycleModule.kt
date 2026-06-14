@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.core.di
 
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.network.lifecycle.CloudConnectionGate
 import com.sza.fastmediasorter.data.network.lifecycle.ConnectionGateRegistry
 import com.sza.fastmediasorter.data.network.lifecycle.FtpConnectionGate
@@ -30,12 +30,16 @@ object NetworkLifecycleModule {
         smb: SmbConnectionGate,
         sftp: SftpConnectionGate,
         ftp: FtpConnectionGate,
-        cloud: CloudConnectionGate
+        cloud: CloudConnectionGate,
+        mediaCapabilities: MediaCapabilities,
     ): ConnectionGateRegistry = ConnectionGateRegistry().apply {
         register(smb)
         register(sftp)
         register(ftp)
-        if (BuildConfig.SUPPORT_CLOUD) {
+        // S0391: registration is a compile-tier decision (does this flavor ship cloud at all),
+        // not the user runtime toggle. The runtime close-on-disable is owned by
+        // RemoteSourceDisableCoordinator (Phase 04); the registry stays passive here.
+        if (mediaCapabilities.supportsCloud) {
             register(cloud)
         }
     }

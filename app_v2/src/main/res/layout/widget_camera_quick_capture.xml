@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0369: icon-only 1x1 quick camera-capture widget. A tap opens the transparent trampoline
+     which captures a photo and saves it into the configured target. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_camera_quick_capture_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:contentDescription="@string/widget_camera_quick_capture_label"
+    android:padding="@dimen/padding_tiny"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/widget_camera_quick_capture_icon"
+        android:layout_width="@dimen/widget_icon_size_large"
+        android:layout_height="@dimen/widget_icon_size_large"
+        android:src="@drawable/ic_widget_camera_quick_capture_accent"
+        android:contentDescription="@string/widget_camera_quick_capture_label" />
+
+</LinearLayout>

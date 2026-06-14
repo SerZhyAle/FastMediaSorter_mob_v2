@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
@@ -44,7 +45,10 @@ class VideoSettingsFragment : BaseSettingsFragment() {
         // Support Videos — help payload now folded into the row's helper icon (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportVideos) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportVideos = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportVideos = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         // Show video thumbnails — help payload folded into the row
@@ -178,7 +182,6 @@ class VideoSettingsFragment : BaseSettingsFragment() {
 
                 // When All Files is enabled, force switch ON and disable it
                 setSwitchChecked(binding.rowSupportVideos, isAllFilesEnabled || settings.supportVideos)
-                binding.rowSupportVideos.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowShowVideoThumbnails, settings.showVideoThumbnails)
 

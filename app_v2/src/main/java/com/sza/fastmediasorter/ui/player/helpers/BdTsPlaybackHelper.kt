@@ -17,15 +17,6 @@ import timber.log.Timber
 // Only BD_192 requires header stripping; STANDARD_188 and UNKNOWN are plain pass-through.
 internal fun shouldUseBdTsStripper(format: TsPacketFormat): Boolean = format == TsPacketFormat.BD_192
 
-internal fun DataSource.Factory.wrapForBdTs(path: String): DataSource.Factory {
-    val lower = path.lowercase()
-    return if (lower.endsWith(".m2ts") || lower.endsWith(".m2t")) {
-        BdTsStripDataSourceFactory(this)
-    } else {
-        this
-    }
-}
-
 internal fun DataSource.Factory.wrapForBdTs(format: TsPacketFormat): DataSource.Factory =
     if (shouldUseBdTsStripper(format)) BdTsStripDataSourceFactory(this) else this
 

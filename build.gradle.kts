@@ -9,7 +9,6 @@ buildscript {
         // Pinned: Kotlin 2.2.10 - aligned with KSP 2.3.8 and Compose plugin 2.2.10
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.10")
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.59")
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.6")
     }
     
     // Check for compatible JDK version (Gradle 8.7+ supports up to Java 21, but 25 is definitely too new)

@@ -15,7 +15,17 @@ PACKAGE_NAME = 'com.sza.fastmediasorter'
 # Resolve absolute paths relative to script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
-KEY_FILE = os.path.join(REPO_ROOT, 'play-console-key.json')
+SECRETS_DIR = os.path.join(REPO_ROOT, '.secrets')
+KEY_FILE = next(
+    (
+        path for path in (
+            os.path.join(SECRETS_DIR, 'play-console-key.json'),
+            os.path.join(REPO_ROOT, 'play-console-key.json'),
+        )
+        if os.path.exists(path)
+    ),
+    os.path.join(SECRETS_DIR, 'play-console-key.json'),
+)
 AAB_PATH = os.path.join(REPO_ROOT, 'DOWNLOADS', 'FastMediaSorter_standard_release.aab')
 
 def get_version_name():
@@ -141,11 +151,13 @@ def main():
         print("Track updated successfully.")
 
         # 6. Commit Edit
+        # Do NOT pass changesNotSentForReview: the Play API rejects it for apps
+        # whose changes are sent for review automatically (HTTP 400). Omitting it
+        # lets the release follow the standard automatic review flow.
         print("\nCommitting changes to Google Play Console...")
         commit_response = service.edits().commit(
-            packageName=PACKAGE_NAME, 
-            editId=edit_id,
-            changesNotSentForReview=True
+            packageName=PACKAGE_NAME,
+            editId=edit_id
         ).execute()
         print(f"SUCCESS: Edit transaction committed. AAB version {version_code} is now published on '{track_name}' track as '{status}'!")
         

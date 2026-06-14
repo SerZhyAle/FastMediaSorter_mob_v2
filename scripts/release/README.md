@@ -99,7 +99,7 @@ pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 
 1. **Prerequisite Check** — verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
 2. **Version & Path Discovery** — retrieve current `versionName` from `app_v2/build.gradle.kts`. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
-3. **Edit Transaction** — open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `play-console-key.json`.
+3. **Edit Transaction** — open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `.secrets/play-console-key.json` (root fallback supported).
 4. **Resumable Upload** — upload the 100 MB AAB file using resumable chunk transfers with automatic socket retry guards. Retrieve the uploaded `versionCode`.
 5. **Release Notes Discovery** — check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.
 6. **Track Update** — apply the uploaded AAB, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).

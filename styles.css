@@ -1533,4 +1533,63 @@ footer p {
 
 .filter-pill-active .clear-filter-btn:hover {
     color: white;
+}
+
+/* APK download buttons (S0394) - rendered from the latest GitHub Release */
+.apk-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0.5rem 0 2.5rem;
+}
+
+.apk-btn {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apk-btn:hover,
+.apk-btn:focus-visible {
+    background: var(--bg-card-hover);
+    border-color: var(--color-standard);
+    box-shadow: 0 0 15px var(--color-standard-glow);
+    outline: none;
+}
+
+.apk-btn .apk-flavor {
+    color: var(--text-highlight);
+}
+
+.apk-btn .apk-ver {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.82em;
+}
+
+.apk-btn-nolegal:hover,
+.apk-btn-nolegal:focus-visible {
+    border-color: var(--color-nolegal);
+    box-shadow: 0 0 15px var(--color-nolegal-glow);
+}
+
+.apk-fallback {
+    color: var(--color-standard);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.apk-fallback:hover,
+.apk-fallback:focus-visible {
+    text-decoration: underline;
+    outline: none;
 }

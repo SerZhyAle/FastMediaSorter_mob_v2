@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +35,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
     private val binding get() = _binding!!
 
     private val viewModel: SettingsViewModel by activityViewModels()
+
+    @javax.inject.Inject
+    lateinit var deliveryEnableInterceptor: com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
 
     companion object {
         private const val MB_TO_BYTES = 1024L * 1024L
@@ -53,18 +56,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     // Ordered list of mode keys - index-aligned with dropdown labels
     private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
-
-    private val recordAudioPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(micRecordingEnabled = true))
-        } else {
-            binding.rowMicRecordingEnabled.setCheckedSilently(false)
-            Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
-        }
-    }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -102,7 +93,10 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         // Support Audio - help payload folded into the row (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportAudio) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportAudio = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportAudio = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         // Search audio covers online
@@ -119,7 +113,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
         }
 
-        // Save audio metadata locally
         bindSwitch(binding.rowSaveAudioMetadataLocally) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))
@@ -202,7 +195,19 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             if (!isUpdatingFromSettings) {
                 val selectedKey = emptyStateModeKeys.getOrElse(position) { MODE_NONE }
                 val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                if (selectedKey == MODE_VISUALIZATION) {
+                    timber.log.Timber.d("S0407: audio viz settings gate")
+                    // Video background ships via on-demand delivery (Set C); offer the download when the
+                    // set is not installed, and keep the prior mode selected if the user refuses.
+                    deliveryEnableInterceptor.requireInstalled(
+                        this@AudioSettingsFragment,
+                        com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
+                        onReady = { viewModel.updateSettings(current.copy(audioEmptyStateMode = MODE_VISUALIZATION)) },
+                        onUnavailable = { revertEmptyStateModeSelection() }
+                    )
+                } else {
+                    viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                }
             }
         }
 
@@ -211,9 +216,23 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
         // Default player button
         setupDefaultPlayerButton()
+        // S0367: microphone-recording and camera-photos sections moved to PlaybackSettingsFragment.
+    }
 
-        // Microphone recording
-        setupMicRecordingSection()
+    // Re-sync the dropdown text to the currently persisted mode after a refused download, so the UI
+    // never shows VISUALIZATION while a non-video mode is actually in effect.
+    private fun revertEmptyStateModeSelection() {
+        val persisted = viewModel.settings.value.audioEmptyStateMode
+        val normalized = if (persisted == MODE_GIF_LOOP) MODE_VISUALIZATION else persisted
+        val index = emptyStateModeKeys.indexOf(normalized).takeIf { it >= 0 } ?: 0
+        val labels = listOf(
+            getString(R.string.audio_empty_state_none),
+            getString(R.string.audio_empty_state_avd_pulse),
+            getString(R.string.audio_empty_state_canvas_bars),
+            getString(R.string.audio_empty_state_canvas_waves),
+            getString(R.string.audio_empty_state_visualization)
+        )
+        binding.actvAudioEmptyStateMode.setText(labels[index], false)
     }
 
     private fun observeData() {
@@ -223,7 +242,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
                 // When All Files is enabled, force switch ON and disable it
                 setSwitchChecked(binding.rowSupportAudio, isAllFilesEnabled || settings.supportAudio)
-                binding.rowSupportAudio.isEnabled = !isAllFilesEnabled
 
                 setSwitchChecked(binding.rowSearchAudioCoversOnline, settings.searchAudioCoversOnline)
                 setSwitchChecked(binding.rowSearchCoversOnlyWifi, settings.searchAudioCoversOnlyOnWifi)
@@ -295,12 +313,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                     updateExitBehaviorVisibility()
                 }
 
-                // Microphone recording
-                if (BuildConfig.SUPPORT_MIC_RECORDING) {
-                    setSwitchChecked(binding.rowMicRecordingEnabled, settings.micRecordingEnabled)
-                    setSwitchChecked(binding.rowMicRecordingAskFilename, settings.micRecordingAskFilename)
-                    binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
-                }
+                // S0367: microphone-recording and camera-photos state sync moved to PlaybackSettingsFragment.
             }
         }
     }
@@ -399,36 +412,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             }
             .setCancelable(false)
             .show()
-    }
-
-    private fun setupMicRecordingSection() {
-        if (!BuildConfig.SUPPORT_MIC_RECORDING) {
-            binding.rowMicRecordingEnabled.isVisible = false
-            binding.rowMicRecordingAskFilename.isVisible = false
-            return
-        }
-
-        bindSwitch(binding.rowMicRecordingEnabled) { isChecked ->
-            if (isChecked) {
-                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
-                    != PackageManager.PERMISSION_GRANTED
-                ) {
-                    recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    return@bindSwitch
-                }
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(micRecordingEnabled = true))
-            } else {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(micRecordingEnabled = false))
-            }
-            binding.rowMicRecordingAskFilename.isVisible = isChecked
-        }
-
-        bindSwitch(binding.rowMicRecordingAskFilename) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
-        }
     }
 
     override fun onDestroyView() {

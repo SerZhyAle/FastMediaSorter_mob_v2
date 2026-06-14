@@ -47,14 +47,12 @@
     <string name="scheduled_ops_interval_corrected_15">Мінімальний інтервал - 15 хвилин</string>
     <string name="scheduled_ops_interval_corrected_1h">Не можна задати 0 годин і 0 хвилин - встановлено 1 годину</string>
     <string name="scheduled_ops_log_clear">Очистити журнал</string>
-    <string name="scheduled_ops_log_close">Закрити</string>
-    <string name="scheduled_ops_log_copy">Копіювати</string>
     <string name="scheduled_ops_log_empty">Журнал порожній</string>
     <string name="scheduled_ops_log_title">Журнал операцій</string>
     <string name="scheduled_ops_next_run">Наступний запуск о:</string>
     <string name="scheduled_ops_no_destinations">Спочатку додайте отримувачів у розділі «Отримувачі»</string>
     <string name="scheduled_ops_notif_channel_name">Операції за розкладом</string>
-    <string name="scheduled_ops_notif_running">Виконується операція за розкладом…</string>
+    <string name="scheduled_ops_notif_running">Виконується операція за розкладом..</string>
     <string name="scheduled_ops_op_copy">Копіювання</string>
     <string name="scheduled_ops_op_delete">Видалення</string>
     <string name="scheduled_ops_op_move">Переміщення</string>

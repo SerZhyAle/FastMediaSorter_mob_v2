@@ -7,29 +7,33 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
+import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
+import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
-import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
-    private val modelManager by lazy { TesseractModelManager(requireContext()) }
-    private var rusDownloadJob: Job? = null
-    private var ukrDownloadJob: Job? = null
+    @Inject
+    lateinit var deliveryEnableInterceptor: DeliveryEnableInterceptor
+
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
 
     private var _binding: FragmentSettingsOtherBinding? = null
     private val binding get() = _binding!!
@@ -91,7 +95,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                     "isLowRamDevice=${support.isLowRamDevice}"
             )
 
-            // Hide OCR font settings
             binding.layoutOcrFontSize?.isVisible = false
             binding.layoutOcrFontFamily?.isVisible = false
         }
@@ -102,15 +105,14 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
      * Translation and OCR features require ENABLE_TRANSLATION=true.
      */
     private fun applyFlavorRestrictions() {
-        // Translation and OCR features are only available when ENABLE_TRANSLATION is true
-        if (!BuildConfig.ENABLE_TRANSLATION) {
+        // Translation and OCR rows are visible only when the build compiles the translation capability.
+        if (!capabilityAvailability.isTranslationAvailable()) {
             // After migration the row IS the visible element; no extra wrapper container.
             binding.rowEnableTranslation.isVisible = false
             binding.layoutTranslationLanguages.isVisible = false
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.rowTranslationLensStyle.isVisible = false
 
-            // Hide Google Lens row
             binding.rowEnableGoogleLens.isVisible = false
 
             // Hide OCR row and summary
@@ -125,11 +127,23 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupViews() {
-        // Translation toggle - help payload folded into the row
+        // Translation toggle - help payload folded into the row. Turning it ON gates on the
+        // TRANSLATION set being installed (S0386 Phase 06); on refusal the toggle reverts to OFF.
         bindSwitch(binding.rowEnableTranslation) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableTranslation = isChecked))
-            updateTranslationVisibility(isChecked)
+            if (isChecked) {
+                deliveryEnableInterceptor.requireInstalled(
+                    host = this,
+                    set = DeliverableSet.TRANSLATION,
+                    onReady = {
+                        viewModel.updateSettings(viewModel.settings.value.copy(enableTranslation = true))
+                        updateTranslationVisibility(true)
+                    },
+                    onUnavailable = { setSwitchChecked(binding.rowEnableTranslation, false) }
+                )
+            } else {
+                viewModel.updateSettings(viewModel.settings.value.copy(enableTranslation = false))
+                updateTranslationVisibility(false)
+            }
         }
 
         setupLanguageSelectors()
@@ -165,11 +179,25 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(enableGoogleLens = isChecked))
         }
 
-        // OCR
+        // OCR - turning it ON gates on the OCR_ENGINES set being installed (S0386 Phase 06);
+        // on refusal the toggle reverts to OFF.
         bindSwitch(binding.rowEnableOcr) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableOcr = isChecked))
-            updateOcrVisibility(isChecked, current.ocrEngineType)
+            if (isChecked) {
+                deliveryEnableInterceptor.requireInstalled(
+                    host = this,
+                    set = DeliverableSet.OCR_ENGINES,
+                    onReady = {
+                        val current = viewModel.settings.value
+                        viewModel.updateSettings(current.copy(enableOcr = true))
+                        updateOcrVisibility(true, current.ocrEngineType)
+                    },
+                    onUnavailable = { setSwitchChecked(binding.rowEnableOcr, false) }
+                )
+            } else {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(enableOcr = false))
+                updateOcrVisibility(false, current.ocrEngineType)
+            }
         }
 
         // OCR Font Settings
@@ -178,18 +206,18 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         // OCR Engine Settings (S0288)
         setupOcrEngineSpinners()
 
-        // OCR Best Models
-        binding.btnOcrBestRusDownload.setOnClickListener {
-            startDownload("rus")
-        }
-        binding.btnOcrBestRusDelete.setOnClickListener {
-            deleteModel("rus")
-        }
-        binding.btnOcrBestUkrDownload.setOnClickListener {
-            startDownload("ukr")
-        }
-        binding.btnOcrBestUkrDelete.setOnClickListener {
-            deleteModel("ukr")
+        // OCR language models (Russian/Ukrainian) are managed in the Downloadable Extensions screen
+        // (S0386 Phase 12.3) - the inline download UI was removed from this group to avoid duplication.
+        binding.layoutExtensionsManager?.let { layout ->
+            layout.setOnClickListener {
+                // This fragment lives inside the settings ViewPager, whose child FragmentManager does
+                // not own android.R.id.content; use the activity FragmentManager so the full-screen
+                // overlay attaches to a real container (else: "No view found for id android:id/content").
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
+                    .addToBackStack(null)
+                    .commit()
+            }
         }
     }
 
@@ -389,117 +417,10 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     private fun updateOcrVisibility(enabled: Boolean, ocrEngineType: String = viewModel.settings.value.ocrEngineType) {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
-        binding.layoutOcrBestModels?.isVisible = enabled
-        
+
         val showNoLegalOcr = enabled && BuildConfig.IS_NO_LEGAL_FLAVOR
         binding.layoutOcrEngineType?.isVisible = showNoLegalOcr
         binding.layoutPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
-        
-        if (enabled) {
-            updateModelStates()
-        }
-    }
-
-    private fun updateModelStates() {
-        if (_binding == null) return
-
-        val isRusInstalled = modelManager.isModelInstalled("rus")
-        val isUkrInstalled = modelManager.isModelInstalled("ukr")
-
-        // Russian model UI state
-        val isRusDownloading = rusDownloadJob?.isActive == true
-        binding.pbOcrBestRusDownload.isVisible = isRusDownloading
-        binding.btnOcrBestRusDownload.isVisible = !isRusInstalled && !isRusDownloading
-        binding.btnOcrBestRusDelete.isVisible = isRusInstalled && !isRusDownloading
-        binding.btnOcrBestRusDownload.isEnabled = !isRusDownloading
-        binding.btnOcrBestRusDelete.isEnabled = !isRusDownloading
-
-        if (isRusInstalled) {
-            binding.tvOcrBestRusStatus.text = getString(R.string.ocr_best_model_installed)
-            binding.tvOcrBestRusStatus.alpha = 1.0f
-        } else if (!isRusDownloading) {
-            binding.tvOcrBestRusStatus.text = getString(R.string.ocr_best_model_size_mb, "15.0")
-            binding.tvOcrBestRusStatus.alpha = 0.7f
-        }
-
-        // Ukrainian model UI state
-        val isUkrDownloading = ukrDownloadJob?.isActive == true
-        binding.pbOcrBestUkrDownload.isVisible = isUkrDownloading
-        binding.btnOcrBestUkrDownload.isVisible = !isUkrInstalled && !isUkrDownloading
-        binding.btnOcrBestUkrDelete.isVisible = isUkrInstalled && !isUkrDownloading
-        binding.btnOcrBestUkrDownload.isEnabled = !isUkrDownloading
-        binding.btnOcrBestUkrDelete.isEnabled = !isUkrDownloading
-
-        if (isUkrInstalled) {
-            binding.tvOcrBestUkrStatus.text = getString(R.string.ocr_best_model_installed)
-            binding.tvOcrBestUkrStatus.alpha = 1.0f
-        } else if (!isUkrDownloading) {
-            binding.tvOcrBestUkrStatus.text = getString(R.string.ocr_best_model_size_mb, "11.6")
-            binding.tvOcrBestUkrStatus.alpha = 0.7f
-        }
-    }
-
-    private fun startDownload(language: String) {
-        val isRus = language == "rus"
-        val pb = if (isRus) binding.pbOcrBestRusDownload else binding.pbOcrBestUkrDownload
-        val tvStatus = if (isRus) binding.tvOcrBestRusStatus else binding.tvOcrBestUkrStatus
-
-        val job = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-            pb.isVisible = true
-            pb.progress = 0
-            updateModelStates() // Disable buttons during download
-
-            val success = modelManager.downloadModel(language) { percent, bytes, total ->
-                // Callback runs on background thread, post back to Main
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                    if (_binding != null) {
-                        pb.progress = percent
-                        tvStatus.text = getString(
-                            R.string.ocr_best_model_downloading,
-                            percent,
-                            formatSizeProgress(bytes, total)
-                        )
-                        tvStatus.alpha = 1.0f
-                    }
-                }
-            }
-
-            if (isRus) rusDownloadJob = null else ukrDownloadJob = null
-            updateModelStates()
-
-            if (!success) {
-                android.widget.Toast.makeText(
-                    requireContext(),
-                    R.string.ocr_best_download_error,
-                    android.widget.Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-
-        if (isRus) {
-            rusDownloadJob = job
-        } else {
-            ukrDownloadJob = job
-        }
-    }
-
-    private fun deleteModel(language: String) {
-        val deleted = modelManager.deleteModel(language)
-        if (deleted) {
-            updateModelStates()
-        }
-    }
-
-    private fun formatSizeProgress(bytes: Long, total: Long): String {
-        val totalMb = if (total > 0) total.toFloat() / (1024 * 1024) else 0f
-        val currentMb = bytes.toFloat() / (1024 * 1024)
-        val suffix = if (java.util.Locale.getDefault().language == "ru" || java.util.Locale.getDefault().language == "uk") "МБ" else "MB"
-
-        return if (totalMb > 0) {
-            "%.1f / %.1f %s".format(currentMb, totalMb, suffix)
-        } else {
-            "%.1f %s".format(currentMb, suffix)
-        }
     }
 
     private fun observeData() {
@@ -559,7 +480,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateTranslationPrewarmStatus(status: TranslationModelPrewarmStatus) {
-        if (!BuildConfig.ENABLE_TRANSLATION || !viewModel.settings.value.enableTranslation) {
+        if (!capabilityAvailability.isTranslationAvailable() || !viewModel.settings.value.enableTranslation) {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.btnTranslationPrewarmRetry.isVisible = false
             return

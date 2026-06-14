@@ -218,7 +218,6 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             }
         }
         
-        // Remove without blocking
         keysToRemove.forEach { key ->
             connectionPool.remove(key)
             Timber.d("${this::class.simpleName}: Quick-removed idle/dead connection")

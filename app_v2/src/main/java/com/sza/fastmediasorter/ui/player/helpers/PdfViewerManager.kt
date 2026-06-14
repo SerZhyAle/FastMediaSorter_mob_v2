@@ -6,12 +6,12 @@ import android.graphics.pdf.PdfRenderer
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.view.MotionEvent
+import android.view.View
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -29,15 +29,17 @@ import kotlin.math.abs
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @android.annotation.SuppressLint("SetTextI18n")
 class PdfViewerManager(
-    binding: ActivityPlayerUnifiedBinding,
+    // S0380: decoupled from ActivityPlayerUnifiedBinding to a layout root so the PDF viewer drives
+    // both the full unified player layout and the trimmed document standalone layout.
+    root: View,
     private val networkFileManager: NetworkFileManager,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: PdfViewerCallback,
     private val translationManager: TranslationManager,
     private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-) : BaseDocumentViewerManager(binding) {
-    private val safeViews = PlayerBindingSafeViews(binding)
+) : BaseDocumentViewerManager(root) {
+    private val safeViews = PlayerBindingSafeViews(root)
 
     interface PdfViewerCallback {
         fun showError(message: String)
@@ -68,7 +70,7 @@ class PdfViewerManager(
     private var isLensStyleEnabled = false // Google Lens style mode
     private val translationCoordinator by lazy {
         PdfTranslationCoordinator(
-            binding = binding,
+            root = root,
             safeViews = safeViews,
             coroutineScope = coroutineScope,
             settingsRepository = settingsRepository,
@@ -107,7 +109,8 @@ class PdfViewerManager(
 
     // Text selection mode overlay manager
     private val pdfTextSelectionManager = PdfTextSelectionManager(
-        binding            = binding,
+        root               = root,
+        safeViews          = safeViews,
         settingsRepository = settingsRepository,
         coroutineScope     = coroutineScope,
         translationManager = translationManager,
@@ -119,14 +122,15 @@ class PdfViewerManager(
 
     // TTS delegate for "Read Aloud" feature
     private val pdfTtsDelegate = PdfTtsDelegate(
-        context                = binding.root.context,
+        context                = root.context,
         coroutineScope         = coroutineScope,
         pdfTextSelectionManager = pdfTextSelectionManager
     )
 
     // Delegate for link detection, tap-to-open, search, OCR text copy, and Google Lens sharing
     private val pdfLinkAndSearchManager = PdfLinkAndSearchManager(
-        binding            = binding,
+        root               = root,
+        safeViews          = safeViews,
         settingsRepository = settingsRepository,
         coroutineScope     = coroutineScope,
         translationManager = translationManager,
@@ -137,15 +141,15 @@ class PdfViewerManager(
     init {
 
         // Listen for scale/position changes on PhotoView to update translation overlay
-        binding.photoView.setOnMatrixChangeListener {
+        safeViews.photoView.setOnMatrixChangeListener {
             // Update translation overlay position when PDF is zoomed/panned
-            if (binding.translationLensOverlay.isVisible == true && currentPageBitmap != null) {
-                val viewWidth = binding.photoView.width
-                val viewHeight = binding.photoView.height
+            if (safeViews.translationLensOverlay.isVisible == true && currentPageBitmap != null) {
+                val viewWidth = safeViews.photoView.width
+                val viewHeight = safeViews.photoView.height
                 val bitmapWidth = currentPageBitmap?.width ?: 1
                 val bitmapHeight = currentPageBitmap?.height ?: 1
 
-                binding.translationLensOverlay.setScale(
+                safeViews.translationLensOverlay.setScale(
                     bitmapWidth,
                     bitmapHeight,
                     viewWidth,
@@ -179,7 +183,7 @@ class PdfViewerManager(
         }
 
         // Setup page indicator click to show "Go to page" dialog
-        binding.tvPdfPageIndicator?.setOnClickListener {
+        safeViews.tvPdfPageIndicatorOrNull?.setOnClickListener {
             if (pdfPageCount > 1) {
                 showGoToPageDialog()
             }
@@ -214,12 +218,12 @@ class PdfViewerManager(
             // Compact mode: wrap_content with maxHeight=300dp, margin, semi-transparent
             layoutParams.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT
             layoutParams.height = android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
-            val margin = (8 * binding.root.context.resources.displayMetrics.density).toInt()
+            val margin = (8 * root.context.resources.displayMetrics.density).toInt()
             layoutParams.setMargins(margin, margin, margin, margin)
             layoutParams.gravity = android.view.Gravity.TOP or android.view.Gravity.START
 
             // Use 40% of screen height for compact mode (adapts to all screen sizes)
-            val screenHeight = binding.root.context.resources.displayMetrics.heightPixels
+            val screenHeight = root.context.resources.displayMetrics.heightPixels
             val maxHeightPx = (screenHeight * 0.4f).toInt()
             scrollViewLayoutParams.height = maxHeightPx
             scrollViewLayoutParams.setMargins(0, 0, 0, 0)
@@ -234,7 +238,7 @@ class PdfViewerManager(
 
     /** Show dialog to jump to specific PDF page */
     private fun showGoToPageDialog() {
-        val context = binding.root.context
+        val context = root.context
         val editText = android.widget.EditText(context).apply {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             hint = context.getString(com.sza.fastmediasorter.R.string.goto_page_hint, pdfPageCount)
@@ -263,28 +267,31 @@ class PdfViewerManager(
 
     /** Display PDF file in PhotoView (reused for PDF pages) */
     fun displayPdf(mediaFile: MediaFile) {
-        binding.imageView.isVisible = false
-        binding.photoDualSurfaceContainer?.isVisible = true
-        binding.photoView.isVisible = true // Reuse PhotoView for PDF pages.
-        binding.photoViewSurfaceB?.isVisible = false
-        binding.playerView.isVisible = false
-        binding.epubWebView.isVisible = false
+        safeViews.imageView.isVisible = false
+        safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
+        safeViews.photoView.isVisible = true // Reuse PhotoView for PDF pages.
+        safeViews.photoViewSurfaceBOrNull?.isVisible = false
+        safeViews.playerView.isVisible = false
+        safeViews.epubWebView.isVisible = false
         safeViews.epubControlsLayout.isVisible = false
-        binding.btnExitEpubFullscreen.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        safeViews.textViewerContainer.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
+        safeViews.btnExitEpubFullscreen.isVisible = false
+        safeViews.audioCoverArtView.isVisible = false
+        safeViews.audioInfoOverlay.isVisible = false
+        // S0380: text-viewer and the deprecated image-translate button are cross-type views the
+        // trimmed document-standalone layout omits (it never shows text/image). Reset by presence so
+        // PdfViewerManager works on both the full unified layout and the trimmed standalone one.
+        safeViews.setVisibleIfPresent(R.id.textViewerContainer, false)
+        safeViews.setVisibleIfPresent(R.id.btnTranslateImage, false)
         safeViews.pdfControlsLayout.isVisible = true
-        binding.progressBar.isVisible = true
+        safeViews.playerProgressBar.isVisible = true
         // btnCopyTextCmd is re-shown by CommandPanelController in landscape; routes to copyPageTextToClipboard().
-        binding.btnCopyTextCmd.isVisible = false
-        binding.btnCopyTextCmd.setOnClickListener { copyPageTextToClipboard() }
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
-        binding.btnSearchEpubCmd.isVisible = false
-        binding.btnTranslateEpubCmd.isVisible = false
+        safeViews.btnCopyTextCmd.isVisible = false
+        safeViews.btnCopyTextCmd.setOnClickListener { copyPageTextToClipboard() }
+        safeViews.btnEditTextCmd.isVisible = false
+        safeViews.btnTranslateTextCmd.isVisible = false
+        safeViews.btnSearchTextCmd.isVisible = false
+        safeViews.btnSearchEpubCmd.isVisible = false
+        safeViews.btnTranslateEpubCmd.isVisible = false
         closePdfRenderer()
         pdfLinkAndSearchManager.clearUrlCache()
         // Translation cache is intentionally NOT cleared - preserves translations when switching files.
@@ -292,10 +299,10 @@ class PdfViewerManager(
         val loadingToastJob = coroutineScope.launch(Dispatchers.Main) {
             // Immediate toast for network (always slow), 2s delay for local.
             kotlinx.coroutines.delay(if (isNetworkFile) 0 else 2000)
-            if (binding.progressBar.isVisible) {
+            if (safeViews.playerProgressBar.isVisible) {
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(com.sza.fastmediasorter.R.string.please_wait),
+                    root.context,
+                    root.context.getString(com.sza.fastmediasorter.R.string.please_wait),
                     android.widget.Toast.LENGTH_LONG,
                 ).show()
             }
@@ -306,10 +313,10 @@ class PdfViewerManager(
             val settings = withContext(Dispatchers.IO) { settingsRepository.getSettings().first() }
             // PDF cmd buttons: landscape + feature flag; portrait routes via overflow menu.
             val isLandscape = callback.isLandscapeMode()
-            binding.btnTranslatePdfCmd.isVisible = isLandscape && settings.enableTranslation
-            binding.btnGoogleLensPdfCmd.isVisible = isLandscape && settings.enableGoogleLens
-            binding.btnOcrPdfCmd.isVisible = isLandscape && settings.enableOcr
-            binding.btnSearchPdfCmd.isVisible = isLandscape
+            safeViews.btnTranslatePdfCmd.isVisible = isLandscape && settings.enableTranslation
+            safeViews.btnGoogleLensPdfCmd.isVisible = isLandscape && settings.enableGoogleLens
+            safeViews.btnOcrPdfCmd.isVisible = isLandscape && settings.enableOcr
+            safeViews.btnSearchPdfCmd.isVisible = isLandscape
             safeViews.btnSelectTextPdf?.isVisible = true // OCR (API<35) or native (API35+).
 
             try {
@@ -320,8 +327,8 @@ class PdfViewerManager(
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            binding.progressBar.isVisible = false
-                            callback.showError(binding.root.context.getString(R.string.pdf_load_failed))
+                            safeViews.playerProgressBar.isVisible = false
+                            callback.showError(root.context.getString(R.string.pdf_load_failed))
                         }
                         throw e
                     }
@@ -329,8 +336,8 @@ class PdfViewerManager(
 
                 if (!file.exists()) {
                     loadingToastJob.cancel()
-                    binding.progressBar.isVisible = false
-                    callback.showError(binding.root.context.getString(R.string.pdf_file_not_found))
+                    safeViews.playerProgressBar.isVisible = false
+                    callback.showError(root.context.getString(R.string.pdf_file_not_found))
                     return@launch
                 }
 
@@ -371,41 +378,41 @@ class PdfViewerManager(
                                 // Force command panel button visibility update after page is rendered
                                 // Only show in landscape mode; portrait uses overflow menu
                                 val isLandscapePostRender = callback.isLandscapeMode()
-                                binding.btnTranslatePdfCmd.isVisible = isLandscapePostRender && settings.enableTranslation
-                                binding.btnGoogleLensPdfCmd.isVisible = isLandscapePostRender && settings.enableGoogleLens
-                                binding.btnOcrPdfCmd.isVisible = isLandscapePostRender && settings.enableOcr
-                                binding.btnSearchPdfCmd.isVisible = isLandscapePostRender
+                                safeViews.btnTranslatePdfCmd.isVisible = isLandscapePostRender && settings.enableTranslation
+                                safeViews.btnGoogleLensPdfCmd.isVisible = isLandscapePostRender && settings.enableGoogleLens
+                                safeViews.btnOcrPdfCmd.isVisible = isLandscapePostRender && settings.enableOcr
+                                safeViews.btnSearchPdfCmd.isVisible = isLandscapePostRender
 
                                 // Hide navigation controls for single-page PDFs
                                 val isSinglePage = pdfPageCount == 1
-                                binding.btnPdfPrevPage.isVisible = !isSinglePage
-                                binding.btnPdfNextPage.isVisible = !isSinglePage
-                                binding.tvPdfPageIndicator?.isVisible = !isSinglePage
+                                safeViews.btnPdfPrevPage.isVisible = !isSinglePage
+                                safeViews.btnPdfNextPage.isVisible = !isSinglePage
+                                safeViews.tvPdfPageIndicatorOrNull?.isVisible = !isSinglePage
                             } else {
-                                binding.tvPdfPageIndicator?.text = binding.root.context.getString(R.string.pdf_empty)
+                                safeViews.tvPdfPageIndicatorOrNull?.text = root.context.getString(R.string.pdf_empty)
                             }
                         }
                     } catch (e: SecurityException) {
                         Timber.w(e, "Protected PDF cannot be opened by the platform renderer")
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            binding.progressBar.isVisible = false
-                            callback.showError(binding.root.context.getString(R.string.protected_file_unsupported))
+                            safeViews.playerProgressBar.isVisible = false
+                            callback.showError(root.context.getString(R.string.protected_file_unsupported))
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "Error initializing PDF renderer")
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            binding.progressBar.isVisible = false
-                            callback.showError(binding.root.context.getString(R.string.pdf_read_failed))
+                            safeViews.playerProgressBar.isVisible = false
+                            callback.showError(root.context.getString(R.string.pdf_read_failed))
                         }
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading PDF")
                 loadingToastJob.cancel()
-                binding.progressBar.isVisible = false
-                callback.showError(binding.root.context.getString(R.string.pdf_display_error))
+                safeViews.playerProgressBar.isVisible = false
+                callback.showError(root.context.getString(R.string.pdf_display_error))
             }
         }
     }
@@ -468,33 +475,33 @@ class PdfViewerManager(
 
     /** Setup page mode (single-page PhotoView with fling navigation). This is the legacy/default mode. */
     private fun setupPageMode(startPage: Int) {
-        binding.photoDualSurfaceContainer?.isVisible = true
-        binding.photoView.isVisible = true
-        binding.photoViewSurfaceB?.isVisible = false
+        safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
+        safeViews.photoView.isVisible = true
+        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = false
-        binding.btnPdfPrevPage.isVisible = pdfPageCount > 1
-        binding.btnPdfNextPage.isVisible = pdfPageCount > 1
-        binding.progressBar.isVisible = true
+        safeViews.btnPdfPrevPage.isVisible = pdfPageCount > 1
+        safeViews.btnPdfNextPage.isVisible = pdfPageCount > 1
+        safeViews.playerProgressBar.isVisible = true
         showPdfPage(startPage)
     }
 
     /** Setup scroll mode (vertical RecyclerView with all pages). Uses PdfPageAdapter with PdfRendererWrapper for thread-safe rendering. */
     private fun setupScrollMode(startPage: Int) {
-        binding.photoDualSurfaceContainer?.isVisible = false
-        binding.photoView.isVisible = false
-        binding.photoViewSurfaceB?.isVisible = false
+        safeViews.photoDualSurfaceContainerOrNull?.isVisible = false
+        safeViews.photoView.isVisible = false
+        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = true
-        binding.progressBar.isVisible = false
-        binding.btnPdfPrevPage.isVisible = false
-        binding.btnPdfNextPage.isVisible = false
+        safeViews.playerProgressBar.isVisible = false
+        safeViews.btnPdfPrevPage.isVisible = false
+        safeViews.btnPdfNextPage.isVisible = false
         val wrapper = rendererWrapper ?: return
         val cache = bitmapCache ?: return
         val adapter = PdfPageAdapter(
             rendererWrapper = wrapper, bitmapCache = cache, coroutineScope = coroutineScope,
-            renderWidth = binding.root.resources.displayMetrics.widthPixels,
+            renderWidth = root.resources.displayMetrics.widthPixels,
         ).also { it.setColorFilter(PdfColorConversion.getColorFilter(currentColorMode)) }
         pdfPageAdapter = adapter
-        val layoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
+        val layoutManager = LinearLayoutManager(root.context, LinearLayoutManager.VERTICAL, false)
         safeViews.pdfScrollRecyclerView.layoutManager = layoutManager
         safeViews.pdfScrollRecyclerView.adapter = adapter
         safeViews.pdfScrollRecyclerView.clearOnScrollListeners() // M5 fix: prevent accumulation.
@@ -504,15 +511,15 @@ class PdfViewerManager(
                 val visiblePage = if (firstVisible >= 0) firstVisible else layoutManager.findFirstVisibleItemPosition()
                 if (visiblePage >= 0 && visiblePage != currentPdfPageIndex) {
                     currentPdfPageIndex = visiblePage
-                    binding.tvPdfPageIndicator?.text = "${visiblePage + 1} / $pdfPageCount"
+                    safeViews.tvPdfPageIndicatorOrNull?.text = "${visiblePage + 1} / $pdfPageCount"
                     saveCurrentPagePosition()
                 }
             }
         })
         if (startPage > 0) layoutManager.scrollToPositionWithOffset(startPage, 0)
         currentPdfPageIndex = startPage
-        binding.tvPdfPageIndicator?.text = "${startPage + 1} / $pdfPageCount"
-        binding.tvPdfPageIndicator?.isVisible = pdfPageCount > 1
+        safeViews.tvPdfPageIndicatorOrNull?.text = "${startPage + 1} / $pdfPageCount"
+        safeViews.tvPdfPageIndicatorOrNull?.isVisible = pdfPageCount > 1
     }
 
     /** Toggle between page mode and scroll mode. Persists preference to settings. */
@@ -540,7 +547,7 @@ class PdfViewerManager(
             currentPdfPage?.close()
             currentPdfPage = null
             // Clear PhotoView reference BEFORE recycling bitmap (M3 fix)
-            binding.photoView.setImageBitmap(null)
+            safeViews.photoView.setImageBitmap(null)
             currentPageBitmap?.recycle()
             currentPageBitmap = null
             bitmapCache?.clear()
@@ -557,7 +564,7 @@ class PdfViewerManager(
         val filter = PdfColorConversion.getColorFilter(currentColorMode)
 
         // Apply to PhotoView (page mode)
-        binding.photoView.colorFilter = filter
+        safeViews.photoView.colorFilter = filter
 
         // Apply to adapter (scroll mode)
         pdfPageAdapter?.setColorFilter(filter)
@@ -578,7 +585,7 @@ class PdfViewerManager(
 
     /** Show thumbnail navigation BottomSheet. Displays a grid of low-res page thumbnails for quick page jumping. */
     fun showThumbnailNavigation() = PdfThumbnailSheet.show(
-        binding = binding,
+        root = root,
         safeViews = safeViews,
         rendererWrapper = rendererWrapper,
         pdfPageCount = pdfPageCount,
@@ -589,7 +596,7 @@ class PdfViewerManager(
             val layoutManager = safeViews.pdfScrollRecyclerView.layoutManager as? LinearLayoutManager
             layoutManager?.scrollToPositionWithOffset(page, 0)
             currentPdfPageIndex = page
-            binding.tvPdfPageIndicator?.text = "${page + 1} / $pdfPageCount"
+            safeViews.tvPdfPageIndicatorOrNull?.text = "${page + 1} / $pdfPageCount"
             saveCurrentPagePosition()
         },
         onPagePicked = ::showPdfPage,
@@ -612,7 +619,7 @@ class PdfViewerManager(
 
         // Use alpha instead of imageTintList: tinting with a solid colour destroys
         // the LanguageBadgeDrawable text, making the badge appear as a solid block.
-        binding.btnTranslatePdfCmd.alpha = if (translationEnabled) 1.0f else 0.55f
+        safeViews.btnTranslatePdfCmd.alpha = if (translationEnabled) 1.0f else 0.55f
     }
 
     /** Force enable translation and translate current page. Used when settings are changed via long-press dialog. */
@@ -621,7 +628,7 @@ class PdfViewerManager(
         translateCurrentPage()
 
         // Update command panel button alpha to indicate active translation
-        binding.btnTranslatePdfCmd.alpha = 1.0f
+        safeViews.btnTranslatePdfCmd.alpha = 1.0f
     }
 
     /** Extract text from current PDF page using OCR (no translation). Shows recognized text in overlay for user to copy. */
@@ -673,7 +680,6 @@ class PdfViewerManager(
         pageRenderJob?.cancel()
         pageRenderJob = null
 
-        // Clear link cache
         pdfLinkAndSearchManager.clearUrlCache()
 
         // Detach adapter BEFORE closing renderer to trigger onViewRecycled → cancel render jobs (C1 fix)
@@ -686,7 +692,7 @@ class PdfViewerManager(
         rendererWrapper = null
 
         // Clear PhotoView reference to bitmap BEFORE recycling (M3 fix)
-        binding.photoView.setImageBitmap(null)
+        safeViews.photoView.setImageBitmap(null)
         closePdfRenderer()
         currentPageBitmap?.recycle()
         currentPageBitmap = null
@@ -724,7 +730,7 @@ class PdfViewerManager(
         pageRenderJob?.cancel()
 
         // Show progress bar while rendering page (prevents "frozen" UI during heavy rendering)
-        binding.progressBar.isVisible = true
+        safeViews.playerProgressBar.isVisible = true
 
         // Clear translation overlays IMMEDIATELY when starting page change
         // This prevents old translations from briefly showing during page transition
@@ -742,7 +748,7 @@ class PdfViewerManager(
 
                 // Calculate render size with safety limits to prevent OOM crashes
                 // Base: 2x screen width for zoom quality, but cap at 2560px max dimension
-                val screenWidth = binding.root.resources.displayMetrics.widthPixels
+                val screenWidth = root.resources.displayMetrics.widthPixels
                 val desiredWidth = screenWidth * 2
                 val aspectRatio = page.height.toFloat() / page.width.toFloat()
 
@@ -782,10 +788,10 @@ class PdfViewerManager(
                 // Switch to main thread to update UI
                 withContext(Dispatchers.Main) {
                     // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
-                    binding.photoView.setImageBitmap(null)
+                    safeViews.photoView.setImageBitmap(null)
                     currentPageBitmap?.recycle()
 
-                    binding.photoView.setImageBitmap(bitmap)
+                    safeViews.photoView.setImageBitmap(bitmap)
 
                     // S0196 Phase 04: emit once on the first successful page push to the view.
                     if (!firstPageRenderedLogged) {
@@ -794,29 +800,27 @@ class PdfViewerManager(
                     }
 
                     // Apply color filter (night mode / sepia)
-                    binding.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
+                    safeViews.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
 
                     // Store bitmap for translation
                     currentPageBitmap = bitmap
 
                     currentPdfPageIndex = index
-                    binding.tvPdfPageIndicator?.text = "${index + 1} / $pdfPageCount"
+                    safeViews.tvPdfPageIndicatorOrNull?.text = "${index + 1} / $pdfPageCount"
 
                     // Hide progress bar AFTER page is fully rendered and displayed
                     // Use post() to ensure bitmap is actually drawn before hiding progress
-                    binding.photoView.post {
-                        binding.progressBar.isVisible = false
+                    safeViews.photoView.post {
+                        safeViews.playerProgressBar.isVisible = false
                     }
 
-                    // Save current page position
                     saveCurrentPagePosition()
 
-                    // Update navigation buttons
-                    binding.btnPdfPrevPage.isEnabled = index > 0
-                    binding.btnPdfPrevPage.alpha = if (index > 0) 1.0f else 0.5f
+                    safeViews.btnPdfPrevPage.isEnabled = index > 0
+                    safeViews.btnPdfPrevPage.alpha = if (index > 0) 1.0f else 0.5f
 
-                    binding.btnPdfNextPage.isEnabled = index < pdfPageCount - 1
-                    binding.btnPdfNextPage.alpha = if (index < pdfPageCount - 1) 1.0f else 0.5f
+                    safeViews.btnPdfNextPage.isEnabled = index < pdfPageCount - 1
+                    safeViews.btnPdfNextPage.alpha = if (index < pdfPageCount - 1) 1.0f else 0.5f
 
                     // Auto-translate new page if translation is enabled
                     if (translationEnabled) {
@@ -826,8 +830,8 @@ class PdfViewerManager(
             } catch (e: Exception) {
                 Timber.e(e, "Error rendering PDF page")
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
-                    callback.showError(binding.root.context.getString(R.string.pdf_page_render_failed))
+                    safeViews.playerProgressBar.isVisible = false
+                    callback.showError(root.context.getString(R.string.pdf_page_render_failed))
                 }
             }
         }
@@ -882,11 +886,11 @@ class PdfViewerManager(
         if (isScrollMode) return false
 
         // Check if PhotoView is zoomed - don't navigate when panning
-        if (binding.photoView.scale > 1.05f) return false
+        if (safeViews.photoView.scale > 1.05f) return false
 
         val diffY = e2.y - e1.y
         val diffX = e2.x - e1.x
-        val SWIPE_THRESHOLD = (binding.root.width * 0.05f).toInt().coerceAtLeast(50)
+        val SWIPE_THRESHOLD = (root.width * 0.05f).toInt().coerceAtLeast(50)
         val SWIPE_VELOCITY_THRESHOLD = 100
 
         // Vertical swipe should be dominant
@@ -918,8 +922,8 @@ class PdfViewerManager(
     /** Single entry to the PDF text-selection overlay, shared by the TXT button (no point) and the long-press gesture (with the touch point). Shows the text-extraction toast, then opens the overlay; a non-NaN point pre-selects the nearest word. */
     private fun openPdfTextSelection(x: Float = Float.NaN, y: Float = Float.NaN) {
         android.widget.Toast.makeText(
-            binding.root.context,
-            binding.root.context.getString(R.string.pdf_text_extracting),
+            root.context,
+            root.context.getString(R.string.pdf_text_extracting),
             android.widget.Toast.LENGTH_SHORT
         ).show()
         val point = if (!x.isNaN() && !y.isNaN()) android.graphics.PointF(x, y) else null
@@ -949,12 +953,12 @@ class PdfViewerManager(
         safeViews.translationOverlay.isVisible = false
         safeViews.tvTranslatedText.text = ""
 
-        binding.translationLensOverlay.isVisible = false
-        binding.translationLensOverlay.clear()
+        safeViews.translationLensOverlay.isVisible = false
+        safeViews.translationLensOverlay.clear()
 
         // Hide font size controls when translation is inactive
-        binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-        binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+        safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
+        safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
 
         // Close text selection overlay on page change
         pdfTextSelectionManager.exitTextSelectionMode()
@@ -966,9 +970,9 @@ class PdfViewerManager(
             withContext(Dispatchers.Main) {
                 // Only HIDE buttons if feature is disabled in settings
                 // CommandPanelController controls showing buttons based on orientation
-                if (!settings.enableTranslation) binding.btnTranslatePdfCmd.isVisible = false
-                if (!settings.enableGoogleLens) binding.btnGoogleLensPdfCmd.isVisible = false
-                if (!settings.enableOcr) binding.btnOcrPdfCmd.isVisible = false
+                if (!settings.enableTranslation) safeViews.btnTranslatePdfCmd.isVisible = false
+                if (!settings.enableGoogleLens) safeViews.btnGoogleLensPdfCmd.isVisible = false
+                if (!settings.enableOcr) safeViews.btnOcrPdfCmd.isVisible = false
                 // btnSearchPdfCmd visibility controlled by CommandPanelController
             }
         }

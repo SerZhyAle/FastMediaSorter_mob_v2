@@ -8,7 +8,7 @@ import java.math.RoundingMode
 /**
  * Evaluates arbitrary selected/pasted text as a math expression.
  *
- * Handles parentheses, operator precedence (`^` > unary `-`/`√` > `*` `/` > `+` `-`),
+ * Handles parentheses, operator precedence (`^` > unary `-`/`√` > `*` `/` `DIV` `mod` > `+` `-`),
  * implicit summation of whitespace-separated bare numbers, and locale-mixed decimal
  * separators. Non-math noise is stripped; a stream of malformed operators is sanitized
  * the same way the legacy paste parser tolerated it.
@@ -27,7 +27,7 @@ object CalculatorExpressionEvaluator {
     private data class Num(val value: BigDecimal) : Tok
     private data class Sym(val s: String) : Tok
 
-    private val BINARY = setOf("+", "-", "*", "/", "^")
+    private val BINARY = setOf("+", "-", "*", "/", "^", "div", "mod")
 
     fun evaluate(text: String): Result {
         val lexed = lex(text)
@@ -76,6 +76,8 @@ object CalculatorExpressionEvaluator {
                 c == ')' -> { out += Sym(")"); i++ }
                 c == '√' -> { out += Sym("√"); i++ }
                 text.regionMatches(i, "sqrt", 0, 4, ignoreCase = true) -> { out += Sym("√"); i += 4 }
+                text.regionMatches(i, "div", 0, 3, ignoreCase = true) -> { out += Sym("div"); i += 3 }
+                text.regionMatches(i, "mod", 0, 3, ignoreCase = true) -> { out += Sym("mod"); i += 3 }
                 else -> i++
             }
         }
@@ -152,6 +154,7 @@ object CalculatorExpressionEvaluator {
                     when (tok.s) {
                         "*" -> "×"
                         "/" -> "÷"
+                        "div" -> "DIV"
                         else -> tok.s
                     }
                 )
@@ -187,14 +190,21 @@ object CalculatorExpressionEvaluator {
 
         private fun term(): BigDecimal {
             var value = unary()
-            while (peekSym() == "*" || peekSym() == "/") {
+            while (peekSym() == "*" || peekSym() == "/" || peekSym() == "div" || peekSym() == "mod") {
                 val op = peekSym(); pos++
                 val rhs = unary()
                 value = if (op == "*") {
                     value.multiply(rhs)
+                } else if (op == "/" || op == "div") {
+                    if (rhs.compareTo(BigDecimal.ZERO) == 0) throw DivideByZeroException()
+                    if (op == "/") {
+                        value.divide(rhs, DIVIDE_SCALE, RoundingMode.HALF_UP)
+                    } else {
+                        value.divideToIntegralValue(rhs)
+                    }
                 } else {
                     if (rhs.compareTo(BigDecimal.ZERO) == 0) throw DivideByZeroException()
-                    value.divide(rhs, DIVIDE_SCALE, RoundingMode.HALF_UP)
+                    value.remainder(rhs)
                 }
             }
             return value

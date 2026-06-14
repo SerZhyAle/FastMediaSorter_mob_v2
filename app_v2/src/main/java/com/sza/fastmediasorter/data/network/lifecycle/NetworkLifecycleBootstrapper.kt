@@ -89,17 +89,17 @@ class NetworkLifecycleBootstrapper @Inject constructor(
         // (1) SMB background lifecycle observer - closes UI SMB connections on app stop.
         runCatching {
             ProcessLifecycleOwner.get().lifecycle.addObserver(smbBackgroundLifecycleManager.get())
-        }.onFailure { Timber.e(it, "S0195: SmbBackgroundLifecycleManager attach failed") }
+        }.onFailure { Timber.e(it, "SmbBackgroundLifecycleManager attach failed") }
 
         // (2) Protocol-neutral lifecycle observer - closes UI gates on app stop.
         runCatching {
             networkLifecycleObserver.get().attach()
-        }.onFailure { Timber.e(it, "S0195: NetworkLifecycleObserver.attach failed") }
+        }.onFailure { Timber.e(it, "NetworkLifecycleObserver.attach failed") }
 
         // (3) OS-level network state monitoring (WiFi/IP change detection).
         runCatching {
             networkStateMonitor.get().start()
-        }.onFailure { Timber.e(it, "S0195: NetworkStateMonitor.start failed") }
+        }.onFailure { Timber.e(it, "NetworkStateMonitor.start failed") }
 
         // (4) SMB auto-reset UI notification callback. Moved verbatim from
         // FastMediaSorterApp.setupSmbAutoReset() - same Toast throttling semantics.
@@ -116,11 +116,11 @@ class NetworkLifecycleBootstrapper @Inject constructor(
                             )
                             Timber.d("SMB auto-reset notification shown: $reason")
                         } catch (e: Exception) {
-                            Timber.e(e, "S0195: Failed to show SMB auto-reset notification")
+                            Timber.e(e, "Failed to show SMB auto-reset notification")
                         }
                     }
                 }
             })
-        }.onFailure { Timber.e(it, "S0195: SmbConnectionManager.setResetCallback failed") }
+        }.onFailure { Timber.e(it, "SmbConnectionManager.setResetCallback failed") }
     }
 }

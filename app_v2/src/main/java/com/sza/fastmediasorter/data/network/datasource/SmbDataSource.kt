@@ -121,7 +121,6 @@ class SmbDataSource(
         // watchdog worker thread. The media3 stats wrapper reads getUri() right after open() and
         // asserts it is non-null; binding the URI here (and never clearing it on close) keeps that
         // identity stable even when a concurrent close() from rapid file switching races the read.
-        Timber.d("S0343: SMB data source URI bound at open entry")
         this.uri = dataSpec.uri
         val key = connectionKey()
         val tracker = smbClient.playbackConnectionTracker
@@ -176,7 +175,6 @@ class SmbDataSource(
             val finalPath = resolveSmbPath(uri)
             Timber.d("SmbDataSource.open: Opening '$finalPath' relative to share '${connectionInfo.shareName}'")
             
-            // Get pooled connection (blocking)
             var pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
             
             // Check if thread was interrupted (e.g., ExoPlayer release during file switching)
@@ -401,7 +399,6 @@ class SmbDataSource(
                     return if (bytesCopied > 0) bytesCopied else C.RESULT_END_OF_INPUT
                 }
 
-                // Update buffer state
                 internalBufferValidBytes = bytesRead
                 
                 // Copy what we need from the fresh chunk

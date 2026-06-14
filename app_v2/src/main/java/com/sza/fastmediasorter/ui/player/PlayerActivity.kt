@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -55,6 +56,7 @@ import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -68,6 +70,12 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
+import android.view.ViewGroup
+import android.graphics.Bitmap
+import android.graphics.RectF
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -80,7 +88,7 @@ import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost {
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
@@ -141,6 +149,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
     internal lateinit var observerManager: PlayerObserverManager
     internal lateinit var slideshowResourceAvailabilityManager: com.sza.fastmediasorter.ui.player.helpers.SlideshowResourceAvailabilityManager
+    internal lateinit var playerManagerInitializer: PlayerManagerInitializer
+    internal var areAudioBackgroundManagersConfigured: Boolean = false
 
     // LAZY INITIALIZATION: Document viewers only created when needed.
     internal var _pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager? = null
@@ -302,22 +312,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var playerGestureCallback: com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl
 
     // Injected dependencies for network playback
-    @Inject lateinit var smbClient: SmbClient
-    @Inject lateinit var sftpClient: SftpClient
-    @Inject lateinit var ftpClient: FtpClient
-    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
+    @Inject internal lateinit var smbClientLazy: Lazy<SmbClient>
+    @Inject internal lateinit var sftpClientLazy: Lazy<SftpClient>
+    @Inject internal lateinit var ftpClientLazy: Lazy<FtpClient>
+    @Inject internal lateinit var googleDriveClientLazy: Lazy<GoogleDriveRestClient>
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
-    @Inject lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
-    @Inject lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+    @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
+    @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
+    @Inject internal lateinit var oneDriveClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
     @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
+    @Inject internal lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
 
     @Inject internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
 
     @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
-    @Inject lateinit var credentialsRepository: NetworkCredentialsRepository
+    @Inject internal lateinit var credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
     @Inject lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -328,6 +340,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     // S0213 Pillar A: passed to VideoPlayerManager and PlayerMediaLoaderManager for decoder-error cooldown.
     @Inject lateinit var recentDecoderFailureTracker: com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
+
+    // S0391: source-availability gate; threaded into VideoPlayerManager and PlayerMediaLoaderManager.
+    @Inject lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
     // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
     @Inject lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
@@ -340,6 +355,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
     @Inject lateinit var searchAudioCoverUseCase: com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
+    @Inject lateinit var deliveredAudioVisualizationSource: com.sza.fastmediasorter.data.delivery.DeliveredAudioVisualizationSource
     @Inject lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
     @Inject lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
     @Inject lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
@@ -349,17 +365,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
     @Inject lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
     @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
-    @Inject lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+    @Inject internal lateinit var unifiedCacheLazy: Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
     @Inject lateinit var gamepadInputManager: GamepadInputManager
 
     /** S0289 Phase 08: surface marker for gamepad routing in the player. */
     private val gamepadSurface = GamepadInputManager.Surface.PLAYER
 
-    @Inject lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-    @Inject lateinit var sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-    @Inject lateinit var ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-    @Inject lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+    @Inject internal lateinit var smbFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.SmbFileOperationHandler>
+    @Inject internal lateinit var sftpFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.SftpFileOperationHandler>
+    @Inject internal lateinit var ftpFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.FtpFileOperationHandler>
+    @Inject internal lateinit var cloudFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler>
 
     // S0242 Phase 02: passed to PlayerLifecycleManager so successful file ops are journaled
     // for the Browse Reconciler instead of returned via an Intent extra.
@@ -370,11 +386,26 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @com.sza.fastmediasorter.core.di.ApplicationScope
     lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
 
-    @Inject lateinit var backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager
-    @Inject lateinit var audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager
+    @Inject internal lateinit var backgroundMusicManagerLazy: Lazy<com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager>
+    @Inject internal lateinit var audioBackgroundPhotosManagerLazy: Lazy<com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager>
     @Inject lateinit var audioMetadataCacheRepository: com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
     @Inject lateinit var okHttpClient: okhttp3.OkHttpClient
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+
+    internal val smbClient: SmbClient get() = smbClientLazy.get()
+    internal val sftpClient: SftpClient get() = sftpClientLazy.get()
+    internal val ftpClient: FtpClient get() = ftpClientLazy.get()
+    internal val googleDriveClient: GoogleDriveRestClient get() = googleDriveClientLazy.get()
+    internal val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient get() = dropboxClientLazy.get()
+    internal val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient get() = oneDriveClientLazy.get()
+    internal val credentialsRepository: NetworkCredentialsRepository get() = credentialsRepositoryLazy.get()
+    internal val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache get() = unifiedCacheLazy.get()
+    internal val smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler get() = smbFileOperationHandlerLazy.get()
+    internal val sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler get() = sftpFileOperationHandlerLazy.get()
+    internal val ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler get() = ftpFileOperationHandlerLazy.get()
+    internal val cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler get() = cloudFileOperationHandlerLazy.get()
+    internal val backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager get() = backgroundMusicManagerLazy.get()
+    internal val audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager get() = audioBackgroundPhotosManagerLazy.get()
 
     internal val hideControlsRunnable = Runnable {
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) viewModel.toggleControls()
@@ -441,7 +472,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     /** Initialize all helper managers - delegates to PlayerManagerInitializer. */
     private fun initializeManagers() {
-        PlayerManagerInitializer(this).initialize()
+        playerManagerInitializer = PlayerManagerInitializer(this)
+        playerManagerInitializer.initialize()
+    }
+
+    internal fun shouldUseAudioBackgroundManagers(state: PlayerViewModel.PlayerState): Boolean {
+        return state.currentFile?.type == MediaType.AUDIO ||
+            state.isSlideShowActive ||
+            state.enableSlideshowBackgroundMusic ||
+            state.enablePhotosDuringAudio ||
+            state.slideshowMusicResourceId != null ||
+            state.audioBackgroundPhotosResourceId != null ||
+            (::audioSlideshowPhotoModeManager.isInitialized && audioSlideshowPhotoModeManager.isActive)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -512,13 +554,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     internal fun adjustTouchZonesForVideo(isVideo: Boolean) =
         mediaLoaderManager.adjustTouchZonesForVideo(isVideo, useTouchZones)
-
-    private fun updateUI(state: PlayerViewModel.PlayerState) {
-        if (syncPlaybackOrderForCurrentResource(state)) {
-            return
-        }
-        observerManager.updateUI(state)
-    }
 
     internal fun updatePanelVisibility(showCommandPanel: Boolean) {
         dialogAndUiStateManager.updatePanelVisibility(showCommandPanel)
@@ -891,6 +926,53 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         audioMetadataManager.onMetadataLoaded(metadata, current)
     }
 
+    // ── PlayerActionHost (S0393) ──────────────────────────────────────────────
+    // Adapter over the existing binding/VM so type-specific delegates consume the seam, not this
+    // Activity. Behaviour-preserving: these members mirror what the in-app delegates already read.
+
+    override val hostActivity: AppCompatActivity get() = this
+    override val hostScope: LifecycleCoroutineScope get() = lifecycleScope
+    override val actionCurrentFile: MediaFile? get() = viewModel.state.value.currentFile
+    override val actionCurrentResource: MediaResource? get() = viewModel.state.value.resource
+    override val overlayMountTarget: ViewGroup get() = activityBinding.mediaContentArea
+    override val imagePinchTarget: View get() = activityBinding.photoView
+    override fun imageDisplayRect(): RectF = activityBinding.photoView.displayRect
+
+    // S0393: the in-app player can display via either photoView (zoomable) or imageView (non-zoomable),
+    // so normalize BOTH to FIT_CENTER before crop (restores pre-seam PlayerCropDelegate behaviour).
+    override fun prepareImageSurfacesForCrop() {
+        activityBinding.photoView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        activityBinding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+    }
+    override val displayedBitmap: Bitmap? get() = viewModel.currentDisplayedBitmap
+
+    override fun reloadCurrentImageInPlace() {
+        if (isMediaLoaderManagerInitialized) mediaLoaderManager.reloadCurrentImage()
+    }
+
+    override fun onFileSavedInFolder(savedPath: String) {
+        val fileName = savedPath.substringAfterLast('/')
+        val currentParent = viewModel.state.value.currentFile?.path?.substringBeforeLast('/') ?: ""
+        val savedParent = savedPath.substringBeforeLast('/')
+        if (currentParent.isNotEmpty() && currentParent == savedParent) {
+            viewModel.reloadFiles()
+            lifecycleScope.launch {
+                val files = withTimeoutOrNull(10_000L) {
+                    viewModel.state.map { it.files }.distinctUntilChanged()
+                        .first { fs -> fs.any { it.path == savedPath } }
+                }
+                val idx = files?.indexOfFirst { it.path == savedPath } ?: -1
+                if (idx >= 0) {
+                    viewModel.jumpToIndex(idx, manual = true)
+                } else {
+                    Toast.makeText(this@PlayerActivity, getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
+                }
+            }
+        } else {
+            Toast.makeText(this@PlayerActivity, getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
+        }
+    }
+
     // ── PlayerHostCapabilities ────────────────────────────────────────────────
 
     override val supportsListNavigation: Boolean = true
@@ -951,7 +1033,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         }
     }
 
-    private fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
+    internal fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
         val resourceId = state.resource?.id ?: return false
         val mediaType = state.currentFile?.type ?: return false
         val contextKey = "$resourceId:${PlaybackControlPreferences.modeScopeFor(mediaType)}"
@@ -966,11 +1048,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         val resolvedMode = overrideMode ?: PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
 
         if (overrideMode != null) {
-            Timber.d("S0358: player consumed shuffle override for resource=$resourceId")
             PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
             intent.removeExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
-        } else {
-            Timber.d("S0358: player restored playback order for resource=$resourceId mode=${resolvedMode.name}")
         }
 
         applyPlaybackOrderModeToActivePlayer(resolvedMode)
@@ -990,7 +1069,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         val mediaType = currentState.currentFile?.type
         val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
         if (resourceId != null) {
-            Timber.d("S0358: player playback-order changed by user for resource=$resourceId")
             PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
         } else {
             prefs.edit()

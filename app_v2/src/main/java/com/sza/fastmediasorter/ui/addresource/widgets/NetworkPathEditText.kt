@@ -29,7 +29,6 @@ class NetworkPathEditText @JvmOverloads constructor(
         // Apply network path input filter
         filters = arrayOf(NetworkPathInputFilter())
         
-        // Configure input type
         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
         maxLines = 1
         

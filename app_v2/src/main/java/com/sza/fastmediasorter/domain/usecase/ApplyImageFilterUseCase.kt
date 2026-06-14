@@ -37,11 +37,9 @@ class ApplyImageFilterUseCase @Inject constructor(
                 return Result.failure(Exception("File not found: $imagePath"))
             }
 
-            // Load bitmap
             val originalBitmap = BitmapFactory.decodeFile(imagePath)
                 ?: return Result.failure(Exception("Failed to decode image"))
 
-            // Apply filter
             val filteredBitmap = when (filterType) {
                 FilterType.GRAYSCALE -> applyGrayscale(originalBitmap)
                 FilterType.SEPIA -> applySepia(originalBitmap)

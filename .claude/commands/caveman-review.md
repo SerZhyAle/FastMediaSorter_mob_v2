@@ -1,8 +1,8 @@
 # Caveman Review
 
-> **LOCAL EXECUTION DIRECTIVES:**
+> **LOCAL DIRECTIVES:**
 > 1. Keep the review in the current chat language unless the user explicitly asks for English or paste-ready English PR comments.
-> 2. Use `..` (two dots) - never `...`.
+> 2. `..` (two dots) - never `...`.
 > 3. Findings first. No throat-clearing, no praise padding.
 > 4. Repo safety rules win. Use fuller prose when a one-line comment would hide important security, architectural, or destructive-risk context.
 
@@ -20,19 +20,19 @@ Examples:
 
 ## Process
 
-When this command is invoked with `$ARGUMENTS`:
+On invoke with `$ARGUMENTS`:
 
 1. Review with the normal repo code-review bar: bugs, risks, regressions, missing tests first.
 2. Output findings before any summary.
 3. Prefer one line per finding when clarity is preserved.
-4. Use this format for concise findings:
+4. Finding format:
    - `<file>:L<line>: bug: <problem>. <fix>.`
    - `<file>:L<line>: risk: <problem>. <fix>.`
    - `<file>:L<line>: nit: <problem>. <fix>.`
    - `<file>:L<line>: q: <question>.`
 5. Keep exact symbols, file names, line numbers, commands, APIs, and error strings unchanged.
-6. If there are no findings, say that explicitly and mention residual test or validation gaps briefly.
-7. If the issue is security-sensitive or architecturally non-trivial, switch to a short paragraph instead of forcing one-line compression.
+6. No findings → say so explicitly; mention residual test or validation gaps briefly.
+7. Security-sensitive or architecturally non-trivial issue → switch to a short paragraph instead of forcing one-line compression.
 
 ## Output Rules
 

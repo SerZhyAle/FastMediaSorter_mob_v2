@@ -14,11 +14,18 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.Keep
@@ -33,6 +40,7 @@ import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
+import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
@@ -48,6 +56,7 @@ import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
 import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.nio.ByteBuffer
@@ -56,7 +65,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -84,9 +92,14 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     @Inject lateinit var runtime: DiagnosticXrRuntime
     @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
+    @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
 
     private var renderThread: DiagnosticXrRenderThread? = null
     private lateinit var surfaceView: SurfaceView
+
+    // S0382 Phase 04: 2D loading indicator shown over the SurfaceView while the initial frame
+    // decodes off the main thread; removed when the immersive session becomes ready (first frame).
+    private var loadingOverlay: View? = null
 
     // Completed when the Activity gains window focus. Render thread awaits this before calling
     // nativeStartSession so that HzOS has registered the volumetric window by that time.
@@ -138,6 +151,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var exoPlayer: ExoPlayer? = null
     @Volatile private var sessionReady: Boolean = false
 
+    // S0382 Phase 04: gates render-thread start until the off-main-thread initial decode has
+    // populated the texture buffer. The render thread takes the buffer by value at construction,
+    // so starting before this is set could present an empty/black first frame.
+    @Volatile private var initialDecodeComplete: Boolean = false
+
     // VR HUD Helpers
     private lateinit var hudRenderer: HudCanvasRenderer
     private lateinit var interactionDispatcher: HudInteractionDispatcher
@@ -169,6 +187,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // host stays focused on OpenXR session lifecycle rather than intent plumbing.
         when (val parsed = DiagnosticXrLaunchArgs.parse(
             intent,
+            payloadHolder = payloadHolder,
             defaultReturnTarget = VrPanelReturnTarget.Settings(MEDIA_SETTINGS_TAB_INDEX),
         )) {
             is DiagnosticXrLaunchArgs.PreflightFailure -> {
@@ -264,37 +283,23 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudCanvas = Canvas(hudBitmap!!)
         hudRgbaBytes = ByteArray(HudCanvasRenderer.WIDTH * HudCanvasRenderer.HEIGHT * 4)
 
-        if (mediaPlaylist.isNotEmpty()) {
-            currentPlaylistIndex = 0
-            val firstFile = mediaPlaylist[0]
-            hudRenderer.currentFilename = firstFile.name
-            if (firstFile.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
-                if (!decodeImageToActivityBytes(firstFile)) {
-                    if (launchInput.launchMode == VrLaunchMode.FILE_URI) {
-                        Timber.w("Failed to decode initial launch image ${firstFile.name}, returning DecoderFailed")
-                        deliverReturnAndFinish(
-                            VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed)
-                        )
-                        return
-                    }
-                    Timber.w("Failed to decode initial image ${firstFile.name}, falling back to bundled")
-                    decodeBundledAsset()
-                }
-            } else {
-                // First is a video, use bundled placeholder initially
-                decodeBundledAsset()
-            }
-        } else {
-            decodeBundledAsset()
-        }
-
         surfaceView = SurfaceView(this).apply {
             isFocusable = true
             isFocusableInTouchMode = true
             holder.addCallback(this@DiagnosticXrActivity)
         }
-        setContentView(surfaceView)
+        val contentRoot = FrameLayout(this).apply {
+            addView(
+                surfaceView,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+        setContentView(contentRoot)
         surfaceView.requestFocus()
+        showInitialLoadingOverlay(contentRoot)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -311,6 +316,87 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 }
             }
         }
+
+        // S0382 Phase 04: the initial frame is decoded off the main thread; the render thread is
+        // gated on initialDecodeComplete so the first render never starts with an empty buffer.
+        lifecycleScope.launch {
+            if (!prepareInitialFrame()) return@launch
+            initialDecodeComplete = true
+            maybeStartRenderThread("initialDecodeComplete")
+        }
+    }
+
+    /**
+     * S0382 Phase 04: off-main-thread initial frame preparation. Tries to decode the first
+     * playlist image; on failure falls back to the bundled asset, mirroring the prior synchronous
+     * decision tree. Returns false only when a terminal failure path has already delivered a
+     * return result and finished the Activity, so the caller must not start the render thread.
+     */
+    private suspend fun prepareInitialFrame(): Boolean {
+        val firstFile = mediaPlaylist.firstOrNull()
+        if (firstFile != null && firstFile.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
+            if (decodeImageToActivityBytes(firstFile)) return true
+            if (launchInput.launchMode == VrLaunchMode.FILE_URI) {
+                Timber.w("Failed to decode initial launch image ${firstFile.name}, returning DecoderFailed")
+                deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed))
+                return false
+            }
+            Timber.w("Failed to decode initial image ${firstFile.name}, falling back to bundled")
+        }
+        if (decodeBundledAsset()) return true
+        Timber.w("Failed to decode bundled fallback asset; returning DecoderFailed")
+        deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed))
+        return false
+    }
+
+    /**
+     * S0382 Phase 04 (§6.2, owner via /ui-clarify): show a 2D loading indicator over the
+     * SurfaceView while the initial frame decodes off the main thread. Removed by
+     * [dismissInitialLoadingOverlay] when the immersive session becomes ready (first frame).
+     */
+    private fun showInitialLoadingOverlay(root: FrameLayout) {
+        val overlay = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            setBackgroundColor(Color.argb(220, 8, 8, 16))
+            addView(
+                ProgressBar(this@DiagnosticXrActivity).apply { isIndeterminate = true },
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+            addView(
+                TextView(this@DiagnosticXrActivity).apply {
+                    text = getString(R.string.vr_immersive_preparing)
+                    setTextColor(Color.WHITE)
+                    textSize = 18f
+                    gravity = Gravity.CENTER
+                    setPadding(0, 32, 0, 0)
+                },
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+            // CLAUDE.md Rule 18: keep the indicator inside system-bar / cutout safe bounds.
+            applySystemBarInsetPadding()
+        }
+        root.addView(
+            overlay,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        loadingOverlay = overlay
+    }
+
+    private fun dismissInitialLoadingOverlay() {
+        val overlay = loadingOverlay ?: return
+        (overlay.parent as? ViewGroup)?.removeView(overlay)
+        loadingOverlay = null
     }
 
     private fun prepareLaunchMedia(): Boolean {
@@ -561,55 +647,62 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         StereoLayout.SIDE_BY_SIDE -> "SBS"
     }
 
-    private fun decodeBundledAsset(): Boolean {
+    private suspend fun decodeBundledAsset(): Boolean {
         runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.MONO.value)
         hudRenderer.currentFilename = "vr_diagnostic_360_mono.jpg (bundled)"
         queueFilenameHud("vr_diagnostic_360_mono.jpg (bundled)", ProjectionType.SPHERE_360, StereoLayout.MONO)
 
-        // S0290 Phase 11: decode via Glide BitmapPool on Dispatchers.IO. runBlocking is used only for the initial-load path which fires before the immersive UI is visible — main-thread jank here is invisible to the user. Subsequent slide changes (loadCurrentMediaItem) use the pool through a real coroutine launch.
-        val bitmap = runBlocking { decodeBundledPooled() } ?: return false
-        try {
-            val w = bitmap.width
-            val h = bitmap.height
-            val buf = getReusableDirectBuffer(w * h * 4)
-            bitmap.copyPixelsToBuffer(buf)
-            buf.rewind()
-            val bytes = ByteArray(buf.remaining())
-            buf.get(bytes)
-            textureBytes = bytes
-            textureWidth = w
-            textureHeight = h
-            Timber.d("decoded bundled mono 360 asset to RGBA: ${w}x${h}, bytes=${bytes.size}")
-            return true
-        } finally {
-            // S0290 Phase 11: return bitmap to Glide pool so the second session reuses the
-            // 128 MB ARGB_8888 allocation instead of re-allocating. Pool drives recycle by LRU.
-            returnToPool(bitmap)
+        // S0382 Phase 04 / ADR-1: decode and the large RGBA copy run on Dispatchers.IO so the
+        // focus transition is never blocked on the main thread (reverses the prior S0290 Phase 11
+        // assumption that this initial-load jank went unnoticed; Quest 3 logs disproved it).
+        return withContext(Dispatchers.IO) {
+            val bitmap = decodeBundledPooled() ?: return@withContext false
+            try {
+                val w = bitmap.width
+                val h = bitmap.height
+                val buf = getReusableDirectBuffer(w * h * 4)
+                bitmap.copyPixelsToBuffer(buf)
+                buf.rewind()
+                val bytes = ByteArray(buf.remaining())
+                buf.get(bytes)
+                textureBytes = bytes
+                textureWidth = w
+                textureHeight = h
+                Timber.d("decoded bundled mono 360 asset to RGBA: ${w}x${h}, bytes=${bytes.size}")
+                true
+            } finally {
+                // S0290 Phase 11: return bitmap to Glide pool so the second session reuses the
+                // 128 MB ARGB_8888 allocation instead of re-allocating. Pool drives recycle by LRU.
+                returnToPool(bitmap)
+            }
         }
     }
 
-    private fun decodeImageToActivityBytes(file: File): Boolean {
+    private suspend fun decodeImageToActivityBytes(file: File): Boolean {
         val config = parseFilenameConfig(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
         hudRenderer.currentFilename = file.name
         queueFilenameHud(file.name, config.projection, config.layout)
 
-        val bitmap = runBlocking { decodeFilePooled(file) } ?: return false
-        try {
-            val w = bitmap.width
-            val h = bitmap.height
-            val buf = getReusableDirectBuffer(w * h * 4)
-            bitmap.copyPixelsToBuffer(buf)
-            buf.rewind()
-            val bytes = ByteArray(buf.remaining())
-            buf.get(bytes)
-            textureBytes = bytes
-            textureWidth = w
-            textureHeight = h
-            Timber.d("decoded initial image ${file.name} to RGBA: ${w}x${h}")
-            return true
-        } finally {
-            returnToPool(bitmap)
+        // S0382 Phase 04 / ADR-1: decode + RGBA copy off the main thread (see decodeBundledAsset).
+        return withContext(Dispatchers.IO) {
+            val bitmap = decodeFilePooled(file) ?: return@withContext false
+            try {
+                val w = bitmap.width
+                val h = bitmap.height
+                val buf = getReusableDirectBuffer(w * h * 4)
+                bitmap.copyPixelsToBuffer(buf)
+                buf.rewind()
+                val bytes = ByteArray(buf.remaining())
+                buf.get(bytes)
+                textureBytes = bytes
+                textureWidth = w
+                textureHeight = h
+                Timber.d("decoded initial image ${file.name} to RGBA: ${w}x${h}")
+                true
+            } finally {
+                returnToPool(bitmap)
+            }
         }
     }
 
@@ -931,6 +1024,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private fun maybeStartRenderThread(reason: String) {
         if (renderThread != null || !::surfaceView.isInitialized) return
+        // S0382 Phase 04: the render thread receives the texture buffer by value at construction,
+        // so it must not start until the off-main-thread initial decode has populated it. The
+        // decode-completion callback re-invokes this method once the buffer is ready.
+        if (!initialDecodeComplete) return
         val surface = surfaceView.holder.surface
         if (!surface.isValid) {
             return
@@ -1026,7 +1123,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun deliverViaActivityResult(result: VrLaunchResult) {
-        val data = Intent().apply { putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, result) }
+        val data = Intent().apply { putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(result)) }
         setResult(android.app.Activity.RESULT_OK, data)
         Timber.d("DiagnosticXrActivity: deliverViaActivityResult result=$result")
         finish()
@@ -1113,8 +1210,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     detectedStereoMode = detectedStereoMode,
                     windowId = updatedTarget.windowId,
                 ).apply {
-                    putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, result)
-                    putExtra(VrLaunchInput.EXTRA_RETURN_TARGET, updatedTarget)
+                    putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(result))
+                    putExtra(VrLaunchInput.EXTRA_RETURN_TARGET_TOKEN, payloadHolder.put(updatedTarget))
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 }
             }
@@ -1122,7 +1219,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 context,
                 target.initialTab,
             ).apply {
-                putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT, result)
+                putExtra(VrLaunchInput.EXTRA_LAUNCH_RESULT_TOKEN, payloadHolder.put(result))
             }
         }
     }
@@ -1149,6 +1246,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun onRenderThreadSessionReady() {
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
+            // S0382 Phase 04: immersive session is ready and the first frame renders now -
+            // remove the 2D loading indicator.
+            dismissInitialLoadingOverlay()
             sessionReady = true
             if (mediaPlaylist.isEmpty() || currentPlaylistIndex !in mediaPlaylist.indices) return@runOnUiThread
             val file = mediaPlaylist[currentPlaylistIndex]

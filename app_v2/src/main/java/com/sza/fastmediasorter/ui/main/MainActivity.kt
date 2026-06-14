@@ -127,6 +127,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var memoryProbe: MemoryProbe
 
+    // S0391: single availability node for remote sources; drives the resource-type tab strip.
+    @Inject
+    lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -142,24 +146,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Log config changes to detect unexpected recreations
 
         // S0202: subscribe to terminal share-download outcomes pushed by LinkDownloadWorker. The worker's foreground notification is the primary feedback channel; this collector is a fallback for when the user has the app foregrounded at the moment of completion (auth-required dialogs and open-in-player intents need an Activity context).
-        lifecycleScope.launch {
-            shareResultBus.pending.collect { pending ->
-                val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
-                    pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
-                    pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
-                val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
-                // Suppression: the worker already posted a result notification for these success kinds - skip the in-Activity toast to avoid double-feedback. SocialPreviewOnly's "Sign in" notification action is the primary path; the in-Activity dialog is also redundant.
-                if (pending.notificationShown && (isSuccess || isAuthGated)) {
-                    return@collect
-                }
-                runCatching {
-                    shareResultPresenter.present(
-                        result = pending.result,
-                        hostActivity = this@MainActivity,
-                        isAuthRetry = false,
-                    )
-                }.onFailure { Timber.w(it, "S0202: shareResultPresenter.present failed") }
+        collectOnLifecycle(shareResultBus.pending) { pending ->
+            val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
+                pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
+                pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
+            val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
+            // Suppression: the worker already posted a result notification for these success kinds - skip the in-Activity toast to avoid double-feedback. SocialPreviewOnly's "Sign in" notification action is the primary path; the in-Activity dialog is also redundant.
+            if (pending.notificationShown && (isSuccess || isAuthGated)) {
+                return@collectOnLifecycle
             }
+            runCatching {
+                shareResultPresenter.present(
+                    result = pending.result,
+                    hostActivity = this@MainActivity,
+                    isAuthRetry = false,
+                )
+            }.onFailure { Timber.w(it, "shareResultPresenter.present failed") }
         }
 
         // Fix old cloud paths format (cloud:/ → cloud://)
@@ -293,7 +295,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             intent?.removeExtra("open_favorites")
         }
 
-        // Initialize keyboard navigation handler
         keyboardNavigationHandler = KeyboardNavigationHandler(
             context = this,
             recyclerView = binding.rvResources,
@@ -504,7 +505,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupMainWindowDropdownMenu() {
-        Timber.d("S0319: main window dropdown menu setup")
         refreshMainWindowDropdownMenuVisibility()
         binding.btnMainDropdownMenu.setOnClickListenerDebounced {
             showMainWindowDropdownMenu()
@@ -639,6 +639,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onMoveDownClick = { resource ->
                 viewModel.moveResourceDown(resource)
             },
+            onMoveToTopClick = { resource -> viewModel.moveResourceToTop(resource) },
+            onMoveToBottomClick = { resource -> viewModel.moveResourceToBottom(resource) },
             onScanClick = { resource ->
                 viewModel.scanSingleResource(resource)
             },
@@ -727,7 +729,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.scanAllResources()
         }
 
-        // Setup resource type tabs
         setupResourceTypeTabs()
 
         // Set initial button labels based on current orientation
@@ -789,7 +790,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // Update layout manager based on mode and screen size
             layoutChrome.updateLayoutManagerForScreenSize()
 
-            // Update toggle button icon
             if (state.isResourceGridMode) {
                 binding.btnToggleView.setIconResource(R.drawable.ic_view_list)
             } else {
@@ -861,6 +861,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onRecordLastPlayed = ::recordLastPlayedResource,
         )
         collectOnLifecycle(viewModel.events) { eventHandler.handle(it) }
+        // S0391: rebuild the resource-type tab strip when remote-source availability changes at
+        // runtime (a Settings toggle), so a disabled source's tab disappears without an app restart.
+        collectOnLifecycle(remoteSourceGate.enabledRemoteSources()) {
+            tabsManager.createTabs()
+        }
         // Observe settings to show/hide Favorites button
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
@@ -938,13 +943,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         tabsManager.createTabs()
     }
 
-    /** Show error message respecting showDetailedErrors setting If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info If showDetailedErrors=false: shows Toast (short notification) */
+    /** Show error message respecting showDetailedErrors setting If showDetailedErrors=true: shows ScrollableTextDialog with copyable text and detailed info If showDetailedErrors=false: shows Toast (short notification) */
     private fun showError(message: String, details: String?) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             if (settings.showDetailedErrors) {
-                // Use ErrorDialog with full details
-                com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                // Use ScrollableTextDialog with full details
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context = this@MainActivity,
                     title = getString(com.sza.fastmediasorter.R.string.error),
                     message = message,
@@ -961,13 +966,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    /** Show informational message (not an error, just info about empty folders, etc.) If showDetailedErrors=true: shows ErrorDialog with "Information" title If showDetailedErrors=false: shows Toast */
+    /** Show informational message (not an error, just info about empty folders, etc.) If showDetailedErrors=true: shows ScrollableTextDialog with "Information" title If showDetailedErrors=false: shows Toast */
     private fun showInfo(message: String, details: String?) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             if (settings.showDetailedErrors) {
-                // Use ErrorDialog but with Information title
-                com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                // Use ScrollableTextDialog but with Information title
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context = this@MainActivity,
                     title = getString(com.sza.fastmediasorter.R.string.information),
                     message = message,
@@ -1051,6 +1056,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         tabsManager = MainResourceTabsManager(
             tabLayout = binding.tabResourceTypes,
             configuration = resources.configuration,
+            gate = remoteSourceGate,
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },
             getActiveTab = { viewModel.state.value.activeResourceTab },

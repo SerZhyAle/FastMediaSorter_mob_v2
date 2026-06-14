@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ocr_best_download_error">Download failed. Check network connection.</string>
     <string name="ocr_best_model_delete">Delete</string>
     <string name="ocr_best_model_download">Download</string>
-    <string name="ocr_best_model_downloading">Downloading: %1$d%% (%2$s)</string>
-    <string name="ocr_best_model_installed">Installed</string>
-    <string name="ocr_best_model_size_mb">High-quality best model (~%1$s MB)</string>
-    <string name="ocr_best_models_title">High-Quality Offline Models</string>
-    <string name="ocr_best_rus_title">Russian Model</string>
-    <string name="ocr_best_ukr_title">Ukrainian Model</string>
     <string name="ocr_button_description">Extract Text</string>
     <string name="ocr_engine_type">OCR Engine</string>
     <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
@@ -19,7 +12,7 @@
     <string name="ocr_font_size">OCR Font Size</string>
     <string name="ocr_images_only">OCR is only available for images.</string>
     <string name="ocr_no_text_found">No text found in image</string>
-    <string name="ocr_processing">Recognizing text…</string>
+    <string name="ocr_processing">Recognizing text..</string>
     <string name="ocr_requires_newer_device">OCR is unavailable on this device. %1$s (API: %2$d). Requires API 26+ and 3GB+ RAM.</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="ocr_unavailable_reason_os">Android version is too old</string>
@@ -37,6 +30,6 @@
     <string name="translation_settings">Text Settings</string>
     <string name="translation_source_language">Original Language</string>
     <string name="translation_source_language_and_ocr">Original Language and OCR</string>
-    <string name="translation_started">Translation started…</string>
+    <string name="translation_started">Translation started..</string>
     <string name="translation_target_language">Translate To</string>
 </resources>

@@ -44,7 +44,7 @@
     <string name="deselect_all">Зняти вибір</string>
     <string name="share">Поділитися</string>
     <string name="search">Пошук</string>
-    <string name="search_hint">Пошук…</string>
+    <string name="search_hint">Пошук..</string>
     <string name="language_capability_translation">Переклад</string>
     <string name="language_capability_basic_ocr">Базовий OCR</string>
     <string name="language_capability_quality_ocr">Якісний OCR</string>
@@ -54,9 +54,9 @@
     <string name="msg_last_filter_restored">Відновлено останній фільтр: %1$s</string>
     <string name="warning_files_may_remain_in_source">Деякі файли могли залишитися у вихідній теці. Перевірте джерело й теку призначення. Заторкнуто: %1$d.</string>
     <string name="no_supported_files_in_resource">Допустимих типів файлів у ресурсі немає</string>
-    <string name="process_started">Процес розпочато…</string>
-    <string name="long_operation_started">Операція виконується, будь ласка зачекайте…</string>
-    <string name="please_wait">Будь ласка, зачекайте…</string>
+    <string name="process_started">Процес розпочато..</string>
+    <string name="long_operation_started">Операція виконується, будь ласка зачекайте..</string>
+    <string name="please_wait">Будь ласка, зачекайте..</string>
     <string name="favorites">Вибране</string>
     <string name="resource">Ресурс</string>
     <string name="media_type">Тип медіа</string>
@@ -100,7 +100,7 @@
     <!-- Delete Dialog -->
     <string name="deleting_files">Видалення файлів</string>
     <string name="deleting_n_files">Видаляємо %1$d файлів..</string>
-    <string name="title_export_logs_chooser">Експорт логів через…</string>
+    <string name="title_export_logs_chooser">Експорт логів через..</string>
     <string name="share_debug_logs">Поділитися логами</string>
     <string name="save_debug_logs">Зберегти логи</string>
     <string name="save_logs_success">Логи збережено на пристрій</string>
@@ -115,7 +115,7 @@
 
     <string name="open_in_default_player">Відкрити у програвачі за замовчуванням</string>
     <string name="download_and_open">Завантажити і відкрити</string>
-    <string name="downloading_file">Завантаження файлу…</string>
+    <string name="downloading_file">Завантаження файлу..</string>
     <string name="downloaded_successfully">Успішно завантажено</string>
     <string name="download_failed">Помилка завантаження: %1$s</string>
     <string name="no_app_to_handle_file">Не знайдено застосунок для відкриття цього файлу</string>
@@ -177,10 +177,10 @@
     <string name="virtual_all_docs">Усі документи</string>
     <string name="resource_name_downloads">Завантаження</string>
     <string name="virtual_comment_recent">Нещодавно відкриті локальні медіафайли</string>
-    <string name="virtual_comment_all_music">Локальні аудіофайли (mp3, flac, ogg, aac…)</string>
-    <string name="virtual_comment_all_video">Локальні відеофайли (mp4, mkv, mov, wmv…)</string>
+    <string name="virtual_comment_all_music">Локальні аудіофайли (mp3, flac, ogg, aac..)</string>
+    <string name="virtual_comment_all_video">Локальні відеофайли (mp4, mkv, mov, wmv..)</string>
     <string name="virtual_comment_camera_photos">Фото та відео з камери пристрою</string>
-    <string name="virtual_comment_all_images">Локальні зображення (jpg, png, gif, webp…)</string>
+    <string name="virtual_comment_all_images">Локальні зображення (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">Локальні документи (PDF, EPUB, текст, Office)</string>
     <string name="special_virtual_folders">Спеціальні папки</string>
     <string name="virtual_resource_already_added">Вже додано</string>
@@ -189,12 +189,12 @@
     <string name="rescan_all_virtual_warning_message">Список включає віртуальні агрегуючі папки (Вся музика, Усі відео, Усі зображення, Усі документи). Повне сканування може зайняти значний час. Продовжити?</string>
     <string name="no_files_match_criteria">Немає файлів, що відповідають критеріям</string>
     <string name="connection_failed">Помилка підключення</string>
-    <string name="loading_indicator">Завантаження…</string>
-    <string name="connecting">Підключення до  ресурсу…</string>
+    <string name="loading_indicator">Завантаження..</string>
+    <string name="connecting">Підключення до  ресурсу..</string>
     <string name="scan_progress_indicator">Сканування файлів</string>
     <string name="operation_progress_indicator">Операція в процесі</string>
-    <string name="connecting_to_resource">Підключення до %1$s…</string>
-    <string name="connection_ok_starting_speed_test">Підключення успішне. Запуск тесту швидкості…</string>
+    <string name="connecting_to_resource">Підключення до %1$s..</string>
+    <string name="connection_ok_starting_speed_test">Підключення успішне. Запуск тесту швидкості..</string>
     <string name="error_subfolder_does_not_exist">Підпапка \'%1$s\' не існує в спільному ресурсі \'%2$s\'</string>
     <string name="retry">Повторити</string>
     <string name="select_resource_type">Оберіть тип теки</string>
@@ -322,7 +322,7 @@
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Ще</string>
     <string name="slideshow">Слайдшоу</string>
-    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s…</string>
+    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s..</string>
     <string name="google_lens">Google Lens</string>
 
     <!-- Safe Mode (Phase 2.1) -->
@@ -549,7 +549,7 @@
     <string name="created_date">Дата створення</string>
     <string name="last_browse_date">Дата останнього перегляду</string>
     <string name="never_browsed">Ніколи не переглядався</string>
-    <string name="loading_files">Завантаження файлів…</string>
+    <string name="loading_files">Завантаження файлів..</string>
     <string name="supported_media_types">Підтримувані типи медіа</string>
     <string name="scan_subdirectories">З підтеками</string>
     <string name="scan_subdirectories_hint">Увімкніть для пошуку медіафайлів у всіх вкладених підкаталогах. Вимкніть для сканування лише кореневої папки.</string>
@@ -573,7 +573,7 @@
     <string name="favorites_empty_hint">Позначте файли як обрані щоб побачити їх тут</string>
 
     <string name="use_as_destination">Позначити для швидкого сортування</string>
-    <string name="counting">підрахунок…</string>
+    <string name="counting">підрахунок..</string>
     <string name="clear_trash">Очистити кошик</string>
     <string name="clear_trash_confirm_title">Очистити кошик?</string>
     <string name="clear_trash_confirm_message">Це остаточно видалить %d папок кошика та всі файли всередині них. Скасувати дію буде неможливо.</string>
@@ -664,7 +664,7 @@
     <string name="network_unstable_snackbar">Мережа нестабільна - перевірте Wi-Fi</string>
     <string name="cache_size_limit">Розмір кешу</string>
     <string name="cache_size_limit_mb">%d МБ</string>
-    <string name="cache_size_calculating">Обчислення…</string>
+    <string name="cache_size_calculating">Обчислення..</string>
     <string name="cache_size_format">Кеш: %s</string>
     <string name="cache_cleared">Кеш успішно очищено</string>
     <string name="cache_clear_failed">Не вдалося очистити кеш</string>
@@ -729,7 +729,7 @@
     <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Мережеві облікові дані за замовчуванням</string>
     <string name="tooltip_default_credentials_message">Ім\'я користувача та пароль за замовчуванням при підключенні до мережевих ресурсів (SMB/SFTP/FTP). Можуть бути перевизначені для кожного ресурсу при налаштуванні.</string>
-    <string name="all_files">Файловий менеджер</string>
+    <string name="all_files">Усі файли</string>
     <string name="tooltip_all_files_title">Режим файлового менеджера</string>
     <string name="tooltip_all_files_message">Показувати та керувати ВСІМА типами файлів у ресурсах (не лише медіа). При увімкненні автоматично підтримуються зображення, відео, аудіо, текст, документи, архіви та бінарні файли.</string>
     <string name="all_files_global_info">Режим усіх файлів увімкнено в Налаштуваннях. Усі типи медіа підтримуються автоматично.</string>
@@ -737,7 +737,7 @@
     <string name="show_hidden_files">Показувати приховані файли</string>
     <string name="tooltip_show_hidden_files_title">Показувати приховані файли</string>
     <string name="help_show_hidden_files">Довідка: показувати приховані файли</string>
-    <string name="tooltip_show_hidden_files_message">Відображати приховані файли та папки (ті, що починаються з крапки). При увімкненні всі файли, включаючи системні та конфігураційні, будуть видимі в списках файлів.</string>
+    <string name="tooltip_show_hidden_files_message">Відображати приховані файли та папки (ті, що починаються з крапки). Приховані елементи стануть видимими в доступних місцях зберігання, але Android усе одно може захищати app-specific папки.</string>
     <string name="tooltip_video_thumbnails_title">Показувати мініатюри відео</string>
     <string name="tooltip_video_thumbnails_message">Витягує та відображає перший кадр відеофайлів як мініатюри. Може зайняти понад 2 секунди для мережевих файлів через завантаження та обробку.</string>
     <string name="tooltip_video_size_limits_title">Обмеження розміру відео</string>
@@ -839,7 +839,7 @@
 
     <!-- Lyrics Feature -->
     <string name="lyrics">Лірика</string>
-    <string name="searching_lyrics">Пошук тексту пісні…</string>
+    <string name="searching_lyrics">Пошук тексту пісні..</string>
     <string name="lyrics_not_found">Лірика не знайдена</string>
     <string name="error_timeout_lyrics">Час очікування вичерпано. Будь ласка, перевірте підключення до Інтернету та спробуйте ще раз.</string>
     <string name="search_in_youtube_music">У YouMusic</string>
@@ -849,7 +849,6 @@
     <string name="add_local_folder">Додати локальну теку</string>
     <string name="local_folder">Локальна тека</string>
     <string name="add_folders_from_device_storage">Додати теки з пам\'яті пристрою</string>
-    <string name="add_smb_network_shares">Додати мережеві ресурси SMB</string>
     <string name="scan_button">СКАНУВАТИ</string>
     <string name="add_manually_button">Додати вручну</string>
     <string name="resources_to_add">Ресурси для додавання:</string>
@@ -924,7 +923,7 @@
     <string name="add_as_destination">Додати до отримувачів</string>
     <string name="selected_folder">Вибрано: %1$s</string>
     <string name="folder_icon">Значок папки</string>
-    <string name="loading">Завантаження…</string>
+    <string name="loading">Завантаження..</string>
     <string name="sorting_in_progress">Сортування..</string>
 
     <!-- Sort modes -->
@@ -987,7 +986,7 @@
     </plurals>
     <string name="sync_now">Синхронізувати зараз</string>
     <string name="sync_status_idle">Готово до синхронізації</string>
-    <string name="sync_status_in_progress">Синхронізація…</string>
+    <string name="sync_status_in_progress">Синхронізація..</string>
     <string name="sync_status_completed">Синхронізовано %d ресурсів</string>
     <string name="sync_status_failed">Помилка синхронізації</string>
     <string name="sync_completed_successfully">Успішно синхронізовано %d ресурсів</string>
@@ -1097,7 +1096,7 @@
     <string name="battery_optimization_dialog_message">Щоб заплановані файлові операції виконувалися надійно у фоні, вимкніть оптимізацію батареї для FastMediaSorter. Це необов\'язково, але рекомендується при використанні планувальника.</string>
     <string name="battery_optimization_dialog_btn_allow">Вимкнути оптимізацію</string>
     <string name="battery_optimization_dialog_btn_skip">Пропустити</string>
-    <string name="msg_download_share">Завантаження файлу для відправки…</string>
+    <string name="msg_download_share">Завантаження файлу для відправки..</string>
     <string name="error_share_download_failed">Не вдалося підготувати файл до надсилання.</string>
     <string name="error_share_unexpected">Несподівана помилка завантаження</string>
     <string name="error_share_failed">Не вдалося надіслати файл.</string>
@@ -1105,7 +1104,7 @@
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Виявлення мережі</string>
-    <string name="msg_scanning_subnet">Сканування локальної підмережі…</string>
+    <string name="msg_scanning_subnet">Сканування локальної підмережі..</string>
     <string name="msg_scan_complete">Сканування завершено</string>
     <string name="msg_host_selected">Вибрано %1$s (%2$s)</string>
     <string name="msg_scan_again">Сканувати знову</string>
@@ -1130,15 +1129,15 @@
     <string name="msg_failed_reload_image">Не вдалося перезавантажити зображення.</string>
 
     <!-- GIF Editor -->
-    <string name="msg_gif_extracting">Вилучення кадрів…</string>
-    <string name="msg_gif_extract_started">Витягування %1$d кадрів…</string>
+    <string name="msg_gif_extracting">Вилучення кадрів..</string>
+    <string name="msg_gif_extract_started">Витягування %1$d кадрів..</string>
     <string name="msg_gif_extract_success">%1$d кадрів збережено в Завантаження</string>
     <string name="msg_gif_extract_failed">Не вдалося витягти кадри. Спробуйте ще раз.</string>
     <string name="msg_gif_speed_success">Швидкість змінено на %1$.1fx</string>
     <string name="msg_gif_speed_failed">Не вдалося змінити швидкість GIF. Спробуйте ще раз.</string>
     <string name="msg_gif_first_frame_success">Перший кадр збережено в Завантаження</string>
     <string name="msg_gif_first_frame_failed">Не вдалося зберегти перший кадр. Спробуйте ще раз.</string>
-    <string name="msg_preparing_file">Підготовка файлу…</string>
+    <string name="msg_preparing_file">Підготовка файлу..</string>
     <string name="msg_no_file_to_edit">Нічого редагувати</string>
     <string name="msg_no_file_to_delete">Нічого видаляти</string>
     <string name="msg_error_occurred">Сталася помилка: %1$s</string>
@@ -1146,7 +1145,7 @@
     <string name="slideshow_stopped_connection_lost">Слайд-шоу зупинено. З\'єднання з %1$s втрачено.</string>
     <string name="slideshow_stopped_resource_unavailable">Слайд-шоу зупинено. Немає доступу до %1$s.</string>
     <string name="volume_level">Гучність: %1$d%%</string>
-    <string name="msg_network_stream_retry">Мережа перервана, повтор… (%1$d/%2$d)</string>
+    <string name="msg_network_stream_retry">Мережа перервана, повтор.. (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Помилка мережі після %1$d спроб: %2$s</string>
     <string name="msg_playback_error">Помилка відтворення: %1$s</string>
     <string name="error_loading_media">Помилка завантаження файлу, пропуск</string>
@@ -1177,7 +1176,7 @@
     <string name="later">Пізніше</string>
 
     <!-- Network Discovery Dialog -->
-    <string name="scanning_local_subnet">Сканування локальної мережі…</string>
+    <string name="scanning_local_subnet">Сканування локальної мережі..</string>
     <string name="no_devices_found">Пристрої поки не знайдені</string>
 
     <!-- Filter Resource Dialog -->
@@ -1213,10 +1212,10 @@
     <string name="unsupported_format_use_external_player">Формат не підтримується. Спробуйте відкрити у зовнішньому програвачі.</string>
     <string name="unsupported_format_copy_to_local">Формат не підтримується. Скопіюйте файл на локальний ресурс, щоб використовувати зовнішній програвач.</string>
     <string name="heic_not_supported_on_device">Для відображення %1$s потрібен %2$s або новіший.</string>
-    <string name="panel_copy_to">Копіювати до…</string>
-    <string name="panel_move_to">Перемістити до…</string>
+    <string name="panel_copy_to">Копіювати до..</string>
+    <string name="panel_move_to">Перемістити до..</string>
     <string name="msg_gif_prepare_failed">Не вдалося підготувати GIF файл</string>
-    <string name="msg_gif_downloading">Завантаження файлу…</string>
+    <string name="msg_gif_downloading">Завантаження файлу..</string>
     <string name="msg_gif_speed_already_normal">Швидкість вже нормальна (1.0x)</string>
     <string name="msg_gif_network_extract_success">%1$d кадрів збережено в Завантаження</string>
     <string name="msg_gif_network_speed_success">Швидкість змінено на %1$.1fx, збережено в Завантаження</string>
@@ -1264,13 +1263,13 @@
     <string name="toast_rotate_failed">Не вдалося повернути зображення. Спробуйте ще раз.</string>
     <string name="toast_image_flipped">Зображення відображено</string>
     <string name="toast_flip_failed">Не вдалося віддзеркалити зображення. Спробуйте ще раз.</string>
-    <string name="toast_filter_active">Фільтр активний…</string>
+    <string name="toast_filter_active">Фільтр активний..</string>
 
     <!-- Повідомлення прогресу для редагування зображень -->
-    <string name="progress_applying_filter">Застосування фільтра…</string>
-    <string name="progress_applying_adjustments">Застосування налаштувань…</string>
-    <string name="progress_rotating_image">Поворот зображення…</string>
-    <string name="progress_flipping_image">Відображення зображення %1$s…</string>
+    <string name="progress_applying_filter">Застосування фільтра..</string>
+    <string name="progress_applying_adjustments">Застосування налаштувань..</string>
+    <string name="progress_rotating_image">Поворот зображення..</string>
+    <string name="progress_flipping_image">Відображення зображення %1$s..</string>
 
     <string name="toast_no_files_to_play">Немає файлів для відтворення</string>
     <string name="toast_file_unavailable">Цей файл зараз недоступний, виберіть ресурс для відтворення</string>
@@ -1298,13 +1297,13 @@
     <string name="read_speed">Читання</string>
     <string name="write_speed">Запис</string>
     <string name="rec_threads">Потоки</string>
-    <string name="analyzing_speed">Аналіз швидкості…</string>
+    <string name="analyzing_speed">Аналіз швидкості..</string>
     <string name="last_test_date">Ост. тест: %s</string>
     <string name="never_tested">Не тестувалось</string>
 
     <!-- Speed Test -->
-    <string name="speed_test_preparing">Підготовка тесту швидкості…</string>
-    <string name="speed_test_saving">Збереження результатів…</string>
+    <string name="speed_test_preparing">Підготовка тесту швидкості..</string>
+    <string name="speed_test_saving">Збереження результатів..</string>
     <string name="speed_test_complete">Тест швидкості завершено: Читання: %1$s Мбіт/с, Запис: %2$s Мбіт/с (Потоки: %3$d)</string>
 
     <!-- Folder Selection & Permissions -->
@@ -1388,7 +1387,7 @@
     <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">Відскановано 0 файлів</string>
-    <string name="activity_main_tvScanProgress_text">Сканування ресурсів…</string>
+    <string name="activity_main_tvScanProgress_text">Сканування ресурсів..</string>
     <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
@@ -1481,7 +1480,7 @@
     <string name="dialog_file_operation_progress_btnCancel_text">Відміна</string>
     <string name="transfer_overall_progress_desc">Загальний прогрес передачі</string>
     <string name="transfer_eta_desc">Час, що залишився</string>
-    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копіювання файлів…</string>
+    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копіювання файлів..</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_suffixText">МБ</string>
@@ -1520,11 +1519,9 @@
     <string name="dialog_integration_test_tvLog_text">Тести ще не запущені</string>
     <string name="dialog_integration_test_tvProgress_text">Готово до запуску тестів</string>
     <string name="dialog_integration_test_tvStatus_text">Натисніть Запустити тести для старту</string>
-    <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
-    <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
-    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Будь ласка, зачекайте…</string>
-    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Завантаження…</string>
+    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Будь ласка, зачекайте..</string>
+    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Завантаження..</string>
     <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>    <!-- Speed option: no translation needed -->
@@ -1697,7 +1694,7 @@
     <string name="failed_count">З проблемами: %d</string>
     <string name="failed_files">Файли з помилками</string>
     <string name="find_and_replace">Знайти та замінити</string>
-    <string name="find_hint">Знайти…</string>
+    <string name="find_hint">Знайти..</string>
     <string name="find_no_results">Немає результатів</string>
     <string name="folder">Папка</string>
     <string name="folder_selected_successfully">Папку вибрано: %s</string>
@@ -1741,11 +1738,11 @@
     <string name="reader_theme_light">Світла</string>
     <string name="reader_theme_sepia">Сепія</string>
     <string name="redo">Повторити</string>
-    <string name="reopen_with_encoding">Відкрити з кодуванням…</string>
+    <string name="reopen_with_encoding">Відкрити з кодуванням..</string>
     <string name="repeat">Повтор</string>
     <string name="replace">Замінити</string>
     <string name="replace_all">Замінити всі</string>
-    <string name="replace_hint">Замінити на…</string>
+    <string name="replace_hint">Замінити на..</string>
     <string name="replaced_n_occurrences">Замін виконано: %1$d</string>
     <string name="resource_added">Ресурс додано</string>
     <string name="resource_comment">Коментар</string>
@@ -1756,7 +1753,7 @@
     <string name="resources_added">Додано ресурсів: %1$d</string>
     <string name="rewind_10_seconds">На 10 секунд назад</string>
     <string name="rewind_30_seconds">На 30 секунд назад</string>
-    <string name="scanning_resources">Сканування ресурсів…</string>
+    <string name="scanning_resources">Сканування ресурсів..</string>
     <string name="search_in_pdf">Пошук у PDF</string>
     <string name="select_audio_track">Вибрати аудіодоріжку</string>
     <string name="select_encoding">Вибрати кодування</string>
@@ -1787,13 +1784,13 @@
     <string name="translate_page">Перекласти сторінку</string>
     <string name="download_translation_model_title">Завантаження моделі перекладу</string>
     <string name="download_translation_model_message">Для перекладу на %1$s потрібно завантажити модель (~30 МБ). Завантажити зараз?</string>
-    <string name="tts_reading">Читаю вголос…</string>
+    <string name="tts_reading">Читаю вголос..</string>
     <string name="vinyl_indicator_description">Індикатор відтворення аудіо</string>
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
     <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>
     <string name="resume_unavailable">Не вдалося відновити відтворення - ресурс недоступний або сесія закінчилася</string>
-    <string name="resume_checking">Відновлення відтворення…</string>
+    <string name="resume_checking">Відновлення відтворення..</string>
 
     <!-- Default player association (Phase 3) -->
 
@@ -1806,8 +1803,8 @@
     <string name="restore_from_google_drive">Відновити налаштування з Google Drive</string>
     <string name="backup_success">Збережено %1$d ресурсів, %2$d обраних і всі налаштування в %3$s</string>
     <string name="backup_failed">Не вдалося створити резервну копію налаштувань і ресурсів. Спробуйте ще раз.</string>
-    <string name="backup_in_progress">Створення резервної копії налаштувань і ресурсів…</string>
-    <string name="restore_in_progress">Відновлення налаштувань і ресурсів…</string>
+    <string name="backup_in_progress">Створення резервної копії налаштувань і ресурсів..</string>
+    <string name="restore_in_progress">Відновлення налаштувань і ресурсів..</string>
     <string name="restore_confirm_title">Відновити з резервної копії?</string>
     <string name="restore_confirm_message">Копія від: %1$s\nПристрій: %2$s\nРесурси: %3$d\nОбране: %4$d\n\n• Налаштування будуть ЗАМІНЕНІ\n• Ресурси будуть ДОДАНІ (дублікати пропущені)\n• Обране буде ДОДАНО (дублікати пропущені)</string>
     <string name="restore_success">Усі налаштування відновлено. Додано %1$d ресурсів (%2$d вже існували). Додано %3$d обраних (%4$d вже існували).</string>
@@ -1855,7 +1852,7 @@
     <string name="backup_import_favorites">Імпорт обраного</string>
 
     <!-- Network delete dialog -->
-    <string name="and_n_more_files_network">…та ще %d файлів</string>
+    <string name="and_n_more_files_network">..та ще %d файлів</string>
     <string name="dont_show_again_for_resource">Не показувати знову для цього ресурсу</string>
     <string name="network_delete_warning">Файли будуть безповоротно видалені з мережевого розташування</string>
 
@@ -1946,7 +1943,7 @@
     <string name="print_fallback_to_share">Діалог друку не відкрився - відкрито меню «Поділитися». Виберіть застосунок для друку.</string>
 
     <!-- Chromecast / Cast -->
-    <string name="cast_to_chromecast">Трансляція…</string>
+    <string name="cast_to_chromecast">Трансляція..</string>
     <string name="cast_connected">Трансляція на %s</string>
     <string name="cast_disconnected">Трансляцію завершено</string>
     <string name="cast_video_too_large">Відео завелике для трансляції (&gt; 50 МБ)</string>
@@ -1973,21 +1970,21 @@
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Знайти дублікати</string>
     <string name="action_delete_duplicates">Знайти та видалити дублікати</string>
-    <string name="action_delete_by_size">Видалення за розміром…</string>
+    <string name="action_delete_by_size">Видалення за розміром..</string>
     <string name="cd_resource_ops_menu">Меню операцій з ресурсом</string>
     <string name="cmd_camera_capture">Зйомка камерою</string>
     <string name="camera_capture_filename_title">Зберегти як</string>
     <string name="camera_capture_saved">Збережено: %s</string>
     <string name="camera_capture_error_save_generic">Не вдалося зберегти знятий файл</string>
     <string name="camera_capture_error_temp_file">Не вдалося створити тимчасовий файл для зйомки</string>
-    <string name="camera_capture_error_no_camera_app">На пристрої немає застосунку камери</string>
+    <string name="camera_capture_error_no_camera_app">Зйомка камерою недоступна на цьому пристрої.</string>
     <string name="camera_capture_error_permission_denied">Доступ до камери заборонено</string>
     <string name="camera_capture_error_io">Не вдалося прочитати знятий файл</string>
     <string name="camera_capture_error_session_expired">Сеанс зйомки застарів - спробуйте ще раз</string>
     <string name="duplicate_detection_title">Дублікати</string>
     <string name="duplicate_scan_start">Почати сканування</string>
     <string name="duplicate_scan_failed">Не вдалося завершити пошук дублікатів. Спробуйте ще раз.</string>
-    <string name="scanning_for_duplicates">Пошук дублікатів…</string>
+    <string name="scanning_for_duplicates">Пошук дублікатів..</string>
     <string name="duplicate_none_found">Дублікати не знайдено.</string>
     <string name="duplicates_found_format">Знайдено %1$d груп дублікатів (загалом %2$s)</string>
     <string name="group_title_format">Група %1$d</string>
@@ -2035,7 +2032,7 @@
     <string name="archive_name_invalid_chars_error">Ім\'я містить недопустимі символи</string>
     <string name="archive_destination_label">Тека призначення: %1$s</string>
     <string name="archive_action_btn">Архівувати</string>
-    <string name="archive_progress_title">Створення архіву…</string>
+    <string name="archive_progress_title">Створення архіву..</string>
     <string name="archive_progress_message">%1$d з %2$d: %3$s</string>
     <string name="archive_success">Архів створено: %1$s (%2$d файлів)</string>
     <string name="archive_error">Помилка архівації: %1$s</string>
@@ -2045,7 +2042,7 @@
     <string name="unarchive_dialog_title">Розпакувати архів?</string>
     <string name="unarchive_dialog_message">"%1$s" -> тека "%2$s"</string>
     <string name="unarchive_action_extract">Розпакувати</string>
-    <string name="unarchive_progress_title">Розпакування архіву…</string>
+    <string name="unarchive_progress_title">Розпакування архіву..</string>
     <string name="unarchive_progress_entry">Вилучення: %1$s</string>
     <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
     <string name="unarchive_success">Архів розпаковано</string>
@@ -2078,7 +2075,7 @@
     <string name="wear_last_synced">Остання синхр.: %s</string>
     <string name="wear_push_to_watch">Надіслати на годинник</string>
     <string name="wear_sync_ready">Готово до синхронізації</string>
-    <string name="wear_sync_sending">Надсилання на годинник…</string>
+    <string name="wear_sync_sending">Надсилання на годинник..</string>
     <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
     <string name="wear_sync_failed">Не вдалося синхронізувати дані з годинником. Спробуйте ще раз.</string>
     <string name="wear_settings_section_title">Налаштування годинника</string>
@@ -2143,7 +2140,7 @@
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Зйомка камерою</string>
-    <string name="tooltip_camera_capture_message">Кнопка камери у Browse дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
+    <string name="tooltip_camera_capture_message">Кнопка камери у браузері файлів дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
     <string name="tooltip_saved_authorizations_title">Збережені авторизації</string>
     <string name="tooltip_saved_authorizations_message">Екран веб-входу всередині застосунку зберігає cookie та логіни, які використовуються під час автозавантаження файлів із сайтів, що вимагають входу. Відкрийте цей екран, щоб переглянути збережені авторизації та видалити непотрібні.</string>
 
@@ -2276,7 +2273,7 @@
     <string name="friendly_copy_error_not_found">Файл або ресурс не знайдено. Можливо, його переміщено або видалено.</string>
     <string name="friendly_copy_empty_state_generic">Тут поки нічого немає.</string>
     <string name="friendly_copy_empty_state_invite">Тут поки нічого немає. Додайте щось, щоб розпочати.</string>
-    <string name="friendly_copy_progress_generic">Виконується…</string>
+    <string name="friendly_copy_progress_generic">Виконується..</string>
     <string name="friendly_copy_success_generic">Готово.</string>
     <string name="friendly_copy_next_step_help">Відкрити довідку</string>
     <string name="friendly_copy_next_step_report">Повідомити про проблему</string>
@@ -2322,8 +2319,8 @@
     <string name="link_download_notif_text_downloading_pct">Завантаження %1$d%%</string>
     <string name="link_download_notif_action_cancel">Скасувати</string>
     <string name="auth_sessions_info_text">Тут зберігаються авторизації, збережені через вбудований браузер. Кожен запис містить куки для одного облікового запису на одному сайті. Записи «Вхід відхилено» створено при виборі «Не пропонувати» - вони вимикають діалог авторизації для цього сайту. Щоб додати другий обліковий запис для того ж сайту, скористайтесь «Додати авторизацію» у меню.</string>
-    <string name="link_download_ytdlp_extracting">Вилучення посилання на медіа…</string>
-    <string name="link_download_ytdlp_downloading">Завантаження через універсальний екстрактор…</string>
+    <string name="link_download_ytdlp_extracting">Вилучення посилання на медіа..</string>
+    <string name="link_download_ytdlp_downloading">Завантаження через універсальний екстрактор..</string>
     <string name="link_download_ytdlp_error_extract">Не вдалося вилучити медіа з цього посилання.</string>
     <string name="link_download_ytdlp_error_runtime">Універсальний екстрактор недоступний.</string>
     <string name="rotation_toggle_title">Поворот</string>
@@ -2348,7 +2345,7 @@
     <string name="audio_next_track_loading">Завантажується наступний трек..</string>
     <string name="widget_quick_audio_recorder_label">Швидкий диктофон</string>
     <string name="widget_quick_audio_recorder_description">Натисніть, щоб почати запис голосу; натисніть ще раз, щоб зупинити та зберегти</string>
-    <string name="quick_recorder_notification_recording">Триває запис…</string>
+    <string name="quick_recorder_notification_recording">Триває запис..</string>
     <string name="quick_recorder_notification_channel">Запис голосу</string>
     <string name="quick_recorder_action_stop">Стоп</string>
     <string name="quick_recorder_saved">Запис збережено: %1$s</string>
@@ -2357,4 +2354,123 @@
     <string name="quick_recorder_permission_settings">Увімкніть доступ до мікрофона в налаштуваннях</string>
     <string name="camera_ocr_crop_lang_ocr_desc">Мова розпізнавання</string>
     <string name="camera_ocr_crop_lang_target_desc">Мова перекладу</string>
+    <string name="perm_title_camera">Камера</string>
+    <string name="perm_desc_camera">Знімати фото прямо в застосунку для OCR-захоплення та збереження в поточний ресурс. Потрібно, якщо ви хочете робити знімки без переходу в системну камеру.</string>
+    <string name="perm_group_camera">Камера</string>
+    <string name="camera_permission_required">Щоб знімати фото в застосунку, потрібен доступ до камери. Надайте дозвіл і спробуйте ще раз.</string>
+    <string name="setting_camera_to_resource_enabled_title">Увімкнути зйомку фото</string>
+    <string name="setting_camera_to_resource_enabled_desc">Показувати команду фотоапарата у браузері файлів і зберігати нові знімки в поточний ресурс.</string>
+    <string name="setting_camera_ask_filename_title">Питати назву кожної фотографії</string>
+    <string name="setting_camera_ask_filename_desc">Показувати діалог перейменування перед збереженням кожної знятої фотографії.</string>
+    <string name="setting_camera_open_for_editing_title">Відкривати зняте фото для редагування</string>
+    <string name="setting_camera_open_for_editing_desc">Одразу відкривати збережене фото в редакторі малювання після зйомки.</string>
+    <string name="perm_group_optional">Необов\'язкові дозволи</string>
+    <string name="cmd_video_capture">Записати відео</string>
+    <string name="setting_video_capture_enable_title">Увімкнути запис відео</string>
+    <string name="setting_video_capture_enable_desc">Показувати команду запису відео прямо в поточний ресурс.</string>
+    <string name="setting_video_capture_open_in_player_title">Відкривати записане відео у плеєрі</string>
+    <string name="setting_video_capture_open_in_player_desc">Після збереження запису відкривати його у плеєрі. За замовчуванням вимкнено.</string>
+    <string name="resource_menu_open">Відкрити</string>
+    <string name="resource_menu_launch">Запустити</string>
+    <string name="resource_menu_move_to_top">Перемістити в самий верх</string>
+    <string name="resource_menu_move_to_bottom">Перемістити в самий низ</string>
+    <string name="delivery_prompt_title">Потрібне довантаження</string>
+    <string name="delivery_offer_message">Для цієї функції потрібне довантаження (близько %1$s). Завантажити зараз?</string>
+    <string name="delivery_offer_message_unknown_size">Для цієї функції потрібне невелике довантаження. Завантажити зараз?</string>
+    <string name="delivery_state_downloading">Завантажую..</string>
+    <string name="delivery_state_verifying">Перевіряю завантаження..</string>
+    <string name="delivery_state_error">Не вдалося завантажити - перевірте підключення та повторіть.</string>
+    <string name="delivery_percent">%1$d%%</string>
+    <string name="delivery_action_download">Завантажити</string>
+    <string name="delivery_action_retry">Повторити</string>
+    <string name="delivery_progress_content_description">Перебіг завантаження</string>
+
+    <!-- Extensions Manager Strings -->
+    <string name="ext_manager_title">Додаткові модулі</string>
+    <string name="ext_manager_description">Керуйте важкими ресурсами, мовними моделями та офлайн-декодерами, щоб зберегти базовий додаток легким.</string>
+    <string name="ext_manager_desc_short">Керування офлайн-модулями та мовними пакетами</string>
+    <string name="ext_estimated_size">Оціночний розмір: %s</string>
+    <string name="ext_status_installed">Встановлено</string>
+    <string name="ext_status_available">Доступно</string>
+    <string name="ext_status_downloading">Завантаження</string>
+    <string name="ext_status_failed">Помилка</string>
+    <string name="ext_downloading_progress">Завантаження: %d%%</string>
+    <string name="ext_ocr_engines_title">Модулі розпізнавання тексту</string>
+    <string name="ext_ocr_engines_desc">Включає бібліотеки Tesseract та PaddleOCR для офлайн-розпізнавання тексту на зображеннях та в документах.</string>
+    <string name="ext_translation_title">Модуль перекладу</string>
+    <string name="ext_translation_desc">Включає перекладач ML Kit та ідентифікатор мови для офлайн-перекладу тексту між підтримуваними мовами.</string>
+    <string name="ext_audio_viz_title">Аудіовізуалізація</string>
+    <string name="ext_audio_viz_desc">Включає фонові зациклені відео в плеєрі при програванні аудіофайлів.</string>
+    <string name="ext_ffmpeg_dts_title">Декодер FFmpeg DTS</string>
+    <string name="ext_ffmpeg_dts_desc">Включає підтримку відтворення аудіокодеків DTS, APE, WMA та WavPack через FFmpeg.</string>
+    <string name="ext_lang_rus_title">Російська мовна модель OCR</string>
+    <string name="ext_lang_rus_desc">Високоякісна модель російської мови для офлайн-розпізнавання тексту Tesseract.</string>
+    <string name="ext_lang_ukr_title">Українська мовна модель OCR</string>
+    <string name="ext_lang_ukr_desc">Високоякісна модель української мови для офлайн-розпізнавання тексту Tesseract.</string>
+    <string name="ext_delete_confirm_title">Видалити розширення?</string>
+    <string name="ext_delete_confirm_message">Видалити %1$s і звільнити місце? Пізніше можна завантажити знову.</string>
+    <string name="ext_install_all">Встановити всі</string>
+    <string name="ext_uninstall_all">Видалити всі</string>
+    <string name="ext_uninstall_all_confirm_title">Видалити всі розширення?</string>
+    <string name="ext_uninstall_all_confirm_message">Видалити всі встановлені розширення і звільнити місце? Пізніше можна завантажити знову.</string>
+    <string name="slideshow_stop">Зупинити слайд-шоу</string>
+    <string name="open_in_fms_external_file_notice">Цей файл розташований поза текою, доданою до застосунку, тому відкрився головний екран.</string>
+    <string name="sftp_host_key_fingerprint_hint">Очікуваний відбиток host-key (SHA256, опційно)</string>
+    <string name="sftp_host_key_fingerprint_invalid">Не вдалося розібрати відбиток. Підтримуються SHA256:base64, hex з двокрапками, чистий base64.</string>
+    <string name="sftp_host_key_mismatch_title">Не вдалося підтвердити сервер</string>
+    <string name="sftp_host_key_mismatch_body_format">Відбиток не збігається. Перевірте адресу сервера або оновіть збережений відбиток.\n\nОчікувався:\n%1$s\n\nСервер надав:\n%2$s</string>
+    <string name="sftp_auth_method_label">Спосіб входу</string>
+    <string name="sftp_server_verification_title">Перевірка сервера (необов’язково)</string>
+    <string name="sftp_server_verification_subtitle">Необов’язковий захист: підтверджує справжність сервера.</string>
+    <string name="sftp_host_key_fingerprint_helper">Потрібно лише якщо ви хочете закріпити сервер і захиститися від підміни. Формат: SHA256:..</string>
+    <string name="ext_section_ocr_translation">Переклад та розпізнавання OCR</string>
+    <string name="ext_section_media_playback">Відтворення медіа</string>
+    <string name="ext_shortcut_packs_title">Завантаження OCR та перекладу</string>
+    <string name="ext_shortcut_packs_desc">Відкрити завантажувані розширення для встановлення пакетів OCR та перекладу</string>
+    <string name="download_runner_notif_channel_name">Завантаження елементів</string>
+    <string name="download_runner_notif_title_running">Завантаження: %s</string>
+    <string name="download_runner_notif_title_installed">%s успішно встановлено</string>
+    <string name="download_runner_notif_title_queued">Завантаження поставлено в чергу</string>
+    <string name="download_runner_notif_title_failed">Помилка завантаження %s</string>
+    <string name="screen_capture_saved_to">Збережено в %1$s: %2$s</string>
+    <string name="screen_capture_service_notification_title">Знімок екрана</string>
+    <string name="screen_capture_service_notification_text">Захоплюю поточний екран..</string>
+    <string name="setting_group_system_apps_title">Системні застосунки</string>
+    <string name="setting_subgroup_screen_gestures_title">Жести екрана</string>
+    <string name="setting_gesture_overlay_title">Оверлей жестів</string>
+    <string name="setting_gesture_overlay_summary">Показувати тонку смугу жестів біля лівого краю поверх інших застосунків</string>
+    <string name="setting_gesture_overlay_help_title">Оверлей жестів</string>
+    <string name="setting_gesture_overlay_help_message">Біля лівого краю екрана розташована тонка невидима смуга. Щоб зняти поточний екран, проведіть від смуги по діагоналі вниз і вправо (приблизно 45°). Знімок зберігається у вибраний ресурс — типово в папку скриншотів пристрою. Потрібен дозвіл «Поверх інших застосунків». Смуга займає лівий край від 10 до 75 відсотків висоти; верхній кут залишено вільним, щоб не спрацьовувати випадково.</string>
+    <string name="setting_screenshot_gesture_down_title">Знімок жестом вниз</string>
+    <string name="setting_screenshot_gesture_down_summary">Проведіть від смуги праворуч-вниз, щоб зняти поточний екран</string>
+    <string name="setting_screenshot_destination_title">Завантажувати знімки до..</string>
+    <string name="setting_screenshot_destination_default">Папка знімків пристрою (або Downloads)</string>
+    <string name="screenshot_overlay_permission_rationale">Дозвольте показ поверх інших застосунків, щоб відображати смугу жестів</string>
+    <string name="cache_size_installed_toast">Установлено кеш: %1$d МБ</string>
+    <string name="welcome_enable_all">Увімкнути все</string>
+    <string name="welcome_enable_all_content_description">Увімкнути все та завершити налаштування</string>
+    <string name="default_player_choose_in_settings">У системних налаштуваннях оберіть FastMediaSorter додатком за замовчуванням для цього типу.</string>
+    <string name="s0413_audio_track_skipped">Пропущено файл «%1$s» - не вдалося відтворити.</string>
+    <string name="s0413_audio_queue_unplayable">Не вдалося відтворити жоден файл.</string>
+    <string name="settings_remote_sources_title">Віддалені джерела</string>
+    <string name="settings_remote_source_smb_title">SMB</string>
+    <string name="settings_remote_source_smb_subtitle">Спільні теки в домашній мережі або на NAS</string>
+    <string name="settings_remote_source_smb_help_title">Джерела SMB</string>
+    <string name="settings_remote_source_smb_help_message">Доступ до спільних тек у локальній мережі — наприклад, домашній NAS, комп\'ютер із Windows та увімкненим спільним доступом, роутер із USB-накопичувачем або інший пристрій із підтримкою SMB.</string>
+    <string name="settings_remote_source_ftp_title">(S)FTP</string>
+    <string name="settings_remote_source_ftp_subtitle">Теки на сервері через FTP та SFTP</string>
+    <string name="settings_remote_source_ftp_help_title">Джерела (S)FTP</string>
+    <string name="settings_remote_source_ftp_help_message">Доступ до тек на сервері через FTP або SFTP — наприклад, домашній сервер, NAS, вебхостинг або роутер із підтримкою (S)FTP.</string>
+    <string name="settings_remote_source_cloud_title">Хмара</string>
+    <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
+    <string name="settings_remote_source_cloud_help_title">Хмарні джерела</string>
+    <string name="settings_remote_source_cloud_help_message">Доступ до файлів у хмарних сховищах — Google Drive, OneDrive та Dropbox. Підключіть обліковий запис, щоб відкривати свої теки безпосередньо в застосунку.</string>
+    <string name="settings_remote_source_disable_confirm_title">Сховати ці теки?</string>
+    <string name="settings_remote_source_disable_confirm_message">Теки цього джерела буде сховано, а не видалено. Збережені ресурси залишаться й з\'являться знову, коли ви увімкнете джерело.</string>
+    <string name="screenshot_accessibility_service_description">Дозволяє FastMediaSorter знімати екран краєвим жестом і зберігати знімок без діалогу на кожен знімок.</string>
+    <string name="screenshot_accessibility_permission_rationale">Щоб робити знімки краєвим жестом, увімкніть службу доступності FastMediaSorter:\n\n1. Натисніть «Відкрити налаштування» та увімкніть FastMediaSorter у списку доступності.\n2. Якщо показано Controlled by restricted setting або App was denied access: відкрийте цей застосунок у «Про застосунок», натисніть меню (3 крапки), виберіть Allow restricted settings, підтвердьте та поверніться, щоб увімкнути.\n\nНе вдається ввімкнути? Натисніть «Старий спосіб» — версія, що запитує дозвіл на кожен знімок.</string>
+    <string name="screen_capture_rate_limited">Занадто частий знімок, спробуйте ще раз</string>
+    <string name="screenshot_gesture_permission_dialog_title">Увімкнення жестів екрана</string>
+    <string name="screenshot_gesture_open_settings">Відкрити налаштування</string>
+    <string name="screenshot_gesture_use_old_method">Старий спосіб</string>
 </resources>

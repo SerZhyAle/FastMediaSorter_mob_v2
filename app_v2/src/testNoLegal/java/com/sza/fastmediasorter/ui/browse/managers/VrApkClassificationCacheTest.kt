@@ -55,7 +55,7 @@ class VrApkClassificationCacheTest {
             isVrCapable = true,
             signals = setOf(VrApkSignal.FEATURE_VR_MODE),
         )
-        coEvery { archiveResolver.resolve(mediaFile) } returns archive
+        coEvery { archiveResolver.resolve(mediaFile) } returns VrArchiveResolution.Available(archive) {}
         coEvery { classifier.classify(archive) } returns classification
         val cache = createCache()
         var result: VrApkClassification? = null
@@ -64,6 +64,24 @@ class VrApkClassificationCacheTest {
 
         assertEquals(classification, result)
         assertEquals(classification, cache.peek(mediaFile))
+    }
+
+    @Test
+    fun `requestClassification stops for session after OutOfSpace`() = runTest {
+        val first = mediaFile(path = "cloud://drive/a.apk", size = 1L, lastModified = 1L)
+        val second = mediaFile(path = "cloud://drive/b.apk", size = 2L, lastModified = 2L)
+        coEvery { archiveResolver.resolve(any()) } returns VrArchiveResolution.OutOfSpace
+        val cache = createCache()
+        var firstResult: VrApkClassification? = null
+        var secondResult: VrApkClassification? = null
+
+        cache.requestClassification(first) { firstResult = it }
+        cache.requestClassification(second) { secondResult = it }
+
+        assertEquals(VrApkClassification.NOT_VR, firstResult)
+        assertEquals(VrApkClassification.NOT_VR, secondResult)
+        // First OutOfSpace flips the session-stop flag; the second request degrades without resolving.
+        coVerify(exactly = 1) { archiveResolver.resolve(any()) }
     }
 
     private fun createCache(): VrApkClassificationCache = VrApkClassificationCache(

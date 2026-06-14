@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="welcome_battery_optim_message">For reliable background scheduled operations, allow the app to run without battery restrictions. This is especially important on Xiaomi, Huawei, and Samsung devices.</string>
     <string name="welcome_default_player_btn_audio">Audio</string>
     <string name="welcome_default_player_btn_docs">Documents</string>
     <string name="welcome_default_player_btn_images">Images</string>
@@ -11,14 +10,7 @@
     <string name="welcome_default_player_title">Default Player</string>
     <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage - all with intuitive touch gestures.</string>
     <string name="welcome_description_1_details">FastMediaSorter brings every kind of media into one place. Open photos, videos, GIFs and music from your device, from a network share, or from cloud storage - and sort them with quick taps instead of long-press menus.\n\nEverything you set up here can be changed later in Settings, so there is no wrong choice on this screen - just tap Next to keep going.</string>
-    <string name="welcome_description_2">Connect to any storage:\n\n📱 LOCAL - Device folders, SD cards\n\n🌐 NETWORK - SMB/CIFS, SFTP, FTP\n\n☁️ CLOUD - Google Drive, OneDrive, Dropbox\n\nAdd resources in Settings anytime.</string>
-    <string name="welcome_description_2_details">Local sources are folders on the device and SD cards. Network sources connect over SMB/CIFS, SFTP and FTP. Cloud sources link Google Drive, OneDrive and Dropbox.\n\nMix as many as you like - each source shows up as its own entry on the main screen. Add or remove sources any time from Settings → Resources.</string>
     <string name="welcome_description_3" formatted="false">Player uses 9 touch zones (3×3 grid) for quick actions. Tap zones to navigate, copy, move, delete files, or access the command panel. See the scheme above for details.</string>
-    <string name="welcome_description_3_details" formatted="false">In full-screen image and video view the screen is split into a 3×3 grid. The corner zones jump between files, the edge zones run copy, move and delete on the current file, and the centre zone opens the command panel.\n\nThe small map above shows what each zone does. You can remap these actions later in Settings.</string>
-    <string name="welcome_description_4">RESOURCES - Folders from any storage type.\n\nQUICK SORT - Up to 30 color-coded destination folders for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
-    <string name="welcome_description_4_details">A resource is a folder you browse - from any storage type. A quick-sort destination is a folder you send files to with a single tap; you can define up to 30, each with its own colour and label.\n\nTap a colour while viewing a file to copy or move it there instantly. Set both up in Settings → Resources whenever you need.</string>
-    <string name="welcome_description_5">Go beyond simple media viewing - FastMediaSorter packs professional tools for text, documents, and audio.</string>
-    <string name="welcome_description_5_details">Beyond viewing, FastMediaSorter is also a player and a workshop: an audio player for your music libraries, a video library with playback controls, a PDF and EPUB reader, a text viewer and editor, on-image OCR and translation, a slideshow, home-screen widgets, scheduled file operations, favourites, and one-tap colour sorting.\n\nWhich of these are available depends on the app edition you installed - the cards below show what is included in yours.</string>
     <string name="welcome_feature_audio">Audio Player</string>
     <string name="welcome_feature_cloud">Cloud Storage</string>
     <string name="welcome_feature_cloud_sync">Cloud Sync</string>
@@ -38,8 +30,6 @@
     <string name="welcome_feature_video_library">Video Library</string>
     <string name="welcome_feature_widgets">Home Widgets</string>
     <string name="welcome_language_picker_hint">Select app language</string>
-    <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
-    <string name="welcome_permissions_title">Media Files Access</string>
     <string name="welcome_profile_audio_player_desc">Best for audio-only devices or MP3 players. Hides photos and videos; optimizes background audio and now-playing screen.</string>
     <string name="welcome_profile_audio_player_title">Audio player</string>
     <string name="welcome_profile_car_head_unit_desc">Best for Android car stereos. Uses extra-large buttons, locks screen on, and prioritizes media playback over file operations.</string>
@@ -65,16 +55,6 @@
     <string name="welcome_profile_vr_headset_title">VR headset</string>
     <string name="welcome_recommended_badge">(Recommended)</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
-    <string name="welcome_title_2">Resource Types</string>
-    <string name="welcome_title_3">Touch Zones (Images/Video)\nuse in full screen view mode</string>
-    <string name="welcome_title_4">Resources and Destinations</string>
-    <string name="welcome_title_5">Powerful Extras</string>
-    <string name="welcome_vr_description">Immerse yourself in your media.\nFastMediaSorter VR detects stereoscopic 3D content and renders it directly in your headset - no extra apps needed.</string>
-    <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
-    <string name="welcome_vr_feature_headset">Quest Headset Playback</string>
-    <string name="welcome_vr_feature_stereo">3D Stereo Detection</string>
-    <string name="welcome_vr_title">3D &amp; VR Experience</string>
-    <string name="sysinfo_benchmark_approx">approx.</string>
     <string name="sysinfo_field_abis">ABIs</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">API level</string>
@@ -149,4 +129,37 @@
     <string name="sysinfo_section_system">System</string>
     <string name="sysinfo_section_time">Time</string>
     <string name="sysinfo_section_user">User</string>
+    <string name="welcome_theme_picker_hint">Select app theme</string>
+    <string name="welcome_theme_applies_after_setup">The theme is applied immediately.</string>
+    <string name="welcome_theme_auto">Auto</string>
+    <string name="welcome_theme_light">Light</string>
+    <string name="welcome_theme_dark">Dark</string>
+    <string name="welcome_networks_title">Network sources</string>
+    <string name="welcome_networks_description">Add media from network shares and remote storage.</string>
+    <!-- S0399 device-profile page -->
+    <string name="welcome_profiles_title">How will you use this device?</string>
+    <string name="welcome_profiles_subtitle">Pick a profile - we\'ll tune the defaults to match.</string>
+    <!-- S0400 functionality page -->
+    <string name="welcome_functionality_title">What should the app do?</string>
+    <string name="welcome_functionality_subtitle">Turn on what you need. You can change this later in Settings.</string>
+    <string name="welcome_func_file_manager">File manager (all files)</string>
+    <string name="welcome_func_audio">Audio</string>
+    <string name="welcome_func_video">Video</string>
+    <string name="welcome_func_documents">Documents</string>
+    <string name="welcome_func_ocr">Text recognition (OCR)</string>
+    <string name="welcome_func_translation">Translation</string>
+    <!-- Landscape-only toggle descriptions (two-column functionality page) -->
+    <string name="welcome_func_file_manager_desc">Browse, move and organize every file on the device.</string>
+    <string name="welcome_func_audio_desc">Play music and audio, sort tracks into folders.</string>
+    <string name="welcome_func_video_desc">Play videos and sort clips with the built-in player.</string>
+    <string name="welcome_func_documents_desc">Open PDF, text, e-books and office files.</string>
+    <string name="welcome_func_ocr_desc">Recognize and copy text from images and scans.</string>
+    <string name="welcome_func_translation_desc">Translate recognized and selected text offline.</string>
+    <string name="welcome_func_elements_button">All downloadable (optional) elements</string>
+    <string name="welcome_func_downloading">Downloading.. %1$d%%</string>
+    <string name="welcome_func_download_failed">Download failed - tap to retry</string>
+    <string name="welcome_func_download_done">Ready</string>
+    <!-- S0402 permissions page -->
+    <string name="welcome_permissions_title">A few permissions</string>
+    <string name="welcome_permissions_subtitle">Grant access so the app can show your media.</string>
 </resources>

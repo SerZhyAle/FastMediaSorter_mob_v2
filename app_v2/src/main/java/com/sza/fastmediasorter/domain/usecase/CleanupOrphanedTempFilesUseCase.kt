@@ -107,7 +107,6 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
             
             if (errors.isNotEmpty()) {
                 Timber.w("CleanupOrphanedTempFilesUseCase: Cleanup completed with errors. Deleted: $deletedCount, Failed: ${errors.size}")
-                // Return partial success
                 return@withContext Result.success(deletedCount)
             }
             

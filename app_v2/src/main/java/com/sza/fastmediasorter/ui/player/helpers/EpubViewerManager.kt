@@ -1,13 +1,13 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.view.MotionEvent
+import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CompletableDeferred
@@ -40,15 +40,17 @@ import java.io.FileInputStream
  */
 @android.annotation.SuppressLint("SetTextI18n")
 class EpubViewerManager(
-    binding: ActivityPlayerUnifiedBinding,
+    // S0380: decoupled from ActivityPlayerUnifiedBinding to a layout root so the EPUB viewer drives
+    // both the full unified player layout and the trimmed document standalone layout.
+    root: View,
     private val networkFileManager: NetworkFileManager,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: EpubViewerCallback,
     private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository,
     private val translationManager: TranslationManager
-) : BaseDocumentViewerManager(binding) {
-    private val safeViews = PlayerBindingSafeViews(binding)
+) : BaseDocumentViewerManager(root) {
+    private val safeViews = PlayerBindingSafeViews(root)
 
     interface EpubViewerCallback {
         fun showError(message: String)
@@ -92,10 +94,11 @@ class EpubViewerManager(
     private val calculatorEnabledFlow = MutableStateFlow(false)
 
     // TTS Read Aloud delegate
-    private val ttsDelegate = EpubTtsDelegate(binding.root.context)
+    private val ttsDelegate = EpubTtsDelegate(root.context)
     private val resourceContentHelper = EpubResourceContentHelper()
     private val webViewLifecycle = EpubWebViewLifecycle(
-        binding = binding,
+        root = root,
+        safeViews = safeViews,
         resourceContentHelper = resourceContentHelper,
         selectionBridge = selectionBridge,
         onPageRendered = {
@@ -112,7 +115,7 @@ class EpubViewerManager(
 
     // Translation overlay delegate (extracted from this class - S0002 Wave 42)
     private val translationHelper = EpubTranslationOverlayHelper(
-        binding = binding,
+        root = root,
         safeViews = safeViews,
         settingsRepository = settingsRepository,
         translationManager = translationManager,
@@ -124,7 +127,7 @@ class EpubViewerManager(
 
     // Search + TOC delegate (extracted from this class - S0002 Wave 42)
     private val searchAndTocPresenter = EpubSearchAndTocPresenter(
-        binding = binding,
+        root = root,
         coroutineScope = coroutineScope,
         webViewProvider = { webView },
         bookProvider = { currentBook },
@@ -150,7 +153,7 @@ class EpubViewerManager(
         // Load font settings from repository (apply if not AUTO/DEFAULT)
         coroutineScope.launch {
             val savedFontSettings = withContext(Dispatchers.IO) {
-                val prefs = binding.root.context.applicationContext
+                val prefs = root.context.applicationContext
                     .getSharedPreferences("epub_settings", android.content.Context.MODE_PRIVATE)
                 Pair(
                     prefs.getInt("font_size", 18),
@@ -190,7 +193,6 @@ class EpubViewerManager(
                 "sans-serif"
             }
 
-            // Load reader style settings
             currentReaderTheme = EpubStyleManager.ReaderTheme.fromName(settings.textReaderTheme)
             currentLineHeight = settings.epubLineHeight
             currentHorizontalMargin = settings.epubHorizontalMargin
@@ -209,7 +211,7 @@ class EpubViewerManager(
 
         // Initialize swipe gesture detector for chapter navigation and font size control
         swipeGestureDetector = android.view.GestureDetector(
-            binding.root.context,
+            root.context,
             object : android.view.GestureDetector.SimpleOnGestureListener() {
                 override fun onDown(e: android.view.MotionEvent): Boolean = true
 
@@ -228,8 +230,8 @@ class EpubViewerManager(
                     if (isHorizontalSwipe && kotlin.math.abs(diffX) > 100 && kotlin.math.abs(velocityX) > 100) {
                         if (diffX > 0) increaseFontSize() else decreaseFontSize()
                         android.widget.Toast.makeText(
-                            binding.root.context,
-                            binding.root.context.getString(R.string.epub_font_size, currentFontSize),
+                            root.context,
+                            root.context.getString(R.string.epub_font_size, currentFontSize),
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                         return true
@@ -246,7 +248,7 @@ class EpubViewerManager(
         )
 
         // Setup chapter indicator click to show "Go to chapter" dialog
-        binding.tvEpubChapterIndicator.setOnClickListener {
+        safeViews.tvEpubChapterIndicator.setOnClickListener {
             if (chapterCount > 1) {
                 showGoToChapterDialog()
             }
@@ -259,45 +261,47 @@ class EpubViewerManager(
     /** Display EPUB file in WebView */
     fun displayEpub(mediaFile: MediaFile) {
         // Reset views - hide all other media viewers
-        binding.imageView.isVisible = false
-        binding.photoView.isVisible = false
-        binding.playerView.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        safeViews.textViewerContainer.isVisible = false
+        safeViews.imageView.isVisible = false
+        safeViews.photoView.isVisible = false
+        safeViews.playerView.isVisible = false
+        safeViews.audioCoverArtView.isVisible = false
+        safeViews.audioInfoOverlay.isVisible = false
+        // S0380: text-viewer and the deprecated image-translate button are cross-type views the
+        // trimmed document-standalone layout omits (it never shows text/image). Reset by presence so
+        // EpubViewerManager works on both the full unified layout and the trimmed standalone one.
+        safeViews.setVisibleIfPresent(R.id.textViewerContainer, false)
         safeViews.pdfControlsLayout.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
-        binding.progressBar.isVisible = true
+        safeViews.setVisibleIfPresent(R.id.btnTranslateImage, false)
+        safeViews.playerProgressBar.isVisible = true
 
         // Force UI update to ensure progressBar is actually visible before async work
-        binding.progressBar.post { binding.progressBar.invalidate() }
+        safeViews.playerProgressBar.post { safeViews.playerProgressBar.invalidate() }
 
         // Hide text action buttons (they are for TXT files only)
-        binding.btnCopyTextCmd.isVisible = false
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
+        safeViews.btnCopyTextCmd.isVisible = false
+        safeViews.btnEditTextCmd.isVisible = false
+        safeViews.btnTranslateTextCmd.isVisible = false
+        safeViews.btnSearchTextCmd.isVisible = false
 
         // Hide PDF action buttons (they are for PDF files only)
-        binding.btnGoogleLensPdfCmd.isVisible = false
-        binding.btnOcrPdfCmd.isVisible = false
-        binding.btnTranslatePdfCmd.isVisible = false
-        binding.btnSearchPdfCmd.isVisible = false
+        safeViews.btnGoogleLensPdfCmd.isVisible = false
+        safeViews.btnOcrPdfCmd.isVisible = false
+        safeViews.btnTranslatePdfCmd.isVisible = false
+        safeViews.btnSearchPdfCmd.isVisible = false
 
         // Show EPUB action buttons in command panel
-        binding.btnSearchEpubCmd.isVisible = true
-        binding.btnTranslateEpubCmd.isVisible = true
+        safeViews.btnSearchEpubCmd.isVisible = true
+        safeViews.btnTranslateEpubCmd.isVisible = true
 
         // Update translate button icon with language badge
         updateTranslateButtonIcon()
 
-        // Show EPUB UI
-        binding.epubWebView.isVisible = true
+        safeViews.epubWebView.isVisible = true
         safeViews.epubControlsLayout.isVisible = true
-        binding.btnExitEpubFullscreen.isVisible = false // Hidden initially, shown in fullscreen
+        safeViews.btnExitEpubFullscreen.isVisible = false // Hidden initially, shown in fullscreen
 
         closeEpubBook()
-        val context = binding.root.context
+        val context = root.context
 
         // Show loading toast for network files
         val isNetworkFile = mediaFile.path.startsWith("smb://") ||
@@ -307,7 +311,7 @@ class EpubViewerManager(
 
         val loadingToastJob = coroutineScope.launch(Dispatchers.Main) {
             kotlinx.coroutines.delay(if (isNetworkFile) 0 else 2000)
-            if (binding.progressBar.isVisible) {
+            if (safeViews.playerProgressBar.isVisible) {
                 android.widget.Toast.makeText(
                     context,
                     context.getString(R.string.please_wait),
@@ -327,7 +331,7 @@ class EpubViewerManager(
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            binding.progressBar.isVisible = false
+                            safeViews.playerProgressBar.isVisible = false
                             callback.showError(context.getString(R.string.epub_load_failed))
                         }
                         throw e
@@ -336,7 +340,7 @@ class EpubViewerManager(
 
                 if (!file.exists()) {
                     loadingToastJob.cancel()
-                    binding.progressBar.isVisible = false
+                    safeViews.playerProgressBar.isVisible = false
                     callback.showError(context.getString(R.string.epub_file_not_found))
                     return@launch
                 }
@@ -377,8 +381,8 @@ class EpubViewerManager(
 
                                 // Hide navigation controls for single-chapter EPUBs
                                 val isSingleChapter = chapterCount == 1
-                                binding.btnEpubPrevChapter.isVisible = !isSingleChapter
-                                binding.btnEpubNextChapter.isVisible = !isSingleChapter
+                                safeViews.btnEpubPrevChapter.isVisible = !isSingleChapter
+                                safeViews.btnEpubNextChapter.isVisible = !isSingleChapter
                             } else {
                                 callback.showError(context.getString(R.string.epub_no_readable_content))
                             }
@@ -387,7 +391,7 @@ class EpubViewerManager(
                         Timber.e(e, "Failed to parse EPUB")
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            binding.progressBar.isVisible = false
+                            safeViews.playerProgressBar.isVisible = false
                             val messageRes = if (isProtectedEpubError(e)) {
                                 R.string.protected_file_unsupported
                             } else {
@@ -400,7 +404,7 @@ class EpubViewerManager(
             } catch (e: Exception) {
                 Timber.e(e, "EPUB display error")
                 loadingToastJob.cancel()
-                binding.progressBar.isVisible = false
+                safeViews.playerProgressBar.isVisible = false
                 callback.showError(context.getString(R.string.epub_display_error))
             }
         }
@@ -438,7 +442,7 @@ class EpubViewerManager(
 
         // Show progress bar while loading chapter (prevents "frozen" UI during HTML processing)
         withContext(Dispatchers.Main) {
-            binding.progressBar.isVisible = true
+            safeViews.playerProgressBar.isVisible = true
         }
 
         withContext(Dispatchers.IO) {
@@ -493,7 +497,7 @@ class EpubViewerManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to show chapter $chapterIndex")
                 withContext(Dispatchers.Main) {
-                    callback.showError(binding.root.context.getString(R.string.epub_chapter_load_failed))
+                    callback.showError(root.context.getString(R.string.epub_chapter_load_failed))
                 }
             }
         }
@@ -503,13 +507,13 @@ class EpubViewerManager(
 
     /** Update chapter indicator text (e.g., "5/12") */
     private fun updateChapterIndicator() {
-        binding.tvEpubChapterIndicator.text = "${currentChapterIndex + 1}/$chapterCount"
-        binding.tvEpubChapterIndicator.isVisible = chapterCount > 1
+        safeViews.tvEpubChapterIndicator.text = "${currentChapterIndex + 1}/$chapterCount"
+        safeViews.tvEpubChapterIndicator.isVisible = chapterCount > 1
     }
 
     /** Show dialog to jump to specific EPUB chapter */
     private fun showGoToChapterDialog() {
-        val context = binding.root.context
+        val context = root.context
         val editText = android.widget.EditText(context).apply {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             hint = context.getString(R.string.epub_go_to_chapter_hint, chapterCount)
@@ -557,7 +561,7 @@ class EpubViewerManager(
 
     private fun navigateToChapter(targetIndex: Int) {
         safeViews.translationOverlay.isVisible = false
-        binding.translationLensOverlay.isVisible = false
+        safeViews.translationLensOverlay.isVisible = false
         stopTtsOnChapterChange()
         coroutineScope.launch {
             showChapter(targetIndex)
@@ -584,7 +588,7 @@ class EpubViewerManager(
         isFullscreenMode = true
         callback.onEnterFullscreenMode()
         safeViews.epubControlsLayout.isVisible = false
-        binding.btnExitEpubFullscreen.isVisible = true
+        safeViews.btnExitEpubFullscreen.isVisible = true
     }
 
     /** Exit fullscreen mode - show controls and hide exit button */
@@ -592,7 +596,7 @@ class EpubViewerManager(
         isFullscreenMode = false
         callback.onExitFullscreenMode()
         safeViews.epubControlsLayout.isVisible = true
-        binding.btnExitEpubFullscreen.isVisible = false
+        safeViews.btnExitEpubFullscreen.isVisible = false
     }
 
     // ── WebView lifecycle ─────────────────────────────────────────────────────
@@ -656,7 +660,7 @@ class EpubViewerManager(
     fun getCurrentFontSize(): Int = currentFontSize
 
     private fun saveFontSize() {
-        val prefs = binding.root.context.getSharedPreferences("epub_settings", android.content.Context.MODE_PRIVATE)
+        val prefs = root.context.getSharedPreferences("epub_settings", android.content.Context.MODE_PRIVATE)
         prefs.edit().putInt("font_size", currentFontSize).apply()
     }
 
@@ -670,7 +674,7 @@ class EpubViewerManager(
 
     /** Show reader settings dialog: theme, font, font size, line height, margin. Changes are applied immediately and persisted to AppSettings. */
     fun showReaderSettingsDialog() {
-        val context = binding.root.context
+        val context = root.context
         val view: android.view.View = android.view.LayoutInflater.from(context)
             .inflate(R.layout.dialog_epub_reader_settings, null)
 
@@ -699,7 +703,6 @@ class EpubViewerManager(
         val sliderLineHeight = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderLineHeight)
         val sliderMargin = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderMargin)
 
-        // Set current values
         when (currentReaderTheme) {
             EpubStyleManager.ReaderTheme.LIGHT      -> chipLight.isChecked = true
             EpubStyleManager.ReaderTheme.DARK       -> chipDark.isChecked = true
@@ -833,7 +836,7 @@ class EpubViewerManager(
     fun extractTextFromCurrentChapter() {
         val webView = webView ?: run {
             Timber.e("EPUB OCR: WebView is null")
-            callback.showError(binding.root.context.getString(R.string.player_webview_unavailable))
+            callback.showError(root.context.getString(R.string.player_webview_unavailable))
             return
         }
 
@@ -846,8 +849,8 @@ class EpubViewerManager(
             if (result == null || result == "null" || result.trim().isEmpty() || result.trim() == "\"\"") {
                 // Show toast directly: user-initiated action - ToastThrottler cooldown must not suppress it
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(R.string.translation_error_no_text),
+                    root.context,
+                    root.context.getString(R.string.translation_error_no_text),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
                 return@evaluateJavascript
@@ -856,20 +859,20 @@ class EpubViewerManager(
             val extractedText = result.trim().removeSurrounding("\"")
 
             if (extractedText.isNotBlank()) {
-                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clipboard = root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("EPUB Text", extractedText)
                 clipboard.setPrimaryClip(clip)
 
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(R.string.text_copied),
+                    root.context,
+                    root.context.getString(R.string.text_copied),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
 
             } else {
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(R.string.translation_error_no_text),
+                    root.context,
+                    root.context.getString(R.string.translation_error_no_text),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             }
@@ -887,7 +890,7 @@ class EpubViewerManager(
                 val targetLang = settings.translationTargetLanguage
 
                 val languageBadge = LanguageBadgeDrawable(
-                    binding.root.context,
+                    root.context,
                     sourceLang,
                     targetLang
                 )
@@ -895,10 +898,10 @@ class EpubViewerManager(
                 withContext(Dispatchers.Main) {
                     // Clear any tint before setting custom drawable - tinting with a solid
                     // colour destroys the LanguageBadgeDrawable text (badge → solid block).
-                    binding.btnTranslateEpubCmd.imageTintList = null
-                    binding.btnTranslateEpubCmd.setImageDrawable(languageBadge)
+                    safeViews.btnTranslateEpubCmd.imageTintList = null
+                    safeViews.btnTranslateEpubCmd.setImageDrawable(languageBadge)
                     // Keep alpha consistent with current translation state
-                    binding.btnTranslateEpubCmd.alpha = if (translationHelper.translationEnabled) 1.0f else 0.55f
+                    safeViews.btnTranslateEpubCmd.alpha = if (translationHelper.translationEnabled) 1.0f else 0.55f
                 }
             } catch (e: Exception) {
                 Timber.e(e, "EPUB: Failed to update translate button icon")
@@ -943,7 +946,7 @@ class EpubViewerManager(
         reloadCurrentChapter()
 
         android.widget.Toast.makeText(
-            binding.root.context,
+            root.context,
             "Font settings applied",
             android.widget.Toast.LENGTH_SHORT
         ).show()
@@ -985,8 +988,8 @@ class EpubViewerManager(
             if (isAtBottom) {
                 safeViews.epubControlsLayout.isVisible = false
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(R.string.epub_controls_hidden),
+                    root.context,
+                    root.context.getString(R.string.epub_controls_hidden),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             }
@@ -1009,8 +1012,8 @@ class EpubViewerManager(
             if (isAtBottom) {
                 exitFullscreenMode()
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(R.string.epub_exit_fullscreen),
+                    root.context,
+                    root.context.getString(R.string.epub_exit_fullscreen),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             }
@@ -1025,8 +1028,8 @@ class EpubViewerManager(
             showTranslate   = BuildConfig.ENABLE_TRANSLATION,
             getSelectedText = { selectionBridge.lastSelectedText },
             onTranslate     = translationHelper::handleTranslateSelection,
-            onSearchGoogle  = { openGoogleSearch(binding.root.context, it) },
+            onSearchGoogle  = { openGoogleSearch(root.context, it) },
             isCalculatorAvailable = { calculatorEnabledFlow.value },
-            onOpenCalculator = { openCalculatorForSelection(binding.root.context, it) },
+            onOpenCalculator = { openCalculatorForSelection(root.context, it) },
         )
 }

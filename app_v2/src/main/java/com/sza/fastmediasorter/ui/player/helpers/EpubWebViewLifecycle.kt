@@ -6,13 +6,14 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import io.documentnode.epub4j.domain.Book
 import timber.log.Timber
 
 /** WebView configuration, asset interception, and full destroy/clean-up for [EpubViewerManager]. */
 internal class EpubWebViewLifecycle(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
+    private val root: View,
+    private val safeViews: PlayerBindingSafeViews,
     private val resourceContentHelper: EpubResourceContentHelper,
     private val selectionBridge: EpubViewerManager.EpubSelectionBridge,
     private val onPageRendered: () -> Unit,
@@ -25,8 +26,9 @@ internal class EpubWebViewLifecycle(
 
     fun getOrCreate(): WebView {
         webView?.let { return it }
-        return WebView(binding.epubWebView.context).also { wv ->
-            binding.epubWebView.addView(
+        val container = safeViews.epubWebView
+        return WebView(container.context).also { wv ->
+            container.addView(
                 wv,
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -55,7 +57,8 @@ internal class EpubWebViewLifecycle(
         wv.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                binding.progressBar.post { binding.progressBar.isVisible = false }
+                val progress = safeViews.playerProgressBar
+                progress.post { progress.isVisible = false }
                 onPageRendered()
             }
             override fun shouldInterceptRequest(
@@ -102,7 +105,7 @@ internal class EpubWebViewLifecycle(
             }
         }
         try {
-            android.webkit.WebViewDatabase.getInstance(binding.root.context).clearHttpAuthUsernamePassword()
+            android.webkit.WebViewDatabase.getInstance(root.context).clearHttpAuthUsernamePassword()
         } catch (e: Exception) {
             Timber.e(e, "EpubWebViewLifecycle: Error clearing WebViewDatabase credentials (ML-010)")
         }

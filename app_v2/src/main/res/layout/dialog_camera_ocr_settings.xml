@@ -10,9 +10,31 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- S0354: OCR source-language picker removed here. OCR over the captured image is already
-             done; the source language is chosen at capture time on the crop step. This dialog only
-             changes the translation target language (re-translates the existing recognized text). -->
+        <!-- S0361: OCR source-language picker. Changing it re-runs recognition over the retained
+             (cropped) image with the new source language, then re-translates. -->
+
+        <!-- OCR Source Language Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/translation_source_language"
+            android:textColor="#A1A1AA"
+            android:textSize="14sp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/spinnerSourceLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/item_focus_selector"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#FFFFFF" />
 
         <!-- Target Language Header -->
         <TextView

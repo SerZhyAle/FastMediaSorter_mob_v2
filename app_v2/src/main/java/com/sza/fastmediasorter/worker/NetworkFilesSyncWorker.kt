@@ -13,6 +13,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -34,7 +35,8 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
     private val mediaScannerFactory: MediaScannerFactory,
-    private val workManagerScheduler: WorkManagerScheduler
+    private val workManagerScheduler: WorkManagerScheduler,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) : CoroutineWorker(applicationContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -60,12 +62,15 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                 )
             } else null
             
-            // Exclude CLOUD: requires active OAuth tokens, not suitable for background worker
+            // Exclude CLOUD: requires active OAuth tokens, not suitable for background worker.
+            // S0391: also exclude any disabled remote source (LOCAL always passes the gate). This
+            // gating flows through to the thumbnail-preload enqueue below, which derives from it.
             val resourcesToSync = resources.filter {
-                it.type == ResourceType.LOCAL ||
-                it.type == ResourceType.SMB ||
-                it.type == ResourceType.SFTP ||
-                it.type == ResourceType.FTP
+                (it.type == ResourceType.LOCAL ||
+                    it.type == ResourceType.SMB ||
+                    it.type == ResourceType.SFTP ||
+                    it.type == ResourceType.FTP) &&
+                    remoteSourceGate.isEnabled(it)
             }
 
             if (resourcesToSync.isEmpty()) {
@@ -81,7 +86,6 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                 try {
                     val scanner = mediaScannerFactory.getScanner(resource.type)
                     
-                    // Get current file count
                     val fileCount = scanner.getFileCount(
                         resource.path,
                         resource.supportedMediaTypes,

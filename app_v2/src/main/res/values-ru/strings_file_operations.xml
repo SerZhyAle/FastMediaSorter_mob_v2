@@ -25,7 +25,7 @@
     <string name="addresource_some_resources_unavailable_after_add">%1$s. Некоторые ресурсы сейчас недоступны.</string>
     <string name="addresource_validation_generic">Похоже, чего-то не хватает - проверьте форму и попробуйте снова.</string>
     <string name="import_auto">Автопоиск в Загрузках</string>
-    <string name="import_browse">Выбрать файл…</string>
+    <string name="import_browse">Выбрать файл..</string>
     <string name="import_failed">Не получилось импортировать настройки. Попробуйте ещё раз.</string>
     <string name="import_failed_title">Импорт не выполнен</string>
     <string name="import_fav_action">Импортировать</string>
@@ -71,7 +71,7 @@
     <string name="delete_by_size_no_matches">Подходящих файлов не найдено</string>
     <string name="delete_by_size_preview_result">Найдено файлов: &lt;b&gt;%1$d&lt;/b&gt;\nОсвобождаемое место: &lt;b&gt;%2$s&lt;/b&gt;</string>
     <string name="delete_by_size_preview_title">Подтвердить удаление</string>
-    <string name="delete_by_size_scanning">Сканирование…</string>
+    <string name="delete_by_size_scanning">Сканирование..</string>
     <string name="delete_by_size_smaller">Меньше чем</string>
     <string name="delete_by_size_unit_gb">ГБ</string>
     <string name="delete_by_size_unit_kb">КБ</string>

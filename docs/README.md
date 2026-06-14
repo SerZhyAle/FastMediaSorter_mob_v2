@@ -7,9 +7,9 @@
 
 ## About the Project
 
-**FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
+**FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from local folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
-The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
+This manual now follows the same public vocabulary as the canonical feature inventory in [FEATURES.md](FEATURES.md) and the doc map in [DOCS_MAP.md](DOCS_MAP.md). Use those two pages as the current source of truth for the app story, available flavors, and current feature surface.
 
 ## Windows Version 🖥️
 
@@ -45,21 +45,23 @@ Features include:
 
 ## Product Flavors 🎯
 
-FastMediaSorter v2 is available in **4 different flavors** to suit different needs and reduce app size:
+FastMediaSorter v2 ships **5 main app flavors** for phones and tablets, plus the XR / noLegal sideload surface for headset use. The current public matrix is the one documented in [FEATURES.md](FEATURES.md) and [HOW_TO.md](HOW_TO.md):
 
-| Flavor | Description | Features |
-|--------|-------------|----------|
-| **Standard** | Full-featured version | Broadest feature set for media, documents, OCR, and integrations |
-| **Lite** | Lightweight daily-use version | Core media workflows with reduced complexity |
-| **Photos** | Image-centric version | Focused experience for photo browsing and organization |
-| **Legacy** | Compatibility-focused version | Optimized for older Android devices (API 23-25) |
+| Flavor | Description | Notes |
+|--------|-------------|-------|
+| **Standard** | Full-featured release | Broadest feature set for media, documents, OCR, translation, and cloud access |
+| **Lite** | Lightweight release | Smaller install, core media workflows, fewer optional integrations |
+| **Photos** | Photo-first release | Optimized for browsing, sorting, and organizing images |
+| **Legacy** | Compatibility-focused release | Best on older Android devices (API 23+), local media first |
+| **VR / noLegal** | XR and sideload surface | OpenXR / VR-capable build path on supported headsets and sideload-only extras |
 
 ### Which Flavor Should I Download?
 
 - **Standard** ⭐ **(Recommended)**: Best default choice for most users
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
-- **Legacy**: Choose this for older Android devices (API 23-25)
+- **Legacy**: Choose this for older Android devices (API 23+)
+- **VR / noLegal**: Use only when you need the XR headset or sideload-only surface
 
 For exact feature-by-flavor availability, use the canonical documentation:
 
@@ -131,10 +133,10 @@ Full-size images:
 - 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
-- 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
+- 📱 **Widget Support:** Quick access to your favorite resources directly from your home screen with two widget types: **Resource Shortcut** (opens any saved resource instantly) and **Continue Reading** (launches slideshow mode immediately).
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
-- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination folder are set in Video Settings.
+- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination resource are set in Video Settings.
 - 🖨️ **Print:** Send documents (PDF, TXT) and images to a printer directly from the built-in player. Network and cloud files are cached locally before printing.
 - ⬇️ **Stream Offload:** Download a network file to local cache with a real-time progress dialog before or during playback. An optional cleanup prompt reclaims storage afterward.
 - 🔊 **DTS/DTS-HD Audio:** DTS and DTS-HD audio tracks are decoded in software via a custom FFmpeg build - no special hardware required.
@@ -203,6 +205,10 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 ### 10. 🚗 In-Car Music with Android Head Unit
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
+
+### 11. 📺 Media Center on an Android TV Box
+
+Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android box). Connect to a home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive - all from one app. Control the full flow with a remote or Bluetooth keyboard: the D-pad moves focus, **OK** opens items, **Back** returns to the previous level, and **Backspace** moves one folder up in the browser. The remote's colored buttons map to common file actions (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a fullscreen slideshow with background music on the TV, or switch to audio playback with album art and lyrics. No touchscreen is required.
 
 ## Documentation 📚
 

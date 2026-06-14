@@ -137,7 +137,6 @@ class FtpConnectedOperations(
                         // if cap is reached, and calls completePendingCommand internally.
                         // Full-read path (no limit) retains original byte-for-byte contract.
                         if (maxBytes < Long.MAX_VALUE) {
-                            Timber.d("S0206: pooled FTP bounded read entry (passive) path=$remotePath cap=$maxBytes")
                             val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
                             val result = readBoundedAndAbort(client, inputStream, maxBytesInt, "readFileBytes(passive)")
                             Timber.d("FTP bounded read: ${result.bytes.size}b from $remotePath (abort=${result.abortInvoked}, completeOk=${result.completeOk})")
@@ -161,7 +160,6 @@ class FtpConnectedOperations(
                         // S0206: same bounded-read logic for active mode fallback.
                         client.retrieveFileStream(remotePath)?.use { inputStream ->
                             if (maxBytes < Long.MAX_VALUE) {
-                                Timber.d("S0206: pooled FTP bounded read entry (active) path=$remotePath cap=$maxBytes")
                                 val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
                                 val result = readBoundedAndAbort(client, inputStream, maxBytesInt, "readFileBytes(active)")
                                 Timber.d("FTP bounded read (active): ${result.bytes.size}b from $remotePath (abort=${result.abortInvoked}, completeOk=${result.completeOk})")

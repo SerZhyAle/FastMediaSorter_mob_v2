@@ -1,6 +1,33 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6050.126** (June 2026)
+**Current release: 2.60.6140.424** (June 2026)
+
+> Changes since version 2.60.6050.126
+
+---
+
+## What's New
+
+- **Downloadable Extensions** - install OCR, translation, DTS, and audio backgrounds on demand.
+- **Smarter setup** - onboarding now includes profiles, functionality toggles, permissions, and Enable All.
+- **Remote source toggles** - disable SMB, (S)FTP, or cloud sources without deleting resources.
+- **Standalone viewer parity** - shared images now support OCR, translation, drawing, crop, and fullscreen.
+- **All Files resource** - first-run file-manager entry opens newest-first full browsing.
+- **Quick camera capture** - 1×1 widget saves photos or videos to a chosen target.
+- **SFTP key authentication** - connect with private keys, passphrases, and host-key pinning.
+- **Audio visualizations** - downloadable background video set with automatic safe fallback.
+
+## What's Fixed
+
+- Broken audio tracks now skip instead of stopping playback.
+- Recent Media no longer shows a false cancelled-scan error.
+- Too-short microphone recordings no longer save broken files.
+- Report-a-problem email now fills the support address.
+- Drawing toolbar no longer hides behind the system navigation bar.
+
+---
+
+## Previous Release: 2.60.6050.126 (June 2026)
 
 > Changes since version 2.60.6031.424
 
@@ -340,7 +367,7 @@
 - **Control dialog** - new unified dialog (Volume, Brightness, Speed, Subtitles, 3D) for both video and audio. Left-side vertical section selector, changes apply live. Quick 50%/MAX volume presets and highlighted Mute button
 - **Playback speed range** extended to 3.0x (added 2.5x and 3.0x steps)
 - **Video color and brightness** - Hue and Brightness via Media3 GPU effects, persisted across video files
-- **Save Frame** - snapshot of the current video frame to PNG or JPG, saved to any resource (local or network). Format and destination configured in Video Settings
+- **Save Frame** - snapshot of the current video frame to PNG or JPG, saved to any resource (local or network). Format and destination resource configured in Video Settings
 - **Print** - send documents (PDF, TXT, images) to a printer directly from the player; network and cloud files are cached first
 - **Random file** - dice button to jump to a random file in the list; shown in audio and photo library profiles
 - **Filename overlay auto-hide** - overlay fades out automatically: TEXT 5s, PDF/EPUB 10s, others 15s. Timer resets on pause and zoom

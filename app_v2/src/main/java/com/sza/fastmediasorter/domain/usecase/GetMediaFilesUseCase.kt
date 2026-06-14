@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.metrics.ScanMetricsRecorder
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
@@ -108,7 +108,8 @@ class GetMediaFilesUseCase @Inject constructor(
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val cachedFileListRepository: CachedFileListRepository,
     private val scanDispatcher: ScanDispatcher,
-    private val metadataExtractor: CachedMediaMetadataExtractor
+    private val metadataExtractor: CachedMediaMetadataExtractor,
+    private val mediaCapabilities: MediaCapabilities
 ) {
     companion object {
         private const val LARGE_FOLDER_THRESHOLD = 1000
@@ -154,7 +155,6 @@ class GetMediaFilesUseCase @Inject constructor(
             StructuredLogger.i("forceFullScan=true - cleared in-memory cache")
         }
         
-        // Handle virtual Favorites resource
         if (resource.id == -100L) {
             StructuredLogger.d("Loading Favorites from repository")
             val favorites = favoritesRepository.getAllFavorites().first()
@@ -174,7 +174,6 @@ class GetMediaFilesUseCase @Inject constructor(
             // Apply flavor-specific media type restrictions to favorites
             val flavorAllowedTypes = applyFlavorMediaTypeRestrictions(MediaType.entries.toSet())
             val filteredFavorites = favoriteFiles.filter { it.type in flavorAllowedTypes }
-            // Apply sorting
             val sortedFavorites = sortFiles(filteredFavorites, sortMode)
             emit(sortedFavorites)
             return@flow
@@ -449,7 +448,7 @@ class GetMediaFilesUseCase @Inject constructor(
     
     /**
      * Apply product flavor-specific media type restrictions.
-     * Removes media types that are not supported by the current flavor (BuildConfig).
+     * Removes media types that are not supported by the current flavor (injected MediaCapabilities).
      * 
      * For example:
      * - photos flavor: SUPPORT_VIDEO=false, SUPPORT_AUDIO=false → removes VIDEO and AUDIO
@@ -458,14 +457,14 @@ class GetMediaFilesUseCase @Inject constructor(
     private fun applyFlavorMediaTypeRestrictions(supportedTypes: Set<MediaType>): Set<MediaType> {
         return supportedTypes.filter { mediaType ->
             when (mediaType) {
-                MediaType.VIDEO -> BuildConfig.SUPPORT_VIDEO
-                MediaType.AUDIO -> BuildConfig.SUPPORT_AUDIO
-                MediaType.IMAGE -> BuildConfig.SUPPORT_IMAGES
-                MediaType.GIF -> BuildConfig.SUPPORT_IMAGES // GIF is considered an image type
-                MediaType.TEXT -> BuildConfig.SUPPORT_DOCUMENTS
-                MediaType.PDF -> BuildConfig.SUPPORT_DOCUMENTS
-                MediaType.EPUB -> BuildConfig.ENABLE_EPUB
-                MediaType.OFFICE_DOCUMENT -> BuildConfig.SUPPORT_DOCUMENTS
+                MediaType.VIDEO -> mediaCapabilities.supportsVideo
+                MediaType.AUDIO -> mediaCapabilities.supportsAudio
+                MediaType.IMAGE -> mediaCapabilities.supportsImages
+                MediaType.GIF -> mediaCapabilities.supportsImages // GIF is considered an image type
+                MediaType.TEXT -> mediaCapabilities.supportsDocuments
+                MediaType.PDF -> mediaCapabilities.supportsDocuments
+                MediaType.EPUB -> mediaCapabilities.supportsEpub
+                MediaType.OFFICE_DOCUMENT -> mediaCapabilities.supportsDocuments
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
             }
         }.toSet()

@@ -28,7 +28,6 @@ class IpAddressEditText @JvmOverloads constructor(
         // Apply IP address input filter
         filters = arrayOf(IpAddressInputFilter())
         
-        // Configure input type
         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
         maxLines = 1
         

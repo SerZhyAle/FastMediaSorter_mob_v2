@@ -11,19 +11,13 @@
     android:paddingEnd="@dimen/padding_small"
     android:paddingBottom="@dimen/item_divider_height">
 
-    <CheckBox
-        android:id="@+id/cbSelect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <FrameLayout
         android:id="@+id/flThumbnailFrame"
         android:layout_width="@dimen/item_icon_size_medium"
         android:layout_height="@dimen/item_icon_size_medium"
-        android:layout_marginStart="@dimen/margin_small"
-        app:layout_constraintStart_toEndOf="@id/cbSelect"
+        android:layout_marginStart="@dimen/margin_tiny"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
@@ -237,5 +231,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
+
+    <!-- Selection checkbox overlays the thumbnail bottom-left corner (S0419). Declared last for top
+         z-order; a surface chip keeps it visible on any thumbnail image. -->
+    <CheckBox
+        android:id="@+id/cbSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:padding="1dp"
+        android:background="@drawable/bg_checkbox_overlay"
+        app:layout_constraintBottom_toBottomOf="@id/flThumbnailFrame"
+        app:layout_constraintStart_toStartOf="@id/flThumbnailFrame" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

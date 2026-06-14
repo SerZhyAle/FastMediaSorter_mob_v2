@@ -153,7 +153,10 @@ class SearchLyricsUseCase @Inject constructor(
             Timber.d("SearchLyricsUseCase: file not accessible for metadata extraction: ${e.message}")
             Triple(null, null, null)
         } catch (e: Exception) {
-            Timber.e(e, "Failed to extract metadata")
+            // Recoverable: MediaMetadataRetriever throws RuntimeException (EINVAL) for corrupt or
+            // non-audio files, getLocalFile may raise IO errors for network sources. The search
+            // then falls back to filename parsing, so this is expected - log without a stack trace.
+            Timber.i("SearchLyricsUseCase: metadata extraction skipped (${e.javaClass.simpleName}: ${e.message})")
             Triple(null, null, null)
         }
     }
@@ -397,15 +400,24 @@ class SearchLyricsUseCase @Inject constructor(
         // Strip leading year (e.g. "2017-" or "2017 ")
         val withoutYear = dirName.replace(Regex("^\\d{4}[-\\s]"), "").trim()
         if (withoutYear.contains(" - ")) {
-            return withoutYear.substringBefore(" - ").trim().takeIf { it.isNotBlank() }
+            return withoutYear.substringBefore(" - ").trim().takeIf { it.isNotBlank() && !it.isGenericFolder() }
         }
         if (withoutYear.contains("-")) {
             val candidate = withoutYear.substringBefore("-").trim()
             // Reject single-word all-digit segments (track numbers etc.)
-            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) return candidate
+            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) {
+                return candidate.takeIf { !it.isGenericFolder() }
+            }
         }
-        return withoutYear.trim().takeIf { it.any { c -> c.isLetter() } }
+        return withoutYear.trim().takeIf { it.any { c -> c.isLetter() } && !it.isGenericFolder() }
     }
+
+    /**
+     * Generic library/storage folder names that are never an artist. Using one of these as a
+     * fallback artist (e.g. file in a folder literally named "document") poisons every search
+     * query and yields false-positive matches.
+     */
+    private fun String.isGenericFolder(): Boolean = lowercase().trim() in GENERIC_FOLDER_NAMES
 
     /** Returns true if the text contains Cyrillic characters. */
     private fun hasCyrillic(text: String?): Boolean =
@@ -513,15 +525,25 @@ class SearchLyricsUseCase @Inject constructor(
                 if (!response.isSuccessful) return@withContext null
                 
                 val responseBody = response.body?.string() ?: return@withContext null
-                
-                // Extract first song URL from JSON
+
+                // Pick a real song hit, not the first link: multi-search also returns artist pages
+                // (/artists/..) and annotated articles, which previously matched and produced
+                // garbage "lyrics". Genius song pages always end in "-lyrics".
                 val urlRegex = """"url"\s*:\s*"(https://genius\.com/[^"]+)"""".toRegex()
-                val songUrl = urlRegex.find(responseBody)?.groupValues?.get(1)
+                val songUrl = urlRegex.findAll(responseBody)
+                    .map { it.groupValues[1] }
+                    .firstOrNull { it.endsWith("-lyrics") }
                 if (songUrl == null) {
-                    Timber.d("Genius API: no song URL found in response for '$query'")
+                    Timber.d("Genius API: no song (-lyrics) URL found in response for '$query'")
                     return@withContext null
                 }
-                
+
+                // Guard against an unrelated top hit: the song slug must share a token with the query.
+                if (!isRelevantGeniusMatch(query, songUrl)) {
+                    Timber.d("Genius API: '$songUrl' not relevant to query '$query', skipping")
+                    return@withContext null
+                }
+
                 Timber.d("Genius API: found song URL: $songUrl")
                 // Fetch lyrics from song page
                 fetchGeniusLyrics(songUrl)
@@ -654,5 +676,34 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
 
+    /**
+     * True when the Genius song slug shares a meaningful token with the query, i.e. the top hit is
+     * plausibly the requested song. Latin-only check: queries with no ASCII token (e.g. Cyrillic)
+     * cannot be matched against the transliterated slug, so they pass through unvalidated.
+     */
+    private fun isRelevantGeniusMatch(query: String, songUrl: String): Boolean {
+        val slug = songUrl.substringAfterLast('/').lowercase()
+        val tokens = query.lowercase()
+            .replace(Regex("[^a-z0-9\\s]"), " ")
+            .split(Regex("\\s+"))
+            .filter { it.length >= 4 && it !in GENIUS_STOP_TOKENS }
+        if (tokens.isEmpty()) return true
+        return tokens.any { slug.contains(it) }
+    }
+
     // NOTE: searchMegalyrics removed - megalyrics.ru migrated to WordPress blog, no longer serves lyrics (March 2026).
+
+    private companion object {
+        /** Generic library/storage folders that must never be treated as an artist. */
+        val GENERIC_FOLDER_NAMES = setOf(
+            "document", "documents", "download", "downloads", "music", "audio",
+            "media", "sound", "sounds", "song", "songs", "track", "tracks", "mp3",
+            "dcim", "movies", "movie", "video", "videos", "podcasts", "ringtones",
+            "telegram", "whatsapp", "viber", "bluetooth", "recordings", "voice",
+            "files", "file", "new", "temp", "tmp", "misc", "various", "unsorted"
+        )
+
+        /** Query words that carry no artist/title signal for the Genius relevance check. */
+        val GENIUS_STOP_TOKENS = setOf("lyrics", "document", "official", "audio", "video", "track")
+    }
 }

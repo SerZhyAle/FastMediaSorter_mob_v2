@@ -21,13 +21,13 @@ Before design or implementation, identify every meaningful UI ambiguity that cou
 
 If the task touches user-visible wording, labels, help text, errors, empty states, confirmations, or CTAs, treat `docs/COMMUNICATION_POLICY.md` as a mandatory source for tone and message-structure decisions.
 
-The agent must NOT implement while any important item below is unresolved.
+Do NOT implement while any important item below is unresolved.
 
 ---
 
 ## Required Checklist
 
-For the requested change, inspect the spec/request and the current code, then produce one decision table in these four passes:
+Inspect the spec/request and current code, then produce one decision table in four passes:
 
 1. Placement and presentation.
    - exact placement in portrait
@@ -66,11 +66,11 @@ For the requested change, inspect the spec/request and the current code, then pr
 
 ## Process
 
-When this prompt is invoked:
+On invocation:
 
 **Step 1 - Read context.**
 - Read the user request / spec.
-- Read the relevant layouts, controllers, planners, adapters, and strings.
+- Read relevant layouts, controllers, planners, adapters, strings.
 - Read `docs/ARCHITECTURE.md` if the task affects canonical UI patterns.
 - Read `docs/COMMUNICATION_POLICY.md` if the task affects any user-visible copy.
 
@@ -85,7 +85,7 @@ When this prompt is invoked:
 **Step 4 - Produce one of two outcomes.**
 
 ### Outcome A - BLOCKED
-Use this when any important UI decision remains unresolved.
+Use when any important UI decision remains unresolved.
 
 ```markdown
 ## UI Clarification Status
@@ -103,7 +103,7 @@ Status: BLOCKED
 ```
 
 ### Outcome B - READY
-Use this only when every important UI decision is explicit or explicitly delegated.
+Use only when every important UI decision is explicit or explicitly delegated.
 
 ```markdown
 ## UI Clarification Status

@@ -187,7 +187,6 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
 
             try {
-                // Initialize access token
                 val authResult = googleDriveClient.authenticate()
                 if (authResult is AuthResult.Error) {
                     _events.send(GoogleDriveFolderPickerEvent.ShowError(authFailedMessage()))

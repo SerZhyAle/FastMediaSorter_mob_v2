@@ -15,6 +15,17 @@
             android:name="com.dropbox.core.android.AuthActivity"
             tools:node="remove" />
 
+        <!-- ML Kit Translate lives in the on-demand :translate_feature module, not the legacy base.
+             Strip the AAR-merged init components so the base does not crash on launch (S0386). -->
+        <provider
+            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+            android:authorities="${applicationId}.mlkitinitprovider"
+            tools:node="remove" />
+
+        <service
+            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+            tools:node="remove" />
+
     </application>
 
 </manifest>

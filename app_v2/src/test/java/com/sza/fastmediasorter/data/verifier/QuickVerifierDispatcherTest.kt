@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.data.verifier
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.testing.createMediaFile
 import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.testing.fakes.FakeResourceRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -25,7 +28,12 @@ class QuickVerifierDispatcherTest {
     private val cloud = mockk<CloudQuickVerifier>()
     private val repo = FakeResourceRepository()
 
-    private val dispatcher = QuickVerifierDispatcher(local, smb, sftp, cloud, repo)
+    // S0391: gate enabled for every source so existing per-type probe assertions still run.
+    private val remoteSourceGate = mockk<RemoteSourceAvailabilityGate> {
+        every { isEnabled(any<MediaResource>()) } returns true
+    }
+
+    private val dispatcher = QuickVerifierDispatcher(local, smb, sftp, cloud, repo, remoteSourceGate)
 
     @Test
     fun `returns empty when candidates empty`() = runBlocking {

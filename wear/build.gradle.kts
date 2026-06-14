@@ -1,4 +1,9 @@
 
+import java.io.FileInputStream
+import java.io.File
+import java.util.Properties
+import org.gradle.api.GradleException
+
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
@@ -6,7 +11,26 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+fun findRootSecretFile(vararg relativePaths: String): File? =
+    relativePaths
+        .asSequence()
+        .map(rootProject::file)
+        .firstOrNull(File::exists)
+
+fun resolveSiblingPath(baseFile: File, rawPath: String): File {
+    val direct = File(rawPath)
+    return if (direct.isAbsolute) direct else File(baseFile.parentFile, rawPath).normalize()
+}
+
 android {
+    val releaseKeystorePropertiesFile = findRootSecretFile(".secrets/keystore.properties", "keystore.properties")
+    val hasReleaseKeystore = releaseKeystorePropertiesFile != null
+    val requestedTasks = gradle.startParameter.taskNames
+    val requiresReleaseSigning = requestedTasks.any {
+        val t = it.lowercase()
+        t.contains("release") && (t.contains("bundle") || t.contains("sign") || t.contains("assemble"))
+    }
+
     namespace = "com.sza.fastmediasorter.wear"
     // CRITICAL: Do not change - required for latest Wear OS features
     compileSdk = 35
@@ -26,6 +50,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePropertiesFile = releaseKeystorePropertiesFile
+            if (keystorePropertiesFile != null) {
+                val keystoreProperties = Properties()
+                FileInputStream(keystorePropertiesFile).use { inputStream ->
+                    keystoreProperties.load(inputStream)
+                }
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = resolveSiblingPath(
+                    keystorePropertiesFile,
+                    keystoreProperties["storeFile"] as String
+                )
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -40,6 +83,18 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Sign wear release with the shared project release key so the published
+            // Wear OS asset is sideload-installable (S0394). Same keystore as app_v2 -
+            // one pinned fingerprint covers the whole spectrum.
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            } else if (requiresReleaseSigning) {
+                throw GradleException(
+                    "Wear release signing is requested, but .secrets/keystore.properties is missing " +
+                    "(root keystore.properties is still accepted as a fallback). " +
+                    "Create keystore.properties with keyAlias/keyPassword/storeFile/storePassword and ensure storeFile exists."
+                )
+            }
         }
     }
 

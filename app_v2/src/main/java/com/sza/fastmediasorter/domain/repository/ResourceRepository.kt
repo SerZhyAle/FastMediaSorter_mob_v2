@@ -17,6 +17,12 @@ interface ResourceRepository {
     suspend fun getAllResourcesSync(): List<MediaResource>
     
     suspend fun getResourceById(id: Long): MediaResource?
+
+    /**
+     * Returns the first local resource whose path equals [path], or null if none exists.
+     * Used by the Open-in-FMS resolver to reuse an auto-created folder resource.
+     */
+    suspend fun getLocalResourceByPath(path: String): MediaResource?
     
     fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>>
     

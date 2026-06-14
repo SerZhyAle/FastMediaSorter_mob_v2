@@ -9,7 +9,8 @@
 
     Actions (-Action, default 'set' for backward compatibility):
       set    - update one key's value in ONE locale (-Locale -Key -Value). Original behavior.
-               Supports -ExpectedOldValue guard and -CreateIfMissing upsert. Operates on strings.xml.
+               Supports -ExpectedOldValue guard and -CreateIfMissing upsert. Operates on strings.xml
+               by default; pass -File strings_<theme>.xml to target a thematic split file.
       add    - create a new key in ALL THREE locales in lockstep (-Key -En -Ru -Uk [-File]).
                Fails if the key already exists in any strings*.xml of any locale.
       get    - print one key's value across EN/RU/UK (scans all strings*.xml). Exit 1 if missing anywhere.
@@ -51,8 +52,9 @@
     New key name for 'rename'.
 
 .PARAMETER File
-    Target strings file basename for 'add' / 'move' (default strings.xml). For 'move' it must be a
-    thematic file (not the residual strings.xml).
+    Target strings file basename for 'set' / 'add' / 'move' (default strings.xml). For 'set' it selects
+    the thematic split file holding the key. For 'move' it must be a thematic file (not the residual
+    strings.xml).
 
 .PARAMETER Prefix
     'move' bulk mode. Moves every key in the residual strings.xml whose name starts with this prefix.
@@ -209,8 +211,8 @@ function Invoke-Set {
     if (-not $valueBound) { throw "set requires -Value." }
     Test-KeySyntax $Key
 
-    $filePath = Join-Path $resDir (Join-Path $localeDirByTag[$Locale] 'strings.xml')
-    if (-not (Test-Path $filePath)) { throw "strings.xml not found for module '$Module' locale '$Locale': $filePath" }
+    $filePath = Join-Path $resDir (Join-Path $localeDirByTag[$Locale] $File)
+    if (-not (Test-Path $filePath)) { throw "$File not found for module '$Module' locale '$Locale': $filePath" }
 
     $content = [System.IO.File]::ReadAllText($filePath)
     $newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }

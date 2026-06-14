@@ -97,7 +97,6 @@ class DualSurfaceStaticImageRenderer(
             return
         }
 
-        // Load into inactive surface
         val loadResult = loadImageIntoSurface(target, inactiveSurface)
 
         if (loadResult) {
@@ -177,19 +176,15 @@ class DualSurfaceStaticImageRenderer(
         Timber.d("DualSurfaceStaticImageRenderer: release() - clearing all resources")
 
         try {
-            // Cancel all Glide requests
             Glide.with(appContext).clear(surfaceA)
             surfaceB?.let { Glide.with(appContext).clear(it) }
 
-            // Clear displayed images
             surfaceA.setImageDrawable(null)
             surfaceB?.setImageDrawable(null)
 
-            // Hide both surfaces
             surfaceA.visibility = View.GONE
             surfaceB?.visibility = View.GONE
 
-            // Reset state
             currentTarget = null
             activeSurface = ActiveSurface.A
             updateState(RenderState.Idle)
@@ -220,7 +215,6 @@ class DualSurfaceStaticImageRenderer(
         val previousActive = getActiveSurfaceView()
         val previousInactive = getInactiveSurface()
 
-        // Toggle active surface
         activeSurface = when (activeSurface) {
             ActiveSurface.A -> ActiveSurface.B
             ActiveSurface.B -> ActiveSurface.A

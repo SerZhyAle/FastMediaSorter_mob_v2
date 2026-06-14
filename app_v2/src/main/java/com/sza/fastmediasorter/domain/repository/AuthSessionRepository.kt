@@ -59,6 +59,15 @@ interface AuthSessionRepository {
 
     suspend fun isDismissedForAccount(host: String, accountId: String): Boolean
 
+    /**
+     * S0406: dump every active session with live cookies for the unified backup payload.
+     * Dismissed (permanent-skip) records are intentionally excluded - they are local UX state.
+     */
+    suspend fun exportSessions(): List<RawAuthSession>
+
+    /** S0406: restore sessions from a backup payload, overwriting per (host, accountId). */
+    suspend fun importSessions(sessions: List<RawAuthSession>)
+
     @Deprecated("Use observeAccounts()", level = DeprecationLevel.WARNING)
     fun observeDomains(): Flow<List<AuthSessionDomain>>
 
@@ -87,4 +96,18 @@ data class AuthSessionDomain(
     val host: String,
     val cookieCount: Int,
     val savedAt: Instant,
+)
+
+/**
+ * S0406: backup-facing snapshot of one saved authorization, including the raw cookies.
+ * Feeds the unified backup payload; the persistence layer keeps its own encrypted format.
+ */
+data class RawAuthSession(
+    val host: String,
+    val accountId: String,
+    val displayName: String,
+    val userAgent: String?,
+    val savedAtEpochMillis: Long,
+    val lastUsedAtEpochMillis: Long,
+    val cookies: List<HttpCookie>,
 )

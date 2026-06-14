@@ -23,7 +23,6 @@ class SettingsSearchRegistry @Inject constructor(
     private val allEntries: List<SettingsSearchIndex> by lazy {
         val raw = source.collect()
         val enriched = raw.mapNotNull { collector.enrich(it) }
-        Timber.d("S0284: settings search index built (raw=${raw.size}, enriched=${enriched.size})")
         enriched
     }
 

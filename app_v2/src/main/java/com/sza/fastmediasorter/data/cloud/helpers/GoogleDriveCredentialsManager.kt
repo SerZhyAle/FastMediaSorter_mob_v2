@@ -106,7 +106,7 @@ class GoogleDriveCredentialsManager @Inject constructor(
                 .filter { it.startsWith(KEY_CREDENTIALS_PREFIX) }
                 .forEach { editor.remove(it) }
             editor.apply()
-            Timber.i("S0200: all Google Drive credentials cleared from EncryptedSharedPreferences")
+            Timber.i("all Google Drive credentials cleared from EncryptedSharedPreferences")
         } catch (e: Exception) {
             Timber.e(e, "Failed to clear ALL credentials")
         }

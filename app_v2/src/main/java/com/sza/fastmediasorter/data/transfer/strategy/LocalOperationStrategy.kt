@@ -523,7 +523,6 @@ class LocalOperationStrategy @Inject constructor(
             val filesToCopy = allFiles.filter { it.isFile }
             val totalCount = filesToCopy.size
             
-            // Create destination directory
             if (!destDir.mkdirs() && !destDir.exists()) {
                 return@withContext Result.failure(Exception("Failed to create destination directory: $destination"))
             }

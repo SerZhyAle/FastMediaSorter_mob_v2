@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
@@ -24,8 +25,11 @@ class GeneralSettingsObserversHelper(
 
     fun observeData() {
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
-            val languagePosition = when (settings.language) {
-                "en" -> 0; "ru" -> 1; "uk" -> 2; else -> 0
+            val languagePosition = when {
+                LocaleHelper.isFollowingSystemLanguage(fragment.requireContext()) -> 0
+                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "ru" -> 2
+                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "uk" -> 3
+                else -> 1
             }
             if (binding.spinnerLanguage.selectedItemPosition != languagePosition) {
                 setIsUpdatingSpinner(true)
@@ -64,6 +68,17 @@ class GeneralSettingsObserversHelper(
                 binding.rowShowHiddenFiles.setCheckedSilently(settings.showHiddenFiles)
             if (binding.rowShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems)
                 binding.rowShowSubfoldersAsItems.setCheckedSilently(settings.showSubfoldersAsItems)
+
+            // S0391: group toggles mirror the per-source flags - a group reads ON when any member is ON.
+            val smbGroup = settings.smbEnabled
+            val ftpGroup = settings.sftpEnabled || settings.ftpEnabled
+            val cloudGroup = settings.googleDriveEnabled || settings.oneDriveEnabled || settings.dropboxEnabled
+            if (binding.rowSourceSmb.isChecked != smbGroup)
+                binding.rowSourceSmb.setCheckedSilently(smbGroup)
+            if (binding.rowSourceFtp.isChecked != ftpGroup)
+                binding.rowSourceFtp.setCheckedSilently(ftpGroup)
+            if (binding.rowSourceCloud.isChecked != cloudGroup)
+                binding.rowSourceCloud.setCheckedSilently(cloudGroup)
 
             if (binding.rowEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
                 binding.rowEnableBackgroundSync.setCheckedSilently(settings.enableBackgroundSync)

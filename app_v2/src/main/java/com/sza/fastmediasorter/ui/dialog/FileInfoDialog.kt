@@ -77,7 +77,6 @@ class FileInfoDialog(
         setupDialog()
         displayFileInfo()
         
-        // Load detailed info asynchronously
         scope.launch {
             if (mediaFile.type == MediaType.AUDIO && audioDisplayHelper != null) {
                 audioDisplayHelper!!.displayDetailed(mediaFile)

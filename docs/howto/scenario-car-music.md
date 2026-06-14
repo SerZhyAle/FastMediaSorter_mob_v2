@@ -115,7 +115,7 @@ Perfect for when you just want to get in the car and tap one button to start mus
 
 1. Long-press an empty spot on the home screen → tap **Widgets**
 2. Find **FastMediaSorter** in the list → drag the **"Resource Shortcut"** widget to your home screen
-3. When prompted, select your music folder
+3. When prompted, select your music resource
 4. Done - tap the widget anytime and music starts immediately
 
 ---

@@ -1,5 +1,18 @@
 # Memory Index
 
+- [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition
+- [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
+- [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)
+- [S0398 keystone welcome-skeleton (BlockNeedUserTest)](project_s0398_inprogress.md) - build-green; DEBUG-v013 auto-commit + temp_stash_s0397 gotchas; ColorThemePrefs.getMode()
+- [Welcome redesign: S0399/S0400/S0401/S0402 Implemented+BlockNeedUserTest 2026-06-11](project_s0395_welcome_redesign_research.md) - central-skeleton+onBind-callback arch; pager order hero/profile/networks/functionality/permissions/default-player; deferrals
+- [translationMlKit shared with :translate_feature DFM (no Hilt)](project_translationmlkit_shared_with_dfm.md) - translation DI contributors go in translationDynamicFeature, never translationMlKit
+- [spec-tech plan quality discipline](feedback_spec_tech_plan_quality.md) - owner: misordered phases + doc-shuffling steps are dominant plan defects; keep 3.1-3.4/5.5 + research/ convention intact
+- [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
+- [S0386 delivery: ALL code done, at BlockNeedUserTest](project_s0386_delivery_pause.md) - 9 phases done & 4 flavors build-green (commit 8ed28604); only owner device-test + release unpack-verify remain; loader keystone = classloader native-path injection
+- [photos/lite OCR build break - RESOLVED 2026-06-10](project_photos_flavor_ocr_break.md) - Tesseract moved to src/ocrEnabled bucket, NoOp default in src/ocrDisabled for photos/lite; new Tesseract code must go in ocrEnabled, never src/main
+- [Players are a family of activities - mirror per-host glue](feedback_player_family_glue_mirroring.md) - shared engine/use-case/capability changes propagate; per-host delegate/layout changes must be mirrored (compiler won't catch); host-seam refactor = S0392
+
+- [Camera capture is permission-free; in-app camera forces CAMERA on all of it](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE fallback (SecurityException); S0359 Variant 1: in-app CameraX is sole path, no perm-free fallback
 - [Draft style is approval-gate, not drafting friction](feedback_draft_style_gate.md) - spec `..`/ё + lists-over-tables sanitation enforced only at Draft->Approved; drafts may stay rough, no hygiene-only sweeps
 - [Spec **Status:** header auto-syncs from journal](feedback_spec_header_autosync.md) - owner reads in-file header; update.ps1 now rewrites first **Status:** line on every status change (fail-soft, first-match only)
 
@@ -7,8 +20,12 @@
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
+- [Parallel impl agents: no git/build](feedback_parallel_agents_no_git_build.md) - one agent's git stash silently clobbers another's uncommitted edits; forbid git/build/catalog in parallel briefs, disjoint files, central build; "IDE reverting my files" = suspect a concurrent stash
 - [/spec-dev continue: verify code before checkboxes](feedback_spec_dev_continue_verify_code_first.md) - In-Progress spec may have code done but tracking at 0/N; reconcile via git status + grep first (S0356)
 - [Search duplicate tickets by symptom](feedback_search_duplicates_by_symptom.md) - before new bugfix spec from logs, search catalog by errorCode/class/subsystem + same-day created; I dup'd S0343/S0344 as S0357
+- [Dead code may be active-ticket scaffolding](feedback_dead_code_vs_active_tickets.md) - before deleting "0-ref" code, grep PLAN/ + cross-check Partial/In-Progress tickets; HostKeyMismatchException looked dead but is S0046 (Partial) scaffolding
+- [Don't gate autopilot on a manufactured safety blocker](feedback_no_safety_blocker_gating_autopilot.md) - safe detector-first cleanup plans should auto-chain to /spec-dev; owner accepts destructive autopilot (S0383)
+- [Prevent at source, not just detect](feedback_prevent_at_source_not_just_detect.md) - after building a quality gate, add the DON'T rule to CLAUDE.md + code-gen skills/agents so the slop isn't produced (S0383 Rule 20)
 
 - [Background task exit code is the echo](feedback_background_task_exit_code_is_echo.md) - task-notification "exit 0" reflects trailing echo, not gradle; always read the log for the real verdict
 - [No flush/probe echo commands](feedback_no_flush_echo_commands.md) - don't spam empty echo calls to force buffered output; results arrive on their own, user finds it annoying
@@ -31,6 +48,8 @@
 - [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - each signingConfig produces a distinct BrowserTabActivity hash; manifest + Azure app registration must declare every variant
 - [Don't ask owner questions architecture already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if flavor hierarchy/contracts/inheritance already mechanically determines the answer, don't fabricate a "choice" question
 - [Verify sub-agent build failures yourself](feedback_verify_subagent_build_failures.md) - agent's incremental kapt cache may be stale; re-run `.\a.ps1 dq` before treating reported build failures as hard stops
+- [material-icons-extended is NOT removable](project_material_icons_extended_not_removable.md) - Pause/SkipNext/SkipPrevious are extended-only, not core; a "replaceable by core" audit claim broke the build (S0385)
+- [Remove dead applications/config too](feedback_remove_dead_applications_too.md) - dead plugin applications + unused buildscript classpath get removed even with zero APK-size win; "is it dead" not "does it save bytes" (S0385)
 - [PowerShell efficiency: -NoProfile + batching + wrappers](feedback_pwsh_efficiency.md) - never plain `pwsh -File`; chain related scripts in one process; use scripts/catalog_sync.ps1 for the scan+render ritual
 - [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep usage before treating as gate; PLAYER_ACTIVITY_CLASS is a dead field
 - [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never use tail -N to investigate gradle failures; FAILURE block sits in the middle

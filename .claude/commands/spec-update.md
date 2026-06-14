@@ -29,7 +29,7 @@ Targets:
 
 - Strategic body: Russian. Tactical body: English. No mixed sentences.
 - `..` not `...`; `ё`/`Ё` in Russian where grammatically correct.
-- Style timing: the `..`/`ё` and Spec Writing Style sanitation rules are an enforced gate only at `Draft` -> `Approved`. If the target spec is in `Draft`, do not raise ellipsis / `ё` / table-vs-list / section-summary findings - drafting may stay rough. Apply this hygiene as part of an explicit promotion to `Approved`, never as a standalone draft sweep. Language correctness for `Approved` or later specs is enforced as before.
+- Style timing: `..`/`ё` and Spec Writing Style sanitation are an enforced gate only at `Draft` -> `Approved`. Target in `Draft` -> do not raise ellipsis / `ё` / table-vs-list / section-summary findings (drafting may stay rough); apply this hygiene as part of an explicit promotion to `Approved`, never a standalone draft sweep. Language correctness for `Approved`+ specs enforced as before.
 
 ### 2. `structure`
 
@@ -40,24 +40,27 @@ Targets:
 
 ### 3. `verifiability`
 
-- Every tactical step has a `Verification:` block with ≥1 static predicate (Glob/Grep/value equality/file-size).
+- Every tactical step has a `Verification:` block with >=1 static predicate (Glob/Grep/value equality/file-size).
 - No untestable phrasing ("works correctly", "behaves as expected").
-- Every phase has Phase Done Criteria with ≥3 invariants.
+- Every phase has Phase Done Criteria with >=3 invariants.
 - Strategic §11: observable outcomes only.
 
 ### 4. `consistency`
 
-- Strategic `Status:` ↔ tactical INDEX `Status:` checked for alignment; mismatches are findings only, never auto-edited here.
-- Strategic `Priority:` ↔ journal `priority` aligned.
+- Strategic `Status:` <-> tactical INDEX `Status:` checked for alignment; mismatches are findings only, never auto-edited here.
+- Strategic `Priority:` <-> journal `priority` aligned.
 - INDEX phase counter matches phase-file `Status:` headers.
 - Every tactical phase links to strategic spec at top.
 - `Depends on` values reference existing earlier steps.
 
 ### 5. `completeness`
 
-- Every strategic §2 Goal maps to ≥1 tactical phase (or marked deferred).
+- Every strategic §2 Goal maps to >=1 tactical phase (or marked deferred).
 - Every open §6 Research item appears in INDEX "Pre-Implementation Blockers".
+- Every Resolved §6 item resolved by performed research carries an `**Артефакт:**` link to `PLAN/Sxxxx_<slug>/research/<NN>__<topic-slug>.md`, and the file exists.
+- INDEX `Research inputs:` lists every file under `research/` (or "none"). Absent line on pre-convention tactical plans is a finding, not an error.
 - Every §9 ADR applied somewhere in tactical.
+- Resolving a §6 item during this skill follows the same artifact rule: persist findings to `research/`, link via `**Артефакт:**`.
 
 ### 6. `style`
 
@@ -70,7 +73,7 @@ Targets:
 
 **1 - Parse arguments, locate target.**
 
-Resolve `Sxxxx` and slug via `select.ps1`. Resolve target file(s) from flags. Abort if target does not exist (suggest `/spec` or `/spec-tech`).
+Resolve `Sxxxx` and slug via `select.ps1`. Resolve target file(s) from flags. Abort if target missing (suggest `/spec` or `/spec-tech`).
 
 **1a - Status gate.**
 
@@ -83,19 +86,18 @@ Resolve `Sxxxx` and slug via `select.ps1`. Resolve target file(s) from flags. Ab
 | `In Progress` | ⛔ spec locked for execution |
 | `Implemented` / `Verified` / `Partial` / `Broken` | ⛔ historical record |
 
-If locked: abort. Offer: (1) new spec `/spec <id> <name>-v2`, (2) wait until closed.
-Flag `--force-locked` overrides - record override reason in Revision History.
+Locked -> abort. Offer: (1) new spec `/spec <id> <name>-v2`, (2) wait until closed. `--force-locked` overrides - record override reason in Revision History.
 
-**1b - Re-open `BlockNeedUserTest`.** If the journal status is `BlockNeedUserTest` and this is **not** `--review-only`, refining the spec implies re-opening it for changes - perform this before the review pass:
+**1b - Re-open `BlockNeedUserTest`.** If journal status is `BlockNeedUserTest` and this is **not** `--review-only`, refining implies re-opening - do before the review pass:
 
-- `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line. The debug-tag invariant (CLAUDE.md "Debug Verification Tags") holds: tags exist iff status is `BlockNeedUserTest`, so leaving the status requires removing them. Run a dev log line per `.kt` file that lost a tag.
-- Flip status to the prior working stage: `Tactical` if `PLAN/Sxxxx_<slug>/INDEX.md` exists, else `Approved` if the strategic spec exists, else `Draft`. Patch the `**Status:**` line in the spec file and run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <new>`.
-- Append a Revision History line: `Re-opened from BlockNeedUserTest → <new>; debug tags removed: N.`
+- `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line. Debug-tag invariant (CLAUDE.md "Debug Verification Tags"): tags exist iff status `BlockNeedUserTest`, so leaving the status requires removing them. Run a dev log line per `.kt` file that lost a tag.
+- Flip status to prior working stage: `Tactical` if `PLAN/Sxxxx_<slug>/INDEX.md` exists, else `Approved` if strategic spec exists, else `Draft`. Patch the `**Status:**` line in the spec file and run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <new>`.
+- Append Revision History line: `Re-opened from BlockNeedUserTest -> <new>; debug tags removed: N.`
 - This is the **only** status change `/spec-update` performs. With `--review-only`, skip 1b entirely (no writes).
 
 **1c - Readability gate.**
 
-If any resolved target file cannot be read or parsed as markdown, abort that target with `Unreadable target: <path>`. Do not write or dev-log that file. Suggest restoring the file from history and rerunning `/spec-update`.
+If any resolved target file cannot be read or parsed as markdown, abort that target with `Unreadable target: <path>`. Do not write or dev-log that file. Suggest restoring from history and rerunning `/spec-update`.
 
 **2 - Review pass.**
 
@@ -107,14 +109,14 @@ Classification rules:
 
 | Kind of change | Classification |
 | --- | --- |
-| Typo, `...`→`..`, missing `ё`, blank lines around list/fence | ACCEPT |
+| Typo, `...`->`..`, missing `ё`, blank lines around list/fence | ACCEPT |
 | Missing mandatory section skeleton | ACCEPT |
 | Rewording ambiguous `Verification:` predicate (obvious fix) | ACCEPT |
 | Removing class names/paths from strategic spec | ACCEPT |
 | Removing `_spec_` segment from path references | ACCEPT |
 | Adding/removing/merging a step or phase | DISCUSS |
 | Renaming a class in tactical step | DISCUSS |
-| Demoting strategic↔tactical content | DISCUSS |
+| Demoting strategic<->tactical content | DISCUSS |
 | Adding/editing an ADR | DISCUSS |
 
 **3 - Apply pass** (skip if `--review-only`).
@@ -124,7 +126,7 @@ Per memory rule: **fix all non-structural issues silently**. Only structural dec
 - **ACCEPT** - apply via `Edit`. Append a single Revision History line covering the run.
 - **DISCUSS** - record in "Proposed Structural Changes" block with `Status: Proposed`. Never apply regardless of `--apply-all`.
 
-Edits are minimal and localized. Never renumber steps/phases unless that is the specific finding - structural changes that would renumber steps/phases stay in DISCUSS until explicitly accepted.
+Edits minimal and localized. Never renumber steps/phases unless that is the specific finding - structural changes that would renumber stay in DISCUSS until explicitly accepted.
 
 **4 - Maintain Revision History block.**
 
@@ -148,10 +150,10 @@ DISCUSS items append under:
 **Affected:** <section>
 **Rationale:** <why>
 **Suggested edit:**
-> <before> → <after>
+> <before> -> <after>
 ```
 
-Proposals are never removed. Accept → flip `Status: Accepted` and apply. Reject → flip to `Rejected`.
+Proposals never removed. Accept -> flip `Status: Accepted` and apply. Reject -> flip to `Rejected`.
 
 **5 - Cross-file checks.**
 
@@ -170,13 +172,13 @@ If strategic target and tactical folder both exist: run `consistency` focus betw
 
 ## Constraints
 
-- Never invent translations. Missing RU/UK → `<!-- TODO translate: <EN> -->` or DISCUSS.
+- Never invent translations. Missing RU/UK -> `<!-- TODO translate: <EN> -->` or DISCUSS.
 - Never renumber steps/phases - cascades into all references.
-- Never touch `Status:` fields - the sole exception is the `BlockNeedUserTest` re-open in step 1b (which also deletes the spec's `Timber.d("Sxxxx:` debug tags from `.kt`). Otherwise only `/spec-check` moves status. Alignment checks may report mismatches, but only the owning status-transition skill changes them.
+- Never touch `Status:` fields - sole exception is the `BlockNeedUserTest` re-open in step 1b (which also deletes the spec's `Timber.d("Sxxxx:` debug tags from `.kt`). Otherwise only `/spec-check` moves status. Alignment checks may report mismatches, but only the owning status-transition skill changes them.
 - Class names/file paths in strategic specs: auto-fix via ACCEPT (replace with architectural term).
 - Tactical steps with non-static Verification: ACCEPT with Glob/Grep template if obvious; otherwise DISCUSS.
 - Read-only zones never edited: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- Never create audit / fix files (`__audit_*.md` / `__fix_*.md`) - they are abolished.
+- Never create audit / fix files (`__audit_*.md` / `__fix_*.md`) - abolished.
 - `--review-only`: no writes, no dev log.
 - Revision History is append-only - never rewrite earlier entries.
 
@@ -185,5 +187,5 @@ If strategic target and tactical folder both exist: run `consistency` focus betw
 ## Spec Catalog hooks
 
 - **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug.
-- **Status transition.** After refinement is applied, touch the journal `updated` timestamp without changing status: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`. On `--review-only` skip the update. With `--priority N` also pass `-Priority N`. **Exception:** the `BlockNeedUserTest` re-open (step 1b) does change the status - to `Tactical` / `Approved` / `Draft` - and deletes the spec's debug tags from `.kt`.
-- **Forbidden:** never set the journal status from this skill except the step-1b re-open. Never write to `PLAN/spec-catalog.jsonl` directly.
+- **Status transition.** After refinement applied, touch journal `updated` timestamp without changing status: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`. On `--review-only` skip the update. With `--priority N` also pass `-Priority N`. **Exception:** the `BlockNeedUserTest` re-open (step 1b) does change status - to `Tactical` / `Approved` / `Draft` - and deletes the spec's debug tags from `.kt`.
+- **Forbidden:** never set journal status from this skill except the step-1b re-open. Never write to `PLAN/spec-catalog.jsonl` directly.

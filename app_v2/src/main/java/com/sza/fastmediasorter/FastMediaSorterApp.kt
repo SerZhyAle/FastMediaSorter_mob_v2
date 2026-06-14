@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayStartupCoordinator
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -88,6 +89,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var s0200AuthStateWipe: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0200AuthStateWipe>
 
+    /** S0386 Phase 13: run-once de-bundle upgrade reconciliation (force-OFF un-installed toggles). */
+    @Inject
+    lateinit var s0386UpgradeReconciliation: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0386UpgradeReconciliation>
+
     @Inject
     lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
 
@@ -119,6 +124,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var startupInitializer: dagger.Lazy<AppStartupInitializer>
 
+    @Inject
+    lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
+
     // S0213 Pillar B: OOM-safe wrapper installed into media3 logging at process start so a
     // near-OOM stacktrace stringification cannot itself become a fatal crash.
     @Inject
@@ -138,6 +146,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Volatile
     private var isInForeground = true
 
+    @Volatile
+    private var gestureOverlayRestoreScheduled = false
+
     override fun onCreate() {
         super.onCreate()
 
@@ -145,7 +156,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Timber was planted earlier in attachBaseContext via LoggingHelper.initialize(), so the
         // fallback Timber.w in the logger has a working sink.
         androidx.media3.common.util.Log.setLogger(media3Logger)
-        Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed (S0213)")
+        Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed")
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
         // verdict=FAIL events reach the player UI even in non-DEBUG builds.
@@ -181,6 +192,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 isInForeground = true
                 Timber.d("App moved to FOREGROUND")
                 onAppForegrounded()
+                scheduleGestureOverlayRestore()
                 firstFrameSignal.signal()
             }
         })
@@ -195,16 +207,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
-        // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
-        // Skipped on flavors without Cast support (VR - Horizon OS has no Google Play Services Cast module).
-        if (BuildConfig.SUPPORT_CAST) {
-            try {
-                com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
-                Timber.d("FastMediaSorterApp: Cast SDK initialized")
-            } catch (e: Exception) {
-                Timber.w("FastMediaSorterApp: Cast SDK not available - ${e.message}")
-            }
-        }
+        // Cast SDK is initialised lazily by CastMediaManager.init() when a player opens, not here.
+        // Eager init loaded the cast.framework.dynamite module on every cold start - even on sessions
+        // that never open a player - which both slowed startup and exposed the process to GMS forcing
+        // a SIG 9 restart when it hot-swaps that dynamite module. The only thing lost is warm device
+        // discovery before the first cast tap; CastMediaManager already creates the singleton on demand.
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
 
@@ -232,7 +239,14 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0200AuthStateWipe.get().runIfNeeded()
         }
-        
+
+        // S0386 Phase 13: reconcile OCR/translation toggles after the de-bundle upgrade - run once,
+        // idempotent, no downloads. Forces OFF a toggle that is ON but whose set is not installed.
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            s0386UpgradeReconciliation.get().runIfNeeded()
+        }
+
         // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
         // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
         // Left for potential future background tasks (e.g., network resource sync)
@@ -252,10 +266,17 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 )
                 // S0328: keep the synchronous color-theme mirror in sync with the authoritative
                 // DataStore value (covers upgrades / settings import where the mirror is stale).
+                // Re-applying the mode here fixes the current process too; otherwise a stale mirror
+                // can keep the UI light until the user fully kills the process.
+                val normalizedColorTheme = com.sza.fastmediasorter.core.theme.ColorThemePrefs
+                    .normalizeValue(settings.colorTheme)
                 com.sza.fastmediasorter.core.theme.ColorThemePrefs.setMode(
                     this@FastMediaSorterApp,
-                    settings.colorTheme
+                    normalizedColorTheme
                 )
+                kotlinx.coroutines.withContext(Dispatchers.Main.immediate) {
+                    com.sza.fastmediasorter.core.theme.ColorThemePrefs.applyMode(normalizedColorTheme)
+                }
                 // S0194: dereference Lazy<WorkManagerScheduler> once per coroutine entry.
                 val scheduler = workManagerScheduler.get()
                 if (settings.enableBackgroundSync) {
@@ -304,6 +325,18 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             request,
         )
         Timber.i("FastMediaSorterApp: deferred startup worker enqueued")
+    }
+
+    private fun scheduleGestureOverlayRestore() {
+        if (gestureOverlayRestoreScheduled) return
+        gestureOverlayRestoreScheduled = true
+        applicationScope.launch {
+            try {
+                screenGestureOverlayStartupCoordinator.get().restoreIfNeeded()
+            } catch (e: Exception) {
+                Timber.e(e, "FastMediaSorterApp: gesture overlay restore failed on startup")
+            }
+        }
     }
 
     private fun setupDebugStrictMode() {

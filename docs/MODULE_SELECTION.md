@@ -7,12 +7,12 @@ permalink: /docs/MODULE_SELECTION.html
 
 ## Overview
 
-FastMediaSorter is a multi-module project with different build targets:
+FastMediaSorter is a multi-module project with different build targets. The public app surface currently spans the main phone app (`app_v2`) with Standard / Lite / Photos / Legacy builds, plus the XR / noLegal sideload surface that owns the VR-capable path.
 
 | Module | Type | Purpose |
 |--------|------|---------|
 | **wear** | Wear OS App | Smartwatch companion app |
-| **app_v2** | Android App | Main phone app (5 flavors: standard, vr, lite, photos, legacy) |
+| **app_v2** | Android App | Main phone app (Standard, Lite, Photos, Legacy, XR / noLegal) |
 
 This guide explains how to select and configure which module runs by default.
 
@@ -94,10 +94,10 @@ All in `.idea/runConfigurations/`:
 | Flavor | Debug | Release |
 |--------|-------|---------|
 | standard | `app__standardDebug_` | `app__standardRelease_` |
-| vr | `app__vrDebug_` | `app__vrRelease_` |
 | lite | `app__liteDebug_` | `app__liteRelease_` |
 | photos | `app__photosDebug_` | `app__photosRelease_` |
 | legacy | `app__legacyDebug_` | `app__legacyRelease_` |
+| noLegal | `app__noLegalDebug_` | `app__noLegalRelease_` |
 
 ## Building Without Changing Default
 
@@ -120,11 +120,13 @@ All in `.idea/runConfigurations/`:
 .\scripts\builders\build-standard-debug.ps1
 .\scripts\builders\build-lite-debug.ps1
 .\scripts\builders\build-photos-debug.ps1
+.\scripts\builders\build-nolegal-debug.ps1
 
 # Or use Gradle
 .\gradlew.bat :app_v2:assembleStandardDebug
 .\gradlew.bat :app_v2:assembleLiteDebug
 .\gradlew.bat :app_v2:assemblePhotosDebug
+.\gradlew.bat :app_v2:assembleNoLegalDebug
 ```
 
 ## Syncing After Configuration Changes
@@ -174,10 +176,10 @@ This reloads the project and applies the configuration changes.
 
 # Build Main App (all flavors)
 .\scripts\builders\build-standard-debug.ps1  # Standard Debug
-.\scripts\builders\build-vr-debug.ps1        # VR Debug (headset)
 .\scripts\builders\build-lite-debug.ps1      # Lite Debug
 .\scripts\builders\build-photos-debug.ps1    # Photos Debug
 .\scripts\builders\build-legacy-debug.ps1    # Legacy Debug
+.\scripts\builders\build-nolegal-debug.ps1   # noLegal / XR Debug
 
 # Gradle direct builds (without changing default)
 .\gradlew.bat :wear:assembleDebug

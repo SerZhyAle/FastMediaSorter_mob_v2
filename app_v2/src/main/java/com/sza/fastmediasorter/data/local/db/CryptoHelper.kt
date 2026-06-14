@@ -95,7 +95,6 @@ object CryptoHelper {
             return entry.secretKey
         }
         
-        // Create new key
         val keyGenerator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
             ANDROID_KEYSTORE

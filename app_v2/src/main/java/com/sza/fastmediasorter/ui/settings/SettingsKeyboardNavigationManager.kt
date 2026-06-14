@@ -27,7 +27,7 @@ class SettingsKeyboardNavigationManager(
         fun clearFocusedTextEditor(): Boolean
         fun navigateBack()
         fun showHelp()
-        fun activateFocused()
+        fun activateFocused(): Boolean
         fun moveFocus(direction: FocusDirection)
     }
 
@@ -55,7 +55,7 @@ class SettingsKeyboardNavigationManager(
             true
         }
         InputAction.SearchRequested -> { callback.openSearchOverlay(); true }
-        InputAction.OpenCurrent -> { callback.activateFocused(); true }
+        InputAction.OpenCurrent -> callback.activateFocused()
         is InputAction.MoveFocus -> {
             when (action.direction) {
                 FocusDirection.LEFT -> {

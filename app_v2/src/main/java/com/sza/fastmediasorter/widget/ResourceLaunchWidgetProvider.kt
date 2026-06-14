@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -99,7 +98,6 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
             if (resourceId != -1L && resourceName != null) {
                 val iconRes = resolveIcon(resourcePath, resourceTypeName)
                 views.setImageViewResource(R.id.widget_resource_icon, iconRes)
-                views.setInt(R.id.widget_resource_icon, "setColorFilter", Color.WHITE)
 
                 val intent = BrowseActivity.createIntent(context, resourceId).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -112,8 +110,7 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.widget_resource_container, pendingIntent)
             } else {
-                views.setImageViewResource(R.id.widget_resource_icon, R.drawable.ic_folder)
-                views.setInt(R.id.widget_resource_icon, "setColorFilter", Color.WHITE)
+                views.setImageViewResource(R.id.widget_resource_icon, R.drawable.ic_resource_local)
 
                 val configIntent = Intent(context, ResourceLaunchWidgetConfigActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

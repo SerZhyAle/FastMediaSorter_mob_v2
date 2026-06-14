@@ -25,7 +25,8 @@
     <color name="welcome_page_1_background">#1A237E</color>
     <color name="welcome_page_2_background">#1B5E20</color>
     <color name="welcome_page_3_background">#4A148C</color>
-    <color name="welcome_page_4_background">#E65100</color>
+    <color name="welcome_page_4_background">#4E2600</color>    <!-- Deep burnt orange: dark enough for white text (~10:1), unlike the bright Orange 900 -->
+
     <color name="welcome_page_5_background">#33691E</color>
     <color name="welcome_page_6_background">#263238</color>
     <color name="welcome_page_7_background">#283593</color>    <!-- Indigo 800 -->
@@ -73,8 +74,12 @@
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50FFFFFF</color>
 
+    <!-- Night overlays are light (translucent white), so foreground flips to jet black for contrast. -->
+    <color name="player_overlay_on_primary">#FF000000</color>
+    <color name="player_overlay_on_primary_translucent">#80000000</color>
+
     <!-- Text colors -->
-    <color name="player_audio_info_text">#CCCCCC</color>
+    <color name="player_audio_info_text">#FF333333</color>
     <color name="player_countdown_text">#AAAAAA</color>
     <color name="player_search_hint_text">#767676</color>
     <color name="player_zone_text">@color/black</color>

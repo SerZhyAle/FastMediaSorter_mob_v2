@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.view.View
 import android.webkit.WebView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import io.documentnode.epub4j.domain.Book
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +27,8 @@ import timber.log.Timber
  * - [onNavigateToChapter] - called when user selects a TOC/search result
  */
 class EpubSearchAndTocPresenter(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root instead of ActivityPlayerUnifiedBinding (only used for context; works on trimmed layouts).
+    private val root: View,
     private val coroutineScope: CoroutineScope,
     private val webViewProvider: () -> WebView?,
     private val bookProvider: () -> Book?,
@@ -105,7 +106,7 @@ class EpubSearchAndTocPresenter(
             return
         }
 
-        val context = binding.root.context
+        val context = root.context
         val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
         val view: android.view.View = android.view.LayoutInflater.from(context)
             .inflate(R.layout.bottom_sheet_epub_search, null)
@@ -119,7 +120,6 @@ class EpubSearchAndTocPresenter(
 
         var searchJob: kotlinx.coroutines.Job? = null
 
-        // Handle IME search action
         etQuery.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 val query = etQuery.text?.toString()?.trim() ?: ""
@@ -165,7 +165,6 @@ class EpubSearchAndTocPresenter(
         rvResults: androidx.recyclerview.widget.RecyclerView
     ): kotlinx.coroutines.Job {
         return coroutineScope.launch {
-            // Show progress
             withContext(Dispatchers.Main) {
                 searchProgress.visibility = android.view.View.VISIBLE
                 tvStatus.visibility = android.view.View.VISIBLE
@@ -232,7 +231,6 @@ class EpubSearchAndTocPresenter(
                 allResults
             }
 
-            // Show results on Main
             withContext(Dispatchers.Main) {
                 searchProgress.visibility = android.view.View.GONE
 
@@ -277,7 +275,7 @@ class EpubSearchAndTocPresenter(
             return
         }
 
-        val context = binding.root.context
+        val context = root.context
         val toc = book.tableOfContents
         val tocReferences = toc.tocReferences
 

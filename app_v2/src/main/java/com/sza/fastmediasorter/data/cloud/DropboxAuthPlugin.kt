@@ -29,7 +29,6 @@ class DropboxAuthPlugin @Inject constructor(
     private var isAuthInProgress = false
 
     override fun startInteractiveSignIn(activity: Activity) {
-        Timber.d("S0243: DropboxAuthPlugin.startInteractiveSignIn")
         val appKey = activity.getString(R.string.dropbox_app_key)
         Timber.d("DropboxAuthPlugin: starting OAuth2 PKCE authentication, appKey=${appKey.take(6)}...")
         try {

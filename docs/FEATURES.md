@@ -10,6 +10,8 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 0. Setup & Configuration
 - **First-run device profile setup** `[Standard / VR]`: Select a device profile (phone, tablet, TV, head unit, media player, photo frame, VR headset, etc.) on first launch with auto-detection recommendations. The chosen profile applies optimized default settings (content types, layouts, security, screen behavior) tailored to the device's usage.
+- **Onboarding functionality setup** `[Standard / VR]`: During first-run setup, turn on the capabilities you need (file manager, audio, video, documents, text recognition, translation) and download optional elements inline - each feature activates as soon as its download finishes, with no trip to Settings.
+- **One-tap "Enable all"** `[Standard / VR]`: On the first welcome page, "Enable all" sets the universal profile, switches on every available function, requests all permissions one dialog at a time, offers the app as default player for every supported media type, and finishes setup in a single step.
 
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
@@ -17,7 +19,10 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 2. Media Browsing
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
+- **Protected archive extraction** `[Standard / VR]`: Open password-protected ZIP archives - enter the password when prompted and the contents extract in place; an archive that uses an unsupported protection method is reported with a clear message instead of failing silently.
 - **Office & PDF document handoff** `[Standard / VR]`: Filter and open DOC, DOCX, RTF, ODT, or protected PDF files in external apps or fallback viewers with integrated password indicators.
+- **External file viewing** `[Standard / VR]`: When you open a file from another app, page through the neighbouring files in the same folder (next, previous, random, slideshow), and use *Open in FastMediaSorter* to jump straight into the in-app player on that file. In fullscreen mode — tap the Fullscreen button in the command bar to hide the system bars and command panel for immersive viewing; tap the Fullscreen button again (or use the keyboard shortcut) to exit.
+- **External image editing** `[Standard / VR]`: When you open an image from another app, edit it right there - crop, save a cropped copy, make a compressed copy, and toggle screen rotation - the same image actions as the in-app player.
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
@@ -39,6 +44,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Session save & restore** `[Standard / VR]`: Remembers exact playback coordinates and restores remote active network/cloud sessions upon app cold start.
 - **Video screenshot capture** `[Standard / VR]`: Capture video frames in high quality and save them as PNG/JPG to any local or network resource.
 - **Picture-in-Picture & D-pad focus** `[Standard Only]`: Runs videos in a floating window (Android 12+) and supports complete D-pad/remote focus navigation for TV boxes and head units.
+- **Blu-ray Transport Stream (.m2ts)** `[Standard / VR]`: Plays BD-TS files from local, SMB, SFTP, FTP, and cloud sources — the 192-byte BD packet format is auto-detected, while plain 188-byte MPEG-TS files with a .m2ts extension play without unnecessary stripping. Unsupported audio tracks (TrueHD, DTS-HD MA) are reported with a one-time notification listing the detected codecs.
 
 ## 8. VR Edition & OpenXR
 - **Dedicated VR build & OpenXR engine** `[VR Only]`: Immersive stereoscopic rendering (SBS/OU, VR180, 360°), virtual cinema screen for flat files, head tracking HUD, and passthrough snapshot capture on Quest 3.
@@ -46,6 +52,7 @@ This document is the canonical inventory of all user-facing features implemented
 ## 9. Audio Player
 - **Background audio service & Casting** `[Standard Only]`: Runs playback on a persistent background service with notification drawer controls and direct Chromecast casting support.
 - **Lyrics display & MIDI integration** `[Standard / VR]`: View lyrics, play MID/MIDI files on network resources, and bridge current tracks into YouTube Music searches in one tap.
+- **Cover-art visualizations** `[Standard / VR]`: When a track has no cover art, the player fills the screen with an animated backdrop — choose breathing bars, waves, pulse rings, a plain note, or downloadable looping video backgrounds; picking the video option offers the one-time download, and if no clips are present the music just keeps playing with no backdrop.
 
 ## 10. Slideshow Mode
 - **Slideshow with background music** `[Standard / VR]`: Rotate images/GIFs with custom intervals (1s to 1h), play background tracks from a selected resource, and auto-pause slides on video files.
@@ -61,10 +68,13 @@ This document is the canonical inventory of all user-facing features implemented
 ## 13. Offline OCR & Translation
 - **Offline OCR & Translation engine** `[Standard / VR]`: Extract text from images/PDFs and translate it completely offline using ML Kit and Tesseract with custom models.
 - **Photo OCR capture flow** `[Standard / VR]`: In-app camera translation with area cropping, language selector on the crop screen, and editable results saved as `.txt`.
+- **On-demand delivery** `[Standard / VR]`: OCR, translation, the FFmpeg DTS decoder and the audio-player background videos are off by default and installed on demand the first time you enable them; declining the download leaves the feature unavailable without affecting the rest of the app, and once installed they survive app updates and cache clears.
 
 ## 14. Network & Cloud Integration
 - **NAS auto-discovery & speed test** `[Standard / VR]`: Scans subnets for SMB/FTP/SFTP, tests network speed to optimize copy thread counts, and supports high-performance streaming.
+- **SFTP key auth & host-key pinning** `[Standard / VR]`: SFTP resources support SSH private-key authentication with optional passphrase, and host-key fingerprint pinning to detect server impersonation. Key auth is also available for predefined resources shipped in the bundled XML config.
 - **Cloud OAuth storage** `[Standard Only]`: Authenticates Google Drive, Dropbox, and OneDrive with remote editing and settings backup.
+- **Toggle remote sources** `[Standard / VR]`: Turn individual SMB, (S)FTP, and cloud sources on or off in settings or on the welcome screen. A disabled source disappears from selection and the app stops its background activity; existing resources are hidden, not deleted, and return when you turn the source back on.
 
 ## 15. Smart Widgets & Integration
 - **Icon-style home widgets** `[Standard / VR]`: 1x1 quick launch buttons (Voice recorder, Quick capture, Camera OCR), resizable widgets (Scheduled tasks, Audio Now Playing, Photo Frame), and settings integration.
@@ -72,3 +82,5 @@ This document is the canonical inventory of all user-facing features implemented
 ## 16. Settings & Navigation
 - **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
 - **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
+- **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.
+- **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format — to a local file or Google Drive — and restore everything after a reinstall.

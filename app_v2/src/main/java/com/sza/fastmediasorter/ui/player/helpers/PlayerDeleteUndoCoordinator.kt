@@ -52,7 +52,7 @@ class PlayerDeleteUndoCoordinator(
     }
 
     /** Kicks off an async delete of the current file. Returns null because the result is async. */
-    fun deleteCurrentFile(): Boolean? {
+    fun deleteCurrentFile(finishOnSuccess: Boolean = false): Boolean? {
         val currentFile = stateFlow.value.currentFile
         val resource = stateFlow.value.resource
 
@@ -102,6 +102,13 @@ class PlayerDeleteUndoCoordinator(
                         }
 
                         sendEvent(PlayerViewModel.PlayerEvent.FileModified(currentFile.path))
+
+                        // S0360: editor-initiated delete returns to browse instead of advancing.
+                        if (finishOnSuccess) {
+                            MediaFilesCacheManager.removeFile(resource.id, currentFile.path)
+                            sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
+                            return@launch
+                        }
 
                         if (settings.enableUndo && effectiveSoftDelete && !softDeleteFallbackUsed) {
                             val trashPaths = when (result) {

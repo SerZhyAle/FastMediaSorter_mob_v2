@@ -6,7 +6,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel
@@ -24,7 +23,6 @@ import java.io.File
 /** Enter / exit / save lifecycle for the text-editor in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
 internal class TextEditorModeController(
     private val context: Context,
-    private val binding: ActivityPlayerUnifiedBinding,
     private val safeViews: PlayerBindingSafeViews,
     private val coroutineScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
@@ -68,10 +66,10 @@ internal class TextEditorModeController(
         }
         safeViews.etTextContent.setText(textToEdit)
         safeViews.textScrollView.isVisible = false
-        binding.btnCopyTextCmd.isVisible = false
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
+        safeViews.btnCopyTextCmd.isVisible = false
+        safeViews.btnEditTextCmd.isVisible = false
+        safeViews.btnTranslateTextCmd.isVisible = false
+        safeViews.btnSearchTextCmd.isVisible = false
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
         // S0189 Phase 09: bind dirty-state tracker to EditText and reset panel tint. Text watcher pumps content into [editContentFlow]; tracker compares against baseline we set via rebaseline().
@@ -118,9 +116,9 @@ internal class TextEditorModeController(
         findReplaceManager.closeFindPanel()
         safeViews.textEditContainer.isVisible = false
         safeViews.textScrollView.isVisible = true
-        binding.btnCopyTextCmd.isVisible = true
-        binding.btnEditTextCmd.isVisible = true
-        binding.btnSearchTextCmd.isVisible = true
+        safeViews.btnCopyTextCmd.isVisible = true
+        safeViews.btnEditTextCmd.isVisible = true
+        safeViews.btnSearchTextCmd.isVisible = true
     }
 
     fun saveEditedText() {
@@ -129,12 +127,12 @@ internal class TextEditorModeController(
             showError(context.getString(R.string.text_file_not_found))
             return
         }
-        binding.progressBar.isVisible = true
+        safeViews.progressBarOrNull?.isVisible = true
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 val localFile = networkFileManager.prepareFileForWrite(fileToSave)
                 if (localFile == null) {
-                    withContext(Dispatchers.Main) { binding.progressBar.isVisible = false }
+                    withContext(Dispatchers.Main) { safeViews.progressBarOrNull?.isVisible = false }
                     return@launch
                 }
                 localFile.writeText(newText)
@@ -144,7 +142,7 @@ internal class TextEditorModeController(
                     val uploadSuccess = networkFileManager.uploadEditedFile(fileToSave, localFile)
                     if (!uploadSuccess) {
                         withContext(Dispatchers.Main) {
-                            binding.progressBar.isVisible = false
+                            safeViews.progressBarOrNull?.isVisible = false
                             showError(context.getString(R.string.text_file_upload_failed_after_local_save))
                         }
                         return@launch
@@ -152,7 +150,7 @@ internal class TextEditorModeController(
                     networkFileManager.clearEditingCache()
                 }
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    safeViews.progressBarOrNull?.isVisible = false
                     setOriginalTextWithoutNumbers(newText)
                 }
                 val settings = settingsRepository.getSettings().first() // C-3 fix: read settings on IO, not Main.
@@ -165,7 +163,7 @@ internal class TextEditorModeController(
             } catch (e: Exception) {
                 Timber.e(e, "Error saving text file")
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    safeViews.progressBarOrNull?.isVisible = false
                     showError(context.getString(R.string.text_file_save_failed))
                 }
             }

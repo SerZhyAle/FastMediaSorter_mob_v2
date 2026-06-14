@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.transfer.FileOperationErrorHandler
 import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
 import com.sza.fastmediasorter.domain.transfer.ProgressTracker
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -32,7 +35,12 @@ class UnifiedFileOperationHandlerDirectoryTest {
             tempFileManager = tempFileManager,
             progressTracker = progressTracker,
             errorHandler = errorHandler,
-            operationStrategies = mapOf("local" to localStrategy, "smb" to smbStrategy)
+            operationStrategies = mapOf("local" to localStrategy, "smb" to smbStrategy),
+            // S0391: all sources enabled so existing local/smb directory-routing assertions still run.
+            remoteSourceGate = mockk<RemoteSourceAvailabilityGate> {
+                every { isEnabled(any<RemoteSourceId>()) } returns true
+                every { anyCloudEnabled() } returns true
+            },
         )
     }
 

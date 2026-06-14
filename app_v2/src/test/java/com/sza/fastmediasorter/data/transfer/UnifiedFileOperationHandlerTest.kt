@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.transfer.FileOperationErrorHandler
 import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
 import com.sza.fastmediasorter.domain.transfer.ProgressTracker
@@ -44,7 +46,12 @@ class UnifiedFileOperationHandlerTest {
             tempFileManager = tempFileManager,
             progressTracker = progressTracker,
             errorHandler = errorHandler,
-            operationStrategies = mapOf("local" to localStrategy)
+            operationStrategies = mapOf("local" to localStrategy),
+            // S0391: all sources enabled so existing protocol-routing assertions still run.
+            remoteSourceGate = mockk<RemoteSourceAvailabilityGate> {
+                every { isEnabled(any<RemoteSourceId>()) } returns true
+                every { anyCloudEnabled() } returns true
+            },
         )
     }
 

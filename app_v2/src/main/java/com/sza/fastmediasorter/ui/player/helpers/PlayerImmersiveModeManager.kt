@@ -43,7 +43,7 @@ class PlayerImmersiveModeManager(
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         } catch (e: Exception) {
-            Timber.w(e, "S0127: hideSystemBars failed")
+            Timber.w(e, "hideSystemBars failed")
         }
     }
 
@@ -52,7 +52,7 @@ class PlayerImmersiveModeManager(
             val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
             controller.show(WindowInsetsCompat.Type.systemBars())
         } catch (e: Exception) {
-            Timber.w(e, "S0127: hideSystemBars failed")
+            Timber.w(e, "hideSystemBars failed")
         }
     }
 }

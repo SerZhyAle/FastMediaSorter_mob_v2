@@ -3,23 +3,20 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
 import com.sza.fastmediasorter.ui.player.views.CropOverlayView
+import timber.log.Timber
 
 /**
- * Handles the crop overlay lifecycle for [PlayerActivity].
- * Extracted from PlayerActivity (S0106) to keep that class within the LOC budget.
+ * Handles the crop overlay lifecycle. S0393: consumes the binding-agnostic [PlayerActionHost] seam
+ * instead of `PlayerActivity`, so the in-app player and the standalone image host share one delegate
+ * (was duplicated as `StandaloneImageEditController` in S0390). Host-specific behaviour (navigate vs
+ * toast after a save-as, in-place re-render) is delegated to the host, not branched here.
  */
 class PlayerCropDelegate(
-    private val activity: PlayerActivity,
+    private val host: PlayerActionHost,
     private val imageCropManager: ImageCropManager,
 ) {
 
@@ -28,20 +25,20 @@ class PlayerCropDelegate(
     // ── Public entry points ──────────────────────────────────────────────────
 
     fun enterCropMode(mode: ImageCropManager.CropMode) {
-        val file = activity.viewModel.state.value.currentFile ?: return
-        val resource = activity.viewModel.state.value.resource
+        Timber.d("S0393: seam crop entry via PlayerActionHost (in-app + standalone image host)")
+        val file = host.actionCurrentFile ?: return
+        val resource = host.actionCurrentResource
         imageCropManager.enterCropMode(mode, file, resource, imageCropCallback)
-        activity.activityBinding.photoView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-        activity.activityBinding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        host.prepareImageSurfacesForCrop()
         showCropOverlay(mode)
     }
 
     fun startCompressedCopy() {
-        val file = activity.viewModel.state.value.currentFile ?: return
-        val resource = activity.viewModel.state.value.resource
+        val file = host.actionCurrentFile ?: return
+        val resource = host.actionCurrentResource
         val isReadOnly = resource?.isReadOnly == true
         imageCropManager.showCropFilenameDialog(
-            activity,
+            host.hostActivity,
             ImageCropManager.CropMode.COMPRESS_COPY,
             file,
             isReadOnly
@@ -59,16 +56,15 @@ class PlayerCropDelegate(
     // ── Private overlay lifecycle ────────────────────────────────────────────
 
     private fun showCropOverlay(mode: ImageCropManager.CropMode) {
-        // S0106 fix: mount overlay to mediaContentArea (FrameLayout sized to the photo display area).
-        // Mounting to activityBinding.root (vertical LinearLayout) collapsed PhotoView height to 0
-        // because a match_parent overlay without layout_weight starves the weighted media slot.
-        val parent: ViewGroup = activity.activityBinding.mediaContentArea
-        val overlay = activity.layoutInflater.inflate(R.layout.player_crop_overlay_content, parent, false)
+        // Mount the overlay to the media content area (FrameLayout sized to the photo display area).
+        val parent: ViewGroup = host.overlayMountTarget
+        val overlay = host.hostActivity.layoutInflater
+            .inflate(R.layout.player_crop_overlay_content, parent, false)
         cropOverlayView = overlay
         parent.addView(overlay)
 
         val cropView = overlay.findViewById<CropOverlayView>(R.id.crop_overlay_view)
-        cropView.pinchPassthroughTarget = activity.activityBinding.photoView
+        cropView.pinchPassthroughTarget = host.imagePinchTarget
         val btnConfirm = overlay.findViewById<View>(R.id.btn_crop_confirm)
         val btnCancel = overlay.findViewById<View>(R.id.btn_crop_cancel)
 
@@ -77,11 +73,11 @@ class PlayerCropDelegate(
         }
 
         btnConfirm.setOnClickListener {
-            val file = activity.viewModel.state.value.currentFile ?: run {
+            val file = host.actionCurrentFile ?: run {
                 imageCropManager.exitCropMode()
                 return@setOnClickListener
             }
-            val resource = activity.viewModel.state.value.resource
+            val resource = host.actionCurrentResource
             val isReadOnly = resource?.isReadOnly == true
             val rect = cropView.getCropRectNormalized()
             val vw = cropView.width
@@ -89,18 +85,18 @@ class PlayerCropDelegate(
 
             when (mode) {
                 ImageCropManager.CropMode.CROP -> {
-                    activity.lifecycleScope.launch {
+                    host.hostScope.launch {
                         imageCropManager.performCrop(rect, vw, vh, file, resource, imageCropCallback)
                     }
                 }
                 ImageCropManager.CropMode.CROP_TO_FILE -> {
                     imageCropManager.showCropFilenameDialog(
-                        activity,
+                        host.hostActivity,
                         ImageCropManager.CropMode.CROP_TO_FILE,
                         file,
                         isReadOnly
                     ) { fileName ->
-                        activity.lifecycleScope.launch {
+                        host.hostScope.launch {
                             imageCropManager.performCropToFile(
                                 rect, vw, vh, file, resource, fileName,
                                 if (isReadOnly) null else resource,
@@ -135,38 +131,17 @@ class PlayerCropDelegate(
         override fun onSuccess(savedPath: String, mode: ImageCropManager.CropMode) {
             hideCropOverlay()
             if (mode == ImageCropManager.CropMode.CROP) {
-                // Original file was overwritten in-place - clear Glide cache and redisplay.
-                // jumpToIndex with the same index aborts, so use reloadCurrentImage() directly.
-                if (activity.isMediaLoaderManagerInitialized) {
-                    activity.mediaLoaderManager.reloadCurrentImage()
-                }
+                // Original file was overwritten in-place - host re-decodes it.
+                host.reloadCurrentImageInPlace()
                 return
             }
-            val fileName = savedPath.substringAfterLast('/')
-            val currentParent = activity.viewModel.state.value.currentFile?.path?.substringBeforeLast('/') ?: ""
-            val savedParent = savedPath.substringBeforeLast('/')
-            if (currentParent.isNotEmpty() && currentParent == savedParent) {
-                activity.viewModel.reloadFiles()
-                activity.lifecycleScope.launch {
-                    val files = withTimeoutOrNull(10_000L) {
-                        activity.viewModel.state.map { it.files }.distinctUntilChanged()
-                            .first { files -> files.any { it.path == savedPath } }
-                    }
-                    val idx = files?.indexOfFirst { it.path == savedPath } ?: -1
-                    if (idx >= 0) {
-                        activity.viewModel.jumpToIndex(idx, manual = true)
-                    } else {
-                        Toast.makeText(activity, activity.getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
-                    }
-                }
-            } else {
-                Toast.makeText(activity, activity.getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
-            }
+            // A new file was created in the folder - host navigates (in-app) or toasts (standalone).
+            host.onFileSavedInFolder(savedPath)
         }
 
         override fun onError(message: String) {
             hideCropOverlay()
-            Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+            Toast.makeText(host.hostActivity, message, Toast.LENGTH_LONG).show()
         }
     }
 }

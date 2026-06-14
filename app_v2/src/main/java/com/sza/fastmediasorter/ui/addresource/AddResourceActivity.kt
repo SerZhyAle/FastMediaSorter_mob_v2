@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import android.view.KeyEvent
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
@@ -42,7 +43,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
         override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.ADD_RESOURCE) }
-        override fun activateFocused(): Boolean = currentFocus?.performClick() == true
+        override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
         override fun moveFocus(direction: FocusDirection) {
             val focusDir = when (direction) {
                 FocusDirection.UP, FocusDirection.PREVIOUS -> android.view.View.FOCUS_UP
@@ -61,6 +62,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     @Inject lateinit var unifiedAuthManager: UnifiedCloudAuthManager
     @Inject lateinit var dropboxClient: dagger.Lazy<DropboxClient>
     @Inject lateinit var oneDriveClient: dagger.Lazy<OneDriveRestClient>
+    @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
 
     private lateinit var connectionManager: AddResourceConnectionManager
     private lateinit var scanManager: AddResourceScanManager
@@ -119,11 +121,28 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         com.sza.fastmediasorter.ui.main.ResourceTab.SMB -> showSmbFolderOptions()
                         com.sza.fastmediasorter.ui.main.ResourceTab.FTP_SFTP -> showSftpFolderOptions()
                         com.sza.fastmediasorter.ui.main.ResourceTab.CLOUD -> showCloudStorageOptions()
+                        // ALL/FAVORITES carry no specific source type, so the type picker would show.
+                        // Apply the same single-option skip as the no-extra path (S0391).
                         com.sza.fastmediasorter.ui.main.ResourceTab.ALL,
-                        com.sza.fastmediasorter.ui.main.ResourceTab.FAVORITES -> Unit
+                        com.sza.fastmediasorter.ui.main.ResourceTab.FAVORITES -> maybeSkipTypeSelection()
                     }
                 }
-            }
+            } ?: binding.root.post { maybeSkipTypeSelection() }
+        }
+    }
+
+    /**
+     * When the type picker would offer only the always-present Local card - every remote source is
+     * disabled (S0391) or unsupported by the flavor - a one-option screen is pointless, so open the
+     * Local folder options directly and skip it. Runs only on a fresh add (no preselected tab, not a
+     * copy). Queries the gate directly rather than card visibility, because `setupViews()` (which
+     * applies card visibility) is itself deferred by BaseActivity and may not have run yet -
+     * `anyRemoteEnabled()` is exactly the predicate that drives remote-card visibility.
+     */
+    private fun maybeSkipTypeSelection() {
+        if (!remoteSourceGate.anyRemoteEnabled()) {
+            Timber.d("S0391: only Local source available - skipping the type picker")
+            showLocalFolderOptions()
         }
     }
 
@@ -146,7 +165,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     override fun setupViews() {
-        formManager = AddResourceFormManager(this, binding, viewModel)
+        formManager = AddResourceFormManager(this, binding, viewModel, remoteSourceGate)
         formManager.applyEdgeToEdgeInsets()
         formManager.updateResourceTypeGridColumns()
 
@@ -217,6 +236,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.rbSftp.id -> if (currentPort.isBlank() || currentPort == "21") binding.etSftpPort.setText(R.string.default_sftp_port)
                 binding.rbFtp.id  -> if (currentPort.isBlank() || currentPort == "22") binding.etSftpPort.setText(R.string.default_ftp_port)
             }
+            // Host-key pinning is an SSH concept; FTP has no host key, so hide the block for FTP.
+            binding.cardSftpServerVerification.isVisible = checkedId == binding.rbSftp.id
         }
 
         // Local buttons
@@ -419,6 +440,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.layoutCloudStorage.isVisible = false
         if (binding.etSftpPort.text.isNullOrBlank()) binding.etSftpPort.setText(R.string.default_sftp_port)
         binding.rbSftp.isChecked = true
+        // SFTP is the default protocol here; ensure the SSH-only host-key block is shown even when the radio state is unchanged.
+        binding.cardSftpServerVerification.isVisible = true
         formManager.initSftpMediaTypes()
     }
 

@@ -82,6 +82,7 @@ render.experimental.xml
 # ============================================================================
 # Local SDK/NDK paths and machine-specific settings
 local.properties
+.secrets/
 
 # Keystore files - CRITICAL: DO NOT COMMIT
 *.jks

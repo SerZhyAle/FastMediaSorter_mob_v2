@@ -140,7 +140,6 @@ class BackgroundMusicManager @Inject constructor(
                                 Timber.w("BackgroundMusic: Attempting auto-recovery - skipping to next track")
                                 
                                 withContext(Dispatchers.Main) {
-                                    // Stop current playback
                                     musicPlayer?.stop()
                                 }
                                 
@@ -164,7 +163,6 @@ class BackgroundMusicManager @Inject constructor(
                                         // Reinitialize
                                         this@BackgroundMusicManager.initialize()
                                         
-                                        // Notify user
                                         this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restarted_after_error))
                                         
                                         Timber.i("BackgroundMusic: Player reinitialized after recovery failure")
@@ -181,7 +179,6 @@ class BackgroundMusicManager @Inject constructor(
             }
             Timber.d("BackgroundMusic: Player initialized with auto-advance and error recovery")
             
-            // Start health check watchdog
             startHealthCheck()
         }
     }

@@ -1,30 +1,44 @@
+param(
+    [string] $VersionName,
+    [int] $VersionCode
+)
+
 # Release AAB + APK build script
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
-Write-Host "Building release AAB + APK (auto-versioned)..." -ForegroundColor Cyan
+Write-Host "Building release AAB + APK..." -ForegroundColor Cyan
 
-# Generate version
-$now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
+if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -gt 0)) {
+    throw "Pass both -VersionName and -VersionCode together, or omit both for auto-versioning."
+}
 
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
+if ([string]::IsNullOrWhiteSpace($VersionName)) {
+    # Generate version
+    $now = Get-Date
+    $year = $now.Year
+    $month = $now.Month
+    $day = $now.Day
+    $hour = $now.Hour
+    $minute = $now.Minute
 
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+    $firstYearDigit = [int]($year.ToString()[0].ToString())
+    $lastYearDigit = [int]($year.ToString()[-1].ToString())
+    $firstMonthDigit = [int]($month.ToString("00")[0].ToString())
+    $secondMonthDigit = [int]($month.ToString("00")[1].ToString())
+    $dayStr = $day.ToString("00")
+    $firstHourDigit = [int]($hour.ToString("00")[0].ToString())
+    $secondHourDigit = [int]($hour.ToString("00")[1].ToString())
+    $minuteStr = $minute.ToString("00")
+    $firstMinuteDigit = [int]($minuteStr[0].ToString())
+
+    # YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
+    $versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
+    $versionCodeInt = [Convert]::ToInt32($versionCodeStr)
+    $versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+} else {
+    $versionName = $VersionName.Trim()
+    $versionCodeInt = $VersionCode
+}
 
 Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
 

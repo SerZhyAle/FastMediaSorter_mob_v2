@@ -8,4 +8,94 @@
         android:title="@string/open_in_fms"
         app:showAsAction="never" />
 
+    <!-- S0390: Group A image actions that spill to overflow (shown only for editable local images) -->
+    <item
+        android:id="@+id/menu_edit_crop_to_file"
+        android:title="@string/menu_crop_to_file"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_edit_compress"
+        android:title="@string/menu_compress_copy"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: full image edit (rotate/flip/filters/adjust) via the generic ImageEditDialog -->
+    <item
+        android:id="@+id/menu_edit_image"
+        android:title="@string/edit"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: black-screen overlay (video). Image/video-only items above are hidden by the
+         non-image hosts (Audio/Document/Text) which share this menu. -->
+    <item
+        android:id="@+id/menu_black_screen"
+        android:title="@string/black_screen_button_title"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: Google Lens (image host only) -->
+    <item
+        android:id="@+id/menu_google_lens"
+        android:title="@string/google_lens"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: OCR extract text from image (image host only; ENABLE_TRANSLATION) -->
+    <item
+        android:id="@+id/menu_ocr_image"
+        android:title="@string/camera_ocr_pane_original"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: YouTube Music search (audio host only) -->
+    <item
+        android:id="@+id/menu_youtube_music"
+        android:title="@string/search_in_youtube_music"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: image translate (image host; ENABLE_TRANSLATION) -->
+    <item
+        android:id="@+id/menu_translate_image"
+        android:title="@string/translate"
+        app:showAsAction="never" />
+
+    <!-- S0410: translation/OCR settings (image host; ENABLE_TRANSLATION) -->
+    <item
+        android:id="@+id/menu_image_text_settings"
+        android:title="@string/translation_settings"
+        app:showAsAction="never" />
+
+    <!-- S0410: draw overlay (static image host) -->
+    <item
+        android:id="@+id/menu_draw_overlay"
+        android:title="@string/menu_draw_overlay"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: print image (image host) -->
+    <item
+        android:id="@+id/menu_print"
+        android:title="@string/menu_print"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: save current video frame (video host) -->
+    <item
+        android:id="@+id/menu_save_frame"
+        android:title="@string/menu_save_frame"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: sleep timer (audio/video host) -->
+    <item
+        android:id="@+id/menu_sleep_timer"
+        android:title="@string/menu_sleep_timer"
+        app:showAsAction="never" />
+
+    <!-- S0393 wave-C: lyrics (audio host) -->
+    <item
+        android:id="@+id/menu_lyrics"
+        android:title="@string/lyrics"
+        app:showAsAction="never" />
+
+    <!-- S0393: playback speed (audio host) -->
+    <item
+        android:id="@+id/menu_playback_speed"
+        android:title="@string/cd_playback_speed"
+        app:showAsAction="never" />
+
 </menu>

@@ -18,6 +18,7 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
+import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -219,7 +220,6 @@ class ImageLoadingManager(
         // in the video player pillarbox areas.
         dynamicBackgroundProcessor?.clear()
 
-        // Cancel pending loading indicators
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
         binding.progressBar.isVisible = false
@@ -246,7 +246,6 @@ class ImageLoadingManager(
         // Cancel any dynamic background processing
         dynamicBackgroundProcessor?.clear()
 
-        // Cancel all pending handlers
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
 
@@ -302,7 +301,6 @@ class ImageLoadingManager(
     fun reEvaluateScaleTypeOnRotation() {
         lifecycleScope.launch {
             try {
-                // Get current settings
                 val settings = settingsRepository.getSettings().first()
 
                 // Get current device dimensions (API 28+ compatible)
@@ -361,6 +359,7 @@ class ImageLoadingManager(
         // treated as intentional user zoom gestures on the new image.
         isPhotoViewImageLoaded = false
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
+        LoggingHelper.updateDebugMirrorTargetFromPath(path)
 
         // Log memory state BEFORE loading new image
         logMemoryStats("BEFORE displayImage")
@@ -428,10 +427,22 @@ class ImageLoadingManager(
 
         val currentFile = callback.getCurrentFile()
         val resource = callback.getCurrentResource()
+        val pathExtension = path.substringAfterLast('.', "").lowercase()
+        if (pathExtension == "webp") {
+            val source = when {
+                path.startsWith("cloud://") -> "cloud"
+                path.startsWith("smb://") -> "smb"
+                path.startsWith("sftp://") -> "sftp"
+                path.startsWith("ftp://") -> "ftp"
+                else -> "local"
+            }
+            Timber.i(
+                "WebP display request: file=${currentFile?.name ?: File(path).name}, source=$source, mediaType=${currentFile?.type ?: resource?.type ?: "unknown"}"
+            )
+        }
 
         // Pre-flight: HEIC/HEIF needs API 28+, AVIF needs API 31+. Show a clear message on
         // unsupported devices instead of letting Glide fail silently.
-        val pathExtension = path.substringAfterLast('.', "").lowercase()
         if (!HeifSupportUtils.isSupported(pathExtension)) {
             loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
             loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
@@ -460,6 +471,11 @@ class ImageLoadingManager(
             currentIsAnimatedContent = isAnimatedContent
             callback.setAnimatedBadgeVisible(isAnimatedContent)
             val usePhotoView = isAnimatedContent || (settings.loadFullSizeImages && currentFile != null && !isSlideshowActive)
+            if (pathExtension == "webp") {
+                Timber.i(
+                    "WebP display mode: animated=$isAnimatedContent, usePhotoView=$usePhotoView, slideshow=$isSlideshowActive"
+                )
+            }
 
             // Switch visibility between ImageView and PhotoView
             binding.imageView.isVisible = !usePhotoView

@@ -175,7 +175,6 @@ class FileOperationDestinationDialog(
         // Small margins for spacing (4dp on each side = 8dp total between buttons)
         val marginSize = (4 * context.resources.displayMetrics.density).toInt()
         
-        // Create rows
         var destIndex = 0
         distribution.forEach { rowCount ->
             if (rowCount > 0) {
@@ -278,7 +277,6 @@ class FileOperationDestinationDialog(
         // Create cancellable job for operation
         scope.launch {
             Timber.i("performOperation: Coroutine STARTED in scope.launch")
-            // Show progress dialog immediately
             val progressTitleResId = when (operationType) {
                 FileOperationType.COPY -> R.string.copying_files
                 FileOperationType.MOVE -> R.string.moving_files
@@ -290,7 +288,7 @@ class FileOperationDestinationDialog(
                 context,
                 context.getString(progressTitleResId),
                 onCancel = { 
-                    Timber.d("performOperation: cancel requested by user") // S0055-D
+                    Timber.d("performOperation: cancel requested by user") // -D
                     cancel() // Cancel this coroutine job
                 }
             )
@@ -359,7 +357,6 @@ class FileOperationDestinationDialog(
                         withContext(Dispatchers.Main) {
                             progressDialog.updateProgress(progress)
                             
-                            // Handle completion
                             if (progress is com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Completed) {
                                 Timber.i("performOperation: Operation completed with result: ${progress.result}")
                                 completed = true
@@ -435,7 +432,6 @@ class FileOperationDestinationDialog(
                     Toast.LENGTH_SHORT
                 ).show()
                 
-                // Create UndoOperation
                 val undoOp = UndoOperation(
                     type = operationType,
                     sourceFiles = sourceFiles.map { it.absolutePath },
@@ -477,7 +473,7 @@ class FileOperationDestinationDialog(
                     }
                 }
 
-                com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context,
                     context.getString(R.string.error_partial_success),
                     message
@@ -558,7 +554,7 @@ class FileOperationDestinationDialog(
 
     private fun showOperationError(title: String, message: String, detailedInfo: String? = null) {
         if (showDetailedErrors && !detailedInfo.isNullOrBlank()) {
-            com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+            com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                 context,
                 title,
                 message,
@@ -567,7 +563,7 @@ class FileOperationDestinationDialog(
             return
         }
 
-        com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+        com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
             context,
             title,
             message

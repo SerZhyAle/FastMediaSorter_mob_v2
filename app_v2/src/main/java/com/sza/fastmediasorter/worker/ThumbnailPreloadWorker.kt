@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -36,7 +37,8 @@ class ThumbnailPreloadWorker @AssistedInject constructor(
     private val resourceRepository: ResourceRepository,
     private val thumbnailCacheRepository: ThumbnailCacheRepository,
     private val calculateOptimalCacheSizeUseCase: CalculateOptimalCacheSizeUseCase,
-    private val thumbnailExtractorHelper: ThumbnailExtractorHelper
+    private val thumbnailExtractorHelper: ThumbnailExtractorHelper,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) : CoroutineWorker(applicationContext, workerParams) {
 
     companion object {
@@ -66,6 +68,12 @@ class ThumbnailPreloadWorker @AssistedInject constructor(
         val resource = resourceRepository.getResourceById(resourceId)
         if (resource == null) {
             Timber.d("ThumbnailPreloadWorker: resource $resourceId deleted - skipping")
+            return Result.success()
+        }
+
+        // S0391: defense-in-depth - never preload thumbnails for a disabled source's resource.
+        if (!remoteSourceGate.isEnabled(resource)) {
+            Timber.d("ThumbnailPreloadWorker: resource ${resource.name} source disabled - skipping")
             return Result.success()
         }
 

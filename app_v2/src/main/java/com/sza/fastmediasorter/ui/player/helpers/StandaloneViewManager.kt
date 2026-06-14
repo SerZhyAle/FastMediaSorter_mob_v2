@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
+import android.view.View
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -18,6 +19,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
@@ -30,7 +33,6 @@ import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
@@ -39,6 +41,7 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.VideoColorProcessor
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -65,20 +68,20 @@ import java.io.File
  */
 class StandaloneViewManager(
     private val activity: Activity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
-    private val smbFileOperationHandler: SmbFileOperationHandler,
-    private val sftpFileOperationHandler: SftpFileOperationHandler,
-    private val ftpFileOperationHandler: FtpFileOperationHandler,
-    private val cloudFileOperationHandler: CloudFileOperationHandler,
-    private val unifiedCache: UnifiedFileCache,
+    private val smbClient: Lazy<SmbClient>,
+    private val sftpClient: Lazy<SftpClient>,
+    private val ftpClient: Lazy<FtpClient>,
+    private val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<DropboxClient>,
+    private val oneDriveClient: Lazy<OneDriveRestClient>,
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
+    private val smbFileOperationHandler: Lazy<SmbFileOperationHandler>,
+    private val sftpFileOperationHandler: Lazy<SftpFileOperationHandler>,
+    private val ftpFileOperationHandler: Lazy<FtpFileOperationHandler>,
+    private val cloudFileOperationHandler: Lazy<CloudFileOperationHandler>,
+    private val unifiedCache: Lazy<UnifiedFileCache>,
     private val settingsRepository: SettingsRepository,
     private val playbackPositionRepository: PlaybackPositionRepository
 ) {
@@ -86,6 +89,18 @@ class StandaloneViewManager(
     companion object {
         private const val DEFAULT_BRIGHTNESS_PROGRESS = 50
         private const val POSITION_SAVE_INTERVAL_MS = 5_000L
+    }
+
+    // S0380: root-based view seam for every media path (image/gif/video/audio/pdf/epub/office).
+    // Works on the full unified layout and on a trimmed specialized standalone layout (id lookup).
+    private val safeViews = PlayerBindingSafeViews(root)
+
+    private var onDocumentEnterFullscreen: (() -> Unit)? = null
+    private var onDocumentExitFullscreen: (() -> Unit)? = null
+
+    fun setFullscreenCallbacks(onEnter: () -> Unit, onExit: () -> Unit) {
+        onDocumentEnterFullscreen = onEnter
+        onDocumentExitFullscreen = onExit
     }
 
     private val networkFileManager: NetworkFileManager by lazy {
@@ -293,33 +308,49 @@ class StandaloneViewManager(
 
     private fun showImage(mediaFile: MediaFile) {
         // photoView lives inside photoDualSurfaceContainer - both must be visible
-        // Container is nullable in the binding (config-variant view)
-        binding.photoDualSurfaceContainer?.let { it.isVisible = true }
-        binding.photoView.isVisible = true
+        // Container is nullable (config-variant view, absent in some layouts)
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
+        safeViews.photoView.isVisible = true
         Glide.with(activity.applicationContext)
             .load(mediaFile.path.toUri())
-            .into(binding.photoView)
+            .into(safeViews.photoView)
+    }
+
+    /**
+     * S0390: re-decode an image whose bytes were overwritten in place (crop). Glide keys on the URI,
+     * so both caches are skipped and the signature varied to force a fresh decode of the new bytes.
+     */
+    fun reloadImage(mediaFile: MediaFile) {
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
+        safeViews.photoView.isVisible = true
+        Glide.with(activity.applicationContext)
+            .load(mediaFile.path.toUri())
+            .skipMemoryCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .signature(ObjectKey(System.currentTimeMillis()))
+            .into(safeViews.photoView)
     }
 
     private fun showGif(mediaFile: MediaFile) {
-        binding.photoDualSurfaceContainer?.let { it.isVisible = true }
-        binding.photoView.isVisible = true
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
+        safeViews.photoView.isVisible = true
         Glide.with(activity.applicationContext)
             .asGif()
             .load(mediaFile.path.toUri())
-            .into(binding.photoView)
+            .into(safeViews.photoView)
     }
 
     // ── Video ───────────────────────────────────────────────────────────────
 
     private fun playVideo(mediaFile: MediaFile, onVideoReady: ((PlayerView) -> Unit)? = null) {
-        binding.playerView.isVisible = true
-        binding.playerView.controllerShowTimeoutMs = 5000
+        val playerView = safeViews.playerView
+        playerView.isVisible = true
+        playerView.controllerShowTimeoutMs = 5000
         standaloneVideoSizeKnown = false
         standalonePendingEffects = false
         val player = ExoPlayer.Builder(activity).build()
         exoPlayer = player
-        binding.playerView.player = player
+        playerView.player = player
         applyVideoColorEffects()
         player.addListener(createPlayerErrorListener())
         audioFocusManager = AudioFocusManager(activity) { isPermanent ->
@@ -329,14 +360,27 @@ class StandaloneViewManager(
         currentVideoFilePath = mediaFile.path
         lastSavedPosition = -1L
         player.setMediaItem(MediaItem.fromUri(mediaFile.path.toUri()))
-        player.prepare()
-        lifecycleScope.launch {
-            restorePlaybackPosition(mediaFile.path)
-            startPositionAutoSave(mediaFile.path)
-        }
         player.playWhenReady = true
         acquireWakeLock()
-        onVideoReady?.invoke(binding.playerView)
+        onVideoReady?.invoke(playerView)
+        // Fetch saved position before prepare() so seekTo() runs before the playback thread
+        // starts, preventing DefaultVideoFrameProcessor.flush() from firing on an uninitialised
+        // InputSwitcher (Media3 1.2.1: activeTextureManager is null before the first frame).
+        lifecycleScope.launch {
+            val savedPos = try {
+                playbackPositionRepository.getPosition(mediaFile.path) ?: -1L
+            } catch (e: Exception) {
+                Timber.e(e, "StandaloneViewManager: Failed to restore position for ${mediaFile.path}")
+                -1L
+            }
+            if (player != exoPlayer) return@launch  // player released while we were querying DB
+            if (savedPos > 0L) {
+                player.seekTo(savedPos)
+                Timber.d("StandaloneViewManager: Restored position ${savedPos}ms for ${mediaFile.path}")
+            }
+            player.prepare()
+            startPositionAutoSave(mediaFile.path)
+        }
     }
 
     private fun applyVideoColorEffects() {
@@ -365,9 +409,10 @@ class StandaloneViewManager(
     // ── Audio ───────────────────────────────────────────────────────────────
 
     private fun playAudio(mediaFile: MediaFile) {
-        binding.playerView.isVisible = true
+        val playerView = safeViews.playerView
+        playerView.isVisible = true
         // For audio: controls must always be visible (no tap needed)
-        binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
+        playerView.controllerShowTimeoutMs = Int.MAX_VALUE
         val controller = AudioServiceController(activity)
         audioServiceController = controller
         // Do NOT use AudioFocusManager here - ExoPlayer inside AudioPlaybackService is built with
@@ -377,8 +422,8 @@ class StandaloneViewManager(
         // requests focus, triggering player.stop() and immediately killing playback.
         val mimeType = if (MidiPlaybackPolicy.isMidiPath(mediaFile.path)) MimeTypes.AUDIO_MIDI else null
         controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.'), mimeType = mimeType) { player ->
-            binding.playerView.player = player
-            binding.playerView.showController()
+            playerView.player = player
+            playerView.showController()
             acquireWakeLock()
         }
     }
@@ -430,8 +475,10 @@ class StandaloneViewManager(
         } else {
             null
         }
+        // S0380: EPUB selection requires the epub web view to be present + visible in the current
+        // layout root; absent on layouts that omit the epub subtree (epubWebViewOrNull is null).
         return officeCallback ?: _epubViewerManager
-            ?.takeIf { binding.epubWebView.isVisible }
+            ?.takeIf { safeViews.epubWebViewOrNull?.isVisible == true }
             ?.getSelectionActionModeCallback()
     }
 
@@ -466,12 +513,14 @@ class StandaloneViewManager(
     // standalone mode has no system-bars manager wired.
     private val officeDocumentViewerHostDelegate = lazy {
         OfficeDocumentViewerProviderFactory().createViewerHost(
-            binding = binding,
+            // S0380: Office host is decoupled to a layout root; works on any standalone layout that
+            // includes the officeDocumentViewerContainer surface (full unified or trimmed document).
+            root = root,
             coroutineScope = lifecycleScope,
             callback = object : OfficeDocumentViewerHost.Callback {
                 override fun showError(message: String) = showToastError(message)
-                override fun onEnterFullscreenMode() {}
-                override fun onExitFullscreenMode() {}
+                override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
+                override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
                 override fun onTranslateSelection(text: String) = translateOfficeSelection(text)
                 override fun onRequireExternalFallback(mediaFile: MediaFile) {
                     // S0301 Phase 05: engine could not render internally - show the explicit
@@ -588,9 +637,9 @@ class StandaloneViewManager(
      * PDF/EPUB/TEXT managers handle their own view visibility internally.
      */
     private fun hidePhotoAndPlayerViews() {
-        binding.photoView.isVisible = false
-        binding.photoDualSurfaceContainer?.let { it.isVisible = false }
-        binding.playerView.isVisible = false
+        safeViews.photoView.isVisible = false
+        safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = false }
+        safeViews.playerView.isVisible = false
     }
 
     private fun showToastError(message: String) {
@@ -628,14 +677,15 @@ class StandaloneViewManager(
     }
 
     private fun acquireWakeLock() {
-        if (binding.playerView.isVisible) {
-            binding.playerView.keepScreenOn = true
+        val playerView = safeViews.playerView
+        if (playerView.isVisible) {
+            playerView.keepScreenOn = true
             Timber.d("StandaloneViewManager: screen wake lock acquired")
         }
     }
 
     private fun releaseWakeLock() {
-        binding.playerView.keepScreenOn = false
+        safeViews.playerView.keepScreenOn = false
         Timber.d("StandaloneViewManager: screen wake lock released")
     }
 
@@ -644,7 +694,7 @@ class StandaloneViewManager(
             val msg = when (error.errorCode) {
                 PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND           -> activity.getString(R.string.error_file_not_found)
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> activity.getString(R.string.error_network_connection)
-                PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK        -> activity.getString(R.string.error_codec_unsupported)
+                PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK        -> activity.getString(R.string.error_playback_failed)
                 PlaybackException.ERROR_CODE_TIMEOUT                     -> activity.getString(R.string.error_playback_timeout)
                 PlaybackException.ERROR_CODE_REMOTE_ERROR                -> activity.getString(R.string.error_network_playback)
                 PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW          -> activity.getString(R.string.error_behind_live_window)
@@ -669,18 +719,6 @@ class StandaloneViewManager(
     }
 
     // ── Position tracking ────────────────────────────────────────────────────
-
-    private suspend fun restorePlaybackPosition(filePath: String) {
-        try {
-            val savedPos = playbackPositionRepository.getPosition(filePath)
-            if (savedPos != null && savedPos > 0L) {
-                exoPlayer?.seekTo(savedPos)
-                Timber.d("StandaloneViewManager: Restored position ${savedPos}ms for $filePath")
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "StandaloneViewManager: Failed to restore position for $filePath")
-        }
-    }
 
     private fun startPositionAutoSave(filePath: String) {
         stopPositionAutoSave()
@@ -717,8 +755,10 @@ class StandaloneViewManager(
     // ── Factory methods ──────────────────────────────────────────────────────
 
     private fun createPdfViewerManager(): PdfViewerManager {
+        // S0380: PdfViewerManager is decoupled to a layout root, so this works on any standalone
+        // layout that includes the pdf view subtree (full unified or trimmed document layout).
         return PdfViewerManager(
-            binding = binding,
+            root = root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
@@ -729,8 +769,8 @@ class StandaloneViewManager(
                 override fun shareFileToGoogleLens(file: File) { /* not exposed in standalone */ }
                 override fun isLandscapeMode(): Boolean =
                     activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-                override fun onEnterFullscreenMode() { /* not exposed in standalone */ }
-                override fun onExitFullscreenMode() { /* not exposed in standalone */ }
+                override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
+                override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
             },
             translationManager = translationManager,
             playbackPositionRepository = playbackPositionRepository
@@ -738,16 +778,18 @@ class StandaloneViewManager(
     }
 
     private fun createEpubViewerManager(): EpubViewerManager {
+        // S0380: EpubViewerManager is decoupled to a layout root, so this works on any standalone
+        // layout that includes the epub view subtree (full unified or trimmed document layout).
         return EpubViewerManager(
-            binding = binding,
+            root = root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
             callback = object : EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) = showToastError(message)
                 override fun displayTranslatedText(text: String) = showTranslatedTextDialog(text)
-                override fun onEnterFullscreenMode() { /* not exposed in standalone */ }
-                override fun onExitFullscreenMode() { /* not exposed in standalone */ }
+                override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
+                override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
             },
             playbackPositionRepository = playbackPositionRepository,
             translationManager = translationManager
@@ -757,7 +799,7 @@ class StandaloneViewManager(
     private fun createTextViewerManager(): TextViewerManager {
         return TextViewerManager(
             context = activity,
-            binding = binding,
+            root = root,
             networkFileManager = networkFileManager,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,

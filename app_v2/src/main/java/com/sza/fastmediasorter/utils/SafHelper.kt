@@ -3,8 +3,10 @@ package com.sza.fastmediasorter.utils
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
+import android.webkit.MimeTypeMap
 import androidx.documentfile.provider.DocumentFile
 import timber.log.Timber
+import java.util.Locale
 
 /**
  * Helper utility for Storage Access Framework (SAF) operations.
@@ -219,5 +221,95 @@ object SafHelper {
             Timber.w(e, "SafHelper: Failed to get DocumentFile for: $uri")
             null
         }
+    }
+
+    /**
+     * @return true when [uri] points to a tree granted by ACTION_OPEN_DOCUMENT_TREE.
+     */
+    fun isTreeUri(uri: Uri): Boolean {
+        return runCatching { DocumentsContract.isTreeUri(uri) }.getOrDefault(false)
+    }
+
+    /**
+     * Resolve a writable tree root from a persisted tree URI string.
+     */
+    fun getTreeRoot(context: Context, treeUriString: String): DocumentFile? {
+        return try {
+            val treeUri = parseUri(treeUriString)
+            if (!isTreeUri(treeUri)) {
+                Timber.w("SafHelper: URI is not a tree URI: $treeUri")
+                return null
+            }
+
+            DocumentFile.fromTreeUri(context, treeUri)?.takeIf { it.exists() && it.canWrite() }
+        } catch (e: Exception) {
+            Timber.w(e, "SafHelper: Failed to resolve tree root for: $treeUriString")
+            null
+        }
+    }
+
+    /**
+     * Find an existing writable child under a tree root.
+     */
+    fun findChildInTree(
+        context: Context,
+        treeUriString: String,
+        displayName: String
+    ): DocumentFile? {
+        val root = getTreeRoot(context, treeUriString) ?: return null
+        return root.findFile(displayName)
+    }
+
+    /**
+     * Find or create a writable child file under a tree URI.
+     */
+    fun getOrCreateWritableChildFile(
+        context: Context,
+        treeUriString: String,
+        displayName: String,
+        overwrite: Boolean,
+        mimeType: String = guessMimeType(displayName)
+    ): DocumentFile? {
+        val root = getTreeRoot(context, treeUriString) ?: return null
+        val existing = root.findFile(displayName)
+
+        if (existing != null) {
+            if (existing.isDirectory) {
+                Timber.w("SafHelper: Existing child is a directory, not a file: $displayName")
+                return null
+            }
+            if (!overwrite) {
+                return existing
+            }
+            if (!existing.delete()) {
+                Timber.w("SafHelper: Failed to replace existing child: $displayName")
+                return null
+            }
+        }
+
+        return root.createFile(mimeType, displayName)
+    }
+
+    /**
+     * True for SAF tree grants rooted in Android/data or Android/obb.
+     */
+    fun isRestrictedTreeUri(treeUriString: String): Boolean {
+        return try {
+            val treeUri = parseUri(treeUriString)
+            val documentId = DocumentsContract.getTreeDocumentId(treeUri)
+            val relativePath = Uri.decode(documentId.substringAfter(':', "")).trim('/')
+            relativePath.equals("Android/data", ignoreCase = true) ||
+                relativePath.startsWith("Android/data/", ignoreCase = true) ||
+                relativePath.equals("Android/obb", ignoreCase = true) ||
+                relativePath.startsWith("Android/obb/", ignoreCase = true)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun guessMimeType(displayName: String): String {
+        val extension = displayName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+            ?: "application/octet-stream"
     }
 }

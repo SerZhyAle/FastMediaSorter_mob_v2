@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0391 onboarding networks page, landscape. Same centred-column structure and ids as the portrait
+     variant (layout/page_welcome_networks.xml); the ScrollView keeps the toggle stack from clipping
+     on short landscape heights. The Cloud row (@id/rowSourceCloud) is hidden by
+     WelcomeRemoteSourcesController on flavors without cloud support.
+     All ids must stay in sync with the portrait variant. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/welcome_page_padding">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutContent"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Header: icon -->
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/welcome_icon_size"
+            android:layout_height="@dimen/welcome_icon_size"
+            android:layout_marginTop="@dimen/welcome_icon_margin_top"
+            android:contentDescription="@string/welcome_networks_title"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Header: title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_title_margin_top"
+            android:gravity="center"
+            android:text="@string/welcome_networks_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_title_text_size"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivIcon" />
+
+        <!-- Header: short description -->
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:alpha="0.85"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.3"
+            android:text="@string/welcome_networks_description"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_description_text_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+        <!-- Scrollable body so the tile row never clips on short screens -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvDescription">
+
+            <!-- Group-toggle rows replace the former decorative tiles. SettingsToggleRow is itself
+                 clickable/focusable and shows a switch (state distinguishable beyond colour); the
+                 explicit focusable + nextFocus* keep D-pad order deterministic. Ids mirror the
+                 portrait variant (CLAUDE.md Rule 11). -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowSourceSmb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:contentDescription="@string/settings_remote_source_smb_title"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/rowSourceFtp"
+                    app:str_title="@string/settings_remote_source_smb_title"
+                    app:str_subtitle="@string/settings_remote_source_smb_subtitle" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowSourceFtp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:contentDescription="@string/settings_remote_source_ftp_title"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/rowSourceSmb"
+                    android:nextFocusDown="@+id/rowSourceCloud"
+                    app:str_title="@string/settings_remote_source_ftp_title"
+                    app:str_subtitle="@string/settings_remote_source_ftp_subtitle" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowSourceCloud"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:contentDescription="@string/settings_remote_source_cloud_title"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/rowSourceFtp"
+                    app:str_title="@string/settings_remote_source_cloud_title"
+                    app:str_subtitle="@string/settings_remote_source_cloud_subtitle" />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

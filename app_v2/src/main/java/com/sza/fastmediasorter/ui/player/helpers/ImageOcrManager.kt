@@ -89,8 +89,8 @@ class ImageOcrManager(
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
                 Timber.d("S0288: ImageOcrManager settings read, sourceLang=$sourceLang, calling extractTextOnly")
 
-                // Extract text using OCR
-                val recognizedText = translationManager.extractTextOnly(bitmap, sourceLang)
+                // Extract text using OCR (recognize facade - no translation surface)
+                val recognizedText = translationManager.recognition.extractTextOnly(bitmap, sourceLang)
                 Timber.d("S0288: ImageOcrManager extractTextOnly returned len=${recognizedText?.length}")
 
                 withContext(Dispatchers.Main) {
@@ -104,7 +104,7 @@ class ImageOcrManager(
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Timber.e(e, "S0288: ImageOcrManager OCR pipeline failed")
+                Timber.e(e, "ImageOcrManager OCR pipeline failed")
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
                     binding.btnOcrImageCmd.isEnabled = true

@@ -81,6 +81,15 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             group = PermissionGroup.NETWORK, optional = true,
             minSdk = 37,
         ),
+        // CAMERA
+        PermissionEntry(
+            id = "camera",
+            manifestName = Manifest.permission.CAMERA,
+            titleRes = R.string.perm_title_camera,
+            descriptionRes = R.string.perm_desc_camera,
+            iconRes = 0,
+            group = PermissionGroup.CAMERA, optional = true,
+        ),
         // MICROPHONE
         PermissionEntry(
             id = "record_audio",
@@ -121,8 +130,34 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             evaluateFlavorGates(entry.flavorGates)
         }
 
+    override fun getWelcomeEntries(): List<PermissionEntry> {
+        // Show every permission this build can request; the user decides which to grant. No narrowing by
+        // functionality toggles - opting out happens by leaving a permission ungranted, not by hiding it.
+        val base = getEntries()
+        // POST_NOTIFICATIONS is flavor-gated out of the full Settings list on builds without persistent
+        // audio playback, but onboarding always asks for it (welcome-only relaxation). Re-add it directly
+        // from the raw registry, honouring only its SDK bound, when getEntries() filtered it out.
+        val notifications = allEntries.firstOrNull {
+            it.manifestName == Manifest.permission.POST_NOTIFICATIONS &&
+                it.minSdk <= Build.VERSION.SDK_INT &&
+                it.maxSdk >= Build.VERSION.SDK_INT
+        }
+        return if (notifications != null && base.none { it.manifestName == notifications.manifestName }) {
+            base + notifications
+        } else {
+            base
+        }
+    }
+
     override fun getGroups(): List<PermissionGroupHeader> {
-        val applicableGroups = getEntries().map { it.group }.toSet()
+        // SDK-applicable groups, ignoring flavor gates: a group whose only entry is flavor-gated-out
+        // still gets a header, so the welcome adaptive set (which re-adds POST_NOTIFICATIONS past its
+        // ENABLE_PERSISTENT_AUDIO_PLAYBACK gate) can render it. Both Settings and welcome buildRows
+        // skip groups that resolve to no entries, so a header without entries is harmless.
+        val applicableGroups = allEntries
+            .filter { it.minSdk <= Build.VERSION.SDK_INT && it.maxSdk >= Build.VERSION.SDK_INT }
+            .map { it.group }
+            .toSet()
         return PermissionGroup.entries
             .filter { it in applicableGroups }
             .map { group ->
@@ -131,11 +166,11 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
                     titleRes = when (group) {
                         PermissionGroup.STORAGE -> R.string.perm_group_storage
                         PermissionGroup.NETWORK -> R.string.perm_group_network
+                        PermissionGroup.CAMERA -> R.string.perm_group_camera
                         PermissionGroup.MICROPHONE -> R.string.perm_group_microphone
                         PermissionGroup.NOTIFICATION -> R.string.perm_group_notification
                         PermissionGroup.SYSTEM -> R.string.perm_group_system
                         PermissionGroup.VR -> R.string.perm_group_vr
-                        else -> 0
                     }
                 )
             }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class SyncNetworkResourcesUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
-    private val mediaScannerFactory: MediaScannerFactory
+    private val mediaScannerFactory: MediaScannerFactory,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) {
     
     /**
@@ -29,8 +31,9 @@ class SyncNetworkResourcesUseCase @Inject constructor(
     ): Result<Int> {
         return try {
             val resources = resourceRepository.getAllResourcesSync()
-            val networkResources = resources.filter { 
-                it.type == ResourceType.SMB || it.type == ResourceType.SFTP || it.type == ResourceType.FTP
+            val networkResources = resources.filter {
+                (it.type == ResourceType.SMB || it.type == ResourceType.SFTP || it.type == ResourceType.FTP) &&
+                    remoteSourceGate.isEnabled(it) // S0391: never sync a disabled source
             }
             
             if (networkResources.isEmpty()) {
@@ -110,7 +113,13 @@ class SyncNetworkResourcesUseCase @Inject constructor(
                 Timber.w("SyncNetworkResourcesUseCase: Resource ${resource.name} is not a network resource")
                 return Result.failure(IllegalArgumentException("Not a network resource"))
             }
-            
+
+            if (!remoteSourceGate.isEnabled(resource)) {
+                // S0391: source disabled - inert, not an error; skip without touching it.
+                Timber.i("SyncNetworkResourcesUseCase: ${resource.name} source disabled - skip sync")
+                return Result.success(Unit)
+            }
+
             val settings = settingsRepository.getSettings().first()
             val sizeFilter = if (settings.supportImages || settings.supportVideos || settings.supportAudio) {
                 SizeFilter(

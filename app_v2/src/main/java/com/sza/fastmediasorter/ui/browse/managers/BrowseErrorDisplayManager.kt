@@ -13,7 +13,7 @@ import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageProjector
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
-import com.sza.fastmediasorter.ui.dialog.ErrorDialog
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -62,7 +62,7 @@ class BrowseErrorDisplayManager(
 
             if (settings.showDetailedErrors) {
                 if (details != null) {
-                    ErrorDialog.show(
+                    ScrollableTextDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message,
@@ -70,7 +70,7 @@ class BrowseErrorDisplayManager(
                     )
                 } else {
                     // S0118: keep the richer dialog surface, but do not expose raw stack traces.
-                    ErrorDialog.show(
+                    ScrollableTextDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message

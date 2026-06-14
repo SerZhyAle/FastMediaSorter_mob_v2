@@ -130,7 +130,6 @@ class SearchControlsManager(
     fun showSearchPanel() {
         safeViews.searchPanel.isVisible = true
         safeViews.etSearchQuery.requestFocus()
-        // Show keyboard
         inputMethodManager.showSoftInput(safeViews.etSearchQuery, InputMethodManager.SHOW_IMPLICIT)
     }
     
@@ -142,7 +141,6 @@ class SearchControlsManager(
         safeViews.searchPanel.isVisible = false
         safeViews.etSearchQuery.text.clear()
         clearSearch()
-        // Hide keyboard
         inputMethodManager.hideSoftInputFromWindow(safeViews.etSearchQuery.windowToken, 0)
     }
     

@@ -5,7 +5,7 @@
         android:id="@+id/audioMetadata"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
+        android:textColor="@color/player_overlay_on_primary"
         android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
         android:textStyle="bold"
         android:gravity="center"

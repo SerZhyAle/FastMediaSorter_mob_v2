@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -321,10 +322,10 @@ class ProvisionDefaultResourcesUseCaseTest {
         assertTrue("Recent must have allFiles=true by default (S0059)", recent.allFiles)
     }
 
-    // ── All resources use LOCAL type and isWritable=false ──────
+    // ── All resources use LOCAL type; aggregates are writable destinations, Recent is not ──
 
     @Test
-    fun `all provisioned resources are LOCAL type and not writable`() = runTest {
+    fun `all provisioned resources are LOCAL and writable only when aggregate`() = runTest {
         coEvery { resourceRepository.getAllResources() } returns flowOf(emptyList())
         val settings = AppSettings(
             supportAudio = true,
@@ -340,7 +341,13 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         captured.forEach { resource ->
             assertEquals("${resource.path} should be LOCAL", ResourceType.LOCAL, resource.type)
-            assertFalse("${resource.path} should not be writable", resource.isWritable)
+            // Aggregate virtual resources (all_audio/video/images/docs, camera) are writable
+            // drop targets; only Recent is read-only.
+            assertEquals(
+                "${resource.path} writability must follow aggregate-virtual status",
+                VirtualPathUtils.isAggregateVirtualPath(resource.path),
+                resource.isWritable
+            )
         }
     }
 }

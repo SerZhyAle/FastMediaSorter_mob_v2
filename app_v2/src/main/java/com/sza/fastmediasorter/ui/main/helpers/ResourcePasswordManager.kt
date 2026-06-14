@@ -98,7 +98,6 @@ class ResourcePasswordManager(
         val etPassword = dialogView.findViewById<TextInputEditText>(R.id.etPassword)
         val tilPassword = dialogView.findViewById<TextInputLayout>(R.id.tilPassword)
         
-        // Create dialog
         val dialog = AlertDialog.Builder(context)
             .setTitle(title)
             .setView(dialogView)
@@ -106,7 +105,6 @@ class ResourcePasswordManager(
             .setNegativeButton(android.R.string.cancel, null)
             .create()
         
-        // Setup dialog behavior
         dialog.setOnShowListener {
             val okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             okButton.setOnClickListener {

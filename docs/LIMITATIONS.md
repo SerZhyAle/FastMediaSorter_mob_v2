@@ -11,7 +11,7 @@ This document outlines the current technical constraints, functional limitations
 ---
 
 ## 📱 System Requirements
-- **Android Version:** Android 9.0 (API 28) or newer is required.
+- **Android Version:** Android 8.0 (API 26) or newer is required for Standard / Lite / Photos. The Legacy flavor extends support down to Android 6.0 (API 23) or newer. XR / noLegal builds require supported headset hardware and the current OpenXR / sideload runtime path for your build.
 - **Hardware:** Performance may vary based on device CPU and RAM, especially for large collections (5000+ files).
 - **Storage Access:** Full functionality requires the "All Files Access" (MANAGE_EXTERNAL_STORAGE) permission on newer Android versions.
 
@@ -73,5 +73,5 @@ This document outlines the current technical constraints, functional limitations
 
 ---
 
-**Last Update:** February 2026
-**Version:** v2.26.0224
+**Last Update:** 2026-06-05
+**Version:** Current public docs set

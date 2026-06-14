@@ -1,6 +1,10 @@
+---
+model: sonnet
+---
+
 # Spec Arc - Archive a Specification
 
-Move a spec's files to `temp/done/` (git-ignored) and mark the journal record as `Archived`. Works from any non-Archived status. No tactical folder is required.
+Move a spec's files to `temp/done/` (git-ignored) and mark the journal record `Archived`. Works from any non-Archived status. No tactical folder required.
 
 ## Usage
 
@@ -9,19 +13,19 @@ Move a spec's files to `temp/done/` (git-ignored) and mark the journal record as
 /spec-arc <Sxxxx> --removes-functionality
 ```
 
-`--removes-functionality`: explicit signal that archiving this spec corresponds to a real removal of user-visible behaviour from the app. Triggers a `DELETE` line in `dev/FUNCTIONALITY.log` (Process step 3a). Without this flag, archiving is treated as bookkeeping (cancelled / superseded / never implemented) and the functionality log is left untouched.
+`--removes-functionality`: explicit signal that archiving corresponds to a real removal of user-visible behaviour. Triggers a `DELETE` line in `dev/FUNCTIONALITY.log` (Process step 3a). Without the flag, archiving is bookkeeping (cancelled / superseded / never implemented) and the functionality log is left untouched.
 
 ## When to use
 
-- Spec is Verified and no longer needed in the active workspace.
-- Spec is cancelled, superseded, or will never be implemented.
-- Decluttering `PLAN/` without losing the history.
+- Spec Verified and no longer needed in the active workspace.
+- Spec cancelled, superseded, or will never be implemented.
+- Decluttering `PLAN/` without losing history.
 
 ## Process
 
 **1 - Resolve id.**
 
-Run `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`. Abort if record not found or status is already `Archived`.
+Run `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`. Abort if record not found or status already `Archived`.
 
 **2 - Run archive script.**
 
@@ -30,9 +34,9 @@ pwsh -NoProfile -File scripts/spec_catalog/archive.ps1 -Id <Sxxxx>
 ```
 
 The script:
-- Creates `temp/done/` if absent (already git-ignored via `temp/`).
-- Moves `PLAN/Sxxxx_<slug>.md` → `temp/done/Sxxxx_<slug>.md`.
-- Moves `PLAN/Sxxxx_<slug>/` → `temp/done/Sxxxx_<slug>/` (if tactical folder exists).
+- Creates `temp/done/` if absent (git-ignored via `temp/`).
+- Moves `PLAN/Sxxxx_<slug>.md` -> `temp/done/Sxxxx_<slug>.md`.
+- Moves `PLAN/Sxxxx_<slug>/` -> `temp/done/Sxxxx_<slug>/` (if tactical folder exists).
 - Sets journal `status = Archived`, `priority = 0`.
 
 **3 - Remove leftover debug tags.**
@@ -41,7 +45,7 @@ The script:
 
 **3a / 4 - Functionality log + dev log (batched).**
 
-`archive.ps1` already set status to `Archived` and moved files in Step 2. To bookkeep the rest (functionality log on `--removes-functionality`, dev log entry, debug-tag removal log lines, catalog touch) in one pwsh process, use `close-and-log.ps1` with `-StatusOnly` (status is already `Archived`, just touch `updated`):
+`archive.ps1` already set status `Archived` and moved files in Step 2. To bookkeep the rest (functionality log on `--removes-functionality`, dev log entry, debug-tag removal log lines, catalog touch) in one pwsh process, use `close-and-log.ps1` with `-StatusOnly` (status already `Archived`, just touch `updated`):
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
@@ -56,7 +60,7 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -SkipCatalogSync  # archived spec has no fresh .kt code
 ```
 
-Pass `-FuncOp DELETE` + `-FuncDesc` only when `--removes-functionality` was provided; without that flag, omit `-FuncOp`/`-FuncDesc` (or pass `-SkipFuncLog`). Cancelled / superseded / never-implemented specs produce no functionality-log entry - the catalogue only records lifecycle of behaviour that actually existed in shipped builds.
+Pass `-FuncOp DELETE` + `-FuncDesc` only when `--removes-functionality` was provided; without it, omit `-FuncOp`/`-FuncDesc` (or pass `-SkipFuncLog`). Cancelled / superseded / never-implemented specs produce no functionality-log entry - the catalogue records lifecycle only of behaviour that actually shipped.
 
 Pass `-SkipCatalogSync` unless a tag-deletion in Step 3 changed live `.kt` files (rare - by invariant they should have been removed earlier when the spec left `BlockNeedUserTest`).
 
@@ -71,7 +75,7 @@ To find later: temp/done/Sxxxx_* or select.ps1 -Id Sxxxx -Format json (record st
 
 ## Lifting an archived spec
 
-Archived specs are findable in two ways:
+Findable two ways:
 
 - **File:** `temp/done/Sxxxx_<slug>.md` (and `temp/done/Sxxxx_<slug>/` for tactical).
 - **Journal:** `select.ps1 -Id Sxxxx -Format json` - record remains, `status: Archived`.

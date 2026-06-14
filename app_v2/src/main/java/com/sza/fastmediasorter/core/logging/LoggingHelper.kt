@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.logging
 
 import android.content.Context
+import android.net.Uri
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import timber.log.Timber
@@ -8,9 +9,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
+import java.io.RandomAccessFile
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Helper for initializing Timber logging with file support.
@@ -26,6 +30,15 @@ object LoggingHelper {
 
     /** Returns all log files managed by the file logging tree. */
     fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
+
+    /**
+     * Debug-only hint: mirror the active session log into the currently opened local file folder
+     * so reproductions from another machine can be shared without digging into app sandbox paths.
+     */
+    fun updateDebugMirrorTargetFromPath(path: String) {
+        if (!BuildConfig.DEBUG) return
+        fileLoggingTree?.updateDebugMirrorTargetFromPath(path)
+    }
 
     private var previousCrashHandler: Thread.UncaughtExceptionHandler? = null
 
@@ -179,12 +192,25 @@ object LoggingHelper {
         private val maxLogFiles = 5
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
         private val fileNameFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+        private val debugMirrorFileName = "fastmediasorter_debug_live.log"
+        private val debugMirrorScheduler = Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "fms-log-mirror").apply { isDaemon = true }
+        }
         
         @Volatile
         private var currentLogFile: File? = null
         
         @Volatile
         private var printWriter: PrintWriter? = null
+
+        @Volatile
+        private var debugMirrorFile: File? = null
+
+        @Volatile
+        private var debugMirrorSourcePath: String? = null
+
+        @Volatile
+        private var debugMirrorSourceOffsetBytes: Long = 0L
         
         init {
             // Wrap file I/O operations in StrictModeHelper
@@ -195,8 +221,41 @@ object LoggingHelper {
                     }
                     rotateLogFilesIfNeeded()
                     openNewLogFile()
+                    if (BuildConfig.DEBUG) {
+                        startDebugMirrorScheduler()
+                    }
                 } catch (e: Exception) {
                     Timber.tag("FileLoggingTree").e(e, "Failed to initialize file logging")
+                }
+            }
+        }
+
+        fun updateDebugMirrorTargetFromPath(path: String) {
+            val targetDir = resolveDebugMirrorDirectory(path) ?: return
+            StrictModeHelper.allowDiskIO {
+                try {
+                    if (!targetDir.exists() || !targetDir.isDirectory) return@allowDiskIO
+                    val newMirrorFile = File(targetDir, debugMirrorFileName)
+                    var targetChanged = false
+                    synchronized(this) {
+                        if (debugMirrorFile?.absolutePath != newMirrorFile.absolutePath) {
+                            debugMirrorFile = newMirrorFile
+                            debugMirrorSourcePath = null
+                            debugMirrorSourceOffsetBytes = 0L
+                            targetChanged = true
+                        }
+                    }
+                    if (targetChanged) {
+                        val sanitizedTarget = com.sza.fastmediasorter.core.security.SecretMasker
+                            .sanitize(newMirrorFile.absolutePath)
+                        synchronized(this) {
+                            printWriter?.println("${dateFormat.format(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget")
+                            printWriter?.flush()
+                        }
+                        flushDebugMirrorDelta()
+                    }
+                } catch (_: Exception) {
+                    // Mirror failures must never break the active session logger.
                 }
             }
         }
@@ -292,6 +351,67 @@ object LoggingHelper {
             
             // Full stacktrace for everything else
             return android.util.Log.getStackTraceString(t)
+        }
+
+        private fun startDebugMirrorScheduler() {
+            debugMirrorScheduler.scheduleAtFixedRate(
+                {
+                    StrictModeHelper.allowDiskIO {
+                        flushDebugMirrorDelta()
+                    }
+                },
+                10,
+                10,
+                TimeUnit.SECONDS,
+            )
+        }
+
+        private fun resolveDebugMirrorDirectory(path: String): File? {
+            val normalizedPath = path.trim()
+            if (normalizedPath.isEmpty()) return null
+
+            val localPath = when {
+                normalizedPath.startsWith("file://") -> Uri.parse(normalizedPath).path
+                normalizedPath.contains("://") -> null
+                else -> normalizedPath
+            } ?: return null
+
+            return File(localPath).parentFile
+        }
+
+        private fun flushDebugMirrorDelta() {
+            val sourceFile = currentLogFile ?: return
+            val targetFile = debugMirrorFile ?: return
+
+            synchronized(this) {
+                if (!sourceFile.exists()) return
+                if (debugMirrorSourcePath != sourceFile.absolutePath) {
+                    debugMirrorSourcePath = sourceFile.absolutePath
+                    debugMirrorSourceOffsetBytes = 0L
+                }
+
+                val sourceLength = sourceFile.length()
+                if (sourceLength <= 0L) return
+                if (sourceLength < debugMirrorSourceOffsetBytes) {
+                    debugMirrorSourceOffsetBytes = 0L
+                }
+                if (sourceLength == debugMirrorSourceOffsetBytes) return
+
+                targetFile.parentFile?.mkdirs()
+                RandomAccessFile(sourceFile, "r").use { input ->
+                    input.seek(debugMirrorSourceOffsetBytes)
+                    FileOutputStream(targetFile, true).use { output ->
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read <= 0) break
+                            output.write(buffer, 0, read)
+                        }
+                        output.flush()
+                    }
+                    debugMirrorSourceOffsetBytes = input.filePointer
+                }
+            }
         }
         
         private fun openNewLogFile() {

@@ -213,8 +213,14 @@ class BrowseLoadingManager(
         }
         
         // Apply sorting for large folders (GetMediaFilesUseCase skips it for performance)
-        val sortedFiles = if (files.size > paginationThreshold) {
-            Timber.d("BrowseLoadingManager: Large folder (${files.size} files), applying sort: $sortMode")
+        val shouldApplySort = isSubfolderMode || files.size > paginationThreshold
+        val sortedFiles = if (shouldApplySort) {
+            Timber.d(
+                "BrowseLoadingManager: Applying sort (subfolderMode=%s, count=%d, sort=%s)",
+                isSubfolderMode,
+                files.size,
+                sortMode
+            )
             callbacks.sortFiles(files, sortMode, forceSort = true)
         } else {
             Timber.d("BrowseLoadingManager: Small folder (${files.size} files), using pre-sorted list")

@@ -76,7 +76,6 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
         // Set result to CANCELED initially
         setResult(RESULT_CANCELED)
 
-        // Get widget ID
         appWidgetId = intent?.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID

@@ -115,7 +115,7 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 
 ## 🔐 Signing Information
 
-**Keystore**: Use release keystore from `keystore.properties`
+**Keystore**: Use release keystore from `.secrets/keystore.properties`
 **Key Alias**: Configured in build script
 **Signature**: v1 + v2 + v3 for maximum compatibility
 

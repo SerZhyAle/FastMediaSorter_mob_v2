@@ -2,45 +2,20 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
 
 param(
-    [switch]$SkipZip
+    [switch]$SkipZip,
+    [switch]$AutoVersion
 )
 
-Write-Host "Cleaning caches and building debug APK (auto-versioned)..." -ForegroundColor Cyan
-
-# Generate version code and name
-$now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
-
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
-
-Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+Write-Host "Cleaning caches and building debug APK.." -ForegroundColor Cyan
+if ($AutoVersion) {
+    Write-Host "Mode: auto-versioned artifact build" -ForegroundColor Yellow
+}
+else {
+    Write-Host "Mode: clean fast build (stable Gradle version fields)" -ForegroundColor Yellow
+}
 
 # Define paths
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
-$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
-
-# Update build.gradle.kts
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
 
 # --- CLEANING CACHES ---
 Write-Host "Cleaning project..." -ForegroundColor Yellow
@@ -71,7 +46,40 @@ if ($LASTEXITCODE -ne 0) {
 # Start the Gradle build process (Debug only for speed)
 Write-Host "Starting build (no cache)..." -ForegroundColor Yellow
 # Using --no-build-cache to force recompilation
-& "$projectRoot\gradlew.bat" assembleStandardDebug "-Pchaquopy.enabled=false" --no-build-cache --configuration-cache
+$gradleArgs = @(
+    "assembleStandardDebug",
+    "-Pchaquopy.enabled=false",
+    "--no-build-cache",
+    "--configuration-cache"
+)
+if ($AutoVersion) {
+    $now = Get-Date
+    $year = $now.Year
+    $month = $now.Month
+    $day = $now.Day
+    $hour = $now.Hour
+    $minute = $now.Minute
+
+    $firstYearDigit = [int]($year.ToString()[0].ToString())
+    $lastYearDigit = [int]($year.ToString()[-1].ToString())
+    $firstMonthDigit = [int]($month.ToString("00")[0].ToString())
+    $secondMonthDigit = [int]($month.ToString("00")[1].ToString())
+    $dayStr = $day.ToString("00")
+    $firstHourDigit = [int]($hour.ToString("00")[0].ToString())
+    $secondHourDigit = [int]($hour.ToString("00")[1].ToString())
+    $minuteStr = $minute.ToString("00")
+    $firstMinuteDigit = [int]($minuteStr[0].ToString())
+
+    $versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
+    $versionCodeInt = [Convert]::ToInt32($versionCodeStr)
+    $versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+    Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+    $gradleArgs += @(
+        "-Pfms.versionCode=$versionCodeInt",
+        "-Pfms.versionName=$versionName"
+    )
+}
+& "$projectRoot\gradlew.bat" @gradleArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

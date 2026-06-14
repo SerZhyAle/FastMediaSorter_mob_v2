@@ -13,6 +13,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * S0118 - unit tests for [SupportIntentFactory].
@@ -21,7 +24,11 @@ import org.junit.Test
  * - Localized help URL path (EN, RU, UK).
  * - Bug-report email path (mailto target + subject).
  * - Review destination path (Play Store URI).
+ *
+ * Robolectric: the factory builds real Intent/Uri instances, which are unstubbed on the plain JVM.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class SupportIntentFactoryTest {
 
     private lateinit var context: Context

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.usecase.CreateDrawingUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.create.BrowseCreateEntityCommand
+import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,7 @@ class BrowseDrawingCreateManager(
     private val notifyCreatedForOpen: (createdPath: String) -> Unit,
 ) : BrowseCreateEntityCommand {
 
-    override fun isAvailableFor(resource: MediaResource): Boolean = resource.supportsImages()
+    override fun isAvailableFor(resource: MediaResource): Boolean = DrawingTargetPolicy.canCreateDrawing(resource)
 
     override fun requestCreate(parentPath: String, name: String) {
         scope.launch(ioDispatcher) {

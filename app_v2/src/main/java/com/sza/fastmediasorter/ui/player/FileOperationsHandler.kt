@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
 import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
+import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +69,21 @@ class FileOperationsHandler(
 
     private fun reportOperationError(messageRes: Int) {
         callback.onOperationError(appCtx.getString(messageRes), null)
+    }
+
+    private fun destinationLabel(destinationPath: String): String {
+        if (destinationPath.startsWith("content:/")) {
+            val normalized = SafHelper.normalizeContentUri(destinationPath)
+            val treeName = SafHelper.getTreeRoot(appCtx, normalized)?.name
+            if (!treeName.isNullOrBlank()) {
+                return treeName
+            }
+            val resolved = runCatching {
+                com.sza.fastmediasorter.core.util.UriPathResolver.getPath(appCtx, Uri.parse(normalized))
+            }.getOrNull()
+            return resolved?.substringAfterLast('/')?.takeIf { it.isNotBlank() } ?: normalized
+        }
+        return File(destinationPath).name.ifBlank { destinationPath }
     }
 
     /**
@@ -202,7 +219,7 @@ class FileOperationsHandler(
             val settings = settingsRepository.getSettings().first()
             withContext(Dispatchers.Main) {
                 if (!isActivityGone()) {
-                    val folderName = java.io.File(destinationPath).name
+                    val folderName = destinationLabel(destinationPath)
                     Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_started, folderName), Toast.LENGTH_LONG).show()
                 }
             }
@@ -210,14 +227,14 @@ class FileOperationsHandler(
                 val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
                 val operation = FileOperation.Copy(
                     sources = listOf(sourceFile),
-                    destination = java.io.File(destinationPath),
+                    destination = createNetworkAwareFile(destinationPath, null),
                     overwrite = settings.overwriteOnCopy,
                     sourceCredentialsId = callback.getCurrentResource()?.credentialsId
                 )
                 val result = fileOperationUseCase.execute(operation)
                 withContext(Dispatchers.Main) {
                     if (isActivityGone()) return@withContext
-                    val folderName = java.io.File(destinationPath).name
+                    val folderName = destinationLabel(destinationPath)
                     when (result) {
                         is FileOperationResult.Success -> {
                             Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_success, folderName), Toast.LENGTH_SHORT).show()

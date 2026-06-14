@@ -64,7 +64,7 @@ class SaveDrawingUseCase @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "S0191: SaveDrawingUseCase failed")
+            Timber.e(e, "SaveDrawingUseCase failed")
             Result.failure(e)
         }
     }

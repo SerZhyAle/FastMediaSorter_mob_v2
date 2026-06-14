@@ -15,6 +15,7 @@
 
     <!-- MANAGE_MEDIA permission for direct file deletion without dialogs (Android 12+) -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
 
     <!-- Network permissions -->
@@ -32,6 +33,9 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <!-- RECORD_AUDIO implicitly requires hardware.microphone on Google Play; opt out so TVs / mic-less devices stay eligible -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- required=false keeps Play Store availability for camera-less devices such as XR headsets. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
     <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
          by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).
@@ -98,6 +102,11 @@
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
+        <!-- S0362: Google Keep package visibility (Android 11+). Without this the editor
+             "Send to Keep" availability check and the draw export cannot resolve Keep and
+             the menu item silently disappears / falls back to the generic chooser. -->
+        <package android:name="com.google.android.keep" />
+        <package android:name="com.google.android.keep.notes" />
     </queries>
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:banner="@drawable/tv_banner" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
@@ -145,6 +154,7 @@
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
+        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter" />
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
@@ -352,6 +362,25 @@
         <!-- Quick Audio Recorder: microphone foreground service that owns MediaRecorder (S0349) -->
         <service android:name=".widget.QuickAudioRecorderService" android:exported="false" android:foregroundServiceType="microphone" />
 
+        <!-- Quick Camera Capture Widget (S0369): captures a photo and saves it into a configured
+             target. Removed where camera capture is not meaningful (flavor manifest gating). -->
+        <receiver android:name=".widget.CameraQuickCaptureWidgetProvider" android:exported="true" android:label="@string/widget_camera_quick_capture_label" android:icon="@drawable/ic_widget_camera_quick_capture">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_quick_capture_info" />
+        </receiver>
+
+        <!-- Quick Camera Capture: transparent trampoline that hosts the capture flow from a widget tap (S0369) -->
+        <activity android:name=".widget.CameraQuickCaptureActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
+        <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- Calculator Widget -->
         <receiver android:name=".widget.CalculatorWidgetProvider" android:exported="true" android:label="@string/widget_calculator_label" android:icon="@drawable/ic_widget_calculator">
             <intent-filter>
@@ -406,8 +435,22 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_provider_paths" />
         </provider>
 
-        <!-- Standalone Player for external intents -->
-        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <!-- Standalone Player for external intents. Retained as a fallback / direct-launch target;
+             external routing now goes through the per-type specialized activities + aliases below (S0380). -->
+        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:supportsPictureInPicture="true" android:taskAffinity="${applicationId}.player" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+
+        <!-- S0380: specialized standalone activities. Reached via the per-type VIEW aliases below
+             (runtime-toggled) and the dispatcher trampoline. exported=false - the aliases own external
+             access; the dispatcher forwards explicitly within the app. Routing is in the aliases. -->
+        <activity android:name=".ui.player.standalone.PhotoVideoStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:supportsPictureInPicture="true" android:taskAffinity="${applicationId}.player" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.standalone.AudioStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.standalone.DocumentStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.standalone.TextStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+
+        <!-- S0380: no-UI dispatcher trampoline for typeless / generic-wildcard VIEW intents. Reached via
+             the .StandaloneTypelessPlayer alias; resolves the real media family and forwards explicitly
+             to the matching specialized activity without loading heavy media SDKs. -->
+        <activity android:name=".ui.player.dispatch.StandalonePlayerDispatcherActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
         <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
              Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().
@@ -417,7 +460,7 @@
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->
-        <activity-alias android:name=".StandaloneAudioPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneAudioPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.standalone.AudioStandaloneActivity">
             <!-- Open audio files from file managers / share sheets -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -446,7 +489,7 @@
         </activity-alias>
 
         <!-- Video alias: mp4, mkv, avi, mov, webm, flv, wmv, 3gp, etc. -->
-        <activity-alias android:name=".StandaloneVideoPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneVideoPlayer" android:enabled="false" android:exported="true" android:taskAffinity="${applicationId}.player" android:targetActivity=".ui.player.standalone.PhotoVideoStandaloneActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -468,7 +511,7 @@
         </activity-alias>
 
         <!-- Image alias: jpg, png, webp, heic, heif, bmp, avif (NO gif) -->
-        <activity-alias android:name=".StandaloneImagePlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneImagePlayer" android:enabled="false" android:exported="true" android:taskAffinity="${applicationId}.player" android:targetActivity=".ui.player.standalone.PhotoVideoStandaloneActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -486,8 +529,8 @@
             </intent-filter>
         </activity-alias>
 
-        <!-- Documents alias: pdf, epub, txt, Office handoff -->
-        <activity-alias android:name=".StandaloneDocsPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <!-- Documents alias: pdf, epub, Office handoff. Plain text routes to .StandaloneTextPlayer below (S0380). -->
+        <activity-alias android:name=".StandaloneDocsPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.standalone.DocumentStandaloneActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -496,12 +539,44 @@
                 <data android:scheme="file" />
                 <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/epub+zip" />
-                <data android:mimeType="text/plain" />
                 <data android:mimeType="application/msword" />
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
                 <data android:mimeType="application/rtf" />
                 <data android:mimeType="text/rtf" />
                 <data android:mimeType="application/vnd.oasis.opendocument.text" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Text alias: plain text -> the lightest standalone surface (S0380). Split out of the docs alias
+             so text never loads the document/PDF/WebView stack. -->
+        <activity-alias android:name=".StandaloneTextPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.standalone.TextStandaloneActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <!-- text/plain only: a broad text/* would collide with the docs alias's text/rtf
+                     (RTF is a document) and surface a duplicate chooser entry (S0380 Step 05.3). -->
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Dispatcher alias: typeless VIEW intents (S0380 Step 05.3). The scheme-only filter (a URI
+             scheme with NO mimeType) matches only intents that carry no type - which the per-type aliases,
+             each requiring a declared mimeType, never match. So the dispatcher uniquely owns the typeless
+             case with zero chooser overlap, then forwards to the matching specialized activity.
+             A `* / *` mimeType filter is deliberately omitted: it would match every concrete typed intent
+             (image/jpeg, video/mp4, ..) and surface a duplicate "Open with" entry next to each per-type
+             alias - the exact duplication this phase must avoid. Generic `* / *` intents still reach the
+             app through the per-type aliases' family wildcards (image/*, video/*, audio/*). -->
+        <activity-alias android:name=".StandaloneTypelessPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.dispatch.StandalonePlayerDispatcherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
             </intent-filter>
         </activity-alias>
 

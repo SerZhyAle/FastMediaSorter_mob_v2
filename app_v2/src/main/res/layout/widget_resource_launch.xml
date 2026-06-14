@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_resource_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/widget_background"
     android:contentDescription="@string/resource"
     android:padding="@dimen/padding_tiny"
     android:gravity="center">
@@ -14,9 +12,7 @@
         android:id="@+id/widget_resource_icon"
         android:layout_width="@dimen/widget_icon_size_large"
         android:layout_height="@dimen/widget_icon_size_large"
-        android:src="@drawable/ic_folder"
-        android:contentDescription="@string/resource"
-        app:tint="@color/white" />
+        android:src="@drawable/ic_resource_local"
+        android:contentDescription="@string/resource" />
 
 </LinearLayout>
-

@@ -111,6 +111,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // Defer heavy initialization to allow first frame to render quickly
         val onCreateT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         binding.root.post {
+            // The post can outlive the Activity when it is destroyed within the first frame
+            // (e.g. WelcomeActivity forces a night-mode recreate in onCreate). onDestroy() has
+            // already nulled _binding by then, so bail out before setupViews() touches it.
+            if (_binding == null || isDestroyed) return@post
             if (BuildConfig.DEBUG) {
                 val waitMs = SystemClock.uptimeMillis() - onCreateT0
                 Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: START (waited ${waitMs}ms for first frame)")
@@ -186,8 +190,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
         Timber.d("onConfigurationChanged: ${this::class.simpleName}, orientation=${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "LANDSCAPE" else "PORTRAIT"}, screenWidthDp=${newConfig.screenWidthDp}")
         
-        // Notify subclasses to handle layout changes after rotation
+        // Notify subclasses to handle layout changes after rotation.
+        // Guard the same destroyed-before-post race as onCreate(): the runnable must not
+        // reach a subclass that dereferences a cleared binding.
         binding.root.post {
+            if (_binding == null || isDestroyed) return@post
             onLayoutConfigurationChanged(newConfig)
         }
     }
@@ -312,6 +319,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * Default is null so complex surfaces can keep their bespoke wheel routing.
      */
     protected open fun getMouseScrollTargetView(): View? = null
+
+    /**
+     * Keyboard/D-pad focus can land on a non-clickable child inside a clickable row or card.
+     * Walk up the parent chain so Enter/Center activates the owning control instead of no-oping.
+     */
+    protected fun activateFocusedViewOrAncestor(startView: View? = currentFocus): Boolean {
+        var candidate = startView
+        while (candidate != null) {
+            if (candidate.performClick()) return true
+            candidate = candidate.parent as? View
+        }
+        return false
+    }
 
     /**
      * Default context-click behaviour: long-click the current interaction target.

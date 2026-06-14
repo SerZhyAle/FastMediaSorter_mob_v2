@@ -123,18 +123,17 @@ class GatherSystemInfoUseCase @Inject constructor(
     )
 
     private fun benchmarkFields(): List<Pair<String, String>> = safeList {
-        val approx = label(R.string.sysinfo_benchmark_approx)
         val mem = SystemInfoBenchmark.measureMemoryThroughputMbps()
         val (write, read) = SystemInfoBenchmark.measureStorageThroughputMbps(context.cacheDir)
         listOf(
-            label(R.string.sysinfo_field_bench_memory) to formatMbps(mem, approx),
-            label(R.string.sysinfo_field_bench_storage_write) to formatMbps(write, approx),
-            label(R.string.sysinfo_field_bench_storage_read) to formatMbps(read, approx),
+            label(R.string.sysinfo_field_bench_memory) to formatMbps(mem),
+            label(R.string.sysinfo_field_bench_storage_write) to formatMbps(write),
+            label(R.string.sysinfo_field_bench_storage_read) to formatMbps(read),
         )
     } ?: listOf(label(R.string.sysinfo_field_bench_memory) to UNKNOWN)
 
-    private fun formatMbps(value: Double, approx: String): String =
-        if (value < 0) UNKNOWN else String.format(Locale.US, "%.0f MB/s (%s)", value, approx)
+    private fun formatMbps(value: Double): String =
+        if (value < 0) UNKNOWN else String.format(Locale.US, "%.0f MB/s (%s)", value, "~")
 
     private fun systemFields(): List<Pair<String, String>> = safeList {
         listOf(

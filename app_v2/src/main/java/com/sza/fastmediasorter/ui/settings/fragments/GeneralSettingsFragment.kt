@@ -18,8 +18,11 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
+import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
@@ -58,8 +61,13 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var requestContextualPermission: com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
     @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
+    @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
+    @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
     @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
     @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
+
+    // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
+    @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
@@ -117,7 +125,16 @@ class GeneralSettingsFragment : Fragment() {
     // accessed from onViewCreated, so initialization is always safe.
     private val sectionsHelper by lazy { GeneralSettingsSectionsHelper(binding, this) }
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
-    private val logHelper by lazy { GeneralSettingsLogHelper(binding, this, saveLogsLauncher, gatherSystemInfoUseCase) }
+    private val logHelper by lazy {
+        GeneralSettingsLogHelper(
+            binding = binding,
+            fragment = this,
+            saveLogsLauncher = saveLogsLauncher,
+            gatherSystemInfoUseCase = gatherSystemInfoUseCase,
+            getDestinationsUseCase = viewModel.getDestinationsUseCase,
+            saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
+        )
+    }
     private val permissionsHelper by lazy {
         GeneralSettingsPermissionsHelper(binding, this, mediaPermissionsLauncher, notificationPermissionLauncher, requestContextualPermission, permissionRegistry)
     }
@@ -146,7 +163,8 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsViewSetupHelper(
             binding, viewModel, this,
             { isUpdatingSpinner }, { isUpdatingSpinner = it },
-            cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper
+            cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper,
+            ensureAllFilesPredefinedResourceUseCase, remoteSourceAvailabilityGate
         )
     }
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.
@@ -204,6 +222,15 @@ class GeneralSettingsFragment : Fragment() {
             requireActivity().supportFragmentManager
                 .beginTransaction()
                 .replace(android.R.id.content, PermissionsManagementFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+        // S0386 Phase 10: app-wide Downloadable Extensions aggregator lives on the General tab. Uses
+        // the activity FragmentManager so the full-screen overlay attaches to a real container.
+        binding.btnDownloadableExtensions?.setOnClickListener {
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
                 .addToBackStack(null)
                 .commit()
         }

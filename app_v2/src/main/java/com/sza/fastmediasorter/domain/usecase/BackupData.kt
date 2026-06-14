@@ -24,10 +24,13 @@ data class BackupPayload(
     val settings: BackupSettings? = null,
     val resources: List<BackupResource>? = null,
     val favorites: List<BackupFavorite>? = null,
-    val scheduledOperations: List<BackupScheduledOperation>? = null
+    val scheduledOperations: List<BackupScheduledOperation>? = null,
+    // S0406: secret-bearing sections, nullable so older (v4) backups still deserialize.
+    val networkCredentials: List<BackupNetworkCredential>? = null,
+    val webAuthSessions: List<BackupWebAuthSession>? = null
 ) {
     companion object {
-        const val CURRENT_VERSION = 4
+        const val CURRENT_VERSION = 5
     }
 }
 
@@ -37,6 +40,9 @@ data class BackupPayload(
 data class BackupSettings(
     val isResourceGridMode: Boolean = false,
     val language: String = "en",
+    // S0406: global default network login carried for max portability (plaintext per ADR-2).
+    val defaultUser: String = "",
+    val defaultPassword: String = "",
     val preventSleep: Boolean = true,
     val showSmallControls: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
@@ -45,6 +51,12 @@ data class BackupSettings(
     val isCacheSizeUserModified: Boolean = false,
     val enableBackgroundSync: Boolean = false,
     val backgroundSyncIntervalHours: Int = 4,
+    val smbEnabled: Boolean = true,
+    val sftpEnabled: Boolean = true,
+    val ftpEnabled: Boolean = true,
+    val googleDriveEnabled: Boolean = true,
+    val oneDriveEnabled: Boolean = true,
+    val dropboxEnabled: Boolean = true,
     val allFiles: Boolean = false,
     val showHiddenFiles: Boolean = false,
     val showSubfoldersAsItems: Boolean = false,
@@ -130,6 +142,7 @@ data class BackupSettings(
     val enableFavorites: Boolean = true,
     val disableCameraCapture: Boolean = false,
     val skipCameraFilenameDialog: Boolean = false,
+    val cameraCaptureOpenForEditing: Boolean = false,
     // Player UI
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
@@ -181,6 +194,8 @@ data class BackupResource(
     val cloudProvider: String? = null,
     val cloudFolderId: String? = null,
     val accountId: String? = null,
+    // S0406: link to the network credential so restored SMB/SFTP resources reuse the password.
+    val credentialsId: String? = null,
     val displayMode: String = "LIST",
     val sortMode: String = "NAME_ASC",
     val displayOrder: Int = 0,
@@ -241,4 +256,49 @@ data class BackupFavorite(
     val lastKnownPath: String = "",
     val dateModified: Long = 0,
     val addedTimestamp: Long = 0
+)
+
+/**
+ * S0406: serializable network credential including the plaintext password and SSH key.
+ * Secrets travel in clear text by owner decision (ADR-2) - the backup file lives in the
+ * user's private space. Restored via re-encryption through the Keystore-backed CryptoHelper.
+ */
+data class BackupNetworkCredential(
+    val credentialId: String = "",
+    val type: String = "SMB",
+    val server: String = "",
+    val port: Int = 0,
+    val username: String = "",
+    val domain: String = "",
+    val shareName: String? = null,
+    val sshPrivateKey: String? = null,
+    val accountId: String = "",
+    val password: String = ""
+)
+
+/**
+ * S0406: serializable saved site authorization (cookies) for link downloads.
+ * Only active sessions with live cookies are exported; expired cookies are dropped on load.
+ */
+data class BackupWebAuthSession(
+    val host: String = "",
+    val accountId: String = "",
+    val displayName: String = "",
+    val userAgent: String? = null,
+    val savedAtEpochMillis: Long = 0,
+    val lastUsedAtEpochMillis: Long = 0,
+    val cookies: List<BackupCookie> = emptyList()
+)
+
+/**
+ * S0406: serializable HTTP cookie. `expiresAtEpochMillis` is null for session cookies.
+ */
+data class BackupCookie(
+    val name: String = "",
+    val value: String = "",
+    val domain: String = "",
+    val path: String = "/",
+    val secure: Boolean = false,
+    val httpOnly: Boolean = false,
+    val expiresAtEpochMillis: Long? = null
 )

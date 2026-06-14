@@ -367,7 +367,6 @@ class SftpOperationStrategy @Inject constructor(
                 }
             }
             
-            // Get source file size
             val sourceConnectionInfo = getConnectionInfo(sourceInfo)
             val statResult = sftpClient.stat(sourceConnectionInfo, sourceInfo.remotePath)
             if (statResult.isFailure) {
@@ -623,7 +622,6 @@ class SftpOperationStrategy @Inject constructor(
             collectSftpFilesOnly(sourceConnectionInfo, sourceInfo.remotePath, allFiles)
             val totalCount = allFiles.size
             
-            // Create destination directory
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
             
             var copiedCount = 0
@@ -710,7 +708,6 @@ class SftpOperationStrategy @Inject constructor(
             
             val connectionInfo = getConnectionInfo(pathInfo)
             
-            // Get directory attributes
             val attrsResult = sftpClient.stat(connectionInfo, pathInfo.remotePath)
             if (attrsResult.isFailure) {
                 return@withContext Result.failure(attrsResult.exceptionOrNull() ?: Exception("Failed to get attributes"))

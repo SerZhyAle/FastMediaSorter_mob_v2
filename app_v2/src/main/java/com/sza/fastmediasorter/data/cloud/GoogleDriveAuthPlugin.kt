@@ -29,7 +29,6 @@ class GoogleDriveAuthPlugin @Inject constructor(
     override val results: SharedFlow<AuthResult> = _results.asSharedFlow()
 
     override fun startInteractiveSignIn(activity: Activity) {
-        Timber.d("S0243: GoogleDriveAuthPlugin.startInteractiveSignIn")
         pluginScope.launch {
             when (val startResult = interactiveSignInCoordinator.start(activity)) {
                 is GoogleDriveInteractiveSignInCoordinator.StartResult.Immediate -> {

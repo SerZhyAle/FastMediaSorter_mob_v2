@@ -1,16 +1,18 @@
 # Research Guide
 
-> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
-> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
-> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a dry statement with the dossier path and the next high-value reads.
+> **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **Dry technical prose only** - no filler.
+> 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
+> 3. **Terse report:** one dry statement with dossier path + next high-value reads.
+> 4. **Park out-of-scope findings (CLAUDE.md §3.1):** research that uncovers a problem unrelated to the asked topic and non-trivial (own research + fix) → auto `/spec-draft` to park it (dedup via `scripts/spec_catalog/search.ps1` first), then continue the current research; report parked `Sxxxx` ids. Do not derail into solving it.
 
-Use this command for repeatable research and investigation passes before development, docs work, or cross-surface debugging. It builds a temp dossier first, then narrows into code.
+Repeatable research pass before dev, docs, or cross-surface debugging. Builds a temp dossier first, then narrows into code.
 
 ## Usage
 
 ```
 /research [topic or question]
+/research <Sxxxx> [topic or question]    # ticket-bound: findings persist to PLAN/<Sxxxx>_<slug>/research/
 ```
 
 Examples:
@@ -18,36 +20,29 @@ Examples:
 - `/research where does cloud auth recovery happen?`
 - `/research prepare context for browse caching docs`
 - `/research build retry failures in standardDebug`
+- `/research S0123 best Room FTS strategy for filename search`
 
 ---
 
 ## Process
 
-When invoked with `$ARGUMENTS`:
+On `$ARGUMENTS`:
 
-**Step 1 - Determine topic, module, and optional flavor.**
+**Step 1 - Determine topic, module, optional flavor, optional ticket.**
+- Use explicit user target when given.
+- First token matching `^S\d{4}$` → ticket-bound run: resolve slug via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`; remaining text is the topic. A topic clearly scoped to one active ticket counts as ticket-bound too.
+- Infer `Module` = `app_v2` | `wear` | `all` from request + current file.
+- Preserve explicit flavor constraints (`standard`, `lite`, `photos`, `legacy`, `vr`, ..) for dossier metadata.
 
-- Use the explicit user target when given.
-- Infer `Module` as `app_v2`, `wear`, or `all` from the request and current file.
-- Preserve any explicit flavor constraints (`standard`, `lite`, `photos`, `legacy`, `vr`, etc.) for the dossier metadata.
-
-**Step 2 - Build the dossier first.**
-
-Run the helper script before broad reading:
+**Step 2 - Build dossier first** (before broad reading):
 
 ```powershell
 pwsh -NoProfile -File scripts/utils/build-research-dossier.ps1 -Topic "<topic>" -Module <app_v2|wear|all> [-Flavor <flavor>]
 ```
 
-The script writes a Markdown dossier to `temp/` by default with:
-- recommended first docs
-- matching `dev/CATALOG` classes
-- matching `dev/ACTIVITY_CATALOG` entries
-- matching `PLAN` specs/files
-- matching `docs/` and `dev/` files
-- suggested next reads
+Writes a Markdown dossier to `temp/` with: recommended first docs · matching `dev/CATALOG` classes · matching `dev/ACTIVITY_CATALOG` entries · matching `PLAN` specs/files · matching `docs/` and `dev/` files · suggested next reads.
 
-**Step 3 - Follow the routing stack in this order unless the dossier shows a tighter first read.**
+**Step 3 - Follow routing stack in order** (unless dossier shows a tighter first read):
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md`
 2. `docs/ARCHITECTURE.md`
@@ -56,19 +51,24 @@ The script writes a Markdown dossier to `temp/` by default with:
 5. `dev/TECH_REQUIREMENTS.md`
 6. `dev/CATALOG/` and `dev/ACTIVITY_CATALOG/`
 
-Use `/catalog` after the dossier when you need class-level lookup, DI consumers, or post-change catalog maintenance.
+Use `/catalog` after the dossier for class-level lookup, DI consumers, or post-change catalog maintenance.
 
-**Step 4 - Only then drill into implementation files.**
+**Step 4 - Then drill into implementation files.**
+- Smallest set of follow-up reads that answers the question.
+- Use dossier to avoid repeated global greps.
+- Cross-surface questions stay grounded in dossier sections.
 
-- Prefer the smallest set of follow-up reads that answer the question.
-- Use the dossier to avoid repeated global greps.
-- If the question spans specs, docs, and code, keep the answer grounded in the dossier sections.
+**Step 5 - Persist findings (ticket-bound runs only).**
+- Write the curated findings - conclusions, chosen option, rejected options with reasons, affected areas - to `PLAN/<Sxxxx>_<slug>/research/<NN>__<topic-slug>.md`. `NN` = matching strategic §6 item number; next free number for questions outside §6. Create the folder if missing.
+- Update the strategic §6 item: flip `Статус:` to Resolved, add the `**Артефакт:**` link.
+- The `temp/` dossier stays scratch. The artifact is the durable result `/spec-tech` consumes when ordering phases - raw grep dumps stay out of it.
 
 ---
 
 ## Output
 
-- Report the dossier path in `temp/`.
-- List the next 3-6 high-value reads.
-- If the user asked a direct research question, answer it after the dossier-backed reads.
-- If there were no matches in one section, say so and continue with the remaining sections.
+- Report dossier path in `temp/`.
+- Ticket-bound: report artifact path in `PLAN/<Sxxxx>_<slug>/research/`.
+- List next 3-6 high-value reads.
+- Answer any direct research question after the dossier-backed reads.
+- If a section had no matches, say so and continue.

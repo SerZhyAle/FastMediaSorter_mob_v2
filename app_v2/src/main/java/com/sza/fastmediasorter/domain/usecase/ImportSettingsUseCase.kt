@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -38,8 +39,12 @@ class ImportSettingsUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val scheduledOperationRepository: ScheduledOperationRepository,
-    private val workManagerScheduler: WorkManagerScheduler
+    private val workManagerScheduler: WorkManagerScheduler,
+    private val applyBackupPayloadUseCase: ApplyBackupPayloadUseCase
 ) {
+    private companion object {
+        const val LEGACY_XML_FILE_NAME = "FastMediaSorter_export.xml"
+    }
     /**
      * Import settings from XML file.
      * @param exportUri Optional content URI from a previous export. If provided, uses it directly.
@@ -59,8 +64,8 @@ class ImportSettingsUseCase @Inject constructor(
                     null
                 }
             } else {
-                // Query by filename
-                getFileInputStream("FastMediaSorter_export.xml")
+                // Auto lookup: prefer the unified JSON backup, fall back to legacy XML.
+                getImportFileInputStream()
             } ?: run {
                 val downloadsPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     "MediaStore Downloads collection"
@@ -68,7 +73,7 @@ class ImportSettingsUseCase @Inject constructor(
                     @Suppress("DEPRECATION")
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
                 }
-                val errorMsg = """File not found: FastMediaSorter_export.xml
+                val errorMsg = """File not found: FastMediaSorter_backup.json (or legacy FastMediaSorter_export.xml)
                     |Searched in: $downloadsPath
                     |Android version: ${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})
                     |Please ensure the file exists in your Downloads folder""".trimMargin()
@@ -76,7 +81,17 @@ class ImportSettingsUseCase @Inject constructor(
                 return Result.failure(Exception(errorMsg))
             }
             
-            inputStream.use { stream ->
+            // S0406: read once, then dispatch by format. JSON → unified applier; XML → legacy parser.
+            val importText = inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+            val trimmedText = importText.trimStart('﻿', ' ', '\n', '\r', '\t', ' ')
+            if (trimmedText.startsWith("{")) {
+                Timber.d("S0406: import settings from unified JSON backup")
+                return importFromJson(trimmedText)
+            }
+            Timber.d("S0406: import settings from legacy XML backup")
+
+            // Legacy XML path (back-compat) - parse from the text already read.
+            java.io.ByteArrayInputStream(importText.toByteArray(Charsets.UTF_8)).use { stream ->
                 // Parse XML
                 val factory = XmlPullParserFactory.newInstance()
                 val parser = factory.newPullParser()
@@ -231,6 +246,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         enableFavorites = data["enableFavorites"]?.toBoolean() ?: false,
                                         disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
                                         skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
+                                        cameraCaptureOpenForEditing = data["cameraCaptureOpenForEditing"]?.toBoolean() ?: false,
                                         enableScheduledOperations = data["enableScheduledOperations"]?.toBoolean() ?: true,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,
                                         goToNextAfterCopy = data["goToNextAfterCopy"]?.toBoolean() ?: true,
@@ -348,7 +364,6 @@ class ImportSettingsUseCase @Inject constructor(
                 eventType = parser.next()
             }
             
-            // Apply imported settings
             settings?.let {
                 settingsRepository.updateSettings(it)
                 Timber.d("Settings imported successfully")
@@ -427,7 +442,6 @@ class ImportSettingsUseCase @Inject constructor(
                         resourceRepository.updateResource(mergedResource)
                         Timber.d("Updated existing resource: ${importedResource.name}")
                     } else {
-                        // Add new
                         resourceRepository.addResource(importedResource)
                         Timber.d("Added new resource: ${importedResource.name}")
                     }
@@ -496,6 +510,76 @@ class ImportSettingsUseCase @Inject constructor(
         }
     }
     
+    /**
+     * S0406: parse the unified JSON payload and delegate to the shared applier.
+     */
+    private suspend fun importFromJson(json: String): Result<Unit> {
+        return try {
+            val payload = com.google.gson.GsonBuilder().setLenient().create()
+                .fromJson(json, BackupPayload::class.java)
+                ?: return Result.failure(IllegalStateException("Empty backup payload"))
+            applyBackupPayloadUseCase(payload)
+            Timber.i("Settings imported from JSON backup v%d", payload.version)
+            Result.success(Unit)
+        } catch (e: com.google.gson.JsonSyntaxException) {
+            Timber.e(e, "Backup JSON is corrupted")
+            Result.failure(Exception("Backup file is damaged. Cannot restore."))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to import JSON backup")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * S0406: auto lookup - prefer the unified JSON backup, fall back to the legacy XML file.
+     * For each candidate name try the MediaStore query first, then a direct read from the
+     * public Downloads directory. The direct read covers backups not owned by the current
+     * install (export -> uninstall -> reinstall, or a different package variant), which the
+     * MediaStore Downloads query never returns under scoped storage.
+     */
+    private fun getImportFileInputStream(): InputStream? =
+        openImportCandidate(ExportSettingsUseCase.EXPORT_FILE_NAME)
+            ?: openImportCandidate(LEGACY_XML_FILE_NAME)
+
+    private fun openImportCandidate(fileName: String): InputStream? =
+        getFileInputStream(fileName)
+            ?: getFileInputStreamFromPublicDownloads(fileName)
+
+    /**
+     * S0406: direct-File fallback for the auto lookup. The MediaStore Downloads query only
+     * returns files owned by the current install, so a backup made by a previous install or
+     * a different package variant is invisible to it even though it sits in Downloads. With
+     * all-files access granted the file is readable directly regardless of owner.
+     */
+    private fun getFileInputStreamFromPublicDownloads(fileName: String): InputStream? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            !PermissionHelper.hasAllFilesAccessPermission(context)
+        ) {
+            // Without all-files access scoped storage blocks reading non-owned Downloads files.
+            return null
+        }
+        @Suppress("DEPRECATION")
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadsDir.isDirectory) return null
+
+        val baseName = fileName.substringBeforeLast(".")
+        val extension = fileName.substringAfterLast(".")
+        // Match "<base>.ext" and Android's "<base> (1).ext" duplicates; pick the most recent.
+        val match = downloadsDir.listFiles { f ->
+            f.isFile &&
+                f.name.startsWith(baseName, ignoreCase = true) &&
+                f.name.endsWith(".$extension", ignoreCase = true)
+        }?.maxByOrNull { it.lastModified() } ?: return null
+
+        Timber.d("S0406: auto-search direct Downloads fallback selected ${match.name}")
+        return try {
+            FileInputStream(match)
+        } catch (e: Exception) {
+            Timber.e(e, "ImportSettings: failed to open fallback file ${match.absolutePath}")
+            null
+        }
+    }
+
     /**
      * Get input stream for file in Downloads folder using appropriate API for the Android version.
      * Uses MediaStore for Android 10+ (API 29+), direct file access for older versions.

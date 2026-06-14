@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
@@ -45,13 +46,19 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         // Support Images - help payload folded into the row
         bindSwitch(binding.rowSupportImages) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportImages = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportImages = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         // Support GIFs
         bindSwitch(binding.rowSupportGifs) { isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(supportGifs = isChecked))
+            val updated = current
+                .exitAllFilesForManualSupportToggle(isChecked)
+                .copy(supportGifs = isChecked)
+            viewModel.updateSettings(updated)
         }
 
         // Load Full Size Images - help payload folded into the row
@@ -150,8 +157,10 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
             withSettingsUpdate {
-                setSwitchChecked(binding.rowSupportImages, settings.supportImages)
-                setSwitchChecked(binding.rowSupportGifs, settings.supportGifs)
+                val isAllFilesEnabled = settings.allFiles
+
+                setSwitchChecked(binding.rowSupportImages, isAllFilesEnabled || settings.supportImages)
+                setSwitchChecked(binding.rowSupportGifs, isAllFilesEnabled || settings.supportGifs)
                 setSwitchChecked(binding.rowLoadFullSizeImages, settings.loadFullSizeImages)
                 setSwitchChecked(binding.rowCropImagesToFullscreen, settings.cropImagesToFullscreen)
                 setSwitchChecked(binding.rowDynamicBackground, settings.dynamicBackgroundExtension)

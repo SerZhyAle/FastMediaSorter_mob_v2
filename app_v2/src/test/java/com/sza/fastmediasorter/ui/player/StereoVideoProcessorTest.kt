@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.player
 
 import com.sza.fastmediasorter.domain.model.StereoMode
-import androidx.media3.effect.Crop
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -20,7 +18,7 @@ import org.junit.Test
  * 4. setStereoMode precondition - rejects AUTO and UNKNOWN
  * 5. No-op on same-mode set (idempotency)
  * 6. release() resets state to MONO
- * 7. GL effect contract - SBS/OU/EQUIRECT stereo return a Crop effect; mono/unresolved return null
+ * 7. GL effect contract - S0264: buildGlEffect returns null for every mode (crop moved to TextureView)
  */
 class StereoVideoProcessorTest {
 
@@ -192,25 +190,23 @@ class StereoVideoProcessorTest {
     // 7. GL effect contract
     // ──────────────────────────────────────────────────────────────────────────
 
+    // S0264: buildGlEffect returns null for every mode — the single-eye crop moved to a
+    // TextureView matrix in PanelStereoCropApplier because Media3 1.2.1 Crop does not render
+    // under surface_type=texture_view. These cases pin the no-GL-effect contract per mode.
+
     @Test
-    fun `buildGlEffect returns Crop for SBS_FULL right-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.SBS_FULL)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for SBS_FULL`() {
+        assertNull(processor.buildGlEffect(StereoMode.SBS_FULL))
     }
 
     @Test
-    fun `buildGlEffect returns Crop for SBS_HALF right-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.SBS_HALF)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for SBS_HALF`() {
+        assertNull(processor.buildGlEffect(StereoMode.SBS_HALF))
     }
 
     @Test
-    fun `buildGlEffect returns Crop for OU bottom-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.OU)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for OU`() {
+        assertNull(processor.buildGlEffect(StereoMode.OU))
     }
 
     @Test
@@ -229,31 +225,23 @@ class StereoVideoProcessorTest {
     }
 
     @Test
-    fun `buildGlEffect returns Crop for EQUIRECT_360_SBS right-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.EQUIRECT_360_SBS)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for EQUIRECT_360_SBS`() {
+        assertNull(processor.buildGlEffect(StereoMode.EQUIRECT_360_SBS))
     }
 
     @Test
-    fun `buildGlEffect returns Crop for EQUIRECT_180_SBS right-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.EQUIRECT_180_SBS)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for EQUIRECT_180_SBS`() {
+        assertNull(processor.buildGlEffect(StereoMode.EQUIRECT_180_SBS))
     }
 
     @Test
-    fun `buildGlEffect returns Crop for VR180_FISHEYE_SBS right-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.VR180_FISHEYE_SBS)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for VR180_FISHEYE_SBS`() {
+        assertNull(processor.buildGlEffect(StereoMode.VR180_FISHEYE_SBS))
     }
 
     @Test
-    fun `buildGlEffect returns Crop for EQUIRECT_360_OU bottom-eye crop`() {
-        val effect = processor.buildGlEffect(StereoMode.EQUIRECT_360_OU)
-        assertNotNull(effect)
-        assertTrue(effect is Crop)
+    fun `buildGlEffect returns null for EQUIRECT_360_OU`() {
+        assertNull(processor.buildGlEffect(StereoMode.EQUIRECT_360_OU))
     }
 
     @Test

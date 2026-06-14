@@ -81,9 +81,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         // we fall through to the legacy Failed path so existing UX remains intact.
         gmsGuard()?.let { reason ->
             val repaired = maybeRepairPlayServices(activityContext, reason)
-            if (repaired && gmsGuard() == null) {
-                Timber.d("S0233: gmsGuard now clean after repair; continuing sign-in")
-            } else {
+            if (!repaired || gmsGuard() != null) {
                 _state.value = PrimaryGoogleAccountState.Error(reason)
                 return IdentitySignInResult.Failed(reason)
             }
@@ -249,7 +247,6 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             // the cached status is stale (e.g. GMS updated mid-session). Without this branch the
             // user sees a generic UnknownError CTA instead of the actionable "Update Play Services".
             is GetCredentialProviderConfigurationException -> {
-                Timber.d("S0239: mapException safety-net GetCredentialProviderConfigurationException -> PlayServicesOutdated")
                 IdentitySignInResult.Failed(IdentityFailureReason.PlayServicesOutdated, t)
             }
             is GetCredentialException -> IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, t)
@@ -274,7 +271,6 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
      *   2. GMS can be updated via Play Store between process start and the user tapping sign-in.
      */
     private fun gmsGuard(): IdentityFailureReason? {
-        Timber.d("S0239: gmsGuard live re-eval for Credential Manager minimum")
         GmsAvailabilityChecker.recheckFor(
             appContext,
             GmsAvailabilityChecker.MIN_GMS_VERSION_FOR_CREDENTIAL_MANAGER
@@ -314,23 +310,18 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         reason: IdentityFailureReason
     ): Boolean {
         if (reason != IdentityFailureReason.PlayServicesOutdated) {
-            Timber.d("S0233: Front A skipped reason=$reason (only PlayServicesOutdated is auto-repairable)")
             return false
         }
         val activity = activityContext as? Activity
         if (activity == null) {
-            Timber.d("S0233: Front A skipped - caller passed non-Activity Context (cannot host repair dialog)")
             return false
         }
-        Timber.d("S0233: Front A repair attempt start gmsStatus=${GmsAvailabilityChecker.status}")
         return runCatching {
             GoogleApiAvailability.getInstance()
                 .makeGooglePlayServicesAvailable(activity)
                 .await()
-            Timber.d("S0233: Front A repair succeeded; re-running gmsGuard")
             true
-        }.getOrElse { error ->
-            Timber.d("S0233: Front A repair declined or failed cause=${error.message}")
+        }.getOrElse {
             false
         }
     }

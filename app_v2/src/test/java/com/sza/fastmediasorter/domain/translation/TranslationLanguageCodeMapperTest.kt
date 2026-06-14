@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.domain.translation
 
-import com.google.mlkit.nl.translate.TranslateLanguage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,7 +9,7 @@ class TranslationLanguageCodeMapperTest {
     @Test
     fun languageCodeToMLKit_mapsAutoToEnglishPivot() {
         assertEquals(
-            TranslateLanguage.ENGLISH,
+            "en",
             TranslationLanguageCodeMapper.languageCodeToMLKit("auto")
         )
     }
@@ -23,7 +22,7 @@ class TranslationLanguageCodeMapperTest {
     @Test
     fun languageCodeToMLKit_fallsBackToEnglishForUnknownCode() {
         assertEquals(
-            TranslateLanguage.ENGLISH,
+            "en",
             TranslationLanguageCodeMapper.languageCodeToMLKit("zz")
         )
     }

@@ -17,6 +17,8 @@ class GeneralSettingsSectionsHelper(
     companion object {
         const val PREFS_NAME = "general_sections_state"
         const val KEY_INTERFACE_EXPANDED = "section_interface_expanded"
+        const val KEY_FILE_BROWSER_EXPANDED = "section_file_browser_expanded"
+        const val KEY_REMOTE_SOURCES_EXPANDED = "section_remote_sources_expanded"
         const val KEY_AUTHORIZATION_EXPANDED = "section_authorization_expanded"
         const val KEY_APP_DATA_EXPANDED = "section_app_data_expanded"
         const val KEY_SYSTEM_EXPANDED = "section_system_expanded"
@@ -34,9 +36,13 @@ class GeneralSettingsSectionsHelper(
         val savedStates = getSavedSectionStates()
         val sections = mutableListOf(
             ExpandableSection(binding.headerInterface, binding.containerInterface, KEY_INTERFACE_EXPANDED, false),
+            ExpandableSection(binding.headerFileBrowser, binding.containerFileBrowser, KEY_FILE_BROWSER_EXPANDED, false),
+            // S0391: Remote sources group is collapsed by default; sits between File Browser and Authorization.
+            ExpandableSection(binding.headerRemoteSources, binding.containerRemoteSources, KEY_REMOTE_SOURCES_EXPANDED, false),
             // S0255: Authorization group is collapsed by default per strategic §6.4.
             ExpandableSection(binding.headerAuthorization, binding.containerAuthorization, KEY_AUTHORIZATION_EXPANDED, false),
-            ExpandableSection(binding.headerAppData, binding.containerAppData, KEY_APP_DATA_EXPANDED, true),
+            // Collapsed by default on first install; user controls state via tap.
+            ExpandableSection(binding.headerAppData, binding.containerAppData, KEY_APP_DATA_EXPANDED, false),
             ExpandableSection(binding.headerSystem, binding.containerSystem, KEY_SYSTEM_EXPANDED, false),
         )
         if (BuildConfig.DEBUG) {
@@ -60,8 +66,10 @@ class GeneralSettingsSectionsHelper(
             val prefs = fragment.requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             mapOf(
                 KEY_INTERFACE_EXPANDED to prefs.getBoolean(KEY_INTERFACE_EXPANDED, false),
+                KEY_FILE_BROWSER_EXPANDED to prefs.getBoolean(KEY_FILE_BROWSER_EXPANDED, false),
+                KEY_REMOTE_SOURCES_EXPANDED to prefs.getBoolean(KEY_REMOTE_SOURCES_EXPANDED, false),
                 KEY_AUTHORIZATION_EXPANDED to prefs.getBoolean(KEY_AUTHORIZATION_EXPANDED, false),
-                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, true),
+                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, false),
                 KEY_SYSTEM_EXPANDED to prefs.getBoolean(KEY_SYSTEM_EXPANDED, false),
                 KEY_DEBUG_EXPANDED to prefs.getBoolean(KEY_DEBUG_EXPANDED, false)
             )

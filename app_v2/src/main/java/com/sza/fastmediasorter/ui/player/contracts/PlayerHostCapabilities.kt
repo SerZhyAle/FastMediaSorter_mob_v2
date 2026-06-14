@@ -38,6 +38,22 @@ interface PlayerHostCapabilities {
     /** False for standalone: the command panel only carries list context. */
     val supportsCommandPanelFolding: Boolean
 
+    /**
+     * True when the host can page through neighbor files of the current file's folder.
+     * Distinct from [supportsListNavigation], which reflects a resource-backed playlist:
+     * standalone has no resource list but can still enumerate the opened file's folder.
+     * Default false keeps standalone single-file until folder paging is wired.
+     */
+    val supportsFolderPaging: Boolean get() = false
+
+    /**
+     * True when the host may render single-file type-specific command-panel actions
+     * (rotate, crop, compress, print, OCR, translate, lens, lyrics, cast..). Read by the
+     * availability layer instead of branching on host identity; both surfaces support them
+     * for a single file, so default true. Per-type/flavor gating stays in the availability layer.
+     */
+    val supportsTypeSpecificActions: Boolean get() = true
+
     // ── Shared per-file state ─────────────────────────────────────────────────
 
     val currentMediaFile: StateFlow<MediaFile?>

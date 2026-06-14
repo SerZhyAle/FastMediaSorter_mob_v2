@@ -149,7 +149,6 @@ class ImportFavoritesUseCase @Inject constructor(
         return try {
             val contentResolver = context.contentResolver
 
-            // Check file size
             val size = contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } ?: 0L
             if (size > MAX_FILE_SIZE_BYTES) {
                 return Result.failure(IllegalArgumentException("File too large (max 10 MB)"))

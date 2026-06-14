@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -65,6 +66,7 @@ import java.io.File
 import java.lang.ref.WeakReference
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
+import dagger.Lazy
 
 class BrowseManagerInitializer(
     private val activity: BrowseActivity,
@@ -75,13 +77,13 @@ class BrowseManagerInitializer(
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val settingsRepository: SettingsRepository,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
+    private val smbClient: Lazy<SmbClient>,
+    private val sftpClient: Lazy<SftpClient>,
+    private val ftpClient: Lazy<FtpClient>,
+    private val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    private val dropboxClient: Lazy<DropboxClient>,
+    private val oneDriveClient: Lazy<OneDriveRestClient>,
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
     private val unifiedFileOperationHandler: UnifiedFileOperationHandler,
     private val audioMetadataLoader: AudioMetadataLoader,
     private val unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
@@ -99,6 +101,7 @@ class BrowseManagerInitializer(
     private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
+    private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
 ) {
     // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
@@ -129,6 +132,9 @@ class BrowseManagerInitializer(
     lateinit var listSubmitManager: BrowseListSubmitManager
     // S0096: black screen overlay for audio libraries
     internal lateinit var blackScreenManager: BlackScreenOverlayManager
+    // S0374: adaptive priority+overflow controller for the top command bar.
+    lateinit var commandOverflowManager: BrowseCommandOverflowManager
+    private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
         dialogHelper = BrowseDialogHelper(activity, object : BrowseDialogHelper.DialogCallbacks {
@@ -154,7 +160,6 @@ class BrowseManagerInitializer(
                 CloudProvider.ONEDRIVE -> cloudAuthManager.launchOneDriveSignIn()
             }
             override fun saveUndoOperation(undoOp: UndoOperation) = viewModel.saveUndoOperation(undoOp)
-            override fun reloadFiles() = viewModel.reloadFiles()
             override fun updateFile(oldPath: String, newFile: MediaFile) = viewModel.updateFile(oldPath, newFile)
             override fun setIgnoringFileChanges(ignoring: Boolean) = viewModel.setIgnoringFileChanges(ignoring)
             override fun createMediaFileFromFile(file: File): MediaFile = viewModel.createMediaFileFromFile(file)
@@ -219,6 +224,9 @@ class BrowseManagerInitializer(
         mediaFileAdapter.setBinaryThumbnailGenerator(com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator(activity))
         mediaFileAdapter.setAudioMetadataLoader(audioMetadataLoader)
 
+        commandOverflowManager = BrowseCommandOverflowManager(binding)
+        commandOverflowManager.onOverflowChanged = { activity.restitchBrowseControlChain() }
+
         stateUiUpdater = BrowseStateUiUpdater(
             activity = activity,
             binding = binding,
@@ -230,7 +238,10 @@ class BrowseManagerInitializer(
             onUpdateBreadcrumb = { state -> updateBreadcrumb(state) },
             onBuildResourceInfo = { state -> BrowseUtilityManager(activity).buildResourceInfo(state) },
             onLaunchEditResource = { id -> launchEditResource(id) },
-            onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) }
+            onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) },
+            // S0374: report runtime-gated command eligibility + trigger overflow recompute.
+            setCommandEligibility = { id, eligible -> commandOverflowManager.setFeatureEligibility(id, eligible) },
+            onRecomputeOverflow = { commandOverflowManager.recompute() }
         )
 
         recyclerViewManager = BrowseRecyclerViewManager(
@@ -329,10 +340,6 @@ class BrowseManagerInitializer(
             coroutineScope = lifecycleScope,
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            credentialsRepository = credentialsRepository,
             dirOperationHandler = unifiedFileOperationHandler,
             callbacks = object : BrowseFileOperationsManager.FileOperationCallbacks {
                 override fun onOperationCompleted() = viewModel.reloadFiles()
@@ -377,6 +384,7 @@ class BrowseManagerInitializer(
             settingsRepository = settingsRepository,
             fileOperationsManager = fileOperationsManager,
             unifiedFileOperationHandler = unifiedFileOperationHandler,
+            restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             onLaunchPicker = { initialUri -> launcherManager.folderPickerLauncher.launch(initialUri) }
         )
 
@@ -485,7 +493,7 @@ class BrowseManagerInitializer(
         updateSortButton(viewModel.state.value.sortMode)
         binding.btnSort.setOnClickListener { UserActionLogger.logButtonClick("SortButton", "BrowseActivity"); sortMenuManager.showSortPopupMenu(binding.btnSort) }
 
-        buttonSetupHelper.setupAllButtons(object : BrowseButtonSetupHelper.ButtonCallbacks {
+        buttonCallbacks = object : BrowseButtonSetupHelper.ButtonCallbacks {
             override fun onFilterClicked() =
                 dialogHelper.showFilterDialog(viewModel.state.value.filter, viewModel.state.value.resource?.supportedMediaTypes)
             override fun onRefreshClicked() {
@@ -533,7 +541,8 @@ class BrowseManagerInitializer(
             override fun onResourceOpsClicked(anchor: android.view.View) {
                 showBrowseResourceOpsMenu(anchor)
             }
-        })
+        }
+        buttonSetupHelper.setupAllButtons(buttonCallbacks)
         
         // Warm up the cache used by onOverflowMenuClick for synchronous access.
         lifecycleScope.launch {
@@ -592,6 +601,7 @@ class BrowseManagerInitializer(
             onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
                 { f -> viewModel.moveFileDown(f) }
             } else null,
+            onExtractArchive = { f -> viewModel.prepareExtraction(f) },
             onFavorite = { f -> viewModel.toggleFavorite(f) },
             onShare = { f ->
                 val resource = viewModel.state.value.resource
@@ -634,10 +644,11 @@ class BrowseManagerInitializer(
                 .getOrDefault(false)
             val settings = settingsRepository.getSettings().first()
             val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
-                viewModel.state.value.resource?.let { res ->
-                    passthroughProvider?.isAvailable(activity) == true ||
-                        BrowseCameraCaptureManager.hasCameraHandler(activity, res)
-                } ?: false
+                (passthroughProvider?.isAvailable(activity) == true ||
+                    BrowseCameraCaptureManager.hasCameraHandler(activity))
+            // S0371: video-capture command - media-type gate AND a system video-capture handler.
+            val isVideoVisible = BrowseStateUiUpdater.isVideoCaptureVisible(viewModel.state.value, settings) &&
+                BrowseCameraCaptureManager.hasVideoCaptureHandler(activity)
             val resourceId = viewModel.state.value.resource?.id
             resourceOpsMenuManager.showMenu(
                 anchor = anchor,
@@ -651,12 +662,18 @@ class BrowseManagerInitializer(
                 isDestinationsFull = isDestinationsFull,
                 onCameraCapture = { activity.onCameraCaptureClicked() },
                 isCameraVisible = isCameraVisible,
+                onVideoCapture = { activity.onVideoCaptureClicked() },
+                isVideoVisible = isVideoVisible,
                 allowSeparateWindow = settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity),
                 openBrowseInNewWindow = if (settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity)) {
                     { id -> eventHandler.openBrowseInNewWindow(id) }
                 } else null,
                 isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
-                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
+                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null,
+                // S0374: surface top-bar commands that overflowed off the bar, routed to their actions.
+                isOverflowed = { id -> commandOverflowManager.isOverflowed(id) },
+                callbacks = buttonCallbacks,
+                onSortClicked = { sortMenuManager.showSortPopupMenu(binding.btnSort) }
             )
         }
     }
@@ -829,7 +846,6 @@ class BrowseManagerInitializer(
         if (viewModel.state.value.mediaFiles.isEmpty()) return Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         viewModel.reshuffleRandom()
         val resource = viewModel.state.value.resource
-        Timber.d("S0358: Browse play-random launches player with shuffle override")
         val intent = PlayerActivity.createPanelIntent(
             context = activity,
             resourceId = resource?.id ?: 0L,
@@ -851,10 +867,10 @@ class BrowseManagerInitializer(
         val dialog = com.sza.fastmediasorter.ui.dialog.FileInfoDialog(
             context = activity,
             mediaFile = file,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            credentialsRepository = credentialsRepository,
+            smbClient = smbClient.get(),
+            sftpClient = sftpClient.get(),
+            ftpClient = ftpClient.get(),
+            credentialsRepository = credentialsRepository.get(),
             unifiedCache = unifiedFileCache,
             audioMetadataLoader = audioMetadataLoader,
         )
@@ -935,8 +951,9 @@ class BrowseManagerInitializer(
             val resource = viewModel.state.value.resource
             val shouldForceList = resource?.isAudioOnly() == true
             val effectiveMode = if (shouldForceList) DisplayMode.LIST else mode
-            val iconSize = if (shouldForceList) 48 else if (resource?.disableThumbnails == true) 32 else settings.defaultIconSize
-            recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter(), settings.useCompactElements)
+            val noThumbnails = resource?.disableThumbnails == true
+            val iconSize = if (shouldForceList) 48 else if (noThumbnails) 32 else settings.defaultIconSize
+            recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter(), settings.useCompactElements, noThumbnails)
             stateUiUpdater.currentDisplayMode = effectiveMode
             updateToggleViewAvailability(shouldForceList)
             binding.rvMediaFiles.post { scrollButtonManager.updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }

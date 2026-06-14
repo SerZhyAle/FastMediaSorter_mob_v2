@@ -134,7 +134,7 @@ class SaveTextNoteUseCase @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "S0189: SaveTextNoteUseCase failed")
+            Timber.e(e, "SaveTextNoteUseCase failed")
             Result.failure(e)
         }
     }

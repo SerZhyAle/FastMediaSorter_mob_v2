@@ -79,7 +79,6 @@ class GoogleDriveThumbnailDataFetcher(
 
         Thread {
             try {
-                // Get access token
                 val accessToken = getAccessToken()
                 if (accessToken == null) {
                     callback.onLoadFailed(Exception("No Google Drive access token available"))

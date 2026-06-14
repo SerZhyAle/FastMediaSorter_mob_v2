@@ -19,35 +19,51 @@
             android:orientation="horizontal"
             android:baselineAligned="false">
 
+            <!-- S0370: fixed-size icon buttons (text-length-independent) so RU/UK labels
+                 can never clip the primary action on narrow phones. iconTint is mandatory
+                 because the source vectors hardcode white fill. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnResetTypes"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/filter_check_all_types" />
+                style="?attr/materialIconButtonStyle"
+                android:layout_width="@dimen/control_button_size"
+                android:layout_height="@dimen/control_button_size"
+                android:contentDescription="@string/filter_check_all_types"
+                app:icon="@drawable/ic_select_all"
+                app:iconSize="28dp"
+                app:iconTint="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClearFilter"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="?attr/materialIconButtonStyle"
+                android:layout_width="@dimen/control_button_size"
+                android:layout_height="@dimen/control_button_size"
                 android:layout_marginStart="@dimen/dialog_field_spacing"
-                android:text="@string/clear_all" />
+                android:contentDescription="@string/clear_all"
+                app:icon="@drawable/ic_filter_clear"
+                app:iconSize="28dp"
+                app:iconTint="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelFilter"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="?attr/materialIconButtonStyle"
+                android:layout_width="@dimen/control_button_size"
+                android:layout_height="@dimen/control_button_size"
                 android:layout_marginStart="@dimen/dialog_field_spacing"
-                android:text="@android:string/cancel" />
+                android:contentDescription="@android:string/cancel"
+                app:icon="@drawable/ic_cancel"
+                app:iconSize="28dp"
+                app:iconTint="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnApplyFilter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="?attr/materialIconButtonStyle"
+                android:layout_width="@dimen/control_button_size"
+                android:layout_height="@dimen/control_button_size"
                 android:layout_marginStart="@dimen/dialog_field_spacing"
-                android:text="@string/apply" />
+                android:contentDescription="@string/apply"
+                app:icon="@drawable/ic_check"
+                app:iconSize="28dp"
+                app:iconTint="?attr/colorPrimary" />
 
         </LinearLayout>
 

@@ -25,7 +25,7 @@
     <string name="addresource_some_resources_unavailable_after_add">%1$s. Some resources are unavailable right now.</string>
     <string name="addresource_validation_generic">Looks like something\'s missing - check the form and try again.</string>
     <string name="import_auto">Auto-find in Downloads</string>
-    <string name="import_browse">Browse for file…</string>
+    <string name="import_browse">Browse for file..</string>
     <string name="import_failed">Couldn\'t import your settings. Try again.</string>
     <string name="import_failed_title">Import Failed</string>
     <string name="import_fav_action">Import</string>
@@ -71,7 +71,7 @@
     <string name="delete_by_size_no_matches">No matching files found</string>
     <string name="delete_by_size_preview_result">Files found: &lt;b&gt;%1$d&lt;/b&gt;\nSpace to free: &lt;b&gt;%2$s&lt;/b&gt;</string>
     <string name="delete_by_size_preview_title">Confirm Deletion</string>
-    <string name="delete_by_size_scanning">Scanning…</string>
+    <string name="delete_by_size_scanning">Scanning..</string>
     <string name="delete_by_size_smaller">Smaller than</string>
     <string name="delete_by_size_unit_gb">GB</string>
     <string name="delete_by_size_unit_kb">KB</string>

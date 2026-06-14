@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.transfer.FileOperationErrorHandler
@@ -29,7 +31,9 @@ class UnifiedFileOperationHandler @Inject constructor(
     private val tempFileManager: TempFileManager,
     private val progressTracker: ProgressTracker,
     private val errorHandler: FileOperationErrorHandler,
-    private val operationStrategies: Map<String, @JvmSuppressWildcards FileOperationStrategy>
+    private val operationStrategies: Map<String, @JvmSuppressWildcards FileOperationStrategy>,
+    // S0391: source-availability gate; a remote op on a user-disabled source is refused at dispatch.
+    private val remoteSourceGate: RemoteSourceAvailabilityGate,
 ) {
     
     // Providers map (will be populated as providers are created)
@@ -344,7 +348,6 @@ class UnifiedFileOperationHandler @Inject constructor(
         var tempFile: File? = null
         
         try {
-            // Create temp file
             tempFile = tempFileManager.createTempFileFromName(fileName)
             
             if (cancelFlag()) {
@@ -400,6 +403,7 @@ class UnifiedFileOperationHandler @Inject constructor(
      * Get provider for path based on protocol prefix.
      */
     private fun getProvider(path: String): FileTransferProvider {
+        requireSourceEnabled(path)
         val protocol = when {
             path.startsWith("smb://") -> "smb"
             path.startsWith("sftp://") -> "sftp"
@@ -407,9 +411,27 @@ class UnifiedFileOperationHandler @Inject constructor(
             path.startsWith("cloud://") -> "cloud"
             else -> "local"
         }
-        
-        return providers[protocol] 
+
+        return providers[protocol]
             ?: throw IllegalStateException("No provider registered for protocol: $protocol")
+    }
+
+    /**
+     * S0391: refuse a file operation whose remote source the user has disabled. Throws so the calling
+     * operation's standard catch routes it through [errorHandler] into a failure Result. LOCAL paths
+     * always pass; the cloud prefix is not provider-specific, so it gates on the cloud group.
+     */
+    private fun requireSourceEnabled(path: String) {
+        val enabled = when (getProtocolKey(path)) {
+            "smb" -> remoteSourceGate.isEnabled(RemoteSourceId.SMB)
+            "sftp" -> remoteSourceGate.isEnabled(RemoteSourceId.SFTP)
+            "ftp" -> remoteSourceGate.isEnabled(RemoteSourceId.FTP)
+            "cloud" -> remoteSourceGate.anyCloudEnabled()
+            else -> true
+        }
+        if (!enabled) {
+            throw IllegalStateException("Source disabled for path: $path")
+        }
     }
     
     /**
@@ -539,6 +561,7 @@ class UnifiedFileOperationHandler @Inject constructor(
      * Resolve the [FileOperationStrategy] for [path] based on its protocol prefix.
      */
     private fun getStrategy(path: String): FileOperationStrategy {
+        requireSourceEnabled(path)
         val key = getProtocolKey(path)
         return operationStrategies[key]
             ?: throw IllegalStateException("No FileOperationStrategy registered for protocol: $key")

@@ -30,7 +30,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
-import com.sza.fastmediasorter.ui.dialog.ScheduledLogDialog
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.dialog.ScheduledOperationDialog
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
@@ -213,7 +213,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         setupDestinationsLayoutManager()
         binding.rvDestinations.adapter = adapter
         
-        // Add button
         binding.btnAddDestination.setOnClickListener {
             showAddDestinationDialog()
         }
@@ -431,11 +430,28 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         binding.btnAddScheduledOp.setOnClickListener { showScheduledOperationDialog(null) }
 
         binding.btnScheduledLog.setOnClickListener {
-            ScheduledLogDialog(
-                requireContext(),
-                logContent = scheduledViewModel.getLog(),
-                onClearLog = { scheduledViewModel.clearLog() }
-            ).show()
+            // Reuses the shared ScrollableTextDialog; "clear" is an extra action that empties the log
+            // in place (the dialog stays open) via the returned dialog's message TextView.
+            val emptyMsg = getString(R.string.scheduled_ops_log_empty)
+            val log = scheduledViewModel.getLog()
+            var logDialog: androidx.appcompat.app.AlertDialog? = null
+            logDialog = ScrollableTextDialog.show(
+                context = requireContext(),
+                title = getString(R.string.scheduled_ops_log_title),
+                message = log.ifBlank { emptyMsg },
+                monospace = true,
+                showShare = false,
+                showSave = false,
+                extraAction = ScrollableTextDialog.ExtraAction(
+                    icon = R.drawable.ic_delete_sweep,
+                    contentDescription = getString(R.string.scheduled_ops_log_clear),
+                    dismissOnClick = false,
+                    onClick = {
+                        scheduledViewModel.clearLog()
+                        logDialog?.findViewById<android.widget.TextView>(R.id.tvErrorMessage)?.text = emptyMsg
+                    }
+                )
+            )
         }
 
         binding.btnClearAllScheduled.setOnClickListener {

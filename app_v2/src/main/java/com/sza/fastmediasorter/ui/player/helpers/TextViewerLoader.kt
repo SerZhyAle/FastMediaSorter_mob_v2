@@ -6,7 +6,6 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.utils.CharsetDetector
@@ -19,10 +18,13 @@ import timber.log.Timber
 import java.io.File
 import java.nio.charset.Charset
 
-/** UI setup + IO load + first-page render for a text file in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
+/**
+ * UI setup + IO load + first-page render for a text file in [TextViewerManager]. Extracted to keep
+ * the host class under the 1000-LOC budget. S0380: decoupled from `ActivityPlayerUnifiedBinding` -
+ * all views go through [PlayerBindingSafeViews] (media/overlay views via nullable `*OrNull`).
+ */
 internal class TextViewerLoader(
     private val context: Context,
-    private val binding: ActivityPlayerUnifiedBinding,
     private val safeViews: PlayerBindingSafeViews,
     private val coroutineScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
@@ -48,37 +50,37 @@ internal class TextViewerLoader(
 ) {
     fun load(mediaFile: MediaFile, isWritable: Boolean) {
         closePager()
-        binding.imageView.isVisible = false
-        binding.photoView.isVisible = false
-        binding.playerView.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        safeViews.pdfControlsLayout.isVisible = false
-        safeViews.btnTranslateImage.isVisible = false
-        binding.btnGoogleLensPdfCmd.isVisible = false
-        binding.btnOcrPdfCmd.isVisible = false
-        binding.btnTranslatePdfCmd.isVisible = false
-        binding.btnSearchPdfCmd.isVisible = false
-        binding.btnSearchEpubCmd.isVisible = false
-        binding.btnTranslateEpubCmd.isVisible = false
-        binding.epubWebView.isVisible = false
-        safeViews.epubControlsLayout.isVisible = false
-        binding.btnExitEpubFullscreen.isVisible = false
+        safeViews.imageViewOrNull?.isVisible = false
+        safeViews.photoViewOrNull?.isVisible = false
+        safeViews.playerViewOrNull?.isVisible = false
+        safeViews.audioCoverArtViewOrNull?.isVisible = false
+        safeViews.audioInfoOverlayOrNull?.isVisible = false
+        safeViews.setVisibleIfPresent(R.id.pdfControlsLayout, false)
+        safeViews.setVisibleIfPresent(R.id.btnTranslateImage, false)
+        safeViews.setVisibleIfPresent(R.id.btnGoogleLensPdfCmd, false)
+        safeViews.setVisibleIfPresent(R.id.btnOcrPdfCmd, false)
+        safeViews.setVisibleIfPresent(R.id.btnTranslatePdfCmd, false)
+        safeViews.setVisibleIfPresent(R.id.btnSearchPdfCmd, false)
+        safeViews.setVisibleIfPresent(R.id.btnSearchEpubCmd, false)
+        safeViews.setVisibleIfPresent(R.id.btnTranslateEpubCmd, false)
+        safeViews.epubWebViewOrNull?.isVisible = false
+        safeViews.setVisibleIfPresent(R.id.epubControlsLayout, false)
+        safeViews.btnExitEpubFullscreenOrNull?.isVisible = false
         safeViews.textViewerContainer.isVisible = true
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false
         safeViews.tvTextContent.text = ""
-        binding.progressBar.isVisible = true
-        binding.btnCopyTextCmd.isVisible = true
-        binding.btnCopyTextCmd.setOnClickListener { onTextCopyClicked() }
-        binding.btnSearchTextCmd.isVisible = true
+        safeViews.progressBarOrNull?.isVisible = true
+        safeViews.btnCopyTextCmd.isVisible = true
+        safeViews.btnCopyTextCmd.setOnClickListener { onTextCopyClicked() }
+        safeViews.btnSearchTextCmd.isVisible = true
         applyTextFontSize()
-        binding.btnEditTextCmd.isVisible = isWritable
+        safeViews.btnEditTextCmd.isVisible = isWritable
 
         coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
             withContext(Dispatchers.Main) {
-                binding.btnTranslateTextCmd.isVisible = BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
+                safeViews.btnTranslateTextCmd.isVisible = BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
             }
             try {
                 // S0189: new note may be registered as deferred - file is created on first Save, not when editor opens. Skip not-found error in that case and render empty buffer; auto-open edit mode is next step.
@@ -87,7 +89,7 @@ internal class TextViewerLoader(
                 else runCatching { networkFileManager.prepareFileForRead(mediaFile) }
                     .getOrElse {
                         withContext(Dispatchers.Main) {
-                            binding.progressBar.isVisible = false
+                            safeViews.progressBarOrNull?.isVisible = false
                             showError(context.getString(R.string.text_file_load_failed))
                         }
                         return@launch
@@ -95,7 +97,7 @@ internal class TextViewerLoader(
 
                 if (!file.exists() && deferredStaged == null) {
                     withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
+                        safeViews.progressBarOrNull?.isVisible = false
                         showError(context.getString(R.string.text_file_not_found))
                     }
                     return@launch
@@ -110,7 +112,7 @@ internal class TextViewerLoader(
                     setSyntaxHighlightingEnabled(s.syntaxHighlighting)
                     setCurrentReaderTheme(resolveTheme(s.textReaderTheme))
                     withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
+                        safeViews.progressBarOrNull?.isVisible = false
                         renderPageContent("", s.showTextLineNumbers, 1)
                         safeViews.textPageNavigation.isVisible = false
                         safeViews.tvTextEncodingIndicator.text = Charsets.UTF_8.name()
@@ -126,7 +128,7 @@ internal class TextViewerLoader(
                     val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
                     val maxSizeMb = "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
                     withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
+                        safeViews.progressBarOrNull?.isVisible = false
                         safeViews.tvTextContent.text = context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
                         safeViews.textPageNavigation.isVisible = false
                     }
@@ -147,7 +149,7 @@ internal class TextViewerLoader(
                 val startLine = pager.getStartLineNumber(0)
 
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    safeViews.progressBarOrNull?.isVisible = false
                     renderPageContent(pageText, settings.showTextLineNumbers, startLine)
                     val multiPage = !pager.isSinglePage()
                     safeViews.textPageNavigation.isVisible = multiPage
@@ -159,7 +161,7 @@ internal class TextViewerLoader(
                             safeViews.textScrollView.paddingRight,
                             (48 * context.resources.displayMetrics.density).toInt(),
                         )
-                        binding.btnEditTextCmd.isVisible = false
+                        safeViews.btnEditTextCmd.isVisible = false
                     } else {
                         safeViews.textScrollView.setPadding(
                             safeViews.textScrollView.paddingLeft,
@@ -177,7 +179,7 @@ internal class TextViewerLoader(
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    safeViews.progressBarOrNull?.isVisible = false
                     showError(context.getString(R.string.text_file_display_error))
                 }
             }

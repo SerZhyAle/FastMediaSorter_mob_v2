@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.view.MotionEvent
+import android.view.View
 import android.webkit.WebView
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +20,7 @@ import timber.log.Timber
  * Extracted from EpubViewerManager (S0002 Wave 42) to keep that class under 1500 LOC.
  *
  * Requires:
- * - [binding] - unified player binding for overlay views
+ * - [root] - layout root for context lookups
  * - [safeViews] - safe-access wrapper for views that may be absent in some layouts
  * - [settingsRepository] - to read translation language pair
  * - [translationManager] - ML Kit wrapper
@@ -30,7 +30,8 @@ import timber.log.Timber
  * - [updateTranslateButtonIcon] - called whenever translation state changes to refresh button UI
  */
 class EpubTranslationOverlayHelper(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
+    private val root: View,
     private val safeViews: PlayerBindingSafeViews,
     private val settingsRepository: SettingsRepository,
     private val translationManager: TranslationManager,
@@ -122,7 +123,7 @@ class EpubTranslationOverlayHelper(
                 if (translated != null) {
                     callback.displayTranslatedText(translated)
                 } else {
-                    callback.showError(binding.root.context.getString(R.string.translation_error))
+                    callback.showError(root.context.getString(R.string.translation_error))
                 }
             }
         }
@@ -137,7 +138,7 @@ class EpubTranslationOverlayHelper(
 
         val webView = webViewProvider() ?: run {
             Timber.e("EPUB Translation: WebView is null, cannot proceed")
-            callback.showError(binding.root.context.getString(R.string.player_webview_unavailable))
+            callback.showError(root.context.getString(R.string.player_webview_unavailable))
             return
         }
 
@@ -167,7 +168,7 @@ class EpubTranslationOverlayHelper(
             if (result == null || result == "null" || result.trim().isEmpty() || result.trim() == "\"\"") {
                 Timber.e("EPUB Translation: JavaScript returned null, empty or blank result")
                 coroutineScope.launch(Dispatchers.Main) {
-                    callback.showError(binding.root.context.getString(R.string.translation_error_no_text))
+                    callback.showError(root.context.getString(R.string.translation_error_no_text))
                 }
                 return@evaluateJavascript
             }
@@ -182,7 +183,7 @@ class EpubTranslationOverlayHelper(
 
             if (extractedText.isBlank()) {
                 Timber.e("EPUB Translation: Extracted text is blank after processing")
-                callback.showError(binding.root.context.getString(R.string.translation_error_no_text))
+                callback.showError(root.context.getString(R.string.translation_error_no_text))
                 return@evaluateJavascript
             }
 
@@ -208,17 +209,17 @@ class EpubTranslationOverlayHelper(
                             Timber.d("EPUB Translation: Displaying translated text (${translatedText.length} chars)")
                             callback.displayTranslatedText(translatedText)
                             // Hide lens overlay if visible
-                            binding.translationLensOverlay.isVisible = false
+                            safeViews.translationLensOverlay.isVisible = false
                             Timber.i("EPUB Translation: SUCCESS - Chapter translated and displayed")
                         } else {
                             Timber.e("EPUB Translation: Translation returned null or blank")
-                            callback.showError(binding.root.context.getString(R.string.translation_error))
+                            callback.showError(root.context.getString(R.string.translation_error))
                         }
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "EPUB Translation: EXCEPTION during translation process")
                     withContext(Dispatchers.Main) {
-                        callback.showError(binding.root.context.getString(R.string.translation_error))
+                        callback.showError(root.context.getString(R.string.translation_error))
                     }
                 }
             }
@@ -242,7 +243,7 @@ class EpubTranslationOverlayHelper(
 
     /** Save translation font size to SharedPreferences. */
     fun saveTranslationFontSize() {
-        val prefs = binding.root.context.getSharedPreferences(
+        val prefs = root.context.getSharedPreferences(
             "epub_settings", android.content.Context.MODE_PRIVATE
         )
         prefs.edit().putInt("translation_font_size", translationFontSize).apply()
@@ -258,7 +259,7 @@ class EpubTranslationOverlayHelper(
      */
     private fun setupTranslationOverlayGestures() {
         val gestureDetector = android.view.GestureDetector(
-            binding.root.context,
+            root.context,
             object : android.view.GestureDetector.SimpleOnGestureListener() {
                 override fun onFling(
                     e1: android.view.MotionEvent?,
@@ -320,7 +321,7 @@ class EpubTranslationOverlayHelper(
             applyTranslationFontSize()
             saveTranslationFontSize()
             android.widget.Toast.makeText(
-                binding.root.context,
+                root.context,
                 "Translation font: ${translationFontSize}px",
                 android.widget.Toast.LENGTH_SHORT
             ).show()
@@ -334,7 +335,7 @@ class EpubTranslationOverlayHelper(
             applyTranslationFontSize()
             saveTranslationFontSize()
             android.widget.Toast.makeText(
-                binding.root.context,
+                root.context,
                 "Translation font: ${translationFontSize}px",
                 android.widget.Toast.LENGTH_SHORT
             ).show()

@@ -132,6 +132,8 @@ function Strip-Markdown {
     foreach ($ln in $Lines) {
         # Skip the "> Changes since .." blockquote and similar attribution lines.
         if ($ln -match "^>\s") { continue }
+        # Skip markdown separators entirely in plain-text changelogs.
+        if ($ln -match "^---\s*$") { continue }
         # Skip the "What's New" / "What's Fixed" headings — leave content but drop the heading itself.
         if ($ln -match "^##\s") { continue }
         $t = $ln
@@ -154,6 +156,12 @@ function Trim-ToBudget {
         [string[]] $Lines,
         [int]      $MaxChars = 500
     )
+
+    # Drop leading empty lines.
+    while ($Lines.Count -gt 0 -and $Lines[0].Trim().Length -eq 0) {
+        if ($Lines.Count -eq 1) { return "" }
+        $Lines = $Lines[1..($Lines.Count - 1)]
+    }
 
     # Drop trailing empty lines.
     while ($Lines.Count -gt 0 -and $Lines[-1].Trim().Length -eq 0) {

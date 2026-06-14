@@ -60,7 +60,6 @@ class PdfPageAdapter(
             return
         }
 
-        // Show loading state
         holder.progressBar.visibility = View.VISIBLE
         holder.imageView.visibility = View.INVISIBLE
 

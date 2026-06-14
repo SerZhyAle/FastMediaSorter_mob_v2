@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import timber.log.Timber
 
 /**
  * S0189 (Phase 09): default [EditorActionPanel] implementation.
@@ -65,6 +66,7 @@ class EditorActionPanelBinder(
             menu.add(0, MENU_SAVE, order++, R.string.text_editor_action_save)
             menu.add(0, MENU_SAVE_SEND, order++, R.string.text_editor_action_save_send)
             // Keep entry only when the Google Keep app is installed.
+            Timber.d("S0362: text editor overflow opened, keepAvailable=$keepAvailable")
             if (keepAvailable) {
                 menu.add(0, MENU_SEND_KEEP, order++, R.string.text_editor_action_send_keep)
             }

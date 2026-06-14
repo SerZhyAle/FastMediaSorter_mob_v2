@@ -60,7 +60,6 @@ class CloudMediaScanner @Inject constructor(
             // identically to the canonical double-slash form. Without this, the legacy form falls
             // into the `else` branch below, the entire path becomes the folderId, and the resource
             // lookup never matches → empty browse screen.
-            Timber.d("S0236: CloudMediaScanner.scanFolderInternal entry path=$path")
             val normalizedPath = cloudPathParser.normalizePath(path)
 
             // For cloud resources, path can be either:
@@ -163,7 +162,6 @@ class CloudMediaScanner @Inject constructor(
                         ?: if (isAllFilesMode) MediaType.TEXT else null
                     
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
-                        // Apply size filter
                         if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(cloudFile.size, mediaType, sizeFilter)) {
                             return@mapNotNull null
                         }
@@ -227,7 +225,6 @@ class CloudMediaScanner @Inject constructor(
                 scanSubdirectories, showHiddenFiles, null, includeDirectories = false
             )
             
-            // Apply pagination
             val start = offset.coerceAtMost(allFiles.size)
             val end = (offset + limit).coerceAtMost(allFiles.size)
             val pageFiles = if (start < end) allFiles.subList(start, end) else emptyList()

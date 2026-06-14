@@ -52,6 +52,24 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3615067087450824"
         crossorigin="anonymous"></script>
+
+    <!-- SEO: structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "FastMediaSorter v2",
+        "operatingSystem": "Android 8.0+",
+        "applicationCategory": "MultimediaApplication",
+        "inLanguage": "uk",
+        "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html",
+        "downloadUrl": "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest",
+        "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png",
+        "description": "Сортування фото, відео та музики з локального сховища, SMB/NAS, SFTP та хмари. Безкоштовний Android-застосунок з плеєром, слайд-шоу, читалкою EPUB, OCR-перекладом та підтримкою Wear OS.",
+        "author": { "@type": "Person", "name": "SerZhyAle" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
 </head>
 
 <body>
@@ -518,20 +536,70 @@
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon">📦</span>
-                        <h3>Завантажити збірки APK</h3>
+                        <h3>Редакції APK та дзеркала</h3>
                     </div>
-                    <p class="card-summary">Готові інсталяційні пакети для підтримуваних збірок.</p>
+                    <p class="card-summary">Примітки щодо редакцій і ZIP-дзеркала на Google Drive.</p>
                 </div>
                 <details class="card-details">
                     <summary>Докладно</summary>
                     <ul class="detail-list">
-                        <li>Містить публічні варіанти завантаження APK та примітки щодо редакцій.</li>
-                        <li>Потрібно, якщо встановлення йде поза Google Play.</li>
+                        <li>Пояснює відмінності редакцій і запасне дзеркало на Google Drive.</li>
+                        <li>Завантаження в один тап — у розділі «Завантажити збірки APK» нижче.</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_UK.html" class="card-footer" target="_blank">Завантажити APK</a>
+                    <a href="docs/DOWNLOADS_UK.html" class="card-footer" target="_blank">Відкрити докладно</a>
                 </details>
             </article>
         </div>
+
+        <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
+        <h2 class="section-title">📦 Завантажити збірки APK</h2>
+        <p class="section-lead">Прямі завантаження з останнього релізу на GitHub. Виберіть редакцію під свій
+            пристрій — версія оновлюється автоматично.</p>
+        <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
+                target="_blank" rel="noopener">Відкрити останній реліз на GitHub →</a>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById('apkDownloads');
+                if (!box) return;
+                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
+                var wanted = (box.getAttribute('data-flavors') || '').split(',')
+                    .map(function (s) { return s.trim(); }).filter(Boolean);
+                // Build identifiers are kept in English across locales (brand-ish flavor names).
+                var labels = {
+                    standard: 'Standard', vr: 'VR', lite: 'Lite', photos: 'Photos',
+                    legacy: 'Legacy', wear: 'Wear OS'
+                };
+                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+                    { headers: { 'Accept': 'application/vnd.github+json' } })
+                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
+                    .then(function (rel) {
+                        var ver = rel.tag_name || '';
+                        var assets = rel.assets || [];
+                        var made = [];
+                        wanted.forEach(function (flavor) {
+                            var prefix = 'FastMediaSorter-' + flavor + '-';
+                            var a = assets.find(function (x) {
+                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
+                            });
+                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
+                        });
+                        if (!made.length) return; // keep the static fallback link
+                        box.innerHTML = '';
+                        made.forEach(function (m) {
+                            var link = document.createElement('a');
+                            link.className = 'apk-btn';
+                            link.href = m.url;
+                            link.setAttribute('rel', 'noopener');
+                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
+                                '</span> <span class="apk-ver">' + ver + '</span>';
+                            box.appendChild(link);
+                        });
+                    })
+                    .catch(function () { /* leave the static fallback link in place */ });
+            }());
+        </script>
 
         <!-- Інтерактивний дашборд можливостей -->
         <h2 class="section-title">✨ Можливості програми</h2>
@@ -766,6 +834,10 @@
             <a href="docs/TERMS_OF_SERVICE_UK.html">Умови</a>
             &bull;
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
+        </p>
+        <p style="font-size: 0.85em; opacity: 0.7;">
+            Створено за допомогою методології AI-розробки
+            <a href="https://serzhyale.github.io/universal-agent-kit/">Universal Agent Kit</a>.
         </p>
         <p style="font-size: 0.85em; opacity: 0.7;">
             <img src="logo-dark.png" alt=""

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Permissions management screen, landscape (Rule 11 counterpart of layout/fragment_permissions_management.xml).
+     Same ids and view types as the portrait variant; the two action buttons sit side by side (split by a
+     centre guideline so the layout stays correct when btn_grant_all is GONE), the list fills the
+     remaining area, and the welcome-mode continue button stays pinned to the bottom.
+     All ids must stay in sync with the portrait variant. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationContentDescription="@string/back"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="?attr/colorOnPrimary" />
+
+    <!-- Centre split so the action buttons share the width; robust when btn_grant_all is GONE. -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_actions_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <Button
+        android:id="@+id/btn_grant_all"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="4dp"
+        android:text="@string/perm_btn_grant_all"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/guideline_actions_center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <Button
+        android:id="@+id/btn_open_system_settings"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/perm_btn_open_system_settings"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/guideline_actions_center"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <!-- Anchor the list below whichever action button is taller; both share the toolbar baseline so
+         using btn_open_system_settings (always visible) is safe. -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_permissions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fadeScrollbars="false"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@id/btn_continue_to_app"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
+
+    <Button
+        android:id="@+id/btn_continue_to_app"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/perm_continue_to_app"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

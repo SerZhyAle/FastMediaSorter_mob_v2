@@ -40,12 +40,12 @@
     <string name="sftp_key_invalid">Invalid SSH private key format</string>
     <string name="sftp_key_load_error">Failed to load key file</string>
     <string name="sftp_key_passphrase">Key Passphrase (optional)</string>
-    <string name="sftp_key_passphrase_hint">Leave empty if key is not encrypted</string>
+    <string name="sftp_key_passphrase_hint">Leave empty if the key is not encrypted.</string>
     <string name="sftp_load_key">Load File</string>
     <string name="sftp_password">Password</string>
     <string name="sftp_port">Port</string>
-    <string name="sftp_private_key">Private Key (PEM format)</string>
-    <string name="sftp_private_key_hint">Paste key content or load from file</string>
+    <string name="sftp_private_key">Private SSH key</string>
+    <string name="sftp_private_key_hint">Paste the key or choose a file.</string>
     <string name="sftp_remote_path">Remote Path</string>
     <string name="sftp_remote_path_hint">e.g. /home/user/media or /</string>
     <string name="sftp_test_connection">Test Connection</string>

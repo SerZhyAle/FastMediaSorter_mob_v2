@@ -1,12 +1,14 @@
 package com.sza.fastmediasorter.core.xr.di
 
 import com.sza.fastmediasorter.core.xr.NoOpVrMediaSectionContract
+import com.sza.fastmediasorter.core.xr.NoOpVrProfileSettingsSync
 import com.sza.fastmediasorter.core.xr.NoOpStartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.NoOpXrDetectionFacade
 import com.sza.fastmediasorter.core.xr.NoOpXrEntryGateway
 import com.sza.fastmediasorter.core.xr.NoOpXrEnvironmentDetector
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
+import com.sza.fastmediasorter.core.xr.VrProfileSettingsSync
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
 import com.sza.fastmediasorter.core.xr.XrEnvironmentDetector
@@ -56,4 +58,10 @@ abstract class NoOpXrModule {
     abstract fun bindVrMediaSectionContract(
         impl: NoOpVrMediaSectionContract
     ): VrMediaSectionContract
+
+    @Binds
+    @Singleton
+    abstract fun bindVrProfileSettingsSync(
+        impl: NoOpVrProfileSettingsSync
+    ): VrProfileSettingsSync
 }

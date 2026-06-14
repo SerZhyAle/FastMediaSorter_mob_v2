@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -38,6 +39,14 @@ data class NetworkHost(
  * Structured concurrency guarantees all child probes are cancelled within <1 second.
  */
 open class DiscoverNetworkResourcesUseCase @Inject constructor() {
+
+    /**
+     * Dispatcher backing the parallel port probes. Defaults to [Dispatchers.IO] in production;
+     * tests override it with a test dispatcher so the 254-host fan-out runs on a controlled
+     * scheduler instead of the shared IO pool (otherwise the probes escape `runTest` and the
+     * concurrent fan-out both races shared test state and floods real threads across the suite).
+     */
+    protected open val probeDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     companion object {
         // Timeout per SMB port probe. Spec NF-01: 200-500 ms.
@@ -110,7 +119,7 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
         val total = 254
 
         (1..254).map { i ->
-            async(Dispatchers.IO) {
+            async(probeDispatcher) {
                 val ip = "$subnet.$i"
                 if (ip == skipIp) {
                     onProgress?.invoke(subnet, probedCount.incrementAndGet(), total)
@@ -144,10 +153,10 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
      */
     internal suspend fun probePorts(ip: String): List<Int> = coroutineScope {
         // Fire all four probes concurrently on IO threads.
-        val p445 = async(Dispatchers.IO) { isTcpPortOpen(ip, 445, SMB_PROBE_TIMEOUT_MS) }
-        val p139 = async(Dispatchers.IO) { isTcpPortOpen(ip, 139, SMB_PROBE_TIMEOUT_MS) }
-        val p21  = async(Dispatchers.IO) { isTcpPortOpen(ip, 21,  OTHER_PROBE_TIMEOUT_MS) }
-        val p22  = async(Dispatchers.IO) { isTcpPortOpen(ip, 22,  OTHER_PROBE_TIMEOUT_MS) }
+        val p445 = async(probeDispatcher) { isTcpPortOpen(ip, 445, SMB_PROBE_TIMEOUT_MS) }
+        val p139 = async(probeDispatcher) { isTcpPortOpen(ip, 139, SMB_PROBE_TIMEOUT_MS) }
+        val p21  = async(probeDispatcher) { isTcpPortOpen(ip, 21,  OTHER_PROBE_TIMEOUT_MS) }
+        val p22  = async(probeDispatcher) { isTcpPortOpen(ip, 22,  OTHER_PROBE_TIMEOUT_MS) }
 
         val open = mutableListOf<Int>()
         // SMB port selection: 445 wins; 139 only if 445 is closed (both already resolved).

@@ -388,7 +388,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 }
             }
         } catch (io: IOException) {
-            Timber.w(io, "S0223: ig-api fetch failed for %s", pageUrl)
+            Timber.w(io, "ig-api fetch failed for %s", pageUrl)
             emptyList()
         }
     }

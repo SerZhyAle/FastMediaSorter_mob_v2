@@ -40,6 +40,8 @@ class LyricsManager(
     private val calculatorEnabledFlow = MutableStateFlow(false)
 
     init {
+        // Lifetime collect: mirrors a setting into an internal flow, no View access and no LifecycleOwner
+        // available here - cancelled with lifecycleScope on destroy, so repeatOnLifecycle is not needed.
         lifecycleScope.launch {
             settingsRepository.getSettings()
                 .map { it.enableCalculator }

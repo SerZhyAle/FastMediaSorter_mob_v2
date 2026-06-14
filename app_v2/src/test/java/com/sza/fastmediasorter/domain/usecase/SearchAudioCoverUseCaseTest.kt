@@ -47,11 +47,11 @@ class SearchAudioCoverUseCaseTest {
     private fun settings(online: Boolean = true, wifiOnly: Boolean = false) =
         flowOf(createAppSettings().copy(searchAudioCoversOnline = online, searchAudioCoversOnlyOnWifi = wifiOnly))
 
-    private fun iTunesHit() = ITunesSearchResponse(
+    private fun iTunesHit(artist: String = "Artist", track: String = "Song") = ITunesSearchResponse(
         resultCount = 1,
         results = listOf(
             ITunesTrack(
-                trackId = 1, trackName = "Song", artistName = "Artist", collectionName = "Album",
+                trackId = 1, trackName = track, artistName = artist, collectionName = "Album",
                 releaseDate = "2020-01-15T08:00:00Z", artworkUrl30 = null, artworkUrl60 = null,
                 artworkUrl100 = "https://art/100x100bb.jpg", artworkUrl600 = null, artworkUrl1000 = null,
             ),
@@ -106,7 +106,10 @@ class SearchAudioCoverUseCaseTest {
     @Test
     fun `uses ID3 metadata before filename`() = runTest {
         every { settingsRepository.getSettings() } returns settings(online = true)
-        coEvery { iTunes.searchTracks(any(), any(), any(), any()) } returns RetrofitResponse.success(iTunesHit())
+        // The hit must match the ID3 query, otherwise the S0347 confidence gate rejects it.
+        // The match itself proves the ID3 metadata (not the filename) drove the search.
+        coEvery { iTunes.searchTracks(any(), any(), any(), any()) } returns
+            RetrofitResponse.success(iTunesHit(artist = "The Beatles", track = "Help"))
 
         val result = useCase(
             filename = "weird_name.mp3",
@@ -114,7 +117,7 @@ class SearchAudioCoverUseCaseTest {
             metadataTitle = "Help",
         )
 
-        assertEquals("Artist", result?.artistName)
+        assertEquals("The Beatles", result?.artistName)
     }
 
     @Test

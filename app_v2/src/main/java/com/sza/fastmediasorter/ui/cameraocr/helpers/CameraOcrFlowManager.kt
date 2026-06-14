@@ -3,11 +3,15 @@ package com.sza.fastmediasorter.ui.cameraocr.helpers
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.RectF
-import android.provider.MediaStore
 import androidx.annotation.StringRes
+import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -37,7 +41,7 @@ class CameraOcrFlowManager(
 
     /** UI surface the flow renders onto. Implemented by the Activity. */
     interface Callback {
-        /** Launch the system camera with the prepared capture [intent]. */
+        /** Launch the prepared in-app capture Activity with the prepared [intent]. */
         fun launchCamera(intent: Intent)
 
         /** Show the crop step: preview [bitmap] with the draggable selection frame. */
@@ -81,10 +85,35 @@ class CameraOcrFlowManager(
         ocrOnlyActive = value
     }
 
+    /** True when the OCR'd image is still retained and can be re-recognized after an OCR-language change. */
+    fun hasRetainedSourceImage(): Boolean =
+        orientedBitmap?.isRecycled == false
+
     private fun hasResults(): Boolean =
         recognizedOriginalText.isNotEmpty() || translatedOutputText.isNotEmpty()
 
+    // S0386 Phase 06: camera-OCR is an OCR enable point - gate on the OCR_ENGINES set being
+    // installed before launching capture; refusal closes the flow softly (no crash).
     fun startCapture() {
+        val activity = callback as? FragmentActivity
+        if (activity == null) {
+            launchCaptureInternal()
+            return
+        }
+        val interceptor = EntryPointAccessors.fromApplication(
+            storageManager.contextForCaptureIntent().applicationContext,
+            DeliveryEnableInterceptorEntryPoint::class.java
+        ).deliveryEnableInterceptor()
+        interceptor.requireInstalled(
+            activity,
+            DeliverableSet.OCR_ENGINES,
+            onReady = ::launchCaptureInternal,
+            onUnavailable = { callback.finishFlow() }
+        )
+    }
+
+    private fun launchCaptureInternal() {
+        Timber.d("S0359: in-app camera capture launched for OCR")
         storageManager.cleanupTempFile(pendingTempFile)
         pendingTempFile = null
 
@@ -114,9 +143,12 @@ class CameraOcrFlowManager(
             return
         }
 
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-            putExtra(MediaStore.EXTRA_OUTPUT, uri)
-        }
+        // In-app capture removes the OEM confirmation step before the crop screen.
+        val intent = CameraCaptureActivity.createIntent(
+            context = storageManager.contextForCaptureIntent(),
+            outputUri = uri,
+            outputPath = tempFile.absolutePath,
+        )
         callback.launchCamera(intent)
     }
 
@@ -161,7 +193,6 @@ class CameraOcrFlowManager(
             recycleOrientedBitmap()
             orientedBitmap = bitmap
             callback.hideLoading()
-            Timber.d("S0338: crop step shown after capture")
             callback.showCropStep(bitmap)
             emitCropLanguages()
         }
@@ -210,7 +241,6 @@ class CameraOcrFlowManager(
      */
     fun onCropConfirmed(normalizedRect: RectF?, frameTouched: Boolean) {
         val source = orientedBitmap ?: return
-        Timber.d("S0338: crop confirmed, frameTouched=$frameTouched")
         callback.showLoading(R.string.camera_ocr_loading_processing, 0)
 
         scope.launch {
@@ -308,20 +338,37 @@ class CameraOcrFlowManager(
     }
 
     /**
-     * Persists the result-screen dialog choices (translation target + OCR-only) as global settings.
-     * The OCR source language is intentionally not part of this dialog: OCR over the current image is
-     * already done. When translation is on and recognized text exists, re-translates that text to the
-     * new target language without re-running OCR or re-capturing; otherwise just re-renders.
+     * Persists the result-screen dialog choices (OCR source + translation target + OCR-only) as global
+     * settings. When the OCR source language changed, re-runs recognition over the retained (cropped)
+     * image with the new source language and re-translates - this lets the user fix a wrong source
+     * language or auto-detection without re-capturing. When only the target changed, re-translates the
+     * existing recognized text without a new OCR; otherwise just re-renders.
      */
-    fun applyLanguageSettings(targetLang: String, ocrOnly: Boolean) {
+    fun applyLanguageSettings(sourceLang: String, targetLang: String, ocrOnly: Boolean) {
         scope.launch {
             val current = settingsRepository.getSettings().first()
+            val previousSourceLang = current.translationSourceLanguage
             settingsRepository.updateSettings(
                 current.copy(
+                    translationSourceLanguage = sourceLang,
                     translationTargetLanguage = targetLang,
                     cameraOcrOnly = ocrOnly
                 )
             )
+
+            if (sourceLang != previousSourceLang) {
+                val bitmap = orientedBitmap
+                if (bitmap != null && !bitmap.isRecycled) {
+                    // OCR language changed: re-run recognition over the retained image with the new
+                    // source language. runRecognition reads the freshly-persisted settings and
+                    // re-translates per the current target / OCR-only mode.
+                    runRecognition(bitmap)
+                }
+                // If the retained image is gone (process death) keep the current results; the dialog
+                // disables the OCR-language control in that state (hasRetainedSourceImage()).
+                return@launch
+            }
+
             val translationAvailable = isTranslationAvailable(current.enableTranslation, ocrOnly)
             ocrOnlyActive = !translationAvailable
 
@@ -330,14 +377,13 @@ class CameraOcrFlowManager(
                 return@launch
             }
 
-            Timber.d("S0354: results-screen re-translate to $targetLang")
             callback.showLoading(R.string.camera_ocr_loading_saving, R.string.please_wait)
             // Pass the raw source code (e.g. "auto") so the translator auto-detects the language of
             // the already-recognized text and translates FROM it. Mapping "auto" through
             // languageCodeToMLKit would force English and mistranslate non-English captures.
             val retranslated = translationManager.translate(
                 text = recognizedOriginalText,
-                sourceLang = current.translationSourceLanguage,
+                sourceLang = sourceLang,
                 targetLang = TranslationManager.languageCodeToMLKit(targetLang)
             )
             callback.hideLoading()

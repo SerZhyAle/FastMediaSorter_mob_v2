@@ -120,6 +120,14 @@ abstract class ResourceDao {
 
     @Query("SELECT * FROM resources WHERE lastBrowseDate IS NOT NULL ORDER BY lastBrowseDate DESC LIMIT :limit")
     abstract suspend fun getRecentResourcesSync(limit: Int): List<ResourceEntity>
+
+    /**
+     * Fetch the first local resource whose path equals [path]. Used by the Open-in-FMS resolver
+     * to reuse a previously auto-created folder resource instead of duplicating it. Read-only;
+     * no schema change.
+     */
+    @Query("SELECT * FROM resources WHERE type = 'LOCAL' AND path = :path ORDER BY displayOrder ASC LIMIT 1")
+    abstract suspend fun getLocalResourceByPathSync(path: String): ResourceEntity?
     
     @Query("SELECT * FROM resources WHERE isDestination = 1 ORDER BY destinationOrder ASC")
     abstract fun getDestinations(): Flow<List<ResourceEntity>>
@@ -151,7 +159,6 @@ abstract class ResourceDao {
     open suspend fun swapDisplayOrders(id1: Long, order1: Int, id2: Long, order2: Int) {
         // Update first resource
         updateDisplayOrder(id1, order2)
-        // Update second resource
         updateDisplayOrder(id2, order1)
     }
     

@@ -143,7 +143,7 @@ class NetworkMediaDataSource(
             }
             transientFailureReason?.let { reason ->
                 if (!path.startsWith("smb://")) {
-                    Timber.w("[scope=thumbnail S0066 protocol=${path.substringBefore("://")} failureClass=$reason] Transient at position=$position: ${e.message}")
+                    Timber.w("[scope=thumbnail protocol=${path.substringBefore("://")} failureClass=$reason] Transient at position=$position: ${e.message}")
                 }
             }
             -1

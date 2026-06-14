@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Error detail dialog: selectable main message + collapsible details section + Save to file button -->
+<!-- Error/text detail dialog (S0378): selectable main message on a distinct surface +
+     collapsible details section + a single compact icon action row (no AlertDialog button panel). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="@dimen/padding_large">
 
-    <!-- Main user-readable error message -->
+    <!-- Main user-readable message on a distinct surface, scrollbar always visible -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="@dimen/dialog_content_height_large"
-        android:scrollbars="vertical">
+        android:background="@drawable/bg_dialog_scroll_surface"
+        android:padding="@dimen/padding_small"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="insideInset"
+        android:fadeScrollbars="false">
 
         <TextView
             android:id="@+id/tvErrorMessage"
@@ -60,13 +66,63 @@
 
     </ScrollView>
 
-    <!-- Save to file action (wired programmatically in ErrorDialog) -->
-    <Button
-        android:id="@+id/btnSaveToFile"
+    <!-- Compact icon action row (all actions wired in ErrorDialog.kt) -->
+    <LinearLayout
+        android:id="@+id/layoutDialogActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_large"
-        android:text="@string/error_dialog_save_to_file"
-        style="@style/Widget.MaterialComponents.Button.TextButton" />
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Primary slot: labeled custom CTA (shown only when caller passes actionButtonText) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrimaryCta"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <!-- Primary slot: default Share (icon-only) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrimary"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_share" />
+
+        <!-- Inline slot: Save to file (default) or Copy full report (sensitive system info) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInlineAction"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_create_text_file" />
+
+        <!-- Optional extra action (e.g. clear log), wired in ScrollableTextDialog -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExtra"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <!-- Copy to clipboard -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCopy"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_copy" />
+
+        <!-- Close -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_clear" />
+
+    </LinearLayout>
 
 </LinearLayout>

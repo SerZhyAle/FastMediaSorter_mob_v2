@@ -11,7 +11,9 @@ import android.view.TextureView
 import android.widget.ImageView
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.delivery.DeliveredAudioVisualizationSource
 import timber.log.Timber
+import java.io.File
 import kotlin.random.Random
 
 /**
@@ -38,7 +40,8 @@ class AudioEmptyStateController(
     private val audioCoverArtView: ImageView,
     private val barsView: AudioBreathingBarsView,
     private val videoView: TextureView,
-    private val wavesView: AudioWaveParticleView
+    private val wavesView: AudioWaveParticleView,
+    private val deliveredSource: DeliveredAudioVisualizationSource
 ) {
 
     companion object {
@@ -54,11 +57,30 @@ class AudioEmptyStateController(
     private var currentMode: String = MODE_NONE
     private var isPlaying: Boolean = false
     private var mediaPlayer: MediaPlayer? = null
-    private var pendingResId: Int = 0
+    private var currentSurface: Surface? = null
+    private var pendingFile: File? = null
+    // True while a video visualization is live (set in showVideo(), cleared by hide()/release()/error).
+    // Gates show() so the per-track double invocation (eager + post-cover-check re-show) does not
+    // rebuild the MediaPlayer twice. A real hide() or mode switch clears it and lets show() re-init.
+    private var videoActive = false
+    // Guards against calling MediaPlayer.start() before onPrepared (prepareAsync is in flight).
+    // A premature start() raises MediaPlayer error -38 (INVALID_OPERATION), whose onError handler
+    // hides the video view -> the looping background never renders (S0407). onPrepared is the sole
+    // entry point for the initial start; external start() calls only resume after a pause.
+    private var isPrepared = false
 
     // ────────────────────────── Public API ──────────────────────────
 
     fun show(mode: String) {
+        // De-dupe the expensive video visualization. AudioCoverArtLoader fires show() twice per track:
+        // once eagerly, then again ~1.5s later when the cover-check resolves to "no cover". Each call
+        // re-picks a random clip and spins up a fresh MediaPlayer, so the background visibly swaps
+        // mid-track and a codec is allocated needlessly. Skip when the same video mode is already live
+        // (no hide() since); hide()/release()/mode switch clear videoActive and allow a genuine re-init.
+        if (mode.isVideoMode() && currentMode.isVideoMode() && videoActive) {
+            Timber.d("AudioEmptyStateController: show(mode=$mode) skipped - video already active")
+            return
+        }
         Timber.d("AudioEmptyStateController: show(mode=$mode)")
         currentMode = mode
         hideAll()
@@ -74,6 +96,7 @@ class AudioEmptyStateController(
 
     fun hide() {
         Timber.d("AudioEmptyStateController: hide()")
+        videoActive = false
         stopBars()
         stopWaves()
         releaseMediaPlayer()
@@ -93,7 +116,8 @@ class AudioEmptyStateController(
             }
             MODE_VISUALIZATION, MODE_GIF_LOOP -> {
                 if (playing) {
-                    mediaPlayer?.start()
+                    // Skip until prepared; onPrepared starts playback honoring the latest isPlaying.
+                    if (isPrepared) mediaPlayer?.start()
                 } else {
                     mediaPlayer?.let { mp ->
                         try { if (mp.isPlaying) mp.pause() } catch (_: IllegalStateException) {}
@@ -123,18 +147,23 @@ class AudioEmptyStateController(
             wavesView.startAnimation()
         }
         if (isPlaying && (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP)) {
-            mediaPlayer?.start()
+            if (isPrepared) mediaPlayer?.start()
         }
     }
 
     fun release() {
         Timber.d("AudioEmptyStateController: release()")
+        videoActive = false
         barsView.stopAndReset()
         wavesView.stopAndReset()
         releaseMediaPlayer()
+        videoView.surfaceTextureListener = null
     }
 
     // ────────────────────────── Private ──────────────────────────
+
+    private fun String.isVideoMode(): Boolean =
+        this == MODE_VISUALIZATION || this == MODE_GIF_LOOP
 
     private fun hideAll() {
         audioCoverArtView.isVisible = false
@@ -176,26 +205,37 @@ class AudioEmptyStateController(
 
     /**
      * VISUALIZATION mode: muted looping MP4 via MediaPlayer + TextureView.
-     * Works on API 16+. Falls back to CANVAS_BARS on any error.
+     * Works on API 16+. Falls back to no background (static note) when no clip is available or on any error.
      */
     private fun showVideo() {
-        val backgrounds = intArrayOf(R.raw.anim_audio_bg_1, R.raw.anim_audio_bg_2, R.raw.anim_audio_bg_3, R.raw.anim_audio_bg_4, R.raw.anim_audio_bg_5)
-        pendingResId = backgrounds[Random.nextInt(backgrounds.size)]
-        Timber.d("AudioEmptyStateController: showVideo resId=$pendingResId, " +
+        Timber.d("S0407: audio viz showVideo entry")
+        val file = deliveredSource.getRandomBackgroundFile()
+        if (file == null) {
+            videoActive = false
+            Timber.i("AudioEmptyStateController: no delivered video backgrounds found, no background shown")
+            videoView.isVisible = false
+            showStaticNote()
+            return
+        }
+        videoActive = true
+        pendingFile = file
+        Timber.d("AudioEmptyStateController: showVideo file=${file.absolutePath}, " +
             "textureAvailable=${videoView.isAvailable}, " +
             "viewSize=${videoView.width}x${videoView.height}, " +
             "surfaceTexture=${videoView.surfaceTexture}")
         videoView.isVisible = true
+        // Drop any listener captured by a prior per-track re-pick so only the current file's callback is live.
+        videoView.surfaceTextureListener = null
 
         if (videoView.isAvailable) {
             Timber.d("AudioEmptyStateController: surface already available - starting immediately")
-            startMediaPlayer(Surface(videoView.surfaceTexture!!), pendingResId)
+            startMediaPlayer(Surface(videoView.surfaceTexture!!), file)
         } else {
             Timber.d("AudioEmptyStateController: surface NOT available - waiting for callback")
             videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, w: Int, h: Int) {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureAvailable ${w}x${h}")
-                    startMediaPlayer(Surface(texture), pendingResId)
+                    startMediaPlayer(Surface(texture), file)
                 }
                 override fun onSurfaceTextureSizeChanged(t: SurfaceTexture, w: Int, h: Int) {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureSizeChanged ${w}x${h}")
@@ -209,12 +249,11 @@ class AudioEmptyStateController(
         }
     }
 
-    private fun startMediaPlayer(surface: Surface, resId: Int) {
+    private fun startMediaPlayer(surface: Surface, file: File) {
         releaseMediaPlayer()
-        Timber.d("AudioEmptyStateController: startMediaPlayer resId=$resId, surface.isValid=${surface.isValid}")
+        currentSurface = surface
+        Timber.d("AudioEmptyStateController: startMediaPlayer file=${file.absolutePath}, surface.isValid=${surface.isValid}")
         try {
-            val afd = context.resources.openRawResourceFd(resId)
-            Timber.d("AudioEmptyStateController: raw resource opened, offset=${afd.startOffset}, length=${afd.length}")
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -222,12 +261,12 @@ class AudioEmptyStateController(
                         .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
                         .build()
                 )
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
+                setDataSource(file.absolutePath)
                 setSurface(surface)
                 setVolume(0f, 0f)   // muted: decorative background only
                 isLooping = true
                 setOnPreparedListener { mp ->
+                    isPrepared = true
                     Timber.d("AudioEmptyStateController: MediaPlayer prepared, " +
                         "isPlaying=$isPlaying, " +
                         "video=${mp.videoWidth}x${mp.videoHeight}, " +
@@ -256,9 +295,10 @@ class AudioEmptyStateController(
                         MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "TIMED_OUT($extra)"
                         else -> "EXTRA_$extra"
                     }
-                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr resId=$resId - fallback to CANVAS_BARS")
+                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - no background shown")
+                    videoActive = false
                     videoView.isVisible = false
-                    showBars()
+                    showStaticNote()
                     true
                 }
                 setOnInfoListener { _, what, extra ->
@@ -270,9 +310,11 @@ class AudioEmptyStateController(
             }
         } catch (e: Exception) {
             surface.release()
-            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - fallback to CANVAS_BARS, resId=$resId")
+            currentSurface = null
+            videoActive = false
+            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - no background shown, file=${file.absolutePath}")
             videoView.isVisible = false
-            showBars()
+            showStaticNote()
         }
     }
 
@@ -314,12 +356,15 @@ class AudioEmptyStateController(
     }
 
     private fun releaseMediaPlayer() {
+        isPrepared = false
         mediaPlayer?.let {
             try { if (it.isPlaying) it.stop() } catch (_: Exception) {}
             it.reset()
             it.release()
         }
         mediaPlayer = null
+        currentSurface?.release()
+        currentSurface = null
     }
 
     // ──────────────────────── Private helpers ────────────────────────

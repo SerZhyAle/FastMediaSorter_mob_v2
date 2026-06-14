@@ -12,20 +12,30 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val saveLogsLauncher: ActivityResultLauncher<String>,
     private val gatherSystemInfoUseCase: GatherSystemInfoUseCase,
+    private val getDestinationsUseCase: GetDestinationsUseCase,
+    private val saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase,
 ) {
     fun setupVersionInfo() {
         val versionInfo = "${com.sza.fastmediasorter.BuildConfig.VERSION_NAME} | Build ${com.sza.fastmediasorter.BuildConfig.VERSION_CODE} | sza@ukr.net"
@@ -48,31 +58,28 @@ class GeneralSettingsLogHelper(
     }
 
     fun showSystemInfoDialog() {
-        Timber.d("S0337: system info dialog opened")
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val report = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
             if (!fragment.isAdded || fragment.view == null) return@launch
             val title = fragment.getString(R.string.settings_system_info_title)
-            // Offer the full-report reveal only when the report actually carries sensitive
-            // values. This is false on every flavor whose contributor set is empty (no extended
-            // diagnostics) - the branch is data-driven, not flavor-gated.
-            if (report.hasSensitive) {
-                com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                    fragment.requireContext(),
-                    title,
-                    report.maskedText,
-                    positiveButtonText = fragment.getString(R.string.close),
-                    negativeButtonText = fragment.getString(R.string.system_info_copy_full_report),
-                    onNegative = { confirmAndCopyFullReport(report.fullText) },
-                )
-            } else {
-                com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                    fragment.requireContext(),
-                    title,
-                    report.maskedText,
-                    fragment.getString(R.string.close)
-                )
-            }
+            val context = fragment.requireContext()
+            // Keep the default dialog copy/share/export paths on the masked report only.
+            // Full diagnostics remain behind a separate, confirmed action when sensitive fields exist.
+            ScrollableTextDialog.show(
+                context = context,
+                title = title,
+                message = report.maskedText,
+                inlineActionButtonText = if (report.hasSensitive) {
+                    fragment.getString(R.string.system_info_copy_full_report)
+                } else {
+                    null
+                },
+                onInlineActionClick = if (report.hasSensitive) {
+                    { confirmAndCopyFullReport(report.fullText) }
+                } else {
+                    null
+                }
+            )
         }
     }
 
@@ -126,11 +133,57 @@ class GeneralSettingsLogHelper(
                 if (fullLog) getFullLog() else getSessionLog()
             }
             if (!fragment.isAdded || fragment.view == null) return@launch
-            com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-                fragment.requireContext(),
-                if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
-                logText,
-                fragment.getString(R.string.close)
+            ScrollableTextDialog.show(
+                context = fragment.requireContext(),
+                title = if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
+                message = logText,
+                monospace = true,
+                onSaveClick = { showSaveLogToResourceDialog(fullLog = fullLog, logText = logText) }
+            )
+        }
+    }
+
+    private fun showSaveLogToResourceDialog(fullLog: Boolean, logText: String) {
+        DestinationPickerDialog(
+            context = fragment.requireContext(),
+            lifecycleOwner = fragment.viewLifecycleOwner,
+            getDestinationsUseCase = getDestinationsUseCase,
+            currentSelection = null,
+            title = fragment.getString(R.string.settings_log_save_destination_title),
+            allowClear = false,
+            onResourceSelected = { resource ->
+                resource ?: return@DestinationPickerDialog
+                saveLogToResource(resource, fullLog, logText)
+            }
+        ).show()
+    }
+
+    private fun saveLogToResource(resource: MediaResource, fullLog: Boolean, logText: String) {
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                saveTextFileToResourceUseCase(
+                    resource = resource,
+                    fileName = buildLogFileName(fullLog),
+                    content = logText,
+                )
+            }
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(
+                        fragment.requireContext(),
+                        fragment.getString(R.string.settings_log_saved_to_resource, resource.name),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                onFailure = { error ->
+                    Timber.e(error, "GeneralSettingsLogHelper: failed to save log to resource")
+                    Toast.makeText(
+                        fragment.requireContext(),
+                        R.string.settings_log_save_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             )
         }
     }
@@ -230,5 +283,11 @@ class GeneralSettingsLogHelper(
         } catch (e: Exception) {
             fragment.getString(R.string.settings_log_read_failed)
         }
+    }
+
+    private fun buildLogFileName(fullLog: Boolean): String {
+        val stamp = SimpleDateFormat("yy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+        val prefix = if (fullLog) "app_log" else "session_log"
+        return "${prefix}_$stamp.txt"
     }
 }

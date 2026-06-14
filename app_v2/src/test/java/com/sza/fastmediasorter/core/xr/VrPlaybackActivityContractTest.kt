@@ -16,10 +16,14 @@ import org.robolectric.annotation.Config
 class VrPlaybackActivityContractTest {
 
     private val context = mockk<Context>(relaxed = true)
+    private val payloadHolder = VrLaunchPayloadHolder()
 
     @Test
     fun `getSynchronousResult returns InvalidUri for file launch without uri`() {
-        val contract = VrPlaybackActivityContract(entryGateway = unavailableGateway())
+        val contract = VrPlaybackActivityContract(
+            entryGateway = unavailableGateway(),
+            payloadHolder = payloadHolder,
+        )
 
         val result = contract.getSynchronousResult(
             context = context,
@@ -37,7 +41,10 @@ class VrPlaybackActivityContractTest {
 
     @Test
     fun `parseResult keeps InvalidUri for synthetic fallback intent`() {
-        val contract = VrPlaybackActivityContract(entryGateway = unavailableGateway())
+        val contract = VrPlaybackActivityContract(
+            entryGateway = unavailableGateway(),
+            payloadHolder = payloadHolder,
+        )
 
         val fallbackIntent = contract.createIntent(
             context = context,
@@ -55,7 +62,10 @@ class VrPlaybackActivityContractTest {
 
     @Test
     fun `getSynchronousResult keeps NoRuntime for valid input when gateway is unavailable`() {
-        val contract = VrPlaybackActivityContract(entryGateway = unavailableGateway())
+        val contract = VrPlaybackActivityContract(
+            entryGateway = unavailableGateway(),
+            payloadHolder = payloadHolder,
+        )
 
         val result = contract.getSynchronousResult(
             context = context,

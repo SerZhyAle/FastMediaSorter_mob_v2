@@ -18,10 +18,12 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import android.view.View
 import com.sza.fastmediasorter.domain.model.MediaFile
-import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
+import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.player.PlayerActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,14 +42,16 @@ import java.io.File
  */
 class StandaloneFileOperationsHandler(
     private val activity: AppCompatActivity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val getCurrentMediaFile: () -> MediaFile?,
-    private val findResourceForPath: suspend (String?) -> Long?,
+    private val resolveOpenInFmsTarget: ResolveOpenInFmsTargetUseCase,
     private val onRenameComplete: (Uri, String) -> Unit,
     private val updateAudioMediaItem: (Uri) -> Unit,
     private val batchDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
     private val recoverableDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>
 ) {
+
+    private val safeViews = PlayerBindingSafeViews(root)
 
     private var pendingDeleteFileName: String? = null
     private var pendingDeleteUri: Uri? = null
@@ -135,7 +139,7 @@ class StandaloneFileOperationsHandler(
                 }
             } catch (e: SecurityException) {
                 Timber.w(e, "StandalonePlayer: non-recoverable delete permission denied for $fileName")
-                binding.btnDeleteCmd.isVisible = false
+                safeViews.setVisibleIfPresent(R.id.btnDeleteCmd, false)
                 Toast.makeText(activity, R.string.delete_permission_denied, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Timber.e(e, "StandalonePlayer: delete failed for $fileName")
@@ -245,47 +249,39 @@ class StandaloneFileOperationsHandler(
     fun openInFms() {
         val file = getCurrentMediaFile() ?: return
         val uri = (file.contentUri ?: file.path).toUri()
-        val localPath = resolveToLocalPath(uri)
-
-        if (localPath != null) {
-            val parentDir = File(localPath).parent
-            activity.lifecycleScope.launch {
-                val resourceId = findResourceForPath(parentDir)
-                if (resourceId != null) {
-                    activity.startActivity(BrowseActivity.createIntent(
-                        activity,
-                        resourceId = resourceId,
-                        initialFilePath = localPath
-                    ))
-                } else {
-                    launchMainActivity()
+        activity.lifecycleScope.launch {
+            val target = resolveOpenInFmsTarget(uri, file.type)
+            when (target) {
+                is OpenInFmsTarget.Resolved -> {
+                    activity.startActivity(
+                        PlayerActivity.createPanelIntent(
+                            activity,
+                            resourceId = target.resourceId,
+                            skipAvailabilityCheck = true,
+                            initialFilePath = target.absoluteFilePath
+                        )
+                    )
+                    activity.finish()
                 }
-                activity.finish()
+
+                OpenInFmsTarget.NotResolvable -> {
+                    Toast.makeText(
+                        activity,
+                        R.string.open_in_fms_external_file_notice,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    launchMainActivity()
+                    activity.finish()
+                }
             }
-        } else {
-            launchMainActivity()
-            activity.finish()
         }
     }
 
     private fun launchMainActivity() {
+        Timber.d("S0411: Open-in-FMS fallback launches Browse in main task (standalone player task isolated, not PiP window)")
         activity.startActivity(Intent(activity, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         })
-    }
-
-    @Suppress("DEPRECATION")
-    private fun resolveToLocalPath(uri: Uri): String? = when (uri.scheme) {
-        "file" -> uri.path
-        "content" -> try {
-            activity.contentResolver
-                .query(uri, arrayOf(MediaStore.MediaColumns.DATA), null, null, null)
-                ?.use { if (it.moveToFirst()) it.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.d(e, "StandalonePlayer: could not resolve content URI to local path")
-            null
-        }
-        else -> null
     }
 
     // ── Rename ────────────────────────────────────────────────────────────
@@ -298,13 +294,13 @@ class StandaloneFileOperationsHandler(
      */
     fun updateRenameButtonVisibility() {
         val uri = getCurrentMediaFile()?.path?.toUri() ?: run {
-            binding.btnRenameCmd.isVisible = false
+            safeViews.setVisibleIfPresent(R.id.btnRenameCmd, false)
             return
         }
         activity.lifecycleScope.launch(Dispatchers.IO) {
             val canRename = canRenameUri(uri)
             withContext(Dispatchers.Main) {
-                binding.btnRenameCmd.isVisible = canRename
+                safeViews.setVisibleIfPresent(R.id.btnRenameCmd, canRename)
             }
         }
     }

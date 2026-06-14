@@ -20,9 +20,9 @@
     <string name="settings_category_file_operations">Deletion and renaming in player</string>
     <string name="settings_category_files">Files &amp; Data</string>
     <string name="settings_category_images">Images, GIFs and slideshow</string>
-    <string name="settings_category_interface">General app interface</string>
+    <string name="settings_category_interface">General interface settings</string>
     <string name="settings_category_other">Translation, OCR and Google Lens</string>
-    <string name="settings_category_other_features">Other features</string>
+    <string name="settings_category_other_features">Camera, microphone and Other features</string>
     <string name="settings_category_other_functionality">Other functionality</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
     <string name="settings_category_player_ui">Player interface and commands</string>
@@ -64,12 +64,15 @@
     <string name="settings_log_last_lines">Last %1$d log lines:
 
 %2$s</string>
+    <string name="settings_log_save_destination_title">Save log to destination</string>
+    <string name="settings_log_save_failed">Couldn\'t save the log.</string>
+    <string name="settings_log_saved_to_resource">Log saved to: %1$s</string>
     <string name="settings_log_read_failed">Couldn\'t read the log. Try again.</string>
     <string name="settings_manage_permissions">Manage Permissions</string>
     <string name="settings_manage_permissions_desc">View and grant app permissions</string>
     <string name="settings_mic_recording_ask_filename_desc">Show rename dialog before saving the recording</string>
     <string name="settings_mic_recording_ask_filename_title">Ask for filename</string>
-    <string name="settings_mic_recording_enable_desc">Show microphone button in Browse to record audio into the current folder</string>
+    <string name="settings_mic_recording_enable_desc">Show microphone button in the file browser to record audio to a selected resource or the Downloads folder</string>
     <string name="settings_mic_recording_enable_title">Enable microphone recording</string>
     <string name="settings_network_permissions_already_granted">Network access is already on - nothing to do here.</string>
     <string name="settings_no_browser_for_docs">Couldn\'t find a browser to open the docs.</string>
@@ -85,6 +88,10 @@
     <string name="settings_profile_source_skipped">auto-skipped</string>
     <string name="settings_profile_title">Device profile</string>
     <string name="settings_profile_warning">Warning: Changing the profile will overwrite some of your settings with the default values of the new profile. Are you sure you want to proceed?</string>
+    <string name="settings_all_files_create_resource">Create resource \"All Files\"</string>
+    <string name="settings_all_files_resource_created">Resource \"All Files\" created.</string>
+    <string name="settings_all_files_profile_confirm_title">Create \"All Files\" resource</string>
+    <string name="settings_all_files_profile_confirm_message">This profile enables file-manager mode and will create the missing \"All Files\" resource. Continue?</string>
     <string name="settings_reset_settings_failed">Couldn\'t reset the settings. Try again.</string>
     <string name="settings_reset_smb_failed">Couldn\'t reset the SMB connections. Try again.</string>
     <string name="settings_saved">Settings saved</string>
@@ -132,11 +139,11 @@
     <string name="setting_confirm_delete_player_desc">Ask for confirmation before deleting files in the player</string>
     <string name="setting_confirm_move_desc">Ask for confirmation before moving files</string>
     <string name="setting_crop_images_to_fullscreen_desc">Fills the entire screen, but cropping the edges of the image</string>
-    <string name="setting_default_grid_mode_desc">Browse opens in grid mode instead of list</string>
+    <string name="setting_default_grid_mode_desc">The file browser opens in grid mode instead of list</string>
     <string name="setting_default_remember_file_list_desc">Cache file lists locally for faster loading of new resources</string>
     <string name="setting_detailed_errors_desc">Show full error details instead of simplified messages</string>
     <string name="setting_disable_camera_capture">Disable camera capture button</string>
-    <string name="setting_disable_camera_capture_summary">Hides the camera capture command in Browse</string>
+    <string name="setting_disable_camera_capture_summary">Hides the camera capture command in the file browser</string>
     <string name="setting_dynamic_background_desc">Extends the image colors beyond its edges</string>
     <string name="setting_enable_copying_desc">Allow copying files to destination folders</string>
     <string name="setting_enable_favorites_desc">Allow marking files as favorites</string>
@@ -170,14 +177,14 @@
     <string name="setting_show_pdf_thumbnails_desc">Generates large preview images for PDFs (slower on remote sources)</string>
     <string name="setting_show_subfolders_as_items_desc">Display subfolders as clickable items in the file list</string>
     <string name="setting_show_text_line_numbers_desc">Displays line numbers on the left when viewing text</string>
-    <string name="setting_show_video_thumbnails_desc">Creates preview frames for video files in the browser</string>
+    <string name="setting_show_video_thumbnails_desc">Creates preview frames for video files in the file browser</string>
     <string name="setting_skip_camera_filename_dialog">Don\'t ask for filename for captured photo and video</string>
     <string name="setting_skip_camera_filename_dialog_summary">Use timestamp filename without prompting after capture</string>
     <string name="setting_slideshow_background_music_desc">A list of audio during viewing (select images - listen to audio)</string>
     <string name="setting_small_controls_desc">Use compact control layout to save screen space</string>
     <string name="setting_support_audio_desc">Playback of MP3, FLAC, AAC, OGG, and other audio formats</string>
     <string name="setting_support_epub_desc">Reads EPUB books with bookmarks and table of contents</string>
-    <string name="setting_support_gifs_desc">Plays animated GIFs in the browser and player</string>
+    <string name="setting_support_gifs_desc">Plays animated GIFs in the file browser and player</string>
     <string name="setting_support_images_desc">Viewing of JPG, PNG, WEBP, HEIC, and other image formats</string>
     <string name="setting_support_office_documents_desc">Opens DOC, DOCX, RTF, and ODT with an external app</string>
     <string name="setting_support_pdf_desc">Opens PDFs in the built-in viewer</string>
@@ -214,4 +221,12 @@
     <string name="prefetch_margin_hint">Speed marginal - may stall</string>
     <string name="prefetch_overlay_format">%1$ds / %2$ds · %3$s</string>
     <string name="prefetch_overlay_local_copy_format">Local copy · %1$s</string>
+    <string name="settings_category_file_browser">File browser interface</string>
+    <string name="setting_mic_recording_destination_title">Microphone recordings destination</string>
+    <string name="setting_mic_recording_destination_default_downloads">Default: Downloads folder</string>
+    <string name="setting_camera_photos_destination_title">Camera photos destination</string>
+    <string name="setting_camera_photos_destination_default_camera">Default: device camera folder</string>
+    <string name="setting_video_recording_destination_title">Video recordings destination</string>
+    <string name="setting_video_recording_destination_default_movies">Default: if current resource is unavailable, device Movies folder</string>
+    <string name="setting_select_destination">Select resource..</string>
 </resources>

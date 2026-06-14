@@ -44,6 +44,16 @@ class CalculatorExpressionEvaluatorTest {
     }
 
     @Test
+    fun `integer division operator evaluates`() {
+        assertValue("3", "10 DIV 3")
+    }
+
+    @Test
+    fun `modulo operator evaluates`() {
+        assertValue("1", "10 mod 3")
+    }
+
+    @Test
     fun `square root glyph evaluates`() {
         assertValue("3", "√9")
     }

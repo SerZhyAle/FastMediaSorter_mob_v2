@@ -8,6 +8,7 @@ import android.os.Environment
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
@@ -49,6 +50,7 @@ class AppStartupInitializer @Inject constructor(
     private val renameVirtualResourcesUseCase: dagger.Lazy<RenameVirtualResourcesUseCase>,
     private val inputBindingRepository: dagger.Lazy<InputBindingRepository>,
     private val defaultsMapLoader: dagger.Lazy<DefaultsMapLoader>,
+    private val remoteSourceDisableCoordinator: RemoteSourceDisableCoordinator,
 ) {
 
     private val connectionThrottleManagerInitialized = AtomicBoolean(false)
@@ -61,6 +63,8 @@ class AppStartupInitializer @Inject constructor(
         // Glide still reads this SharedPreferences mirror during early disk-cache sizing,
         // so it stays on the eager path while the heavier migrations move behind Phase 06.
         syncCacheSizeToSharedPreferences()
+        // S0391: observe remote-source toggles to cancel in-flight work when a source is switched off.
+        remoteSourceDisableCoordinator.start()
     }
 
     suspend fun runDeferredStartupTasks() {

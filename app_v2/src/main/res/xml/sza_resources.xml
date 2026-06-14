@@ -14,7 +14,19 @@
     - showHiddenFiles: Boolean (true/false)
     - allFiles: Boolean (true/false)
     - disableThumbnails: Boolean (true/false)
-    
+
+    Optional SFTP key-auth attributes (S0046):
+    - auth: "password" (default) | "key". When "key", the resource authenticates with a bundled
+      private key instead of a password.
+    - privateKeyAsset: filename of a private key inside assets/sftp_keys/ (e.g. "host.pem").
+      Required when auth="key". On first import the key is read once and moved into encrypted
+      credentials storage; the asset is never read again at runtime. If the asset is missing or
+      unreadable the resource is skipped (no password fallback).
+    - keyPassphrase: optional passphrase for an encrypted private key. Empty/absent = key has none.
+    - hostKeyFingerprint: expected SHA256 host-key fingerprint for pinning (MITM protection).
+      Accepts SHA256:base64, hex with colons, or raw base64. Unparseable values are ignored
+      (resource stays in permissive mode). Applies to both password and key auth.
+
     Note: ID is auto-generated upon creation. Credentials for network resources will need to be handled separately or prompted.
 
     === INTEGRATION TEST INSTRUCTIONS ===
@@ -68,6 +80,8 @@
     <resource name="Home ApeFlac" path="sftp://46.54.0.135:22022/J:/MEDIA/apeflac" type="SFTP" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
 
     <resource name="Home MP3" path="sftp://46.54.0.135:22022/J:/MEDIA/mp3" type="SFTP" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="true" rememberTheFileList="true" />
+
+    <resource name="SFTP S0046 key" path="sftp://192.168.1.110:22023/C:/Users/sftp_test" type="SFTP" username="sftp_test" auth="key" privateKeyAsset="s0046_test_ed25519" hostKeyFingerprint="SHA256:hYkv5XsSgvbrudae+Jv+IU9usxACMzPgLfKFpccwXyk" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" scanSubdirectories="true" showHiddenFiles="true" showFoldersInList="true" addToDestinations="false" allFiles="true" rememberTheFileList="true" />
 
     <resource name="FTP" path="ftp://193.178.50.43:21/" type="FTP" username="sza" password="SerZhyA25SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" allFiles="true" addToDestinations="true" sortMode="SIZE_DESC" displayMode="LIST" />
 

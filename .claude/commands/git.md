@@ -1,11 +1,11 @@
 # Git Guide
 
-> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
-> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
-> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
+> **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **Dry technical prose only** - no filler.
+> 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
+> 3. **Terse report:** one dry statement of what was done and why.
 
-Git workflow for FastMediaSorter v2 - branching model, staging, committing, pushing, fix-release, and diff research.
+Git workflow for FastMediaSorter v2 - branching, staging, committing, pushing, fix-release, diff research.
 
 ## Usage
 
@@ -14,7 +14,7 @@ Git workflow for FastMediaSorter v2 - branching model, staging, committing, push
 ```
 
 Examples:
-- `/git` - show full Git reference
+- `/git` - full Git reference
 - `/git what should I commit now?`
 - `/git analyze current changes and suggest commit groups`
 - `/git how do I see what changed in PlayerActivity.kt?`
@@ -26,29 +26,22 @@ Examples:
 
 ## Process
 
-When this command is invoked with `$ARGUMENTS`:
-
-**Step 1 - Parse the request.**
-If `$ARGUMENTS` is empty, output the full Git reference below.
-If `$ARGUMENTS` asks to analyze current changes, run `git status` and `git diff --stat` and group the changes by feature/concern, then suggest commit groups.
-If `$ARGUMENTS` asks about a specific file or topic, focus the answer on that.
-
-**Step 2 - For "analyze changes" requests:**
-1. Run `git status` to see all modified and untracked files.
-2. Run `git branch --show-current` to confirm which branch is active.
-3. Group files by feature (e.g. Chromecast, HEIC/HEIF, settings, docs, infra).
-4. Identify files that should NOT be committed (see exclusion list below).
-5. Suggest 2–4 logical commit groups with proposed commit messages.
-6. Show the exact `git add` commands for each group.
-
-**Step 3 - Answer from the reference below.**
-Do not guess - use exact commands from this reference.
+On `$ARGUMENTS`:
+- **Step 1 - Parse.** Empty → output full reference. "Analyze current changes" → run `git status` + `git diff --stat`, group by feature/concern, suggest commit groups. Specific file/topic → focus there.
+- **Step 2 - "Analyze changes" requests:**
+  1. `git status` - all modified + untracked.
+  2. `git branch --show-current` - confirm active branch.
+  3. Group files by feature (e.g. Chromecast, HEIC/HEIF, settings, docs, infra).
+  4. Identify files that should NOT be committed (exclusion list below).
+  5. Suggest 2-4 logical commit groups + proposed messages.
+  6. Show exact `git add` commands per group.
+- **Step 3 - Answer from the reference below** using exact commands - never guess.
 
 ---
 
 ## Branching Model
 
-This project uses a two-tier branching model. Know it before touching git.
+Two-tier model. Know it before touching git.
 
 ### Branch roles
 
@@ -59,24 +52,22 @@ This project uses a two-tier branching model. Know it before touching git.
 
 ### Rules
 
-- **Before any task:** `git branch --show-current` - confirm you are on the expected branch.
-- **Development work goes to the current DEBUG branch, never to `main` directly.**
-- `main` accepts only:
-  - Merges from `DEBUG-v00N` after plateau verification.
-  - Fix-release commits (fixes for previously working features, no new behavior).
-- Keep at most **2 live DEBUG branches** at a time: current (next-release candidate) + optional "future".
+- **Before any task:** `git branch --show-current` - confirm expected branch.
+- **Development goes to the current DEBUG branch, never `main` directly.**
+- `main` accepts only: merges from `DEBUG-v00N` after plateau verification; fix-release commits (fixes for previously working features, no new behavior).
+- Keep at most **2 live DEBUG branches**: current (next-release candidate) + optional "future".
 - "Future" DEBUG branch is born from the current DEBUG branch, not from `main`.
 
 ### Worktrees
 
-Two permanent working directories exist simultaneously:
+Two permanent working directories coexist:
 
 | Directory | Branch | Purpose |
 |-----------|--------|---------|
 | `P:/ANDROID/FastMediaSorter_mob_v2` | `DEBUG-v001` (or current) | Development |
 | `P:/ANDROID/FastMediaSorter_release` | `main` | Release builds only |
 
-Release builds (`.\a r`, `.\a vr`, `.\a nl`) run automatically from the release worktree - no manual switching needed.
+Release builds (`.\a r`, `.\a vr`, `.\a nl`) run automatically from the release worktree - no manual switching.
 
 ```bash
 # One-time worktree setup (already done - reference only)
@@ -96,10 +87,7 @@ git worktree remove ../FastMediaSorter_release
 ### Start a session
 
 ```bash
-# Always confirm where you are
 git branch --show-current        # should be DEBUG-v00N
-
-# See what's changed
 git status
 git diff --stat
 ```
@@ -107,11 +95,8 @@ git diff --stat
 ### Commit on a DEBUG branch
 
 ```bash
-# Stage and commit as usual - everything goes to DEBUG-v00N
 git add path/to/file.kt
 git commit -m "feat: description"
-
-# Push to remote
 git push origin DEBUG-v001
 ```
 
@@ -119,10 +104,10 @@ git push origin DEBUG-v001
 
 ## Fix-Release Flow
 
-A fix-release publishes fixes for previously working features with **zero new behavior**. It commits directly to `main` (the only legitimate reason to do so outside a DEBUG merge cycle). After publishing, all live DEBUG branches must be rebased.
+Publishes fixes for previously working features with **zero new behavior**. Commits directly to `main` (the only legitimate reason outside a DEBUG merge cycle). After publishing, rebase all live DEBUG branches.
 
 ```bash
-# 1. Move to the release worktree (main)
+# 1. Move to release worktree (main)
 cd P:/ANDROID/FastMediaSorter_release
 
 # 2. Make sure main is current
@@ -139,25 +124,25 @@ git tag release/v2.60.XXXX.XXX
 git add docs/WHATS_NEW.md
 git commit -m "docs: WHATS_NEW for fix-release vX.X"
 
-# 6. Run release build (or just use .\a r from the dev directory - it auto-pulls)
+# 6. Run release build (or .\a r from dev directory - it auto-pulls)
 .\a.ps1 r
 
-# 7. Back in the dev directory - rebase DEBUG branch onto updated main
+# 7. Back in dev directory - rebase DEBUG branch onto updated main
 cd P:/ANDROID/FastMediaSorter_mob_v2
 git fetch origin main
 git rebase origin/main          # or: git rebase main (if local main is up to date)
 ```
 
-**Rule:** fix-release = only regression fixes. If you find yourself adding a new string resource, a new menu item, or new UI - stop. That belongs in DEBUG.
+**Rule:** fix-release = only regression fixes. Adding a new string resource, menu item, or UI → stop. That belongs in DEBUG.
 
 ---
 
 ## Merge DEBUG to main (Plateau Release)
 
-When the DEBUG branch reaches stability (all key specs Verified/Implemented, build stable):
+When DEBUG reaches stability (key specs Verified/Implemented, build stable):
 
 ```bash
-# 1. In release worktree: pull main to make sure it is current
+# 1. In release worktree: pull main current
 cd P:/ANDROID/FastMediaSorter_release
 git pull --ff-only
 
@@ -167,27 +152,26 @@ git merge --no-ff DEBUG-v001 -m "release: merge DEBUG-v001 into main"
 # 3. Tag the new release
 git tag release/v2.60.XXXX.XXX
 
-# 4. Push main and the tag
+# 4. Push main and tag
 git push origin main
 git push origin release/v2.60.XXXX.XXX
 
-# 5. Open the next DEBUG branch from fresh main
+# 5. Open next DEBUG branch from fresh main
 cd P:/ANDROID/FastMediaSorter_mob_v2
 git checkout main
 git pull
 git checkout -b DEBUG-v002
 git push -u origin DEBUG-v002
 
-# 6. Update the worktree to stay on main
+# 6. Worktree stays on main (already there - no action)
 cd P:/ANDROID/FastMediaSorter_release
-# (already on main - no action needed)
 ```
 
 ---
 
 ## Cherry-pick Hotfix to DEBUG
 
-After a fix-release commit lands on `main`, bring it into the current DEBUG branch:
+After a fix-release commit lands on `main`, bring it into current DEBUG:
 
 ```bash
 # Find the fix commit hash
@@ -197,7 +181,7 @@ git log --oneline origin/main -5
 cd P:/ANDROID/FastMediaSorter_mob_v2
 git cherry-pick <HASH>
 
-# Or rebase the whole DEBUG branch onto updated main (cleaner)
+# Or rebase whole DEBUG branch onto updated main (cleaner)
 git rebase origin/main
 ```
 
@@ -218,7 +202,7 @@ git diff app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.k
 # Diff vs a specific past commit
 git diff 945d22a -- app_v2/build.gradle.kts
 
-# Only the file names that changed (summary)
+# Only changed file names (summary)
 git diff --stat
 
 # What is already staged (after git add)
@@ -242,10 +226,10 @@ git add app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.
 # Stage an entire new directory
 git add app_v2/src/main/java/com/sza/fastmediasorter/core/cast/
 
-# Stage interactively - choose which hunks (chunks) within a file to include
+# Stage interactively - choose hunks within a file
 git add -p app_v2/build.gradle.kts
 
-# Verify what will be committed before committing
+# Verify what will be committed
 git diff --cached
 git status
 ```
@@ -258,7 +242,7 @@ git status
 # Single-line message
 git commit -m "feat: add HEIC/HEIF support via HeifSupportUtils"
 
-# Multi-line message (use heredoc)
+# Multi-line message (heredoc)
 git commit -m "$(cat <<'EOF'
 feat: Chromecast cast integration
 
@@ -276,7 +260,7 @@ EOF
 | Prefix | When to use |
 |--------|------------|
 | `feat:` | New user-facing feature |
-| `fix:` | Bug fix (use on DEBUG branch; on `main` only for fix-release) |
+| `fix:` | Bug fix (DEBUG branch; on `main` only for fix-release) |
 | `refactor:` | Code restructure, no behavior change |
 | `docs:` | Documentation only |
 | `chore:` | Build, config, scripts, CI |
@@ -367,7 +351,7 @@ Always commit:
 
 ## Typical Commit Grouping
 
-When multiple features are in progress simultaneously, split into logical commits:
+Multiple features in progress → split into logical commits:
 
 **Group 1 - Feature work**
 ```bash

@@ -38,10 +38,8 @@ class BrowseSmallControlsManager(
 
             val params = button.layoutParams
             if (params != null) {
-                // Save and scale height
                 params.height = (baseline * SMALL_CONTROLS_SCALE).roundToInt().coerceAtLeast(1)
                 
-                // Save and scale margins
                 if (params is android.view.ViewGroup.MarginLayoutParams) {
                     originalMargins.putIfAbsent(
                         button.id,
@@ -59,7 +57,6 @@ class BrowseSmallControlsManager(
                 button.layoutParams = params
             }
             
-            // Save and scale paddings
             originalPaddings.putIfAbsent(
                 button.id,
                 android.graphics.Rect(button.paddingLeft, button.paddingTop, button.paddingRight, button.paddingBottom)
@@ -143,8 +140,9 @@ class BrowseSmallControlsManager(
     }
 
     private fun commandPanelButtons(): List<View> = listOf(
-        binding.btnBack,
-        binding.btnFilter
+        // S0374: btnFilter now follows the shared +20% top-bar sizing contract. Reapplying the
+        // legacy compact-height override only to that button misaligns the search glyph.
+        binding.btnBack
     )
 
     private fun resolveOriginalButtonHeight(button: View): Int {

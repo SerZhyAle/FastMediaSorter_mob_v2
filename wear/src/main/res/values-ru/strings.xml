@@ -54,8 +54,8 @@
     <!-- Sync from Phone strings -->
     <string name="wear_no_sources">Нет сетевых источников.\nСинхронизируйте с телефоном или добавьте вручную.</string>
     <string name="wear_sync_from_phone">Синхр. с телефоном</string>
-    <string name="wear_sync_receiving">Получение данных…</string>
-    <string name="wear_sync_receiving_from">Получение от %s…</string>
+    <string name="wear_sync_receiving">Получение данных..</string>
+    <string name="wear_sync_receiving_from">Получение от %s..</string>
     <string name="wear_sync_complete">Синхронизация завершена</string>
     <string name="wear_sync_stats">Добавлено: %1$d  Обновлено: %2$d</string>
     <string name="wear_sync_browse_now">Открыть</string>
@@ -83,7 +83,7 @@
     <string name="hold_to_delete">Удерж. для удаления</string>
 
     <!-- Phase 3: UX Polish -->
-    <string name="loading">Загрузка…</string>
+    <string name="loading">Загрузка..</string>
     <string name="no_network_sources">Нет источников. Добавьте или синхронизируйте с телефоном.</string>
     <string name="error">Ошибка</string>
     <string name="retry">Повтор</string>
@@ -99,11 +99,11 @@
     <string name="ssh_key_configured">Настроен</string>
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
-    <string name="testing_connection">Проверка…</string>
+    <string name="testing_connection">Проверка..</string>
     <string name="connection_successful">Подключение успешно!</string>
     <string name="connection_failed_with_reason">Ошибка подключения: %s</string>
     <string name="unknown_error">Неизвестная ошибка</string>
-    <string name="saving_connection">Сохранение…</string>
+    <string name="saving_connection">Сохранение..</string>
     <string name="connection_saved">Источник сохранён!</string>
     <string name="failed_to_save_with_reason">Ошибка сохранения: %s</string>
     <string name="server_required">Требуется сервер</string>

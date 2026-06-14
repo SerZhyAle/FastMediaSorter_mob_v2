@@ -17,6 +17,7 @@ class CalculatorEngine {
         SUBTRACT("-"),
         MULTIPLY("×"),
         DIVIDE("÷"),
+        INTEGER_DIVIDE("DIV"),
         POWER("^"),
         MODULO("mod");
 
@@ -388,6 +389,18 @@ class CalculatorEngine {
                     return false
                 }
                 left.divide(right, DIVIDE_SCALE, RoundingMode.HALF_UP)
+            }
+            Operator.INTEGER_DIVIDE -> {
+                if (right.compareTo(BigDecimal.ZERO) == 0) {
+                    error = CalculatorError.DIVISION_BY_ZERO
+                    display = ZERO
+                    accumulator = null
+                    repeatOperator = null
+                    repeatOperand = null
+                    startNewInput = true
+                    return false
+                }
+                left.divideToIntegralValue(right)
             }
             Operator.POWER -> {
                 val powered = power(left, right) ?: run {

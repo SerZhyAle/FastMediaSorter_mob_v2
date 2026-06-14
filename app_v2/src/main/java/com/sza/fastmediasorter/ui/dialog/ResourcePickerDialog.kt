@@ -40,7 +40,6 @@ class ResourcePickerDialog(
         binding = DialogResourcePickerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        // Set dialog width
         val width = (context.resources.displayMetrics.widthPixels * 0.85).toInt()
         window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         

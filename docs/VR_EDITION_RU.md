@@ -89,7 +89,7 @@ VR-редакция - не отдельное приложение, а тот ж
 - **`vr`** — Meta Horizon Store / Google Play AAB. Под Store-ревью. Остаётся Store-clean: без GPL-экстракторов, без Python-рантайма, без yt-dlp. Если магазин отклонит DTS-декодер, сборка `vr` может выйти без него, а пользователей sideload-канала направляют на `noLegal`.
 - **`noLegal`** — ADB sideload через Developer Mode. Универсальная sideload-сборка покрывает телефоны, планшеты, Quest и Android XR одним APK. Всегда содержит DTS, Python+yt-dlp+NewPipeExtractor и полный VR-рантайм вне зависимости от политики магазинов. VR-функциональность gate'ится по runtime: на устройствах без OpenXR-рантайма VR-контролы показываются как disabled с advisory-надписью.
 
-> **Историческая заметка.** До 2026-05-19 для VR-only sideload существовал отдельный флейвор `vrUnlicensed`. Он слит в `noLegal` по тикету S0250, потому что `noLegal` уже нёс все нужные для VR зависимости плюс более широкую sideload-поверхность. См. [PLAN/S0250_nolegal-vr-unification.md](../PLAN/S0250_nolegal-vr-unification.md).
+> **Историческая заметка.** До 2026-05-19 для VR-only sideload существовал отдельный флейвор `vrUnlicensed`. Он слит в `noLegal` по тикету S0250, потому что `noLegal` уже нёс все нужные для VR зависимости плюс более широкую sideload-поверхность. Текущий список VR / noLegal возможностей остаётся в [FEATURES_RU.md](FEATURES_RU.md) и [DOCS_MAP.md](DOCS_MAP.md).
 
 ### Fallback на телефоне
 

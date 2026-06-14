@@ -18,7 +18,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
-import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
+import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import dagger.assisted.Assisted
@@ -37,7 +37,7 @@ import timber.log.Timber
  *  - [KEY_ACCOUNT_ID] - account whose cookies the coordinator should use (single-URL only).
  *
  * The worker posts a [NOTIF_ID_PROGRESS] foreground notification during download, then
- * a separate auto-cancel result notification when done.  For [SocialPreviewOnly] results
+ * a separate short-lived result notification when done. For [SocialPreviewOnly] results
  * the result notification includes a "Sign in" action that re-opens [ReceiveShareActivity]
  * with [ReceiveShareActivity.EXTRA_REAUTH_URL] so the full auth flow can restart.
  */
@@ -68,6 +68,9 @@ class LinkDownloadWorker @AssistedInject constructor(
         // Result notifications use NOTIF_ID_RESULT_BASE + (abs(url.hashCode) % 100)
         // to give each download its own slot while avoiding unbounded ID growth.
         private const val NOTIF_ID_RESULT_BASE = 7200
+        // Result notifications are informational; expire them automatically so stale
+        // share/download outcomes do not linger in the shade indefinitely.
+        private const val RESULT_NOTIFICATION_TIMEOUT_MS = 20 * 60 * 1000L
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -136,7 +139,7 @@ class LinkDownloadWorker @AssistedInject constructor(
                     notificationShown = true,
                 )
             )
-        }.onFailure { Timber.w(it, "S0202: result bus emit failed") }
+        }.onFailure { Timber.w(it, "result bus emit failed") }
         return Result.success(outputData)
     }
 
@@ -166,7 +169,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     private fun updateNotification(state: LinkAutoDownloadCoordinator.ProgressState) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
             .setOngoing(true)
             .addAction(buildCancelAction())
@@ -212,9 +215,10 @@ class LinkDownloadWorker @AssistedInject constructor(
         ensureChannel(nm)
 
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setTimeoutAfter(RESULT_NOTIFICATION_TIMEOUT_MS)
 
         when (result) {
             is LinkAutoDownloadCoordinator.Result.Saved -> {
@@ -367,7 +371,9 @@ class LinkDownloadWorker @AssistedInject constructor(
      * launch in [com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter.launchPlayer].
      */
     private fun buildOpenInPlayerPendingIntent(uri: Uri, originalUrl: String): PendingIntent {
-        val intent = Intent(context, StandalonePlayerActivity::class.java)
+        // S0393: route through the dispatcher (resolves media family -> specialized host); the legacy
+        // StandalonePlayerActivity is @Deprecated. Dispatcher reads intent.data for non-SEND intents.
+        val intent = Intent(context, StandalonePlayerDispatcherActivity::class.java)
             .setData(uri)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         return PendingIntent.getActivity(
@@ -388,8 +394,14 @@ class LinkDownloadWorker @AssistedInject constructor(
      * Uses the existing `link_download_channel` (no new channel introduced).
      */
     private fun buildForegroundInfo(text: String): ForegroundInfo {
+        // S0416: the single-URL doWork path calls setForeground WITHOUT going through
+        // getForegroundInfo, so the channel must be ensured here as well. Android 16 rejects a
+        // foreground notification posted to a missing channel with
+        // CannotPostForegroundServiceNotificationException. ensureChannel is idempotent.
+        ensureChannel(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        Timber.d("S0416: link-download foreground notification built (channel ensured, icon without ?attr tint)")
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setSmallIcon(R.drawable.ic_notification_cloud_download)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
             .setContentText(text)
             .setOngoing(true)

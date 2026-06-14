@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.Manifest
 import android.app.Activity
-import android.content.ClipData
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
@@ -13,30 +12,41 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import timber.log.Timber
-import java.io.File
 
 /**
  * Helpers for "Set as default player" UI in Settings and Welcome screens.
  *
+ * Platform reality: Android exposes no API to register a third-party app as the default ACTION_VIEW
+ * handler for a media MIME type, and RoleManager has no media role (S0409 research 01). The system
+ * "Open with / Always" sheet is shown solely at the OS's discretion - for a bare ACTION_VIEW on a real
+ * file when no other app already owns that type's default and at least two apps can handle it.
+ * `Intent.createChooser` never surfaces an "Always" button (it is designed to bypass defaults), so it
+ * cannot register a default and is not used here.
+ *
  * Flow (type-specific):
- * 1. Enable activity-alias components via DefaultPlayerManager (app becomes visible to OS).
- * 2. Show a dialog explaining the next step.
- * 3. Query MediaStore for an existing file of that type and open Intent.createChooser so the
- *    user sees the "Open with - Always" dialog on stock Android (Pixel/AOSP).
- * 4. If no file exists on the device, fall back to ACTION_MANAGE_DEFAULT_APPS_SETTINGS
- *    (works on Samsung/Xiaomi ROMs that have a "Media player" category there).
+ * 1. Enable the activity-alias components via DefaultPlayerManager (app becomes visible to the OS).
+ * 2. If a real sample file of that type exists AND no other app already owns the default, fire a bare
+ *    ACTION_VIEW on it so the OS can present its native "Open with / Always" sheet.
+ * 3. Otherwise (no sample, or a foreign default already set) the sheet cannot be shown, so route the
+ *    user to the system default-apps screen with a short instruction instead of silently opening an
+ *    unrelated app.
  */
 object DefaultPlayerHelper {
     private const val PDF_MIME_TYPE = "application/pdf"
     private const val OFFICE_DOCX_MIME_TYPE =
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+    // PackageManager reports this synthetic package for the system ResolverActivity, i.e. "no concrete
+    // default is set yet" - which is exactly the state in which the OS will show the Always sheet.
+    private const val ANDROID_RESOLVER_PACKAGE = "android"
 
     /**
      * Best-effort check: is this app the current default handler for media open intents?
@@ -59,7 +69,7 @@ object DefaultPlayerHelper {
                 setDataAndType(Uri.parse("content://"), mime)
                 addCategory(Intent.CATEGORY_DEFAULT)
             }
-            val resolved = pm.resolveActivity(probe, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+            val resolved = pm.resolveActivity(probe, PackageManager.MATCH_DEFAULT_ONLY)
             resolved?.activityInfo?.packageName == packageName
         }
     }
@@ -83,8 +93,8 @@ object DefaultPlayerHelper {
     // --- Type-specific entry point (Settings fragments) ---
 
     /**
-     * For Settings fragments: enable aliases, show instructional dialog, then open the
-     * system chooser for the given MIME type (e.g. audio, video, image, application/pdf).
+     * For Settings fragments: enable aliases, show instructional dialog, then either open the system
+     * "Open with" sheet for a real sample of the given MIME type or fall back to the default-apps screen.
      */
     fun showSetDefaultDialogForType(fragment: Fragment, mimeType: String) {
         if (!fragment.isAdded || fragment.activity?.isFinishing == true || fragment.activity?.isDestroyed == true) return
@@ -134,55 +144,112 @@ object DefaultPlayerHelper {
     // --- Activity overload (Welcome screen) ---
 
     /**
-     * For Activities: enable aliases then open the system chooser directly (no dialog).
+     * For Activities: enable aliases then open the system "Open with" sheet directly (no dialog).
      * The Welcome screen already provides on-page instructions, so the dialog is redundant.
      */
     fun openChooserOrFallbackFromActivity(activity: Activity, mimeType: String) {
         DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
-        val sample = findSampleFile(activity, mimeType)
-        if (sample != null) {
-            val (uri, actualMime) = sample
-            val viewIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, actualMime)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
+        val openWith = resolveOpenWithIntent(activity, mimeType)
+        if (openWith != null) {
             try {
-                activity.startActivity(viewIntent)
+                activity.startActivity(openWith)
                 return
             } catch (e: Exception) {
                 Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
             }
         }
-        if (tryOpenProbeChooser(activity, mimeType)) {
-            return
+        guideToDefaultAppsSettings(activity)
+    }
+
+    /**
+     * Like [openChooserOrFallbackFromActivity] but launches the intent through [launcher] instead of
+     * `startActivity`, so the caller gets a return callback to drive a sequence of type dialogs one at a
+     * time (S0409 enable-all). The result code is irrelevant (the sheet returns CANCELED on stock
+     * Android); the callback is used only as the "user returned, advance" signal.
+     */
+    fun openChooserOrFallbackForResult(
+        activity: Activity,
+        launcher: ActivityResultLauncher<Intent>,
+        mimeType: String,
+    ) {
+        DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
+        val openWith = resolveOpenWithIntent(activity, mimeType)
+        if (openWith != null) {
+            try {
+                launcher.launch(openWith)
+                return
+            } catch (e: Exception) {
+                Timber.w(e, "DefaultPlayerHelper: launch failed for %s", mimeType)
+            }
         }
-        Timber.w("DefaultPlayerHelper: probe intent failed, fallback to default apps settings for %s", mimeType)
-        openDefaultAppsSettingsFromActivity(activity)
+        Toast.makeText(activity, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
+        try {
+            launcher.launch(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+        } catch (e: Exception) {
+            launcher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", activity.packageName, null)
+            })
+        }
     }
 
     // --- Internal helpers ---
 
     private fun openChooserOrFallback(fragment: Fragment, mimeType: String) {
         val context = fragment.requireContext()
-        val sample = findSampleFile(context, mimeType)
-        if (sample != null) {
-            val (uri, actualMime) = sample
-            val viewIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, actualMime)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
+        val openWith = resolveOpenWithIntent(context, mimeType)
+        if (openWith != null) {
             try {
-                fragment.startActivity(viewIntent)
+                fragment.startActivity(openWith)
                 return
             } catch (e: Exception) {
                 Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
             }
         }
-        if (tryOpenProbeChooser(fragment, mimeType)) {
-            return
-        }
-        Timber.w("DefaultPlayerHelper: probe intent failed, fallback to default apps settings for %s", mimeType)
+        Toast.makeText(context, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
         openDefaultAppsSettings(fragment)
+    }
+
+    /**
+     * Build the bare ACTION_VIEW that lets the OS present its "Open with / Always" sheet, or null when
+     * the sheet cannot be shown (no real sample of this type, or another app already owns the default).
+     * Returning null is the signal to fall back to the default-apps settings screen.
+     */
+    private fun resolveOpenWithIntent(context: Context, mimeType: String): Intent? {
+        if (foreignDefaultExists(context, mimeType)) {
+            return null
+        }
+        val (uri, actualMime) = findSampleFile(context, mimeType) ?: return null
+        return Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, actualMime)
+            addCategory(Intent.CATEGORY_DEFAULT)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }
+
+    /**
+     * True when a different app is already registered as the concrete default for [mimeType]. In that
+     * state a bare ACTION_VIEW would silently open that app instead of showing the Always sheet, so the
+     * caller must route to settings. A resolver result of [ANDROID_RESOLVER_PACKAGE] (no default set yet)
+     * or our own package both count as "no foreign default".
+     */
+    private fun foreignDefaultExists(context: Context, mimeType: String): Boolean {
+        val typeIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(Uri.parse("content://"), concreteMime(mimeType))
+            addCategory(Intent.CATEGORY_DEFAULT)
+        }
+        val pkg = context.packageManager
+            .resolveActivity(typeIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            ?.activityInfo?.packageName ?: return false
+        return pkg != ANDROID_RESOLVER_PACKAGE && pkg != context.packageName
+    }
+
+    /** Collapse a wildcard MIME (e.g. "audio/&#42;") to a concrete one so PackageManager resolution and the
+     *  filters declared by the standalone aliases can match. Concrete document MIMEs pass through. */
+    private fun concreteMime(mimeType: String): String = when {
+        mimeType.startsWith("audio") -> "audio/mpeg"
+        mimeType.startsWith("video") -> "video/mp4"
+        mimeType.startsWith("image") -> "image/jpeg"
+        else -> mimeType
     }
 
     /**
@@ -207,93 +274,11 @@ object DefaultPlayerHelper {
         }
     }
 
-    private fun tryOpenProbeChooser(fragment: Fragment, mimeType: String): Boolean {
-        val context = fragment.requireContext()
-        val probe = createProbeUri(context, mimeType) ?: return false
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(probe.first, probe.second)
-            addCategory(Intent.CATEGORY_DEFAULT)
-            clipData = ClipData.newUri(context.contentResolver, "default_player_probe", probe.first)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        grantReadPermissionToResolvers(context, intent, probe.first)
-        return try {
-            // createChooser forces the system picker so the app never opens itself with its own probe file
-            fragment.startActivity(Intent.createChooser(intent, null))
-            true
-        } catch (e: Exception) {
-            Timber.w(e, "DefaultPlayerHelper: probe intent failed for %s", mimeType)
-            false
-        }
-    }
-
-    private fun tryOpenProbeChooser(activity: Activity, mimeType: String): Boolean {
-        val probe = createProbeUri(activity, mimeType) ?: return false
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(probe.first, probe.second)
-            addCategory(Intent.CATEGORY_DEFAULT)
-            clipData = ClipData.newUri(activity.contentResolver, "default_player_probe", probe.first)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        grantReadPermissionToResolvers(activity, intent, probe.first)
-        return try {
-            // createChooser forces the system picker so the app never opens itself with its own probe file
-            activity.startActivity(Intent.createChooser(intent, null))
-            true
-        } catch (e: Exception) {
-            Timber.w(e, "DefaultPlayerHelper: probe intent failed for %s", mimeType)
-            false
-        }
-    }
-
-    private fun createProbeUri(context: Context, mimeType: String): Pair<Uri, String>? {
-        val (extension, concreteMime) = when {
-            mimeType.startsWith("audio") -> "mp3" to "audio/mpeg"
-            mimeType.startsWith("video") -> "mp4" to "video/mp4"
-            mimeType.startsWith("image") -> "jpg" to "image/jpeg"
-            mimeType == PDF_MIME_TYPE -> "pdf" to PDF_MIME_TYPE
-            mimeType == "application/vnd.ms-powerpoint" && mimeType in MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES ->
-                "ppt" to "application/vnd.ms-powerpoint"
-            MediaTypeUtils.officeProbeForMimeType(mimeType) != null ->
-                MediaTypeUtils.officeProbeForMimeType(mimeType)!!
-            else -> return null
-        }
-
-        return try {
-            val dir = File(context.cacheDir, "default_player_probe").apply { mkdirs() }
-            val file = File(dir, "probe.$extension")
-            if (!file.exists()) {
-                file.writeBytes(byteArrayOf(0x00))
-            }
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file
-            )
-            uri to concreteMime
-        } catch (e: Exception) {
-            Timber.w(e, "DefaultPlayerHelper: failed to create probe file for %s", mimeType)
-            null
-        }
-    }
-
     private fun defaultOfficeMimeType(): String? {
         val officeMimeTypes = MediaTypeUtils.OFFICE_DOCUMENT_MIME_TYPES
         return when {
             OFFICE_DOCX_MIME_TYPE in officeMimeTypes -> OFFICE_DOCX_MIME_TYPE
             else -> officeMimeTypes.firstOrNull()
-        }
-    }
-
-    private fun grantReadPermissionToResolvers(context: Context, intent: Intent, uri: Uri) {
-        val matches = context.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        for (resolveInfo in matches) {
-            val packageName = resolveInfo.activityInfo?.packageName ?: continue
-            try {
-                context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            } catch (e: Exception) {
-                Timber.d(e, "DefaultPlayerHelper: could not pre-grant URI to %s", packageName)
-            }
         }
     }
 
@@ -366,6 +351,11 @@ object DefaultPlayerHelper {
             Timber.e(e, "DefaultPlayerHelper: MediaStore files query failed for %s", mimeType)
             null
         }
+    }
+
+    private fun guideToDefaultAppsSettings(activity: Activity) {
+        Toast.makeText(activity, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
+        openDefaultAppsSettingsFromActivity(activity)
     }
 
     private fun openDefaultAppsSettings(fragment: Fragment) {

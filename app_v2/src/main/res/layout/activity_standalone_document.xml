@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0380: trimmed standalone layout for document files (PDF / EPUB / Office). Carries the same view
+  ids as activity_player_unified.xml for the document view subtrees (so the decoupled
+  PdfViewerManager / EpubViewerManager / Office host attach unchanged via PlayerBindingSafeViews),
+  plus the pdf/epub control overlays, search panel and translation overlay. Omits the
+  audio-cover/video/text-editor/lyrics/touch-zone view hierarchies that a document open never needs -
+  that omission is the cold-start inflation win. The command panel hosts the file-op actions plus the
+  pdf/epub/text cmd buttons the viewers toggle by visibility.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/black"
+    tools:context=".ui.player.standalone.DocumentStandaloneActivity">
+
+    <!-- Top command panel: Back + file-op actions + document (pdf/epub/text) cmd actions -->
+    <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
+
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:focusable="true" android:clickable="true" android:nextFocusRight="@id/btnDeleteCmd" />
+
+        <HorizontalScrollView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:scrollbars="none" android:fillViewport="true">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+
+                <!-- S0389: folder-paging controls. Hidden until the opened file resolves to a local folder
+                     with >1 host-supported neighbour; the activity toggles visibility from VM state. -->
+                <ImageButton android:id="@+id/btnPagePrev" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/previous_file" android:src="@drawable/ic_skip_previous" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnBack" android:nextFocusRight="@id/btnPageNext" />
+
+                <ImageButton android:id="@+id/btnPageNext" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/next_file" android:src="@drawable/ic_skip_next" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnPagePrev" android:nextFocusRight="@id/btnPageRandom" />
+
+                <ImageButton android:id="@+id/btnPageRandom" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/random_file_description" android:src="@drawable/ic_random_nav" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnPageNext" android:nextFocusRight="@id/btnPageSlideshow" />
+
+                <ImageButton android:id="@+id/btnPageSlideshow" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/slideshow" android:src="@drawable/ic_slideshow" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnPageRandom" android:nextFocusRight="@id/btnDeleteCmd" />
+
+                <ImageButton android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@drawable/ic_delete" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnBack" android:nextFocusRight="@id/btnFavorite" />
+
+                <ImageButton android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/favorite" android:src="@drawable/ic_star_outline" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnDeleteCmd" android:nextFocusRight="@id/btnShareCmd" />
+
+                <ImageButton android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnFavorite" android:nextFocusRight="@id/btnInfoCmd" />
+
+                <ImageButton android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/file_information" android:src="@drawable/ic_info" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnShareCmd" android:nextFocusRight="@id/btnRenameCmd" />
+
+                <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" android:nextFocusLeft="@id/btnInfoCmd" android:nextFocusRight="@id/btnSearchPdfCmd" />
+
+                <!-- PDF cmd buttons (visibility owned by PdfViewerManager.displayPdf) -->
+                <ImageButton android:id="@+id/btnSearchPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search_in_pdf" android:src="@drawable/ic_search" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnTranslatePdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate_page" android:src="@drawable/ic_translate" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnGoogleLensPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/google_lens" android:src="@drawable/ic_google_lens" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/pdf_text_mode_enter" android:text="TXT" android:textColor="@color/selector_player_button_tint" android:textStyle="bold" android:gravity="center" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+
+                <!-- EPUB cmd buttons (visibility owned by EpubViewerManager.displayEpub) -->
+                <ImageButton android:id="@+id/btnSearchEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@drawable/ic_search" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnTranslateEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/epub_reader_settings" android:src="@drawable/ic_book" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <!-- Text cmd buttons: present for id parity (PdfViewerManager toggles them GONE). -->
+                <ImageButton android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@drawable/ic_search" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:src="@drawable/ic_edit_20" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+                <ImageButton android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <!-- S0393: overflow pinned outside the scroll so it stays reachable when the doc-button row overflows. -->
+        <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" android:focusable="true" android:clickable="true" />
+
+    </LinearLayout>
+
+    <!-- Document content area: the same view ids the document viewers reference in the unified layout -->
+    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+
+        <!-- Audio cover/info kept for id parity: PDF/EPUB managers reset them GONE on display. -->
+        <ImageView android:id="@+id/audioCoverArtView" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="top|center_horizontal" android:adjustViewBounds="true" android:visibility="gone" android:scaleType="fitCenter" android:background="@color/black" android:contentDescription="@string/audio_cover_art" />
+
+        <LinearLayout android:id="@+id/audioInfoOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:orientation="vertical" android:visibility="gone" />
+
+        <!-- PlayerView kept GONE for id parity (document managers reset it). -->
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:resize_mode="fit" />
+
+        <!-- Standard ImageView for id parity. -->
+        <ImageView android:id="@+id/imageView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitCenter" android:contentDescription="@null" />
+
+        <!-- Dual-surface container hosting the PhotoView reused for PDF pages -->
+        <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoViewSurfaceB" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+        </FrameLayout>
+
+        <!-- PDF vertical scroll mode RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/pdfScrollRecyclerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/activity_player_unified_topCommandPanel_background" android:clipToPadding="false" android:scrollbars="vertical" />
+
+        <!-- Google Lens style translation overlay (drawn on top of PDF pages) -->
+        <com.sza.fastmediasorter.ui.player.views.TranslationOverlayView android:id="@+id/translationLensOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:elevation="@dimen/elevation_player_overlay" android:clickable="true" android:focusable="true" />
+
+        <!-- EPUB WebView container (WebView created programmatically by EpubViewerManager) -->
+        <FrameLayout android:id="@+id/epubWebView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
+
+        <!-- Office viewer host slot (engine-backed only in noLegal; GONE elsewhere) -->
+        <FrameLayout android:id="@+id/officeDocumentViewerContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
+
+        <ImageButton android:id="@+id/btnExitEpubFullscreen" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:src="@drawable/ic_fullscreen_exit" android:background="@drawable/bg_circle_dark" app:tint="@color/white" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:visibility="gone" android:contentDescription="@string/exit_fullscreen" />
+
+        <!-- PDF fullscreen overlay (PhotoView + exit button) -->
+        <include layout="@layout/player_pdf_fullscreen_overlay_content" />
+
+        <!-- PDF navigation control bar -->
+        <include layout="@layout/player_pdf_controls_overlay_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom" />
+
+        <!-- EPUB navigation control bar -->
+        <include layout="@layout/player_epub_controls_overlay_content" />
+
+        <!-- Shared search panel + translation overlay (PDF/EPUB) -->
+        <include layout="@layout/player_search_panel_content" />
+
+        <include layout="@layout/player_translation_overlay_content" />
+
+        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>

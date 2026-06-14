@@ -113,7 +113,6 @@ class CloudThumbnailDataFetcher(
     }
 
     private fun loadGoogleDriveImage(callback: DataFetcher.DataCallback<in InputStream>) {
-        // Get access token
         val accessToken = getGoogleAccessToken()
         if (accessToken == null) {
             callback.onLoadFailed(Exception("No Google Drive access token available"))

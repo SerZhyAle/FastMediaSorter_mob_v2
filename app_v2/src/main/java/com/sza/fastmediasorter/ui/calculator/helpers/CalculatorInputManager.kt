@@ -3,20 +3,35 @@ package com.sza.fastmediasorter.ui.calculator.helpers
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
+import android.view.ContextThemeWrapper
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import timber.log.Timber
 import java.io.File
 import kotlin.concurrent.thread
+import kotlin.math.ceil
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 class CalculatorInputManager(
     private val binding: ActivityCalculatorBinding,
@@ -188,22 +203,7 @@ class CalculatorInputManager(
             menu.add(0, MENU_COPY, 0, R.string.copy)
             menu.add(0, MENU_PASTE, 1, R.string.calculator_action_paste)
             menu.add(0, MENU_ROUND, 2, R.string.calculator_action_round)
-            menu.addSubMenu(0, MENU_FUNCTION, 3, R.string.calculator_action_function).apply {
-                add(0, FN_SIN, 0, R.string.calculator_fn_sin)
-                add(0, FN_COS, 1, R.string.calculator_fn_cos)
-                add(0, FN_TAN, 2, R.string.calculator_fn_tan)
-                add(0, FN_COT, 3, R.string.calculator_fn_cot)
-                add(0, FN_SQRT, 4, R.string.calculator_fn_sqrt)
-                add(0, FN_CBRT, 5, R.string.calculator_fn_cbrt)
-                add(0, FN_SQUARE, 6, R.string.calculator_fn_square)
-                add(0, FN_POWER, 7, R.string.calculator_fn_power)
-                add(0, FN_RECIPROCAL, 8, R.string.calculator_fn_reciprocal)
-                add(0, FN_LOG10, 9, R.string.calculator_fn_log10)
-                add(0, FN_LN, 10, R.string.calculator_fn_ln)
-                add(0, FN_FACTORIAL, 11, R.string.calculator_fn_factorial)
-                add(0, FN_PI, 12, R.string.calculator_fn_pi)
-                add(0, FN_MOD, 13, R.string.calculator_fn_mod)
-            }
+            menu.add(0, MENU_FUNCTION, 3, context.getString(R.string.calculator_action_function) + "  ▸")
             menu.add(0, MENU_SHARE_RESULT, 4, R.string.calculator_action_share_result)
             menu.add(0, MENU_SAVE_HISTORY, 5, R.string.calculator_action_save_history)
             menu.add(0, MENU_CLEAR_HISTORY, 6, R.string.calculator_action_clear_history)
@@ -212,10 +212,122 @@ class CalculatorInputManager(
         }
     }
 
+    private fun showFunctionChooser() {
+        val margin = context.resources.getDimensionPixelSize(R.dimen.margin_tiny)
+        val padding = context.resources.getDimensionPixelSize(R.dimen.margin_small)
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+            setPadding(padding, padding, padding, padding)
+        }
+        val leftColumn = createFunctionColumn()
+        val rightColumn = createFunctionColumn()
+        val scrollView = ScrollView(context).apply {
+            isFillViewport = true
+            isVerticalScrollBarEnabled = true
+            layoutParams = LinearLayout.LayoutParams(
+                MATCH_PARENT,
+                resolveFunctionDialogHeightPx(margin, padding),
+            )
+            addView(container)
+        }
+        lateinit var dialog: AlertDialog
+        FUNCTION_MENU_ITEMS.forEachIndexed { index, item ->
+            val targetColumn = if (index % 2 == 0) leftColumn else rightColumn
+            targetColumn.addView(
+                createFunctionButton(item, margin) { itemId ->
+                    dialog.dismiss()
+                    handleMenuItem(itemId)
+                }
+            )
+        }
+        container.addView(leftColumn)
+        container.addView(rightColumn)
+
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.calculator_action_function)
+            .setView(scrollView)
+            .create()
+        dialog.show()
+        dialog.window?.setLayout(resolveFunctionDialogWidthPx(), WRAP_CONTENT)
+        leftColumn.getChildAt(0)?.requestFocus()
+        DialogAccessibilityHelper.applyInitialFocus(dialog)
+    }
+
+    private fun createFunctionColumn(): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+        }
+
+    private fun createFunctionButton(
+        item: FunctionMenuItem,
+        margin: Int,
+        onSelect: (Int) -> Unit,
+    ): MaterialButton {
+        val themedContext = ContextThemeWrapper(context, R.style.Widget_FastMediaSorter_Calculator_Button)
+        val textSizePx = context.resources.getDimension(R.dimen.text_size_normal)
+        val horizontalPadding = context.resources.getDimensionPixelSize(R.dimen.padding_normal)
+        val verticalPadding = context.resources.getDimensionPixelSize(R.dimen.padding_small)
+        return MaterialButton(
+            themedContext,
+            null,
+            com.google.android.material.R.attr.materialButtonOutlinedStyle,
+        ).apply {
+            text = context.getString(item.labelRes)
+            contentDescription = text
+            isAllCaps = false
+            gravity = Gravity.CENTER
+            insetTop = 0
+            insetBottom = 0
+            minWidth = 0
+            minimumWidth = 0
+            minimumHeight = 0
+            minHeight = 0
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
+            minLines = 2
+            maxLines = 2
+            setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                setMargins(margin, margin, margin, margin)
+            }
+            setOnClickListener { onSelect(item.itemId) }
+        }
+    }
+
+    private fun resolveFunctionDialogWidthPx(): Int {
+        val isLandscape =
+            context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val maxWidth = dpToPx(if (isLandscape) FUNCTION_DIALOG_MAX_WIDTH_LAND_DP else FUNCTION_DIALOG_MAX_WIDTH_PORT_DP)
+        val horizontalMargin = dpToPx(FUNCTION_DIALOG_SIDE_MARGIN_DP)
+        val availableWidth = context.resources.displayMetrics.widthPixels - (horizontalMargin * 2)
+        return min(availableWidth, maxWidth)
+    }
+
+    private fun resolveFunctionDialogHeightPx(itemMargin: Int, containerPadding: Int): Int {
+        val rows = ceil(FUNCTION_MENU_ITEMS.size / FUNCTION_DIALOG_COLUMN_COUNT.toDouble()).toInt()
+        val contentHeight =
+            (rows * dpToPx(FUNCTION_DIALOG_BUTTON_HEIGHT_DP)) +
+                (rows * itemMargin * 2) +
+                (containerPadding * 2)
+        val isLandscape =
+            context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val maxHeight = dpToPx(if (isLandscape) FUNCTION_DIALOG_MAX_HEIGHT_LAND_DP else FUNCTION_DIALOG_MAX_HEIGHT_PORT_DP)
+        return min(contentHeight, maxHeight)
+    }
+
+    private fun dpToPx(valueDp: Int): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            valueDp.toFloat(),
+            context.resources.displayMetrics,
+        ).roundToInt()
+
     private fun handleMenuItem(itemId: Int): Boolean = when (itemId) {
         MENU_COPY -> { copyDisplay(); true }
         MENU_PASTE -> { pasteNumber(); true }
         MENU_ROUND -> { update { roundDisplay() }; true }
+        MENU_FUNCTION -> { showFunctionChooser(); true }
         MENU_SHARE_RESULT -> { shareResult(); true }
         MENU_SAVE_HISTORY -> { saveHistory(); true }
         MENU_CLEAR_HISTORY -> { clearHistory(); true }
@@ -232,6 +344,7 @@ class CalculatorInputManager(
         FN_LN -> { update { naturalLog() }; true }
         FN_FACTORIAL -> { update { factorial() }; true }
         FN_PI -> { update { inputPi() }; true }
+        FN_INTEGER_DIVIDE -> { update { inputOperator("DIV") }; true }
         FN_MOD -> { update { inputOperator("mod") }; true }
         else -> false
     }
@@ -367,7 +480,34 @@ class CalculatorInputManager(
         const val FN_FACTORIAL = 111
         const val FN_PI = 112
         const val FN_MOD = 113
+        const val FN_INTEGER_DIVIDE = 114
         const val CLIP_LABEL = "calculator"
         const val HISTORY_FILE_NAME = "calculator_history.txt"
+        const val FUNCTION_DIALOG_COLUMN_COUNT = 2
+        const val FUNCTION_DIALOG_BUTTON_HEIGHT_DP = 44
+        const val FUNCTION_DIALOG_SIDE_MARGIN_DP = 16
+        const val FUNCTION_DIALOG_MAX_WIDTH_PORT_DP = 320
+        const val FUNCTION_DIALOG_MAX_WIDTH_LAND_DP = 420
+        const val FUNCTION_DIALOG_MAX_HEIGHT_PORT_DP = 320
+        const val FUNCTION_DIALOG_MAX_HEIGHT_LAND_DP = 360
+        val FUNCTION_MENU_ITEMS = listOf(
+            FunctionMenuItem(FN_SIN, R.string.calculator_fn_sin),
+            FunctionMenuItem(FN_COS, R.string.calculator_fn_cos),
+            FunctionMenuItem(FN_TAN, R.string.calculator_fn_tan),
+            FunctionMenuItem(FN_COT, R.string.calculator_fn_cot),
+            FunctionMenuItem(FN_SQRT, R.string.calculator_fn_sqrt),
+            FunctionMenuItem(FN_CBRT, R.string.calculator_fn_cbrt),
+            FunctionMenuItem(FN_SQUARE, R.string.calculator_fn_square),
+            FunctionMenuItem(FN_POWER, R.string.calculator_fn_power),
+            FunctionMenuItem(FN_RECIPROCAL, R.string.calculator_fn_reciprocal),
+            FunctionMenuItem(FN_LOG10, R.string.calculator_fn_log10),
+            FunctionMenuItem(FN_LN, R.string.calculator_fn_ln),
+            FunctionMenuItem(FN_FACTORIAL, R.string.calculator_fn_factorial),
+            FunctionMenuItem(FN_INTEGER_DIVIDE, R.string.calculator_fn_div),
+            FunctionMenuItem(FN_MOD, R.string.calculator_fn_mod),
+            FunctionMenuItem(FN_PI, R.string.calculator_fn_pi),
+        )
     }
+
+    private data class FunctionMenuItem(val itemId: Int, val labelRes: Int)
 }

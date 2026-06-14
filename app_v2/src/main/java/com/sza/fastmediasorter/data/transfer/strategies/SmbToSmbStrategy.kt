@@ -32,7 +32,6 @@ class SmbToSmbStrategy @Inject constructor(
         val sourceSmbInfo = SmbPathUtils.parseSmbPath(sourcePath) ?: return false
         val destSmbInfo = SmbPathUtils.parseSmbPath(destPath) ?: return false
 
-        // Check existence
         if (!overwrite) {
             val existsResult = smbClient.exists(destSmbInfo.connectionInfo, destSmbInfo.remotePath)
             if (existsResult is SmbResult.Success && existsResult.data) {

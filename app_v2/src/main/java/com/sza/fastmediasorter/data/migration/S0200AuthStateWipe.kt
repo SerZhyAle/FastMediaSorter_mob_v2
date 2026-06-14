@@ -74,9 +74,9 @@ class S0200AuthStateWipe @Inject constructor(
             // 6. Persist sentinel LAST so a partial-failure run re-attempts on next launch.
             prefs.edit().putBoolean(KEY_DONE, true).commit()
 
-            Timber.i("S0200: legacy auth-state wipe completed (revocation-queued=${staleBlobs.size})")
+            Timber.i("legacy auth-state wipe completed (revocation-queued=${staleBlobs.size})")
         } catch (t: Throwable) {
-            Timber.e(t, "S0200: legacy auth-state wipe failed; will retry on next launch")
+            Timber.e(t, "legacy auth-state wipe failed; will retry on next launch")
         }
     }
 

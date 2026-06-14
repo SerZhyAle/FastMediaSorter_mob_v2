@@ -15,7 +15,7 @@ class OfficeDocumentViewerProviderFactory {
      * so the player keeps the S0299 external-handoff behavior.
      */
     fun createViewerHost(
-        binding: com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding,
+        root: android.view.View,
         coroutineScope: kotlinx.coroutines.CoroutineScope,
         callback: OfficeDocumentViewerHost.Callback,
     ): OfficeDocumentViewerHost = NoOpOfficeDocumentViewerHost

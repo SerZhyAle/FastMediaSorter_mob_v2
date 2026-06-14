@@ -11,12 +11,10 @@ import android.view.Window
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSlideshowSettingsBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -66,7 +64,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
         // Interval Slider
         binding.sliderInterval.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
-                // Update text
                 binding.tvIntervalValue.text = "${value.toInt()}s"
             }
         }
@@ -92,7 +89,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             openMusicPicker()
         }
 
-        // Clear Music
         binding.btnClearMusic.setOnClickListener {
             viewModel.setSlideshowMusic(null)
             releaseUriPermissions() // Clean up permissions if needed (optional)
@@ -100,30 +96,26 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
     }
 
     private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.state.collectLatest { state ->
-                // Update Interval
-                val intervalSec = (state.slideShowInterval / 1000L).toFloat()
-                binding.sliderInterval.value = intervalSec.coerceIn(1f, 60f)
-                binding.tvIntervalValue.text = "${intervalSec.toInt()}s"
+        collectOnLifecycle(viewModel.state) { state ->
+            val intervalSec = (state.slideShowInterval / 1000L).toFloat()
+            binding.sliderInterval.value = intervalSec.coerceIn(1f, 60f)
+            binding.tvIntervalValue.text = "${intervalSec.toInt()}s"
 
-                // Update Play to End
-                binding.cbPlayToEnd.isChecked = state.playToEndInSlideshow
+            // Update Play to End
+            binding.cbPlayToEnd.isChecked = state.playToEndInSlideshow
 
-                // Update Music Status
-                val musicUri = state.slideshowMusicUri
-                if (musicUri != null) {
-                    val uri = Uri.parse(musicUri)
-                    // Try to get filename
-                    val filename = getFileName(uri) ?: uri.lastPathSegment ?: "Unknown File"
-                    binding.tvMusicStatus.text = filename
-                    binding.btnClearMusic.visibility = View.VISIBLE
-                    binding.btnSelectMusic.text = getString(R.string.select_music_file) // "Change Music" ?
-                } else {
-                    binding.tvMusicStatus.text = getString(R.string.no_music_selected)
-                    binding.btnClearMusic.visibility = View.GONE
-                    binding.btnSelectMusic.text = getString(R.string.select_music_file)
-                }
+            val musicUri = state.slideshowMusicUri
+            if (musicUri != null) {
+                val uri = Uri.parse(musicUri)
+                // Try to get filename
+                val filename = getFileName(uri) ?: uri.lastPathSegment ?: "Unknown File"
+                binding.tvMusicStatus.text = filename
+                binding.btnClearMusic.visibility = View.VISIBLE
+                binding.btnSelectMusic.text = getString(R.string.select_music_file) // "Change Music" ?
+            } else {
+                binding.tvMusicStatus.text = getString(R.string.no_music_selected)
+                binding.btnClearMusic.visibility = View.GONE
+                binding.btnSelectMusic.text = getString(R.string.select_music_file)
             }
         }
     }

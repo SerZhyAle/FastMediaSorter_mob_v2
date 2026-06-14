@@ -20,9 +20,9 @@
     <string name="settings_category_file_operations">Удаление и переименование в плеере</string>
     <string name="settings_category_files">Файлы и данные</string>
     <string name="settings_category_images">Изображения, GIF и слайд-шоу</string>
-    <string name="settings_category_interface">Общий интерфейс программы</string>
+    <string name="settings_category_interface">Общие настройки интерфейса</string>
     <string name="settings_category_other">Перевод, OCR и Google Lens</string>
-    <string name="settings_category_other_features">Прочий функционал</string>
+    <string name="settings_category_other_features">Камера, микрофон и прочий функционал</string>
     <string name="settings_category_other_functionality">Прочий функционал</string>
     <string name="settings_category_permissions">Разрешения и доступ</string>
     <string name="settings_category_player_ui">Интерфейс и команды плеера</string>
@@ -64,12 +64,15 @@
     <string name="settings_log_last_lines">Последние %1$d строк лога:
 
 %2$s</string>
+    <string name="settings_log_save_destination_title">Сохранить лог в ресурс</string>
+    <string name="settings_log_save_failed">Не получилось сохранить лог.</string>
+    <string name="settings_log_saved_to_resource">Лог сохранён в: %1$s</string>
     <string name="settings_log_read_failed">Не получилось прочитать лог. Попробуйте ещё раз.</string>
     <string name="settings_manage_permissions">Управление разрешениями</string>
     <string name="settings_manage_permissions_desc">Просмотр и выдача разрешений приложения</string>
     <string name="settings_mic_recording_ask_filename_desc">Показывать диалог переименования перед сохранением записи</string>
     <string name="settings_mic_recording_ask_filename_title">Спрашивать имя файла</string>
-    <string name="settings_mic_recording_enable_desc">Показывать кнопку микрофона в Browse для записи аудио в текущую папку</string>
+    <string name="settings_mic_recording_enable_desc">Показывать кнопку микрофона в браузере файлов для записи аудио в выбранный ресурс или в папку Downloads</string>
     <string name="settings_mic_recording_enable_title">Включить запись с микрофона</string>
     <string name="settings_network_permissions_already_granted">Сетевые разрешения уже включены - здесь делать нечего.</string>
     <string name="settings_no_browser_for_docs">Не нашёлся браузер, чтобы открыть документацию.</string>
@@ -85,6 +88,10 @@
     <string name="settings_profile_source_skipped">авто-пропущено</string>
     <string name="settings_profile_title">Профиль устройства</string>
     <string name="settings_profile_warning">Внимание: изменение профиля сбросит часть настроек на значения по умолчанию для нового профиля. Вы уверены, что хотите продолжить?</string>
+    <string name="settings_all_files_create_resource">Создать ресурс «Все файлы»</string>
+    <string name="settings_all_files_resource_created">Ресурс «Все файлы» создан.</string>
+    <string name="settings_all_files_profile_confirm_title">Создать ресурс «Все файлы»</string>
+    <string name="settings_all_files_profile_confirm_message">Этот профиль включает режим файлового менеджера и создаст отсутствующий ресурс «Все файлы». Продолжить?</string>
     <string name="settings_reset_settings_failed">Не получилось сбросить настройки. Попробуйте ещё раз.</string>
     <string name="settings_reset_smb_failed">Не получилось сбросить SMB-подключения. Попробуйте ещё раз.</string>
     <string name="settings_saved">Настройки сохранены</string>
@@ -132,11 +139,11 @@
     <string name="setting_confirm_delete_player_desc">Запрашивать подтверждение перед удалением файлов в проигрывателе</string>
     <string name="setting_confirm_move_desc">Запрашивать подтверждение перед перемещением файлов</string>
     <string name="setting_crop_images_to_fullscreen_desc">Заполняет весь экран, но обрезая края изображения</string>
-    <string name="setting_default_grid_mode_desc">Browse открывается в режиме сетки вместо списка</string>
+    <string name="setting_default_grid_mode_desc">Браузер файлов открывается в режиме сетки вместо списка</string>
     <string name="setting_default_remember_file_list_desc">Кэшировать списки файлов локально для ускорения загрузки новых ресурсов</string>
     <string name="setting_detailed_errors_desc">Показывать полные детали ошибок вместо упрощённых сообщений</string>
     <string name="setting_disable_camera_capture">Отключить вызов фотоаппарата</string>
-    <string name="setting_disable_camera_capture_summary">Скрывает команду съёмки в Browse</string>
+    <string name="setting_disable_camera_capture_summary">Скрывает команду съёмки в браузере файлов</string>
     <string name="setting_dynamic_background_desc">Продолжает цвета изображения за его края</string>
     <string name="setting_enable_copying_desc">Разрешить копирование файлов в папки назначения</string>
     <string name="setting_enable_favorites_desc">Разрешить отмечать файлы как избранные</string>
@@ -170,14 +177,14 @@
     <string name="setting_show_pdf_thumbnails_desc">Создаёт крупные превью для PDF (медленнее для удалённых источников)</string>
     <string name="setting_show_subfolders_as_items_desc">Показывать подпапки как кликабельные элементы в списке файлов</string>
     <string name="setting_show_text_line_numbers_desc">Отображает номера строк слева при просмотре текста</string>
-    <string name="setting_show_video_thumbnails_desc">Создаёт превью-кадры для видеофайлов в обозревателе</string>
+    <string name="setting_show_video_thumbnails_desc">Создаёт превью-кадры для видеофайлов в браузере файлов</string>
     <string name="setting_skip_camera_filename_dialog">Не спрашивать имя файла для результата съёмки</string>
     <string name="setting_skip_camera_filename_dialog_summary">Использовать имя по времени съёмки без диалога</string>
     <string name="setting_slideshow_background_music_desc">Список аудио во время просмотра (выбираешь изображения - слушаешь аудио)</string>
     <string name="setting_small_controls_desc">Компактные элементы управления для экономии места</string>
     <string name="setting_support_audio_desc">Воспроизведение MP3, FLAC, AAC, OGG и других аудиоформатов</string>
     <string name="setting_support_epub_desc">Читает EPUB-книги с закладками и оглавлением</string>
-    <string name="setting_support_gifs_desc">Воспроизводит анимированные GIF в обозревателе и плеере</string>
+    <string name="setting_support_gifs_desc">Воспроизводит анимированные GIF в браузере файлов и плеере</string>
     <string name="setting_support_images_desc">Просмотр JPG, PNG, WEBP, HEIC и других форматов изображений</string>
     <string name="setting_support_office_documents_desc">Открывает DOC, DOCX, RTF и ODT во внешнем приложении</string>
     <string name="setting_support_pdf_desc">Открывает PDF во встроенном просмотрщике</string>
@@ -214,4 +221,12 @@
     <string name="prefetch_margin_hint">Скорость на грани - возможны паузы</string>
     <string name="prefetch_overlay_format">%1$dс / %2$dс · %3$s</string>
     <string name="prefetch_overlay_local_copy_format">Локальная копия · %1$s</string>
+    <string name="settings_category_file_browser">Интерфейс браузера файлов</string>
+    <string name="setting_mic_recording_destination_title">Ресурс для записей с микрофона</string>
+    <string name="setting_mic_recording_destination_default_downloads">По умолчанию: папка Downloads</string>
+    <string name="setting_camera_photos_destination_title">Ресурс для фото с камеры</string>
+    <string name="setting_camera_photos_destination_default_camera">По умолчанию: папка камеры устройства</string>
+    <string name="setting_video_recording_destination_title">Ресурс для записи видео</string>
+    <string name="setting_video_recording_destination_default_movies">По умолчанию: если текущий ресурс недоступен, папка Movies устройства</string>
+    <string name="setting_select_destination">Выбрать ресурс..</string>
 </resources>

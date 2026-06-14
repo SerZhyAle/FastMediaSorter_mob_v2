@@ -9,6 +9,7 @@
 - [Functionality log](project_functionality_log.md) - dev/FUNCTIONALITY.log written via scripts/add_to_functionality_log.ps1 for user-visible behaviour changes
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash command-substitutes `text` inside double quotes and silently strips the word
 - [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) - verify own work via per-class XML reports; use assembleStandardDebug for compile checks
+- [Isolate parallel-ticket compile breakage](feedback_isolate_parallel_ticket_breakage.md) - stash ALL forbidden parallel files in ONE atomic git command; multi-line backslash pathspecs silently drop some and scatter their work
 - [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; new buckets must be added to $srcRoots before catalog_sync picks them up
 - [set.ps1 stops on error](project_catalog_set_ps1_stops_on_error.md) - wrap each call in try/catch for batch role/status fills; -Path uses package-root form
 - [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - new signingConfig requires a manifest <intent-filter> hash AND an Azure redirect URI

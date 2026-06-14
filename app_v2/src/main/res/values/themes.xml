@@ -60,9 +60,10 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <!-- Settings page-tabs text in landscape: 1.5x of the default 14sp tab text for easier tapping -->
-    <style name="TextAppearance.FastMediaSorter.SettingsTabLand" parent="TextAppearance.Material3.TitleSmall">
-        <item name="android:textSize">21sp</item>
+    <style name="TextAppearance.FastMediaSorter.SettingsTabConnected" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0</item>
     </style>
 
     <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">

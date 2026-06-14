@@ -7,6 +7,8 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -22,7 +24,8 @@ import timber.log.Timber
 internal class AddResourceFormManager(
     private val activity: AddResourceActivity,
     private val binding: ActivityAddResourceBinding,
-    private val viewModel: AddResourceViewModel
+    private val viewModel: AddResourceViewModel,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) {
 
     private val addResourceUiPrefs by lazy {
@@ -58,7 +61,11 @@ internal class AddResourceFormManager(
     }
 
     fun applyFlavorRestrictions() {
-        binding.cardCloudStorage.isVisible = BuildConfig.SUPPORT_CLOUD
+        // S0391: remote type cards are gated by the availability node (compile support AND user toggle).
+        binding.cardNetworkFolder.isVisible = remoteSourceGate.isEnabled(RemoteSourceId.SMB)
+        binding.cardSftpFolder.isVisible =
+            remoteSourceGate.isEnabled(RemoteSourceId.SFTP) || remoteSourceGate.isEnabled(RemoteSourceId.FTP)
+        binding.cardCloudStorage.isVisible = remoteSourceGate.anyCloudEnabled()
         val showEpub = BuildConfig.ENABLE_EPUB
         val showOfficeDocuments = supportsOfficeDocuments()
         binding.cbSmbSupportEpub.isVisible = showEpub
@@ -117,6 +124,7 @@ internal class AddResourceFormManager(
         installTextInputTapFocusBridge(activity, binding.tilSftpPath, binding.etSftpPath)
         installTextInputTapFocusBridge(activity, binding.tilSftpResourceName, binding.etSftpResourceName)
         installTextInputTapFocusBridge(activity, binding.tilSftpPinCode, binding.etSftpPinCode)
+        installTextInputTapFocusBridge(activity, binding.tilSftpHostKeyFingerprint, binding.etSftpHostKeyFingerprint)
     }
 
     private fun updateMediaTypeCheckboxes(
@@ -144,6 +152,7 @@ internal class AddResourceFormManager(
         bindCollapsibleHeader(binding.headerSmbConditions, binding.contentSmbConditions, sectionKey("smb", "conditions"))
         bindCollapsibleHeader(binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, sectionKey("smb", "media_types"))
         bindCollapsibleHeader(binding.headerSmbAdditional, binding.contentSmbAdditional, sectionKey("smb", "additional"))
+        bindCollapsibleHeader(binding.headerSftpServerVerification, binding.contentSftpServerVerification, sectionKey("sftp", "server_verification"))
         bindCollapsibleHeader(binding.headerSftpConditions, binding.contentSftpConditions, sectionKey("sftp", "conditions"))
         bindCollapsibleHeader(binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, sectionKey("sftp", "media_types"))
         bindCollapsibleHeader(binding.headerSftpAdditional, binding.contentSftpAdditional, sectionKey("sftp", "additional"))
@@ -376,6 +385,8 @@ internal class AddResourceFormManager(
         val resourceName = binding.etSftpResourceName.text.toString().trim()
         val comment = binding.etSftpComment.text.toString().trim()
         val accessPin = binding.etSftpPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
+        val hostKeyFingerprint = binding.etSftpHostKeyFingerprint.text.toString().trim().ifEmpty { null }
+        Timber.d("S0046: SFTP add-resource, host-key pin set=${hostKeyFingerprint != null}")
         val commonParams = Triple(supportedTypes, accessPin, sftpProfilePreset)
 
         if (protocolType == ResourceType.SFTP && binding.rbSftpSshKey.isChecked) {
@@ -397,7 +408,8 @@ internal class AddResourceFormManager(
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
                 disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
                 showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
-                accessPin = commonParams.second, profile = commonParams.third
+                accessPin = commonParams.second, profile = commonParams.third,
+                hostKeyFingerprint = hostKeyFingerprint
             )
         } else {
             viewModel.addSftpFtpResource(
@@ -412,7 +424,8 @@ internal class AddResourceFormManager(
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
                 disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
                 showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
-                accessPin = commonParams.second, profile = commonParams.third
+                accessPin = commonParams.second, profile = commonParams.third,
+                hostKeyFingerprint = hostKeyFingerprint
             )
         }
     }

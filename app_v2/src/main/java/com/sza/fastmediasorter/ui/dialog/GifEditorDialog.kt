@@ -115,7 +115,6 @@ class GifEditorDialog(
             btnFirstFrameToImage.setOnClickListener { performSaveFirstFrame() }
             ivHelpFirstFrame.setOnClickListener { showHelpDialog(context.getString(R.string.gif_edit_first_frame_help)) }
             
-            // Initialize speed label
             updateSpeedLabel()
         }
     }

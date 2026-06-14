@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.widget.AudioNowPlayingWidgetProvider
 import com.sza.fastmediasorter.widget.CalculatorWidgetProvider
 import com.sza.fastmediasorter.widget.CameraOcrTranslateWidgetProvider
 import com.sza.fastmediasorter.widget.CameraPhotosWidgetProvider
+import com.sza.fastmediasorter.widget.CameraQuickCaptureWidgetProvider
 import com.sza.fastmediasorter.widget.ContinueReadingWidgetProvider
 import com.sza.fastmediasorter.widget.FavoritesWidgetProvider
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
@@ -57,6 +58,15 @@ class HomeWidgetCatalog @Inject constructor(
             labelRes = R.string.widget_camera_photos_label,
             iconRes = R.drawable.ic_widget_camera_photos,
             descriptionRes = R.string.widget_camera_photos_description,
+        ),
+        HomeWidgetEntry(
+            providerClass = CameraQuickCaptureWidgetProvider::class.java,
+            labelRes = R.string.widget_camera_quick_capture_label,
+            iconRes = R.drawable.ic_widget_camera_quick_capture,
+            descriptionRes = R.string.widget_camera_quick_capture_description,
+            // Hide from the picker when camera capture is globally disabled; the trampoline still
+            // gates an already-pinned instance defensively (S0369).
+            settingGate = { !it.disableCameraCapture },
         ),
         HomeWidgetEntry(
             providerClass = ContinueReadingWidgetProvider::class.java,

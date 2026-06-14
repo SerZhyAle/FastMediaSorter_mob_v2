@@ -113,4 +113,5 @@
     <string name="vr_toggle_enter_description">Immersive view</string>
     <string name="vr_toggle_exit_description">Exit immersive</string>
     <string name="vr_xr_fallback_flat_mode">Immersive mode unavailable - playing in flat mode. You can change the 3D format in player settings.</string>
+    <string name="vr_immersive_preparing">Preparing immersive mode..</string>
 </resources>

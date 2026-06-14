@@ -466,12 +466,13 @@ class AddResourceViewModel @Inject constructor(
     )
 
     fun testSftpFtpConnection(
-        protocolType: ResourceType, host: String, port: Int, username: String, password: String
-    ) = sftpFtpCoordinator.testSftpFtpConnection(protocolType, host, port, username, password)
+        protocolType: ResourceType, host: String, port: Int, username: String, password: String,
+        expectedFingerprint: String? = null
+    ) = sftpFtpCoordinator.testSftpFtpConnection(protocolType, host, port, username, password, expectedFingerprint)
 
     fun testSftpConnection(
-        host: String, port: Int, username: String, password: String
-    ) = sftpFtpCoordinator.testSftpConnection(host, port, username, password)
+        host: String, port: Int, username: String, password: String, expectedFingerprint: String? = null
+    ) = sftpFtpCoordinator.testSftpConnection(host, port, username, password, expectedFingerprint)
 
     fun addSftpFtpResource(
         protocolType: ResourceType,
@@ -491,11 +492,12 @@ class AddResourceViewModel @Inject constructor(
         disableThumbnails: Boolean = false,
         showSubfoldersAsItems: Boolean = false,
         accessPin: String? = null,
-        profile: ResourceProfile = ResourceProfile.NONE
+        profile: ResourceProfile = ResourceProfile.NONE,
+        hostKeyFingerprint: String? = null
     ) = sftpFtpCoordinator.addSftpFtpResource(
         protocolType, host, port, username, password, remotePath, resourceName, comment,
         supportedTypes, isReadOnly, allFiles, scanSubdirectories, addToDestinations,
-        rememberFileList, disableThumbnails, showSubfoldersAsItems, accessPin, profile
+        rememberFileList, disableThumbnails, showSubfoldersAsItems, accessPin, profile, hostKeyFingerprint
     )
 
     fun addSftpResource(
@@ -503,8 +505,9 @@ class AddResourceViewModel @Inject constructor(
     ) = sftpFtpCoordinator.addSftpResource(host, port, username, password, remotePath)
 
     fun testSftpConnectionWithKey(
-        host: String, port: Int, username: String, privateKey: String, keyPassphrase: String?
-    ) = sftpKeyCoordinator.testSftpConnectionWithKey(host, port, username, privateKey, keyPassphrase)
+        host: String, port: Int, username: String, privateKey: String, keyPassphrase: String?,
+        expectedFingerprint: String? = null
+    ) = sftpKeyCoordinator.testSftpConnectionWithKey(host, port, username, privateKey, keyPassphrase, expectedFingerprint)
 
     fun addSftpResourceWithKey(
         host: String,
@@ -524,11 +527,12 @@ class AddResourceViewModel @Inject constructor(
         disableThumbnails: Boolean = false,
         showSubfoldersAsItems: Boolean = false,
         accessPin: String? = null,
-        profile: ResourceProfile = ResourceProfile.NONE
+        profile: ResourceProfile = ResourceProfile.NONE,
+        hostKeyFingerprint: String? = null
     ) = sftpKeyCoordinator.addSftpResourceWithKey(
         host, port, username, privateKey, keyPassphrase, remotePath, resourceName, comment,
         supportedTypes, allFiles, isReadOnly, scanSubdirectories, addToDestinations,
-        rememberFileList, disableThumbnails, showSubfoldersAsItems, accessPin, profile
+        rememberFileList, disableThumbnails, showSubfoldersAsItems, accessPin, profile, hostKeyFingerprint
     )
 
     // ==================== Speed test ====================

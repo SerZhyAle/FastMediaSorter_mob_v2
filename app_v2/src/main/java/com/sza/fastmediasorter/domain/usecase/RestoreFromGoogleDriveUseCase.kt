@@ -5,16 +5,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.local.db.FavoritesDao
-import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
@@ -22,16 +14,13 @@ import javax.inject.Inject
 
 /**
  * Restores settings and resources from Google Drive backup.
- * Settings are fully replaced. Resources are appended (duplicates skipped).
+ * Delegates the actual apply to the shared [ApplyBackupPayloadUseCase] (S0406) so the local-file
+ * and Drive restore paths behave identically.
  */
 class RestoreFromGoogleDriveUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository,
-    private val resourceRepository: ResourceRepository,
     private val googleDriveClient: GoogleDriveRestClient,
-    private val favoritesDao: FavoritesDao,
-    private val scheduledOperationRepository: ScheduledOperationRepository,
-    private val workManagerScheduler: WorkManagerScheduler
+    private val applyBackupPayloadUseCase: ApplyBackupPayloadUseCase
 ) {
     companion object {
         private const val FOLDER_NAME = "FastMediaSorter"
@@ -97,117 +86,25 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
             val payload = downloadAndParseBackup()
                 ?: return@withContext Result.failure(Exception("No backup found"))
 
-            // Check version compatibility
-            if (payload.version > BackupPayload.CURRENT_VERSION) {
-                return@withContext Result.failure(
-                    Exception("Backup was created by a newer app version (${payload.appVersionName.orEmpty()}). Please update the app.")
-                )
-            }
-            if (payload.version < BackupPayload.CURRENT_VERSION) {
-                Timber.w("Restoring older backup format v${payload.version} (current v${BackupPayload.CURRENT_VERSION}) - unknown fields will use defaults")
-            }
+            Timber.d("S0406: restore unified payload from Google Drive")
+            // Shared applier owns version check, settings/resources/favorites/scheduled-ops merge,
+            // plus the new secret sections (network credentials, saved site authorizations).
+            val summary = applyBackupPayloadUseCase(payload)
 
-            // 1. Restore settings (full replace, keep credentials)
-            val currentSettings = settingsRepository.getSettings().first()
-            val restoredSettings = BackupMapper.toAppSettings(payload.settings ?: BackupSettings(), currentSettings)
-            settingsRepository.updateSettings(restoredSettings)
-            Timber.i("Settings restored from backup")
-
-            // 2. Merge resources (append with dedup)
-            val existingResources = resourceRepository.getAllResourcesSync()
-            val resourcesToAdd = mutableListOf<MediaResource>()
-            var skipped = 0
-            var needsAuth = 0
-
-            for (backupRes in payload.resources.orEmpty()) {
-                try {
-                    val candidate = BackupMapper.toMediaResource(backupRes)
-                    val isDuplicate = existingResources.any { existing ->
-                        isDuplicateResource(existing, candidate)
-                    }
-                    if (isDuplicate) {
-                        skipped++
-                    } else {
-                        resourcesToAdd.add(candidate)
-                        // Count resources that need re-authentication
-                        if (candidate.type != ResourceType.LOCAL) {
-                            needsAuth++
-                        }
-                    }
-                } catch (e: Exception) {
-                    Timber.w(e, "Skipping resource '%s' - incompatible with current version", backupRes.name)
-                    skipped++
-                }
-            }
-
-            // Add new resources
-            for (resource in resourcesToAdd) {
-                resourceRepository.addResource(resource)
-            }
-
-            // 3. Merge favorites (append with dedup by URI)
-            var favoritesAdded = 0
-            var favoritesSkipped = 0
-            val allResources = resourceRepository.getAllResourcesSync()
-            val resourcesByPath = allResources.associateBy { it.path }
-
-            for (backupFav in payload.favorites.orEmpty()) {
-                val isDuplicate = favoritesDao.isFavoriteSync(backupFav.uri)
-                if (isDuplicate) {
-                    favoritesSkipped++
-                    continue
-                }
-                val localResource = resourcesByPath[backupFav.resourcePath]
-                if (localResource == null) {
-                    favoritesSkipped++
-                    continue
-                }
-                try {
-                    val entity = BackupMapper.toFavoritesEntity(backupFav, localResource.id)
-                    favoritesDao.insert(entity)
-                    favoritesAdded++
-                } catch (e: Exception) {
-                    Timber.w(e, "Skipping favorite '%s'", backupFav.displayName)
-                    favoritesSkipped++
-                }
-            }
-
-            // 4. Restore scheduled operations (version 3+ only)
-            var scheduledOpsAdded = 0
-            val backupScheduledOps = payload.scheduledOperations.orEmpty()
-            if (backupScheduledOps.isNotEmpty()) {
-                val allResources = resourceRepository.getAllResourcesSync()
-                val resourcesByPath = allResources.associateBy { it.path }
-                for (backupOp in backupScheduledOps) {
-                    try {
-                        val op = BackupMapper.toScheduledOperation(backupOp, resourcesByPath)
-                            ?: run {
-                                Timber.w("RestoreGDrive: Skipping scheduled op - resource not found")
-                                continue
-                            }
-                        val newId = scheduledOperationRepository.upsert(op)
-                        if (op.isEnabled) {
-                            val savedOp = scheduledOperationRepository.getById(newId)
-                            if (savedOp != null) workManagerScheduler.scheduleOperation(savedOp)
-                        }
-                        scheduledOpsAdded++
-                    } catch (e: Exception) {
-                        Timber.w(e, "RestoreGDrive: Skipping scheduled op - ${e.message}")
-                    }
-                }
-                Timber.i("RestoreGDrive: $scheduledOpsAdded scheduled operations restored")
-            }
-
-            Timber.i("Restore complete: ${resourcesToAdd.size} added, $skipped skipped, $needsAuth need auth, $favoritesAdded favorites added, $favoritesSkipped favorites skipped, $scheduledOpsAdded scheduled ops added")
+            Timber.i(
+                "RestoreGDrive complete: %d added, %d updated, %d need auth, %d favorites, %d sessions",
+                summary.resourcesAdded, summary.resourcesUpdated, summary.resourcesNeedingAuth,
+                summary.favoritesAdded, summary.webSessionsRestored
+            )
 
             Result.success(
                 RestoreResult(
-                    settingsRestored = true,
-                    resourcesAdded = resourcesToAdd.size,
-                    resourcesSkipped = skipped,
-                    resourcesNeedingAuth = needsAuth,
-                    favoritesAdded = favoritesAdded,
-                    favoritesSkipped = favoritesSkipped
+                    settingsRestored = summary.settingsRestored,
+                    resourcesAdded = summary.resourcesAdded,
+                    resourcesSkipped = summary.resourcesUpdated,
+                    resourcesNeedingAuth = summary.resourcesNeedingAuth,
+                    favoritesAdded = summary.favoritesAdded,
+                    favoritesSkipped = summary.favoritesSkipped
                 )
             )
         } catch (e: JsonSyntaxException) {
@@ -250,19 +147,5 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 null
             }
         }
-    }
-
-    /**
-     * Dedup logic per spec:
-     * - Regular resources: match by type + path
-     * - Cloud resources: match by cloudProvider + cloudFolderId + accountId
-     */
-    private fun isDuplicateResource(existing: MediaResource, candidate: MediaResource): Boolean {
-        if (existing.type == ResourceType.CLOUD && candidate.type == ResourceType.CLOUD) {
-            return existing.cloudProvider == candidate.cloudProvider
-                    && existing.cloudFolderId == candidate.cloudFolderId
-                    && existing.accountId == candidate.accountId
-        }
-        return existing.type == candidate.type && existing.path == candidate.path
     }
 }

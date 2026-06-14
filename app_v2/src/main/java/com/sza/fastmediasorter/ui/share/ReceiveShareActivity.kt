@@ -220,14 +220,13 @@ class ReceiveShareActivity : AppCompatActivity() {
         // Google's OAuth policy forbids WebView. The auth-offer dialog is architecturally
         // useless for these hosts - route them through the silent unknown-host path.
         if (GoogleDomainMatcher.isGoogleAuthHost(Uri.parse(url))) {
-            Timber.d("S0281: ReceiveShareActivity.maybeOfferAuthThenDownload skip auth for google host=%s", host)
             enqueueLinkDownloadSilent(url)
             return
         }
         val resource = KnownAuthResources.matchHost(host)
         lifecycleScope.launch {
             if (authSessionRepository.isDismissedForHost(host)) {
-                Timber.i("[S0166] rejection record found for host, skipping auth dialog: host=%s", host)
+                Timber.i("rejection record found for host, skipping auth dialog: host=%s", host)
                 processLinkAutoDownload(url, accountId = null)
                 return@launch
             }
@@ -238,7 +237,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                     processLinkAutoDownload(url, accountId = account.accountId)
                 },
                 onNoneAvailable = {
-                    Timber.i("[S0166] no stored auth for host: host=%s", host)
+                    Timber.i("no stored auth for host: host=%s", host)
                     offerAuthThenDownload(url, host, resource)
                 },
                 onCancelled = {
@@ -256,11 +255,11 @@ class ReceiveShareActivity : AppCompatActivity() {
         val host = Uri.parse(url).host.orEmpty()
         val resource = KnownAuthResources.matchHost(host)
         if (resource != null) {
-            Timber.i("[S0166] known social: host=%s", host)
+            Timber.i("known social: host=%s", host)
             maybeOfferAuthThenDownload(url)
         } else {
             if (host.isNotBlank()) {
-                Timber.i("[S0166] unknown host, standard pipeline: host=%s", host)
+                Timber.i("unknown host, standard pipeline: host=%s", host)
             }
             enqueueLinkDownloadSilent(url)
         }
@@ -317,7 +316,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 .setMessage(message)
                 .setCancelable(false)
                 .setPositiveButton(positiveLabelRes) { _, _ ->
-                    Timber.i("[S0166] auth accepted: type=%s host=%s", dialogType, host)
+                    Timber.i("auth accepted: type=%s host=%s", dialogType, host)
                     supportFragmentManager.setFragmentResultListener(
                         WebViewAuthDialogFragment.RESULT_KEY,
                         this@ReceiveShareActivity,
@@ -333,13 +332,13 @@ class ReceiveShareActivity : AppCompatActivity() {
                     openAuthFlow(loginUrl, "s0157_webview_auth_offer")
                 }
                 .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
-                    Timber.i("[S0166] auth dismissed (no record created): type=%s host=%s", dialogType, host)
+                    Timber.i("auth dismissed (no record created): type=%s host=%s", dialogType, host)
                     // Skip for now - no dismissal recorded; offer will appear again next time the link is shared.
                     // S0170 BUG-1: isAuthRetry=true - do not re-escalate within this share session.
                     processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
                 }
                 .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
-                    Timber.i("[S0166] auth dismissed with rejection record created: type=%s host=%s", dialogType, host)
+                    Timber.i("auth dismissed with rejection record created: type=%s host=%s", dialogType, host)
                     // S0170 BUG-1: await markDismissed before re-running the pipeline - otherwise the
                     // escalation block can read a stale isDismissedForHost() and loop once.
                     lifecycleScope.launch {
@@ -386,7 +385,6 @@ class ReceiveShareActivity : AppCompatActivity() {
         // "Sign in" notification action must not open the auth-offer dialog either.
         // Re-enqueue silently and let the worker run its standard pipeline.
         if (GoogleDomainMatcher.isGoogleAuthHost(Uri.parse(url))) {
-            Timber.d("S0281: ReceiveShareActivity.handleReAuthFromNotification skip google host=%s", host)
             processLinkAutoDownload(url, accountId = null)
             return
         }
@@ -508,12 +506,9 @@ class ReceiveShareActivity : AppCompatActivity() {
         // alongside Step 02.5 KnownAuthResources cleanup - this branch survives even if
         // a future change re-adds google entries to the known-social list.
         if (GoogleDomainMatcher.isGoogleAuthHost(Uri.parse(url))) {
-            Timber.d("S0281: ReceiveShareActivity.handleNoMediaFoundEscalation skip google host=%s", hostForEscalation)
-            // S0281 Q2 (owner decision: once-per-failed-extract): inform the user why
-            // we did not offer "add authorization" when the extractor returned no media
-            // for a google-domain URL. authOfferShown is already true if any prior path
-            // showed a dialog, so this toast is naturally one-shot per Activity.
-            Timber.d("S0281: ReceiveShareActivity show oauth-only note variant=once-per-failed-extract")
+            // Inform the user why we did not offer "add authorization" when the extractor
+            // returned no media for a google-domain URL. authOfferShown is already true if any
+            // prior path showed a dialog, so this toast is naturally one-shot per Activity.
             Toast.makeText(this, R.string.s0281_google_oauth_only_note, Toast.LENGTH_LONG).show()
             cleanupAndFinish()
             return
@@ -524,7 +519,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 authSessionRepository.listAccountsForHost(hostForEscalation).any { !it.isDismissed }
             }.getOrDefault(false)
             if (!dismissed && !hasActiveSession) {
-                Timber.i("[S0166] unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
+                Timber.i("unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
                 offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
             } else {
                 cleanupAndFinish()

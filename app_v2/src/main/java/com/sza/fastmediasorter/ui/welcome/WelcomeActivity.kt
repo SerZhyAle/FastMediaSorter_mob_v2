@@ -15,33 +15,56 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.ui.main.MainActivity
-import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeEnableAllManager
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
 
     private val viewModel: WelcomeViewModel by viewModels()
+
+    @Inject
+    lateinit var mediaCapabilities: MediaCapabilities
+
+    /** Owns the functionality page (S0400): capability toggles + inline deliverable downloads. */
+    @Inject
+    lateinit var functionalityController: WelcomeFunctionalityController
+
+    /** Owns the permissions page (S0402): adaptive permission set + grant-all flow (Activity launchers). */
+    @Inject
+    lateinit var permissionsManager: WelcomePermissionsManager
+
+    /** Owns the networks page (S0391): three remote-source group toggles over the six per-source flags. */
+    @Inject
+    lateinit var remoteSourcesController: WelcomeRemoteSourcesController
+
+    /** Owns the "Enable all" sequence (S0409): profile + settings + permissions + default-player + finish. */
+    @Inject
+    lateinit var enableAllManager: WelcomeEnableAllManager
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private lateinit var pagesList: MutableList<WelcomePage>
@@ -80,73 +103,63 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         // Apply edge-to-edge insets: skip button below status bar, bottom nav above nav bar
         applyEdgeToEdgeInsets()
 
+        // The permissions page (S0402) owns ActivityResult launchers - wire it before the pager binds.
+        permissionsManager.attach(this)
+
+        // The enable-all sequence (S0409) owns its own launcher; re-wire host refs on every (re)creation
+        // so the default-player walk resumes after a rotation.
+        enableAllManager.attach(this, permissionsManager) { completeWelcomeFlow() }
+
         setupViewPager()
         setupButtons()
         updateUI()
-
-        // Result from the shared device-profile picker (opened from the Welcome profile card).
-        supportFragmentManager.setFragmentResultListener(
-            DeviceProfilePickerDialogFragment.RESULT_KEY, this
-        ) { _, bundle ->
-            val name = bundle.getString(DeviceProfilePickerDialogFragment.RESULT_PROFILE)
-                ?: return@setFragmentResultListener
-            runCatching { DeviceProfileType.valueOf(name) }.getOrNull()
-                ?.let { viewModel.onProfileSelected(it) }
-        }
-    }
-
-    private fun showProfilePicker() {
-        val state = viewModel.state.value
-        val current = state.selectedProfile
-            ?: state.recommendedProfile
-            ?: DeviceProfileType.PERSONAL_SMARTPHONE
-        DeviceProfilePickerDialogFragment.newInstance(
-            current = current,
-            recommended = state.recommendedProfile,
-            warnOnApply = false,
-        ).show(supportFragmentManager, DeviceProfilePickerDialogFragment.TAG)
     }
 
     override fun observeData() {
-        lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                if (::pagesList.isInitialized && pagesList.isNotEmpty()) {
-                    val firstPage = pagesList[0]
-                    val updatedPage = firstPage.copy(
-                        showProfileSelector = true,
-                        recommendedProfileType = state.recommendedProfile,
-                        selectedProfileType = state.selectedProfile,
-                        onProfileSelected = { type ->
-                            viewModel.onProfileSelected(type)
-                        },
-                        onOpenProfilePicker = { showProfilePicker() }
-                    )
-                    if (firstPage != updatedPage) {
-                        pagesList[0] = updatedPage
-                        pagerAdapter.notifyItemChanged(0)
-                    }
-                    // notifyItemChanged is unreliable for the visible page; refresh the card directly.
-                    pagerAdapter.refreshSelectedProfile(state.recommendedProfile, state.selectedProfile)
-                }
+        collectOnLifecycle(viewModel.state) { state ->
+            // The device-profile page (S0399) is seeded at setup; once detection resolves, refresh the
+            // grid selection directly (ViewPager2 will not rebind the visible page on notifyItemChanged).
+            if (::pagerAdapter.isInitialized) {
+                pagerAdapter.refreshProfiles(state.recommendedProfile, state.selectedProfile)
+            }
+        }
+
+        collectOnLifecycle(viewModel.events) { event ->
+            when (event) {
+                is WelcomeEvent.ConfirmProfilePresetReapply ->
+                    showProfilePresetReapplyWarning(event.type)
             }
         }
     }
 
+    /** Re-entry from Settings changed the profile: warn before the preset overwrites tuned settings
+     *  (mirrors the Settings device-profile picker warning). Confirm reapplies; cancel keeps settings. */
+    private fun showProfilePresetReapplyWarning(type: DeviceProfileType) {
+        AlertDialog.Builder(this)
+            .setMessage(R.string.settings_profile_warning)
+            .setPositiveButton(R.string.profile_picker_select) { _, _ ->
+                viewModel.confirmProfilePresetReapply(type)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Onboarding is intentionally a bright pastel experience. Force the day (light) resource set
-        // so the welcome pages keep dark-text-on-pastel-background readability even when the system
-        // is in dark mode - the night palette uses saturated backgrounds with white text, which is
-        // unreadable (e.g. white-on-#E65100 on the "Resources and Destinations" page).
-        delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
         super.onCreate(savedInstanceState)
         savedInstanceState?.let { state ->
             restoredPage = state.getInt(KEY_CURRENT_PAGE, 0)
         }
+        // Restore the permissions grant-all run state (S0402) so a rotation mid-special-permission walk
+        // resumes instead of restarting.
+        permissionsManager.onRestoreInstanceState(savedInstanceState)
+        enableAllManager.onRestoreInstanceState(savedInstanceState)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_CURRENT_PAGE, currentPage)
+        permissionsManager.onSaveInstanceState(outState)
+        enableAllManager.onSaveInstanceState(outState)
     }
 
     private fun applyEdgeToEdgeInsets() {
@@ -210,43 +223,58 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 ),
                 showLanguagePicker = true,
                 onLanguageSelected = ::onWelcomeLanguageSelected,
+                showThemePicker = true,
+                onThemeSelected = ::onWelcomeThemeSelected,
             ),
-            // Page 2: Resource Types
+        )
+
+        // S0399: device-profile page (index 1). Full tile grid; selection seeded from detection and
+        // refreshed via refreshProfiles() once async detection resolves.
+        pagesList.add(
             WelcomePage(
-                iconRes = R.drawable.resource_types,
-                titleRes = R.string.welcome_title_2,
-                descriptionRes = R.string.welcome_description_2,
-                detailDescriptionRes = R.string.welcome_description_2_details
-            ),
-            // Page 3: Touch Zones
+                isProfilesPage = true,
+                selectableProfiles = viewModel.selectableProfiles(),
+                recommendedProfileType = viewModel.state.value.recommendedProfile,
+                selectedProfileType = viewModel.state.value.selectedProfile,
+                onProfileSelected = { type -> viewModel.onProfileSelected(type) },
+            )
+        )
+
+        // Networks page (index 2). Three remote-source group toggles (SMB / (S)FTP / Cloud);
+        // WelcomeRemoteSourcesController owns all logic and binds via the page callback. The cloud
+        // toggle collapses on flavors without cloud support (decided inside the controller via the gate).
+        pagesList.add(
             WelcomePage(
-                iconRes = R.mipmap.ic_launcher,
-                titleRes = R.string.welcome_title_3,
-                descriptionRes = R.string.welcome_description_3,
-                detailDescriptionRes = R.string.welcome_description_3_details,
-                showTouchZonesScheme = true
-            ),
-            // Page 4: Resources & Destinations
+                iconRes = 0,
+                titleRes = 0,
+                descriptionRes = 0,
+                isNetworksPage = true,
+                onBindNetworks = { b -> remoteSourcesController.bind(b, this) },
+            )
+        )
+
+        // S0400: functionality page (index 3). Capability toggles + inline deliverable downloads;
+        // WelcomeFunctionalityController owns all logic and binds via the page callback.
+        pagesList.add(
             WelcomePage(
-                iconRes = R.drawable.destinations,
-                titleRes = R.string.welcome_title_4,
-                descriptionRes = R.string.welcome_description_4,
-                detailDescriptionRes = R.string.welcome_description_4_details
-            ),
-            // Page 5: Powerful Extras - adaptive grid of additional capabilities (each tile BuildConfig-gated)
+                isFunctionalityPage = true,
+                onBindFunctionality = { b -> functionalityController.bind(b, this) },
+            )
+        )
+
+        // S0402: permissions page (index 4). Adaptive permission set hosted in the pager so the step
+        // indicator + nav stay visible; WelcomePermissionsManager owns the adaptive list + grant-all.
+        pagesList.add(
             WelcomePage(
-                iconRes = R.drawable.welcome_hero_features,
-                titleRes = R.string.welcome_title_5,
-                descriptionRes = R.string.welcome_description_5,
-                detailDescriptionRes = R.string.welcome_description_5_details,
-                featureCards = buildExtrasFeatureCards()
-            ),
+                isPermissionsPage = true,
+                onBindPermissions = { b -> permissionsManager.bind(b) },
+            )
         )
 
         // Page 6 (first install only): Default Player onboarding
         // markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user reaches
         // this page - so skipping welcome doesn't suppress future display.
-        val shouldShowDefaultPlayerPage = BuildConfig.SUPPORTS_DEFAULT_PLAYER &&
+        val shouldShowDefaultPlayerPage = mediaCapabilities.supportsDefaultPlayer &&
             (!viewModel.isDefaultPlayerOnboardingShown() ||
                 !DefaultPlayerHelper.isAlreadyDefaultPlayer(this))
 
@@ -363,18 +391,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     private fun setupButtons() {
-        binding.btnSkip.setOnClickListener {
-            // Phase 4: "not suppressed on first launch" - if the default player card exists
-            // and the user hasn't seen it yet, redirect to it instead of finishing.
-            // onPageSelected() will mark it as shown; subsequent Skip presses call finishWelcome().
-            if (defaultPlayerPageIndex != -1 && currentPage < defaultPlayerPageIndex) {
-                binding.viewPager.currentItem = defaultPlayerPageIndex
-            } else {
-                viewModel.saveDeviceProfile(isSkipped = true)
-                finishWelcome()
-            }
-        }
-
         binding.btnPrevious.setOnClickListener {
             if (currentPage > 0) {
                 binding.viewPager.currentItem = currentPage - 1
@@ -389,7 +405,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
         binding.btnFinish.setOnClickListener {
             viewModel.saveDeviceProfile(isSkipped = false)
-            finishWelcome()
+            // S0402: permissions are now requested on their own pager page, not a terminal overlay -
+            // Finish goes straight to completion (grants already happened on the permissions page).
+            completeWelcomeFlow()
+        }
+
+        // S0409: one-tap full setup. Sets profile OTHER, enables everything, walks permission +
+        // default-player dialogs, then finishes - skipping the remaining pages.
+        binding.btnEnableAll.setOnClickListener {
+            enableAllManager.start {
+                viewModel.onProfileSelected(DeviceProfileType.OTHER)
+                viewModel.saveDeviceProfile(isSkipped = false)
+            }
         }
     }
 
@@ -401,25 +428,17 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         val isFirstPage = currentPage == 0
 
         binding.btnPrevious.visibility = if (isFirstPage) View.INVISIBLE else View.VISIBLE
-        
+
+        // S0409: the Enable-all shortcut lives only on the first page, beside Next.
+        binding.btnEnableAll.visibility = if (isFirstPage) View.VISIBLE else View.GONE
+
         if (isLastPage) {
             binding.btnNext.visibility = View.GONE
-            // Only show finish if it's NOT the permission page (which has its own grant button)
-            // But wait, if last page IS permission page, we still need a way to continue if already granted?
-            // Or maybe check if permissions are granted?
-            // Actually, for simplicity, let's keep Finish button but maybe text it "Start" if permissions granted
-            // For now, if it is permission page, we rely on the Grant button inside the page. 
-            // BUT, if user already has permissions, we should probably auto-skip or show "Continue".
-            // Let's just show Finish button if it's NOT permission page, or if it is but maybe we want to allow skip?
-            // The "Skip" button at top handles skipping.
             binding.btnFinish.visibility = View.VISIBLE
         } else {
             binding.btnNext.visibility = View.VISIBLE
             binding.btnFinish.visibility = View.GONE
         }
-        
-        // Hide "Skip" on last page
-         binding.btnSkip.visibility = if (isLastPage) View.INVISIBLE else View.VISIBLE
     }
 
     private fun applyPageBackground() {
@@ -444,35 +463,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         // Activity automatically with no further action needed here.
     }
 
-    /** Tiles for the "Powerful Extras" page; each entry is included only when its feature flag is on. */
-    private fun buildExtrasFeatureCards(): List<FeatureCard> = buildList {
-        if (BuildConfig.ENABLE_TRANSLATION) add(FeatureCard(R.drawable.ic_ocr, R.string.welcome_feature_ocr))
-        if (BuildConfig.SUPPORT_DOCUMENTS) {
-            add(FeatureCard(R.drawable.ic_book, R.string.welcome_feature_ebook))
-            add(FeatureCard(R.drawable.ic_edit_20, R.string.welcome_feature_text_editor))
-        }
-        if (BuildConfig.SUPPORT_AUDIO) add(FeatureCard(R.drawable.ic_audio, R.string.welcome_feature_audio))
-        if (BuildConfig.SUPPORT_VIDEO) add(FeatureCard(R.drawable.ic_video, R.string.welcome_feature_video_library))
-        if (BuildConfig.SUPPORT_IMAGES) add(FeatureCard(R.drawable.ic_slideshow, R.string.welcome_feature_slideshow))
-        if (BuildConfig.ENABLE_ANIMATIONS) add(FeatureCard(R.drawable.ic_gif, R.string.welcome_feature_gif))
-        add(FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network))
-        if (BuildConfig.SUPPORT_CLOUD) add(FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud_sync))
-        add(FeatureCard(R.drawable.ic_widget_resource_launch, R.string.welcome_feature_widgets))
-        add(FeatureCard(R.drawable.ic_schedule, R.string.welcome_feature_scheduled_ops))
-        add(FeatureCard(R.drawable.ic_favorite, R.string.welcome_feature_favorites))
-        add(FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_quick_sort))
-        add(FeatureCard(R.drawable.ic_search, R.string.welcome_feature_search))
-    }
-
-    private fun finishWelcome() {
-        binding.fragmentContainerWelcome.visibility = View.VISIBLE
-        binding.viewPager.visibility = View.GONE
-        binding.layoutBottomNav.visibility = View.GONE
-        binding.btnSkip.visibility = View.GONE
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.fragment_container_welcome, PermissionsManagementFragment.newInstance(fromWelcome = true))
-            .commit()
+    private fun onWelcomeThemeSelected(mode: String) {
+        // Mirror the Settings split: DataStore remains canonical in the ViewModel while the
+        // synchronous SharedPreferences mirror updates here so the next Activity launch picks the
+        // same mode before inflation. Welcome now follows that mode immediately via recreate().
+        viewModel.saveColorTheme(mode)
+        ColorThemePrefs.setMode(this, mode)
+        ColorThemePrefs.applyMode(mode)
+        recreate()
     }
 
     override fun onWelcomeComplete() {
@@ -494,7 +492,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             // Mark first run as completed
             viewModel.setFirstRunCompleted()
 
-            // Show toast message
             Toast.makeText(this, R.string.setup_content_first_toast, Toast.LENGTH_LONG).show()
 
             // Navigate to Settings with MainActivity as the back-stack root so that
@@ -505,10 +502,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 .startActivities()
             finish()
         } else {
-            // Normal navigation to MainActivity
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            // Re-entry from Settings: return to the caller (the Settings back stack) instead of
+            // clearing the task to MainActivity, so the user lands back where they opened onboarding.
             finish()
         }
     }
@@ -595,11 +590,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
     /** ENTER / DPAD_CENTER: activate the focused clickable control, else the visible primary CTA. */
     private fun handleSliderSelect(): Boolean {
-        val focused = currentFocus
-        if (focused != null && focused.isClickable) {
-            focused.performClick()
-            return true
-        }
+        if (activateFocusedViewOrAncestor()) return true
         return when {
             binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
             binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
@@ -680,8 +671,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     /** Focus the visible primary button in the bottom bar. */
     private fun focusBar() {
         val target = binding.btnFinish.takeIf { it.isVisible }
-            ?: binding.btnNext.takeIf { it.isVisible }
-            ?: binding.btnSkip
+            ?: binding.btnNext
         target.requestFocus()
     }
 

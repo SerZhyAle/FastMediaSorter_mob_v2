@@ -409,7 +409,7 @@ class BrowseNavigationManager(
                 supportedTypes = supportedTypes,
                 sizeFilter = null,
                 credentialsId = resource.credentialsId,
-                showHiddenFiles = false
+                showHiddenFiles = resource.showHiddenFiles
             )
 
             val filteredContents = if (resource.scanSubdirectories) contents
@@ -455,7 +455,7 @@ class BrowseNavigationManager(
                 supportedTypes = supportedTypes,
                 sizeFilter = null,
                 credentialsId = resource.credentialsId,
-                showHiddenFiles = false
+                showHiddenFiles = resource.showHiddenFiles
             )
             computeContentHash(contents)
         } catch (e: CancellationException) {

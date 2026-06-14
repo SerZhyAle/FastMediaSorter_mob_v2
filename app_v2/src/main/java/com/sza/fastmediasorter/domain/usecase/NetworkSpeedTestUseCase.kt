@@ -75,7 +75,6 @@ class NetworkSpeedTestUseCase @Inject constructor(
             
             emit(SpeedTestStatus.Progress(R.string.speed_test_saving))
             
-            // Update resource with results
             val updatedResource = resource.copy(
                 readSpeedMbps = result.readSpeedMbps,
                 writeSpeedMbps = result.writeSpeedMbps,

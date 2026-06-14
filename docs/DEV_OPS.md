@@ -6,6 +6,14 @@
 # PRIMARY DEBUG (standard flavor, auto-versions)
 .\dev\build-with-version.ps1
 
+# PRIMARY LOCAL DEBUG (reuses configuration cache, stable app version fields)
+.\a.ps1 d
+.\a.ps1 db
+.\a.ps1 dq
+
+# TIMESTAMPED DEBUG ARTIFACT (when you really need an auto-versioned APK)
+.\a.ps1 dav
+
 # PER-FLAVOR SCRIPTS
 .\scripts\builders\build-standard-debug.ps1
 .\scripts\builders\build-standard-release.ps1
@@ -52,8 +60,13 @@
 | `.\a.ps1 vrd`  | Build VR debug APK |
 | `.\a.ps1 ivr`  | Install VR release to device (no launch) |
 | `.\a.ps1 ivrd` | Install VR debug to device (no launch) |
-| `.\a.ps1 d`    | Build debug (standard) |
-| `.\a.ps1 db`   | Build debug, skip zip |
+| `.\a.ps1 d`    | Fast reusable debug build (standard) |
+| `.\a.ps1 db`   | Fast reusable debug build, skip zip |
+| `.\a.ps1 dav`  | Debug build with timestamped app version |
+| `.\a.ps1 fk`   | Fast Kotlin compile check |
+| `.\a.ps1 fr`   | Fast resources/manifest check |
+| `.\a.ps1 fc`   | Fast code + resources check |
+| `.\a.ps1 fu`   | Fast full unit-test suite |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
@@ -61,12 +74,31 @@
 ## TEST & VERIFY
 
 ```powershell
+# FASTEST PROOFS
+.\a.ps1 fk                      # Kotlin/Java symbol changes
+.\a.ps1 fr                      # XML/resources/manifest/navigation changes
+.\a.ps1 fc                      # Small mixed code + resource changes
+
 # UNIT TESTS
+.\a.ps1 fu
 .\gradlew.bat testStandardDebugUnitTest
+
+# TARGETED UNIT TESTS
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
 
 # LINT
 .\gradlew.bat lintStandardDebug
 ```
+
+### Preferred local validation ladder
+
+1. `.\a.ps1 fk` for Kotlin-only symbol edits.
+2. `.\a.ps1 fr` for resource / manifest edits.
+3. `.\a.ps1 fc` for small mixed edits.
+4. `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "..."` for focused logic changes.
+5. `.\a.ps1 d` only when you need APK packaging / installable artifact proof.
+
+`.\a.ps1 dav` is the slow artifact path. It keeps timestamped in-app versioning, but each unique override creates a fresh configuration-cache entry by design.
 
 ### KAPT stall recovery (targeted validation only)
 
@@ -112,7 +144,7 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 |:-----|:------:|:------:|:----------:|:------------:|:------|
 | `debug`   | - | - | ✓ | `.debug` | Custom keystore via `debug.keystore.properties`; `LOG_NETWORK_THUMBNAILS=true`; dedicated Dropbox key |
 | `staging` | - | - | ✓ | `.staging` | `initWith(release)` - release proguard, shrink disabled; `matchingFallbacks=["release"]` |
-| `release` | ✓ | ✓ | - | - | `debugSymbolLevel=FULL`; keystore via `keystore.properties` |
+| `release` | ✓ | ✓ | - | - | `debugSymbolLevel=FULL`; keystore via `.secrets/keystore.properties` (root fallback supported) |
 
 ## FEATURE FLAGS (BuildConfig)
 
@@ -316,7 +348,7 @@ that cost is acceptable.
 Steps:
 
 1. Produce a new keystore (out-of-band; document the new alias in
-   `local.properties` and any signing config that lives outside the repo).
+   root `local.properties` and any signing config that lives outside the repo, preferably under `.secrets/`).
 2. Build a release APK with the new keystore (`a.ps1 r` / `a.ps1 vr`).
 3. Capture the new SHA-256 via `apksigner verify --print-certs <new-apk>`,
    format as uppercase colon-separated 32-byte form.

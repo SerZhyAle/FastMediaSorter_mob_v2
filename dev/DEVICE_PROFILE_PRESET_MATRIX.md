@@ -76,6 +76,11 @@ field names.
 - Four profiles (`media_player`, `video_player`, `audio_player`, `ebook_reader`) were **seeded by
   copying** a similar column (`media`/`video`←`tv_media_box`, `audio`←`car_head_unit`,
   `ebook`←`home_tablet`). They are starting points - refine them in the CSV.
+- Camera-to-Resource defaults are now explicit in the matrix: `disableCameraCapture` stays `FALSE`
+  only on `personal_smartphone` / `home_tablet` and `TRUE` on the dedicated non-camera /
+  playback-oriented profiles; `skipCameraFilenameDialog` is `FALSE` on the touch-first profiles and
+  `TRUE` on the remote / one-purpose profiles; `cameraCaptureOpenForEditing` is conservatively
+  `FALSE` everywhere until the owner wants stronger editing-oriented presets.
 
 ---
 

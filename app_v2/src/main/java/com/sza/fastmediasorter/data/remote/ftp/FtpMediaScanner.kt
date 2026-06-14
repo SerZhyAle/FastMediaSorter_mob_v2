@@ -519,7 +519,6 @@ class FtpMediaScanner @Inject constructor(
         
         Timber.d("Parsed FTP URL: host=$host, port=$port, remotePath=$remotePath")
 
-        // Get credentials from database
         if (credentialsId == null) {
             Timber.w("No credentials ID provided for FTP connection")
             return null

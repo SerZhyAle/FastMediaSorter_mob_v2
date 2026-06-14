@@ -75,7 +75,37 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                 override fun onCancelRequested() {
                     cancelDrawSession()
                 }
+
+                override fun onDeleteRequested() {
+                    confirmAndDeleteCurrentFile()
+                }
             }
+    }
+
+    /**
+     * S0360: delete the file currently open in the drawing editor. Mandatory confirmation,
+     * then delegate to the existing player delete (trash-aware), which returns to browse on
+     * success and keeps the editor open with an error on failure.
+     */
+    private fun confirmAndDeleteCurrentFile() {
+        val resource = activity.viewModel.state.value.resource
+        if (resource?.isReadOnly == true) {
+            Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (activity.viewModel.state.value.currentFile == null) {
+            Toast.makeText(activity, R.string.msg_no_file_to_delete, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (activity.isFinishing || activity.isDestroyed) return
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.confirm_delete_title)
+            .setMessage(activity.getString(R.string.confirm_delete_message, 1))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                activity.viewModel.deleteCurrentFileAndFinish()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun requestDrawSave(mode: DrawSaveMode, overlayBitmap: Bitmap) {
@@ -115,7 +145,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
             )
 
             val outcome = result.getOrElse { error ->
-                Timber.e(error, "S0191: staged drawing save failed")
+                Timber.e(error, "staged drawing save failed")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(activity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                 }
@@ -220,7 +250,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
         )
         val mergeResult = activity.mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
         return mergeResult.getOrElse { error ->
-            Timber.e(error, "S0191: draw overlay merge failed")
+            Timber.e(error, "draw overlay merge failed")
             withContext(Dispatchers.Main) {
                 Toast.makeText(activity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
             }
@@ -247,7 +277,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                     else -> false
                 }
             } catch (e: Throwable) {
-                Timber.e(e, "S0191: draw in-place write failed for $path")
+                Timber.e(e, "draw in-place write failed for $path")
                 false
             }
         }
@@ -267,7 +297,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                 val localFile = File(currentFile.path)
                 activity.textNoteStagingRegistry.unregister(localFile)
                 if (localFile.exists() && !localFile.delete()) {
-                    Timber.w("S0191: failed to delete staged drawing %s", localFile.absolutePath)
+                    Timber.w("failed to delete staged drawing %s", localFile.absolutePath)
                 }
                 val sessionDir = localFile.parentFile
                 if (sessionDir != null && sessionDir.name.startsWith("drawing_session_") && sessionDir.list().isNullOrEmpty()) {
@@ -337,7 +367,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                 }
             }
         }.getOrElse { error ->
-            Timber.e(error, "S0191: failed to prepare drawing share file")
+            Timber.e(error, "failed to prepare drawing share file")
             Toast.makeText(activity, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
             return
         }
@@ -481,7 +511,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                         val croppedOverlay = cropOverlayToImage(overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height)
                         val result = activity.mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         result.onFailure { e ->
-                            Timber.e(e, "S0107: overlay merge failed")
+                            Timber.e(e, "overlay merge failed")
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(activity, R.string.draw_overlay_save_failed, Toast.LENGTH_SHORT).show()
                             }

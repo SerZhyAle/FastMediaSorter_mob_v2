@@ -96,6 +96,42 @@ class GameBoardGeneratorTest {
     }
 
     @Test
+    fun customValidationRejectsUnreachableKryvavitsa() {
+        // Column 3 is a solid wall: player/exit live on the left, Kryvavitsa is sealed on the right.
+        val board = GameBoard.fromRows(
+            "#######",
+            "#P.#.K#",
+            "#..#..#",
+            "#.E#..#",
+            "#..#..#",
+            "#######"
+        )
+        val player = GameActor(GamePosition(1, 1))
+        val enemies = listOf(GameEnemy("kryvavitsa", GameEnemyType.KRYVAVITSA, GamePosition(1, 5)))
+
+        val result = generator.validateCustomBoard(board, player, enemies)
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.contains(GameBoardValidationError.KRYVAVITSA_NOT_REACHABLE))
+        assertFalse(result.errors.contains(GameBoardValidationError.EXIT_NOT_REACHABLE))
+    }
+
+    @Test
+    fun generatedBoardKeepsKryvavitsaReachableFromPlayer() {
+        for (seed in 0L until 25L) {
+            val state = generator.createInitialState(
+                GameLevelConfig(width = 12, height = 12, shadowCount = 3, seed = seed)
+            )
+            val kryvavitsa = state.enemies.single { it.type == GameEnemyType.KRYVAVITSA }
+            val result = generator.validateCustomBoard(state.board, state.player, state.enemies)
+            assertFalse(
+                "seed $seed left Kryvavitsa at ${kryvavitsa.position} unreachable",
+                result.errors.contains(GameBoardValidationError.KRYVAVITSA_NOT_REACHABLE)
+            )
+        }
+    }
+
+    @Test
     fun customValidationRejectsEnemyAdjacentStart() {
         val board = GameBoard.fromRows(
             "#####",

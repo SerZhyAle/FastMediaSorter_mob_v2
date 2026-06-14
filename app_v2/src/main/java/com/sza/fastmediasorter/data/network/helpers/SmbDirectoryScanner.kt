@@ -161,17 +161,17 @@ class SmbDirectoryScanner(
         try {
             if (results.size >= maxFiles) return true
             
-            // Check cancellation
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
+            Timber.d("S0415: SMB scan listing dir='$dirPath' collected=${results.size}")
             val items = share.list(dirPath)
-            
+            Timber.d("S0415: SMB scan listed dir='$dirPath' entries=${items.size}")
+
             // First pass: process files (faster, no recursion)
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return true
                 
-                // Check cancellation periodically
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -204,7 +204,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return true
                 
-                // Check cancellation
                 currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -220,6 +219,7 @@ class SmbDirectoryScanner(
                     "$dirPath/${fileInfo.fileName}"
                 }
                 
+                Timber.d("S0415: SMB scan descend into dir='$fullPath'")
                 val limitReached = scanDirectoryRecursiveWithLimit(share, fullPath, extensions, results, maxFiles)
                 if (limitReached) return true
             }
@@ -247,7 +247,6 @@ class SmbDirectoryScanner(
         try {
             if (results.size >= maxFiles) return
             
-            // Check cancellation
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
@@ -260,7 +259,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return
                 
-                // Check cancellation
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -327,7 +325,6 @@ class SmbDirectoryScanner(
         limit: Int
     ) {
         try {
-            // Check cancellation
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
@@ -339,7 +336,6 @@ class SmbDirectoryScanner(
             for (fileInfo in items) {
                 if (results.size >= limit) break
                 
-                // Check cancellation
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue

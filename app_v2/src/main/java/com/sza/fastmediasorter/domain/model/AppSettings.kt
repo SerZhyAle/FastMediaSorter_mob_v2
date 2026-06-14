@@ -35,7 +35,17 @@ data class AppSettings(
     // Network sync settings
     val enableBackgroundSync: Boolean = false,
     val backgroundSyncIntervalHours: Int = 4, // hours (1-24)
-    
+
+    // S0391: per-source runtime availability toggles. Default true preserves current behavior on
+    // upgrade; a disabled source is gated everywhere via RemoteSourceAvailabilityGate (compile-time
+    // support AND user toggle), never deleting already-added resources.
+    val smbEnabled: Boolean = true,
+    val sftpEnabled: Boolean = true,
+    val ftpEnabled: Boolean = true,
+    val googleDriveEnabled: Boolean = true,
+    val oneDriveEnabled: Boolean = true,
+    val dropboxEnabled: Boolean = true,
+
     val allFiles: Boolean = false, // Show all file types (not just media). When ON: auto-enables all media types.
     val showHiddenFiles: Boolean = false, // Show hidden files and folders (those starting with a dot). Depends on allFiles being ON.
     val showSubfoldersAsItems: Boolean = false, // Show subfolders as separate browsable items instead of flat file list
@@ -79,12 +89,12 @@ data class AppSettings(
     val epubHorizontalMargin: Int = 16, // EPUB horizontal margin in px (0 - 48)
     
     // Translation settings (always available, works with Images/PDF/TXT)
-    val enableTranslation: Boolean = true, // Enable translation feature using ML Kit OCR + Translate
+    val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
     val translationSourceLanguage: String = "auto", // Source language code (auto = auto-detect, en, ru, uk, etc.)
     val translationTargetLanguage: String = "ru", // Target language code (en, ru, uk, etc.)
     val translationLensStyle: Boolean = true, // Google Lens style - draw translated text blocks over original positions (for images and PDFs)
     val enableGoogleLens: Boolean = false, // Enable sending to Google Lens app
-    val enableOcr: Boolean = true, // Enable OCR text recognition (extract text from images/PDF for copying)
+    val enableOcr: Boolean = false, // S0386: default OFF - OCR engines delivered on demand
     val cameraOcrTranslationEnabled: Boolean = false, // Opt-in quick Photo-OCR-Translation flow
     val cameraOcrOnly: Boolean = false, // Under camera-ocr-translation: only perform OCR, no translation
     val ocrDefaultFontSize: String = "AUTO", // Default font size for OCR results (AUTO, MINIMUM, SMALL, MEDIUM, LARGE, HUGE)
@@ -136,8 +146,26 @@ data class AppSettings(
     val enableFavorites: Boolean = true, // Enable "Favorites" feature (enabled by default)
     val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
+    val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
+    // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
+    // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
+    // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
+    val disableVideoCapture: Boolean = false,    // Hide video-capture command in Browse globally
+    val videoCaptureOpenInPlayer: Boolean = false, // Open the recorded video in the player after saving
+    // S0375: default destination for video recordings when the current resource is not a usable
+    // target; null = fallback to the public Movies folder.
+    val videoRecordingDestinationResourceId: String? = null,
     val micRecordingEnabled: Boolean = false,      // S0100: Show mic record button in Browse
     val micRecordingAskFilename: Boolean = true,   // S0100: Show rename dialog before saving recording
+    // S0367: default destination for microphone recordings; null = fallback to public Downloads.
+    // Resolved by CaptureDestinationPolicy.resolveMicDestination.
+    val micRecordingDestinationResourceId: String? = null,
+    // S0367: default destination for camera photos; null = fallback to device camera folder (DCIM/Camera).
+    // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
+    val cameraPhotosDestinationResourceId: String? = null,
+    val gestureOverlayEnabled: Boolean = false,
+    val screenshotGestureDownEnabled: Boolean = true,
+    val screenshotDestinationResourceId: String? = null,
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,

@@ -3,24 +3,19 @@
 # Installs on any Android device (4 ABIs); OpenXR bridge compiled for arm64-v8a only.
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
-Write-Host "Building NoLegal Debug APK (auto-versioned)..." -ForegroundColor Cyan
+param(
+    [switch]$AutoVersion
+)
+
+Write-Host "Building NoLegal Debug APK.." -ForegroundColor Cyan
 Write-Host "Features: Standard runtime + sideload-only extras (NewPipe, etc.)" -ForegroundColor Yellow
 Write-Host "Distribution: ADB sideload only - not for any public store." -ForegroundColor Magenta
-
-# Generate version
-$now = Get-Date
-$yy  = $now.ToString("yy")
-$mon = $now.ToString("MM")   # "mon" avoids PowerShell case-insensitive clash with $mm
-$dd  = $now.ToString("dd")
-$HH  = $now.ToString("HH")
-$mm  = $now.ToString("mm")
-
-# versionCode: YYMMDDHHm (9 digits, first digit of minutes - avoids Int32 overflow)
-$versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
-# versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4260.457
-$versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
-
-Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+if ($AutoVersion) {
+    Write-Host "Mode: auto-versioned sideload artifact build" -ForegroundColor Yellow
+}
+else {
+    Write-Host "Mode: sideload debug build without tracked version-file edits" -ForegroundColor Yellow
+}
 
 # Resolve paths relative to script location
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
@@ -39,20 +34,34 @@ if (Test-Path $cxxDebugDir) {
     }
 }
 
-# Update build.gradle.kts
-$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
-
 # Start the Gradle build process.
 # --no-configuration-cache: Chaquopy 17.x is not configuration-cache-compatible (S0175).
 # -Pchaquopy.enabled=true: noLegal flavor REQUIRES the Chaquopy Python runtime.
 #   Passing the flag explicitly removes the dependency on a machine-local
 #   `chaquopy.enabled=true` line in `local.properties` (which is gitignored and
 #   may be commented out / absent on a fresh checkout).
-& $gradlew assembleNoLegalDebug "-Pchaquopy.enabled=true" --no-configuration-cache
+$gradleArgs = @(
+    "assembleNoLegalDebug",
+    "-Pchaquopy.enabled=true",
+    "--no-configuration-cache"
+)
+if ($AutoVersion) {
+    $now = Get-Date
+    $yy  = $now.ToString("yy")
+    $mon = $now.ToString("MM")
+    $dd  = $now.ToString("dd")
+    $HH  = $now.ToString("HH")
+    $mm  = $now.ToString("mm")
+
+    $versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
+    $versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
+    Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+    $gradleArgs += @(
+        "-Pfms.versionCode=$versionCodeInt",
+        "-Pfms.versionName=$versionName"
+    )
+}
+& $gradlew @gradleArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

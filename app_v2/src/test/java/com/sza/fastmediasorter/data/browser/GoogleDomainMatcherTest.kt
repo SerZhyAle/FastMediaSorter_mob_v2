@@ -5,6 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * S0200 Step 03.6: covers [GoogleDomainMatcher] host-matching logic.
@@ -13,6 +14,7 @@ import org.robolectric.RobolectricTestRunner
  * the matcher itself contains no other Android dependency.
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class GoogleDomainMatcherTest {
 
     @Test

@@ -92,7 +92,6 @@ class ImageEditDialog(
                 performFilter(ApplyImageFilterUseCase.FilterType.NEGATIVE)
             }
             
-            // Apply adjustments button
             btnApplyAdjustments.setOnClickListener {
                 performAdjustments()
             }

@@ -110,6 +110,70 @@ class ResourceOrderManager(
     }
     
     /**
+     * Move resource to the very top of the list (display order 0).
+     *
+     * @param resource Resource to move
+     * @param currentList Current ordered list of resources
+     * @return OrderResult indicating success or reason for failure
+     */
+    suspend fun moveResourceToTop(
+        resource: MediaResource,
+        currentList: List<MediaResource>
+    ): OrderResult {
+        val currentIndex = currentList.indexOfFirst { it.id == resource.id }
+
+        if (currentIndex <= 0) {
+            // Already at top or not found
+            return OrderResult.CannotMove
+        }
+
+        return try {
+            val newOrder = currentList.toMutableList().apply {
+                val moved = removeAt(currentIndex)
+                add(0, moved)
+            }
+            resourceRepository.updateResourcesDisplayOrder(newOrder)
+            Timber.d("Moved resource to top: ${resource.name}")
+            OrderResult.Success
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to move resource to top: ${resource.name}")
+            OrderResult.Error(e)
+        }
+    }
+
+    /**
+     * Move resource to the very bottom of the list (highest display order).
+     *
+     * @param resource Resource to move
+     * @param currentList Current ordered list of resources
+     * @return OrderResult indicating success or reason for failure
+     */
+    suspend fun moveResourceToBottom(
+        resource: MediaResource,
+        currentList: List<MediaResource>
+    ): OrderResult {
+        val currentIndex = currentList.indexOfFirst { it.id == resource.id }
+
+        if (currentIndex < 0 || currentIndex >= currentList.size - 1) {
+            // Already at bottom or not found
+            return OrderResult.CannotMove
+        }
+
+        return try {
+            val newOrder = currentList.toMutableList().apply {
+                val moved = removeAt(currentIndex)
+                add(moved)
+            }
+            resourceRepository.updateResourcesDisplayOrder(newOrder)
+            Timber.d("Moved resource to bottom: ${resource.name}")
+            OrderResult.Success
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to move resource to bottom: ${resource.name}")
+            OrderResult.Error(e)
+        }
+    }
+
+    /**
      * Get recommended sort mode after manual reordering.
      * Always returns MANUAL to preserve user's custom order.
      */

@@ -34,6 +34,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         onDelete: (MediaFile) -> Unit,
         onMoveUp: ((MediaFile) -> Unit)? = null,
         onMoveDown: ((MediaFile) -> Unit)? = null,
+        onExtractArchive: ((MediaFile) -> Unit)? = null,
         onFavorite: ((MediaFile) -> Unit)? = null,
         onShare: ((MediaFile) -> Unit)? = null,
         onSendToTelegram: ((MediaFile) -> Unit)? = null,
@@ -45,6 +46,13 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         onOpenInNewWindow: ((MediaFile) -> Unit)? = null,
     ) {
         val items = mutableListOf<MenuItem>()
+
+        // "Open" (= play) first: lets the user open a playable media file straight from this
+        // menu when the tap landed on the row's overflow button instead of the card itself.
+        // Folders and binary files have their own open semantics and are excluded.
+        if (!file.isDirectory && !file.type.isBinaryFile() && onOpenInPlayer != null) {
+            items += MenuItem(context.getString(R.string.action_open)) { onOpenInPlayer(file) }
+        }
 
         // Basic ops - same gates as the direct buttons
         if (hasDestinations && appSettings.enableCopying)
@@ -61,6 +69,9 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.move_up)) { onMoveUp(file) }
         if (isGridMode && onMoveDown != null)
             items += MenuItem(context.getString(com.sza.fastmediasorter.R.string.move_down)) { onMoveDown(file) }
+        if (isZipArchive(file) && onExtractArchive != null) {
+            items += MenuItem(context.getString(R.string.unarchive_action_extract)) { onExtractArchive(file) }
+        }
 
         if (appSettings.allowSeparateWindow && onOpenInNewWindow != null) {
             items += MenuItem(context.getString(R.string.action_open_in_separate_window)) {
@@ -134,6 +145,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         appSettings: AppSettings,
         isWritable: Boolean,
     ): List<PlayerCommand> {
+        val isFolder = file.isDirectory
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
         val isAudio = file.type == MediaType.AUDIO
         val isVideo = file.type == MediaType.VIDEO
@@ -145,7 +157,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
 
         return buildList {
             // Universal - available for every file type
-            add(PlayerCommand.FAVORITE)
+            if (!isFolder) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
             // S0303: Send to Telegram - all file types, only when a Telegram client is installed.
             if (TelegramShareTargets.firstInstalledPackage(context.packageManager) != null) {
@@ -200,5 +212,10 @@ class BrowseFileOverflowMenuManager @Inject constructor(
                 add(PlayerCommand.DRAW_OVERLAY)
             }
         }
+    }
+
+    private fun isZipArchive(file: MediaFile): Boolean {
+        return file.type == MediaType.BINARY_ARCHIVE &&
+            file.name.substringAfterLast('.', "").equals("zip", ignoreCase = true)
     }
 }

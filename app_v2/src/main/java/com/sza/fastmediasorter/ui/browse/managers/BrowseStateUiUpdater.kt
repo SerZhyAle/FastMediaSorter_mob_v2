@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
@@ -37,12 +38,17 @@ class BrowseStateUiUpdater(
     private val onUpdateBreadcrumb: (BrowseState) -> Unit,
     private val onBuildResourceInfo: (BrowseState) -> String,
     private val onLaunchEditResource: (Long) -> Unit,
-    private val onUpdateToggleViewAvailability: (Boolean) -> Unit
+    private val onUpdateToggleViewAvailability: (Boolean) -> Unit,
+    // S0374: report runtime-gated command eligibility + request an overflow recompute.
+    private val setCommandEligibility: (Int, Boolean) -> Unit = { _, _ -> },
+    private val onRecomputeOverflow: () -> Unit = {}
 ) {
     /** Cached display mode to avoid redundant updates. */
     var currentDisplayMode: DisplayMode? = null
     /** Cached audio-only mode to force layout refresh when resource changes. */
     var currentAudioOnlyMode: Boolean? = null
+    /** Cached no-thumbnail flag - grid span count differs for the no-thumbnail "plank" layout (S0419). */
+    private var currentDisableThumbnails: Boolean? = null
 
     /**
      * Apply all UI changes derived from the current [state].
@@ -58,6 +64,8 @@ class BrowseStateUiUpdater(
         onUpdateBreadcrumb(state)
         updateCreateFolderButtonVisibility(state)
         updateResourceActionButton(state)
+        // S0374: re-partition the bar after every state-driven visibility change (final step).
+        onRecomputeOverflow()
     }
 
     private fun updateFilterBadge(state: BrowseState) {
@@ -110,14 +118,20 @@ class BrowseStateUiUpdater(
         val isSingleTypeMediaLibrary = resource != null &&
             (resource.isAudioOnly() || resource.isOnlyImage() || resource.isVideoOnly())
         binding.btnPlayRandom?.isVisible = isSingleTypeMediaLibrary
+        setCommandEligibility(R.id.btnPlayRandom, isSingleTypeMediaLibrary)
     }
 
     private suspend fun updateDisplayModeIfNeeded(state: BrowseState) {
         val shouldDisableToggle = state.resource?.isAudioOnly() == true
+        val disableThumbnails = state.resource?.disableThumbnails == true
         onUpdateToggleViewAvailability(shouldDisableToggle)
 
-        if (state.displayMode != currentDisplayMode || shouldDisableToggle != currentAudioOnlyMode) {
+        if (state.displayMode != currentDisplayMode ||
+            shouldDisableToggle != currentAudioOnlyMode ||
+            disableThumbnails != currentDisableThumbnails
+        ) {
             currentAudioOnlyMode = shouldDisableToggle
+            currentDisableThumbnails = disableThumbnails
             currentDisplayMode = state.displayMode
             onUpdateDisplayMode(state.displayMode)
         }
@@ -138,15 +152,17 @@ class BrowseStateUiUpdater(
                 && !resource.isReadOnly
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
+        setCommandEligibility(R.id.btnCreateFolder, canCreateFolder)
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
-        binding.btnCreateTextFile?.isVisible = TextNoteTargetPolicy.canCreateTextNote(resource)
+        val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
+        binding.btnCreateTextFile?.isVisible = canCreateTextNote
+        setCommandEligibility(R.id.btnCreateTextFile, canCreateTextNote)
 
-        val canCreateDrawing = resource != null
-            && !resource.isReadOnly
-            && !VirtualPathUtils.isVirtualPath(resource.path)
-            && resource.supportsImages()
+        // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
+        val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         binding.btnCreateDrawing?.isVisible = canCreateDrawing
+        setCommandEligibility(R.id.btnCreateDrawing, canCreateDrawing)
     }
 
     private fun updateResourceActionButton(state: BrowseState) {
@@ -187,15 +203,36 @@ class BrowseStateUiUpdater(
         internal fun isCameraCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
             if (settings.disableCameraCapture) return false
             val resource = state.resource ?: return false
-            val supportsImageOrVideo = resource.allFiles ||
+            // S0371 follow-up: the camera command is in-app photo only, so it requires an
+            // image-capable resource. Video-only resources expose the dedicated record-video command
+            // instead - routing a photo there would save a .jpg the resource filter never shows.
+            val supportsImage = resource.allFiles ||
                 resource.supportedMediaTypes.any {
-                    it == MediaType.IMAGE || it == MediaType.VIDEO || it == MediaType.GIF
+                    it == MediaType.IMAGE || it == MediaType.GIF
                 }
-            if (!supportsImageOrVideo) return false
+            if (!supportsImage) return false
+            val path = resource.path
+            return !VirtualPathUtils.isVirtualPath(path) ||
+                path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
+                path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
+        }
+
+        /**
+         * S0371: video-recording command visibility. Mirrors [isCameraCaptureVisible] but is
+         * media-type-driven on VIDEO (Strict Rule 15 - no BuildConfig flavor gate): the resource must
+         * accept video (or be in all-files mode) and resolve to a writable destination. Virtual
+         * aggregates are limited to "All video" and the camera resource, since those route to a real
+         * folder; "All images" is excluded as it never holds video.
+         */
+        internal fun isVideoCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
+            if (settings.disableVideoCapture) return false
+            val resource = state.resource ?: return false
+            val supportsVideo = resource.allFiles ||
+                resource.supportedMediaTypes.any { it == MediaType.VIDEO }
+            if (!supportsVideo) return false
             val path = resource.path
             return !VirtualPathUtils.isVirtualPath(path) ||
                 path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO ||
-                path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
                 path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
         }
     }

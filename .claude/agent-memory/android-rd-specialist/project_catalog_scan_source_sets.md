@@ -5,7 +5,9 @@ metadata:
   type: project
 ---
 
-`dev/CATALOG/scripts/scan.ps1` enumerates a hard-coded list of source roots and silently skips anything else. Until 2026-05-17 it covered only `main`, `vr`, `noLegal`, `streamingEnabled`. S0200 introduced `cloudEnabled`/`cloudDisabled` - without the extension, every class under those source sets was invisible to the catalog (and to `set.ps1`, `query.ps1`, `render.ps1`).
+`dev/CATALOG/scripts/scan.ps1` enumerates a hard-coded list of source roots and silently skips anything else. Until 2026-05-17 it covered only `main`, `vr`, `noLegal`, `streamingEnabled`. S0200 introduced `cloudEnabled`/`cloudDisabled` - without the extension, every class under those source sets was invisible to the catalog (and to `set.ps1`, `query.ps1`, `render.ps1`). On 2026-06-11 (S0400) I added the still-missing `translationDynamicFeature`, `translationMlKit`, `vrOnly` roots (+11 records); the symptom was `set.ps1` "No record found" for a class that built fine.
+
+Catalog stores **package-relative** paths (no `src/<bucket>/java/` prefix): pass `set.ps1 -Path "com/sza/.../Foo.kt"`, not the source-set-prefixed path.
 
 **Why:** The script was authored before flavor-shared source sets were a regular pattern. New shared source sets (e.g. `cloudEnabled`, future split-feature buckets) must be added manually - there is no auto-discovery from `build.gradle.kts`.
 

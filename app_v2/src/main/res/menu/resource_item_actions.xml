@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/action_open_resource"
+        android:title="@string/resource_menu_open"
+        android:icon="@drawable/ic_open_in_browse" />
+    <item
+        android:id="@+id/action_launch_player"
+        android:title="@string/resource_menu_launch"
+        android:icon="@drawable/ic_play" />
+    <item
         android:id="@+id/action_edit"
         android:title="@string/edit"
         android:icon="@drawable/ic_edit_20" />
@@ -19,6 +27,14 @@
     <item
         android:id="@+id/action_move_down"
         android:title="@string/move_down"
+        android:icon="@drawable/ic_arrow_downward" />
+    <item
+        android:id="@+id/action_move_to_top"
+        android:title="@string/resource_menu_move_to_top"
+        android:icon="@drawable/ic_arrow_upward" />
+    <item
+        android:id="@+id/action_move_to_bottom"
+        android:title="@string/resource_menu_move_to_bottom"
         android:icon="@drawable/ic_arrow_downward" />
     <item
         android:id="@+id/action_delete"

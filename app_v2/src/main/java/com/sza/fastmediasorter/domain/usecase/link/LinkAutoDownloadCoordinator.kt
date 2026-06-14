@@ -170,7 +170,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             canonical.audioOnly,
         )
         unsupportedContentFailure(canonical.url)?.let { unsupported ->
-            Timber.i("S0225: rejected unsupported YouTube community post before extraction url=%s", canonical.url.take(120))
+            Timber.i("rejected unsupported YouTube community post before extraction url=%s", canonical.url.take(120))
             return unsupported
         }
 
@@ -234,7 +234,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         canonicalAudioOnly: Boolean = false,
     ): Result {
         unsupportedContentFailure(url)?.let { unsupported ->
-            Timber.i("S0225: rejected unsupported YouTube community post in batch/direct path url=%s", url.take(120))
+            Timber.i("rejected unsupported YouTube community post in batch/direct path url=%s", url.take(120))
             return unsupported
         }
         callbacks.onProgress(ProgressState.Probing)

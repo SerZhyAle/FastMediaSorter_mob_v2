@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.core.util.PathUtils
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter.databinding.ItemMediaFileGridBinding
+import com.sza.fastmediasorter.databinding.ItemMediaFileGridNoThumbBinding
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -252,6 +253,7 @@ class MediaFileAdapter(
     fun setDisableThumbnails(disabled: Boolean) {
         if (disableThumbnails != disabled) {
             disableThumbnails = disabled
+            Timber.d("S0419: setDisableThumbnails=$disabled (favorite hidden + plank view-type when grid)")
             // Force rebind all items to switch between thumbnail/icon mode
             notifyDataSetChanged()
         }
@@ -294,6 +296,7 @@ class MediaFileAdapter(
     companion object {
         private const val VIEW_TYPE_LIST = 0
         private const val VIEW_TYPE_GRID = 1
+        private const val VIEW_TYPE_GRID_NO_THUMB = 2
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
         private const val PAYLOAD_PLAYBACK_STATE = "playback_state"
         private const val PAYLOAD_AUDIO_METADATA = MediaFileDiffCallback.PAYLOAD_AUDIO_METADATA
@@ -381,11 +384,23 @@ class MediaFileAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (isGridMode) VIEW_TYPE_GRID else VIEW_TYPE_LIST
+        return when {
+            isGridMode && disableThumbnails -> VIEW_TYPE_GRID_NO_THUMB
+            isGridMode -> VIEW_TYPE_GRID
+            else -> VIEW_TYPE_LIST
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
+            VIEW_TYPE_GRID_NO_THUMB -> {
+                val binding = ItemMediaFileGridNoThumbBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                GridNoThumbViewHolder(binding)
+            }
             VIEW_TYPE_GRID -> {
                 val binding = ItemMediaFileGridBinding.inflate(
                     LayoutInflater.from(parent.context),
@@ -410,6 +425,7 @@ class MediaFileAdapter(
         when (holder) {
             is ListViewHolder -> holder.bind(file, selectedPaths)
             is GridViewHolder -> holder.bind(file, selectedPaths)
+            is GridNoThumbViewHolder -> holder.bind(file, selectedPaths)
         }
     }
 
@@ -426,6 +442,7 @@ class MediaFileAdapter(
                 when (holder) {
                     is ListViewHolder -> holder.loadThumbnailOnly(file)
                     is GridViewHolder -> holder.loadThumbnailOnly(file)
+                    is GridNoThumbViewHolder -> holder.loadThumbnailOnly(file)
                 }
             }
             if (payloads.contains("FAVORITE_CHANGED")) {
@@ -481,6 +498,7 @@ class MediaFileAdapter(
                 holder.stopPlaybackAnimations() // Cancel inline playback animations when view is recycled
             }
             is GridViewHolder -> holder.clearImage()
+            is GridNoThumbViewHolder -> holder.clearImage()
         }
         apkTileBadgeBinder.onViewRecycled(holder.itemView)
     }
@@ -659,6 +677,16 @@ class MediaFileAdapter(
                 val thumbnailFrame = root.findViewById<android.view.View?>(R.id.flThumbnailFrame)
                 thumbnailFrame?.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
 
+                // The checkbox overlays the thumbnail bottom-left (S0419). In audio-only mode the
+                // thumbnail is GONE, so reserve a start margin so the name clears the overlaid checkbox.
+                val nameMarginStartPx = ((if (audioOnlyFile) 32 else 4) * root.resources.displayMetrics.density).toInt()
+                (tvFileName.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let { lp ->
+                    if (lp.marginStart != nameMarginStartPx) {
+                        lp.marginStart = nameMarginStartPx
+                        tvFileName.layoutParams = lp
+                    }
+                }
+
                 if (!audioOnlyFile) {
                     // Apply thumbnail size from settings for list mode (halved if compact mode enabled)
                     val effectiveBaseSize = if (useCompactElements) thumbnailSize / 2 else thumbnailSize
@@ -682,15 +710,16 @@ class MediaFileAdapter(
                 if (useCompactElements) {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f)
+                    val p6 = (6 * root.resources.displayMetrics.density).toInt()
                     val p8 = (8 * root.resources.displayMetrics.density).toInt()
-                    val p4 = (4 * root.resources.displayMetrics.density).toInt()
-                    root.setPadding(p8, p4, p8, p4)
+                    val p3 = (3 * root.resources.displayMetrics.density).toInt()
+                    root.setPaddingRelative(p6, p3, p8, p3)
                 } else {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
-                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
+                    val p8 = (8 * root.resources.displayMetrics.density).toInt()
                     val p12 = (12 * root.resources.displayMetrics.density).toInt()
-                    root.setPadding(p16, p12, p16, p12)
+                    root.setPaddingRelative(p8, p8, p12, p8)
                 }
 
                 // Scale action buttons: compact = 24dp (0.75× normal), normal = 32dp
@@ -750,8 +779,9 @@ class MediaFileAdapter(
                 }
                 // audioOnlyFile: thumbnail is GONE, nothing to load
 
-                // Favorite button (hide for folders)
-                btnFavorite.isVisible = showFavoriteButton && !isFolder
+                // Favorite button (hide for folders; hidden in no-thumbnail mode where it lives in
+                // the overflow menu only - S0419).
+                btnFavorite.isVisible = showFavoriteButton && !isFolder && !this@MediaFileAdapter.disableThumbnails
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline
@@ -905,7 +935,6 @@ class MediaFileAdapter(
                 // Hide checkbox for folders (folders can't be selected)
                 cbSelect.isVisible = !isFolder
                 if (!isFolder) {
-                    // Setup checkbox
                     cbSelect.setOnCheckedChangeListener(null)
                     cbSelect.isChecked = isSelected
                     cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
@@ -968,8 +997,8 @@ class MediaFileAdapter(
                     }
                 }
 
-                // Favorite button
-                btnFavorite.isVisible = showFavoriteButton
+                // Favorite button (folders are navigation items, not favorite targets)
+                btnFavorite.isVisible = showFavoriteButton && !isFolder
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline
@@ -998,6 +1027,175 @@ class MediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             val binarySizePx = (this@MediaFileAdapter.thumbnailSize * binding.root.context.resources.displayMetrics.density).toInt()
             thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, binarySizePx, isListMode = false)
+                ?.let { lastLoadedKey = it }
+        }
+    }
+
+    // No-thumbnail grid ViewHolder: horizontal "plank" - square extension tile on the left,
+    // file name filling the rest. The favorite star is intentionally absent here; favorite is
+    // reachable through the overflow menu only (S0419).
+    inner class GridNoThumbViewHolder(
+        private val binding: ItemMediaFileGridNoThumbBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        private var lastLoadedKey: String? = null
+        private var operationsContainer: android.widget.LinearLayout? = null
+        private var btnCopyItem: android.widget.ImageButton? = null
+        private var btnMoveItem: android.widget.ImageButton? = null
+        private var btnRenameItem: android.widget.ImageButton? = null
+        private var btnDeleteItem: android.widget.ImageButton? = null
+        private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+            val file = getItemByPosition() ?: return@OnCheckedChangeListener
+            if (!file.isDirectory) {
+                onSelectionChanged(file, isChecked)
+            }
+        }
+
+        private fun getItemByPosition(): MediaFile? {
+            val position = bindingAdapterPosition
+            return if (position != RecyclerView.NO_POSITION) {
+                this@MediaFileAdapter.getItem(position)
+            } else {
+                null
+            }
+        }
+
+        private fun cubeSizePx(): Int {
+            val cubeDp = if (useCompactElements) 24 else 48
+            return (cubeDp * binding.root.context.resources.displayMetrics.density).toInt()
+        }
+
+        private fun ensureOperationsInflated() {
+            if (operationsContainer != null) return
+            val inflated = binding.stubOperations.inflate()
+            operationsContainer = inflated as? android.widget.LinearLayout
+            btnCopyItem = inflated.findViewById(R.id.btnCopyItem)
+            btnMoveItem = inflated.findViewById(R.id.btnMoveItem)
+            btnRenameItem = inflated.findViewById(R.id.btnRenameItem)
+            btnDeleteItem = inflated.findViewById(R.id.btnDeleteItem)
+            val getFile: () -> MediaFile? = ::getItemByPosition
+            btnCopyItem?.bindFileClick(getFile, onCopyClick)
+            btnMoveItem?.bindFileClick(getFile, onMoveClick)
+            btnRenameItem?.bindFileClick(getFile, onRenameClick)
+            btnDeleteItem?.bindFileClick(getFile, onDeleteClick)
+        }
+
+        init {
+            val getFile: () -> MediaFile? = ::getItemByPosition
+            binding.ivThumbnail.bindFileTypeClick(getFile)
+            binding.root.bindFileTypeClick(getFile)
+            binding.root.bindRightClickContextMenu(getFile)
+            binding.root.setOnLongClickListener {
+                val file = getFile() ?: return@setOnLongClickListener false
+                onFileLongClick(file)
+                true
+            }
+            binding.ivThumbnail.setOnLongClickListener {
+                val file = getFile() ?: return@setOnLongClickListener false
+                onFileLongClick(file)
+                true
+            }
+            binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+            binding.cbSelect.setOnLongClickListener {
+                val file = getFile() ?: return@setOnLongClickListener false
+                if (!file.isDirectory && !binding.cbSelect.isChecked) onSelectionRangeRequested(file)
+                true
+            }
+            binding.btnOverflowMenu.setOnClickListener {
+                val file = getFile() ?: return@setOnClickListener
+                onOverflowMenuClick(file, it)
+            }
+            binding.root.isFocusable = true
+            binding.root.isFocusableInTouchMode = false
+        }
+
+        fun clearImage() {
+            val context = binding.ivThumbnail.context
+            if (context is android.app.Activity && context.isDestroyed) {
+                lastLoadedKey = null
+                return
+            }
+            try {
+                Glide.with(context).clear(binding.ivThumbnail)
+            } catch (e: IllegalArgumentException) {
+                Timber.w("Failed to clear Glide request: ${e.message}")
+            }
+            lastLoadedKey = null
+        }
+
+        fun loadThumbnailOnly(file: MediaFile) {
+            val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
+            if (lastLoadedKey == newKey) return
+            thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, cubeSizePx(), isListMode = false)
+            lastLoadedKey = newKey
+        }
+
+        fun bind(file: MediaFile, selectedPaths: Set<String>) {
+            binding.apply {
+                val isSelected = file.path in selectedPaths
+                val isFolder = file.isDirectory
+
+                // Hide checkbox for folders (folders can't be selected)
+                cbSelect.isVisible = !isFolder
+                if (!isFolder) {
+                    cbSelect.setOnCheckedChangeListener(null)
+                    cbSelect.isChecked = isSelected
+                    cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+                }
+
+                // Keep the extension tile square (sized to the cell height); it never stretches
+                // across the doubled cell width - the name takes the remaining horizontal space.
+                val sizePx = cubeSizePx()
+                flThumbnailContainer.layoutParams?.let { lp ->
+                    if (lp.width != sizePx || lp.height != sizePx) {
+                        lp.width = sizePx
+                        lp.height = sizePx
+                        flThumbnailContainer.layoutParams = lp
+                    }
+                }
+
+                cvCard.setCardBackgroundColor(
+                    if (isSelected) root.context.getColor(R.color.item_selected)
+                    else root.context.getColor(R.color.item_normal)
+                )
+
+                tvFileName.text = file.name
+                tvFileName.setTextSize(
+                    android.util.TypedValue.COMPLEX_UNIT_SP,
+                    if (useCompactElements) 11f else 13f
+                )
+
+                if (isFolder) {
+                    ivThumbnail.setImageResource(R.drawable.ic_folder)
+                    ivThumbnail.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+                    ivThumbnail.setBackgroundColor(Color.TRANSPARENT)
+                    ivThumbnail.imageTintList = null
+                    ivThumbnail.colorFilter = null
+                } else if (!skipInitialThumbnailLoad) {
+                    loadThumbnail(file)
+                }
+
+                // Setup operation buttons with visibility
+                val useOverflow = fileOpsInOverflowMenu && !isFolder
+                binding.btnOverflowMenu.isVisible = useOverflow
+                if (!useOverflow) {
+                    ensureOperationsInflated()
+                    operationsContainer?.isVisible = !hideGridActionButtons
+                    btnCopyItem?.isVisible = !hideGridActionButtons
+                    btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
+                } else {
+                    operationsContainer?.isVisible = false
+                }
+
+                // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
+                apkTileBadgeBinder.bind(root, file)
+            }
+        }
+
+        private fun loadThumbnail(file: MediaFile) {
+            thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, cubeSizePx(), isListMode = false)
                 ?.let { lastLoadedKey = it }
         }
     }

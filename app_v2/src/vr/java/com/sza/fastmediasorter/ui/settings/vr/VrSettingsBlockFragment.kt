@@ -63,6 +63,7 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
     @Inject lateinit var detection: XrDetectionFacade
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
     @Inject lateinit var entryGateway: XrEntryGateway
+    @Inject lateinit var payloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 
     private val settingsViewModel: SettingsViewModel by activityViewModels()
 
@@ -81,7 +82,7 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         immersiveLauncher = registerForActivityResult(
-            VrPlaybackActivityContract(entryGateway),
+            VrPlaybackActivityContract(entryGateway, payloadHolder),
             ::handleVrLaunchResult,
         )
     }
@@ -94,7 +95,6 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S0326: 3D/VR settings block shown")
 
         val advisory = view.findViewById<TextView>(R.id.xrUnavailableAdvisory)
         val masterRow = view.findViewById<SettingsToggleRow>(R.id.masterToggleRow)

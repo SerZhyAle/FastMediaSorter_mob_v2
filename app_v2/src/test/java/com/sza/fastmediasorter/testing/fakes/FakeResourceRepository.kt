@@ -51,6 +51,9 @@ class FakeResourceRepository : ResourceRepository {
     override suspend fun getResourceById(id: Long): MediaResource? =
         resources.firstOrNull { it.id == id }
 
+    override suspend fun getLocalResourceByPath(path: String): MediaResource? =
+        resources.firstOrNull { it.type == ResourceType.LOCAL && it.path == path }
+
     override fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>> =
         MutableStateFlow(resources.filter { it.type == type })
 

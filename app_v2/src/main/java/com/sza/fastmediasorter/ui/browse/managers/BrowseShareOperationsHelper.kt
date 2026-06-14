@@ -118,7 +118,6 @@ internal class BrowseShareOperationsHelper(
         selectedFiles: List<MediaFile>,
         resource: MediaResource
     ) {
-        Timber.d("S0303: browse send-to-Telegram action invoked for ${selectedFiles.size} file(s)")
         if (selectedFiles.isEmpty()) {
             Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
             return

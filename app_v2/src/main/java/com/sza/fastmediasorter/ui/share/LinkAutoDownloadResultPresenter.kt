@@ -17,7 +17,7 @@ import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.domain.usecase.link.YtMusicAudioOnlyContract
-import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
+import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -97,7 +97,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 if (openInPlayer) {
                     runCatching {
                         openAuthFlow(hostActivity, result.originalUrl, "s0116_webview_auth_retry")
-                    }.onFailure { Timber.w(it, "S0116: auth flow launch failed") }
+                    }.onFailure { Timber.w(it, "auth flow launch failed") }
                     runCatching { onAuthRetryRequested(result.originalUrl) }
                 } else {
                     toast(R.string.s0116_toast_auth_required, result.host)
@@ -184,7 +184,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 runCatching {
                     openAuthFlow(hostActivity, loginUrl, "s0151_webview_reauth")
                 }.onFailure {
-                    Timber.w(it, "S0151/S0155: reauth auth flow launch failed")
+                    Timber.w(it, "reauth auth flow launch failed")
                     toast(R.string.s0151_toast_content_unavailable)
                 }
             }
@@ -277,12 +277,14 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
 
     private fun launchPlayer(host: AppCompatActivity, uri: android.net.Uri) {
         try {
-            val intent = Intent(host, StandalonePlayerActivity::class.java)
+            // S0393: route through the dispatcher (resolves media family -> specialized host); legacy
+            // StandalonePlayerActivity is @Deprecated. Dispatcher reads intent.data for non-SEND intents.
+            val intent = Intent(host, StandalonePlayerDispatcherActivity::class.java)
                 .setData(uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             host.startActivity(intent)
         } catch (throwable: Throwable) {
-            Timber.e(throwable, "S0116: failed to launch player for %s", uri)
+            Timber.e(throwable, "failed to launch player for %s", uri)
         }
     }
 

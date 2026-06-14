@@ -1,14 +1,11 @@
 package com.sza.fastmediasorter.data.network.datasource
 
-import timber.log.Timber
-
 object TsPacketFormatDetector {
 
     const val PROBE_BYTES = 576 // 192 × 3 - enough to check 3 consecutive BD-TS or standard-TS packets
 
     fun detect(probe: ByteArray): TsPacketFormat {
         val result = detectInternal(probe)
-        Timber.d("S0054: TsPacketFormatDetector.detect probeSize=${probe.size} -> $result")
         return result
     }
 

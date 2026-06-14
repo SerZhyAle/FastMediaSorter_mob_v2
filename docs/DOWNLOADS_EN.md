@@ -1,31 +1,28 @@
-# FastMediaSorter APK Collection
+# FastMediaSorter APK Downloads
 
-⚠️ **IMPORTANT:** Compiled APK files are **NOT stored in this GitHub repository**.
+Compiled APKs are published as **GitHub Release assets** - they are not committed to the repository.
 
-All builds are automatically uploaded to **Google Drive** after successful compilation.
+## Download (recommended)
 
-## Download Builds
+🔗 **[Latest release](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)**
 
-🔗 **[Download from Google Drive](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)**
+Each release carries one asset per public build, named `FastMediaSorter-<edition>-<version>.apk`:
 
-🔐 **ZIP Password: `1`**
+- **standard** - full-featured application (mobile / TV / car)
+- **vr** - Meta Quest / XR edition
+- **lite** - lightweight build (images + video, no cloud)
+- **photos** - image-focused build
+- **legacy** - older Android devices (API 23+)
+- **wear** - Wear OS companion APK (manual install via adb)
 
-## Available Variants
+The download buttons on the website link straight to these assets and always reflect the latest version.
 
-The collection includes the following variants (all in password-protected ZIP archives):
+## Mirror (Google Drive)
 
-- **FastMediaSorter_standard_release.zip** - Full-featured application
-- **FastMediaSorter_legacy_release.zip** - Compatible with older Android devices
-- **FastMediaSorter_lite_release.zip** - Lightweight version with reduced features
-- **FastMediaSorter_photos_release.zip** - Optimized for photo management
-
-Both **Debug** (for testing) and **Release** (optimized/signed) versions are available.
+🔗 **[Google Drive folder](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)** - password-protected ZIP archives, **ZIP password: `1`**. Use this when a network policy blocks direct `.apk` downloads.
 
 ## How it works
 
-Each time you run a build (e.g., using `..\scripts\build-and-push-all.ps1` or other build scripts), the resulting APK files are automatically:
-
-1. Compiled and packaged
-2. Compressed into password-protected ZIP archives
-3. Uploaded to Google Drive
-4. Build information logged to `builds_versions.lst`
+1. `scripts/release/build-release-spectrum.ps1` builds every release edition at one shared version.
+2. `scripts/release/publish-github-release.ps1` uploads them all to a single GitHub Release tag.
+3. The Google Drive ZIP mirror is refreshed by the build scripts in parallel.

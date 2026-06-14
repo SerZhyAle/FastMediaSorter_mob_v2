@@ -38,14 +38,7 @@ class GeneralSettingsCacheHelper(
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_cache_message, newCacheSizeMb))
             .setPositiveButton(R.string.restart) { _, _ ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified))
-                fragment.requireContext()
-                    .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
-                    .edit().putInt("cache_size_mb", newCacheSizeMb).apply()
-                LocaleHelper.saveLanguage(fragment.requireContext(), LocaleHelper.getLanguage(fragment.requireContext()))
-                LocaleHelper.markReturnToSettings(fragment.requireContext())
-                LocaleHelper.restartApp(fragment.requireActivity())
+                applyCacheSizeAndRestart(newCacheSizeMb, isUserModified)
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 val currentCacheSize = viewModel.settings.value.cacheSizeMb
@@ -163,17 +156,31 @@ class GeneralSettingsCacheHelper(
     }
 
     private fun showOptimalCacheSizeSuggestion(optimalSizeMb: Int) {
-        val storageInfo = calculateOptimalCacheSizeUseCase.getStorageInfo()
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
-            .setTitle(R.string.optimize_cache_title)
-            .setMessage(fragment.getString(R.string.optimize_cache_message, optimalSizeMb, storageInfo))
-            .setPositiveButton(R.string.apply) { _, _ -> showCacheSizeRestartDialog(optimalSizeMb, isUserModified = false) }
-            .setNegativeButton(R.string.keep_current) { _, _ ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(isCacheSizeUserModified = true))
-            }
-            .setCancelable(false)
-            .show()
+        applyCacheSizeAndRestart(
+            newCacheSizeMb = optimalSizeMb,
+            isUserModified = false,
+            showInstalledToastAfterRestart = true,
+        )
+    }
+
+    private fun applyCacheSizeAndRestart(
+        newCacheSizeMb: Int,
+        isUserModified: Boolean,
+        showInstalledToastAfterRestart: Boolean = false,
+    ) {
+        val context = fragment.requireContext()
+        val current = viewModel.settings.value
+        viewModel.updateSettings(current.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified))
+        context.getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
+            .edit()
+            .putInt("cache_size_mb", newCacheSizeMb)
+            .apply()
+        if (showInstalledToastAfterRestart) {
+            LocaleHelper.markPendingCacheSizeToast(context, newCacheSizeMb)
+        }
+        LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
+        LocaleHelper.markReturnToSettings(context)
+        LocaleHelper.restartApp(fragment.requireActivity())
     }
 
     private fun showAudioCacheSizeWarning() {
