@@ -69,6 +69,17 @@ class GeneralSettingsObserversHelper(
             if (binding.rowShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems)
                 binding.rowShowSubfoldersAsItems.setCheckedSilently(settings.showSubfoldersAsItems)
 
+            // S0391: group toggles mirror the per-source flags - a group reads ON when any member is ON.
+            val smbGroup = settings.smbEnabled
+            val ftpGroup = settings.sftpEnabled || settings.ftpEnabled
+            val cloudGroup = settings.googleDriveEnabled || settings.oneDriveEnabled || settings.dropboxEnabled
+            if (binding.rowSourceSmb.isChecked != smbGroup)
+                binding.rowSourceSmb.setCheckedSilently(smbGroup)
+            if (binding.rowSourceFtp.isChecked != ftpGroup)
+                binding.rowSourceFtp.setCheckedSilently(ftpGroup)
+            if (binding.rowSourceCloud.isChecked != cloudGroup)
+                binding.rowSourceCloud.setCheckedSilently(cloudGroup)
+
             if (binding.rowEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
                 binding.rowEnableBackgroundSync.setCheckedSilently(settings.enableBackgroundSync)
 

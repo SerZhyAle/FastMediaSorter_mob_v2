@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Decorative onboarding page introducing remote media sources: pinned header (icon + title +
-     short description) over a row of three static tiles (SMB / (S)FTP / Cloud), styled like the
-     feature tiles on page 0. Purely informational in S0398 - S0391 later turns the tiles into group
-     toggles. The Cloud tile (@id/tileNetworkCloud) is hidden by the holder when
-     MediaCapabilities.supportsCloud is false.
+<!-- S0391 onboarding page for remote media sources: pinned header (icon + title + short description)
+     over three group-toggle rows (SMB / (S)FTP / Cloud), each a SettingsToggleRow over the six
+     per-source flags. WelcomeRemoteSourcesController owns persistence and hides the Cloud row
+     (@id/rowSourceCloud) on flavors without cloud support.
      All ids must stay in sync with the landscape variant (layout-land/page_welcome_networks.xml). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -78,152 +77,47 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvDescription">
 
+            <!-- Group-toggle rows replace the former decorative tiles. SettingsToggleRow is itself
+                 clickable/focusable and shows a switch (state distinguishable beyond colour); the
+                 explicit focusable + nextFocus* keep D-pad order deterministic. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <!-- SMB tile -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/tileNetworkSmb"
-                    android:layout_width="0dp"
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowSourceSmb"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/welcome_feature_card_margin"
-                    android:layout_marginEnd="@dimen/welcome_feature_card_margin"
-                    android:layout_weight="1"
-                    android:clickable="false"
-                    android:contentDescription="@string/welcome_network_tile_smb"
-                    android:focusable="false"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:rippleColor="@android:color/transparent"
-                    app:strokeWidth="0dp">
+                    android:clickable="true"
+                    android:contentDescription="@string/settings_remote_source_smb_title"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/rowSourceFtp"
+                    app:str_title="@string/settings_remote_source_smb_title"
+                    app:str_subtitle="@string/settings_remote_source_smb_subtitle" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:minHeight="72dp"
-                        android:orientation="vertical"
-                        android:padding="@dimen/welcome_feature_card_padding">
-
-                        <ImageView
-                            android:layout_width="@dimen/welcome_feature_card_icon_size"
-                            android:layout_height="@dimen/welcome_feature_card_icon_size"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_resource_smb"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:ellipsize="end"
-                            android:gravity="center"
-                            android:maxLines="2"
-                            android:text="@string/welcome_network_tile_smb"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="@dimen/welcome_feature_card_text_size" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- (S)FTP tile -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/tileNetworkFtp"
-                    android:layout_width="0dp"
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowSourceFtp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/welcome_feature_card_margin"
-                    android:layout_marginEnd="@dimen/welcome_feature_card_margin"
-                    android:layout_weight="1"
-                    android:clickable="false"
-                    android:contentDescription="@string/welcome_network_tile_ftp"
-                    android:focusable="false"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:rippleColor="@android:color/transparent"
-                    app:strokeWidth="0dp">
+                    android:clickable="true"
+                    android:contentDescription="@string/settings_remote_source_ftp_title"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/rowSourceSmb"
+                    android:nextFocusDown="@+id/rowSourceCloud"
+                    app:str_title="@string/settings_remote_source_ftp_title"
+                    app:str_subtitle="@string/settings_remote_source_ftp_subtitle" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:minHeight="72dp"
-                        android:orientation="vertical"
-                        android:padding="@dimen/welcome_feature_card_padding">
-
-                        <ImageView
-                            android:layout_width="@dimen/welcome_feature_card_icon_size"
-                            android:layout_height="@dimen/welcome_feature_card_icon_size"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_resource_ftp"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:ellipsize="end"
-                            android:gravity="center"
-                            android:maxLines="2"
-                            android:text="@string/welcome_network_tile_ftp"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="@dimen/welcome_feature_card_text_size" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Cloud tile - hidden by the holder when supportsCloud is false -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/tileNetworkCloud"
-                    android:layout_width="0dp"
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowSourceCloud"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/welcome_feature_card_margin"
-                    android:layout_marginEnd="@dimen/welcome_feature_card_margin"
-                    android:layout_weight="1"
-                    android:clickable="false"
-                    android:contentDescription="@string/welcome_network_tile_cloud"
-                    android:focusable="false"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:rippleColor="@android:color/transparent"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:minHeight="72dp"
-                        android:orientation="vertical"
-                        android:padding="@dimen/welcome_feature_card_padding">
-
-                        <ImageView
-                            android:layout_width="@dimen/welcome_feature_card_icon_size"
-                            android:layout_height="@dimen/welcome_feature_card_icon_size"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_resource_cloud"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:ellipsize="end"
-                            android:gravity="center"
-                            android:maxLines="2"
-                            android:text="@string/welcome_network_tile_cloud"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="@dimen/welcome_feature_card_text_size" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
+                    android:clickable="true"
+                    android:contentDescription="@string/settings_remote_source_cloud_title"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/rowSourceFtp"
+                    app:str_title="@string/settings_remote_source_cloud_title"
+                    app:str_subtitle="@string/settings_remote_source_cloud_subtitle" />
 
             </LinearLayout>
 

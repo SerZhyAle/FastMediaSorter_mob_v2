@@ -59,6 +59,7 @@ class BrowseResourceLoadManager(
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
     private val getResourcesUseCase: com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase,
+    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
     private val cacheManager: BrowseCacheManager,
     private val loadingManager: BrowseLoadingManager,
     private val scope: CoroutineScope,
@@ -128,6 +129,15 @@ class BrowseResourceLoadManager(
             if (resource == null) {
                 Timber.e("BrowseResourceLoadManager.loadResource: resource not found for id=$resourceId")
                 sendEvent(BrowseEvent.ShowError(context.getString(R.string.resource_not_found)))
+                setLoading(false)
+                return@launch
+            }
+
+            // S0391: a disabled source is inert - turn back before any scan/auth/Glide load even if
+            // this resource was reached outside the (already-filtered) main list (widget, deep link).
+            if (!remoteSourceGate.isEnabled(resource)) {
+                Timber.w("BrowseResourceLoadManager.loadResource: source disabled - not loading ${resource.name}")
+                sendEvent(BrowseEvent.ShowError(context.getString(R.string.error_resource_unavailable, resource.name)))
                 setLoading(false)
                 return@launch
             }

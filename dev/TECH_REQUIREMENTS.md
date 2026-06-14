@@ -256,7 +256,7 @@
 
 ### Signing
 
-- Release signing configured via `keystore.properties` (excluded from VCS)
+- Release signing configured via `.secrets/keystore.properties` (excluded from VCS; root fallback still supported)
 - Debug builds use auto-generated debug keystore
 
 ### Localization

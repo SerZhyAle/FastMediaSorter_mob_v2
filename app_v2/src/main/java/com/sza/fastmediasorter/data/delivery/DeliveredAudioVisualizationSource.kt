@@ -25,7 +25,13 @@ class DeliveredAudioVisualizationSource @Inject constructor(
         "anim_audio_bg_2.mp4",
         "anim_audio_bg_3.mp4",
         "anim_audio_bg_4.mp4",
-        "anim_audio_bg_5.mp4"
+        "anim_audio_bg_5.mp4",
+        "anim_audio_bg_6.mp4",
+        "anim_audio_bg_7.mp4",
+        "anim_audio_bg_8.mp4",
+        "anim_audio_bg_9.mp4",
+        "anim_audio_bg_10.mp4",
+        "anim_audio_bg_11.mp4"
     )
 
     fun isInstalled(): Boolean =

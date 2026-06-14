@@ -231,7 +231,7 @@ Timber.e(exception, "Error message")
 
 ### Prerequisites
 
-1. **Keystore file** (see `keystore.properties`)
+1. **Keystore file** (see `.secrets/keystore.properties`)
 2. **Keystore password** set in `~/.gradle/gradle.properties`
 
 ### Build Release APK

@@ -173,8 +173,20 @@ val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.
     t.contains("nolegal") || t.contains("vr")
 }
 
+fun findRootSecretFile(vararg relativePaths: String): File? =
+    relativePaths
+        .asSequence()
+        .map(rootProject::file)
+        .firstOrNull(File::exists)
+
+fun resolveSiblingPath(baseFile: File, rawPath: String): File {
+    val direct = File(rawPath)
+    return if (direct.isAbsolute) direct else File(baseFile.parentFile, rawPath).normalize()
+}
+
 android {
-    val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
+    val releaseKeystorePropertiesFile = findRootSecretFile(".secrets/keystore.properties", "keystore.properties")
+    val hasReleaseKeystore = releaseKeystorePropertiesFile != null
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
     val hasCustomDebugKeystore = debugKeystorePropertiesFile.exists()
     val requestedTasks = gradle.startParameter.taskNames
@@ -632,16 +644,19 @@ android {
         }
 
         create("release") {
-            val keystorePropertiesFile = rootProject.file("keystore.properties")
-            if (keystorePropertiesFile.exists()) {
+            val keystorePropertiesFile = releaseKeystorePropertiesFile
+            if (keystorePropertiesFile != null) {
                 val keystoreProperties = Properties()
                 FileInputStream(keystorePropertiesFile).use { inputStream ->
                     keystoreProperties.load(inputStream)
                 }
-                
+
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
+                storeFile = resolveSiblingPath(
+                    keystorePropertiesFile,
+                    keystoreProperties["storeFile"] as String
+                )
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
@@ -693,7 +708,8 @@ android {
                 signingConfig = signingConfigs.getByName("release")
             } else if (requiresReleaseSigning) {
                 throw GradleException(
-                    "Release signing is requested, but keystore.properties is missing in project root. " +
+                    "Release signing is requested, but .secrets/keystore.properties is missing " +
+                    "(root keystore.properties is still accepted as a fallback). " +
                     "Create keystore.properties with keyAlias/keyPassword/storeFile/storePassword and ensure storeFile exists."
                 )
             }

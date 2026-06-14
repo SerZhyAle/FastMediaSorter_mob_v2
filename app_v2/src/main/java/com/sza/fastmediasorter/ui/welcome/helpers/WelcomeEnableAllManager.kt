@@ -96,7 +96,6 @@ class WelcomeEnableAllManager @Inject constructor(
         if (inProgress) return
         inProgress = true
         currentTypeIndex = 0
-        Timber.d("S0409: enable-all sequence started from welcome page-0 button")
         applyProfileOther()
         val pm = permissionsManager ?: run { finishSequence(); return }
         // Apply settings strictly after the profile save and enqueue optional deliverables, then hand

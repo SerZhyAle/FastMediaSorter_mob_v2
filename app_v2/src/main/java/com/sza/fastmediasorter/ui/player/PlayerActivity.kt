@@ -341,6 +341,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // S0213 Pillar A: passed to VideoPlayerManager and PlayerMediaLoaderManager for decoder-error cooldown.
     @Inject lateinit var recentDecoderFailureTracker: com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
 
+    // S0391: source-availability gate; threaded into VideoPlayerManager and PlayerMediaLoaderManager.
+    @Inject lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
     // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
     @Inject lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
 

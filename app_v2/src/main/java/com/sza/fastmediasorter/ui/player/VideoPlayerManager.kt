@@ -98,6 +98,8 @@ class VideoPlayerManager(
     internal val memoryProfileCoordinator: MemoryProfileCoordinator,
     // S0213 Pillar A: cooldown tracker consulted by PlayerMediaLoaderManager before replays.
     internal val decoderFailureTracker: RecentDecoderFailureTracker,
+    // S0391: source-availability gate; playback dispatch turns back when the source is user-disabled.
+    internal val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
 ) : DefaultLifecycleObserver {
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -582,6 +584,25 @@ class VideoPlayerManager(
         managerScope.launch {
             try {
                 val savedPosition = playbackPositionRepository.getPosition(path)
+
+                // S0391: refuse playback for a user-disabled source. LOCAL always proceeds; CLOUD
+                // checks the cloud group; SMB/SFTP/FTP map to their RemoteSourceId. managerScope runs
+                // on Dispatchers.Main, so onPlaybackError is already delivered on the main thread.
+                val sourceEnabled = when (resourceType) {
+                    ResourceType.LOCAL -> true
+                    ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
+                    else -> com.sza.fastmediasorter.core.capability.RemoteSourceId
+                        .networkFromResourceType(resourceType)
+                        ?.let { remoteSourceGate.isEnabled(it) } ?: true
+                }
+                if (!sourceEnabled) {
+                    Timber.w("VideoPlayerManager: playback refused - source disabled, type=%s path=%s", resourceType, path)
+                    playerCallback.onPlaybackError(
+                        IllegalStateException("source disabled"),
+                        context.getString(R.string.error_resource_unavailable, path.substringAfterLast('/')),
+                    )
+                    return@launch
+                }
 
                 when (resourceType) {
                     ResourceType.CLOUD -> playCloudVideo(path, playWhenReady)

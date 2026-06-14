@@ -8,7 +8,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.children
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -27,6 +26,10 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
     }
 
     private val viewModel: DropboxFolderPickerViewModel by viewModels()
+
+    // S0391: compile-tier cloud support (Rule 14 - injected capability, not a BuildConfig read).
+    @javax.inject.Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
+
     private lateinit var folderAdapter: CloudFolderAdapter
     // S0196 Phase 04: one-shot tag on the first non-empty folder list bind.
     private var firstListBoundLogged = false
@@ -61,8 +64,8 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
 
     override fun setupViews() {
         // Guard: Cloud storage is not supported by this flavor
-        if (!BuildConfig.SUPPORT_CLOUD) {
-            Timber.d("DropboxFolderPickerActivity: Cloud not supported (SUPPORT_CLOUD=false)")
+        if (!mediaCapabilities.supportsCloud) {
+            Timber.d("DropboxFolderPickerActivity: Cloud not supported")
             finish()
             return
         }

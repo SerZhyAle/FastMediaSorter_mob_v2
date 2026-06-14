@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeEnableAllManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import javax.inject.Inject
@@ -56,6 +57,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     /** Owns the permissions page (S0402): adaptive permission set + grant-all flow (Activity launchers). */
     @Inject
     lateinit var permissionsManager: WelcomePermissionsManager
+
+    /** Owns the networks page (S0391): three remote-source group toggles over the six per-source flags. */
+    @Inject
+    lateinit var remoteSourcesController: WelcomeRemoteSourcesController
 
     /** Owns the "Enable all" sequence (S0409): profile + settings + permissions + default-player + finish. */
     @Inject
@@ -235,15 +240,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             )
         )
 
-        // Decorative networks page (S0398 Phase 04, index 2). Static/informational; the Cloud tile
-        // collapses on flavors without cloud support. S0391 later turns tiles into toggles.
+        // Networks page (index 2). Three remote-source group toggles (SMB / (S)FTP / Cloud);
+        // WelcomeRemoteSourcesController owns all logic and binds via the page callback. The cloud
+        // toggle collapses on flavors without cloud support (decided inside the controller via the gate).
         pagesList.add(
             WelcomePage(
                 iconRes = 0,
                 titleRes = 0,
                 descriptionRes = 0,
                 isNetworksPage = true,
-                showCloudNetworkTile = mediaCapabilities.supportsCloud,
+                onBindNetworks = { b -> remoteSourcesController.bind(b, this) },
             )
         )
 

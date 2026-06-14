@@ -91,6 +91,7 @@ class BrowseViewModel @Inject constructor(
     // S0242 Phase 05 - passed into BrowseFileObserverManager so it can canonicalize raw
     // local paths before recording Mutation entries that the Reconciler reads on resume.
     private val pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer,
+    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -410,6 +411,7 @@ class BrowseViewModel @Inject constructor(
         audioMetadataLoader = audioMetadataLoader,
         cleanupOrphanedTempFilesUseCase = cleanupOrphanedTempFilesUseCase,
         getResourcesUseCase = getResourcesUseCase,
+        remoteSourceGate = remoteSourceGate,
         cacheManager = cacheManager,
         loadingManager = loadingManager,
         scope = viewModelScope,

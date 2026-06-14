@@ -12,16 +12,23 @@ import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.databinding.DialogFilterResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Dialog for filtering and sorting resources on Main Screen
  * According to V2 Specification: "Filter and Sort Resource List Screen"
  */
+@AndroidEntryPoint
 class FilterResourceDialog : DialogFragment() {
+
+    @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
 
     private var _binding: DialogFilterResourceBinding? = null
     private val binding get() = _binding!!
@@ -115,11 +122,13 @@ class FilterResourceDialog : DialogFragment() {
     private fun setupResourceTypeChips() {
         binding.chipGroupResourceType.removeAllViews()
         
-        // Filter resource types based on product flavor
+        // S0391: chips reflect the availability node (compile support AND user toggle), not just flavor.
         val allowedResourceTypes = ResourceType.values().filter { type ->
             when (type) {
-                ResourceType.CLOUD -> BuildConfig.SUPPORT_CLOUD
-                else -> true // LOCAL, SMB, SFTP, FTP always allowed
+                ResourceType.LOCAL -> true
+                ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
+                else -> RemoteSourceId.networkFromResourceType(type)
+                    ?.let { remoteSourceGate.isEnabled(it) } ?: true
             }
         }
         

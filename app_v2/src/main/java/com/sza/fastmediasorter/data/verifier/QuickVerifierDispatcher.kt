@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.verifier
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -38,7 +39,9 @@ class QuickVerifierDispatcher @Inject constructor(
     private val smb: SmbQuickVerifier,
     private val sftp: SftpQuickVerifier,
     private val cloud: CloudQuickVerifier,
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    // S0391: a user-disabled source must not be probed (no connection attempt while hidden).
+    private val remoteSourceGate: RemoteSourceAvailabilityGate,
 ) {
 
     /**
@@ -57,6 +60,12 @@ class QuickVerifierDispatcher @Inject constructor(
         val resource = resourceRepository.getResourceById(resourceId)
         if (resource == null) {
             Timber.d("QuickVerifierDispatcher: resource=%d not found, skipping probe", resourceId)
+            return emptyList()
+        }
+        // S0391: skip the probe entirely when the resource's source is user-disabled - opening a
+        // connection to a hidden source would contradict the toggle. LOCAL is always enabled.
+        if (!remoteSourceGate.isEnabled(resource)) {
+            Timber.d("QuickVerifierDispatcher: resource=%d source disabled, skipping probe", resourceId)
             return emptyList()
         }
         val verifier: QuickVerifier = when (resource.type) {

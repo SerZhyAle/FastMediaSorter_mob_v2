@@ -136,9 +136,6 @@
     <string name="welcome_theme_dark">Dark</string>
     <string name="welcome_networks_title">Network sources</string>
     <string name="welcome_networks_description">Add media from network shares and remote storage.</string>
-    <string name="welcome_network_tile_smb">SMB (intranet)</string>
-    <string name="welcome_network_tile_ftp">(S)FTP</string>
-    <string name="welcome_network_tile_cloud">Cloud</string>
     <!-- S0399 device-profile page -->
     <string name="welcome_profiles_title">How will you use this device?</string>
     <string name="welcome_profiles_subtitle">Pick a profile - we\'ll tune the defaults to match.</string>

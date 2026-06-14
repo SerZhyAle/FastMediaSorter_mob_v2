@@ -143,6 +143,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+
+    // S0391: compile-tier capability flags; supplies the cloud-support flag to the debug logger.
+    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 
@@ -512,7 +515,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
     private fun debugLogLaunchConditions(incomingIntent: Intent?) =
-        com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(this, incomingIntent)
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(
+            this, incomingIntent, mediaCapabilities.supportsCloud,
+        )
 
     // ── Window / Insets Setup ─────────────────────────────────────────────
 

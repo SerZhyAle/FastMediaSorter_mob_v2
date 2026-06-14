@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -32,7 +33,8 @@ class ResourceScanCoordinator(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
-    private val smbOperationsUseCase: SmbOperationsUseCase
+    private val smbOperationsUseCase: SmbOperationsUseCase,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) {
     
     /**
@@ -111,7 +113,8 @@ class ResourceScanCoordinator(
         Timber.d("Clearing network connection pools before resource scan")
         smbOperationsUseCase.clearAllConnectionPools()
         
-        val resources = getResourcesUseCase().first()
+        // S0391: never connection-test or count a disabled source's resources - they are inert.
+        val resources = getResourcesUseCase().first().filter { remoteSourceGate.isEnabled(it) }
         Timber.d("Starting scan of ${resources.size} resources")
         
         var unavailableCount = 0

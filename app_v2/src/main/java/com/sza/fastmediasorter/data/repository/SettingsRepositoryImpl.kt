@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.RemoteSourceSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.MediaSizeFilterSettingsStore
@@ -264,6 +265,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 val slideshow = SlideshowSettingsStore.read(preferences)
                 val link = LinkSettingsStore.read(preferences)
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
+                val remoteSource = RemoteSourceSettingsStore.read(preferences)
 
                 AppSettings(
                     language = language,
@@ -281,6 +283,12 @@ class SettingsRepositoryImpl @Inject constructor(
                     resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
+                    smbEnabled = remoteSource.smbEnabled,
+                    sftpEnabled = remoteSource.sftpEnabled,
+                    ftpEnabled = remoteSource.ftpEnabled,
+                    googleDriveEnabled = remoteSource.googleDriveEnabled,
+                    oneDriveEnabled = remoteSource.oneDriveEnabled,
+                    dropboxEnabled = remoteSource.dropboxEnabled,
                     allFiles = preferences[KEY_ALL_FILES] ?: false,
                     showHiddenFiles = preferences[KEY_SHOW_HIDDEN_FILES] ?: false,
                     showSubfoldersAsItems = preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] ?: false,
@@ -508,6 +516,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] = settings.isCacheSizeUserModified
             preferences[KEY_ENABLE_BACKGROUND_SYNC] = settings.enableBackgroundSync
             preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] = settings.backgroundSyncIntervalHours
+            RemoteSourceSettingsStore.write(preferences, settings)
             preferences[KEY_ALL_FILES] = settings.allFiles
             Timber.d("SettingsRepo: Saved allFiles=${settings.allFiles} to DataStore")
             preferences[KEY_SHOW_HIDDEN_FILES] = settings.showHiddenFiles

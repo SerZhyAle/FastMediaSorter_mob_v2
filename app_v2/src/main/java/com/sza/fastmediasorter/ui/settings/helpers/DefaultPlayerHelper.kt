@@ -149,7 +149,6 @@ object DefaultPlayerHelper {
      */
     fun openChooserOrFallbackFromActivity(activity: Activity, mimeType: String) {
         DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
-        Timber.d("S0409: default-player set-default tapped for $mimeType (welcome activity)")
         val openWith = resolveOpenWithIntent(activity, mimeType)
         if (openWith != null) {
             try {
@@ -174,7 +173,6 @@ object DefaultPlayerHelper {
         mimeType: String,
     ) {
         DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
-        Timber.d("S0409: default-player set-default for $mimeType (enable-all walk)")
         val openWith = resolveOpenWithIntent(activity, mimeType)
         if (openWith != null) {
             try {
@@ -218,7 +216,6 @@ object DefaultPlayerHelper {
      */
     private fun resolveOpenWithIntent(context: Context, mimeType: String): Intent? {
         if (foreignDefaultExists(context, mimeType)) {
-            Timber.d("S0409: foreign default already owns %s, routing to settings", mimeType)
             return null
         }
         val (uri, actualMime) = findSampleFile(context, mimeType) ?: return null

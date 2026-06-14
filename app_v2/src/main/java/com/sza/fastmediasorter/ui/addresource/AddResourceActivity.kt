@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import android.view.KeyEvent
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
@@ -61,6 +62,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     @Inject lateinit var unifiedAuthManager: UnifiedCloudAuthManager
     @Inject lateinit var dropboxClient: dagger.Lazy<DropboxClient>
     @Inject lateinit var oneDriveClient: dagger.Lazy<OneDriveRestClient>
+    @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
 
     private lateinit var connectionManager: AddResourceConnectionManager
     private lateinit var scanManager: AddResourceScanManager
@@ -123,7 +125,21 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         com.sza.fastmediasorter.ui.main.ResourceTab.FAVORITES -> Unit
                     }
                 }
-            }
+            } ?: binding.root.post { maybeSkipTypeSelection() }
+        }
+    }
+
+    /**
+     * When the type picker would offer only the always-present Local card - every remote source is
+     * disabled (S0391) or unsupported by the flavor - a one-option screen is pointless, so open the
+     * Local folder options directly and skip it. Runs only on a fresh add (no preselected tab, not a
+     * copy). Card visibility was already applied by `formManager.applyFlavorRestrictions()`.
+     */
+    private fun maybeSkipTypeSelection() {
+        val remoteCards = listOf(binding.cardNetworkFolder, binding.cardSftpFolder, binding.cardCloudStorage)
+        if (remoteCards.none { it.isVisible }) {
+            Timber.d("S0391: only Local source available - skipping the type picker")
+            showLocalFolderOptions()
         }
     }
 
@@ -146,7 +162,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     override fun setupViews() {
-        formManager = AddResourceFormManager(this, binding, viewModel)
+        formManager = AddResourceFormManager(this, binding, viewModel, remoteSourceGate)
         formManager.applyEdgeToEdgeInsets()
         formManager.updateResourceTypeGridColumns()
 

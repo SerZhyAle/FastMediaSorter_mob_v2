@@ -14,7 +14,8 @@ import javax.inject.Singleton
  * is a future extension once that manager exposes a uniform `tokenFor(provider) / forceRefresh`
  * API. For now the gate exposes only [lastRecreateMs] tracking and lifecycle-uniform iteration.
  *
- * Available only on flavors with `BuildConfig.SUPPORT_CLOUD == true`.
+ * Registered only on flavors whose compile-tier `MediaCapabilities.supportsCloud` is true; the
+ * user runtime toggle is enforced upstream by the availability gate, not here.
  */
 @Singleton
 class CloudConnectionGate @Inject constructor(

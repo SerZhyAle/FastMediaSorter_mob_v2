@@ -8,7 +8,7 @@
     difference is shape - selected = solid disc, unselected = ring.
 
     Active = filled disc → unmistakable visual signal for the current colour.
-    Inactive = 2dp ring → readable on the toolbar's #CC000000 background.
+    Inactive = 2dp ring → readable on the toolbar's grey overlay background.
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Selected state - solid filled disc -->

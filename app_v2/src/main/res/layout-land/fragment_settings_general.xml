@@ -237,6 +237,68 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- S0391: REMOTE SOURCES SECTION - three group toggles (SMB / (S)FTP / Cloud) over the six
+             per-source flags; collapsed by default. Sits between File Browser and Authorization.
+             Ids mirror layout/fragment_settings_general.xml (CLAUDE.md Rule 11). -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerRemoteSources"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_title="@string/settings_remote_sources_title" />
+
+                <LinearLayout android:id="@+id/containerRemoteSources" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
+
+                    <!-- Landscape splits the three rows across two columns to save vertical height; SMB | (S)FTP share a row, Cloud takes the next. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowSourceSmb"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/settings_remote_source_smb_title"
+                                app:str_subtitle="@string/settings_remote_source_smb_subtitle"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/settings_remote_source_smb_help_title"
+                                app:str_helpMessage="@string/settings_remote_source_smb_help_message" />
+
+                        </LinearLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowSourceFtp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/settings_remote_source_ftp_title"
+                                app:str_subtitle="@string/settings_remote_source_ftp_subtitle"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/settings_remote_source_ftp_help_title"
+                                app:str_helpMessage="@string/settings_remote_source_ftp_help_message" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSourceCloud"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/settings_remote_source_cloud_title"
+                        app:str_subtitle="@string/settings_remote_source_cloud_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/settings_remote_source_cloud_help_title"
+                        app:str_helpMessage="@string/settings_remote_source_cloud_help_message" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- S0255: AUTHORIZATION SECTION - groups GSM banner, Google account card and saved authorizations entry. -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 

@@ -36,6 +36,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     private val viewModel: SettingsViewModel by activityViewModels()
 
+    @javax.inject.Inject
+    lateinit var deliveryEnableInterceptor: com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
+
     companion object {
         private const val MB_TO_BYTES = 1024L * 1024L
         private const val PREFS_NAME_HINT = "playback_sections_state"
@@ -192,7 +195,19 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             if (!isUpdatingFromSettings) {
                 val selectedKey = emptyStateModeKeys.getOrElse(position) { MODE_NONE }
                 val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                if (selectedKey == MODE_VISUALIZATION) {
+                    timber.log.Timber.d("S0407: audio viz settings gate")
+                    // Video background ships via on-demand delivery (Set C); offer the download when the
+                    // set is not installed, and keep the prior mode selected if the user refuses.
+                    deliveryEnableInterceptor.requireInstalled(
+                        this@AudioSettingsFragment,
+                        com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
+                        onReady = { viewModel.updateSettings(current.copy(audioEmptyStateMode = MODE_VISUALIZATION)) },
+                        onUnavailable = { revertEmptyStateModeSelection() }
+                    )
+                } else {
+                    viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                }
             }
         }
 
@@ -202,6 +217,22 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         // Default player button
         setupDefaultPlayerButton()
         // S0367: microphone-recording and camera-photos sections moved to PlaybackSettingsFragment.
+    }
+
+    // Re-sync the dropdown text to the currently persisted mode after a refused download, so the UI
+    // never shows VISUALIZATION while a non-video mode is actually in effect.
+    private fun revertEmptyStateModeSelection() {
+        val persisted = viewModel.settings.value.audioEmptyStateMode
+        val normalized = if (persisted == MODE_GIF_LOOP) MODE_VISUALIZATION else persisted
+        val index = emptyStateModeKeys.indexOf(normalized).takeIf { it >= 0 } ?: 0
+        val labels = listOf(
+            getString(R.string.audio_empty_state_none),
+            getString(R.string.audio_empty_state_avd_pulse),
+            getString(R.string.audio_empty_state_canvas_bars),
+            getString(R.string.audio_empty_state_canvas_waves),
+            getString(R.string.audio_empty_state_visualization)
+        )
+        binding.actvAudioEmptyStateMode.setText(labels[index], false)
     }
 
     private fun observeData() {

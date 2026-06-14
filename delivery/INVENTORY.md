@@ -43,7 +43,7 @@ substitute a payload - a mismatch fails verification and the app falls back to t
 - **Set B - OCR engines (PaddleOCR, noLegal)** - arm64-v8a only:
   `arm64-v8a-libpaddle_light_api_shared-v1.so`, `arm64-v8a-libpaddle_lite_jni-v1.so`
 - **Set D - FFmpeg DTS decoder** - all 4 ABIs: `<abi>-libffmpegJNI-v1.so`
-- **Set C - audio-player background videos**: `anim_audio_bg_1-v1.mp4` .. `anim_audio_bg_5-v1.mp4`
+- **Set C - audio-player background videos**: `anim_audio_bg_1-v1.mp4` .. `anim_audio_bg_11-v1.mp4` (H.264 Constrained Baseline, 1024x576, 24fps, ~800k cap - tuned for low-power car/cheap audio decoders; S0407)
 
 Set A (ML Kit translation) is NOT hosted here: on store it ships via a Play dynamic-feature; on
 sideload/VR it stays bundled in the base (Google `.so` are not re-hosted).

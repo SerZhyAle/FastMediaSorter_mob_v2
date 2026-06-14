@@ -16,10 +16,13 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
+import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -40,6 +43,7 @@ class GeneralSettingsViewSetupHelper(
     private val logHelper: GeneralSettingsLogHelper,
     private val resetHelper: GeneralSettingsResetHelper,
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
+    private val remoteSourceAvailabilityGate: RemoteSourceAvailabilityGate,
 ) {
     private var lastCommittedDefaultUser: String = ""
     private var lastCommittedDefaultPassword: String = ""
@@ -47,6 +51,7 @@ class GeneralSettingsViewSetupHelper(
     fun setup() {
         setupLanguageSpinner()
         setupSwitches()
+        setupRemoteSources()
         setupTooltips()
         setupIconSizeInput()
         setupNetworkParallelism()
@@ -177,6 +182,76 @@ class GeneralSettingsViewSetupHelper(
             viewModel.updateSettings(viewModel.settings.value.copy(showSubfoldersAsItems = isChecked))
         }
     }
+
+    /**
+     * S0391: the three remote-source group toggles. Each mass-writes its member flags; the display
+     * state (group ON if any member ON) is kept in sync by [GeneralSettingsObserversHelper]. The
+     * cloud row is hidden on flavors without cloud support. Turning a group OFF while it still has
+     * saved resources asks for confirmation first (folders are hidden, never deleted).
+     */
+    private fun setupRemoteSources() {
+        binding.rowSourceCloud.visibility =
+            if (remoteSourceAvailabilityGate.isCloudGroupSupported()) View.VISIBLE else View.GONE
+
+        binding.rowSourceSmb.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            applyRemoteSourceToggle(
+                row = binding.rowSourceSmb,
+                enabled = isChecked,
+                affectedTypes = listOf(ResourceType.SMB),
+            ) { it.copy(smbEnabled = isChecked) }
+        }
+        binding.rowSourceFtp.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            applyRemoteSourceToggle(
+                row = binding.rowSourceFtp,
+                enabled = isChecked,
+                affectedTypes = listOf(ResourceType.SFTP, ResourceType.FTP),
+            ) { it.copy(sftpEnabled = isChecked, ftpEnabled = isChecked) }
+        }
+        binding.rowSourceCloud.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            applyRemoteSourceToggle(
+                row = binding.rowSourceCloud,
+                enabled = isChecked,
+                affectedTypes = listOf(ResourceType.CLOUD),
+            ) { it.copy(googleDriveEnabled = isChecked, oneDriveEnabled = isChecked, dropboxEnabled = isChecked) }
+        }
+    }
+
+    /**
+     * Persists a group toggle. Enabling is immediate; disabling a group that still has saved
+     * resources of [affectedTypes] first confirms with the user (revert on cancel), since the
+     * folders become hidden, not deleted.
+     */
+    private fun applyRemoteSourceToggle(
+        row: SettingsToggleRow,
+        enabled: Boolean,
+        affectedTypes: List<ResourceType>,
+        transform: (com.sza.fastmediasorter.domain.model.AppSettings) -> com.sza.fastmediasorter.domain.model.AppSettings,
+    ) {
+        Timber.d("S0391: settings remote-source toggle, enabled=$enabled types=$affectedTypes")
+        val current = viewModel.settings.value
+        if (enabled || !groupHasResources(affectedTypes)) {
+            viewModel.updateSettings(transform(current))
+            return
+        }
+        AlertDialog.Builder(fragment.requireContext())
+            .setTitle(R.string.settings_remote_source_disable_confirm_title)
+            .setMessage(R.string.settings_remote_source_disable_confirm_message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.yes) { _, _ -> viewModel.updateSettings(transform(current)) }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                setIsUpdatingSpinner(true)
+                row.setCheckedSilently(true)
+                setIsUpdatingSpinner(false)
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun groupHasResources(types: List<ResourceType>): Boolean =
+        viewModel.resources.value.any { it.type in types }
 
     private fun setupAllFilesResourceButton() {
         val button = MaterialButton(

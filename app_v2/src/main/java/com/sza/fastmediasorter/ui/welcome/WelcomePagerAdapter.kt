@@ -168,8 +168,9 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
-            // Decorative page: only the Cloud tile is conditional (collapsed on no-cloud flavors).
-            binding.tileNetworkCloud.isVisible = page.showCloudNetworkTile
+            // S0391: WelcomeRemoteSourcesController owns the three group toggles (SMB / (S)FTP / Cloud)
+            // and their persistence; the page stays a thin renderer (mirrors onBindFunctionality).
+            page.onBindNetworks?.invoke(binding)
 
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
@@ -320,10 +321,10 @@ data class WelcomePage(
     /** Optional string resource for the scrollable "details" block below the header; 0 = no details. */
     val detailDescriptionRes: Int = 0,
     val isDefaultPlayerPage: Boolean = false,
-    /** Marks the decorative networks page (SMB / (S)FTP / Cloud tiles). */
+    /** Marks the networks page (SMB / (S)FTP / Cloud group toggles). */
     val isNetworksPage: Boolean = false,
-    /** On the networks page, show the Cloud tile only when the flavor supports cloud sources. */
-    val showCloudNetworkTile: Boolean = false,
+    /** Hands the page binding to WelcomeRemoteSourcesController, which owns the three group toggles. */
+    val onBindNetworks: ((PageWelcomeNetworksBinding) -> Unit)? = null,
     /** Called with the MIME type when the user taps a type-specific default-player button. */
     val onSetDefaultForTypeClick: ((mimeType: String) -> Unit)? = null,
     val featureCards: List<FeatureCard> = emptyList(),

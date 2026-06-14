@@ -111,11 +111,17 @@ object DeliverableDescriptorCatalog {
     fun audioVisualizations(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
         set = DeliverableSet.AUDIO_VISUALIZATIONS,
         files = listOf(
-            resource("anim_audio_bg_1.mp4", "3945177f696510aa66112775e6ff31d1453d6b8d85a97fb45bbc2ad06f552bd1", 806_870L),
-            resource("anim_audio_bg_2.mp4", "3b00a46540944ff344e17cc4e68514c72b4a74b5c077dc821b511f4db0b5295f", 1_173_098L),
-            resource("anim_audio_bg_3.mp4", "7d3908bc9a16acf9684765d7c2fd6b82f451fc37fb8d8ef7ceee9a07b282fd22", 1_510_287L),
-            resource("anim_audio_bg_4.mp4", "64608c49340b736739266c5cd5d9331f236f659a48c359005bc07908829e5376", 1_076_000L),
-            resource("anim_audio_bg_5.mp4", "5fa53ca3f8429358a802d2ae19800de94d895a5fee3c211798fefdcf4546408b", 1_785_603L)
+            resource("anim_audio_bg_1.mp4", "947a5bf459b7e6cf98ccdd804cf57b7d6826f087fac236eadd11b325f86f518f", 1_673_054L),
+            resource("anim_audio_bg_2.mp4", "584f519f38deece5b5b31c5d410fe8c37762b902d16ed2c32d9d4fd382eb2a21", 1_674_941L),
+            resource("anim_audio_bg_3.mp4", "6462d6bd0530404094b5e5250271f6b80fffb43d8be37cc0ebc1d493786d07cd", 1_679_910L),
+            resource("anim_audio_bg_4.mp4", "e7be3ff5cbbb837128bbf5bed14ae3c6776197b2c9386bfad3358d2bf2b755b4", 1_684_364L),
+            resource("anim_audio_bg_5.mp4", "99504d435047ad86e0cde9d2ba88ba2cd2551fbbc6b5a9cca743777110d5f954", 1_672_034L),
+            resource("anim_audio_bg_6.mp4", "3b226e716683b66e2f2b754b1e72cf7bcde79238792f816d8c834331f23d7318", 2_080_752L),
+            resource("anim_audio_bg_7.mp4", "f34c09c604a71930149a1f734a7976537c45332179200371a1b811cff9dd39ea", 2_071_845L),
+            resource("anim_audio_bg_8.mp4", "4d052d2bb90bdd40b1664797cbd844dec8caa22cfc438fdf48f485e2f843e77c", 2_067_401L),
+            resource("anim_audio_bg_9.mp4", "b60191cedf92f45213f0f7c6a4c4455ffd7b3a006683d91f329ceb60b433fdd9", 2_059_489L),
+            resource("anim_audio_bg_10.mp4", "13b10fa129ae5c8f025ccd3cac836b90d9b4e18cbc29c2d9c4ba6802d2f70b6e", 2_075_937L),
+            resource("anim_audio_bg_11.mp4", "dc5be5dd8359599dd83d0f49a007031fedc6ce550b7f353c4b911e0bc943c205", 2_076_890L)
         )
     )
 

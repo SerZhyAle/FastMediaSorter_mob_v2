@@ -1,56 +1,61 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.res.Configuration
+import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.ui.main.ResourceTab
+import timber.log.Timber
 
 /**
- * Owns the resource-type TabLayout: tab construction (with flavor-aware Cloud tab),
- * width-aware mode/gravity, and bidirectional mapping between tab index and [ResourceTab].
+ * Owns the resource-type TabLayout: gate-aware tab construction, width-aware mode/gravity, and
+ * bidirectional mapping between tab index and [ResourceTab] derived from the actually-built set.
+ *
+ * S0391: only the remote sources the availability gate currently enables get a tab. When no remote
+ * source is enabled the whole strip is hidden, since only ALL + Local would remain and Local is a
+ * subset of ALL.
  *
  * Extracted from MainActivity to keep the activity below the 1000-line cap.
  */
 class MainResourceTabsManager(
     private val tabLayout: TabLayout,
     private val configuration: Configuration,
+    private val gate: RemoteSourceAvailabilityGate,
     private val onTabSelected: (ResourceTab) -> Unit,
     private val onFavoritesReselected: () -> Unit,
     private val getActiveTab: () -> ResourceTab,
     private val getPreviousTab: () -> ResourceTab?
 ) {
 
-    /** Build base tabs (ALL, Local, SMB, S/FTP, optional Cloud) and apply width-aware mode. */
+    /** Tabs in display order, rebuilt by [createTabs]; the single source of truth for index<->tab. */
+    private val builtTabs = mutableListOf<ResourceTab>()
+
+    /** Build tabs for the currently-enabled sources and apply width-aware mode. Idempotent. */
     fun createTabs() {
-        // Cloud tab is hidden in lite flavor (SUPPORT_CLOUD = false)
-        tabLayout.addTab(tabLayout.newTab().apply {
-            setText(R.string.tab_all_resources)
-            setIcon(R.drawable.ic_view_list)
-        })
-        tabLayout.addTab(tabLayout.newTab().apply {
-            setText(R.string.tab_local_resources)
-            setIcon(R.drawable.ic_resource_local)
-        })
-        tabLayout.addTab(tabLayout.newTab().apply {
-            setText(R.string.tab_smb_resources)
-            setIcon(R.drawable.ic_resource_smb)
-        })
-        tabLayout.addTab(tabLayout.newTab().apply {
-            setText(R.string.tab_ftp_sftp_resources)
-            setIcon(R.drawable.ic_resource_ftp)
-        })
-        if (BuildConfig.SUPPORT_CLOUD) {
-            tabLayout.addTab(tabLayout.newTab().apply {
-                setText(R.string.tab_cloud_resources)
-                setIcon(R.drawable.ic_resource_cloud)
-            })
+        tabLayout.removeAllTabs()
+        builtTabs.clear()
+
+        addTab(ResourceTab.ALL, R.string.tab_all_resources, R.drawable.ic_view_list)
+        addTab(ResourceTab.LOCAL, R.string.tab_local_resources, R.drawable.ic_resource_local)
+        if (gate.isEnabled(RemoteSourceId.SMB)) {
+            addTab(ResourceTab.SMB, R.string.tab_smb_resources, R.drawable.ic_resource_smb)
+        }
+        if (gate.isEnabled(RemoteSourceId.SFTP) || gate.isEnabled(RemoteSourceId.FTP)) {
+            addTab(ResourceTab.FTP_SFTP, R.string.tab_ftp_sftp_resources, R.drawable.ic_resource_ftp)
+        }
+        if (gate.anyCloudEnabled()) {
+            addTab(ResourceTab.CLOUD, R.string.tab_cloud_resources, R.drawable.ic_resource_cloud)
         }
 
-        // Restore active tab from state
+        // Vanish rule: with no remote source enabled only ALL + Local remain, so hide the strip.
+        tabLayout.isVisible = gate.anyRemoteEnabled()
+
+        // Restore active tab (falls back to ALL when the active source is no longer built).
         tabLayout.getTabAt(getTabIndexForResourceTab(getActiveTab()))?.select()
 
-        // Width-aware mode: scrollable on narrow phones to avoid truncated labels
+        // Width-aware mode: scrollable on narrow phones to avoid truncated labels.
         val screenWidthDp = configuration.screenWidthDp
         if (screenWidthDp < 480) {
             tabLayout.tabMode = TabLayout.MODE_SCROLLABLE
@@ -59,6 +64,17 @@ class MainResourceTabsManager(
             tabLayout.tabMode = TabLayout.MODE_FIXED
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         }
+        Timber.d("S0391: main tab strip rebuilt, visible=${tabLayout.isVisible} tabs=${builtTabs.joinToString()}")
+    }
+
+    private fun addTab(tab: ResourceTab, textRes: Int, iconRes: Int) {
+        tabLayout.addTab(
+            tabLayout.newTab().apply {
+                setText(textRes)
+                setIcon(iconRes)
+            }
+        )
+        builtTabs.add(tab)
     }
 
     /** Install the OnTabSelectedListener. Call once during initial setup. */
@@ -71,12 +87,11 @@ class MainResourceTabsManager(
             override fun onTabUnselected(tab: TabLayout.Tab?) = Unit
 
             override fun onTabReselected(tab: TabLayout.Tab?) {
-                // Reopen Browse when Favorites tab tapped again
-                val favoritesTabIndex = if (BuildConfig.SUPPORT_CLOUD) 5 else 4
-                if (tab?.position == favoritesTabIndex) {
+                // Favorites is an action-only button, never a built tab, so indexOf returns -1 and
+                // this branch does not fire today; kept for parity should Favorites become a tab.
+                if (tab?.position == builtTabs.indexOf(ResourceTab.FAVORITES)) {
                     onFavoritesReselected()
                     tabLayout.post {
-                        // Restore previous tab
                         val previous = getPreviousTab() ?: ResourceTab.ALL
                         val target = tabLayout.getTabAt(getTabIndexForResourceTab(previous))
                         if (target != null && !target.isSelected) {
@@ -88,33 +103,11 @@ class MainResourceTabsManager(
         })
     }
 
-    /** Account for hidden Cloud tab in lite flavor. */
-    fun getTabIndexForResourceTab(tab: ResourceTab): Int = when (tab) {
-        ResourceTab.ALL -> 0
-        ResourceTab.LOCAL -> 1
-        ResourceTab.SMB -> 2
-        ResourceTab.FTP_SFTP -> 3
-        ResourceTab.CLOUD -> if (BuildConfig.SUPPORT_CLOUD) 4 else 3
-        ResourceTab.FAVORITES -> 0 // Should not happen - defaults to ALL
-    }
+    /** Index of [tab] in the built set; ALL (0) when the tab is not currently built. */
+    fun getTabIndexForResourceTab(tab: ResourceTab): Int =
+        builtTabs.indexOf(tab).takeIf { it >= 0 } ?: 0
 
-    /** Account for hidden Cloud tab in lite flavor. */
-    fun getResourceTabForIndex(index: Int): ResourceTab = if (BuildConfig.SUPPORT_CLOUD) {
-        when (index) {
-            0 -> ResourceTab.ALL
-            1 -> ResourceTab.LOCAL
-            2 -> ResourceTab.SMB
-            3 -> ResourceTab.FTP_SFTP
-            4 -> ResourceTab.CLOUD
-            else -> ResourceTab.ALL
-        }
-    } else {
-        when (index) {
-            0 -> ResourceTab.ALL
-            1 -> ResourceTab.LOCAL
-            2 -> ResourceTab.SMB
-            3 -> ResourceTab.FTP_SFTP
-            else -> ResourceTab.ALL
-        }
-    }
+    /** Tab at [index] in the built set; ALL when out of range. */
+    fun getResourceTabForIndex(index: Int): ResourceTab =
+        builtTabs.getOrElse(index) { ResourceTab.ALL }
 }

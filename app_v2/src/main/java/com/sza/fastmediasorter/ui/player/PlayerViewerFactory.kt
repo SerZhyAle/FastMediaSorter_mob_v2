@@ -40,6 +40,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             memoryProfileCoordinator = activity.memoryProfileCoordinator,
             // S0213 Pillar A: cooldown tracker for decoder-failure replay throttling.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
+            // S0391: source-availability gate for playback-dispatch gating.
+            remoteSourceGate = activity.remoteSourceGate,
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }

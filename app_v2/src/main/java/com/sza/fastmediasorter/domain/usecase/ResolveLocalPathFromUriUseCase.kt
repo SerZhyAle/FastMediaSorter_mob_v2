@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -66,6 +67,14 @@ class ResolveLocalPathFromUriUseCase @Inject constructor(
         val documentId = runCatching { DocumentsContract.getDocumentId(uri) }.getOrNull() ?: return null
         val parts = documentId.split(':', limit = 2)
         if (parts.size < 2) return null
+        // Downloads provider encodes the real filesystem path directly as `raw:/abs/path`, so the
+        // embedded path is authoritative and needs no volume mapping.
+        if (parts[0].equals(RAW_DOCUMENT_PREFIX, ignoreCase = true)) {
+            val rawFile = File(parts[1])
+            val rawPath = parts[1].takeIf { rawFile.isAbsolute && rawFile.exists() }
+            Timber.d("S0414: Open-in-FMS resolver mapped raw download document URI -> %s", rawPath)
+            return rawPath
+        }
         // Only the primary external volume maps deterministically to a filesystem path; other
         // volumes (SD card, USB, provider-specific ids) stay NotLocal.
         if (!parts[0].equals(PRIMARY_VOLUME, ignoreCase = true)) return null
@@ -79,5 +88,6 @@ class ResolveLocalPathFromUriUseCase @Inject constructor(
         private const val SCHEME_FILE = "file"
         private const val SCHEME_CONTENT = "content"
         private const val PRIMARY_VOLUME = "primary"
+        private const val RAW_DOCUMENT_PREFIX = "raw"
     }
 }

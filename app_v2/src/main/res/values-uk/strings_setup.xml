@@ -136,9 +136,6 @@
     <string name="welcome_theme_dark">Темна</string>
     <string name="welcome_networks_title">Мережеві джерела</string>
     <string name="welcome_networks_description">Додавайте медіа з мережевих папок і віддалених сховищ.</string>
-    <string name="welcome_network_tile_smb">SMB (локальна мережа)</string>
-    <string name="welcome_network_tile_ftp">(S)FTP</string>
-    <string name="welcome_network_tile_cloud">Хмара</string>
     <!-- S0399 device-profile page -->
     <string name="welcome_profiles_title">Як ви будете використовувати пристрій?</string>
     <string name="welcome_profiles_subtitle">Виберіть профіль — налаштуємо все під нього.</string>

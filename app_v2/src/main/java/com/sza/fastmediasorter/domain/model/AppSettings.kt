@@ -35,7 +35,17 @@ data class AppSettings(
     // Network sync settings
     val enableBackgroundSync: Boolean = false,
     val backgroundSyncIntervalHours: Int = 4, // hours (1-24)
-    
+
+    // S0391: per-source runtime availability toggles. Default true preserves current behavior on
+    // upgrade; a disabled source is gated everywhere via RemoteSourceAvailabilityGate (compile-time
+    // support AND user toggle), never deleting already-added resources.
+    val smbEnabled: Boolean = true,
+    val sftpEnabled: Boolean = true,
+    val ftpEnabled: Boolean = true,
+    val googleDriveEnabled: Boolean = true,
+    val oneDriveEnabled: Boolean = true,
+    val dropboxEnabled: Boolean = true,
+
     val allFiles: Boolean = false, // Show all file types (not just media). When ON: auto-enables all media types.
     val showHiddenFiles: Boolean = false, // Show hidden files and folders (those starting with a dot). Depends on allFiles being ON.
     val showSubfoldersAsItems: Boolean = false, // Show subfolders as separate browsable items instead of flat file list

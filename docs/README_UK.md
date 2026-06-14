@@ -393,6 +393,12 @@ CI workflow:
 
 Див. [dev/CHANGELOG.md](../dev/CHANGELOG.md) для детальної історії змін.
 
+## Методологія розробки 🧠
+
+Робочий процес AI-асистованої розробки цього проєкту - дослідження перед дією, розділення стратегічних і тактичних специфікацій, конвеєри slash-команд, постійна пам'ять агента та механічні перевірки на «слоп» - виокремлено в переносний, незалежний від стеку інструментарій:
+
+🔗 **[Universal Agent Kit](https://serzhyale.github.io/universal-agent-kit/)** - невелика «операційна система» поверх AI-асистентів, під ліцензією MIT.
+
 ## Contributing 🤝
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

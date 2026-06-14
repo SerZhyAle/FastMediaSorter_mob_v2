@@ -127,6 +127,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var memoryProbe: MemoryProbe
 
+    // S0391: single availability node for remote sources; drives the resource-type tab strip.
+    @Inject
+    lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -857,6 +861,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onRecordLastPlayed = ::recordLastPlayedResource,
         )
         collectOnLifecycle(viewModel.events) { eventHandler.handle(it) }
+        // S0391: rebuild the resource-type tab strip when remote-source availability changes at
+        // runtime (a Settings toggle), so a disabled source's tab disappears without an app restart.
+        collectOnLifecycle(remoteSourceGate.enabledRemoteSources()) {
+            tabsManager.createTabs()
+        }
         // Observe settings to show/hide Favorites button
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
@@ -1047,6 +1056,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         tabsManager = MainResourceTabsManager(
             tabLayout = binding.tabResourceTypes,
             configuration = resources.configuration,
+            gate = remoteSourceGate,
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },
             getActiveTab = { viewModel.state.value.activeResourceTab },

@@ -14,8 +14,8 @@
 local.properties
 
 # Release signing credentials
-keystore.properties
-fastmediasorter.keystore
+.secrets/keystore.properties
+.secrets/fastmediasorter.keystore
 
 # OAuth client secrets (production credentials, release flavor only)
 app_v2/src/release/res/values/google_oauth.xml

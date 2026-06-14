@@ -64,6 +64,9 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
     @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
 
+    // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
+    @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
 
@@ -150,7 +153,7 @@ class GeneralSettingsFragment : Fragment() {
             binding, viewModel, this,
             { isUpdatingSpinner }, { isUpdatingSpinner = it },
             cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper,
-            ensureAllFilesPredefinedResourceUseCase
+            ensureAllFilesPredefinedResourceUseCase, remoteSourceAvailabilityGate
         )
     }
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.

@@ -72,6 +72,8 @@ class PlayerMediaLoaderManager(
     private val playbackPositionRepository: PlaybackPositionRepository? = null,
     // S0213 Pillar A: cooldown tracker - short-circuits replay of paths that just failed to decode.
     private val decoderFailureTracker: RecentDecoderFailureTracker,
+    // S0391: source-availability gate; the Favorites mixed-source path must not play a hidden source.
+    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
@@ -212,6 +214,20 @@ class PlayerMediaLoaderManager(
         
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
+
+        // S0391: resolve the original source from the path prefix (Favorites aggregates mixed sources)
+        // and turn back when that source is user-disabled, before any loading UI is shown. Guards both
+        // the in-app player route and the audio-service pre-cache route below.
+        if (!isPathSourceEnabled(path, resource?.type)) {
+            Timber.w("PlayerMediaLoaderManager.playVideo: source disabled, refusing playback - path=$path")
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.error_resource_unavailable, path.substringAfterLast('/')),
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
         val isAudioFile = currentFile?.type == MediaType.AUDIO
         Timber.w(
             "PlayerMediaLoaderManager: playing file=" + (currentFile?.name ?: "<unknown>") +
@@ -964,6 +980,22 @@ class PlayerMediaLoaderManager(
 
     private fun determineResourceType(path: String, defaultType: ResourceType?): ResourceType =
         viewVisibility.determineResourceType(path, defaultType)
+
+    /**
+     * S0391: true when the source resolved from [path] (prefix-first, so the Favorites aggregate
+     * resolves each file's original source) is available per the gate. LOCAL is always available;
+     * CLOUD consults the cloud group; SMB/SFTP/FTP map to their [RemoteSourceId].
+     */
+    private fun isPathSourceEnabled(path: String, defaultType: ResourceType?): Boolean {
+        val type = determineResourceType(path, defaultType)
+        return when (type) {
+            ResourceType.LOCAL -> true
+            ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
+            else -> com.sza.fastmediasorter.core.capability.RemoteSourceId
+                .networkFromResourceType(type)
+                ?.let { remoteSourceGate.isEnabled(it) } ?: true
+        }
+    }
 
     private fun playVideoWithResourceType(
         path: String,

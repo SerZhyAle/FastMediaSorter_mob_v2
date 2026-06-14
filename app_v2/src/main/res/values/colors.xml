@@ -74,6 +74,8 @@
     <color name="player_overlay_subtle">#88000000</color>
     <color name="player_overlay_minimal">#44000000</color>
     <color name="player_overlay_solid">#FF000000</color>
+    <!-- Grey overlay: draw toolbar, where a pure-black backdrop hid the black colour swatch -->
+    <color name="player_overlay_grey">#CC616161</color>
 
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50000000</color>
@@ -110,6 +112,7 @@
     <color name="activity_player_unified_searchPanel_background">@color/player_overlay_heavy</color>
     <color name="activity_player_unified_topCommandPanel_background">@color/player_overlay_standard</color>
     <color name="player_command_panel_mode_topCommandPanel_background">@color/player_overlay_standard</color>
+    <color name="draw_overlay_toolbar_background">@color/player_overlay_grey</color>
     <color name="activity_player_unified_btnVolumeUp_background">@color/player_overlay_light</color>
     <color name="activity_player_unified_toolbar_background">@color/player_overlay_light</color>
     <color name="activity_player_unified_audioSlideshowSongLabel_background">@color/player_overlay_subtle</color>

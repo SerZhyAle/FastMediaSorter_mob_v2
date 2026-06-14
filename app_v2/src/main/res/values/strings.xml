@@ -893,7 +893,6 @@ Close the player and try again.</string>
     <string name="add_local_folder">Add Local Folder</string>
     <string name="local_folder">Local Folder</string>
     <string name="add_folders_from_device_storage">Add folders from device storage</string>
-    <string name="add_smb_network_shares">Add SMB network shares</string>
     <string name="scan_button">SCAN</string>
     <string name="add_manually_button">Add Manually</string>
     <string name="resources_to_add">Resources to add:</string>
@@ -2532,4 +2531,19 @@ Close the player and try again.</string>
     <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
     <string name="s0413_audio_track_skipped">Skipped &quot;%1$s&quot; - this file cannot be played.</string>
     <string name="s0413_audio_queue_unplayable">Nothing here could be played.</string>
+    <string name="settings_remote_sources_title">Remote sources</string>
+    <string name="settings_remote_source_smb_title">SMB</string>
+    <string name="settings_remote_source_smb_subtitle">Network shares over SMB</string>
+    <string name="settings_remote_source_smb_help_title">SMB sources</string>
+    <string name="settings_remote_source_smb_help_message">When off, SMB folders disappear from the app and the app stops using them. Your saved SMB resources are not deleted - turn it back on to see them again.</string>
+    <string name="settings_remote_source_ftp_title">(S)FTP</string>
+    <string name="settings_remote_source_ftp_subtitle">Folders over FTP and SFTP</string>
+    <string name="settings_remote_source_ftp_help_title">(S)FTP sources</string>
+    <string name="settings_remote_source_ftp_help_message">When off, FTP and SFTP folders disappear from the app and the app stops using them. Your saved (S)FTP resources are not deleted - turn it back on to see them again.</string>
+    <string name="settings_remote_source_cloud_title">Cloud</string>
+    <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
+    <string name="settings_remote_source_cloud_help_title">Cloud sources</string>
+    <string name="settings_remote_source_cloud_help_message">When off, cloud folders (Google Drive, OneDrive, Dropbox) disappear from the app and the app stops using them. This does not sign you out and does not delete saved resources - turn it back on to see them again.</string>
+    <string name="settings_remote_source_disable_confirm_title">Hide these folders?</string>
+    <string name="settings_remote_source_disable_confirm_message">The folders for this source will be hidden, not deleted. Your saved resources stay and reappear when you turn the source back on.</string>
 </resources>

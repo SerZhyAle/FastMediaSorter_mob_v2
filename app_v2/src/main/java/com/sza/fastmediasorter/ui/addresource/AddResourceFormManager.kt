@@ -7,6 +7,8 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -22,7 +24,8 @@ import timber.log.Timber
 internal class AddResourceFormManager(
     private val activity: AddResourceActivity,
     private val binding: ActivityAddResourceBinding,
-    private val viewModel: AddResourceViewModel
+    private val viewModel: AddResourceViewModel,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) {
 
     private val addResourceUiPrefs by lazy {
@@ -58,7 +61,11 @@ internal class AddResourceFormManager(
     }
 
     fun applyFlavorRestrictions() {
-        binding.cardCloudStorage.isVisible = BuildConfig.SUPPORT_CLOUD
+        // S0391: remote type cards are gated by the availability node (compile support AND user toggle).
+        binding.cardNetworkFolder.isVisible = remoteSourceGate.isEnabled(RemoteSourceId.SMB)
+        binding.cardSftpFolder.isVisible =
+            remoteSourceGate.isEnabled(RemoteSourceId.SFTP) || remoteSourceGate.isEnabled(RemoteSourceId.FTP)
+        binding.cardCloudStorage.isVisible = remoteSourceGate.anyCloudEnabled()
         val showEpub = BuildConfig.ENABLE_EPUB
         val showOfficeDocuments = supportsOfficeDocuments()
         binding.cbSmbSupportEpub.isVisible = showEpub

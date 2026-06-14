@@ -51,6 +51,7 @@ This document is the canonical inventory of all user-facing features implemented
 ## 9. Audio Player
 - **Background audio service & Casting** `[Standard Only]`: Runs playback on a persistent background service with notification drawer controls and direct Chromecast casting support.
 - **Lyrics display & MIDI integration** `[Standard / VR]`: View lyrics, play MID/MIDI files on network resources, and bridge current tracks into YouTube Music searches in one tap.
+- **Cover-art visualizations** `[Standard / VR]`: When a track has no cover art, the player fills the screen with an animated backdrop — choose breathing bars, waves, pulse rings, a plain note, or downloadable looping video backgrounds; picking the video option offers the one-time download, and if no clips are present the music just keeps playing with no backdrop.
 
 ## 10. Slideshow Mode
 - **Slideshow with background music** `[Standard / VR]`: Rotate images/GIFs with custom intervals (1s to 1h), play background tracks from a selected resource, and auto-pause slides on video files.
@@ -72,6 +73,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **NAS auto-discovery & speed test** `[Standard / VR]`: Scans subnets for SMB/FTP/SFTP, tests network speed to optimize copy thread counts, and supports high-performance streaming.
 - **SFTP key auth & host-key pinning** `[Standard / VR]`: SFTP resources support SSH private-key authentication with optional passphrase, and host-key fingerprint pinning to detect server impersonation. Key auth is also available for predefined resources shipped in the bundled XML config.
 - **Cloud OAuth storage** `[Standard Only]`: Authenticates Google Drive, Dropbox, and OneDrive with remote editing and settings backup.
+- **Toggle remote sources** `[Standard / VR]`: Turn individual SMB, (S)FTP, and cloud sources on or off in settings or on the welcome screen. A disabled source disappears from selection and the app stops its background activity; existing resources are hidden, not deleted, and return when you turn the source back on.
 
 ## 15. Smart Widgets & Integration
 - **Icon-style home widgets** `[Standard / VR]`: 1x1 quick launch buttons (Voice recorder, Quick capture, Camera OCR), resizable widgets (Scheduled tasks, Audio Now Playing, Photo Frame), and settings integration.

@@ -15,7 +15,17 @@ PACKAGE_NAME = 'com.sza.fastmediasorter'
 # Resolve absolute paths relative to script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
-KEY_FILE = os.path.join(REPO_ROOT, 'play-console-key.json')
+SECRETS_DIR = os.path.join(REPO_ROOT, '.secrets')
+KEY_FILE = next(
+    (
+        path for path in (
+            os.path.join(SECRETS_DIR, 'play-console-key.json'),
+            os.path.join(REPO_ROOT, 'play-console-key.json'),
+        )
+        if os.path.exists(path)
+    ),
+    os.path.join(SECRETS_DIR, 'play-console-key.json'),
+)
 AAB_PATH = os.path.join(REPO_ROOT, 'DOWNLOADS', 'FastMediaSorter_standard_release.aab')
 
 def get_version_name():

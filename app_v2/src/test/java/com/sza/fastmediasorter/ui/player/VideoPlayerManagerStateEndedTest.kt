@@ -65,6 +65,7 @@ class VideoPlayerManagerStateEndedTest {
             memoryProbe = mockk(relaxed = true),
             memoryProfileCoordinator = mockk(relaxed = true),
             decoderFailureTracker = mockk(relaxed = true),
+            remoteSourceGate = mockk(relaxed = true),
         )
     }
 

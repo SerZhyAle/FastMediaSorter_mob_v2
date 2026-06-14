@@ -849,7 +849,6 @@
     <string name="add_local_folder">Додати локальну теку</string>
     <string name="local_folder">Локальна тека</string>
     <string name="add_folders_from_device_storage">Додати теки з пам\'яті пристрою</string>
-    <string name="add_smb_network_shares">Додати мережеві ресурси SMB</string>
     <string name="scan_button">СКАНУВАТИ</string>
     <string name="add_manually_button">Додати вручну</string>
     <string name="resources_to_add">Ресурси для додавання:</string>
@@ -2447,4 +2446,19 @@
     <string name="default_player_choose_in_settings">У системних налаштуваннях оберіть FastMediaSorter додатком за замовчуванням для цього типу.</string>
     <string name="s0413_audio_track_skipped">Пропущено файл «%1$s» - не вдалося відтворити.</string>
     <string name="s0413_audio_queue_unplayable">Не вдалося відтворити жоден файл.</string>
+    <string name="settings_remote_sources_title">Віддалені джерела</string>
+    <string name="settings_remote_source_smb_title">SMB</string>
+    <string name="settings_remote_source_smb_subtitle">Мережеві теки через SMB</string>
+    <string name="settings_remote_source_smb_help_title">Джерела SMB</string>
+    <string name="settings_remote_source_smb_help_message">Коли вимкнено, теки SMB зникають із застосунку й більше не використовуються. Збережені ресурси SMB не видаляються — увімкніть знову, щоб побачити їх.</string>
+    <string name="settings_remote_source_ftp_title">(S)FTP</string>
+    <string name="settings_remote_source_ftp_subtitle">Теки через FTP та SFTP</string>
+    <string name="settings_remote_source_ftp_help_title">Джерела (S)FTP</string>
+    <string name="settings_remote_source_ftp_help_message">Коли вимкнено, теки FTP та SFTP зникають із застосунку й більше не використовуються. Збережені ресурси (S)FTP не видаляються — увімкніть знову, щоб побачити їх.</string>
+    <string name="settings_remote_source_cloud_title">Хмара</string>
+    <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
+    <string name="settings_remote_source_cloud_help_title">Хмарні джерела</string>
+    <string name="settings_remote_source_cloud_help_message">Коли вимкнено, хмарні теки (Google Drive, OneDrive, Dropbox) зникають із застосунку й більше не використовуються. Це не виходить з облікових записів і не видаляє збережені ресурси — увімкніть знову, щоб побачити їх.</string>
+    <string name="settings_remote_source_disable_confirm_title">Сховати ці теки?</string>
+    <string name="settings_remote_source_disable_confirm_message">Теки цього джерела буде сховано, а не видалено. Збережені ресурси залишаться й з\'являться знову, коли ви увімкнете джерело.</string>
 </resources>

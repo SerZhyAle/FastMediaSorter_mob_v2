@@ -144,7 +144,7 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 |:-----|:------:|:------:|:----------:|:------------:|:------|
 | `debug`   | - | - | ✓ | `.debug` | Custom keystore via `debug.keystore.properties`; `LOG_NETWORK_THUMBNAILS=true`; dedicated Dropbox key |
 | `staging` | - | - | ✓ | `.staging` | `initWith(release)` - release proguard, shrink disabled; `matchingFallbacks=["release"]` |
-| `release` | ✓ | ✓ | - | - | `debugSymbolLevel=FULL`; keystore via `keystore.properties` |
+| `release` | ✓ | ✓ | - | - | `debugSymbolLevel=FULL`; keystore via `.secrets/keystore.properties` (root fallback supported) |
 
 ## FEATURE FLAGS (BuildConfig)
 
@@ -348,7 +348,7 @@ that cost is acceptable.
 Steps:
 
 1. Produce a new keystore (out-of-band; document the new alias in
-   `local.properties` and any signing config that lives outside the repo).
+   root `local.properties` and any signing config that lives outside the repo, preferably under `.secrets/`).
 2. Build a release APK with the new keystore (`a.ps1 r` / `a.ps1 vr`).
 3. Capture the new SHA-256 via `apksigner verify --print-certs <new-apk>`,
    format as uppercase colon-separated 32-byte form.

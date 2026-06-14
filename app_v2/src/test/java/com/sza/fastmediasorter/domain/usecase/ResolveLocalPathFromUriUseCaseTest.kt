@@ -41,6 +41,26 @@ class ResolveLocalPathFromUriUseCaseTest {
     }
 
     @Test
+    fun `downloads raw document uri resolves to embedded local path`() = runTest {
+        val tempFile = File.createTempFile("s0414_", ".pdf").apply { deleteOnExit() }
+        val resolver = mockk<ContentResolver>()
+        every { resolver.query(any(), any(), any(), any(), any()) } returns null
+        every { context.contentResolver } returns resolver
+        mockkStatic(DocumentsContract::class)
+        every { DocumentsContract.isDocumentUri(any(), any()) } returns true
+        every { DocumentsContract.getDocumentId(any()) } returns "raw:${tempFile.absolutePath}"
+        val uri = mockk<Uri>()
+        every { uri.scheme } returns "content"
+
+        val result = useCase(uri)
+
+        assertTrue(result is LocalPathResolution.Local)
+        result as LocalPathResolution.Local
+        assertEquals(tempFile.absolutePath, result.absolutePath)
+        assertEquals(File(tempFile.absolutePath).parent, result.parentFolderPath)
+    }
+
+    @Test
     fun `content uri with no resolvable path is not local`() = runTest {
         val resolver = mockk<ContentResolver>()
         every { resolver.query(any(), any(), any(), any(), any()) } returns null

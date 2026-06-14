@@ -815,6 +815,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             playbackPositionRepository = activity.playbackPositionRepository,
             // S0213 Pillar A: cooldown gate at playVideo entry - short-circuits decoder-error replays.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
+            // S0391: source-availability gate for the Favorites mixed-source playback path.
+            remoteSourceGate = activity.remoteSourceGate,
         )
     }
 

@@ -57,6 +57,7 @@ class AudioEmptyStateController(
     private var currentMode: String = MODE_NONE
     private var isPlaying: Boolean = false
     private var mediaPlayer: MediaPlayer? = null
+    private var currentSurface: Surface? = null
     private var pendingFile: File? = null
 
     // ────────────────────────── Public API ──────────────────────────
@@ -135,6 +136,7 @@ class AudioEmptyStateController(
         barsView.stopAndReset()
         wavesView.stopAndReset()
         releaseMediaPlayer()
+        videoView.surfaceTextureListener = null
     }
 
     // ────────────────────────── Private ──────────────────────────
@@ -179,14 +181,15 @@ class AudioEmptyStateController(
 
     /**
      * VISUALIZATION mode: muted looping MP4 via MediaPlayer + TextureView.
-     * Works on API 16+. Falls back to CANVAS_BARS on any error.
+     * Works on API 16+. Falls back to no background (static note) when no clip is available or on any error.
      */
     private fun showVideo() {
+        Timber.d("S0407: audio viz showVideo entry")
         val file = deliveredSource.getRandomBackgroundFile()
         if (file == null) {
-            Timber.i("AudioEmptyStateController: no delivered video backgrounds found, fallback to CANVAS_BARS")
+            Timber.i("AudioEmptyStateController: no delivered video backgrounds found, no background shown")
             videoView.isVisible = false
-            showBars()
+            showStaticNote()
             return
         }
         pendingFile = file
@@ -195,6 +198,8 @@ class AudioEmptyStateController(
             "viewSize=${videoView.width}x${videoView.height}, " +
             "surfaceTexture=${videoView.surfaceTexture}")
         videoView.isVisible = true
+        // Drop any listener captured by a prior per-track re-pick so only the current file's callback is live.
+        videoView.surfaceTextureListener = null
 
         if (videoView.isAvailable) {
             Timber.d("AudioEmptyStateController: surface already available - starting immediately")
@@ -220,6 +225,7 @@ class AudioEmptyStateController(
 
     private fun startMediaPlayer(surface: Surface, file: File) {
         releaseMediaPlayer()
+        currentSurface = surface
         Timber.d("AudioEmptyStateController: startMediaPlayer file=${file.absolutePath}, surface.isValid=${surface.isValid}")
         try {
             mediaPlayer = MediaPlayer().apply {
@@ -262,9 +268,9 @@ class AudioEmptyStateController(
                         MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "TIMED_OUT($extra)"
                         else -> "EXTRA_$extra"
                     }
-                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - fallback to CANVAS_BARS")
+                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - no background shown")
                     videoView.isVisible = false
-                    showBars()
+                    showStaticNote()
                     true
                 }
                 setOnInfoListener { _, what, extra ->
@@ -276,9 +282,10 @@ class AudioEmptyStateController(
             }
         } catch (e: Exception) {
             surface.release()
-            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - fallback to CANVAS_BARS, file=${file.absolutePath}")
+            currentSurface = null
+            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION - no background shown, file=${file.absolutePath}")
             videoView.isVisible = false
-            showBars()
+            showStaticNote()
         }
     }
 
@@ -326,6 +333,8 @@ class AudioEmptyStateController(
             it.release()
         }
         mediaPlayer = null
+        currentSurface?.release()
+        currentSurface = null
     }
 
     // ──────────────────────── Private helpers ────────────────────────

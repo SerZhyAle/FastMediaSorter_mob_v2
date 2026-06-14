@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.main
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -115,6 +116,7 @@ class MainViewModel @Inject constructor(
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -149,7 +151,8 @@ class MainViewModel @Inject constructor(
         updateResourceUseCase = updateResourceUseCase,
         mediaScannerFactory = mediaScannerFactory,
         settingsRepository = settingsRepository,
-        smbOperationsUseCase = smbOperationsUseCase
+        smbOperationsUseCase = smbOperationsUseCase,
+        remoteSourceGate = remoteSourceGate
     )
 
     init {
@@ -185,12 +188,15 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             kotlinx.coroutines.flow.combine(
                 getResourcesUseCase(),
-                settingsRepository.getSettings()
-            ) { allResources, settings ->
+                settingsRepository.getSettings(),
+                // S0391: re-emit when remote-source availability changes so the list updates live on
+                // a toggle; this also guarantees applyFiltersAndSorting reads a current gate snapshot.
+                remoteSourceGate.enabledRemoteSources()
+            ) { allResources, settings, _ ->
                 // OPTIMIZATION: Removed global ConnectionThrottleManager setup for ALL resources.
                 // Now configured only when opening specific resource in PlayerViewModel/BrowseViewModel.
                 // This prevents unnecessary FTP/SFTP configuration when only using SMB.
-                
+
                 val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
                 Pair(filteredResources, settings.isResourceGridMode)
             }
@@ -208,8 +214,12 @@ class MainViewModel @Inject constructor(
         resources: List<MediaResource>,
         enableFavorites: Boolean
     ): List<MediaResource> {
+        // S0391: a disabled remote source's resources are invisible everywhere - filter once here,
+        // upstream of every tab/type filter, so they never surface (including under the ALL tab).
+        val availableResources = resources.filter { remoteSourceGate.isEnabled(it) }
+        Timber.d("S0391: resource list source-gated, ${resources.size} -> ${availableResources.size}")
         return filterManager.applyFiltersAndSorting(
-            resources = resources,
+            resources = availableResources,
             activeTab = state.value.activeResourceTab,
             filterByType = state.value.filterByType,
             filterByMediaType = state.value.filterByMediaType,

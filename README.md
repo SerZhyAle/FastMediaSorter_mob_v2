@@ -436,6 +436,14 @@ See [dev/CHANGELOG.md](dev/CHANGELOG.md) for detailed release notes.
 
 ---
 
+## Development Methodology 🧠
+
+The AI-assisted development workflow behind this project - research-first investigation, strategic/tactical spec separation, slash-command pipelines, persistent agent memory, and mechanical anti-slop checks - is distilled into a portable, stack-agnostic toolkit:
+
+🔗 **[Universal Agent Kit](https://serzhyale.github.io/universal-agent-kit/)** - a small "operating system" on top of AI assistants, released under MIT.
+
+---
+
 ## Contributing 🤝
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

@@ -430,9 +430,12 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
+            // S0410 items (menu_image_text_settings / menu_draw_overlay) are image-host-only too: keep them
+            // hidden here or they leak into the document overflow menu with no click handler (dead taps).
             listOf(R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_youtube_music, R.id.menu_ocr_image,
-                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
+                R.id.menu_translate_image, R.id.menu_image_text_settings, R.id.menu_draw_overlay,
+                R.id.menu_print, R.id.menu_save_frame,
                 R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
