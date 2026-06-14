@@ -68,6 +68,7 @@ object ScrollableTextDialog {
      * @param showShare Show the default Share icon in the primary slot (ignored when a CTA is set).
      * @param showCopy  Show the Copy-to-clipboard icon.
      * @param showSave  Show the Save-to-file icon (ignored when an inline action is set).
+     * @param onSaveClick Optional override for the default Save-to-file action.
      * @param extraAction Optional extra icon action.
      */
     fun show(
@@ -83,6 +84,7 @@ object ScrollableTextDialog {
         showShare: Boolean = true,
         showCopy: Boolean = true,
         showSave: Boolean = true,
+        onSaveClick: (() -> Unit)? = null,
         extraAction: ExtraAction? = null,
         cancelable: Boolean = true,
     ): AlertDialog? {
@@ -185,7 +187,13 @@ object ScrollableTextDialog {
             btnInlineAction.visibility = View.VISIBLE
             btnInlineAction.contentDescription = context.getString(R.string.error_dialog_save_to_file)
             TooltipCompat.setTooltipText(btnInlineAction, context.getString(R.string.error_dialog_save_to_file))
-            btnInlineAction.setOnClickListener { saveErrorToFile(context, fullText) }
+            btnInlineAction.setOnClickListener {
+                if (onSaveClick != null) {
+                    onSaveClick()
+                } else {
+                    saveErrorToFile(context, fullText)
+                }
+            }
         } else {
             btnInlineAction.visibility = View.GONE
         }

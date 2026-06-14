@@ -62,7 +62,6 @@ internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenRea
     } else {
         TsPacketFormat.STANDARD_188
     }
-    Timber.d("S0054: CloudPlaybackHelper.playCloudVideo routeHint=$routeHint tsFormat=$tsFormat path=$path")
 
     exoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(

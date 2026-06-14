@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
@@ -61,6 +62,7 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
+    @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
     @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
     @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
 
@@ -123,7 +125,16 @@ class GeneralSettingsFragment : Fragment() {
     // accessed from onViewCreated, so initialization is always safe.
     private val sectionsHelper by lazy { GeneralSettingsSectionsHelper(binding, this) }
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
-    private val logHelper by lazy { GeneralSettingsLogHelper(binding, this, saveLogsLauncher, gatherSystemInfoUseCase) }
+    private val logHelper by lazy {
+        GeneralSettingsLogHelper(
+            binding = binding,
+            fragment = this,
+            saveLogsLauncher = saveLogsLauncher,
+            gatherSystemInfoUseCase = gatherSystemInfoUseCase,
+            getDestinationsUseCase = viewModel.getDestinationsUseCase,
+            saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
+        )
+    }
     private val permissionsHelper by lazy {
         GeneralSettingsPermissionsHelper(binding, this, mediaPermissionsLauncher, notificationPermissionLauncher, requestContextualPermission, permissionRegistry)
     }

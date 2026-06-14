@@ -25,9 +25,13 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -91,7 +95,6 @@ class BrowseDialogHelper(
         fun onDeleteConfirmed(overridePaths: Set<String>?)
         fun onCloudSignInRequested(provider: com.sza.fastmediasorter.data.cloud.CloudProvider)
         fun saveUndoOperation(undoOp: UndoOperation)
-        fun reloadFiles()
         fun updateFile(oldPath: String, newFile: MediaFile)
         fun setIgnoringFileChanges(ignoring: Boolean)
         fun createMediaFileFromFile(file: File): MediaFile
@@ -659,78 +662,99 @@ class BrowseDialogHelper(
         
         dialogBinding.btnApply.setOnClickListener {
             val newNames = adapter.getFileNames()
-            var renamedCount = 0
-            val errors = mutableListOf<String>()
-            val renamedPairs = mutableMapOf<String, String>() // old path -> new path
-            
-            files.forEachIndexed { index, file ->
-                val newName = newNames[index].trim()
-                if (newName.isBlank() || newName == file.name) {
-                    return@forEachIndexed
-                }
-                
-                // For network paths, manually construct new path
-                val filePath = file.path
-                val newFile = if (filePath.startsWith("smb://") || filePath.startsWith("sftp://") || filePath.startsWith("ftp://")) {
-                    val lastSlashIndex = filePath.lastIndexOf('/')
-                    val parentPath = filePath.substring(0, lastSlashIndex)
-                    val newPath = "$parentPath/$newName"
-                    object : File(newPath) {
-                        override fun getPath(): String = newPath
-                        override fun getAbsolutePath(): String = newPath
+            callbacks.getLifecycleOwner().lifecycleScope.launch {
+                Timber.d("S0417: batch rename via FileOperationUseCase")
+                var renamedCount = 0
+                val errors = mutableListOf<String>()
+                // (currentPathAfterRename, originalDisplayName) pairs for undo.
+                val undoPairs = mutableListOf<Pair<String, String>>()
+
+                files.forEachIndexed { index, file ->
+                    val newName = newNames.getOrNull(index)?.trim().orEmpty()
+                    if (newName.isBlank() || newName == file.name) {
+                        return@forEachIndexed
                     }
-                } else {
-                    File(file.parent, newName)
-                }
-                
-                if (newFile.exists()) {
-                    errors.add(activity.getString(R.string.file_already_exists, newName))
-                    return@forEachIndexed
-                }
-                
-                try {
-                    if (file.renameTo(newFile)) {
-                        renamedCount++
-                        renamedPairs[file.absolutePath] = newFile.absolutePath
-                    } else {
+
+                    val oldPath = file.absolutePath
+                    val originalName = file.name
+
+                    try {
+                        when (val result = callbacks.getFileOperationUseCase()
+                            .execute(FileOperation.Rename(file, newName))) {
+                            is FileOperationResult.Success -> {
+                                renamedCount++
+                                val newPath = result.copiedFilePaths.firstOrNull() ?: run {
+                                    val p = file.path
+                                    if (p.startsWith("smb://") || p.startsWith("sftp://") ||
+                                        p.startsWith("ftp://") || p.startsWith("cloud://")) {
+                                        "${p.substring(0, p.lastIndexOf('/'))}/$newName"
+                                    } else {
+                                        File(file.parent, newName).absolutePath
+                                    }
+                                }
+                                undoPairs.add(newPath to originalName)
+
+                                // Instant pointwise update, no full reload; suppress FileObserver during it.
+                                callbacks.setIgnoringFileChanges(true)
+                                val renamedFile = object : File(newPath) {
+                                    override fun getPath(): String = newPath
+                                    override fun getAbsolutePath(): String = newPath
+                                    override fun getName(): String = newName
+                                }
+                                callbacks.updateFile(oldPath, callbacks.createMediaFileFromFile(renamedFile))
+                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                    callbacks.setIgnoringFileChanges(false)
+                                }, 200)
+                            }
+                            is FileOperationResult.Failure -> {
+                                val message = result.errorRes?.let { activity.getString(it, *result.formatArgs.toTypedArray()) }
+                                    ?: if (result.error.contains("already exists", ignoreCase = true)) {
+                                        activity.getString(R.string.file_already_exists, newName)
+                                    } else {
+                                        activity.getString(R.string.rename_failed_generic)
+                                    }
+                                errors.add("${file.name}: $message")
+                            }
+                            else -> {
+                                errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "showRenameMultipleDialog: batch rename failed for %s", file.path)
                         errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
                     }
-                } catch (e: Exception) {
-                    errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
                 }
+
+                if (undoPairs.isNotEmpty()) {
+                    callbacks.saveUndoOperation(
+                        UndoOperation(
+                            type = com.sza.fastmediasorter.domain.model.FileOperationType.RENAME,
+                            sourceFiles = undoPairs.map { it.first },
+                            destinationFolder = null,
+                            copiedFiles = null,
+                            oldNames = undoPairs
+                        )
+                    )
+                }
+
+                if (renamedCount > 0) {
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.renamed_n_files, renamedCount),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                if (errors.isNotEmpty()) {
+                    Toast.makeText(
+                        activity,
+                        errors.joinToString("\n"),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                dialog.dismiss()
             }
-            
-            // Save undo operation for renamed files
-            if (renamedPairs.isNotEmpty()) {
-                val undoOp = UndoOperation(
-                    type = com.sza.fastmediasorter.domain.model.FileOperationType.RENAME,
-                    sourceFiles = renamedPairs.keys.toList(),
-                    destinationFolder = null,
-                    copiedFiles = null,
-                    oldNames = renamedPairs.toList()
-                )
-                callbacks.saveUndoOperation(undoOp)
-            }
-            
-            callbacks.reloadFiles()
-            
-            if (renamedCount > 0) {
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.renamed_n_files, renamedCount),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            
-            if (errors.isNotEmpty()) {
-                Toast.makeText(
-                    activity,
-                    errors.joinToString("\n"),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-            
-            dialog.dismiss()
         }
 
         dialog.show()

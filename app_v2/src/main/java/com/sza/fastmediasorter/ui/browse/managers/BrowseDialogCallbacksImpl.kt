@@ -87,10 +87,6 @@ class BrowseDialogCallbacksImpl(
         viewModel.saveUndoOperation(undoOp)
     }
 
-    override fun reloadFiles() {
-        viewModel.reloadFiles()
-    }
-
     override fun updateFile(oldPath: String, newFile: MediaFile) {
         viewModel.updateFile(oldPath, newFile)
     }

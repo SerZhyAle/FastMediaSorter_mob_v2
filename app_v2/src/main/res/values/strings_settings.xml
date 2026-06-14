@@ -64,6 +64,9 @@
     <string name="settings_log_last_lines">Last %1$d log lines:
 
 %2$s</string>
+    <string name="settings_log_save_destination_title">Save log to destination</string>
+    <string name="settings_log_save_failed">Couldn\'t save the log.</string>
+    <string name="settings_log_saved_to_resource">Log saved to: %1$s</string>
     <string name="settings_log_read_failed">Couldn\'t read the log. Try again.</string>
     <string name="settings_manage_permissions">Manage Permissions</string>
     <string name="settings_manage_permissions_desc">View and grant app permissions</string>

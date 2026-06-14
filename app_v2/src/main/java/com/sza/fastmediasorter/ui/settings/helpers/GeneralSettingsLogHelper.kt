@@ -12,7 +12,11 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
@@ -21,12 +25,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val saveLogsLauncher: ActivityResultLauncher<String>,
     private val gatherSystemInfoUseCase: GatherSystemInfoUseCase,
+    private val getDestinationsUseCase: GetDestinationsUseCase,
+    private val saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase,
 ) {
     fun setupVersionInfo() {
         val versionInfo = "${com.sza.fastmediasorter.BuildConfig.VERSION_NAME} | Build ${com.sza.fastmediasorter.BuildConfig.VERSION_CODE} | sza@ukr.net"
@@ -129,7 +138,52 @@ class GeneralSettingsLogHelper(
                 title = if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
                 message = logText,
                 monospace = true,
-                showSave = false
+                onSaveClick = { showSaveLogToResourceDialog(fullLog = fullLog, logText = logText) }
+            )
+        }
+    }
+
+    private fun showSaveLogToResourceDialog(fullLog: Boolean, logText: String) {
+        DestinationPickerDialog(
+            context = fragment.requireContext(),
+            lifecycleOwner = fragment.viewLifecycleOwner,
+            getDestinationsUseCase = getDestinationsUseCase,
+            currentSelection = null,
+            title = fragment.getString(R.string.settings_log_save_destination_title),
+            allowClear = false,
+            onResourceSelected = { resource ->
+                resource ?: return@DestinationPickerDialog
+                saveLogToResource(resource, fullLog, logText)
+            }
+        ).show()
+    }
+
+    private fun saveLogToResource(resource: MediaResource, fullLog: Boolean, logText: String) {
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                saveTextFileToResourceUseCase(
+                    resource = resource,
+                    fileName = buildLogFileName(fullLog),
+                    content = logText,
+                )
+            }
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(
+                        fragment.requireContext(),
+                        fragment.getString(R.string.settings_log_saved_to_resource, resource.name),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                onFailure = { error ->
+                    Timber.e(error, "GeneralSettingsLogHelper: failed to save log to resource")
+                    Toast.makeText(
+                        fragment.requireContext(),
+                        R.string.settings_log_save_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             )
         }
     }
@@ -229,5 +283,11 @@ class GeneralSettingsLogHelper(
         } catch (e: Exception) {
             fragment.getString(R.string.settings_log_read_failed)
         }
+    }
+
+    private fun buildLogFileName(fullLog: Boolean): String {
+        val stamp = SimpleDateFormat("yy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+        val prefix = if (fullLog) "app_log" else "session_log"
+        return "${prefix}_$stamp.txt"
     }
 }

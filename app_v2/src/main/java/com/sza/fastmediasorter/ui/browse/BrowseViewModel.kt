@@ -141,6 +141,15 @@ class BrowseViewModel @Inject constructor(
             override fun showError(message: String, details: String?, exception: Throwable?) {
                 sendEvent(BrowseEvent.ShowError(message, details, exception))
             }
+            override suspend fun renameViaFileOperation(currentPath: String, originalName: String): Boolean {
+                // Preserve smb://, sftp://, ftp://, cloud:// schemes: java.io.File collapses "//" to "/".
+                val file = object : java.io.File(currentPath) {
+                    override fun getPath(): String = currentPath
+                    override fun getAbsolutePath(): String = currentPath
+                }
+                val operation = com.sza.fastmediasorter.domain.usecase.FileOperation.Rename(file, originalName)
+                return fileOperationUseCase.execute(operation) is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success
+            }
         }
     )
     

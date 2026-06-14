@@ -64,6 +64,9 @@
     <string name="settings_log_last_lines">Последние %1$d строк лога:
 
 %2$s</string>
+    <string name="settings_log_save_destination_title">Сохранить лог в ресурс</string>
+    <string name="settings_log_save_failed">Не получилось сохранить лог.</string>
+    <string name="settings_log_saved_to_resource">Лог сохранён в: %1$s</string>
     <string name="settings_log_read_failed">Не получилось прочитать лог. Попробуйте ещё раз.</string>
     <string name="settings_manage_permissions">Управление разрешениями</string>
     <string name="settings_manage_permissions_desc">Просмотр и выдача разрешений приложения</string>

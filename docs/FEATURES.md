@@ -44,6 +44,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Session save & restore** `[Standard / VR]`: Remembers exact playback coordinates and restores remote active network/cloud sessions upon app cold start.
 - **Video screenshot capture** `[Standard / VR]`: Capture video frames in high quality and save them as PNG/JPG to any local or network resource.
 - **Picture-in-Picture & D-pad focus** `[Standard Only]`: Runs videos in a floating window (Android 12+) and supports complete D-pad/remote focus navigation for TV boxes and head units.
+- **Blu-ray Transport Stream (.m2ts)** `[Standard / VR]`: Plays BD-TS files from local, SMB, SFTP, FTP, and cloud sources — the 192-byte BD packet format is auto-detected, while plain 188-byte MPEG-TS files with a .m2ts extension play without unnecessary stripping. Unsupported audio tracks (TrueHD, DTS-HD MA) are reported with a one-time notification listing the detected codecs.
 
 ## 8. VR Edition & OpenXR
 - **Dedicated VR build & OpenXR engine** `[VR Only]`: Immersive stereoscopic rendering (SBS/OU, VR180, 360°), virtual cinema screen for flat files, head tracking HUD, and passthrough snapshot capture on Quest 3.

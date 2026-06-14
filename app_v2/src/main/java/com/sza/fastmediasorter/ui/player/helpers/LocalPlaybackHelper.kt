@@ -91,7 +91,6 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             }
         }
         if (format != TsPacketFormat.STANDARD_188) {
-            Timber.d("S0054: LocalPlaybackHelper recreating player with BD-TS strip factory for $normalizedPath format=$format")
             releasePlayer()
             val localFactory: DataSource.Factory = DefaultDataSourceFactory(context)
             val audioAttr = AudioAttributes.Builder()

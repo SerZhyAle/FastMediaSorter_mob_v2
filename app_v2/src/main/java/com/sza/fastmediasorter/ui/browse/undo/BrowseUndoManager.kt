@@ -38,6 +38,10 @@ class BrowseUndoManager(
         fun showMessage(message: String)
         fun showUndoToast(operationType: String)
         fun showError(message: String, details: String?, exception: Throwable?)
+
+        /** Reverse-rename [currentPath] back to [originalName] through the shared file-operations layer
+         *  so undo works for local, network, and cloud schemes. Returns true on success. */
+        suspend fun renameViaFileOperation(currentPath: String, originalName: String): Boolean
     }
     
     companion object {
@@ -209,15 +213,12 @@ class BrowseUndoManager(
      * Requires full file list reload.
      */
     private suspend fun undoRenameOperation(operation: UndoOperation) {
-        operation.oldNames?.forEach { (oldPath, newPath) ->
-            val newFile = File(newPath)
-            val oldFile = File(oldPath)
-            if (newFile.exists()) {
-                newFile.renameTo(oldFile)
-                Timber.d("undoRename: $newPath -> $oldPath")
-            }
+        Timber.d("S0417: batch rename undo via FileOperationUseCase")
+        operation.oldNames?.forEach { (currentPath, originalName) ->
+            val restored = callbacks.renameViaFileOperation(currentPath, originalName)
+            Timber.d("undoRename: $currentPath -> $originalName (restored=$restored)")
         }
-        
+
         callbacks.showMessage(context.getString(R.string.undo_rename_cancelled))
         callbacks.reloadFileList()
     }

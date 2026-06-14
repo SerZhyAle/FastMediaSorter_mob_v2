@@ -64,6 +64,9 @@
     <string name="settings_log_last_lines">Останні %1$d рядків логу:
 
 %2$s</string>
+    <string name="settings_log_save_destination_title">Зберегти лог у ресурс</string>
+    <string name="settings_log_save_failed">Не вдалося зберегти лог.</string>
+    <string name="settings_log_saved_to_resource">Лог збережено в: %1$s</string>
     <string name="settings_log_read_failed">Не вдалося прочитати лог. Спробуйте ще раз.</string>
     <string name="settings_manage_permissions">Керування дозволами</string>
     <string name="settings_manage_permissions_desc">Перегляд та надання дозволів застосунку</string>
