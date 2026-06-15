@@ -57,7 +57,6 @@ class TranslationBackend(
         }
         try {
             libraryLoader.load(DeliverableSet.TRANSLATION)
-            Timber.d("S0423: translation engine native libs resolved (bundled in base)")
         } catch (e: Exception) {
             Timber.e(e, "Failed to load translation native libraries")
             return false
