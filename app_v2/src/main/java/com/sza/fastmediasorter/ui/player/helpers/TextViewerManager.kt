@@ -912,6 +912,31 @@ class TextViewerManager(
         translationOverlayManager.forceTranslate { originalTextForTranslation() }
     }
 
+    /**
+     * S0431: send the current read-only page text to Google Keep. Mirrors the editor's
+     * send-to-Keep path (S0362) for the read-mode surface: clean page text without line
+     * numbers, addressed directly at the resolved Keep package. Toasts when Keep is gone
+     * between the menu build and the click.
+     */
+    fun sendCurrentTextToKeep() {
+        val content = originalTextForTranslation()
+        val keepPackage = keepChecker.resolveTargetPackage() ?: run {
+            Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val sent = com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
+            context = context,
+            payload = com.sza.fastmediasorter.core.share.SharePayload.Text(content = content),
+            preferredPackage = keepPackage,
+        )
+        if (!sent) {
+            Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** S0431: whether Google Keep can receive text - drives the standalone overflow item visibility. */
+    fun isKeepTargetAvailable(): Boolean = keepChecker.isKeepAvailable()
+
     fun updateCloseButtonVisibility(showCommandPanel: Boolean) {
         // Show close button only in fullscreen mode (when command panel is hidden)
         safeViews.btnCloseTextViewer.isVisible = !showCommandPanel

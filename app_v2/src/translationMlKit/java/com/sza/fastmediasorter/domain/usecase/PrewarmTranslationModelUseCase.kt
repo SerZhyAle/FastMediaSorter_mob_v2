@@ -32,18 +32,15 @@ class PrewarmTranslationModelUseCase @Inject constructor(
     @TranslationModelPrewarmEnabled private val enabledMarkers: Set<@JvmSuppressWildcards String>
 ) : TranslationModelPrewarmer {
 
-    // Touch ML Kit lazily on first prewarm(), never at construction. On store flavors the
-    // MlKitInitProvider ships in the on-demand :translate_feature module and is removed from the
-    // base manifest (S0386), so RemoteModelManager.getInstance() throws "MlKitContext has not been
-    // initialized" until the engine is installed. This @Singleton is built eagerly with
-    // SettingsViewModel, so an eager getInstance() here crashed Settings on open.
+    // Touch ML Kit lazily on first prewarm(), never at construction (S0423: ML Kit is bundled, but
+    // keep this lazy). This @Singleton is built eagerly with SettingsViewModel, so an eager
+    // getInstance() here crashed Settings on open before MlKitContext finished initializing.
     private val modelManager: RemoteModelManager by lazy { RemoteModelManager.getInstance() }
 
     private val _status = MutableStateFlow<TranslationModelPrewarmStatus>(TranslationModelPrewarmStatus.Idle)
     override val status: StateFlow<TranslationModelPrewarmStatus> = _status.asStateFlow()
 
     override suspend fun prewarm(targetSettingsCode: String) {
-        Timber.d("S0386: prewarm entered (lazy ML Kit init), target=$targetSettingsCode")
         if (enabledMarkers.isEmpty()) {
             _status.value = TranslationModelPrewarmStatus.Idle
             return

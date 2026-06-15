@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.Context
+import android.net.Uri
+import android.util.Xml
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceShareFormat
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -47,35 +51,135 @@ class SzaResourcesImporter @Inject constructor(
         data class Failure(val error: Throwable) : ImportResult
     }
 
+    /** Outcome of a non-destructive preview parse of a user-supplied share file (S0422). */
+    sealed interface PreviewResult {
+        data class Valid(val toCreate: Int, val toUpdate: Int, val containsCredentials: Boolean) : PreviewResult
+        data class Invalid(val reason: String) : PreviewResult
+    }
+
+    /** Imports the bundled predefined-resource config (owner trigger). */
     suspend fun import(): ImportResult = withContext(Dispatchers.IO) {
         try {
             val parser = context.resources.getXml(com.sza.fastmediasorter.R.xml.sza_resources)
-            val existingResources = resourceRepository.getAllResourcesSync()
-            val existingCredentials = credentialsRepository.getAllCredentials().first()
-
-            var imported = 0
-            var updated = 0
-            var skipped = 0
-
-            var eventType = parser.eventType
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (eventType == XmlPullParser.START_TAG && parser.name == "resource") {
-                    when (importOne(parser, existingResources, existingCredentials)) {
-                        Outcome.IMPORTED -> imported++
-                        Outcome.UPDATED -> updated++
-                        Outcome.SKIPPED -> skipped++
-                    }
-                }
-                eventType = parser.next()
-            }
-            ImportResult.Success(imported = imported, updated = updated, skipped = skipped)
+            importFromParser(parser)
         } catch (e: Exception) {
             Timber.e(e, "Error importing SZA resources")
             ImportResult.Failure(e)
         }
     }
 
+    /** Imports a user-supplied share file (S0422). */
+    suspend fun importFromUri(uri: Uri): ImportResult = withContext(Dispatchers.IO) {
+        try {
+            context.contentResolver.openInputStream(uri).use { stream ->
+                stream ?: return@withContext ImportResult.Failure(
+                    IllegalStateException("Cannot open input stream for $uri")
+                )
+                val parser = Xml.newPullParser()
+                parser.setInput(stream, null)
+                importFromParser(parser)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error importing resources from file")
+            ImportResult.Failure(e)
+        }
+    }
+
+    /**
+     * Parses a file without writing anything: reports how many resources would be created vs
+     * overwritten (match by path, the same key the apply path uses) and whether any credential
+     * travels in the file. Used to drive the import confirmation dialog (S0422).
+     */
+    suspend fun preview(uri: Uri): PreviewResult = withContext(Dispatchers.IO) {
+        try {
+            context.contentResolver.openInputStream(uri).use { stream ->
+                stream ?: return@withContext PreviewResult.Invalid("Cannot open file")
+                val parser = Xml.newPullParser()
+                parser.setInput(stream, null)
+                val existingPaths = resourceRepository.getAllResourcesSync().map { it.path }.toSet()
+                var toCreate = 0
+                var toUpdate = 0
+                var containsCredentials = false
+                var rootValidated = false
+                var eventType = parser.eventType
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        if (!rootValidated && parser.depth == 1) {
+                            if (parser.name != ResourceShareFormat.ROOT_TAG) {
+                                return@withContext PreviewResult.Invalid("Unexpected root <${parser.name}>")
+                            }
+                            rootValidated = true
+                        }
+                        if (parser.name == "resource") {
+                            val path = parser.getAttributeValue(null, "path") ?: ""
+                            if (path in existingPaths) toUpdate++ else toCreate++
+                            val hasPassword = !parser.getAttributeValue(null, "password").isNullOrEmpty()
+                            val hasKey = parser.getAttributeValue(null, "auth") == "key"
+                            if (hasPassword || hasKey) containsCredentials = true
+                        }
+                    }
+                    eventType = parser.next()
+                }
+                if (!rootValidated) PreviewResult.Invalid("Not a resources file")
+                else PreviewResult.Valid(toCreate, toUpdate, containsCredentials)
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Resource import preview failed")
+            PreviewResult.Invalid(e.message ?: "Invalid file")
+        }
+    }
+
+    /**
+     * Shared parse-and-apply loop. Rejects a file whose root tag is not [ResourceShareFormat.ROOT_TAG]
+     * before applying anything, so a foreign file never partially mutates existing data.
+     */
+    private suspend fun importFromParser(parser: XmlPullParser): ImportResult {
+        val existingResources = resourceRepository.getAllResourcesSync()
+        val existingCredentials = credentialsRepository.getAllCredentials().first()
+
+        var imported = 0
+        var updated = 0
+        var skipped = 0
+        var rootValidated = false
+
+        var eventType = parser.eventType
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG) {
+                if (!rootValidated && parser.depth == 1) {
+                    if (parser.name != ResourceShareFormat.ROOT_TAG) {
+                        return ImportResult.Failure(
+                            IllegalArgumentException("Unexpected root <${parser.name}>")
+                        )
+                    }
+                    rootValidated = true
+                }
+                if (parser.name == "resource") {
+                    when (importOne(parser, existingResources, existingCredentials)) {
+                        Outcome.IMPORTED -> imported++
+                        Outcome.UPDATED -> updated++
+                        Outcome.SKIPPED -> skipped++
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+        return ImportResult.Success(imported = imported, updated = updated, skipped = skipped)
+    }
+
     private enum class Outcome { IMPORTED, UPDATED, SKIPPED }
+
+    /**
+     * True when the current flavor supports this media family. Drops types a flavor cannot use
+     * (e.g. AUDIO in the photos flavor) so an imported resource is usable, not dead (S0422).
+     * Uses capability flags (`SUPPORT_*`), not `IS_<flavor>` guards.
+     */
+    private fun isMediaTypeSupportedByFlavor(type: MediaType): Boolean = when (type) {
+        MediaType.AUDIO -> BuildConfig.SUPPORT_AUDIO
+        MediaType.VIDEO -> BuildConfig.SUPPORT_VIDEO
+        MediaType.IMAGE, MediaType.GIF -> BuildConfig.SUPPORT_IMAGES
+        MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> BuildConfig.SUPPORT_DOCUMENTS
+        else -> true
+    }
 
     private suspend fun importOne(
         parser: XmlPullParser,
@@ -207,13 +311,15 @@ class SzaResourcesImporter @Inject constructor(
                 }
             }
 
-            val mediaTypes = if (supportedTypesStr != null) {
-                supportedTypesStr.split(",").mapNotNull {
-                    try { MediaType.valueOf(it.trim()) } catch (e: Exception) { null }
-                }.toSet()
-            } else {
-                setOf(MediaType.IMAGE, MediaType.VIDEO)
-            }
+            val mediaTypes = (
+                if (supportedTypesStr != null) {
+                    supportedTypesStr.split(",").mapNotNull {
+                        try { MediaType.valueOf(it.trim()) } catch (e: Exception) { null }
+                    }.toSet()
+                } else {
+                    setOf(MediaType.IMAGE, MediaType.VIDEO)
+                }
+            ).filter { isMediaTypeSupportedByFlavor(it) }.toSet()
 
             val sortMode = try { SortMode.valueOf(sortModeStr ?: "NAME_ASC") } catch (e: Exception) { SortMode.NAME_ASC }
             val displayMode = try { DisplayMode.valueOf(displayModeStr ?: "LIST") } catch (e: Exception) { DisplayMode.LIST }

@@ -43,9 +43,8 @@ class TranslationBackend(
                 .build()
         )
     }
-    // Lazy for the same reason as PrewarmTranslationModelUseCase: ML Kit's init provider ships in
-    // the on-demand :translate_feature module (S0386), so getInstance() must not run at
-    // construction - only on first use, which is gated behind ensureNativeLibrariesLoaded().
+    // Lazy so getInstance() runs on first use behind ensureNativeLibrariesLoaded(), not at
+    // construction (S0423: ML Kit is bundled, but keep the gated ordering to fail soft).
     private val modelManager by lazy { RemoteModelManager.getInstance() }
 
     private var currentSourceLang = TranslateLanguage.ENGLISH
@@ -58,6 +57,7 @@ class TranslationBackend(
         }
         try {
             libraryLoader.load(DeliverableSet.TRANSLATION)
+            Timber.d("S0423: translation engine native libs resolved (bundled in base)")
         } catch (e: Exception) {
             Timber.e(e, "Failed to load translation native libraries")
             return false
@@ -65,11 +65,11 @@ class TranslationBackend(
         return ensureMlKitInitialized()
     }
 
-    // MlKitInitProvider ships in the on-demand translate module and is removed from the base manifest
-    // (S0386), so it never runs in this process after the module is installed on demand. Initialize
-    // MlKitContext explicitly (idempotent) before the first Translation/LanguageIdentification/
-    // RemoteModelManager client is created, otherwise getClient()/getInstance() throws
-    // "MlKitContext has not been initialized". Failure degrades to "no translation" instead of a crash.
+    // S0423: ML Kit is bundled, so MlKitInitProvider runs at launch. Still initialize MlKitContext
+    // explicitly (idempotent) before the first Translation/LanguageIdentification/RemoteModelManager
+    // client is created, as a defensive net against provider-init ordering; otherwise getClient()/
+    // getInstance() could throw "MlKitContext has not been initialized". Failure degrades to "no
+    // translation" instead of a crash.
     private fun ensureMlKitInitialized(): Boolean = try {
         MlKitContext.initializeIfNeeded(context.applicationContext)
         true
@@ -206,7 +206,6 @@ class TranslationBackend(
 
                 // Check if model is downloaded, prompt user if not
                 val targetModel = TranslateRemoteModel.Builder(targetLang).build()
-                Timber.d("S0386: lazy ML Kit modelManager access (translator re-init, target=$targetLang)")
                 val isModelDownloaded = modelManager.isModelDownloaded(targetModel).await()
 
                 if (!isModelDownloaded) {

@@ -230,6 +230,13 @@ class PlayerCommandPanelCallbackImpl(
         activity.activityBinding.btnEditTextCmd.performClick()
     }
 
+    // S0431: send the read-only text to Keep. The command is only ever offered for TEXT files
+    // with a Keep client present, so delegating straight to the text viewer is safe.
+    override fun onSendTextToKeepClicked() {
+        Timber.d("S0431: unified player read-only text -> send to Keep")
+        activity.textViewerManager.sendCurrentTextToKeep()
+    }
+
     override fun onOcrSettingsClicked() {
         // Long-press on OCR shows translation settings (same as translate button)
         Timber.d("OCR settings requested - showing translation settings dialog")

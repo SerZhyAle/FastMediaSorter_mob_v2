@@ -1,0 +1,38 @@
+# Maestro flow template - copy to <Sxxxx>.yaml, fill in, delete the guidance comments.
+# Docs: scripts/devtest/maestro/README.md  ·  Strategic spec: PLAN/S0420_maestro-device-test-flows.md
+#
+# Element matching: prefer the Android resource-id entry name (id: "btnNext" matches
+# ...:id/btnNext) or visible text. Source handles from mobile_list_elements_on_screen.
+appId: com.sza.fastmediasorter.debug
+---
+# Deterministic start: reset app data so the flow does not depend on prior state.
+- launchApp:
+    clearState: true
+
+# Assert the entry screen is up before acting.
+- assertVisible:
+    id: "REPLACE_with_resource_id"
+
+# Tap by id or text.
+- tapOn:
+    id: "REPLACE_with_resource_id"
+# - tapOn:
+#     text: "Visible label"
+
+# Type into the focused / matched field.
+# - tapOn:
+#     id: "REPLACE_input_id"
+# - inputText: "value"
+
+# Loop a variable-length step (e.g. paging) while a control stays visible.
+# - repeat:
+#     while:
+#       visible:
+#         id: "REPLACE_next_id"
+#     commands:
+#       - tapOn:
+#           id: "REPLACE_next_id"
+
+# Final assertion - the success state of the scenario.
+- assertVisible:
+    id: "REPLACE_success_marker_id"

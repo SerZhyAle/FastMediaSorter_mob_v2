@@ -101,7 +101,6 @@ class StandalonePlayerViewModel @Inject constructor(
         if (_editableImageFile.value != null) return
         val file = state.value.mediaFile ?: return
         if (state.value.mediaType != MediaType.IMAGE) return
-        Timber.d("S0410: standalone materialize editable image for crop/compress")
         val uri = Uri.parse(file.contentUri ?: file.path)
         when (val result = materializeUriToFileUseCase(uri, file.name)) {
             is UriMaterialization.Materialized ->

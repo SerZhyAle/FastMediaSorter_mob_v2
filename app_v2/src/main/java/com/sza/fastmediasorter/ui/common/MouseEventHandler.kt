@@ -169,7 +169,6 @@ class MouseEventHandler(
         // cursor - consuming the UP here stops super.dispatchTouchEvent and breaks click delivery to
         // buttons, dropdowns and every other control. Only surfaces that opt in consume the click.
         if (!consumePrimaryClick) {
-            Timber.d("S0333: mouse primary click passthrough")
             return false
         }
         val now = System.currentTimeMillis()

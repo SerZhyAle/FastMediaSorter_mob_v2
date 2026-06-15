@@ -1,25 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Standard flavor manifest overlay.
-    ML Kit Translate/language-id live in the on-demand :translate_feature dynamic module, not in the
-    base (S0386). The ML Kit AAR auto-merges MlKitInitProvider + MlKitComponentDiscoveryService into
-    the base manifest, but their classes are absent from the base APK, so the base would crash on
-    launch ("Unable to get provider MlKitInitProvider"). Remove them here; the feature module brings
-    them back when it is installed on demand.
+    S0423: ML Kit Translate is bundled in the standard base, so its AAR-merged MlKitInitProvider +
+    MlKitComponentDiscoveryService run normally (no on-demand DFM, nothing to strip).
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      S0418: edge-gesture screenshot capture (Play phase). Capture goes through MediaProjection
+      with per-shot consent + the overlay strip host. The silent AccessibilityService path stays
+      noLegal-exclusive and is deliberately NOT declared here (Google Play policy risk).
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application>
 
-        <provider
-            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
-            android:authorities="${applicationId}.mlkitinitprovider"
-            tools:node="remove" />
+        <!-- S0418: screencapture machinery (shared src/screenCapture; no a11y service on Play). -->
+        <activity
+            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
         <service
-            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
-            tools:node="remove" />
+            android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
+        </service>
+
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
 
     </application>
 

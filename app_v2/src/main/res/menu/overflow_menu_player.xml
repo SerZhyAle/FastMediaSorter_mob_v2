@@ -168,6 +168,13 @@
         android:title="@string/edit"
         app:showAsAction="never" />
 
+    <!-- S0431: Send to Google Keep (read-only TXT) - low priority, overflow-only, shown only when Keep is installed -->
+    <item
+        android:id="@+id/menu_send_text_to_keep"
+        android:icon="@drawable/ic_text_send_keep"
+        android:title="@string/text_editor_action_send_keep"
+        app:showAsAction="never" />
+
 
 
     <!-- Undo (if available) -->

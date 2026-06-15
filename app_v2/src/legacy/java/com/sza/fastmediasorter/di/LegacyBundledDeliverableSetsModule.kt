@@ -15,12 +15,15 @@ import dagger.multibindings.IntoSet
 @InstallIn(SingletonComponent::class)
 object LegacyBundledDeliverableSetsModule {
 
-    // Set B (OCR/Tesseract), Set C (audio-visualizations) and Set D (FFmpeg DTS) are all de-bundled
-    // and delivered on demand (S0386 Phase 05). Nothing heavy remains bundled in the legacy base.
+    // S0423: Translation (Set A) is bundled in the legacy base (the on-demand DFM was removed; the
+    // legacy minSdk 23 split also broke the release bundle). Set B (OCR/Tesseract), Set C
+    // (audio-visualizations) and Set D (FFmpeg DTS) stay de-bundled and delivered on demand (S0386).
     @Provides
     @IntoSet
     fun contributor(): BundledDeliverableSetContributor = object : BundledDeliverableSetContributor {
-        override fun bundledSets(): Set<DeliverableSet> = emptySet()
+        override fun bundledSets(): Set<DeliverableSet> = setOf(
+            DeliverableSet.TRANSLATION
+        )
     }
 
     @Provides
@@ -29,8 +32,7 @@ object LegacyBundledDeliverableSetsModule {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
             DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
             DeliverableSet.OCR_ENGINES to DeliverableDescriptorCatalog.ocrEnginesStore(),
-            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts(),
-            DeliverableSet.TRANSLATION to DeliverableDescriptorCatalog.translation()
+            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts()
         )
     }
 }

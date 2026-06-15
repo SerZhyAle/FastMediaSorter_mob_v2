@@ -2473,4 +2473,15 @@
     <string name="screenshot_gesture_permission_dialog_title">Увімкнення жестів екрана</string>
     <string name="screenshot_gesture_open_settings">Відкрити налаштування</string>
     <string name="screenshot_gesture_use_old_method">Старий спосіб</string>
+    <string name="resource_share_export_title">Експорт ресурсів у файл</string>
+    <string name="resource_share_import_title">Імпорт ресурсів із файлу</string>
+    <string name="resource_share_credentials_warning">Цей файл міститиме паролі доступу у відкритому вигляді. Передавайте його лише тим, кому довіряєте.</string>
+    <string name="resource_share_import_preview_message">Буде додано нових ресурсів: %1$d, перезаписано наявних: %2$d.</string>
+    <string name="resource_share_import_action">Імпортувати</string>
+    <string name="resource_share_export_success">Експортовано ресурсів: %1$d; пропущено: %2$d.</string>
+    <string name="resource_share_import_success">Створено: %1$d, оновлено: %2$d, пропущено: %3$d.</string>
+    <string name="resource_share_invalid_file">Це не придатний файл ресурсів.</string>
+    <string name="resource_share_export_failed">Не вдалося експортувати ресурси.</string>
+    <string name="resource_share_import_failed">Не вдалося імпортувати ресурси.</string>
+    <string name="resource_menu_export">Експорт</string>
 </resources>

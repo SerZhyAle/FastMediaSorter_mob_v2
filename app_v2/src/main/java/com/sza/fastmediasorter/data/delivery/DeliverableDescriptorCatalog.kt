@@ -81,28 +81,8 @@ object DeliverableDescriptorCatalog {
         "x86_64" to listOf(NativeLib("libffmpegJNI.so", "c85a80c531e9740a06d4c80800cb3f554d8f79a4d101a7103bb660f99429f5d1", 7_583_424L))
     )
 
-    /**
-     * Set TRANSLATION - ML Kit translation fallback libraries.
-     * Shipped on demand for store flavors (standard/legacy) when Play DFM is unavailable.
-     */
-    private val TRANSLATION: Map<String, List<NativeLib>> = mapOf(
-        "arm64-v8a" to listOf(
-            NativeLib("liblanguage_id_l2c_jni.so", "4479b044bbdad9a938fea15698dfa3473e73bd6bab9f8e0468fc3cc6069c137e", 1_019_560L),
-            NativeLib("libtranslate_jni.so", "35b3d0366291347e3f25e80e809ee398d716aea49cd03278007fedd526a1496f", 16_361_048L)
-        ),
-        "armeabi-v7a" to listOf(
-            NativeLib("liblanguage_id_l2c_jni.so", "1c1a8baa63ecc473e611902a8aa010fa526f2a35594c302836f7279d1c73aa17", 609_636L),
-            NativeLib("libtranslate_jni.so", "cdf803c7a17cadf5f53314365dd3c999746d98c510863c636de62c7acd8cb016", 11_608_808L)
-        ),
-        "x86" to listOf(
-            NativeLib("liblanguage_id_l2c_jni.so", "0968db72cbab0e13899cd355162b0a21133ba7a4732b83bf5e32ff3ce43fbb6e", 1_359_352L),
-            NativeLib("libtranslate_jni.so", "8501cf6c07570a276539399d2e63b7f3f9f46714b33607599a28ab6b3f33878e", 17_258_012L)
-        ),
-        "x86_64" to listOf(
-            NativeLib("liblanguage_id_l2c_jni.so", "2d4c44ca649d27bc76600dcf31bee9312cc34e175e38214fc4dc0e85ff67a58d", 1_324_488L),
-            NativeLib("libtranslate_jni.so", "d7e1b7be14a5cd2c20331c9a511efb3e98b777347abf7eb9bce9166fcb246975", 17_371_632L)
-        )
-    )
+    // S0423: the TRANSLATION lib map + translation() descriptor were removed. Translation is bundled
+    // in every translation-capable flavor (no on-demand download), so no payload descriptor exists.
 
     /**
      * Set C - audio-player background videos. Pure resource (no `System.load`); the SHA-256 is still
@@ -136,10 +116,6 @@ object DeliverableDescriptorCatalog {
     /** Set D for store/sideload/VR flavors that ship the DTS decoder. */
     fun ffmpegDts(abi: String = primaryAbi()): DeliverableSourceDescriptor =
         nativeDescriptor(DeliverableSet.FFMPEG_DTS, abi, FFMPEG[abi].orEmpty())
-
-    /** Set TRANSLATION - translation fallback library set. */
-    fun translation(abi: String = primaryAbi()): DeliverableSourceDescriptor =
-        nativeDescriptor(DeliverableSet.TRANSLATION, abi, TRANSLATION[abi].orEmpty())
 
     /** First device ABI we host a payload for; defaults to arm64-v8a. */
     fun primaryAbi(): String =

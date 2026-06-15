@@ -106,7 +106,6 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     }
 
     private fun createForegroundInfo(set: DeliverableSet, contentText: String, percent: Int): ForegroundInfo {
-        Timber.d("S0416: deliverable-download foreground notification built (small icon without ?attr tint)")
         val notification = buildNotification(set, contentText, percent)
         val notifId = notificationId(set)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

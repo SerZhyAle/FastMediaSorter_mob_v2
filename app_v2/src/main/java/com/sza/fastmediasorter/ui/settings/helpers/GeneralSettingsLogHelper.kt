@@ -89,7 +89,6 @@ class GeneralSettingsLogHelper(
             .setTitle(R.string.system_info_reveal_confirm_title)
             .setMessage(R.string.system_info_reveal_confirm_message)
             .setPositiveButton(R.string.system_info_copy_full_report) { _, _ ->
-                Timber.d("S0336: full diagnostics report copy confirmed")
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 clipboard.setPrimaryClip(android.content.ClipData.newPlainText("System info", fullText))
                 Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()

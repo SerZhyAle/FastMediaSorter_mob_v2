@@ -7,15 +7,10 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.PayloadFile
-import com.google.android.play.core.splitinstall.SplitInstallException
-import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
-import com.google.android.play.core.splitinstall.model.SplitInstallErrorCode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
@@ -54,24 +49,8 @@ class RealDeliverableSetDownloader @Inject constructor(
         .build()
 
     override fun download(set: DeliverableSet): Flow<DownloadProgress> {
-        if (set == DeliverableSet.TRANSLATION) {
-            return flow {
-                var dfmFailed = false
-                var failureReason = ""
-                downloadDfm("translate_feature").collect { progress ->
-                    if (progress is DownloadProgress.Failed) {
-                        dfmFailed = true
-                        failureReason = progress.reason
-                    } else {
-                        emit(progress)
-                    }
-                }
-                if (dfmFailed) {
-                    Timber.w("DFM translation download failed: %s. Falling back to HTTP/GitHub mirror.", failureReason)
-                    downloadFromSources(DeliverableSet.TRANSLATION).collect { emit(it) }
-                }
-            }
-        }
+        // S0423: TRANSLATION is bundled (the on-demand DFM was removed), so it is never offered for
+        // download. If it ever reaches here it degrades gracefully to "no descriptor" below.
 
         // Play policy (Device & Network Abuse) forbids fetching executable code (.so) from a non-Play
         // source. On a Play install of a store flavor the native sets must not hit the GitHub mirror;
@@ -79,7 +58,6 @@ class RealDeliverableSetDownloader @Inject constructor(
         // the existing failover path unchanged there (S0401 §6.1). Data payloads (Set C .mp4, OCR
         // traineddata) are not code and keep direct download everywhere, so the gate is .so-only.
         if (set.isNativeCodeSet() && installSourceProvider.isPlayInstall()) {
-            Timber.d("S0401: native-set delivery gated to Play-compliant path, set=$set")
             return downloadNativeSetOnPlay(set)
         }
 
@@ -90,11 +68,8 @@ class RealDeliverableSetDownloader @Inject constructor(
      * Play-compliant branch for a native (`.so`-bearing) set on a Play install. The store flavors
      * (standard/legacy) de-bundle these sets (S0386 Phase 05) and the build strips the `.so` from
      * every base artifact, so a Play install does not carry them and they cannot be re-fetched without
-     * violating policy. Mirror the graceful APP_NOT_OWNED handling of [downloadDfm]: report a
-     * human-readable unavailable result with no network call. Bundling for store flavors is deferred
-     * (would re-bloat the size-optimized APK and collide with the runtime loader); when it lands the
-     * set becomes bundled and [DeliverableCapabilityRepository.isInstalledBlocking] short-circuits the
-     * UI before this branch is reached.
+     * violating policy. Report a human-readable unavailable result with no network call. This covers
+     * only the de-bundled native sets (OCR/DTS); translation is bundled (S0423) and never reaches here.
      */
     private fun downloadNativeSetOnPlay(set: DeliverableSet): Flow<DownloadProgress> = flow {
         emit(DownloadProgress.Queued)
@@ -166,87 +141,6 @@ class RealDeliverableSetDownloader @Inject constructor(
                 if (!promoted) stagingDir.deleteRecursively()
             }
         }.flowOn(Dispatchers.IO)
-    }
-
-    private fun downloadDfm(moduleName: String): Flow<DownloadProgress> = callbackFlow {
-        val splitInstallManager = SplitInstallManagerFactory.create(context)
-        
-        if (splitInstallManager.installedModules.contains(moduleName)) {
-            trySend(DownloadProgress.Installed)
-            close()
-            return@callbackFlow
-        }
-        
-        val listener = { state: com.google.android.play.core.splitinstall.SplitInstallSessionState ->
-            if (state.moduleNames().contains(moduleName)) {
-                when (state.status()) {
-                    com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus.PENDING -> {
-                        trySend(DownloadProgress.Queued)
-                    }
-                    com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus.DOWNLOADING -> {
-                        val total = state.totalBytesToDownload()
-                        val downloaded = state.bytesDownloaded()
-                        val percent = if (total > 0) ((downloaded * 100) / total).toInt() else 0
-                        trySend(DownloadProgress.Running(percent, downloaded, total))
-                    }
-                    com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus.INSTALLING -> {
-                        trySend(DownloadProgress.Verifying)
-                    }
-                    com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus.INSTALLED -> {
-                        trySend(DownloadProgress.Installed)
-                        close()
-                    }
-                    com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus.FAILED -> {
-                        trySend(DownloadProgress.Failed("DFM install failed: code ${state.errorCode()}"))
-                        close()
-                    }
-                    com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus.CANCELED -> {
-                        trySend(DownloadProgress.Failed("DFM install canceled"))
-                        close()
-                    }
-                }
-            }
-        }
-        
-        splitInstallManager.registerListener(listener)
-
-        try {
-            val request = com.google.android.play.core.splitinstall.SplitInstallRequest.newBuilder()
-                .addModule(moduleName)
-                .build()
-
-            splitInstallManager.startInstall(request)
-                .addOnFailureListener { exception ->
-                    // Complete the flow with a Failed result - never close(cause), which would
-                    // re-throw SplitInstallException into the collector's coroutine and crash the app.
-                    // APP_NOT_OWNED (-15) is expected for sideloaded / non-Play store builds (debug):
-                    // the Play dynamic-feature cannot be fetched, so translation degrades gracefully.
-                    trySend(DownloadProgress.Failed(dfmFailureReason(exception)))
-                    close()
-                }
-        } catch (t: Throwable) {
-            Timber.w(t, "DFM startInstall threw synchronously for %s", moduleName)
-            trySend(DownloadProgress.Failed(dfmFailureReason(t)))
-            close()
-        }
-
-        awaitClose {
-            splitInstallManager.unregisterListener(listener)
-        }
-    }
-
-    /**
-     * Human-readable reason for a Play dynamic-feature install failure. APP_NOT_OWNED (-15) means the
-     * app was not acquired from Google Play (sideload / debug), so the split cannot be fetched here.
-     */
-    private fun dfmFailureReason(error: Throwable): String {
-        val code = (error as? SplitInstallException)?.errorCode
-        return when (code) {
-            SplitInstallErrorCode.APP_NOT_OWNED ->
-                "Translation module is delivered via Google Play and is unavailable on this build (not installed from Play)"
-            null -> error.message ?: "Failed to start dynamic-feature install"
-            else -> "Dynamic-feature install failed (code $code)"
-        }
     }
 
     /** Try each source URL in order; first one that fully downloads to [dest] wins. */
@@ -328,7 +222,7 @@ class RealDeliverableSetDownloader @Inject constructor(
 
     // The sets whose payload is executable native code (`.so`); only these are gated on install
     // source. AUDIO_VISUALIZATIONS (.mp4) and OCR language data (.traineddata) are pure data and are
-    // never gated. TRANSLATION is handled earlier via SplitInstall, so it never reaches this check.
+    // never gated. TRANSLATION is bundled (S0423), so it is never offered for download.
     private fun DeliverableSet.isNativeCodeSet(): Boolean =
         this == DeliverableSet.OCR_ENGINES || this == DeliverableSet.FFMPEG_DTS
 

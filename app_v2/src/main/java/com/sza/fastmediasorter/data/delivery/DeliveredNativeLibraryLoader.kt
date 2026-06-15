@@ -73,7 +73,6 @@ class DeliveredNativeLibraryLoader @Inject constructor(
 
         // Splice the delivered directory into the classloader's native library search path so the
         // engines' own `System.loadLibrary(name)` calls resolve from filesDir.
-        Timber.d("S0386: attaching delivered native set %s via classloader path injection", set)
         injectNativeLibraryDirectory(setDir)
 
         // Warm-load each `.so` in descriptor (dependency-first) order to surface a broken payload as

@@ -233,15 +233,17 @@
         tools:visibility="visible" />
 
     <!-- Selection checkbox overlays the thumbnail bottom-left corner (S0419). Declared last for top
-         z-order; a surface chip keeps it visible on any thumbnail image. -->
-    <CheckBox
+         z-order; a self-contrasting white/black box stays visible without covering the thumbnail. -->
+    <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/cbSelect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minWidth="0dp"
         android:minHeight="0dp"
-        android:padding="1dp"
-        android:background="@drawable/bg_checkbox_overlay"
+        android:padding="2dp"
+        android:background="@null"
+        android:button="@drawable/selector_checkbox_select"
+        app:buttonTint="@null"
         app:layout_constraintBottom_toBottomOf="@id/flThumbnailFrame"
         app:layout_constraintStart_toStartOf="@id/flThumbnailFrame" />
 

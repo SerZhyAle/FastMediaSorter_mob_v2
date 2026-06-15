@@ -101,6 +101,26 @@ internal class MainEventHandler(
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
             }
+            is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)
+        }
+    }
+
+    /** S0422: share an exported resource file via the system share sheet with the vendor MIME type. */
+    private fun shareResourceFile(filePath: String) {
+        try {
+            val file = java.io.File(filePath)
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                activity, "${activity.packageName}.fileprovider", file
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.resource_share_export_title)))
+        } catch (e: Exception) {
+            timber.log.Timber.e(e, "Failed to share resource file")
+            Toast.makeText(activity, R.string.resource_share_export_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

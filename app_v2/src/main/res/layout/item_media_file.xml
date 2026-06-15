@@ -26,8 +26,8 @@
     <ImageView android:id="@+id/ivDragHandle" android:layout_width="48dp" android:layout_height="48dp" android:scaleType="center" android:padding="12dp" android:src="@drawable/ic_drag_handle" android:contentDescription="@string/drag_handle_description" android:visibility="gone" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" tools:visibility="visible" />
 
     <!-- Selection checkbox overlays the thumbnail bottom-left corner (S0419). Declared last for top
-         z-order; a surface chip keeps it visible on any thumbnail image. -->
-    <CheckBox android:id="@+id/cbSelect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="0dp" android:minHeight="0dp" android:padding="1dp" android:background="@drawable/bg_checkbox_overlay" app:layout_constraintStart_toStartOf="@id/ivThumbnail" app:layout_constraintBottom_toBottomOf="@id/ivThumbnail" />
+         z-order; a self-contrasting white/black box stays visible without covering the thumbnail. -->
+    <androidx.appcompat.widget.AppCompatCheckBox android:id="@+id/cbSelect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="0dp" android:minHeight="0dp" android:padding="2dp" android:background="@null" android:button="@drawable/selector_checkbox_select" app:buttonTint="@null" app:layout_constraintStart_toStartOf="@id/ivThumbnail" app:layout_constraintBottom_toBottomOf="@id/ivThumbnail" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

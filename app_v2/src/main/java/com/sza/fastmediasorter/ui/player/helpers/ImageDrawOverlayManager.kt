@@ -507,11 +507,21 @@ class ImageDrawOverlayManager(
             strokeCap = android.graphics.Paint.Cap.ROUND
         }
 
+        init {
+            // On a hardware-accelerated canvas PorterDuff.Mode.CLEAR paints opaque
+            // black instead of clearing to transparent, so the eraser would "draw
+            // black" on screen. A software layer gives the view a real alpha buffer
+            // where CLEAR truly removes the stroke pixels; the transparent result
+            // then composites over the base image, matching getBitmap() export.
+            setLayerType(LAYER_TYPE_SOFTWARE, null)
+        }
+
         override fun onDraw(canvas: android.graphics.Canvas) {
             super.onDraw(canvas)
-            // The view background is transparent; PorterDuff.Mode.CLEAR strokes
-            // therefore clear only previously replayed pixels in this frame and
-            // never punch through the base image beneath (Antigravity §9.1).
+            // The view background is transparent and the view runs on a software
+            // layer (see init), so PorterDuff.Mode.CLEAR strokes clear replayed
+            // pixels to transparent rather than punching opaque black through the
+            // base image beneath (Antigravity §9.1).
             replay(canvas)
 
             // Live preview during RECTANGLE / OVAL drag (commit happens on ACTION_UP)

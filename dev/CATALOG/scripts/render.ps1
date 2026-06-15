@@ -41,7 +41,9 @@ function Resolve-SourceLink([string]$module, [string]$relPath, [string]$root) {
         "$module/src/noLegal/java",
         "$module/src/streamingEnabled/java",
         "$module/src/ocrEnabled/java",
-        "$module/src/ocrDisabled/java"
+        "$module/src/ocrDisabled/java",
+        "$module/src/screenCapture/java",
+        "$module/src/screenCapturePlay/java"
     )
     foreach ($candidateRoot in $candidateRoots) {
         $candidate = Join-Path $root ($candidateRoot -replace '/', '\\')

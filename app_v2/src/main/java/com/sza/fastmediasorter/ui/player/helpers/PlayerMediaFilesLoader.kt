@@ -154,7 +154,6 @@ class PlayerMediaFilesLoader(
 
     fun loadMediaFiles() {
         loadingJob = scope.launch {
-            Timber.d("S0356: player media load integrity probe")
             setLoading(true)
             try {
                 // Save current file path to restore position after reload

@@ -457,6 +457,36 @@
              Translucent theme ensures only the Copy-to dialog is visible (no blank window). -->
         <activity android:name=".ui.share.ReceiveShareActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
+        <!-- S0422: resource share-file receiver. VIEW (open with) + SEND (share sheet). The vendor
+             MIME is what our own export sets, giving a reliable friend-to-friend SEND path; the
+             file pathPattern is a best-effort VIEW match for file managers using file:// URIs.
+             application/octet-stream is intentionally not registered (chooser-noise; see
+             PLAN/S0422_resource-import-file-format/research/01__file-association.md). -->
+        <activity android:name=".ui.resourceimport.ResourceImportActivity" android:exported="true" android:excludeFromRecents="true" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/vnd.fms.resources+xml" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.fmsr" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.fms.resources+xml" />
+            </intent-filter>
+        </activity>
+
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->

@@ -164,9 +164,7 @@ class SmbDirectoryScanner(
             currentCoroutineContext().ensureActive()
             
             val dirPath = path.trim('/', '\\')
-            Timber.d("S0415: SMB scan listing dir='$dirPath' collected=${results.size}")
             val items = share.list(dirPath)
-            Timber.d("S0415: SMB scan listed dir='$dirPath' entries=${items.size}")
 
             // First pass: process files (faster, no recursion)
             for (fileInfo in items) {
@@ -219,7 +217,6 @@ class SmbDirectoryScanner(
                     "$dirPath/${fileInfo.fileName}"
                 }
                 
-                Timber.d("S0415: SMB scan descend into dir='$fullPath'")
                 val limitReached = scanDirectoryRecursiveWithLimit(share, fullPath, extensions, results, maxFiles)
                 if (limitReached) return true
             }

@@ -340,9 +340,15 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
                 R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
                 R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
+            // S0431: text host is the only one that surfaces "Send to Keep", and only when Keep is installed.
+            popup.menu.findItem(R.id.menu_send_to_keep)?.isVisible = textViewerManager.isKeepTargetAvailable()
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
+                    R.id.menu_send_to_keep -> {
+                        Timber.d("S0431: standalone text player read-only -> send to Keep")
+                        textViewerManager.sendCurrentTextToKeep(); true
+                    }
                     else -> false
                 }
             }

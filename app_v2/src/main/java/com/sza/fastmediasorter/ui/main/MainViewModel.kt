@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ResourceShareFormat
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DedupAuthAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
@@ -95,6 +97,8 @@ sealed class MainEvent {
     data class ScanProgress(val currentFile: String?, val scannedCount: Int) : MainEvent()
     object ScanComplete : MainEvent()
     object ConfirmRescanWithVirtualResources : MainEvent()
+    // S0422: a single resource has been written to [filePath]; the host shares it via ACTION_SEND.
+    data class ShareResourceFile(val filePath: String) : MainEvent()
 }
 
 @HiltViewModel
@@ -104,6 +108,7 @@ class MainViewModel @Inject constructor(
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
+    private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
     private val resourceRepository: ResourceRepository,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
@@ -293,6 +298,30 @@ class MainViewModel @Inject constructor(
                         isNavigating = false,
                         navigationMessage = null
                     )
+                }
+            }
+        }
+    }
+
+    /**
+     * S0422: exports a single resource (with credentials) to a cache file and signals the host to
+     * share it via the system share sheet with the vendor MIME type.
+     */
+    fun exportResourceForShare(resource: MediaResource) {
+        viewModelScope.launch {
+            Timber.d("S0422: per-resource export share")
+            val safeName = resource.name.replace(Regex("[^A-Za-z0-9._-]"), "_").ifBlank { "resource" }
+            val file = java.io.File(context.cacheDir, "$safeName.${ResourceShareFormat.EXTENSION}")
+            when (val result = exportResourcesToFileUseCase(listOf(resource.id), android.net.Uri.fromFile(file))) {
+                is ExportResourcesToFileUseCase.ExportResult.Success ->
+                    if (result.exported > 0) {
+                        sendEvent(MainEvent.ShareResourceFile(file.absolutePath))
+                    } else {
+                        sendEvent(MainEvent.ShowResourceMessage(R.string.resource_share_export_failed))
+                    }
+                is ExportResourcesToFileUseCase.ExportResult.Failure -> {
+                    Timber.e(result.error, "Per-resource export failed")
+                    sendEvent(MainEvent.ShowResourceMessage(R.string.resource_share_export_failed))
                 }
             }
         }

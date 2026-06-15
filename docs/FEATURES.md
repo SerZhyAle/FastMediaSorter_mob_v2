@@ -15,6 +15,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
+- **Share resources between devices** `[Standard / VR]`: Export a configured resource - including its access credentials - to a small file, then import it on another device by opening the file, sharing it, or via Settings -> Backup & Restore. The file holds passwords in plain text, so share it only with people you trust.
 - **Intelligent caching & sync** `[Standard / VR]`: Persists index databases to bypass slow network fetches on subsequent visits, with a built-in connection test and PIN-code protection for folders.
 
 ## 2. Media Browsing
@@ -28,6 +29,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
 - **Duplicate file finder** `[Standard / VR]`: Scans storage to locate and remove identical files using a 3-phase matching engine (Size -> Hash -> SHA-256) with auto-delete or manual review options.
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
+- **Edge-gesture screen capture** `[Standard]`: Enable a thin left-edge strip and swipe diagonally to screenshot any screen — including other apps — saving straight to a chosen resource or the device screenshots folder (each capture confirms a quick system consent).
 
 ## 4. Destination Management
 - **Instant sorting panel** `[Standard / VR]`: Set up to 10 favorite target folders inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.
@@ -63,6 +65,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 12. Text Editor
 - **In-place Markdown editor** `[Standard / VR]`: Edit `.txt` and `.md` files directly on local or remote storage with live syntax highlighting, Markdown rendering, and auto-save.
+- **Send text to Google Keep** `[Standard / VR]`: From the read-only text viewer, send the current text straight to Google Keep as a note - available in both the in-app player and the standalone text viewer, shown only when Keep is installed.
 - **Embedded text calculator** `[Standard / VR]`: Parse and solve math equations from selected reader/OCR/lyrics text blocks without writing results back.
 
 ## 13. Offline OCR & Translation

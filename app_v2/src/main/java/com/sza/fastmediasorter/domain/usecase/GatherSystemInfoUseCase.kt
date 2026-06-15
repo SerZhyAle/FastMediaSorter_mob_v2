@@ -396,7 +396,6 @@ class GatherSystemInfoUseCase @Inject constructor(
         block()
     } catch (e: Exception) {
         if (SystemInfoAccessClassifier.isExpectedAccessDenial(e)) {
-            Timber.d("S0345: system info field unavailable on this device")
             Timber.i("System info: device field unavailable on this device (${e.javaClass.simpleName})")
         } else {
             Timber.w(e, "System info: failed to read a device field")

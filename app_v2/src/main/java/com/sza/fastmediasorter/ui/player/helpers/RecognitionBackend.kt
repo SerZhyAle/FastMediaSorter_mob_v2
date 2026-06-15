@@ -73,7 +73,6 @@ class RecognitionBackend(
         }
 
         try {
-            Timber.d("S0386: OCR recognize - attaching delivered OCR engines (Set B)")
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")

@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
-import timber.log.Timber
 
 /**
  * Adaptive priority+overflow controller for the Browse top command bar (S0374).
@@ -63,7 +62,6 @@ class BrowseCommandOverflowManager(
     }
 
     private fun applyPartition() {
-        Timber.d("S0374: overflow recompute - available width measured, priority partition applied")
         val eligible = candidates().filter { c ->
             if (c.barView == null) return@filter false
             if (c.alwaysEligible) true else featureGatedEligible[c.menuId] == true

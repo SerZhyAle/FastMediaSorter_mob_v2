@@ -47,6 +47,8 @@ class ResourceAdapter(
     private val onMoveToTopClick: (MediaResource) -> Unit,
     private val onMoveToBottomClick: (MediaResource) -> Unit,
     private val onScanClick: (MediaResource) -> Unit = {},
+    // S0422: export a single resource to a share file.
+    private val onExportClick: (MediaResource) -> Unit = {},
     // S0293 Phase 08: per-resource "Open in new window" entry on the main list. Optional - when
     // null, the menu item is hidden (e.g. on devices where allowSeparateWindow=false).
     private val onOpenInNewWindowClick: ((MediaResource) -> Unit)? = null,
@@ -408,6 +410,7 @@ class ResourceAdapter(
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
+                        popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
                         // S0293 Phase 08: per-resource multi-window entry on main list
                         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                             isOpenInNewWindowVisible && onOpenInNewWindowClick != null
@@ -420,6 +423,7 @@ class ResourceAdapter(
                                 R.id.action_launch_player -> { onIconClick(resource); true }
                                 R.id.action_edit -> { onEditClick(resource); true }
                                 R.id.action_copy -> { onCopyFromClick(resource); true }
+                                R.id.action_export_resource -> { onExportClick(resource); true }
                                 R.id.action_scan -> { onScanClick(resource); true }
                                 R.id.action_move_up -> { onMoveUpClick(resource); true }
                                 R.id.action_move_down -> { onMoveDownClick(resource); true }
@@ -733,6 +737,7 @@ class ResourceAdapter(
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                             popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
+                        popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
                             // S0293 Phase 08: per-resource multi-window entry on main list
                             popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                                 isOpenInNewWindowVisible && onOpenInNewWindowClick != null
@@ -756,6 +761,10 @@ class ResourceAdapter(
                                     }
                                     R.id.action_copy -> {
                                         onCopyFromClick(resource)
+                                        true
+                                    }
+                                    R.id.action_export_resource -> {
+                                        onExportClick(resource)
                                         true
                                     }
                                     R.id.action_scan -> {

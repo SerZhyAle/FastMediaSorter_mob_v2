@@ -644,6 +644,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onScanClick = { resource ->
                 viewModel.scanSingleResource(resource)
             },
+            onExportClick = { resource ->
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.resource_share_export_title)
+                    .setMessage(R.string.resource_share_credentials_warning)
+                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.exportResourceForShare(resource) }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            },
             // S0293 Phase 08: visible only when multi-window is effectively available (preference OR runtime)
             isOpenInNewWindowVisible = mainAllowSeparateWindow,
             onOpenInNewWindowClick = { resource -> openResourceInNewWindow(resource.id) }

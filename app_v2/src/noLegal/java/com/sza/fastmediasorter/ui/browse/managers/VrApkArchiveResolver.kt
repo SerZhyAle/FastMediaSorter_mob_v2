@@ -83,7 +83,6 @@ class VrApkArchiveResolver @Inject constructor(
     }
 
     private suspend fun resolveCloudArchive(mediaFile: MediaFile): VrArchiveResolution {
-        Timber.d("S0388: transient cloud APK copy resolve reached")
         return try {
             val cacheDir = File(context.cacheDir, CLOUD_CACHE_DIR_NAME).apply { mkdirs() }
             purgeStaleCopies(cacheDir)

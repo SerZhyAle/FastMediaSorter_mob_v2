@@ -51,7 +51,6 @@ class TextFilePager(
     }
 
     override fun close() {
-        Timber.d("S0408: TextFilePager.close on teardown, file=${file.name}")
         synchronized(rafLock) {
             try {
                 raf?.close()

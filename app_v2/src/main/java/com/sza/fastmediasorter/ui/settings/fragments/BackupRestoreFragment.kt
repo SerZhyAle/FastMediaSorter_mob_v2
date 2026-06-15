@@ -20,10 +20,13 @@ import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
 import com.sza.fastmediasorter.domain.model.FavoritesImportStatus
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
+import com.sza.fastmediasorter.domain.model.ResourceShareFormat
 import com.sza.fastmediasorter.ui.settings.BackupRestoreUiState
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.FavoritesExportUiState
 import com.sza.fastmediasorter.ui.settings.FavoritesImportUiState
+import com.sza.fastmediasorter.ui.settings.ResourceShareExportUiState
+import com.sza.fastmediasorter.ui.settings.ResourceShareImportUiState
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.io.File
@@ -44,6 +47,22 @@ class BackupRestoreFragment : Fragment() {
         }
     }
 
+    private val exportResourcesLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument(ResourceShareFormat.MIME_TYPE)
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.exportAllResources(uri)
+        }
+    }
+
+    private val importResourcesLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.previewResourceImport(uri)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,6 +77,7 @@ class BackupRestoreFragment : Fragment() {
         setupButtons()
         observeState()
         observeFavoritesState()
+        observeResourceShareState()
         updateAccountInfo()
     }
 
@@ -90,6 +110,31 @@ class BackupRestoreFragment : Fragment() {
                 ).show()
             }
         }
+        binding.btnExportResources.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.resource_share_export_title)
+                .setMessage(R.string.resource_share_credentials_warning)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    try {
+                        exportResourcesLauncher.launch("fms_resources.${ResourceShareFormat.EXTENSION}")
+                    } catch (e: android.content.ActivityNotFoundException) {
+                        Timber.w(e, "BackupRestoreFragment: document creator not available")
+                        showSnackbar(getString(R.string.resource_share_export_failed))
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+        binding.btnImportResources.setOnClickListener {
+            try {
+                importResourcesLauncher.launch(
+                    arrayOf(ResourceShareFormat.MIME_TYPE, "application/xml", "text/xml", "*/*")
+                )
+            } catch (e: android.content.ActivityNotFoundException) {
+                Timber.w(e, "BackupRestoreFragment: file picker not available")
+                showSnackbar(getString(R.string.save_logs_not_supported))
+            }
+        }
     }
 
     private fun observeState() {
@@ -99,6 +144,97 @@ class BackupRestoreFragment : Fragment() {
     private fun observeFavoritesState() {
         collectOnLifecycle(viewModel.exportFavState) { handleExportFavState(it) }
         collectOnLifecycle(viewModel.importFavState) { handleImportFavState(it) }
+    }
+
+    private fun observeResourceShareState() {
+        collectOnLifecycle(viewModel.exportResState) { handleExportResState(it) }
+        collectOnLifecycle(viewModel.importResState) { handleImportResState(it) }
+    }
+
+    private fun handleExportResState(state: ResourceShareExportUiState) {
+        when (state) {
+            is ResourceShareExportUiState.Idle -> {
+                binding.progressExportResources.visibility = View.GONE
+                binding.btnExportResources.isEnabled = true
+            }
+            is ResourceShareExportUiState.Loading -> {
+                binding.progressExportResources.visibility = View.VISIBLE
+                binding.btnExportResources.isEnabled = false
+            }
+            is ResourceShareExportUiState.Success -> {
+                binding.progressExportResources.visibility = View.GONE
+                binding.btnExportResources.isEnabled = true
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.resource_share_export_title)
+                    .setMessage(getString(R.string.resource_share_export_success, state.exported, state.skipped))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+                viewModel.resetExportResState()
+            }
+            is ResourceShareExportUiState.Error -> {
+                binding.progressExportResources.visibility = View.GONE
+                binding.btnExportResources.isEnabled = true
+                showSnackbar(state.message)
+                viewModel.resetExportResState()
+            }
+        }
+    }
+
+    private fun handleImportResState(state: ResourceShareImportUiState) {
+        when (state) {
+            is ResourceShareImportUiState.Idle -> {
+                binding.progressImportResources.visibility = View.GONE
+                binding.btnImportResources.isEnabled = true
+            }
+            is ResourceShareImportUiState.LoadingPreview -> {
+                binding.progressImportResources.visibility = View.VISIBLE
+                binding.btnImportResources.isEnabled = false
+            }
+            is ResourceShareImportUiState.Preview -> {
+                binding.progressImportResources.visibility = View.GONE
+                binding.btnImportResources.isEnabled = true
+                showResourceImportPreviewDialog(state)
+            }
+            is ResourceShareImportUiState.Importing -> {
+                binding.progressImportResources.visibility = View.VISIBLE
+                binding.btnImportResources.isEnabled = false
+            }
+            is ResourceShareImportUiState.Success -> {
+                binding.progressImportResources.visibility = View.GONE
+                binding.btnImportResources.isEnabled = true
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.resource_share_import_title)
+                    .setMessage(getString(R.string.resource_share_import_success, state.created, state.updated, state.skipped))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+                viewModel.resetImportResState()
+            }
+            is ResourceShareImportUiState.Error -> {
+                binding.progressImportResources.visibility = View.GONE
+                binding.btnImportResources.isEnabled = true
+                showSnackbar(state.message)
+                viewModel.resetImportResState()
+            }
+        }
+    }
+
+    private fun showResourceImportPreviewDialog(state: ResourceShareImportUiState.Preview) {
+        val message = buildString {
+            append(getString(R.string.resource_share_import_preview_message, state.toCreate, state.toUpdate))
+            if (state.containsCredentials) {
+                append("\n\n")
+                append(getString(R.string.resource_share_credentials_warning))
+            }
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.resource_share_import_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.resource_share_import_action) { _, _ ->
+                viewModel.confirmResourceImport(state.uri)
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> viewModel.resetImportResState() }
+            .setOnCancelListener { viewModel.resetImportResState() }
+            .show()
     }
 
     private fun handleExportFavState(state: FavoritesExportUiState) {

@@ -82,7 +82,6 @@ class StandaloneDrawSaveHelper(
     fun handleBackPress(): Boolean = manager.handleBackPress()
 
     private fun save(overlay: Bitmap, filename: String?, close: Boolean) {
-        Timber.d("S0410: standalone draw save requested")
         val base = getDisplayedBitmap() ?: run {
             // Base bitmap unavailable (image not yet loaded or load failed). Exit draw mode so
             // the user is not left stuck in the overlay with no way to dismiss it.

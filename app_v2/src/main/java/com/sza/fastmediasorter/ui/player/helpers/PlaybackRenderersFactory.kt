@@ -42,7 +42,6 @@ private fun attachDeliveredFfmpegDtsIfInstalled(context: Context) {
         if (!entryPoint.deliverableCapabilityRepository().isInstalledBlocking(DeliverableSet.FFMPEG_DTS)) {
             return
         }
-        Timber.d("S0386: FFmpeg DTS (Set D) installed - attaching delivered decoder before renderers build")
         entryPoint.deliveredNativeLibraryLoader().load(DeliverableSet.FFMPEG_DTS)
     } catch (e: Exception) {
         Timber.w(e, "FFmpeg DTS delivered-payload attach skipped")

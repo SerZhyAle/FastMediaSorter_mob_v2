@@ -35,14 +35,6 @@ class CapabilityAvailability @Inject constructor(
 
     fun isTranslationAvailable(): Boolean = CAP_TRANSLATION in compiled
 
-    /**
-     * True when translation is delivered as a Play dynamic feature (SplitInstall) rather than bundled
-     * in the APK. Dynamic-feature flavors (standard/vr) need a Play install to fetch the split;
-     * bundled flavors (noLegal/legacy) work offline/sideloaded. S0400 hides the welcome translation
-     * toggle on a non-Play install only when delivery is via dynamic feature.
-     */
-    fun isTranslationViaDynamicFeature(): Boolean = CAP_TRANSLATION_DFM in compiled
-
     fun isVrAvailable(): Boolean = CAP_VR in compiled
 
     fun isOcrCompiledIn(): Boolean = CAP_OCR in compiled
@@ -55,7 +47,6 @@ class CapabilityAvailability @Inject constructor(
     companion object {
         const val CAP_OCR = "ocr"
         const val CAP_TRANSLATION = "translation"
-        const val CAP_TRANSLATION_DFM = "translation_dfm"
         const val CAP_VR = "vr"
     }
 }

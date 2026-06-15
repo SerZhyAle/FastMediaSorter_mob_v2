@@ -17,6 +17,10 @@
         android:title="@string/copy_resource"
         android:icon="@drawable/ic_copy" />
     <item
+        android:id="@+id/action_export_resource"
+        android:title="@string/resource_menu_export"
+        android:icon="@drawable/ic_share" />
+    <item
         android:id="@+id/action_scan"
         android:title="@string/action_refresh_resource"
         android:icon="@drawable/ic_refresh" />

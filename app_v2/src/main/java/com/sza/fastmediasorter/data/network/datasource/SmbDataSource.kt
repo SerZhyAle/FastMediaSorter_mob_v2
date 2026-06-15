@@ -251,7 +251,6 @@ class SmbDataSource(
                 // position equals the file length (seek/re-open artifact). We reset to start and
                 // playback continues normally - so log at INFO. Logging it at ERROR would mirror it
                 // to the on-screen debug error notification (S0341) as if something broke.
-                Timber.d("S0344: SMB seek-past-EOF reset recovered at info level")
                 Timber.i(
                     "SmbDataSource: seek position past EOF (position=$position >= fileLength=$fileLength) " +
                     "for file=$finalPath - reset to start, playback continues (DataSpec reuse)"

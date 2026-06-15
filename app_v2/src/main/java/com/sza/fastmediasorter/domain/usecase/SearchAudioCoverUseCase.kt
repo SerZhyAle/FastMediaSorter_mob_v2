@@ -152,7 +152,6 @@ class SearchAudioCoverUseCase @Inject constructor(
         candidates: List<AudioMetadata>,
     ): AudioMetadata? {
         if (candidates.isEmpty()) return null
-        Timber.d("S0347: cover candidates scored by confidence (artist-priority)")
         val best = candidates
             .map { it to SearchQueryUtils.matchConfidence(queryArtist, queryTitle, it.artistName, it.trackName, dirArtist) }
             .maxByOrNull { it.second } ?: return null

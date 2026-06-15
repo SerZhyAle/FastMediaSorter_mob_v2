@@ -96,7 +96,6 @@ internal class VideoPlayerErrorHandler(
             manager.currentFilePath?.let(manager.decoderFailureTracker::markFailed)
             Timber.w("VideoPlayerManager: MediaCodec error - errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
         } else if (isBufferingHang) {
-            Timber.d("S0344: SMB streaming buffering hang classified at warn level")
             Timber.w("VideoPlayerManager: buffering hang (stuck buffering, not loading) - errorCode=${error.errorCode}, will mark file and advance")
         } else if (isNetworkTimeout) {
             Timber.w("VideoPlayerManager: playback timeout - errorCode=${error.errorCode}, will mark file and advance")

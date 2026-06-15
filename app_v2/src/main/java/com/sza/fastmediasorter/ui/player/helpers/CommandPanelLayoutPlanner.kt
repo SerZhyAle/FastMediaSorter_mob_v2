@@ -155,6 +155,9 @@ class CommandPanelLayoutPlanner {
             android.R.drawable.ic_menu_preferences),
         READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud,
             android.R.drawable.ic_lock_silent_mode_off),
+        // S0431: Send read-only text to Google Keep - overflow-only, TEXT type, shown only when Keep is installed.
+        SEND_TEXT_TO_KEEP(545, R.id.menu_send_text_to_keep, false, R.string.text_editor_action_send_keep,
+            R.drawable.ic_text_send_keep),
         PDF_SCROLL_MODE(550, R.id.menu_pdf_scroll_mode, false, R.string.pdf_scroll_mode,
             R.drawable.ic_view_list),
         PDF_COLOR_MODE(560, R.id.menu_pdf_color_mode, false, R.string.pdf_night_mode,
@@ -208,6 +211,7 @@ class CommandPanelLayoutPlanner {
         allowSeparateWindow: Boolean = false,
         allowVrLaunch: Boolean = false,
         telegramInstalled: Boolean = false,
+        keepInstalled: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -275,6 +279,8 @@ class CommandPanelLayoutPlanner {
             }
             if (isText) add(PlayerCommand.READER_SETTINGS)
             if (isText || isPdf || isEpub) add(PlayerCommand.READ_ALOUD)
+            // S0431: Send to Keep on the read surface - text only, only when a Keep client is installed.
+            if (isText && keepInstalled) add(PlayerCommand.SEND_TEXT_TO_KEEP)
             if (isPdf) add(PlayerCommand.PDF_SCROLL_MODE)
             if (isPdf) add(PlayerCommand.PDF_COLOR_MODE)
             if (isPdf) add(PlayerCommand.PDF_THUMBNAILS)

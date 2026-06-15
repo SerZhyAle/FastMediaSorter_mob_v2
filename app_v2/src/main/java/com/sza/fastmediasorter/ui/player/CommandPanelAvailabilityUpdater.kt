@@ -190,6 +190,7 @@ internal class CommandPanelAvailabilityUpdater(
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
             telegramInstalled = isTelegramInstalled(),
+            keepInstalled = isKeepInstalled(),
         )
         val editLabel = if (isVideo) R.string.control else R.string.edit
         safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
@@ -223,6 +224,7 @@ internal class CommandPanelAvailabilityUpdater(
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
             telegramInstalled = isTelegramInstalled(),
+            keepInstalled = isKeepInstalled(),
         )
         val availablePx = resolveAvailableCenterWidthPx()
         val density = binding.root.resources.displayMetrics.density
@@ -322,6 +324,7 @@ internal class CommandPanelAvailabilityUpdater(
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
             telegramInstalled = isTelegramInstalled(),
+            keepInstalled = isKeepInstalled(),
         ).filter { !it.barCapable }
         setLatestOverflowCommands(landscapeOverflowCmds)
         safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
@@ -330,4 +333,10 @@ internal class CommandPanelAvailabilityUpdater(
     // S0303: the "Send to Telegram" overflow command is offered only when a Telegram client is present.
     private fun isTelegramInstalled(): Boolean =
         TelegramShareTargets.firstInstalledPackage(binding.root.context.packageManager) != null
+
+    // S0431: the "Send to Keep" read-surface overflow command is offered only when a Keep client is present.
+    private val keepChecker by lazy {
+        com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(binding.root.context)
+    }
+    private fun isKeepInstalled(): Boolean = keepChecker.isKeepAvailable()
 }

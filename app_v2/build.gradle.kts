@@ -269,8 +269,7 @@ android {
     //   (b) a matching redirect URI registered in Azure (OneDrive), Google Cloud (Drive) and
     //       Dropbox app consoles.
     flavorDimensions += listOf("version")
-    dynamicFeatures += listOf(":translate_feature")
-    
+
     productFlavors {
         // XR native build is enabled only for vr/noLegal task graphs. Standard/lite/photos/legacy
         // leave the entire CMake pipeline disabled so local debug loops avoid per-ABI no-op work.
@@ -556,6 +555,11 @@ android {
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
             kotlin.directories.add("src/vrStub/java")
+            // S0418: shared screencapture machinery + Play-only (MediaProjection) controller binding.
+            // The accessibility capture path stays noLegal-exclusive (not mounted here).
+            kotlin.directories.add("src/screenCapture/java")
+            res.directories.add("src/screenCapture/res")
+            kotlin.directories.add("src/screenCapturePlay/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -570,6 +574,10 @@ android {
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
+            // S0418: shared screencapture machinery (moved out of src/noLegal). noLegal keeps its own
+            // accessibility capture path + a11y-aware controller in src/noLegal/java.
+            kotlin.directories.add("src/screenCapture/java")
+            res.directories.add("src/screenCapture/res")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -592,6 +600,10 @@ android {
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
+            // S0418: shared screencapture machinery + Play-only (MediaProjection) controller binding.
+            kotlin.directories.add("src/screenCapture/java")
+            res.directories.add("src/screenCapture/res")
+            kotlin.directories.add("src/screenCapturePlay/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -911,11 +923,8 @@ androidComponents {
         // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
         // would leave OCR/DTS in a half-migrated state.
 
-        // S0401: Exclude translation native libraries from standard and legacy base APKs
-        if (flavorName == "standard" || flavorName == "legacy") {
-            variant.packaging.jniLibs.excludes.add("**/libtranslate_jni.so")
-            variant.packaging.jniLibs.excludes.add("**/liblanguage_id_l2c_jni.so")
-        }
+        // S0423: ML Kit translate is bundled in every translation-capable flavor (no on-demand DFM),
+        // so the engine `.so` must stay in the base for standard/legacy too - no exclusion here.
     }
 }
 
@@ -1141,12 +1150,10 @@ dependencies {
     // ExifInterface for image metadata (width, height, camera, GPS, etc.)
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     
-    // Play Store dynamic feature support (Play Core on-demand delivery)
-    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
-
     // ML Kit - Translation and Text Recognition (OCR)
-    // S0386: ML Kit Translate is on-demand via :translate_feature on store flavors and remains
-    // bundled only on sideload/VR flavors where Play dynamic delivery is unavailable.
+    // S0423: ML Kit Translate is bundled in every translation-capable flavor. The on-demand
+    // :translate_feature DFM was removed (it shipped empty and broke the release bundle), so no
+    // Play Core SplitInstall dependency is needed.
     "noLegalImplementation"("com.google.mlkit:translate:17.0.3")
     "noLegalImplementation"("com.google.mlkit:language-id:17.0.6")
     "vrImplementation"("com.google.mlkit:translate:17.0.3")

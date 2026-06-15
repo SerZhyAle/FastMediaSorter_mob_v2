@@ -28,7 +28,6 @@ import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
-import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -72,7 +71,6 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_overflow_play)?.isVisible = isOverflowed(R.id.btnPlay)
         popup.menu.findItem(R.id.action_overflow_play_random)?.isVisible = isOverflowed(R.id.btnPlayRandom)
         popup.menu.findItem(R.id.action_overflow_mic)?.isVisible = isOverflowed(R.id.btnMicRecord)
-        Timber.d("S0374: overflow menu surfaced overflowed commands")
 
         // Hide "Create folder" if the resource doesn't support subfolder navigation, is read-only,
         // or is a virtual resource (e.g. "All Video", "Recent") that has no real path to write to.

@@ -1,0 +1,39 @@
+# S0398 - welcome onboarding pager walkthrough (pilot example for S0420).
+# Verifies the redesigned welcome flow advances through every page and finishes into the app.
+# ids confirmed against app_v2/src/main/res/layout/activity_welcome.xml: viewPager, btnNext,
+# btnFinish, btnEnableAll. Re-confirm with mobile_list_elements_on_screen if the layout changes.
+#
+# Caveat: system runtime-permission dialogs raised by the permissions page are not app UI.
+# On a fresh emulator pre-grant them via adb, or extend this flow with a tapOn against the
+# dialog's "Allow" text, before relying on a clean pass.
+appId: com.sza.fastmediasorter.debug
+---
+# clearState forces first-run onboarding to show.
+- launchApp:
+    clearState: true
+
+# Welcome pager is up.
+- assertVisible:
+    id: "viewPager"
+- assertVisible:
+    id: "btnNext"
+
+# Page through to the last page. btnNext is hidden on the final page (replaced by btnFinish),
+# so repeat-while-visible handles the variable page count without hardcoding it.
+- repeat:
+    while:
+      visible:
+        id: "btnNext"
+    commands:
+      - tapOn:
+          id: "btnNext"
+
+# Final page: finish the onboarding.
+- assertVisible:
+    id: "btnFinish"
+- tapOn:
+    id: "btnFinish"
+
+# Onboarding dismissed - welcome controls gone.
+- assertNotVisible:
+    id: "btnFinish"

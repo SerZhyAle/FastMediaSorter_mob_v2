@@ -16,10 +16,14 @@ import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesExportResult
 import com.sza.fastmediasorter.domain.model.FavoritesImportPreview
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.BackupToGoogleDriveUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportFavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportFavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
+import com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +51,29 @@ sealed class FavoritesImportUiState {
     data class Error(val message: String) : FavoritesImportUiState()
 }
 
+// ── Resource share (S0422) export/import UI state ────────────────────────────
+
+sealed interface ResourceShareExportUiState {
+    object Idle : ResourceShareExportUiState
+    object Loading : ResourceShareExportUiState
+    data class Success(val exported: Int, val skipped: Int) : ResourceShareExportUiState
+    data class Error(val message: String) : ResourceShareExportUiState
+}
+
+sealed interface ResourceShareImportUiState {
+    object Idle : ResourceShareImportUiState
+    object LoadingPreview : ResourceShareImportUiState
+    data class Preview(
+        val toCreate: Int,
+        val toUpdate: Int,
+        val containsCredentials: Boolean,
+        val uri: Uri
+    ) : ResourceShareImportUiState
+    object Importing : ResourceShareImportUiState
+    data class Success(val created: Int, val updated: Int, val skipped: Int) : ResourceShareImportUiState
+    data class Error(val message: String) : ResourceShareImportUiState
+}
+
 // ── Google Drive backup/restore UI state ─────────────────────────────────────
 
 sealed class BackupRestoreUiState {
@@ -71,9 +98,19 @@ class BackupRestoreViewModel @Inject constructor(
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val exportFavoritesUseCase: ExportFavoritesUseCase,
     private val importFavoritesUseCase: ImportFavoritesUseCase,
+    // S0422 - resource share export/import.
+    private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
+    private val szaResourcesImporter: SzaResourcesImporter,
+    private val resourceRepository: ResourceRepository,
     // S0200 Phase 04b - direct identity-domain access for the new sign-in path.
     private val identityRepository: GoogleIdentityRepository
 ) : ViewModel() {
+
+    private val _exportResState = MutableStateFlow<ResourceShareExportUiState>(ResourceShareExportUiState.Idle)
+    val exportResState: StateFlow<ResourceShareExportUiState> = _exportResState.asStateFlow()
+
+    private val _importResState = MutableStateFlow<ResourceShareImportUiState>(ResourceShareImportUiState.Idle)
+    val importResState: StateFlow<ResourceShareImportUiState> = _importResState.asStateFlow()
 
     private val _uiState = MutableStateFlow<BackupRestoreUiState>(BackupRestoreUiState.Idle)
     val uiState: StateFlow<BackupRestoreUiState> = _uiState.asStateFlow()
@@ -330,5 +367,65 @@ class BackupRestoreViewModel @Inject constructor(
 
     fun resetImportFavState() {
         _importFavState.value = FavoritesImportUiState.Idle
+    }
+
+    // ── Resource share export/import (S0422) ────────────────────────────────────
+
+    fun exportAllResources(target: Uri) {
+        viewModelScope.launch {
+            Timber.d("S0422: settings export all resources")
+            _exportResState.value = ResourceShareExportUiState.Loading
+            val ids = resourceRepository.getAllResourcesSync()
+                .filter { !VirtualPathUtils.isVirtualPath(it.path) }
+                .map { it.id }
+            _exportResState.value = when (val result = exportResourcesToFileUseCase(ids, target)) {
+                is ExportResourcesToFileUseCase.ExportResult.Success ->
+                    ResourceShareExportUiState.Success(result.exported, result.skippedKeyAuth)
+                is ExportResourcesToFileUseCase.ExportResult.Failure -> {
+                    Timber.e(result.error, "Resource export failed")
+                    ResourceShareExportUiState.Error(context.getString(R.string.resource_share_export_failed))
+                }
+            }
+        }
+    }
+
+    fun previewResourceImport(uri: Uri) {
+        viewModelScope.launch {
+            Timber.d("S0422: settings import preview")
+            _importResState.value = ResourceShareImportUiState.LoadingPreview
+            _importResState.value = when (val preview = szaResourcesImporter.preview(uri)) {
+                is SzaResourcesImporter.PreviewResult.Valid ->
+                    ResourceShareImportUiState.Preview(
+                        preview.toCreate,
+                        preview.toUpdate,
+                        preview.containsCredentials,
+                        uri
+                    )
+                is SzaResourcesImporter.PreviewResult.Invalid ->
+                    ResourceShareImportUiState.Error(context.getString(R.string.resource_share_invalid_file))
+            }
+        }
+    }
+
+    fun confirmResourceImport(uri: Uri) {
+        viewModelScope.launch {
+            _importResState.value = ResourceShareImportUiState.Importing
+            _importResState.value = when (val result = szaResourcesImporter.importFromUri(uri)) {
+                is SzaResourcesImporter.ImportResult.Success ->
+                    ResourceShareImportUiState.Success(result.imported, result.updated, result.skipped)
+                is SzaResourcesImporter.ImportResult.Failure -> {
+                    Timber.e(result.error, "Resource import failed")
+                    ResourceShareImportUiState.Error(context.getString(R.string.resource_share_import_failed))
+                }
+            }
+        }
+    }
+
+    fun resetExportResState() {
+        _exportResState.value = ResourceShareExportUiState.Idle
+    }
+
+    fun resetImportResState() {
+        _importResState.value = ResourceShareImportUiState.Idle
     }
 }

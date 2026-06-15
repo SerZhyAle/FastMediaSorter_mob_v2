@@ -6,6 +6,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+      S0418: edge-gesture screenshot capture (Play phase). Capture goes through MediaProjection
+      with per-shot consent + the overlay strip host. The silent AccessibilityService path stays
+      noLegal-exclusive and is deliberately NOT declared here (Google Play policy risk).
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <application>
 
         <!-- Remove Random Music Widget from photos flavor (no audio support) -->
@@ -50,6 +59,29 @@
         <activity
             android:name="com.dropbox.core.android.AuthActivity"
             tools:node="remove" />
+
+        <!-- S0418: screencapture machinery (shared src/screenCapture; no a11y service on Play). -->
+        <activity
+            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
+        </service>
+
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
 
     </application>
 

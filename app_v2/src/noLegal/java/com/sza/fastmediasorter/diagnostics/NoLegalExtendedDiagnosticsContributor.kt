@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.xr.XrEnvironmentDetector
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,7 +23,6 @@ class NoLegalExtendedDiagnosticsContributor @Inject constructor(
     private val collectors = NoLegalDiagnosticsCollectors(context, xrEnvironmentDetector)
 
     override fun sections(): List<ExtendedDiagnosticsSection> {
-        Timber.d("S0336: noLegal extended diagnostics collected")
         return listOf(
             collectors.osSecurity(),
             collectors.permissions(),

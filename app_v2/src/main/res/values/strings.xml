@@ -2558,4 +2558,15 @@ Close the player and try again.</string>
     <string name="screenshot_gesture_permission_dialog_title">Enable screen gestures</string>
     <string name="screenshot_gesture_open_settings">Open settings</string>
     <string name="screenshot_gesture_use_old_method">Old method</string>
+    <string name="resource_share_export_title">Export resources to file</string>
+    <string name="resource_share_import_title">Import resources from file</string>
+    <string name="resource_share_credentials_warning">This file will contain access passwords in plain text. Share it only with people you trust.</string>
+    <string name="resource_share_import_preview_message">%1$d new resource(s) will be added and %2$d existing will be overwritten.</string>
+    <string name="resource_share_import_action">Import</string>
+    <string name="resource_share_export_success">Exported %1$d resource(s); skipped %2$d.</string>
+    <string name="resource_share_import_success">Created %1$d, updated %2$d, skipped %3$d.</string>
+    <string name="resource_share_invalid_file">This file is not a valid resources file.</string>
+    <string name="resource_share_export_failed">Could not export resources.</string>
+    <string name="resource_share_import_failed">Could not import resources.</string>
+    <string name="resource_menu_export">Export</string>
 </resources>

@@ -508,7 +508,6 @@ class PhotoVideoStandaloneActivity :
                         true
                     }
                     R.id.menu_image_text_settings -> {
-                        Timber.d("S0410: standalone translation/OCR settings dialog opened")
                         com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog.show(
                             context = this,
                             lifecycleOwner = this,
@@ -518,7 +517,6 @@ class PhotoVideoStandaloneActivity :
                     }
                     R.id.menu_edit_image -> { openImageEditDialog(); true }
                     R.id.menu_draw_overlay -> {
-                        Timber.d("S0410: standalone draw overlay entered")
                         ensureDrawHelper().enterDrawMode(); true
                     }
                     R.id.menu_ocr_image -> { ocrCurrentImage(); true }
@@ -680,7 +678,6 @@ class PhotoVideoStandaloneActivity :
         }
         // S0390: gate Group A image actions on the editable-image state × the type-specific capability.
         collectOnLifecycle(viewModel.editableImageFile) { editFile ->
-            Timber.d("S0390: standalone Group A gate editable=${editFile != null}")
             // Crop overwrites the source in place, so it needs a writable local image. The rotation
             // toggle is decoupled (set once in setupFileOperationButtons) - it needs no file.
             binding.btnEditCrop.isVisible = editFile != null && supportsTypeSpecificActions

@@ -104,7 +104,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
 
     private fun showStrip() {
         if (overlayManager != null) return
-        Timber.d("S0405: accessibility overlay strip shown")
         // Accessibility (dialog-free) takes priority: if the legacy MediaProjection host was running
         // its own strip, shut it down so only one strip exists once accessibility is on.
         OverlayHostService.stop(this)
@@ -133,7 +132,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         if (captureInProgress) return
         captureInProgress = true
-        Timber.d("S0405: accessibility takeScreenshot triggered")
         takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, screenshotCallback)
     }
 
@@ -171,7 +169,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 selectedResourceId = settings.screenshotDestinationResourceId,
                 resources = resources
             )
-            Timber.d("S0405: accessibility capture saving -> %s", target::class.simpleName)
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success ->
                     toast(getString(R.string.screen_capture_saved_to, result.destinationLabel, result.fileName))
