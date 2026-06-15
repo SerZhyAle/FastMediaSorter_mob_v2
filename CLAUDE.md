@@ -23,7 +23,8 @@
 - `/spec-dev`: execute tactical spec step-by-step.
 - `/spec-check`: audit spec against codebase; sets status Verified/Partial/Broken; writes to `## Last Audit`.
 - `/spec-fix`: mechanical fixes after spec-check.
-- `/spec-arc`: archive spec (move files to `temp/done/`, set status `Archived`).
+- `/spec-arc`: archive one or more specs (move files to `temp/done/`, set status `Archived`).
+- `/arc`: alias for `/spec-arc`.
 - `/spec-test-device`: on-device verification, UI drive, logcat harvest.
 - `/spec-sweep`: batch device-test sweep over BlockNeedUserTest tickets.
 - `/ui-clarify`: resolve layout/UX ambiguity before design/impl.
@@ -92,6 +93,7 @@
 - Build: `.\a.ps1 d` (fast reusable debug APK), `db` (fast debug no-zip), `dav` (debug APK with timestamped app version), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB via release worktree), `bf` (build failure structured digest).
 - Checks: `.\a.ps1 fk` (Kotlin compile), `fr` (resources/manifest), `fc` (code + resources), `ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
 - Tests: `.\a.ps1 fu` (full unit suite) or `.\gradlew.bat testStandardDebugUnitTest`. kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
+- Device (ad-hoc, ~0 tokens): `scripts/devtest/adb.ps1 <verb>` or `.\a.ps1 adb <verb>` for quick chores against a connected emulator/device - `devices`, `props`, `current`, `launch`, `stop`, `clear`, `install`, `shot`, `log -Tail N -Grep <regex>`, `tap/text/key`, `prefs`, `shell -Cmd`. Auto-discovers adb (not on PATH); supports `-DeviceId`/`-Release`/`-Json` with stable exit codes. Shortcuts: `adb-devices/-shot/-log/-current/-launch/-clear`. Prefer over raw `adb` for one-off work; `mobile-mcp` stays for agent-driven UI walks, Maestro for repeatable flows.
 
 ## 10. Strict Rules
 1. No root writes. Use `temp/`.

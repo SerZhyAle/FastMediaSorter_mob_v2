@@ -29,15 +29,27 @@
     bfd  - Build failure digest (structured JSON + verdict)
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
+    adb  - adb swiss-army passthrough (scripts\devtest\adb.ps1); verb + options ride in via $Rest
+    adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-clear - fixed-verb shortcuts
 .EXAMPLE
     .\a.ps1 d
     .\a d
+.EXAMPLE
+    .\a.ps1 adb devices
+    .\a.ps1 adb log -Tail 400 -Grep S0035
+    .\a.ps1 adb-shot -DeviceId emulator-5554
 #>
 
 param(
-    [Parameter(Mandatory = $true, Position = 0)]
-    [string]$Command
+    [string]$Command = ''
 )
+
+# Everything after <Command> is forwarded verbatim to the target script (after its preset
+# Args), e.g. `.\a.ps1 adb log -Tail 400 -Grep S0035` or `.\a.ps1 adb shot -DeviceId X`.
+# Reading the automatic $args (simple-script mode) rather than a declared
+# ValueFromRemainingArguments parameter is deliberate: $args captures -flag tokens too,
+# which an advanced-binding param would reject ("a positional parameter cannot be found").
+$Rest = $args
 
 $ErrorActionPreference = "Stop"
 
@@ -81,6 +93,16 @@ $scripts = @{
     'bfd'       = @{ Path = 'scripts\builders\build-failure-digest.ps1'; Args = @{} }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
+    # adb swiss-army (scripts/devtest/adb.ps1). `adb` is the full passthrough - the verb
+    # and any options ride in via $Rest, e.g. `.\a.ps1 adb log -Tail 400 -Grep S0035`.
+    # The rest are fixed-verb shortcuts; extra options still forward through $Rest.
+    'adb'       = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{} }
+    'adb-devices' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'devices' } }
+    'adb-shot'  = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'shot' } }
+    'adb-log'   = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'log' } }
+    'adb-current' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'current' } }
+    'adb-launch' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'launch' } }
+    'adb-clear' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'clear' } }
 }
 
 # Validate command
@@ -114,6 +136,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  bfd  - Build failure digest (structured JSON + verdict)" -ForegroundColor Cyan
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
+    Write-Host "  adb  - adb swiss-army passthrough, e.g. 'adb log -Tail 400 -Grep S0035'" -ForegroundColor Cyan
+    Write-Host "  adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-clear" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray
@@ -250,10 +274,10 @@ $argsDisplay = if ($scriptArgs -is [hashtable]) {
         if ($_.Value -is [bool]) { "-$($_.Key)" } else { "-$($_.Key) $($_.Value)" }
     }) -join ' '
 } else { $scriptArgs -join ' ' }
-Write-Host "Executing: $($scriptEntry.Path) $argsDisplay" -ForegroundColor Green
+Write-Host "Executing: $($scriptEntry.Path) $argsDisplay $($Rest -join ' ')" -ForegroundColor Green
 Write-Host ""
 
-& $scriptPath @scriptArgs
+& $scriptPath @scriptArgs @Rest
 
 # Return exit code from executed script
 exit $LASTEXITCODE

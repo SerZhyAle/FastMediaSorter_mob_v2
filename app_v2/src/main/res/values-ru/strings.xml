@@ -2525,4 +2525,5 @@
     <string name="reset_operations_section_title">Сброс настроек управления</string>
     <string name="reset_operations_section_message">Сбросить только настройки страницы «Управление» к значениям по умолчанию?</string>
     <string name="reset_operations_section_success">Настройки управления сброшены</string>
+    <string name="ocr_engines_damaged">Данные OCR повреждены. Переустановите их в разделе «Загружаемые расширения».</string>
 </resources>

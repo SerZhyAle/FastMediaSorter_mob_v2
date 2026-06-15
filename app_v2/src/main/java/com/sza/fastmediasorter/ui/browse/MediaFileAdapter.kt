@@ -254,7 +254,6 @@ class MediaFileAdapter(
     fun setDisableThumbnails(disabled: Boolean) {
         if (disableThumbnails != disabled) {
             disableThumbnails = disabled
-            Timber.d("S0419: setDisableThumbnails=$disabled (favorite hidden + plank view-type when grid)")
             // Force rebind all items to switch between thumbnail/icon mode
             notifyDataSetChanged()
         }

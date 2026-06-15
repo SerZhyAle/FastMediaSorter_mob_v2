@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
+import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
@@ -76,7 +77,13 @@ class RecognitionBackend(
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
-            callback.showError(context.getString(R.string.ocr_error))
+            val errorRes = if (e is DeliveredPayloadCorruptException) {
+                Timber.d("S0432: OCR payload corrupt - showing reinstall message")
+                R.string.ocr_engines_damaged
+            } else {
+                R.string.ocr_error
+            }
+            callback.showError(context.getString(errorRes))
             return null
         }
 
@@ -106,7 +113,13 @@ class RecognitionBackend(
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
-            callback.showError(context.getString(R.string.ocr_error))
+            val errorRes = if (e is DeliveredPayloadCorruptException) {
+                Timber.d("S0432: OCR payload corrupt - showing reinstall message")
+                R.string.ocr_engines_damaged
+            } else {
+                R.string.ocr_error
+            }
+            callback.showError(context.getString(errorRes))
             return null
         }
 

@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
-import timber.log.Timber
 
 /**
  * Wires the "Default app" subgroup in settings: gates the four registration buttons by the
@@ -69,7 +68,6 @@ class DefaultPlayerSettingsManager {
     }
 
     private fun onTypeClick(fragment: Fragment, mimeType: String?, includeEpub: Boolean) {
-        Timber.d("S0435: settings default-player tap, mime=${mimeType ?: "documents"}")
         if (mimeType == null) {
             DefaultPlayerHelper.showSetDefaultDocumentDialog(fragment, includeEpub)
         } else {

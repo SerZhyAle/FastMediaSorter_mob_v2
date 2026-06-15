@@ -83,12 +83,12 @@ class GeneralSettingsObserversHelper(
             if (binding.rowEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
                 binding.rowEnableBackgroundSync.setCheckedSilently(settings.enableBackgroundSync)
 
-            binding.rowEnableThumbnailPreload?.let { row ->
+            binding.rowEnableThumbnailPreload.let { row ->
                 if (row.isChecked != settings.enableThumbnailPreload) row.setCheckedSilently(settings.enableThumbnailPreload)
             }
-            binding.layoutThumbnailPreloadWifiOnly?.visibility =
+            binding.layoutThumbnailPreloadWifiOnly.visibility =
                 if (settings.enableThumbnailPreload) View.VISIBLE else View.GONE
-            binding.rowThumbnailPreloadWifiOnly?.let { row ->
+            binding.rowThumbnailPreloadWifiOnly.let { row ->
                 if (row.isChecked != settings.thumbnailPreloadWifiOnly) row.setCheckedSilently(settings.thumbnailPreloadWifiOnly)
             }
 

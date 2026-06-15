@@ -2488,4 +2488,5 @@
     <string name="reset_operations_section_title">Скидання налаштувань управління</string>
     <string name="reset_operations_section_message">Скинути тільки налаштування сторінки «Управління» до значень за замовчуванням?</string>
     <string name="reset_operations_section_success">Налаштування управління скинуто</string>
+    <string name="ocr_engines_damaged">Дані OCR пошкоджені. Перевстановіть їх у розділі «Додаткові модулі».</string>
 </resources>

@@ -290,7 +290,18 @@ class StandaloneViewManager(
         releaseWakeLock()
         audioFocusManager?.releaseFocus()
         audioFocusManager = null
-        exoPlayer?.release()
+        // Media3 1.2.1: ExoPlayer.release() can block the main thread indefinitely when a
+        // setVideoEffects() GL pipeline is active - the DefaultVideoFrameProcessor GL thread join
+        // is not bounded by the release timeout (androidx/media #1139, #2098). Drain the effects and
+        // detach the output surface first so the GL pipeline terminates while EGL is still valid,
+        // then stop before release. Otherwise the next activity never gets a window -> input ANR.
+        exoPlayer?.let { player ->
+            Timber.d("S0447: standalone player teardown - drain video effects/surface before ExoPlayer.release()")
+            player.setVideoEffects(emptyList())
+            player.clearVideoSurface()
+            player.stop()
+            player.release()
+        }
         exoPlayer = null
         // Standalone mode must never continue audio in background - stop before releasing the service controller.
         audioServiceController?.player?.stop()

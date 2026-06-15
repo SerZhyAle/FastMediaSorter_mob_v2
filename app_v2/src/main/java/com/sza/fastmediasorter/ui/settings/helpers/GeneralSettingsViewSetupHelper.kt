@@ -389,12 +389,12 @@ class GeneralSettingsViewSetupHelper(
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))
         }
-        binding.rowEnableThumbnailPreload?.setOnCheckedChangeListener { isChecked ->
+        binding.rowEnableThumbnailPreload.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableThumbnailPreload = isChecked))
-            binding.layoutThumbnailPreloadWifiOnly?.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.layoutThumbnailPreloadWifiOnly.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        binding.rowThumbnailPreloadWifiOnly?.setOnCheckedChangeListener { isChecked ->
+        binding.rowThumbnailPreloadWifiOnly.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(thumbnailPreloadWifiOnly = isChecked))
         }

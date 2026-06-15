@@ -581,6 +581,30 @@
 
                     </LinearLayout>
 
+                    <!-- Thumbnail Preload Toggle (landscape parity; SMB-reset button lives in the cache container in landscape, so it is not duplicated here) -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableThumbnailPreload"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/thumbnail_preload_title"
+                            app:str_subtitle="@string/thumbnail_preload_summary" />
+
+                    </LinearLayout>
+
+                    <!-- Thumbnail Preload Wi-Fi Only Sub-Toggle -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreloadWifiOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:layout_marginStart="32dp" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowThumbnailPreloadWifiOnly"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/thumbnail_preload_wifi_only_title"
+                            app:str_subtitle="@string/thumbnail_preload_wifi_only_summary" />
+
+                    </LinearLayout>
+
                     <!-- Cache Management Container -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 

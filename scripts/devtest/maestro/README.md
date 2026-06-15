@@ -8,6 +8,18 @@ and one-off tickets.
 
 Strategic spec: `PLAN/S0420_maestro-device-test-flows.md`.
 
+## Relationship to `maestro/` (repo root)
+
+A separate, older Maestro setup lives at the repo root: `maestro/run-tests.ps1` with
+`maestro/smoke/` + `maestro/critical/` feature-area E2E suites (run via
+`scripts/utils/run-maestro-smoke.ps1`). That is **feature regression by capability** -
+app_launch, media_play, file_operations - not keyed to any ticket.
+
+This directory is different: **per-ticket** flows named `<Sxxxx>.yaml`, driven by `maestro-run.ps1`,
+feeding the `/spec-sweep` -> `/spec-test-device` device-test loop. The id-keyed name is the
+Phase 2 auto-route key. The two are intentionally separate (different purpose, different runner);
+do not merge a ticket flow into the root suites or vice versa.
+
 ## Layout
 
 - `maestro-run.ps1` (parent dir) - the runner. Discovers the Maestro binary, runs a flow
@@ -20,19 +32,30 @@ Strategic spec: `PLAN/S0420_maestro-device-test-flows.md`.
 
 ## Install (local, pinned)
 
-Maestro is a JVM CLI. Requirements: JDK 11+ on `PATH` (`java -version`). Install via Git Bash
-(the repo's shell); on Windows the binary lands in `%USERPROFILE%\.maestro\bin`, which
-`maestro-run.ps1` discovers automatically.
+Maestro is a JVM CLI. Requirements: JDK 17+ on `PATH` (`java -version`) and `ANDROID_HOME`
+pointing at the SDK (Maestro shells out to `adb`). Install via Git Bash (the repo's shell);
+on Windows the binary lands in `%USERPROFILE%\.maestro\bin`, which `maestro-run.ps1`
+discovers automatically.
 
 ```bash
 # Pin deliberately. Confirm the current line at https://maestro.dev before bumping.
-export MAESTRO_VERSION=1.39.0
+export MAESTRO_VERSION=2.6.1
 curl -Ls "https://get.maestro.mobile.dev" | bash
 maestro --version   # must print MAESTRO_VERSION
 ```
 
+Do **not** pin below 2.x. Verified 2026-06-15 against an API-37 emulator: the older 1.39.0
+line could not detect modern emulator images (API 35+/16KB-page) - its bundled dadb is too
+old - and its generated `maestro.bat` listed every jar on one `-classpath` line, overflowing
+cmd.exe's 8191-char command-line limit ("The input line is too long"). 2.x detects modern
+devices and uses a `lib\*` classpath wildcard, so both faults are gone.
+
 `maestro-run.ps1` resolves the binary from, in order: `PATH`, `MAESTRO_HOME\bin`,
 `%USERPROFILE%\.maestro\bin`. If none resolve it exits `2` with a pointer back here.
+
+If a run dies with a `KeyValueStore` / "another process has locked a portion of the file"
+trace, a prior Maestro session left its lock behind: delete `%USERPROFILE%\.maestro\sessions`
+(it is recreated) and re-run.
 
 ## Run
 

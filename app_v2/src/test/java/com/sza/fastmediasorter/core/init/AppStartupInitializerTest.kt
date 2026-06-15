@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.init
 
 import android.content.Context
+import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -30,6 +31,7 @@ class AppStartupInitializerTest {
             renameVirtualResourcesUseCase = dagger.Lazy { mockk<RenameVirtualResourcesUseCase>(relaxed = true) },
             inputBindingRepository = dagger.Lazy { mockk<InputBindingRepository>(relaxed = true) },
             defaultsMapLoader = dagger.Lazy { mockk<DefaultsMapLoader>(relaxed = true) },
+            remoteSourceDisableCoordinator = mockk<RemoteSourceDisableCoordinator>(relaxed = true),
         )
 
         assertTrue(initializer.tryStartConnectionThrottleManagerInitialization())

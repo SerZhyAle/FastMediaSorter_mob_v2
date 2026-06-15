@@ -4,6 +4,7 @@
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - owner standard for all text I author: hyphen not em-dash, ё not е, `..` not `...`; self-check before every chat/.md/commit
 - [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
+- [adb swiss-army CLI](reference_adb_swiss_army.md) - scripts/devtest/adb.ps1 + .\a.ps1 adb <verb> for quick ad-hoc device chores; prefer over raw adb; ~0 tokens
 - [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)
 - [S0398 keystone welcome-skeleton (BlockNeedUserTest)](project_s0398_inprogress.md) - build-green; DEBUG-v013 auto-commit + temp_stash_s0397 gotchas; ColorThemePrefs.getMode()
 - [Welcome redesign: S0399/S0400/S0401/S0402 Implemented+BlockNeedUserTest 2026-06-11](project_s0395_welcome_redesign_research.md) - central-skeleton+onBind-callback arch; pager order hero/profile/networks/functionality/permissions/default-player; deferrals
@@ -66,6 +67,7 @@
 - [VR HUD rendering pitfalls](project_vr_hud_quirks.md) - 4 hidden traps caused "HUD invisible" for hours; multiply_matrices column-major formula required, no per-frame queueHud from native callbacks, use ByteBuffer.allocateDirect not wrap, Android Skia copyPixelsToBuffer is RGBA (no R/B swap)
 - [S0002 decomposition toolkit](project_s0002_decomposition_toolkit.md) - reusable scripts (collapse_*/strip_trace_logs/fix_empty_else) + extraction patterns + Wave 54 backlog (TextViewer/PdfViewer/PlayerActivity/CommandPanelController still over 1000)
 - [adb location + .debug package suffix](reference_adb_and_debug_package.md) - adb not on PATH (user SDK platform-tools); debug builds install as com.sza.fastmediasorter.debug; Quest3 logcat buffer short, prefer app file logs in logs/
+- [setup_test_media.ps1](reference_setup_test_media.md) - seeds structured test-media tree on all connected devices for manual/device tests; source at c:\Common\test_media (outside repo); maps to PRE_RELEASE_MANUAL_TESTS.md
 - [Functionality log script leaves non-zero exit](project_func_log_nonzero_exit.md) - add_to_functionality_log.ps1 succeeds but sets non-zero $LASTEXITCODE; run it last/standalone, re-verify journal status
 - [set-android-string.ps1 editor](reference_strings_tool.md) - canonical byte-preserving set/add/get/remove/rename/list of string resources across EN/RU/UK; prefer over hand-editing strings.xml (grep scripts/utils/ before writing new resource tools)
 - [Check existing tooling first](feedback_check_existing_tooling.md) - grep scripts/ + scripts/utils/ + skills for an existing helper before authoring a new script; extend it, don't duplicate (I duplicated set-android-string.ps1)

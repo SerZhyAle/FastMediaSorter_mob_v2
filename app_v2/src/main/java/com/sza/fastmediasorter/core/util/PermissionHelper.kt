@@ -365,4 +365,19 @@ object PermissionHelper {
 
     fun getLocalNetworkPermissionMessage(context: Context): String =
         context.getString(com.sza.fastmediasorter.R.string.local_network_permission_rationale_message)
+
+    /**
+     * Handle the ACCESS_LOCAL_NETWORK runtime request result. When the user denied permanently
+     * (system will no longer surface the grant dialog), route to the app settings page so the
+     * rationale "Open settings" action stays actionable instead of dead-ending on a silent
+     * re-request. Returns true when the permission ended up granted.
+     */
+    fun onLocalNetworkPermissionResult(activity: Activity, grantResults: IntArray): Boolean {
+        val granted = grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        if (!granted && !shouldShowLocalNetworkRationale(activity)) {
+            routeToLocalNetworkSettings(activity)
+        }
+        return granted
+    }
 }

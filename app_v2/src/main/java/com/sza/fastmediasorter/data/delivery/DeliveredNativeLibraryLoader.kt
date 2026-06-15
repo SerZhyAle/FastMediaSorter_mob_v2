@@ -1,10 +1,14 @@
 package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
+import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetContributor
 import dalvik.system.BaseDexClassLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -33,7 +37,9 @@ class DeliveredNativeLibraryLoader @Inject constructor(
     private val context: Context,
     private val verifier: PayloadIntegrityVerifier,
     private val bundledSets: BundledDeliverableSets,
-    private val contributors: Set<@JvmSuppressWildcards DeliverableSetContributor>
+    private val contributors: Set<@JvmSuppressWildcards DeliverableSetContributor>,
+    private val capabilityRepository: DeliverableCapabilityRepository,
+    @ApplicationScope private val recoveryScope: CoroutineScope
 ) {
     private val loadedSets = mutableSetOf<DeliverableSet>()
 
@@ -52,7 +58,8 @@ class DeliveredNativeLibraryLoader @Inject constructor(
 
         val setDir = File(context.filesDir, "delivery/${set.name}")
         if (!setDir.isDirectory) {
-            throw IOException("Set directory for $set is missing: ${setDir.absolutePath}")
+            invalidateCorruptSet(set)
+            throw DeliveredPayloadCorruptException(set, "set directory missing: ${setDir.absolutePath}")
         }
 
         // ADR-3: verify all payload files before any code becomes loadable.
@@ -60,7 +67,8 @@ class DeliveredNativeLibraryLoader @Inject constructor(
             val file = File(setDir, payloadFile.fileName)
             val result = verifier.verify(file, payloadFile)
             if (result is PayloadIntegrityVerifier.Result.Failed) {
-                throw IOException("Integrity check failed for ${payloadFile.fileName} in set $set: ${result.reason}")
+                invalidateCorruptSet(set)
+                throw DeliveredPayloadCorruptException(set, result.reason)
             }
         }
 
@@ -91,6 +99,18 @@ class DeliveredNativeLibraryLoader @Inject constructor(
 
         loadedSets.add(set)
         Timber.i("DeliveredNativeLibraryLoader: attached native set %s from %s", set, setDir.absolutePath)
+    }
+
+    /**
+     * Drop the corrupt payload and clear the persisted install flag (S0432) so the set stops
+     * reporting "installed" and the Extensions row reactively offers a reinstall. Runs on the
+     * application scope because [load] is `@Synchronized` and cannot call the suspend uninstall
+     * directly; the operation is idempotent, so a concurrent retry that re-detects corruption
+     * simply re-issues the same cleanup.
+     */
+    private fun invalidateCorruptSet(set: DeliverableSet) {
+        Timber.d("S0432: corrupt payload detected for set %s - self-invalidating install marker", set)
+        recoveryScope.launch { capabilityRepository.uninstall(set) }
     }
 
     /**

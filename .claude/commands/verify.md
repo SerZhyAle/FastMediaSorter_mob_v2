@@ -107,7 +107,12 @@ adb -s <id> logcat -c
 adb -s <id> logcat -v time *:V > temp/verify_run_<TS>.log
 ```
 
-Background process. Record start timestamp.
+Background process (streaming capture - keep raw `adb logcat` here; `adb.ps1 log` is a `-d`
+one-shot dump, not a stream). Record start timestamp.
+
+For out-of-loop chores prefer the swiss-army over raw `adb`: `scripts/devtest/adb.ps1 launch`
+(debug: explicit MainActivity, dodges LeakCanary), `stop`, `clear`, `shot`, `props`
+(`.\a.ps1 adb <verb>`).
 
 ### 6 - Execute the scenario via mobile-mcp
 

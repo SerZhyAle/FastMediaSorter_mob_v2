@@ -2573,4 +2573,5 @@ Close the player and try again.</string>
     <string name="reset_operations_section_title">Reset Management settings</string>
     <string name="reset_operations_section_message">Reset only Management tab settings to default values?</string>
     <string name="reset_operations_section_success">Management settings reset completed</string>
+    <string name="ocr_engines_damaged">OCR data is damaged. Reinstall it from Downloadable Extensions.</string>
 </resources>

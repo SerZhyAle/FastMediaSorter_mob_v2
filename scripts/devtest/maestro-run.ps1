@@ -170,7 +170,7 @@ $logText = ''
 if (Test-Path -Path $logFile -PathType Leaf) {
     $logText = (Get-Content -Path $logFile -Raw -ErrorAction SilentlyContinue)
 }
-$infraPattern = 'no devices|no connected device|Unable to launch|Unable to find|connection refused|MAESTRO_CLI|java\.lang|ADB'
+$infraPattern = 'no devices|no connected device|not enough devices|Missing \d+ device|it is not connected|Unable to launch|Unable to find|connection refused|locked a portion of the file|MAESTRO_CLI|java\.lang|ADB'
 if ($logText -match $infraPattern -and $logText -notmatch 'Assertion|Element .*not|not visible|did not') {
     Fail 4 "Maestro execution error (no device or runtime error); see $logFile"
 }

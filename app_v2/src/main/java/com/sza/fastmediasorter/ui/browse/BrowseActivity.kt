@@ -490,6 +490,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         } else super.onKeyDown(keyCode, event)
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
+            Timber.d("S0035: Browse local-network permission result")
+            com.sza.fastmediasorter.core.util.PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
+        }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // D-pad / left stick focus moves rely on Android's default focus search
         // (item_media_file.xml and item_media_file_grid.xml are focusable).
